@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASE Real Estate Advisory</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --cream:#F5F3EF;--white:#FFF;--ink:#1A1714;
+  --i60:rgba(26,23,20,.6);--i30:rgba(26,23,20,.28);--i10:rgba(26,23,20,.08);
+  --red:#B01F22;
+  --serif:'DM Serif Display',Georgia,serif;
+  --sans:'Inter',system-ui,sans-serif;
+  --g:60px;--max:1380px;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--cream);color:var(--ink);overflow-x:hidden}
+::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--red)}
+img{display:block;width:100%;height:100%;object-fit:cover}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:300;height:68px;padding:0 var(--g);display:flex;align-items:center;justify-content:space-between;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
+nav.s{background:rgba(245,243,239,.96);backdrop-filter:blur(14px);border-color:var(--i10)}
+.brand{text-decoration:none;display:flex;flex-direction:column;gap:1px}
+.brand-n{font-family:var(--serif);font-size:22px;color:var(--ink);line-height:1;letter-spacing:1px}
+.brand-s{font-size:8px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--i60)}
+.nl{display:flex;gap:32px;list-style:none}
+.nl a{font-size:12px;font-weight:500;color:var(--i60);text-decoration:none;transition:color .2s}
+.nl a:hover{color:var(--ink)}
+.nc{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
+.nc:hover{color:var(--red);border-color:var(--red)}
+
+/* ── HERO: full-bleed render ── */
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
+.hero-img{position:absolute;inset:0;z-index:0}
+.hero-img img{width:100%;height:100%;object-fit:cover;object-position:center 40%}
+.hero-grad{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(15,12,10,.88) 0%,rgba(15,12,10,.3) 55%,transparent 100%)}
+.hero-content{position:relative;z-index:2;padding:0 var(--g) 72px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;max-width:var(--max);margin:0 auto;width:100%}
+.hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.9);display:flex;align-items:center;gap:10px;margin-bottom:24px;opacity:0;animation:up .7s .1s forwards}
+.hero-eyebrow::before{content:'';width:20px;height:1px;background:currentColor;flex-shrink:0}
+h1{font-family:var(--serif);font-size:clamp(52px,5.5vw,88px);line-height:1.02;letter-spacing:-1px;color:#fff;opacity:0;animation:up .9s .25s forwards}
+h1 em{font-style:italic;color:rgba(176,31,34,.9)}
+.hero-r{display:flex;flex-direction:column;justify-content:flex-end;gap:24px;opacity:0;animation:up .8s .45s forwards}
+.hero-desc{font-size:16px;line-height:1.75;color:rgba(255,255,255,.65);max-width:420px}
+.hero-desc strong{color:#fff;font-weight:600}
+.btns{display:flex;gap:12px;flex-wrap:wrap}
+.btn-w{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 30px;text-decoration:none;border:1px solid rgba(255,255,255,.25);transition:background .2s}
+.btn-w:hover{background:rgba(255,255,255,.22)}
+.btn-r{background:var(--red);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 30px;text-decoration:none;border:1px solid transparent;transition:background .2s}
+.btn-r:hover{background:#8e1719}
+
+/* Stat bar on hero bottom */
+.hero-stats{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);opacity:0;animation:fadeIn .8s 1s forwards}
+.hstat{padding:28px var(--g);border-right:1px solid rgba(255,255,255,.1)}
+.hstat:last-child{border-right:none}
+.hstat-n{font-family:var(--serif);font-size:42px;color:#fff;line-height:1}
+.hstat-n sup{font-family:var(--sans);font-size:16px;color:rgba(176,31,34,.9);vertical-align:super;font-weight:300}
+.hstat-l{font-size:11px;color:rgba(255,255,255,.45);margin-top:5px}
+
+/* TICKER */
+.ticker{background:var(--ink);padding:15px 0;overflow:hidden;white-space:nowrap}
+.tt{display:inline-flex;animation:scroll 32s linear infinite}
+.ti{font-family:var(--serif);font-style:italic;font-size:16px;color:rgba(255,255,255,.6);padding:0 30px;display:inline-flex;align-items:center;gap:30px}
+.ti::after{content:'·';color:var(--red);font-style:normal;font-size:20px}
+
+/* ── PORTFOLIO ── */
+.portfolio{background:var(--white);padding:100px 0 0}
+.port-head{padding:0 var(--g) 52px;max-width:var(--max);margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:24px}
+.port-head-l .plabel{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.port-head-l .plabel::before{content:'';width:20px;height:1px;background:var(--red);flex-shrink:0}
+.port-head-l h2{font-family:var(--serif);font-size:clamp(38px,4vw,60px);line-height:1.06}
+.port-filters{display:flex;gap:8px;flex-wrap:wrap}
+.pf{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:9px 20px;border:1.5px solid var(--i30);background:transparent;cursor:pointer;color:var(--i60);transition:all .2s}
+.pf.active,.pf:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* Featured project — full width */
+.port-featured{position:relative;height:600px;overflow:hidden;cursor:pointer;margin:0}
+.port-featured img{transition:transform .8s ease}
+.port-featured:hover img{transform:scale(1.03)}
+.port-featured-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(15,12,10,.75) 0%,rgba(15,12,10,.1) 60%,transparent 100%);display:flex;align-items:flex-end;padding:60px var(--g)}
+.pf-tag{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.85);margin-bottom:12px}
+.pf-title{font-family:var(--serif);font-size:clamp(32px,3.5vw,54px);color:#fff;line-height:1.06;margin-bottom:12px}
+.pf-meta{font-size:13px;color:rgba(255,255,255,.55);display:flex;gap:24px}
+.pf-badge{position:absolute;top:40px;right:60px;background:var(--red);color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 20px}
+.port-featured-arrow{width:52px;height:52px;background:rgba(255,255,255,.12);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;margin-left:32px;flex-shrink:0;transition:background .2s}
+.port-featured:hover .port-featured-arrow{background:var(--red);border-color:var(--red)}
+
+/* Grid of 4 project cards */
+.port-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--i10);margin-top:3px}
+.pcard{position:relative;height:420px;overflow:hidden;cursor:pointer;background:var(--cream)}
+.pcard img{transition:transform .7s ease}
+.pcard:hover img{transform:scale(1.06)}
+.pcard-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,12,10,.82) 0%,rgba(15,12,10,.08) 50%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:28px 24px;transition:background .3s}
+.pcard:hover .pcard-overlay{background:linear-gradient(to top,rgba(15,12,10,.9) 0%,rgba(15,12,10,.2) 60%,transparent 100%)}
+.pcard-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;transition:color .3s}
+.pcard:hover .pcard-type{color:rgba(176,31,34,.85)}
+.pcard-name{font-family:var(--serif);font-size:22px;color:#fff;line-height:1.1;margin-bottom:6px}
+.pcard-loc{font-size:12px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:6px}
+.pcard-loc::before{content:'→';font-size:10px;color:var(--red)}
+.pcard-detail{font-size:12px;line-height:1.6;color:rgba(255,255,255,.55);margin-top:12px;max-height:0;overflow:hidden;transition:max-height .4s ease}
+.pcard:hover .pcard-detail{max-height:80px}
+
+/* 2nd row — wide + narrow */
+.port-duo{display:grid;grid-template-columns:3fr 2fr;gap:3px;background:var(--i10);margin-top:3px}
+.pdcard{position:relative;height:480px;overflow:hidden;cursor:pointer}
+.pdcard img{transition:transform .7s}
+.pdcard:hover img{transform:scale(1.05)}
+.pdcard-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,12,10,.8) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:36px 32px}
+.pdcard-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(176,31,34,.8);margin-bottom:10px}
+.pdcard-name{font-family:var(--serif);font-size:28px;color:#fff;line-height:1.1;margin-bottom:8px}
+.pdcard-meta{font-size:12px;color:rgba(255,255,255,.45)}
+
+/* Port CTA row */
+.port-cta{padding:52px var(--g);display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--i10);max-width:100%}
+.port-cta p{font-size:15px;color:var(--i60);max-width:480px}
+.port-cta p strong{color:var(--ink)}
+.btn-ink{background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 32px;text-decoration:none;white-space:nowrap;transition:background .2s}
+.btn-ink:hover{background:var(--red)}
+
+/* SERVICES */
+.services{background:var(--cream);padding:120px 0}
+.sw{max-width:var(--max);margin:0 auto;padding:0 var(--g);display:grid;grid-template-columns:360px 1fr;gap:100px;align-items:start}
+.sl{position:sticky;top:96px}
+.sl .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sl .lbl::before{content:'';width:20px;height:1px;background:var(--red)}
+.sl h2{font-family:var(--serif);font-size:clamp(36px,3vw,50px);line-height:1.08;margin-bottom:20px}
+.sl p{font-size:15px;line-height:1.75;color:var(--i60)}
+.sr-img{width:100%;height:320px;overflow:hidden;margin-top:36px}
+.srow{display:grid;grid-template-columns:48px 1fr 20px;gap:20px;align-items:start;padding:30px 0;border-top:1px solid var(--i10);text-decoration:none;color:inherit;transition:border-color .25s;cursor:pointer}
+.srow:last-child{border-bottom:1px solid var(--i10)}
+.srow:hover{border-top-color:var(--red)}
+.srow:hover .sn{color:var(--red)}
+.srow:hover .arr{transform:translate(3px,-3px)}
+.sn{font-family:var(--serif);font-size:13px;color:var(--i30);padding-top:3px;transition:color .25s}
+.sname{font-size:18px;font-weight:600;margin-bottom:8px}
+.sdesc{font-size:13.5px;line-height:1.7;color:var(--i60)}
+.arr{font-size:16px;color:var(--red);padding-top:3px;transition:transform .2s}
+
+/* QUOTE BAND */
+.qband{position:relative;height:460px;overflow:hidden}
+.qband img{position:absolute;inset:0}
+.qband-ov{position:absolute;inset:0;background:rgba(20,17,14,.62);display:flex;align-items:center;justify-content:center;padding:var(--g)}
+.qt{font-family:var(--serif);font-size:clamp(26px,3.8vw,54px);font-style:italic;color:#fff;text-align:center;max-width:860px;line-height:1.2}
+.qt em{font-style:normal;color:rgba(176,31,34,.9)}
+
+/* HOW */
+.how{background:var(--white);padding:120px 0}
+.ht{max-width:var(--max);margin:0 auto;padding:0 var(--g) 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
+.ht h2{font-family:var(--serif);font-size:clamp(38px,3.8vw,60px);line-height:1.06}
+.ht p{font-size:16px;line-height:1.75;color:var(--i60)}
+.ht p strong{color:var(--ink)}
+.hg{max-width:var(--max);margin:0 auto;padding:0 var(--g);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--i10)}
+.hc{background:var(--white);padding:40px 32px;transition:background .25s}
+.hc:hover{background:var(--cream)}
+.hc-tag{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:16px}
+.hc h3{font-family:var(--serif);font-size:21px;line-height:1.2;margin-bottom:12px}
+.hc p{font-size:13.5px;line-height:1.72;color:var(--i60)}
+
+/* APPROACH */
+.approach{background:var(--ink);color:#fff;padding:120px 0}
+.at{max-width:var(--max);margin:0 auto;padding:0 var(--g) 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
+.at .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.8);display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.at .lbl::before{content:'';width:20px;height:1px;background:rgba(176,31,34,.8)}
+.at h2{font-family:var(--serif);font-size:clamp(36px,3.5vw,58px);line-height:1.06;color:#fff}
+.at p{font-size:15px;line-height:1.75;color:rgba(255,255,255,.48)}
+.at p strong{color:rgba(255,255,255,.85)}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid rgba(255,255,255,.1);max-width:var(--max);margin:0 auto;padding:0 var(--g)}
+.step{padding:36px 24px;border-right:1px solid rgba(255,255,255,.07)}
+.step:last-child{border-right:none}
+.step-n{font-family:var(--serif);font-size:36px;color:rgba(255,255,255,.1);margin-bottom:16px}
+.step-t{font-size:14px;font-weight:600;color:rgba(255,255,255,.88);margin-bottom:8px;line-height:1.3}
+.step-b{font-size:12.5px;line-height:1.7;color:rgba(255,255,255,.36)}
+
+/* WHY */
+.why{display:grid;grid-template-columns:1fr 1fr}
+.why-l{position:relative;min-height:580px;overflow:hidden}
+.why-l img{position:absolute;inset:0}
+.why-lov{position:absolute;inset:0;background:rgba(176,31,34,.58);display:flex;flex-direction:column;justify-content:flex-end;padding:60px}
+.why-lov .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.why-lov .lbl::before{content:'';width:20px;height:1px;background:rgba(255,255,255,.6)}
+.why-lov h2{font-family:var(--serif);font-size:clamp(32px,2.8vw,50px);line-height:1.06;color:#fff;margin-bottom:18px}
+.why-lov p{font-size:15px;line-height:1.75;color:rgba(255,255,255,.7);max-width:380px}
+.why-r{background:var(--white);padding:72px 60px;display:flex;flex-direction:column;justify-content:center}
+.dp{display:flex;gap:18px;padding:20px 0;border-bottom:1px solid var(--i10);align-items:flex-start}
+.dp:first-child{border-top:1px solid var(--i10)}
+.dp-ic{width:20px;height:20px;background:var(--red);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;margin-top:2px}
+.dp-tx{font-size:14.5px;line-height:1.65;color:var(--i60)}
+.dp-tx strong{color:var(--ink);font-weight:600}
+
+/* CTA */
+.cta{padding:140px var(--g);background:var(--cream);text-align:center}
+.cta .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
+.cta .lbl::before{content:'';width:20px;height:1px;background:var(--red)}
+.cta h2{font-family:var(--serif);font-size:clamp(44px,5.5vw,84px);line-height:1.02;letter-spacing:-1px;margin-bottom:24px}
+.cta h2 em{font-style:italic;color:var(--red)}
+.cta>p{font-size:17px;line-height:1.7;color:var(--i60);max-width:460px;margin:0 auto 48px}
+.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.btn-f{background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 32px;text-decoration:none;transition:background .2s}
+.btn-f:hover{background:var(--red)}
+.btn-o{background:transparent;color:var(--ink);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:13px 32px;border:1.5px solid var(--i30);text-decoration:none;transition:border-color .2s}
+.btn-o:hover{border-color:var(--ink)}
+.cons{margin-top:64px;padding-top:48px;border-top:1px solid var(--i10);display:grid;grid-template-columns:repeat(4,1fr)}
+.con{padding:0 24px;border-right:1px solid var(--i10)}
+.con:first-child{padding-left:0}.con:last-child{border-right:none}
+.con-l{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--i30);margin-bottom:8px}
+.con-v{font-size:13.5px;font-weight:500;color:var(--ink);text-decoration:none;transition:color .2s;display:block}
+.con-v:hover{color:var(--red)}
+
+/* FOOTER */
+footer{background:var(--ink);padding:36px var(--g);display:flex;align-items:center;justify-content:space-between}
+.fl{display:flex;flex-direction:column;gap:2px}
+.fl-n{font-family:var(--serif);font-size:18px;color:#fff;letter-spacing:1px}
+.fl-s{font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3)}
+.flinks{display:flex;gap:28px;list-style:none}
+.flinks a{font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.38);text-decoration:none;transition:color .2s}
+.flinks a:hover{color:#fff}
+.fc{font-size:11px;color:rgba(255,255,255,.18)}
+
+/* ANIM */
+@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.r{opacity:0;transform:translateY(32px);transition:opacity .8s,transform .8s}
+.r.in{opacity:1;transform:none}
+.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+
+/* RESPONSIVE */
+@media(max-width:1000px){
+  :root{--g:24px}
+  .hero-content,.sw,.ht,.at,.why{grid-template-columns:1fr;gap:40px}
+  .hero-stats{grid-template-columns:1fr 1fr}
+  .port-grid{grid-template-columns:1fr 1fr}
+  .pcard{height:320px}
+  .port-duo{grid-template-columns:1fr}
+  .hg{grid-template-columns:1fr;padding:0 var(--g)}
+  .steps{grid-template-columns:1fr 1fr}
+  .sl{position:relative;top:0}
+  .why-l{min-height:360px}
+  .why-r{padding:60px var(--g)}
+  .cons{grid-template-columns:1fr 1fr;gap:32px}
+  .con{border-right:none;padding:0}
+  footer{flex-direction:column;gap:20px;text-align:center}
+  .flinks{flex-wrap:wrap;justify-content:center}
+  nav .nl,.nc{display:none}
+  .port-cta{flex-direction:column;gap:24px;align-items:flex-start}
+  .port-featured{height:420px}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="#" class="brand"><span class="brand-n">CASE</span><span class="brand-s">Real Estate Advisory</span></a>
+  <ul class="nl">
+    <li><a href="#portfolio">Projects</a></li>
+    <li><a href="#services">Services</a></li>
+    <li><a href="#approach">Approach</a></li>
+    <li><a href="#why">Why CASE</a></li>
+  </ul>
+  <a href="#contact" class="nc">Get in Touch →</a>
+</nav>
+
+<!-- HERO — Use your most striking render here -->
+<section class="hero">
+  <div class="hero-img">
+    <!-- 💡 REPLACE: Your best full-bleed project render (exterior, golden hour, dramatic angle) -->
+    <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1800&q=90" alt="Project render">
+  </div>
+  <div class="hero-grad"></div>
+  <div class="hero-content">
+    <div>
+      <div class="hero-eyebrow">Real Estate Advisory</div>
+      <h1>Buildings<br>that work as<br><em>products.</em></h1>
+    </div>
+    <div class="hero-r">
+      <p class="hero-desc">We help developers and owners create <strong>commercially viable buildings</strong> — shopping centers, hotels, mixed-use and business centers that attract the right tenants and generate lasting revenue.</p>
+      <div class="btns">
+        <a href="#portfolio" class="btn-r">See Our Projects</a>
+        <a href="#contact" class="btn-w">Book a Consultation</a>
+      </div>
+    </div>
+  </div>
+  <div class="hero-stats">
+    <div class="hstat"><div class="hstat-n">90<sup>+</sup></div><div class="hstat-l">Projects Completed</div></div>
+    <div class="hstat"><div class="hstat-n">8</div><div class="hstat-l">Countries</div></div>
+    <div class="hstat"><div class="hstat-n">3</div><div class="hstat-l">Asset Segments</div></div>
+    <div class="hstat"><div class="hstat-n">1<sup style="font-size:15px">st</sup></div><div class="hstat-l">Independent Advisory in Region</div></div>
+  </div>
+</section>
+
+<!-- TICKER -->
+<div class="ticker">
+  <div class="tt" id="tick">
+    <span class="ti">Shopping Centers</span><span class="ti">Mixed-Use</span><span class="ti">Hotels & Resorts</span><span class="ti">Business Centers</span><span class="ti">Leasing Strategy</span><span class="ti">Tenant Mix</span><span class="ti">Operational Logic</span><span class="ti">Commercial Real Estate</span><span class="ti">Shopping Centers</span><span class="ti">Mixed-Use</span><span class="ti">Hotels & Resorts</span><span class="ti">Business Centers</span><span class="ti">Leasing Strategy</span><span class="ti">Tenant Mix</span><span class="ti">Operational Logic</span><span class="ti">Commercial Real Estate</span>
+  </div>
+</div>
+
+<!-- ── PORTFOLIO ── -->
+<section class="portfolio" id="portfolio">
+  <div class="port-head r">
+    <div class="port-head-l">
+      <div class="plabel">Selected Projects</div>
+      <h2>Our Work</h2>
+    </div>
+    <div class="port-filters">
+      <button class="pf active" onclick="filterCards(this,'all')">All</button>
+      <button class="pf" onclick="filterCards(this,'retail')">Shopping & Mixed-Use</button>
+      <button class="pf" onclick="filterCards(this,'hotel')">Hotels</button>
+      <button class="pf" onclick="filterCards(this,'office')">Business Centers</button>
+    </div>
+  </div>
+
+  <!-- FEATURED PROJECT — Use your most iconic render -->
+  <div class="port-featured r" data-cat="retail">
+    <!-- 💡 REPLACE: Hero project render — wide format, ideally exterior or dramatic atrium shot -->
+    <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1800&q=88" alt="Featured project">
+    <div class="port-featured-overlay">
+      <div>
+        <div class="pf-tag">Shopping Center · Tashkent, UZ</div>
+        <div class="pf-title">City Mall Tashkent</div>
+        <div class="pf-meta">
+          <span>Concept Development</span>
+          <span>Leasing Strategy</span>
+          <span>85 000 m²</span>
+        </div>
+      </div>
+      <div class="port-featured-arrow">↗</div>
+    </div>
+    <div class="pf-badge">Featured Project</div>
+  </div>
+
+  <!-- 4-card grid -->
+  <div class="port-grid">
+    <div class="pcard r" data-cat="hotel">
+      <!-- 💡 REPLACE: Hotel lobby or facade render -->
+      <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=700&q=85" alt="Hotel project">
+      <div class="pcard-overlay">
+        <div class="pcard-type">Hotel & Resort</div>
+        <div class="pcard-name">Silk Road<br>Boutique Hotel</div>
+        <div class="pcard-loc">Samarkand, UZ</div>
+        <div class="pcard-detail">Concept & room mix strategy for a 120-key boutique hotel positioned for international operators.</div>
+      </div>
+    </div>
+    <div class="pcard r d1" data-cat="office">
+      <!-- 💡 REPLACE: Business center exterior or lobby render -->
+      <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=85" alt="Business center">
+      <div class="pcard-overlay">
+        <div class="pcard-type">Business Center</div>
+        <div class="pcard-name">Capital<br>Business Park</div>
+        <div class="pcard-loc">Tashkent, UZ</div>
+        <div class="pcard-detail">Floor efficiency audit and tenant mix strategy for a Class A office development.</div>
+      </div>
+    </div>
+    <div class="pcard r d2" data-cat="retail">
+      <!-- 💡 REPLACE: Mixed-use render, street level or interior -->
+      <img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=700&q=85" alt="Mixed-use project">
+      <div class="pcard-overlay">
+        <div class="pcard-type">Mixed-Use</div>
+        <div class="pcard-name">Navoi Boulevard<br>Quarter</div>
+        <div class="pcard-loc">Tashkent, UZ</div>
+        <div class="pcard-detail">Commercial concept, retail zoning and F&B mix for a 6-block mixed-use development.</div>
+      </div>
+    </div>
+    <div class="pcard r d3" data-cat="hotel">
+      <!-- 💡 REPLACE: Resort or hotel exterior render -->
+      <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=700&q=85" alt="Resort project">
+      <div class="pcard-overlay">
+        <div class="pcard-type">Resort</div>
+        <div class="pcard-name">Chimgan<br>Mountain Resort</div>
+        <div class="pcard-loc">Chimgan, UZ</div>
+        <div class="pcard-detail">Full resort programming, operator brief and F&B concept for a 200-key mountain resort.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Duo row -->
+  <div class="port-duo">
+    <div class="pdcard r" data-cat="retail">
+      <!-- 💡 REPLACE: Large retail interior or atrium render — this card is 3/5 width -->
+      <img src="https://images.unsplash.com/photo-1604328727766-a151d1045ab4?auto=format&fit=crop&w=1100&q=85" alt="Retail project">
+      <div class="pdcard-overlay">
+        <div class="pdcard-type">Shopping Center · Almaty, KZ</div>
+        <div class="pdcard-name">Mega Park Almaty</div>
+        <div class="pdcard-meta">Repositioning · Tenant Mix Strategy · 120 000 m²</div>
+      </div>
+    </div>
+    <div class="pdcard r d1" data-cat="office">
+      <!-- 💡 REPLACE: Office or mixed-use exterior render -->
+      <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=85" alt="Office project">
+      <div class="pdcard-overlay">
+        <div class="pdcard-type">Business Center · Baku, AZ</div>
+        <div class="pdcard-name">Caspian Tower</div>
+        <div class="pdcard-meta">Commercial Brief · Leasing · 45 000 m²</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="port-cta r">
+    <p>These are a sample of our projects across <strong>8 countries</strong>. Every project starts with honest analysis — we only take on work where we can make a measurable difference.</p>
+    <a href="#contact" class="btn-ink">Discuss Your Project →</a>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section class="services" id="services">
+  <div class="sw">
+    <div class="sl r">
+      <div class="lbl">What We Do</div>
+      <h2>Expertise across asset classes</h2>
+      <p>We act as your <strong>commercial partner</strong> — connecting market insight, product logic, architectural requirements, and operational reality into one coherent strategy.</p>
+      <div class="sr-img">
+        <!-- 💡 REPLACE: A candid working shot, site visit, or architectural detail render -->
+        <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=700&q=85" alt="Our work">
+      </div>
+    </div>
+    <div>
+      <a href="#contact" class="srow r"><div class="sn">01</div><div><div class="sname">Shopping Centers & Mixed-Use</div><div class="sdesc">Tenant mix, flow patterns, zoning, and layouts that eliminate dead zones and maximise dwell time and spend.</div></div><div class="arr">↗</div></a>
+      <a href="#contact" class="srow r d1"><div class="sn">02</div><div><div class="sname">Hotels & Resorts</div><div class="sdesc">Room mix, guest scenarios, operational flows — everything an operator or international brand needs to say yes.</div></div><div class="arr">↗</div></a>
+      <a href="#contact" class="srow r d2"><div class="sn">03</div><div><div class="sname">Business Centers</div><div class="sdesc">Floor efficiency, divisibility, vertical transport, parking logic, and engineering that positions you competitively.</div></div><div class="arr">↗</div></a>
+      <a href="#contact" class="srow r d3"><div class="sn">04</div><div><div class="sname">Leasing & Brokerage</div><div class="sdesc">A tenant portfolio that supports your positioning, drives footfall, and sustains long-term yield.</div></div><div class="arr">↗</div></a>
+    </div>
+  </div>
+</section>
+
+<!-- QUOTE BAND -->
+<div class="qband">
+  <!-- 💡 REPLACE: Aerial project render or cityscape with your buildings visible -->
+  <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1800&q=85" alt="City view">
+  <div class="qband-ov">
+    <div class="qt r">"The details that look minor on paper become <em>expensive mistakes</em> after construction. We catch them first."</div>
+  </div>
+</div>
+
+<!-- HOW WE HELP -->
+<section class="how" id="how">
+  <div class="ht r">
+    <div><div class="lbl" style="font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px"><span style="width:20px;height:1px;background:var(--red);display:block"></span>How We Help</div><h2>Decisions that define success</h2></div>
+    <p>We engage before decisions are locked into design. Every asset type has a different commercial logic — we bring the <strong>full picture</strong> to every stage.</p>
+  </div>
+  <div class="hg">
+    <div class="hc r"><div class="hc-tag">Product</div><h3>What to Build & For Whom</h3><p>Target audience, competitive angle, and the commercial concept that sets your project apart.</p></div>
+    <div class="hc r d1"><div class="hc-tag">Layout</div><h3>Layouts That Actually Work</h3><p>Flow logic, column grids, divisibility — parameters that determine leasability before a wall is built.</p></div>
+    <div class="hc r d2"><div class="hc-tag">Tenants</div><h3>International Brand Requirements</h3><p>We translate operator specs into your brief early — not as costly afterthoughts.</p></div>
+    <div class="hc r d3"><div class="hc-tag">Operations</div><h3>Operational Efficiency</h3><p>Service corridors, loading, technical zones — the unseen infrastructure that separates quality from chaos.</p></div>
+    <div class="hc r d1"><div class="hc-tag">Investment</div><h3>Rational Investment Decisions</h3><p>We help you spend where it matters and avoid premium finishes that add cost but reduce performance.</p></div>
+    <div class="hc r d2"><div class="hc-tag">Relaunch</div><h3>Repositioning Existing Assets</h3><p>Already built but underperforming? We diagnose the commercial gaps and design a recovery strategy.</p></div>
+  </div>
+</section>
+
+<!-- APPROACH -->
+<section class="approach" id="approach">
+  <div class="at r">
+    <div><div class="lbl">Our Approach</div><h2>From concept<br>to completion</h2></div>
+    <p>We engage <strong>early</strong> — before decisions are locked. But we also work on projects already in development or operation. Every stage benefits from our commercial lens.</p>
+  </div>
+  <div class="steps">
+    <div class="step r"><div class="step-n">01</div><div class="step-t">Market & Concept Analysis</div><div class="step-b">Demand, competition, and site context — what product will succeed and why alternatives would fail.</div></div>
+    <div class="step r d1"><div class="step-n">02</div><div class="step-t">Commercial Concept & Brief</div><div class="step-b">Positioning, zoning logic, tenant categories, and layout parameters — the foundation architects build on.</div></div>
+    <div class="step r d2"><div class="step-n">03</div><div class="step-t">Design Review</div><div class="step-b">Audit design-stage solutions against commercial criteria — catching problems when changes are cheap.</div></div>
+    <div class="step r d3"><div class="step-n">04</div><div class="step-t">Leasing Strategy</div><div class="step-b">Target brands, negotiations, and a tenant portfolio that supports long-term performance.</div></div>
+    <div class="step r d4"><div class="step-n">05</div><div class="step-t">Launch Support</div><div class="step-b">We stay engaged through opening — ensuring operational readiness and avoiding early-stage pitfalls.</div></div>
+  </div>
+</section>
+
+<!-- WHY CASE -->
+<div class="why" id="why">
+  <div class="why-l r">
+    <!-- 💡 REPLACE: A project interior or finished space that shows quality -->
+    <img src="https://images.unsplash.com/photo-1445991842772-097fea258e7b?auto=format&fit=crop&w=900&q=85" alt="Our project">
+    <div class="why-lov">
+      <div class="lbl">Why CASE</div>
+      <h2>Commercial logic.<br>No compromise.</h2>
+      <p>We are not architects. We are the commercial intelligence that makes architecture perform. Our role: turn a building into a business.</p>
+    </div>
+  </div>
+  <div class="why-r r d1">
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Independent advisory</strong> — no developer affiliations, no conflicting interests. Our advice serves your project.</div></div>
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Operations experience</strong> — we have managed buildings, so we see operational problems at design stage, not after opening.</div></div>
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Brand & operator network</strong> — direct relationships with retail, F&B and hotel brands mean faster, better leasing outcomes.</div></div>
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Architecture partnership</strong> — we produce the commercial brief architects need. We strengthen their work, not replace it.</div></div>
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Depth over surface</strong> — we engage with the 50 technical details most advisors skip.</div></div>
+    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Confident, analytical</strong> — no grand promises. Logic, data, and real-world precedent guide every recommendation.</div></div>
+  </div>
+</div>
+
+<!-- CTA -->
+<section class="cta" id="contact">
+  <div class="lbl r">Start a Conversation</div>
+  <h2 class="r">Ready to build<br>something that <em>works?</em></h2>
+  <p class="r">Tell us about your project. We'll tell you honestly whether — and how — we can help.</p>
+  <div class="cta-btns r">
+    <a href="mailto:a.rakhimov@caseadvisory.uz" class="btn-f">Email Us</a>
+    <a href="https://www.caseadvisory.com" target="_blank" class="btn-o">Visit Website</a>
+  </div>
+  <div class="cons r">
+    <div class="con"><div class="con-l">Email</div><a href="mailto:a.rakhimov@caseadvisory.uz" class="con-v">a.rakhimov@caseadvisory.uz</a></div>
+    <div class="con"><div class="con-l">WhatsApp / Telegram</div><a href="tel:+998977707375" class="con-v">+998 97 770 73 75</a></div>
+    <div class="con"><div class="con-l">LinkedIn</div><a href="https://www.linkedin.com/company/case-real-estate-advisory" target="_blank" class="con-v">CASE Advisory</a></div>
+    <div class="con"><div class="con-l">Telegram Channel</div><a href="https://t.me/case_advisory" target="_blank" class="con-v">@case_advisory</a></div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="fl"><span class="fl-n">CASE</span><span class="fl-s">Real Estate Advisory</span></div>
+  <ul class="flinks">
+    <li><a href="https://www.instagram.com/caseadvisory" target="_blank">Instagram</a></li>
+    <li><a href="https://t.me/case_advisory" target="_blank">Telegram</a></li>
+    <li><a href="https://www.linkedin.com/company/case-real-estate-advisory" target="_blank">LinkedIn</a></li>
+    <li><a href="https://www.youtube.com/@case.advisory/videos" target="_blank">YouTube</a></li>
+  </ul>
+  <div class="fc">© 2025 CASE Real Estate Advisory</div>
+</footer>
+
+<script>
+  addEventListener('scroll', () => document.getElementById('nav').classList.toggle('s', scrollY > 60));
+  const obs = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting){x.target.classList.add('in'); obs.unobserve(x.target);} }),{threshold:.1});
+  document.querySelectorAll('.r').forEach(el => obs.observe(el));
+  document.getElementById('tick').innerHTML += document.getElementById('tick').innerHTML;
+
+  function filterCards(btn, cat) {
+    document.querySelectorAll('.pf').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('[data-cat]').forEach(card => {
+      const show = cat === 'all' || card.dataset.cat === cat;
+      card.style.display = show ? '' : 'none';
+    });
+  }
+</script>
+</body>
+</html>
