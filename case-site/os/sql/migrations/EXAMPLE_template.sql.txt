@@ -1,0 +1,7 @@
+-- Шаблон миграции. Переименуйте в формат с датой, напр.:
+--   2026_07_15_add_unit_assigned.sql
+-- Пишите ИДЕМПОТЕНТНО (чтобы повторный запуск не ломался) и БЕЗ удаления данных:
+ALTER TABLE units ADD COLUMN IF NOT EXISTS example_field VARCHAR(120) NULL;
+-- Добавление таблицы:
+-- CREATE TABLE IF NOT EXISTS new_table (...);
+-- Запрещено в обычных обновлениях: DROP TABLE / DROP COLUMN / TRUNCATE.
