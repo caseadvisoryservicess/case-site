@@ -531,20 +531,38 @@ function renderPlans(){
  else if(up&&up.kind==='img'){content=`<img src="${up.data}" alt="План" style="max-width:100%;display:block;margin:0 auto">`;note=`<div style="margin-top:9px;font-size:11.5px;color:var(--muted)">Растровый план (${esc(up.by||'')}). Для клика по помещениям и авто-закраски загрузите SVG с id = код помещения.</div>`;}
  else if(S.obj==='zm'){content=planSVG_zm();note=`<div style="margin-top:9px;font-size:11.5px;color:var(--muted)">Интерактивная схема построена по реальному чертежу (цвет = статус аренды). <a href="zarafshan-l1.pdf" target="_blank" style="color:var(--red-d);font-weight:600">Открыть исходный чертёж (PDF) →</a></div>`;}
  else{content=planSVG(S.obj);}
- $('main').innerHTML=`<div class="ph"><h1>${t('plans')}</h1></div><p class="sub">${curObj().name} · клик по помещению → карточка</p>${planTools()}<div style="display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 12px;font-size:11.5px"><span><span class="dot" style="background:#e7f4e8;border:1px solid var(--green)"></span> Подписан</span><span><span class="dot" style="background:#fff3e0;border:1px solid var(--amber)"></span> На подписании</span><span><span class="dot" style="background:#fdeaea;border:1px solid var(--red)"></span> Предложено</span><span><span class="dot" style="background:#e4eefb;border:1px solid var(--blue)"></span> Переговоры</span><span><span class="dot" style="background:#f0f0f0;border:1px solid #999"></span> Вакант</span></div><div class="card"><div style="background:#fbfaf8;border:1px dashed #cfc9c1;border-radius:14px;padding:10px;overflow-x:auto">${content}</div>${note}</div>${footNote()}`;
- if(up&&up.kind==='svg')bindUploadedPlan(S.obj);
+ let msg='';if(PLAN_MSG){const[ty,...tx]=PLAN_MSG.split('|');const cls=ty==='err'?'warn':ty==='warn'?'warn':'ok';msg=`<div class="banner ${cls}">${ty==='err'?'⚠ ':ty==='warn'?'ℹ ':'✔ '}${esc(tx.join('|'))}</div>`;PLAN_MSG='';}
+ $('main').innerHTML=`<div class="ph"><h1>${t('plans')}</h1></div><p class="sub">${curObj().name} · клик по помещению → карточка</p>${planTools()}${msg}<div style="display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 12px;font-size:11.5px"><span><span class="dot" style="background:#e7f4e8;border:1px solid var(--green)"></span> Подписан</span><span><span class="dot" style="background:#fff3e0;border:1px solid var(--amber)"></span> На подписании</span><span><span class="dot" style="background:#fdeaea;border:1px solid var(--red)"></span> Предложено</span><span><span class="dot" style="background:#e4eefb;border:1px solid var(--blue)"></span> Переговоры</span><span><span class="dot" style="background:#f0f0f0;border:1px solid #999"></span> Вакант</span></div><div class="card"><div style="background:#fbfaf8;border:1px dashed #cfc9c1;border-radius:14px;padding:10px;overflow-x:auto">${content}</div>${note}</div>${footNote()}`;
+ if(up&&up.kind==='svg'){try{bindUploadedPlan(S.obj);}catch(ex){const m=$('planmatch');if(m)m.innerHTML='<span class="sev red">Ошибка разбора SVG: '+esc(ex&&ex.message||String(ex))+'</span>';}}
 }
-function bindUploadedPlan(objId){const host=$('planhost');if(!host)return;const svg=host.querySelector('svg');if(svg){svg.removeAttribute('height');svg.setAttribute('width','100%');svg.style.maxWidth='100%';svg.style.height='auto';if(!svg.getAttribute('viewBox')){const w=parseFloat(svg.getAttribute('width'))||1000,h=parseFloat(svg.getAttribute('height'))||700;svg.setAttribute('viewBox','0 0 '+w+' '+h);}}
- const us=unitsOf(objId);let matched=0;
- us.forEach(u=>{const el=host.querySelector('[id="'+(window.CSS&&CSS.escape?CSS.escape(u.code):u.code)+'"]')||host.querySelector('[data-code="'+u.code+'"]');if(!el)return;matched++;
+function bindUploadedPlan(objId){const host=$('planhost');if(!host)return;const svg=host.querySelector('svg');if(!svg){const m=$('planmatch');if(m)m.innerHTML='<span class="sev red">В файле не найден элемент &lt;svg&gt;.</span>';return;}
+ svg.removeAttribute('height');svg.setAttribute('width','100%');svg.style.maxWidth='100%';svg.style.height='auto';if(!svg.getAttribute('viewBox')){const w=parseFloat(svg.getAttribute('width'))||1000,h=parseFloat(svg.getAttribute('height'))||700;svg.setAttribute('viewBox','0 0 '+w+' '+h);}
+ const us=unitsOf(objId);let matched=0;const miss=[];
+ us.forEach(u=>{let el=null;try{el=host.querySelector('[id="'+(window.CSS&&CSS.escape?CSS.escape(u.code):u.code)+'"]')||host.querySelector('[data-code="'+u.code+'"]');}catch(e){}if(!el){miss.push(u.code);return;}matched++;
   const targets=(el.tagName.toLowerCase()==='g')?el.querySelectorAll('rect,path,polygon,circle,ellipse'):[el];
   targets.forEach(t=>{t.style.fill=pf(u.status);t.style.fillOpacity='0.55';t.style.stroke=pstr(u.status);t.style.strokeWidth='2';});
   el.style.cursor='pointer';el.addEventListener('click',()=>openUnit(u.id));
   let ttl=el.querySelector('title');if(!ttl){ttl=document.createElementNS('http://www.w3.org/2000/svg','title');el.insertBefore(ttl,el.firstChild);}ttl.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status);});
- const m=$('planmatch');if(m)m.innerHTML+=` <b>Сопоставлено ${matched} из ${us.length}</b> помещений по id.`+(matched<us.length?' Непривязанные - проверьте, что id фигур = коды помещений.':'');
+ const m=$('planmatch');if(m)m.innerHTML+=` <b>Сопоставлено ${matched} из ${us.length}</b> по id.`+(matched<us.length?' Не найдены: '+esc(miss.slice(0,12).join(', '))+(miss.length>12?'…':'')+'. Проверьте, что у фигур id = код помещения.':' ✔');
 }
 function planTools(){const can=R().admin||R().plans;const up=PLANSVG[S.obj];const b=up?`<div class="banner ok">✔ Чертёж загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${can?' <button class="btn ghost sm" style="margin-left:8px" onclick="clearPlan()">Удалить</button>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()">⬆ Загрузить чертёж (SVG / PNG)</button> <span style="font-size:11px;color:var(--muted)">SVG с id = код помещения · BSH / админ</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружает BSH - план виден всем.</span>`;return b+`<div style="margin-bottom:6px">${x}</div>`;}
-function uploadPlan(){const inp=document.createElement('input');inp.type='file';inp.accept='.svg,image/svg+xml,image/png,image/jpeg';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();const isSvg=/svg/i.test(f.type)||/\.svg$/i.test(f.name);r.onload=()=>{let data=r.result;if(isSvg){data=String(data).replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'').replace(/ on\w+='[^']*'/gi,'');PLANSVG[S.obj]={kind:'svg',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};}else{PLANSVG[S.obj]={kind:'img',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};}persist();go('plans');};if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
+let PLAN_MSG='';
+function uploadPlan(){const inp=document.createElement('input');inp.type='file';inp.accept='.svg,image/svg+xml,image/png,image/jpeg';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const isSvg=/svg/i.test(f.type)||/\.svg$/i.test(f.name);const r=new FileReader();
+ r.onerror=()=>{PLAN_MSG='err|Не удалось прочитать файл. Попробуйте другой файл.';go('plans');};
+ r.onload=()=>{try{
+   let data=r.result;
+   if(isSvg){
+     data=String(data).replace(/<\?xml[\s\S]*?\?>/i,'').replace(/<!DOCTYPE[\s\S]*?>/i,'').replace(/<!--[\s\S]*?-->/g,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'').replace(/ on\w+='[^']*'/gi,'').trim();
+     if(data.toLowerCase().indexOf('<svg')<0){PLAN_MSG='err|Это не похоже на SVG. Сохраните чертёж как «Plain SVG» (Inkscape: Файл - Сохранить как - Простой SVG).';go('plans');return;}
+     PLANSVG[S.obj]={kind:'svg',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};
+   }else{PLANSVG[S.obj]={kind:'img',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};}
+   const big=(typeof data==='string'&&data.length>3000000);
+   if(big){PLAN_MSG='warn|Файл большой ('+Math.round(data.length/1024)+' КБ) - показан в этой сессии, но не сохранён локально. Для постоянного хранения нужен бэкенд или более лёгкий SVG.';}
+   else{PLAN_MSG=tryPersist()?'ok|Чертёж загружен.':'warn|Чертёж показан, но слишком большой для автосохранения в браузере (виден только в этой сессии).';}
+   go('plans');
+ }catch(ex){PLAN_MSG='err|Ошибка при обработке файла: '+(ex&&ex.message||ex);go('plans');}};
+ if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
+function tryPersist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,LANG,obj:S.obj}));return true;}catch(e){return false;}}
 function clearPlan(){if(!confirm('Удалить загруженный чертёж объекта?'))return;delete PLANSVG[S.obj];persist();go('plans');}
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
 function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
