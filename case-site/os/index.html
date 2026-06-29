@@ -576,9 +576,16 @@ function bindSvgPlan(host,objId){
  const overlaps=cb&&vbOk&&!(cb.x>vbRaw[0]+vbRaw[2]||cb.x+cb.width<vbRaw[0]||cb.y>vbRaw[1]+vbRaw[3]||cb.y+cb.height<vbRaw[1]);
  if(cb&&cb.width>0&&(!vbOk||!overlaps)){const px=cb.width*0.06+5,py=cb.height*0.06+5;svg.setAttribute('viewBox',[cb.x-px,cb.y-py,cb.width+2*px,cb.height+2*py].join(' '));vbw=cb.width+2*px;}
  else vbw=vbOk?vbRaw[2]:(cb?cb.width:1000);
- /* 3) маркеры по подписям для тех, что не нашлись по id */
- const NS='http://www.w3.org/2000/svg',r=Math.max(6,vbw*0.016);
- codeEls.forEach(ce=>{const u=ce.u,c=ce.c;if(!c||matched.has(u.code))return;matched.add(u.code);const g=document.createElementNS(NS,'g');g.style.cursor='pointer';const circ=document.createElementNS(NS,'circle');circ.setAttribute('cx',c.x);circ.setAttribute('cy',c.y);circ.setAttribute('r',r);circ.setAttribute('fill',pf(u.status));circ.setAttribute('fill-opacity','0.65');circ.setAttribute('stroke',pstrHex(u.status));circ.setAttribute('stroke-width',Math.max(1,r*0.22));const tt=document.createElementNS(NS,'title');tt.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status);g.appendChild(circ);g.appendChild(tt);g.addEventListener('click',()=>openUnit(u.id));svg.appendChild(g);});
+ /* 3) подписи с данными прямо на чертеже (код · бренд · площадь · статус) */
+ const NS='http://www.w3.org/2000/svg',fs=Math.max(8,vbw*0.013),lh=fs*1.2,pad=fs*0.45;
+ const drawLabel=(c,u)=>{const lines=[u.code,(u.vars[0]||u.sub||'').slice(0,20),fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.style.cursor='pointer';
+  const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',bx);rect.setAttribute('y',by);rect.setAttribute('width',bw);rect.setAttribute('height',bh);rect.setAttribute('rx',pad);rect.setAttribute('fill','#ffffff');rect.setAttribute('fill-opacity','0.86');rect.setAttribute('stroke',pstrHex(u.status));rect.setAttribute('stroke-width',Math.max(1,fs*0.22));g.appendChild(rect);
+  const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',bx+pad+fs*0.4);dot.setAttribute('cy',by+pad+fs*0.55);dot.setAttribute('r',fs*0.42);dot.setAttribute('fill',pstrHex(u.status));g.appendChild(dot);
+  const mk=(s,dy,opt)=>{const tx=document.createElementNS(NS,'text');tx.setAttribute('x',bx+pad+(opt&&opt.code?fs*1.1:0));tx.setAttribute('y',by+pad+dy);tx.setAttribute('font-family','Montserrat,Arial,sans-serif');tx.setAttribute('font-size',opt&&opt.s?opt.s:fs);if(opt&&opt.b)tx.setAttribute('font-weight','800');tx.setAttribute('fill',opt&&opt.c?opt.c:'#222');tx.textContent=s;g.appendChild(tx);};
+  mk(u.code,lh*0.85,{b:1,code:1});mk(lines[1],lh*1.95,{});mk(lines[2],lh*3.0,{c:'#555',s:fs*0.92});mk(stT(u.status),lh*4.05,{b:1,s:fs*0.92,c:pstrHex(u.status)});
+  const tt=document.createElementNS(NS,'title');tt.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status);g.appendChild(tt);
+  g.addEventListener('click',()=>openUnit(u.id));svg.appendChild(g);};
+ codeEls.forEach(ce=>{const u=ce.u,c=ce.c;if(!c||matched.has(u.code))return;matched.add(u.code);drawLabel(c,u);});
  if(note)note.innerHTML+=` <b>Привязано ${matched.size}</b> помещений (по id и подписям-кодам). ✔`;
 }
 function addSvgTitle(el,u){let ttl=el.querySelector('title');if(!ttl){ttl=document.createElementNS('http://www.w3.org/2000/svg','title');el.insertBefore(ttl,el.firstChild);}ttl.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status);}
