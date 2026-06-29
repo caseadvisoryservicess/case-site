@@ -1,0 +1,731 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASE OS - Leasing & Asset Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<meta name="theme-color" content="#9E0000">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="CASE OS">
+<meta name="description" content="CASE OS - leasing & asset-control platform for retail and office real estate.">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Crect%20width='180'%20height='180'%20rx='34'%20fill='%239E0000'/%3E%3Ctext%20x='50%25'%20y='56%25'%20font-family='Arial'%20font-size='52'%20font-weight='800'%20fill='%23fff'%20text-anchor='middle'%20dominant-baseline='middle'%3ECASE%3C/text%3E%3C/svg%3E">
+<style>
+:root{--red:#9E0000;--red-d:#7a0000;--red-l:#c62828;--bg:#f4f3f1;--panel:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--soft:#faf9f7;--border:#e6e3df;--green:#2e7d32;--amber:#e08600;--blue:#1565c0;--teal:#0e8a8a;--purple:#6a3fb5;--shadow:0 1px 3px rgba(0,0,0,.06),0 8px 30px rgba(0,0,0,.05)}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:'Montserrat',system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%}
+button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:2px solid var(--red);outline-offset:2px}.hidden{display:none!important}.num{text-align:right;font-variant-numeric:tabular-nums}
+#login{position:fixed;inset:0;background:linear-gradient(135deg,#2a0000,#9E0000);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.lcard{background:#fff;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.35);width:380px;max-width:94vw;padding:30px 28px}
+.lcard .lg{font-size:30px;font-weight:800}.lcard .lg .c{color:var(--red)}
+.lcard .tag{color:var(--muted);font-size:11px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;margin:2px 0 18px}
+.lcard label{font-size:11.5px;font-weight:600;color:#555;display:block;margin:12px 0 5px}
+.lcard select,.lcard input{width:100%;font-family:inherit;font-size:14px;padding:11px 12px;border:1px solid var(--border);border-radius:10px;background:#fff}
+.lcard .go{width:100%;margin-top:18px;background:var(--red);color:#fff;border:none;padding:12px;border-radius:10px;font-weight:700;font-size:15px}
+.lcard .lng{display:flex;gap:8px;justify-content:center;margin-top:14px}
+.lcard .lng button{flex:1;border:1px solid var(--border);background:#fff;border-radius:8px;padding:7px;font-weight:600;font-size:12px}
+.lcard .lng button.on{background:var(--red);color:#fff;border-color:var(--red)}
+.lcard .hint{font-size:10.5px;color:var(--muted);margin-top:12px;text-align:center;line-height:1.5}
+.topbar{display:flex;align-items:center;gap:12px;background:#fff;border-bottom:1px solid var(--border);padding:10px 16px;position:sticky;top:0;z-index:40}
+.burger{display:none;font-size:22px;background:none;border:none;color:#333}
+.brand{display:flex;align-items:baseline;gap:7px;font-weight:800;font-size:19px;white-space:nowrap}.brand .c{color:var(--red)}.brand .tag{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
+.demo{font-size:9.5px;font-weight:700;color:var(--red-d);background:#fdeaea;border:1px solid #f6cccc;padding:3px 7px;border-radius:20px}
+.tb-obj{margin-left:auto;font-family:inherit;font-size:13px;font-weight:600;padding:7px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;max-width:230px}
+.gsearch{position:relative;width:min(320px,28vw);min-width:210px}.gsearch input{width:100%;font-family:inherit;font-size:12.5px;padding:8px 10px 8px 30px;border:1px solid var(--border);border-radius:8px;background:#fff}.gsearch::before{content:'⌕';position:absolute;left:10px;top:6px;color:#999;font-weight:800;z-index:1}.gdrop{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);max-height:360px;overflow:auto;z-index:70;display:none}.gdrop.open{display:block}.gitem{display:flex;justify-content:space-between;gap:8px;padding:10px 11px;border-bottom:1px solid #f2f0ed;cursor:pointer}.gitem:hover{background:var(--soft)}.gitem b{font-size:12.5px}.gitem small{display:block;color:var(--muted);font-size:10.5px}.gitem .kind{font-size:9.5px;font-weight:800;color:var(--red-d);background:#fdeaea;border-radius:10px;padding:2px 7px;align-self:flex-start}
+.langbtn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:7px 9px;font-weight:700;font-size:11.5px;color:#444}
+.who{display:flex;align-items:center;gap:9px}.who .av{width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
+.who .nm{font-size:12px;font-weight:700;line-height:1.1}.who .nm small{display:block;color:var(--muted);font-weight:500;font-size:10.5px}
+.who .out{font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:7px;padding:5px 8px}
+.shell{display:flex;min-height:calc(100vh - 55px)}
+.side{width:214px;background:#fff;border-right:1px solid var(--border);padding:12px 10px;flex-shrink:0}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:9px;color:#333;font-weight:600;font-size:13px;margin-bottom:2px;cursor:pointer}
+.nav a:hover{background:var(--soft)}.nav a.active{background:var(--red);color:#fff}.nav a .ic{width:18px;text-align:center}
+.nav .sep{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#b3aea7;padding:12px 12px 6px;font-weight:700}
+.perm{margin-top:12px;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--soft);font-size:11px;color:var(--muted)}
+.perm b{color:#333;display:block;margin-bottom:5px;font-size:12px}.perm .chip{display:inline-block;margin:2px 3px 0 0;padding:2px 7px;border-radius:12px;background:#fff;border:1px solid var(--border);font-weight:600;font-size:10px}
+.scrim{display:none}.main{flex:1;padding:20px 24px;max-width:1320px;width:100%}
+.ph{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 3px;flex-wrap:wrap}.ph h1{font-size:20px;margin:0;font-weight:700}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 16px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:18px}
+.kpi{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:14px 15px;box-shadow:var(--shadow)}
+.kpi .lab{font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px}.kpi .val{font-size:23px;font-weight:800;margin-top:5px}.kpi .val small{font-size:12px;font-weight:600;color:var(--muted)}.kpi .sub2{font-size:11px;color:var(--muted);margin-top:2px}
+.grid2{display:grid;grid-template-columns:1.5fr 1fr;gap:15px}.grid2b{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;box-shadow:var(--shadow);margin-bottom:15px}
+.card h3{margin:0 0 13px;font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:8px}.card h3 .mut{font-weight:500;color:var(--muted);font-size:11.5px}
+.tbl-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px;padding:8px 9px;border-bottom:1px solid var(--border);white-space:nowrap}
+td{padding:9px 9px;border-bottom:1px solid #f0eeec;vertical-align:top}tr.click{cursor:pointer}tr.click:hover td{background:var(--soft)}
+.st{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;white-space:nowrap}
+.st-vac{background:#f0f0f0;color:#777}.st-neg{background:#e4eefb;color:var(--blue)}.st-off{background:#fdeaea;color:var(--red-d)}.st-os{background:#e0f2f1;color:var(--teal)}.st-cs{background:#fff3e0;color:var(--amber)}.st-cd{background:#e7f4e8;color:var(--green)}.st-res{background:#efe7fb;color:var(--purple)}
+.bw{height:8px;background:#eee;border-radius:6px;overflow:hidden}.bar{height:100%;background:var(--red);border-radius:6px}
+.btn{background:var(--red);color:#fff;border:none;padding:9px 15px;border-radius:9px;font-weight:600;font-size:13px}.btn:hover{background:var(--red-d)}.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.ghost{background:#fff;color:#333;border:1px solid var(--border)}.btn.ghost:hover{background:var(--soft)}.btn.sm{padding:6px 11px;font-size:12px}
+.pill{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;background:#eef;color:#33c;border:1px solid #dde}
+.legend div{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}.dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex-shrink:0}
+.varchips span{display:inline-block;background:#f3eee9;border:1px solid #e6ddd2;border-radius:12px;padding:2px 9px;font-size:11px;margin:0 4px 4px 0}
+.miniobj{display:flex;flex-direction:column;gap:7px;border:1px solid var(--border);border-radius:8px;padding:13px;cursor:pointer}.miniobj:hover{border-color:var(--red)}
+.opsgrid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:15px}.opbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:13px;box-shadow:var(--shadow)}.opbox h3{margin:0 0 9px;font-size:13px}.oprow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f2f0ed;font-size:12px}.oprow:last-child{border-bottom:none}.oprow b{font-size:12.5px}.oprow small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}.sev{font-size:10px;font-weight:800;border-radius:10px;padding:2px 7px;white-space:nowrap}.sev.red{background:#fdeaea;color:var(--red-d)}.sev.amber{background:#fff3e0;color:var(--amber)}.sev.green{background:#e7f4e8;color:var(--green)}.sev.gray{background:#f0f0f0;color:#777}
+.objgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.tabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}.tabs button{border:1px solid var(--border);background:#fff;border-radius:20px;padding:6px 13px;font-weight:600;font-size:12px;color:#444}.tabs button.on{background:#222;color:#fff;border-color:#222}
+.foot{margin-top:24px;padding-top:14px;border-top:1px solid var(--border);font-size:11px;color:var(--muted)}
+.dbg{position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:50;opacity:0;pointer-events:none;transition:.18s}.dbg.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:94vw;background:#fff;z-index:51;box-shadow:-8px 0 30px rgba(0,0,0,.16);transform:translateX(100%);transition:.22s;overflow-y:auto}.drawer.open{transform:none}
+.dh{padding:17px 20px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff}.dh .x{float:right;font-size:23px;color:#999;cursor:pointer}.dh h2{margin:0;font-size:17px}.dh .s{color:var(--muted);font-size:12px;margin-top:3px}
+.dbody{padding:16px 20px}.kv{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid #f2f0ed;font-size:13px}.kv span{color:var(--muted)}.kv b{font-weight:700;text-align:right}
+.sect{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;margin:16px 0 8px}
+.tl{border-left:2px solid var(--border);padding-left:15px}.tl .ev{position:relative;padding:0 0 14px}.tl .ev::before{content:'';position:absolute;left:-21px;top:3px;width:9px;height:9px;border-radius:50%;background:var(--red)}.tl .ev .dt{font-size:11px;color:var(--muted);font-weight:600}.tl .ev .tx{font-size:12.5px}
+.banner{padding:10px 12px;border-radius:9px;font-size:12px;margin-bottom:12px}.banner.warn{background:#fdeaea;border:1px solid #f3c2c2;color:var(--red-d)}.banner.ok{background:#eef6ee;border:1px solid #cfe6cf;color:#256029}
+.docwrap{display:grid;grid-template-columns:340px 1fr;gap:16px}
+.tmpls{display:flex;flex-direction:column;gap:6px}.tmpl{border:1px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer;font-size:12.5px}.tmpl.active{border-color:var(--red);background:#fdf6f6}.tmpl b{display:block}
+.form label{display:block;font-size:11px;font-weight:600;color:#555;margin:10px 0 4px}.form input,.form select,.form textarea{width:100%;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff}.form textarea{min-height:54px;resize:vertical}
+.row2{display:flex;gap:8px}.row2>div{flex:1}
+.fsec{border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin-top:10px;background:var(--soft)}.fsec .ft{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--red-d);margin-bottom:4px}
+.umx{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12px}.umx input[type=checkbox]{width:auto}.umx .un{width:130px}.umx select{flex:1;padding:5px 7px;font-size:12px}
+.preview{background:#fff;border:1px solid var(--border);border-radius:12px;min-height:360px;box-shadow:var(--shadow);overflow:hidden}
+.paper{padding:30px 32px;font-size:12.5px;color:#222}.paper .lh{display:flex;justify-content:space-between;border-bottom:2px solid var(--red);padding-bottom:11px;margin-bottom:16px}.paper .lh .b{font-size:21px;font-weight:800}.paper .lh .b .c{color:var(--red)}.paper .lh .meta{font-size:10.5px;color:var(--muted);text-align:right}
+.paper h2{font-size:15px;margin:0 0 11px}.paper table{margin:8px 0}.paper td{padding:5px 8px;font-size:12px;border:1px solid #ddd}.paper .tot{font-weight:800;color:var(--red-d)}.paper .note{font-size:10.5px;color:var(--muted);border-top:1px solid var(--border);margin-top:13px;padding-top:9px}
+.sign{display:flex;gap:18px;margin-top:14px;flex-wrap:wrap}.sign div{flex:1;min-width:150px;font-size:11.5px}
+.lock{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:64px 20px;color:var(--muted)}.lock .em{font-size:40px;margin-bottom:10px}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(2,1fr)}.grid2,.grid2b,.opsgrid{grid-template-columns:1fr}.docwrap{grid-template-columns:1fr}.objgrid{grid-template-columns:1fr}.gsearch{order:5;width:100%;min-width:100%}.topbar{flex-wrap:wrap}.tb-obj{margin-left:auto}}
+@media(max-width:820px){.burger{display:block}.side{position:fixed;top:55px;left:0;height:calc(100% - 55px);z-index:45;transform:translateX(-100%);transition:.2s}.side.open{transform:none}.scrim.open{display:block;position:fixed;inset:55px 0 0 0;background:rgba(0,0,0,.25);z-index:44}.tb-obj{max-width:160px}.main{padding:16px 14px}.who .nm{display:none}.brand .tag{display:none}.btn,.langbtn,.who .out,.tb-obj,.burger{min-height:44px}.row2{flex-direction:column;gap:0}}
+@media(max-width:430px){.kpis{grid-template-columns:1fr 1fr;gap:9px}.kpi .val{font-size:19px}.brand{font-size:17px}.demo{display:none}.tb-obj{max-width:135px}.paper{padding:20px 18px}.sign{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="lcard">
+    <div class="lg"><span class="c">CASE</span> OS</div>
+    <div class="tag">Leasing &amp; Asset Control</div>
+    <label id="l_user">Пользователь</label>
+    <select id="luser"></select>
+    <label id="l_pass">Пароль</label>
+    <input id="lpass" type="password" value="demo">
+    <button class="go" id="l_go" onclick="doLogin()">Войти</button>
+    <div class="lng"><button id="lng_ru" class="on" onclick="setLang('ru')">RU</button><button id="lng_uz" onclick="setLang('uz')">UZ</button></div>
+    <div class="hint" id="l_hint"></div>
+  </div>
+</div>
+
+<div id="app" class="hidden">
+  <div class="topbar">
+    <button class="burger" aria-label="Открыть меню" onclick="toggleSide()">☰</button>
+    <div class="brand"><span><span class="c">CASE</span> OS</span><span class="tag">Leasing Control</span></div>
+    <span class="demo">DEMO</span>
+    <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
+    <div class="gsearch"><input id="gq" aria-label="Global search" placeholder="Поиск: помещение, бренд, КП..." oninput="globalSearch(this.value)" onkeydown="if(event.key==='Escape')clearSearch()"><div id="gdrop" class="gdrop"></div></div>
+    <button class="langbtn" id="langTop" aria-label="Switch language" onclick="toggleLang()">UZ</button>
+    <div class="who"><div class="av" id="avatar">A</div><div class="nm" id="whoName">-<small id="whoRole">-</small></div><button class="out" id="b_out" onclick="logout()">Выход</button></div>
+  </div>
+  <div class="shell">
+    <div class="scrim" id="scrim" onclick="toggleSide()"></div>
+    <aside class="side" id="side"><nav class="nav" id="nav"></nav><div class="perm" id="perm"></div></aside>
+    <main class="main" id="main"></main>
+  </div>
+</div>
+
+<div class="dbg" id="dbg" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer"></div>
+
+<script>
+/* ===== i18n ===== */
+const I18N={
+ ru:{user:'Пользователь',pass:'Пароль',enter:'Войти',hint:'Демо-среда. Роль определяет доступ. Логины/пароли - в production через реальную авторизацию.',out:'Выход',
+  dash:'Дашборд',registry:'Реестр (LCR)',pipeline:'Воронка',dates:'Критич. даты',kpi:'KPI и комиссии',plans:'Планировки',docs:'Документы',refus:'Отказы',bench:'Бенчмаркинг',users:'Пользователи',admin:'Администрирование',
+  allobj:'Все объекты',form:'Сформировать',word:'Скачать Word',print:'Печать / PDF',add:'Добавить',avg:'Средние показатели',objects:'Объектов',occupancy:'Заполняемость',inwork:'В работе',noimo:'NOI / мес',rentmo:'Аренда / мес',avgocc:'Ср. заполняемость',avgrate:'Ср. ставка',avgsc:'Ср. сервис-чардж',lossvac:'Потеря (вакант)',portfolio:'по портфелю',occport:'Заполняемость портфеля',occupied:'Занято',free:'Свободно',funnel:'Воронка',thisweek:'эта неделя',statuses:'Статусы',rolelb:'роль',objectlb:'Объект',clickreg:'клик → реестр',byobj:'по объектам',byocc:'по занятым',ofrent:'от аренды',permonth:'в месяц',subSaaS:'по подписке (SaaS)',proposed:'предложено',tosign:'к подписанию',brands:'База брендов'},
+ uz:{user:'Foydalanuvchi',pass:'Parol',enter:'Kirish',hint:'Demo. Rol kirishni belgilaydi. Loginlar - productionda haqiqiy avtorizatsiya orqali.',out:'Chiqish',
+  dash:'Boshqaruv paneli',registry:'Reyestr (LCR)',pipeline:'Voronka',dates:'Muhim sanalar',kpi:'KPI va komissiya',plans:'Planirovkalar',docs:'Hujjatlar',refus:'Rad etishlar',bench:'Benchmarking',users:'Foydalanuvchilar',admin:'Administratsiya',
+  allobj:'Barcha obyektlar',form:'Shakllantirish',word:'Word yuklash',print:'Chop etish / PDF',add:'Qoʻshish',avg:'Oʻrtacha koʻrsatkichlar',objects:'Obyektlar',occupancy:'Bandlik',inwork:'Ishda',noimo:'NOI / oy',rentmo:'Ijara / oy',avgocc:'Oʻrt. bandlik',avgrate:'Oʻrt. stavka',avgsc:'Oʻrt. service charge',lossvac:'Yoʻqotish (boʻsh)',portfolio:'portfel boʻyicha',occport:'Portfel bandligi',occupied:'Band',free:'Boʻsh',funnel:'Voronka',thisweek:'shu hafta',statuses:'Statuslar',rolelb:'rol',objectlb:'Obyekt',clickreg:'bosing → reyestr',byobj:'obyektlar boʻyicha',byocc:'band boʻyicha',ofrent:'ijaradan',permonth:'oyiga',subSaaS:'obuna (SaaS)',proposed:'taklif',tosign:'imzoga',brands:'Brendlar bazasi'}
+};
+let LANG='ru';
+const t=k=>(I18N[LANG][k]||I18N.ru[k]||k);
+function setLang(l){LANG=l;$('lng_ru')&&$('lng_ru').classList.toggle('on',l==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',l==='uz');applyLoginLang();}
+function applyLoginLang(){$('l_user').textContent=t('user');$('l_pass').textContent=t('pass');$('l_go').textContent=t('enter');$('l_hint').textContent=t('hint');}
+function toggleLang(){LANG=LANG==='ru'?'uz':'ru';$('langTop').textContent=LANG==='ru'?'UZ':'RU';buildNav();renderPerm();go(S.view);}
+
+/* ===== CONFIG ===== */
+const TODAY=new Date(2026,5,27);
+const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
+const fmtA=n=>Math.round(n).toLocaleString('ru-RU');
+const $=id=>document.getElementById(id);
+const STORAGE_KEY='case-os-demo-state-v2';
+if(location.search.indexOf('resetDemo=1')>=0){try{localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
+const esc=v=>(v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function parseDateAny(v){if(!v)return new Date(TODAY.getTime());if(v instanceof Date)return new Date(v.getTime());const s=String(v).trim();let m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);const d=new Date(s);return isNaN(d)?new Date(TODAY.getTime()):d;}
+function addDaysISO(v,days){const d=parseDateAny(v);d.setDate(d.getDate()+(+days||0));return iso(d);}
+function daysUntil(v){return Math.round((parseDateAny(v)-TODAY)/86400000);}
+function dateRU(v){return parseDateAny(v).toLocaleDateString('ru-RU');}
+const USERS=[
+ {u:'aziz',name:'Aziz Shermukhamedov',role:'ASH',title:'Founder / CEO'},
+ {u:'admin',name:'Администратор',role:'ADM',title:'Система'},
+ {u:'bekzod',name:'Bekzod Abdumajidov',role:'BA',title:'Leasing Director'},
+ {u:'nodir',name:'Нодир',role:'AG',title:'Агент аренды'},
+ {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Lease Admin'},
+ {u:'beksulton',name:'Beksulton Shaxridinov',role:'BSH',title:'Архитектор'},
+ {u:'humoyun',name:'Humoyun Mirkamolov',role:'HM',title:'Advisory Manager'},
+];
+const ROLES={
+ ASH:{label:'Founder / CEO',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,rights:['Полный доступ','Финансы / NOI','Виза по ставкам','Все дашборды']},
+ ADM:{label:'Администратор',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,rights:['Управление пользователями','Все комиссии','Загрузка планов','Все права']},
+ BA:{label:'Leasing Director',leasing:true,finance:true,edit:true,approve:false,rights:['Аренда: полный','Совокупные + личные KPI','Правки реестра','Ставки → виза ASH']},
+ AG:{label:'Агент аренды',leasing:true,finance:false,edit:true,approve:false,rights:['Показы / КП','Бронь помещений','Свои KPI и комиссии','Без финансов отдела']},
+ HO:{label:'Lease Admin (тыл)',leasing:true,finance:false,edit:true,approve:false,rights:['Реестр и даты','Документы','Координация','Без финансов']},
+ BSH:{label:'Архитектор',leasing:true,finance:false,edit:true,approve:false,plans:true,rights:['Загрузка чертежей','Интерактивный план','Реестр (просмотр)','Без финансов']},
+ HM:{label:'Advisory Manager',leasing:true,finance:true,edit:false,approve:false,rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
+};
+const OBJECTS=[
+ {id:'ca',name:'Creative Avenue',ru:'Креативное авеню',city:'Ташкент',type:'Mixed-use',gba:18500,gla:17560,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'dual',vat:'incl',vatRate:12,comm:{type:'milestone',total:6,note:'2% сделка + 2% этаж + 2% здание'}},
+ {id:'zm',name:'Zarafshan Mall',ru:'Зарафшан Молл',city:'Зарафшан',type:'Mall',gba:26000,gla:17800,plan:'Подписка ТЦ',sc:12,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'top',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'}},
+ {id:'gb',name:'Gulistan (Бухара)',ru:'Гулистан (Бухара)',city:'Бухара',type:'Mixed-use',gba:14000,gla:9200,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'dual',vat:'incl',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'}},
+ {id:'mh',name:'Mega House Giotto-550',ru:'Mega House (Giotto-550)',city:'Бухара',type:'Plinth retail',gba:550,gla:550,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'top',vatRate:12,comm:{type:'flat',total:10,note:'10% годовой аренды'}},
+];
+const STAT={vac:'Вакант',neg:'Переговоры',off:'Предложено',os:'Предложение подписано',cs:'Контракт на подписании',cd:'Контракт подписан',res:'Резерв'};
+const STCLS={vac:'st-vac',neg:'st-neg',off:'st-off',os:'st-os',cs:'st-cs',cd:'st-cd',res:'st-res'};
+const STAT_UZ={vac:'Boʻsh',neg:'Muzokara',off:'Taklif qilindi',os:'Taklif imzolandi',cs:'Shartnoma imzolanmoqda',cd:'Shartnoma imzolandi',res:'Rezerv'};
+const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]):STAT[k];
+const OCCK=['cd','cs','os'];
+const brokerRole={'Бекзод':'BA','Хилола':'HO','Нодир':'AG','Азиз':'ASH'};
+const brokerUser={'Бекзод':'bekzod','Хилола':'hilola','Нодир':'nodir','Азиз':'aziz'};
+const ACTS=['Кафе / ресторан','Фастфуд','Кофейня / пекарня','Магазин одежды (fashion)','Обувь и аксессуары','Парфюмерия и косметика','Электроника','Продукты / супермаркет','Аптека','Услуги (салон / ателье)','Банк / финансы / ATM','Образование / учебный центр','Развлечения / игры','Офис','Пункт выдачи','Ювелирные / часы','Другое (ввести вручную)'];
+const RENTMODELS=['Фиксированная','Нарастающая (step-up по годам)','% от товарооборота (turnover)','База + % от оборота'];
+const VATOPT=[['na','Не облагается НДС'],['incl','НДС включён в ставку'],['top','НДС сверх ставки']];
+const UTILS=[['el','Электричество'],['cw','Вода холодная'],['hw','Вода горячая'],['heat','Отопление'],['cool','Охлаждение / кондиц.'],['gas','Газ'],['net','Интернет / связь'],['waste','Вывоз мусора'],['clean','Уборка / клининг']];
+const UMETHODS=['по счётчику','по гос. тарифу','за м² Арендодателю','включено в обслуживание','по договорённости'];
+
+const U=[];let _u=0;
+function unit(o,code,floor,area,terr,cat,sub,rate,total,gap,status,broker,vars,dates,comment,merged){_u++;return{id:'u'+_u,obj:o,code,floor,area,terr,cat,sub,rate,total,gap,status,broker,vars:vars||[],dates:dates||[],comment:comment||'',merged:merged||null,hist:[]};}
+U.push(unit('ca','B1_107 + B1_108','1 этаж',367.5,75.2,'Еда и напитки','Ресторан',18,8386,0,'cs','Бекзод',['KFC'],[['Подписание контракта','2026-07-12']],'KFC берёт 2 объединённых помещения; на проверке 12.05.2026',['B1_107','B1_108']));
+U.push(unit('ca','B1_104','1 этаж',194.9,19.3,'Еда и напитки','Ресторан',15,3375,0,'neg','Бекзод',['Oq tepa lavash','Papa johns','Belissimo'],[['Окончание брони','2026-07-05']],'КП 25.05.2026; ждём ответ'));
+U.push(unit('ca','B1_106','1 этаж',62.3,39.1,'Еда и напитки','Кафе',20,1801,-1801,'off','Бекзод',['Air waffle','Dog&dog','Amelis','Wokebowl'],[['Дедлайн ответа','2026-07-02']],'Презентация 09.04.2026'));
+U.push(unit('ca','B1_102','1 этаж',17.6,0,'Торговля','Парфюмерия и косметика',25,484,-484,'off','Бекзод',['Китайские сладости'],[['Дедлайн','2026-07-08']],'Островок; презентация 25.05.2026'));
+U.push(unit('ca','B1_201','2 этаж',90.9,0,'Офис','Офис',24,2400,0,'neg','Нодир',['23 BK (учебный центр)'],[['Переговоры по ставке','2026-07-04']],'КП 23.06.2026'));
+U.push(unit('ca','B1_205','2 этаж',66,0,'Офис','Офис',24,1452,-1452,'off','Хилола',['Holmuradov Design'],[],'Презентация 16.06.2026'));
+U.push(unit('ca','B2_103','1 этаж',165.3,65.4,'Еда и напитки','Ресторан',18,3920,-3920,'off','Бекзод',['Evos','Wendies','Burger&Co','Burger embassy'],[['Дедлайн','2026-07-15']],'Evos: про аренду в июне; Wendies ждёт KFC/BK'));
+U.push(unit('ca','B5_111','1 этаж',230.7,96.8,'Еда и напитки','Ресторан',15,4605,-4605,'off','Бекзод',['Burger King','Papa johns','Burger&Co'],[],'Papa Johns ждёт KFC; КП 25.05.2026'));
+U.push(unit('ca','B5_104','1 этаж',48.9,0,'Торговля','Парфюмерия и косметика',25,1345,-1345,'off','Бекзод',['mcosmetic','Datum parfume','Toshkent parfume'],[],'Презентация 15.04.2026'));
+U.push(unit('ca','B5_107','1 этаж',58.7,0,'Услуги','Аптека',20,1291,-1291,'neg','Бекзод',['Oxy Med','A5','Savii','Cosmopharm','Navbohor'],[['Решение','2026-07-09']],'5 вариантов'));
+U.push(unit('ca','B2_104','1 этаж',107.6,0,'Торговля','Канцтовары',20,2367,0,'cd','Бекзод',['Kanstik'],[['Открытие','2026-09-01']],'Контракт подписан'));
+U.push(unit('ca','B3_1','3 блок',2909,0,'Офис','Co-Working',5,16000,0,'cd','Азиз',['Hub'],[['Открытие','2026-08-15']],'Якорь подписан'));
+U.push(unit('ca','B2_105','1 этаж',225.7,0,'Услуги','Косметология',15,3724,-3724,'vac','',[],[],''));
+U.push(unit('ca','B5_201','2 этаж',545.1,0,'Услуги','Основная разработка',24,11992,-11992,'vac','',[],[],''));
+const CA_REFUS=[['Viccco','не отвечает'],['Name it','не интересует локация'],['Paul','отказ'],['Мир очков','не рассматривают расширения'],['Moscow Ice cream','не планирует расширяться'],['Proweb','просят локацию у метро / вузов'],['Kings academy','просят локацию у метро / вузов'],['Cambridge','просят локацию у метро / вузов'],['Gavali','пока не готовы'],['Moscow Pizza','финансово не готовы'],['Kids plate','место не подходит'],['Mexx','нужны центральные локации'],['CoffeeWine','не рассматривают расширение']];
+const REFUSALS={ca:CA_REFUS.map(r=>({brand:r[0],reason:r[1],date:'2026-06-20'})),zm:[{brand:'Zara',reason:'нужны центральные локации в столице',date:'2026-05-30'}],gb:[],mh:[]};
+U.push(unit('zm','A-01','1 этаж',2200,0,'Продукты','Якорь',12,26400,0,'cd','Нодир',['Makro'],[['Открытие','2026-10-01']],'Якорь'));
+U.push(unit('zm','A-08','1 этаж',1100,0,'Мода и стиль','Fashion',14,15400,0,'cd','Нодир',['DeFacto'],[['Ревизия ставки','2026-09-01']],''));
+U.push(unit('zm','A-12','1 этаж',700,0,'Мода и стиль','Fashion',15,10500,0,'cs','Нодир',['Terranova'],[['Окончание договора','2026-07-31']],'Продление'));
+U.push(unit('zm','F-02','3 этаж',260,0,'Еда и напитки','Фастфуд',24,6240,-6240,'off','Нодир',['KFC','Hardees'],[['Дедлайн','2026-07-20']],'LOI'));
+U.push(unit('zm','A-25','2 этаж',1500,0,'-','-',0,0,-18000,'vac','',[],[],'Не сдавалось'));
+U.push(unit('gb','G-1','1 этаж',750,0,'Мода и стиль','Fashion',15,11250,-11250,'off','Бекзод',['Sinsay'],[['Якорь','2026-07-10']],'LOI - якорь'));
+U.push(unit('gb','G-4','1 этаж',200,0,'Еда и напитки','Кафе',22,4400,0,'cd','Бекзод',['Café Local'],[],''));
+U.push(unit('gb','G-2','1 этаж',1200,0,'-','-',0,0,-18000,'vac','',[],[],''));
+U.push(unit('mh','P-550','Цоколь',550,0,'Co-tenancy','Plinth',28,15400,-15400,'off','Бекзод',['Sinsay','Giotto','CTR Chicken'],[['Тизер','2026-06-25']],'Сдаётся целиком'));
+U.forEach(u=>{if(u.comment)u.hist.push([iso(TODAY),u.comment]);if(['neg','off','os','cs'].indexOf(u.status)>=0&&u.vars.length){u.offer={to:u.vars[0],role:brokerRole[u.broker]||'BA',by:u.broker,byUser:brokerUser[u.broker]||'',date:iso(TODAY),validDays:14,validUntil:addDaysISO(TODAY,14),no:'DEMO'};}});
+function iso(d){d=parseDateAny(d);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
+const CHANGES=[
+ {obj:'ca',date:'2026-05-10',type:'Объединение',what:'B1_107 + B1_108 → один юнит для KFC (367.5 м²)',by:'Бекзод'},
+ {obj:'ca',date:'2026-05-22',type:'Скидка',what:'B1_104: rent-free 3 мес (fit-out)',by:'Бекзод'},
+ {obj:'ca',date:'2026-06-01',type:'Нарастающая аренда',what:'B3_1 Hub: год1 5$, год2 6$, год3 7$/м²',by:'Азиз'},
+ {obj:'zm',date:'2026-06-15',type:'Разделение',what:'A-25 (1500) → A-25a + A-25b под 2 арендаторов',by:'Нодир'},
+];
+const BENCH=[
+ {city:'Ташкент',district:'Юнусабад',obj:'Tashkent City Mall',cat:'Fashion',rent:32,sc:9,note:'1 этаж, проходное'},
+ {city:'Ташкент',district:'Мирзо-Улугбек',obj:'Compass',cat:'F&B',rent:28,sc:10,note:'фудкорт'},
+ {city:'Ташкент',district:'Чиланзар',obj:'Riviera',cat:'Fashion',rent:22,sc:8,note:''},
+ {city:'Зарафшан',district:'Центр',obj:'Zarafshan Mall',cat:'Fashion',rent:15,sc:12,note:'наш объект'},
+ {city:'Бухара',district:'Центр',obj:'Mega House',cat:'F&B',rent:24,sc:10,note:''},
+ {city:'Бухара',district:'Гулистан',obj:'Gulistan',cat:'Fashion',rent:16,sc:10,note:'наш объект'},
+];
+const TARGETS={touch:40,meet:10,view:5,loi:2,sign:1};
+const AGENTS=[
+ {role:'BA',name:'Bekzod Abdumajidov',title:'Leasing Director',touch:45,meet:12,view:7,loi:3,sign:2,earned:9800,pipe:18200},
+ {role:'AG',name:'Нодир',title:'Агент аренды',touch:38,meet:8,view:4,loi:2,sign:1,earned:4200,pipe:8600},
+ {role:'HO',name:'Hilola Omonullaeva',title:'Lease Admin (тыл)',touch:30,meet:6,view:2,loi:1,sign:0,earned:0,pipe:2100},
+];
+
+/* ===== RETAILERS DATABASE ===== */
+let _b=0;function brand(o){_b++;return Object.assign({id:'b'+_b,logo:'',shopfront:'',interior:'',founded:'',group:'',price:'',icsc:'',netPts:'',netCountries:'',uzOp:'',about:'',pos:'',concept:'',rec:'',editedBy:'импорт LCR',editedAt:'2026-06-20',hist:[]},o);}
+const BRANDS=[
+ brand({name:'KFC',cat:'Еда и напитки',sub:'Фастфуд',country:'США',format:'ресторан / фудкорт',amin:200,amax:400,fr:'франшиза (локальный оператор)',person:'А. Хайдаров',phone:'+998 90 000 00 00',email:'partner@kfc.uz',site:'kfc.uz',ig:'@kfc.uz',reqs:'1 эт., витрина, вытяжка, 80-150 кВт',coten:'якоря / фудкорт',status:'active',notes:'Активная экспансия по УЗ'}),
+ brand({name:'Sinsay',cat:'Мода и стиль',sub:'Fashion (масс-маркет)',country:'Польша (LPP)',format:'магазин',amin:600,amax:1200,fr:'собств./франшиза',person:'-',phone:'+998 71 200 00 00',email:'uz@lppgroup.com',site:'sinsay.com',ig:'@sinsay',reqs:'якорное место, фасад',coten:'LC Waikiki, DeFacto',status:'active',notes:'Якорь fashion'}),
+ brand({name:'LC Waikiki',cat:'Мода и стиль',sub:'Fashion',country:'Турция',format:'магазин',amin:800,amax:1500,fr:'собственная сеть',person:'-',phone:'+998 71 100 00 00',email:'uz@lcwaikiki.com',site:'lcwaikiki.uz',ig:'@lcwaikiki',reqs:'якорь 1 эт.',coten:'Sinsay, Korzinka',status:'active',notes:''}),
+ brand({name:'Korzinka',cat:'Продукты',sub:'Супермаркет (якорь)',country:'Узбекистан',format:'супермаркет',amin:1200,amax:2500,fr:'собственная сеть',person:'Отдел развития',phone:'+998 78 140 00 00',email:'dev@korzinka.uz',site:'korzinka.uz',ig:'@korzinka',reqs:'разгрузка, холод, 1 эт.',coten:'fashion-якоря',status:'active',notes:'Продуктовый якорь'}),
+ brand({name:'Evos',cat:'Еда и напитки',sub:'Фастфуд',country:'Узбекистан',format:'ресторан',amin:150,amax:320,fr:'собственная сеть',person:'-',phone:'+998 71 209 09 09',email:'office@evos.uz',site:'evos.uz',ig:'@evos.uz',reqs:'вытяжка, фудкорт',coten:'KFC, Burger King',status:'active',notes:''}),
+ brand({name:'Papa Johns',cat:'Еда и напитки',sub:'Пицца',country:'США',format:'ресторан',amin:120,amax:250,fr:'франшиза',person:'-',phone:'+998 90 100 00 00',email:'fr@papajohns.uz',site:'papajohns.uz',ig:'@papajohns.uz',reqs:'печи, вытяжка',coten:'фудкорт',status:'target',notes:'Ждёт подписания якорей KFC/BK'}),
+ brand({name:'mcosmetic',cat:'Парфюмерия и косметика',sub:'Дрогери',country:'Узбекистан',format:'магазин',amin:40,amax:150,fr:'собственная сеть',person:'-',phone:'+998 90 200 00 00',email:'info@mcosmetic.uz',site:'mcosmetic.uz',ig:'@mcosmetic',reqs:'проходное место',coten:'fashion',status:'active',notes:''}),
+ brand({name:'Uzum Market',cat:'Услуги',sub:'Пункт выдачи',country:'Узбекистан',format:'ПВЗ',amin:40,amax:80,fr:'собственная сеть',person:'-',phone:'+998 71 200 70 70',email:'partner@uzum.uz',site:'uzum.uz',ig:'@uzum.uz',reqs:'вход, склад',coten:'-',status:'active',notes:''}),
+ brand({name:'DeFacto',cat:'Мода и стиль',sub:'Fashion',country:'Турция',format:'магазин',amin:700,amax:1200,fr:'франшиза',person:'-',phone:'+998 71 300 00 00',email:'uz@defacto.com',site:'defacto.uz',ig:'@defacto',reqs:'якорь',coten:'Sinsay',status:'active',notes:''}),
+ brand({name:'Burger King',cat:'Еда и напитки',sub:'Фастфуд',country:'США',format:'ресторан',amin:200,amax:350,fr:'франшиза',person:'-',phone:'+998 90 300 00 00',email:'fr@bk.uz',site:'burgerking.uz',ig:'@burgerking.uz',reqs:'вытяжка, фудкорт',coten:'KFC, Evos',status:'target',notes:''}),
+ brand({name:'Makro',cat:'Продукты',sub:'Супермаркет (якорь)',country:'Узбекистан',format:'супермаркет',amin:1500,amax:2500,fr:'собственная сеть',person:'-',phone:'+998 71 203 00 00',email:'dev@makro.uz',site:'makro.uz',ig:'@makro.uz',reqs:'разгрузка, холод',coten:'-',status:'active',notes:''}),
+ brand({name:'Paul',cat:'Еда и напитки',sub:'Пекарня-кафе',country:'Франция',format:'кафе',amin:120,amax:220,fr:'франшиза',person:'-',phone:'-',email:'-',site:'paul.com',ig:'@paul',reqs:'витрина, вытяжка',coten:'премиум-зона',status:'refused',notes:'Отказ (см. журнал отказов)'}),
+];
+const BRANDCATS=['Все','Еда и напитки','Мода и стиль','Продукты','Парфюмерия и косметика','Услуги','Электроника','Развлечения'];
+let brandFilter={q:'',cat:'Все',status:'Все',country:'Все'};
+let benchFilter={city:'Все',cat:'Все'};
+const pptxReady=()=>typeof PptxGenJS!=='undefined';
+
+/* ===== UZ localization layer (полный перевод интерфейса) ===== */
+const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
+Object.assign(UZMAP,{'Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Дата':'Sana','Тип':'Turi','Изменение':'Oʻzgarish','Кто':'Kim','Нет изменений.':'Oʻzgarishlar yoʻq.','Бренд':'Brend','Страна':'Davlat','Площадь':'Maydon','Пом.':'Joy','Условия':'Shartlar','Город':'Shahar','Район':'Tuman','Примечание':'Izoh','Причина':'Sabab','Имя':'Ism','Логин':'Login','Роль':'Rol','Аренда':'Ijara','Финансы':'Moliya','Правки':'Tahrir','Виза':'Viza','Планы':'Planlar','Агент':'Agent','Сделки':'Bitimlar','Комиссия':'Komissiya','Пайплайн':'Payplayn','Касания':'Aloqalar','Встречи':'Uchrashuvlar','Показы':'Koʻrsatuvlar','Подп.':'Imzo','Мои показатели':'Mening koʻrsatkichlarim','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','В пайплайне':'Payplaynda','Leading-метрики':'Leading-metrikalar','Активные сделки':'Faol bitimlar','Подписан':'Imzolangan','На подписании':'Imzolanmoqda','Журнал отказов':'Rad etishlar jurnali','База бенчмаркинга':'Benchmarking bazasi','Добавить пользователя':'Foydalanuvchi qoʻshish','Только для администратора':'Faqat administrator uchun','Последнее изменение':'Oxirgi oʻzgarish','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi','Формат':'Format','Франшиза':'Franshiza','Требования':'Talablar','Контакты':'Kontaktlar','Контакт':'Kontakt','Телефон':'Telefon','Заметки':'Izohlar','История правок':'Tahrirlar tarixi','Редактировать':'Tahrirlash','Логотип':'Logotip','Витрина':'Vitrina','Интерьер':'Interyer','Ставка':'Stavka','Контрольные даты':'Nazorat sanalari','Нет комментариев':'Izohlar yoʻq','Пусто':'Boʻsh','Вариантов нет':'Variantlar yoʻq','Объединено из':'Birlashtirildi','Дат нет':'Sanalar yoʻq','Сформировать КП':'KP shakllantirish','Подобрать арендаторов':'Ijarachilarni tanlash','Шаблон':'Shablon','Деятельность':'Faoliyat','Модель аренды':'Ijara modeli','Состояние при передаче':'Topshirishdagi holat','Особые условия':'Maxsus shartlar','Коммунальные платежи':'Kommunal toʻlovlar','Открытие':'Ochilish','Окончание брони':'Bron tugashi','Подписание контракта':'Shartnoma imzolash','Окончание договора':'Shartnoma tugashi','Ревизия ставки':'Stavka qayta koʻrigi','Дедлайн':'Dedlayn','Решение':'Qaror','Якорь':'Ankor','Тизер':'Tizer','Дедлайн ответа':'Javob dedlayni','Переговоры по ставке':'Stavka boʻyicha muzokara'});
+Object.assign(UZMAP,{'Фильтры:':'Filtrlar:','Ср. аренда:':'Oʻrt. ijara:','Модель':'Model','Разбивка':'Taqsimot','Комиссия CASE':'CASE komissiyasi','Поэтапная (2/2/2)':'Bosqichli (2/2/2)','Фикс. %':'Fiks. %','Подписано (год. аренда)':'Imzolangan (yillik ijara)','Комиссии по проектам':'Loyihalar boʻyicha komissiya','сделка':'bitim','этаж':'qavat','здание':'bino','Отказ':'Rad etildi','отказ':'rad etildi'});
+function localize(){try{if(LANG!=='uz')return;['main','drawer','perm'].forEach(id=>{const r=$(id);if(!r||!document.createTreeWalker)return;const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT,null);const ns=[];let x;while(x=w.nextNode())ns.push(x);ns.forEach(tn=>{const k=tn.nodeValue.trim();if(k&&UZMAP[k])tn.nodeValue=tn.nodeValue.replace(k,UZMAP[k]);});});}catch(e){}}
+
+/* ===== STATE ===== */
+let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',status:'Все',cat:'Все'}};
+const R=()=>ROLES[S.role];
+const objById=id=>OBJECTS.find(o=>o.id===id);
+const curObj=()=>S.obj==='ALL'?{id:'ALL',name:t('allobj'),ru:t('allobj'),plan:'Портфель'}:objById(S.obj);
+const unitsOf=id=>id==='ALL'?U.slice():U.filter(u=>u.obj===id);
+const occArea=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u)=>s+u.area,0);
+const glaOf=id=>id==='ALL'?OBJECTS.reduce((s,o)=>s+o.gla,0):objById(id).gla;
+const occPct=id=>{const g=glaOf(id);return g?occArea(id)/g:0;};
+const monthRent=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u)=>s+u.total,0);
+const noi=id=>monthRent(id)*0.78;
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,LANG,obj:S.obj}));}catch(e){}}
+function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.LANG)LANG=d.LANG;if(d.obj)S.obj=d.obj;}catch(e){console.warn('Autosave skipped',e);}}
+function resetDemo(){if(confirm('Сбросить локальные изменения демо и открыть исходные данные?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}
+window.addEventListener('beforeunload',persist);
+function offerState(u){if(!u.offer)return null;if(!u.offer.validUntil)u.offer.validUntil=addDaysISO(u.offer.date||TODAY,u.offer.validDays||14);const d=daysUntil(u.offer.validUntil);return{days:d,until:u.offer.validUntil,cls:d<0?'red':d<=3?'amber':'green',label:d<0?'бронь просрочена':d<=3?'бронь истекает':'бронь активна'};}
+function reservationBadge(u){const s=offerState(u);return s?`<div style="font-size:9.5px;margin-top:3px"><span class="sev ${s.cls}">${s.label}: ${s.days} дн.</span></div>`:'';}
+function scopedUnits(){return unitsOf(S.obj);}
+function actionCenterHTML(scope,sU){const urgent=allDates().filter(d=>(S.obj==='ALL'||d.obj===S.obj)&&d.days<=14).slice(0,4);const res=sU.filter(u=>u.offer).map(u=>Object.assign({u},offerState(u)||{})).sort((a,b)=>a.days-b.days).slice(0,4);const stuck=sU.filter(u=>['neg','off'].indexOf(u.status)>=0).sort((a,b)=>(a.dates[0]?.[1]||'9999').localeCompare(b.dates[0]?.[1]||'9999')).slice(0,4);const row=(title,sub,sev,click)=>`<div class="oprow" ${click?`onclick="${click}" style="cursor:pointer"`:''}><div><b>${title}</b><small>${sub}</small></div>${sev}</div>`;return `<div class="opsgrid"><div class="opbox"><h3>Операционный фокус</h3>${urgent.length?urgent.map(d=>row(esc(d.type),`${esc(d.who)} · ${esc(objById(d.obj).name)} · ${esc(d.code)}`,`<span class="sev ${d.days<0?'red':d.days<=7?'amber':'gray'}">${d.days<0?'просрочено':d.days+' дн.'}</span>`)).join(''):'<div class="sub" style="margin:0">Срочных дат нет.</div>'}</div><div class="opbox"><h3>Брони и КП</h3>${res.length?res.map(x=>row(esc(x.u.vars[0]||x.u.offer.to||x.u.code),`${esc(x.u.code)} · до ${dateRU(x.until)}`,`<span class="sev ${x.cls}">${x.days} дн.</span>`,`openUnit('${x.u.id}')`)).join(''):'<div class="sub" style="margin:0">Активных КП нет.</div>'}</div><div class="opbox"><h3>Сделки без движения</h3>${stuck.length?stuck.map(u=>row(esc(u.vars[0]||u.sub),`${esc(u.code)} · ${esc(u.broker||'без брокера')}`,`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`,`openUnit('${u.id}')`)).join(''):'<div class="sub" style="margin:0">Нет зависших сделок.</div>'}</div></div>`;}
+function clearSearch(){const q=$('gq'),d=$('gdrop');if(q)q.value='';if(d){d.innerHTML='';d.classList.remove('open');}}
+function globalSearch(q){const d=$('gdrop');if(!d)return;q=(q||'').trim().toLowerCase();if(q.length<2){d.classList.remove('open');d.innerHTML='';return;}const unitHits=U.filter(u=>(u.code+' '+u.vars.join(' ')+' '+u.cat+' '+u.sub+' '+(u.offer?.no||'')).toLowerCase().includes(q)).slice(0,5);const brandHits=BRANDS.filter(b=>(b.name+' '+b.cat+' '+b.country+' '+b.status).toLowerCase().includes(q)).slice(0,5);const rows=[...unitHits.map(u=>`<div class="gitem" onclick="S.obj='${u.obj}';rebuildObjSel();go('registry');setTimeout(()=>openUnit('${u.id}'),40);clearSearch()"><div><b>${esc(u.code)}</b><small>${esc(objById(u.obj).name)} · ${esc(u.vars[0]||u.sub)}</small></div><span class="kind">LCR</span></div>`),...brandHits.map(b=>`<div class="gitem" onclick="go('brands');setTimeout(()=>openBrand('${b.id}'),40);clearSearch()"><div><b>${esc(b.name)}</b><small>${esc(b.cat)} · ${esc(b.country||'-')}</small></div><span class="kind">BRAND</span></div>`)];d.innerHTML=rows.join('')||'<div class="gitem"><div><b>Ничего не найдено</b><small>Попробуйте код помещения или бренд.</small></div></div>';d.classList.add('open');}
+
+/* ===== LOGIN ===== */
+(function(){$('luser').innerHTML=USERS.map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');applyLoginLang();})();
+function doLogin(){S.role=$('luser').value;S.user=USERS.find(x=>x.role===S.role);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
+function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden');}
+function boot(){
+ loadPersist();
+ $('avatar').textContent=S.user.name[0]||'C';
+ $('whoName').firstChild.textContent=S.user.name;$('whoRole').textContent=R().label;$('b_out').textContent=t('out');
+ $('langTop').textContent=LANG==='ru'?'UZ':'RU';
+ rebuildObjSel();buildNav();renderPerm();go('dash');
+}
+function rebuildObjSel(){$('objSel').innerHTML=`<option value="ALL">▦ ${t('allobj')}</option>`+OBJECTS.map(o=>`<option value="${o.id}">${o.name} · ${o.plan}</option>`).join('');$('objSel').value=S.obj;}
+
+/* ===== NAV ===== */
+const NAV=[['dash','▦'],['registry','▤'],['pipeline','⮞'],['dates','◷'],['kpi','★'],['plans','▭'],['docs','▣'],['brands','✦'],['refus','⊘'],['bench','◈'],['SEP',''],['users','◍']];
+function buildNav(){
+ $('nav').innerHTML=NAV.map(n=>{
+  if(n[0]==='SEP')return `<div class="sep">${t('admin')}</div>`;
+  if(n[0]==='users'&&!R().admin)return '';
+  return `<a data-v="${n[0]}" class="${S.view===n[0]?'active':''}" onclick="go('${n[0]}')"><span class="ic">${n[1]}</span> ${t(n[0])}</a>`;
+ }).join('');
+}
+function renderPerm(){$('perm').innerHTML=`<b>${S.user.name}</b>`+R().rights.map(x=>`<span class="chip">${x}</span>`).join('');}
+function setObj(v){S.obj=v;go(S.view);}
+function toggleSide(){$('side').classList.toggle('open');$('scrim').classList.toggle('open');}
+function go(v){
+ S.view=v;[...document.querySelectorAll('#nav a')].forEach(a=>a.classList.toggle('active',a.dataset.v===v));
+ $('side').classList.remove('open');$('scrim').classList.remove('open');
+ ({dash:renderDash,registry:renderRegistry,pipeline:renderPipeline,dates:renderDates,kpi:renderKPI,plans:renderPlans,docs:renderDocs,brands:renderBrands,refus:renderRefus,bench:renderBench,users:renderUsers}[v]||renderDash)();
+ localize();
+}
+
+/* ===== DASHBOARD ===== */
+function renderDash(){
+ const fin=R().finance;
+ const scope=S.obj==='ALL'?OBJECTS:OBJECTS.filter(o=>o.id===S.obj);
+ const sU=S.obj==='ALL'?U:U.filter(u=>u.obj===S.obj);
+ const totGla=scope.reduce((s,o)=>s+o.gla,0),totOcc=scope.reduce((s,o)=>s+occArea(o.id),0),op=totGla?Math.round(totOcc/totGla*100):0;
+ const totRent=scope.reduce((s,o)=>s+monthRent(o.id),0),totNoi=scope.reduce((s,o)=>s+noi(o.id),0);
+ const offered=sU.filter(u=>u.status==='off').length,loi=sU.filter(u=>u.status==='os'||u.status==='cs').length;
+ const occUnits=sU.filter(u=>OCCK.indexOf(u.status)>=0&&u.rate);
+ const avgRate=occUnits.length?occUnits.reduce((s,u)=>s+u.rate,0)/occUnits.length:0;
+ const avgOcc=Math.round(scope.reduce((s,o)=>s+occPct(o.id),0)/scope.length*100);
+ const avgSc=Math.round(scope.reduce((s,o)=>s+o.sc,0)/scope.length);
+ const lost=sU.filter(u=>u.gap<0).reduce((s,u)=>s+u.gap,0);
+ const id=S.obj,us=unitsOf(id);
+ const byStat=Object.keys(STAT).map(k=>({k,area:us.filter(u=>u.status===k).reduce((s,u)=>s+u.area,0),n:us.filter(u=>u.status===k).length})).filter(x=>x.n);
+ const maxA=Math.max(...byStat.map(x=>x.area),1);
+ const C=2*Math.PI*52,off=C*(1-totOcc/totGla);
+ $('main').innerHTML=`
+ <div class="ph"><h1>${t('dash')}</h1><span class="pill">${curObj().plan||''}</span></div>
+ <p class="sub">${S.obj==='ALL'?t('allobj'):t('objectlb')+': '+curObj().name} · ${t('rolelb')}: ${R().label}</p>
+  <div class="kpis">
+   <div class="kpi"><div class="lab">${S.obj==='ALL'?t('objects'):t('objectlb')}</div><div class="val">${S.obj==='ALL'?OBJECTS.length:1}</div><div class="sub2">${S.obj==='ALL'?OBJECTS.filter(o=>o.plan==='Подписка ТЦ').length+' '+t('subSaaS'):(curObj().city||'')}</div></div>
+   <div class="kpi"><div class="lab">${t('occupancy')}</div><div class="val">${op}%</div><div class="sub2">${fmtA(totOcc)} / ${fmtA(totGla)} м²</div></div>
+   <div class="kpi"><div class="lab">${t('inwork')}</div><div class="val">${offered+loi}</div><div class="sub2">${offered} ${t('proposed')} · ${loi} ${t('tosign')}</div></div>
+   <div class="kpi"><div class="lab">${fin?t('noimo'):t('rentmo')}</div><div class="val">${fin?fmt(totNoi):fmt(totRent)}</div><div class="sub2">${fin?'NOI':'-'}</div></div>
+  </div>
+  ${actionCenterHTML(scope,sU)}
+  <div class="card"><h3>${t('avg')} <span class="mut">${S.obj==='ALL'?t('portfolio'):curObj().name}</span></h3><div class="kpis" style="margin-bottom:0">
+  <div class="kpi"><div class="lab">${t('avgocc')}</div><div class="val">${avgOcc}%</div><div class="sub2">${t('byobj')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgrate')}</div><div class="val">${avgRate.toFixed(1)}<small> $/м²</small></div><div class="sub2">${t('byocc')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgsc')}</div><div class="val">${avgSc}%</div><div class="sub2">${t('ofrent')}</div></div>
+  <div class="kpi"><div class="lab">${t('lossvac')}</div><div class="val">${fin?fmt(Math.abs(lost)):'•••'}</div><div class="sub2">${t('permonth')}</div></div>
+ </div></div>
+ <div class="grid2">
+  <div class="card"><h3>${t('allobj')} <span class="mut">${t('clickreg')}</span></h3><div class="objgrid">${OBJECTS.map(o=>{const p=Math.round(occPct(o.id)*100);return `<div class="miniobj" onclick="setObj('${o.id}');go('registry')"><div style="display:flex;justify-content:space-between"><b>${o.name}</b><span class="pill">${o.plan==='Подписка ТЦ'?'SaaS':'свой'}</span></div><div style="font-size:11px;color:var(--muted)">${o.city} · ${o.type}</div><div class="bw"><div class="bar" style="width:${p}%"></div></div><div style="display:flex;justify-content:space-between;font-size:11.5px;color:#555"><span>${p}% · ${fmtA(o.gla)} м²</span><span>${fin?fmt(noi(o.id))+'/мес':''}</span></div></div>`;}).join('')}</div></div>
+  <div><div class="card"><h3>${t('occport')}</h3><div style="display:flex;align-items:center;gap:16px"><svg width="120" height="120" viewBox="0 0 130 130"><circle cx="65" cy="65" r="52" fill="none" stroke="#eee" stroke-width="16"/><circle cx="65" cy="65" r="52" fill="none" stroke="var(--red)" stroke-width="16" stroke-dasharray="${C}" stroke-dashoffset="${off}" stroke-linecap="round" transform="rotate(-90 65 65)"/><text x="65" y="61" text-anchor="middle" font-size="25" font-weight="800">${op}%</text><text x="65" y="80" text-anchor="middle" font-size="10" fill="#888">${t('occupied').toLowerCase()}</text></svg><div class="legend"><div><span class="dot" style="background:var(--red)"></span>${t('occupied')} ${fmtA(totOcc)} м²</div><div><span class="dot" style="background:#eee"></span>${t('free')} ${fmtA(totGla-totOcc)} м²</div></div></div></div>
+  <div class="card"><h3>${t('funnel')} <span class="mut">${t('thisweek')}</span></h3>${funnelHTML()}</div></div>
+ </div>
+ <div class="card"><h3>${t('statuses')} <span class="mut">${S.obj==='ALL'?t('allobj'):curObj().name}</span></h3>${byStat.map(x=>`<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span class="st ${STCLS[x.k]}">${stT(x.k)}</span><span>${fmtA(x.area)} м² · ${x.n}</span></div><div class="bw"><div class="bar" style="width:${Math.round(x.area/maxA*100)}%;background:${barColor(x.k)}"></div></div></div>`).join('')}</div>
+ ${footNote()}`;
+}
+function barColor(k){return{vac:'#bbb',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[k];}
+
+/* ===== REGISTRY ===== */
+function regFilterBar(us){const fr=S.regFilter;const cats=['Все'].concat(us.map(u=>u.cat).filter((v,i,a)=>v&&v!=='-'&&a.indexOf(v)===i));const stOpts=[['Все',LANG==='uz'?'Barcha holatlar':'Все статусы']].concat(Object.keys(STAT).map(k=>[k,stT(k)]));return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px"><select onchange="S.regFilter.status=this.value;renderRegistry()" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;renderRegistry()" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
+function renderRegistry(){
+ const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
+ const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button></div>`;
+ if(S.regTab==='chg'){
+  const ch=CHANGES.filter(c=>allObj||c.obj===S.obj);
+  $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><p class="sub">${allObj?t('allobj'):curObj().name} · вторая сторона LCR: объединение / разделение / скидки / нарастающая аренда</p>${tabs}<div class="card"><div class="tbl-scroll"><table><thead><tr><th>Дата</th>${allObj?'<th>Объект</th>':''}<th>Тип</th><th>Изменение</th><th>Кто</th></tr></thead><tbody>${ch.map(c=>`<tr><td>${c.date}</td>${allObj?'<td>'+objById(c.obj).name+'</td>':''}<td><span class="pill">${c.type}</span></td><td>${c.what}</td><td>${c.by}</td></tr>`).join('')||'<tr><td colspan="5" style="color:var(--muted)">Нет изменений.</td></tr>'}</tbody></table></div>${R().edit?'<div style="margin-top:10px"><button class="btn sm" onclick="addChange()">+ '+t('add')+' изменение</button></div>':''}</div>${footNote()}`;
+  return;
+ }
+ const fr=S.regFilter;const fus=us.filter(u=>(fr.status==='Все'||u.status===fr.status)&&(fr.cat==='Все'||u.cat===fr.cat)&&(!fr.q||(u.code+' '+u.vars.join(' ')+' '+u.sub).toLowerCase().indexOf(fr.q.toLowerCase())>=0));
+ const rows=fus.map(u=>`<tr class="click" onclick="openUnit('${u.id}')">
+  <td><b>${u.code}</b>${u.merged?' <span class="pill">объед.</span>':''}<div style="font-size:10px;color:#999">${u.floor}${allObj?' · '+objById(u.obj).name:''}</div></td>
+  <td>${u.cat}<div style="font-size:10px;color:#999">${u.sub}</div></td>
+  <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#999">+'+fmtA(u.terr)+' терр.</div>':''}</td>
+  <td class="num">${u.rate||'-'}</td><td class="num">${fin?(u.total?fmt(u.total):'-'):'•••'}</td>
+  <td>${u.vars.length?`<span class="pill">${u.vars.length}</span> ${u.vars.slice(0,2).join(', ')}${u.vars.length>2?'…':''}`:'<span style="color:#bbb">-</span>'}</td>
+  <td>${u.broker||'-'}</td>
+   <td><span class="st ${STCLS[u.status]}">${stT(u.status)}</span>${reservationBadge(u)}</td></tr>`).join('');
+ $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1><span class="pill">${Math.round(occPct(S.obj)*100)}% занято</span></div><p class="sub">${allObj?t('allobj'):curObj().name} · ${fus.length} / ${us.length} помещений · клик по строке - карточка</p>${tabs}${regFilterBar(us)}<div class="card" style="padding:6px"><div class="tbl-scroll"><table><thead><tr><th>Помещение</th><th>Категория</th><th class="num">м²</th><th class="num">$/м²</th><th class="num">Аренда/мес</th><th>Варианты</th><th>Брокер</th><th>Статус</th></tr></thead><tbody>${rows}</tbody></table></div></div>${footNote()}`;
+}
+function addChange(){const ty=prompt('Тип (Объединение/Разделение/Скидка/Нарастающая/Тариф):');if(!ty)return;const w=prompt('Описание изменения:')||'';CHANGES.unshift({obj:S.obj==='ALL'?'ca':S.obj,date:iso(TODAY),type:ty,what:w,by:S.user.name});persist();renderRegistry();}
+
+/* ===== PIPELINE ===== */
+function funnelHTML(){const st=[['Касания',75],['Встречи',18],['Показы',9],['LOI',4],['Подписано',1]],max=st[0][1];return `<div style="display:flex;flex-direction:column;gap:7px">${st.map(s=>`<div style="display:flex;align-items:center;gap:10px"><div style="width:92px;font-size:12px;font-weight:600;color:#444">${s[0]}</div><div style="flex:1;background:#f0eeec;border-radius:8px;overflow:hidden"><div style="height:30px;width:${Math.max(8,s[1]/max*100)}%;background:linear-gradient(90deg,var(--red),var(--red-l));display:flex;align-items:center;padding:0 10px;color:#fff;font-weight:700;font-size:12px">${s[1]}</div></div></div>`).join('')}</div>`;}
+function renderPipeline(){
+ const wk=AGENTS.map(a=>`<tr><td><b>${a.name}</b></td><td class="num">${a.touch}</td><td class="num">${a.meet}</td><td class="num">${a.view}</td><td class="num">${a.loi}</td><td class="num">${a.sign}</td></tr>`).join('');
+ const act=U.filter(u=>u.status==='off'||u.status==='neg');
+ $('main').innerHTML=`<div class="ph"><h1>${t('pipeline')}</h1></div><p class="sub">Двусторонний движок · leading-метрики недели</p><div class="grid2"><div class="card"><h3>Воронка</h3>${funnelHTML()}<div style="font-size:11px;color:var(--muted);margin-top:10px">Касание→LOI 5.3% · LOI→подписание 25%</div></div><div class="card"><h3>Leading-метрики</h3><div class="tbl-scroll"><table><thead><tr><th>Кто</th><th class="num">Касания</th><th class="num">Встречи</th><th class="num">Показы</th><th class="num">LOI</th><th class="num">Подп.</th></tr></thead><tbody>${wk}</tbody></table></div></div></div><div class="card"><h3>Активные сделки <span class="mut">${act.length}</span></h3><div class="tbl-scroll"><table><thead><tr><th>Бренд</th><th>Объект</th><th>Пом.</th><th class="num">Площадь</th><th>Статус</th><th>Брокер</th></tr></thead><tbody>${act.map(u=>`<tr class="click" onclick="openUnit('${u.id}')"><td><b>${u.vars[0]||'-'}</b>${u.vars.length>1?` <span class="pill">+${u.vars.length-1}</span>`:''}</td><td>${objById(u.obj).name}</td><td>${u.code}</td><td class="num">${fmtA(u.area)} м²</td><td><span class="st ${STCLS[u.status]}">${stT(u.status)}</span></td><td>${u.broker}</td></tr>`).join('')}</tbody></table></div></div>${footNote()}`;
+}
+
+/* ===== DATES ===== */
+function allDates(){const o=[];U.forEach(u=>u.dates.forEach(d=>{const days=daysUntil(d[1]);o.push({obj:u.obj,code:u.code,who:u.vars[0]||u.sub,type:d[0],date:d[1],days});}));o.sort((a,b)=>a.days-b.days);return o;}
+function dateBand(days){if(days<0)return{bg:'#f7d2d2',fg:'var(--red-d)',k:'просроч'};if(days<=7)return{bg:'#fdeaea',fg:'var(--red-d)',k:'≤7'};if(days<=30)return{bg:'#fdf3e0',fg:'var(--amber)',k:'≤30'};if(days<=60)return{bg:'#fff8ec',fg:'var(--amber)',k:'≤60'};if(days<=90)return{bg:'#e4eefb',fg:'var(--blue)',k:'≤90'};return{bg:'#f1f1f1',fg:'#777',k:'>90'};}
+function renderDates(){const list=allDates();const cnt=n=>list.filter(d=>d.days>=0&&d.days<=n).length;
+ const legend=`<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;margin-bottom:10px">`+[['≤7 дн','#fdeaea','var(--red-d)'],['≤30 дн','#fdf3e0','var(--amber)'],['≤60 дн','#fff8ec','var(--amber)'],['≤90 дн','#e4eefb','var(--blue)']].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span>${x[0]}</span>`).join('')+`</div>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('dates')}</h1></div><p class="sub">Все объекты · контрольные даты как структурные поля · авто-алерты за 90 / 60 / 30 / 7 дней</p>
+ <div class="kpis"><div class="kpi"><div class="lab">≤ 7 дней</div><div class="val">${cnt(7)}</div></div><div class="kpi"><div class="lab">≤ 30 дней</div><div class="val">${cnt(30)}</div></div><div class="kpi"><div class="lab">≤ 60 дней</div><div class="val">${cnt(60)}</div></div><div class="kpi"><div class="lab">≤ 90 дней</div><div class="val">${cnt(90)}</div></div></div>
+ ${legend}<div class="card">${list.map(d=>{const b=dateBand(d.days);return `<div style="display:flex;gap:13px;align-items:center;padding:10px 2px;border-bottom:1px solid #f0eeec"><div style="width:58px;text-align:center;border-radius:10px;padding:6px 0;font-weight:800;font-size:15px;background:${b.bg};color:${b.fg}">${d.days}<div style="font-size:8.5px">${d.days<0?'просроч':'дней'}</div></div><div style="flex:1"><b>${d.type}</b><div style="font-size:11.5px;color:var(--muted)">${d.who} · ${objById(d.obj).name} · ${d.code}</div></div><div style="font-size:11.5px;color:#555;font-weight:600">${dateRU(d.date)}</div></div>`;}).join('')}</div><div style="font-size:11.5px;color:var(--muted)">Production: авто-алерты в Telegram/почту ответственному за 90 / 60 / 30 / 7 дней до даты.</div>${footNote()}`;}
+
+/* ===== KPI ===== */
+function renderKPI(){
+ const role=S.role,fin=R().finance,agg=['ASH','ADM','BA'].indexOf(role)>=0,per=['ASH','ADM'].indexOf(role)>=0,me=AGENTS.find(a=>a.role===role);
+ const pct=a=>Math.round(((a.touch/TARGETS.touch+a.meet/TARGETS.meet+a.view/TARGETS.view+a.loi/TARGETS.loi+a.sign/TARGETS.sign)/5)*100);
+ const bar=(v,tg,l)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="width:92px;font-size:11.5px;color:#555">${l}</span><div class="bw" style="flex:1"><div class="bar" style="width:${Math.min(100,Math.round(v/tg*100))}%;background:${v>=tg?'var(--green)':'var(--red)'}"></div></div><span style="width:54px;text-align:right;font-size:11.5px">${v}/${tg}</span></div>`;
+ const bars=a=>bar(a.touch,TARGETS.touch,'Касания')+bar(a.meet,TARGETS.meet,'Встречи')+bar(a.view,TARGETS.view,'Показы')+bar(a.loi,TARGETS.loi,'LOI')+bar(a.sign,TARGETS.sign,'Подписано');
+ let h=`<div class="ph"><h1>${t('kpi')}</h1></div><p class="sub">Роль: ${R().label} · эта неделя (демо)</p>`;
+ if(me){h+=`<div class="card"><h3>Мои показатели <span class="mut">${me.name}</span></h3><div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:13px"><div class="kpi"><div class="lab">Выполнение KPI</div><div class="val">${pct(me)}%</div></div><div class="kpi"><div class="lab">Моя комиссия</div><div class="val">${fmt(me.earned)}</div><div class="sub2">${me.sign} сделок</div></div><div class="kpi"><div class="lab">В пайплайне</div><div class="val">${fmt(me.pipe)}</div></div></div>${bars(me)}</div>`;}
+ else h+=`<div class="card" style="color:var(--muted);font-size:12.5px">Роль ${R().label} не закрывает сделки лично - персональной комиссии нет.</div>`;
+ if(agg){const T=AGENTS.reduce((s,a)=>({sign:s.sign+a.sign,loi:s.loi+a.loi,view:s.view+a.view,earned:s.earned+a.earned,pipe:s.pipe+a.pipe}),{sign:0,loi:0,view:0,earned:0,pipe:0});h+=`<div class="card"><h3>Совокупно по отделу</h3><div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="kpi"><div class="lab">Сделок</div><div class="val">${T.sign}</div></div><div class="kpi"><div class="lab">Сов. комиссия</div><div class="val">${fmt(T.earned)}</div></div><div class="kpi"><div class="lab">Пайплайн</div><div class="val">${fmt(T.pipe)}</div></div><div class="kpi"><div class="lab">Показы/нед</div><div class="val">${T.view}</div></div></div></div>`;}
+ if(per)h+=`<div class="card"><h3>По агентам</h3><div class="tbl-scroll"><table><thead><tr><th>Агент</th><th class="num">KPI</th><th class="num">Сделки</th><th class="num">Комиссия</th><th class="num">Пайплайн</th></tr></thead><tbody>${AGENTS.map(a=>`<tr><td><b>${a.name}</b><div style="font-size:10px;color:#999">${a.title}</div></td><td class="num">${pct(a)}%</td><td class="num">${a.sign}</td><td class="num">${fmt(a.earned)}</td><td class="num">${fmt(a.pipe)}</td></tr>`).join('')}</tbody></table></div></div>`;
+ else if(role==='BA')h+=`<div style="font-size:11.5px;color:var(--muted);margin-bottom:14px">Leasing Director: совокупные + личная комиссия. Детализация по агентам - у ASH/админа.</div>`;
+ if(agg){const signedAnnual=oid=>unitsOf(oid).filter(u=>u.status==='cd').reduce((s,u)=>s+u.total,0)*12;
+  const commRow=o=>{const ann=signedAnnual(o.id),fee=Math.round(ann*o.comm.total/100);const calc=fin?fmt(fee):'•••';let breakdown;if(o.comm.type==='milestone'){const each=Math.round(ann*2/100);breakdown=fin?`сделка ${fmt(each)} + этаж ${fmt(each)} + здание ${fmt(each)}`:'2% + 2% + 2%';}else breakdown=`${o.comm.total}% годовой аренды`;return `<tr><td><b>${o.name}</b></td><td>${o.comm.type==='milestone'?'Поэтапная (2/2/2)':'Фикс. %'}</td><td class="num">${fin?fmt(ann):'•••'}</td><td class="num"><b>${calc}</b></td><td style="font-size:11px;color:var(--muted)">${breakdown}</td></tr>`;};
+  h+=`<div class="card"><h3>Комиссии по проектам <span class="mut">расчёт по подписанным сделкам · у каждого свои</span></h3><div class="tbl-scroll"><table><thead><tr><th>Объект</th><th>Модель</th><th class="num">Подписано (год. аренда)</th><th class="num">Комиссия CASE</th><th>Разбивка</th></tr></thead><tbody>${OBJECTS.map(commRow).join('')}</tbody></table></div><div style="font-size:11px;color:var(--muted);margin-top:8px">Creative Avenue: 2% за закрытие сделки + 2% за закрытие этажа + 2% за закрытие здания = 6%. Прочие объекты - фикс. % от годовой аренды. Модель настраивается на объекте.</div></div>`;}
+ $('main').innerHTML=h+footNote();
+}
+
+/* ===== PLANS ===== */
+const PLANUP={};
+function renderPlans(){
+ if(S.obj==='ALL'){$('main').innerHTML=`<div class="ph"><h1>${t('plans')}</h1></div><div class="card" style="color:var(--muted)">Выберите конкретный объект в шапке для просмотра планировки.</div>`;return;}
+ $('main').innerHTML=`<div class="ph"><h1>${t('plans')}</h1></div><p class="sub">${curObj().name} · клик по помещению → карточка</p>${planTools()}<div style="display:flex;gap:14px;flex-wrap:wrap;margin:6px 0 12px;font-size:11.5px"><span><span class="dot" style="background:#e7f4e8;border:1px solid var(--green)"></span> Подписан</span><span><span class="dot" style="background:#fff3e0;border:1px solid var(--amber)"></span> На подписании</span><span><span class="dot" style="background:#fdeaea;border:1px solid var(--red)"></span> Предложено</span><span><span class="dot" style="background:#e4eefb;border:1px solid var(--blue)"></span> Переговоры</span><span><span class="dot" style="background:#f0f0f0;border:1px solid #999"></span> Вакант</span></div><div class="card"><div style="background:#fbfaf8;border:1px dashed #cfc9c1;border-radius:14px;padding:10px;overflow-x:auto">${planSVG(S.obj)}</div></div>${footNote()}`;
+}
+function planTools(){const can=R().admin||R().plans,up=PLANUP[S.obj];const b=up?`<div class="banner ok">✔ План загружен (${up.by}, ${up.date}) - виден всем.</div>`:'';const x=can?`<button class="btn sm" onclick="simUpload()">⬆ Загрузить чертёж (SVG / PDF / DWG)</button> <span style="font-size:11px;color:var(--muted)">BSH / админ</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружает BSH - план виден всем.</span>`;return b+`<div style="margin-bottom:6px">${x}</div>`;}
+function simUpload(){PLANUP[S.obj]={by:R().label,date:TODAY.toLocaleDateString('ru-RU')};persist();alert('Демо: чертёж принят. Production: SVG/PDF/DWG → разметка по кодам помещений → интерактивный план для всех.');go('plans');}
+function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
+function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
+function planSVG(id){const us=unitsOf(id);let x=18,y=18;const H=104,g=12,W=1000;let r='';us.forEach(u=>{let w=Math.max(120,Math.min(330,Math.round(u.area*0.18)+90));if(x+w>W-18){x=18;y+=H+g;}const nm=(u.vars[0]||u.sub||'').slice(0,18);r+=`<g style="cursor:pointer" onclick="openUnit('${u.id}')"><rect x="${x}" y="${y}" width="${w}" height="${H}" rx="9" fill="${pf(u.status)}" stroke="${pstr(u.status)}" stroke-width="1.6"/><text x="${x+12}" y="${y+24}" font-size="12.5" font-weight="800" fill="#222">${u.code}</text><text x="${x+12}" y="${y+45}" font-size="11.5" fill="#333">${nm}</text><text x="${x+12}" y="${y+64}" font-size="10.5" fill="#666">${fmtA(u.area)} м²${u.rate?' · '+u.rate+'$':''}</text><text x="${x+12}" y="${y+86}" font-size="9.5" font-weight="700" fill="${pstr(u.status)}">${stT(u.status).toUpperCase()}${u.offer?' ⚑':''}</text></g>`;x+=w+g;});return `<svg width="100%" viewBox="0 0 ${W} ${y+H+18}" style="min-width:720px"><rect x="3" y="3" width="${W-6}" height="${y+H+12}" rx="12" fill="none" stroke="#ddd6cc" stroke-width="2" stroke-dasharray="6 6"/>${r}</svg>`;}
+
+/* ===== REFUSALS ===== */
+function refusList(id){if(id==='ALL')return OBJECTS.flatMap(o=>(REFUSALS[o.id]||[]).map(r=>Object.assign({obj:o.id},r)));return (REFUSALS[id]||[]).map(r=>Object.assign({obj:id},r));}
+function renderRefus(){const allObj=S.obj==='ALL';const list=refusList(S.obj);$('main').innerHTML=`<div class="ph"><h1>${t('refus')}</h1></div><p class="sub">${curObj().name} · журнал отказов с причиной - не предлагать повторно + рыночные сигналы</p><div class="card"><div class="tbl-scroll"><table><thead><tr><th style="width:40px">#</th><th>Бренд</th>${allObj?'<th>Объект</th>':''}<th>Причина</th><th>Дата</th></tr></thead><tbody>${list.length?list.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.brand)}</b></td>${allObj?'<td>'+esc(objById(r.obj).name)+'</td>':''}<td>${esc(r.reason)}</td><td>${r.date||'-'}</td></tr>`).join(''):`<tr><td colspan="${allObj?5:4}" style="color:var(--muted)">Нет записей.</td></tr>`}</tbody></table></div>${R().edit?'<div style="margin-top:10px"><button class="btn sm" onclick="addRefus()">+ '+t('add')+' отказ</button></div>':''}</div><div style="font-size:11.5px;color:var(--muted)">Сигнал: спрос на локации у метро/вузов; крупные F&B ждут якорей (KFC/BK).</div>${footNote()}`;}
+function addRefus(){const oid=S.obj==='ALL'?'ca':S.obj;const brand=prompt('Бренд, который отказал:');if(!brand)return;const reason=prompt('Причина отказа:')||'';(REFUSALS[oid]=REFUSALS[oid]||[]).push({brand,reason,date:iso(TODAY)});persist();renderRefus();}
+
+/* ===== BENCHMARKING ===== */
+function renderBench(){
+ const cities=['Все'].concat(BENCH.map(b=>b.city).filter((v,i,a)=>v&&a.indexOf(v)===i));
+ const cats=['Все'].concat(BENCH.map(b=>b.cat).filter((v,i,a)=>v&&a.indexOf(v)===i));
+ const list=BENCH.filter(b=>(benchFilter.city==='Все'||b.city===benchFilter.city)&&(benchFilter.cat==='Все'||b.cat===benchFilter.cat));
+ const byCity={};list.forEach(b=>{(byCity[b.city]=byCity[b.city]||[]).push(b);});
+ const avg=(arr,f)=>arr.length?(arr.reduce((s,b)=>s+(b[f]||0),0)/arr.length):0;
+ const sel=(val,opts,fn)=>`<select onchange="${fn}" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">${opts.map(o=>`<option${o===val?' selected':''}>${o}</option>`).join('')}</select>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('bench')}</h1></div><p class="sub">Рыночные данные по аренде и условиям (города / районы) - вход для ставок и tenant mix</p>
+ <div class="card" style="padding:12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><span style="font-size:11px;color:var(--muted)">Фильтры:</span>${sel(benchFilter.city,cities,'benchFilter.city=this.value;renderBench()')}${sel(benchFilter.cat,cats,'benchFilter.cat=this.value;renderBench()')}<span style="font-size:11.5px;color:#555;margin-left:auto">Ср. аренда: <b>${avg(list,'rent').toFixed(1)} $/м²</b> · ср. сервис-чардж: <b>${avg(list,'sc').toFixed(1)}%</b> · ${list.length} точек</span></div></div>
+ <div class="kpis">${Object.keys(byCity).map(c=>`<div class="kpi"><div class="lab">${c}</div><div class="val">${avg(byCity[c],'rent').toFixed(1)}<small> $/м²</small></div><div class="sub2">ср. аренда · ${byCity[c].length} точек</div></div>`).join('')||'<div class="kpi"><div class="lab">Нет данных</div><div class="val">-</div></div>'}</div><div class="card"><h3>База бенчмаркинга <span class="mut">собирается при изучении города</span></h3><div class="tbl-scroll"><table><thead><tr><th>Город</th><th>Район</th><th>Объект</th><th>Категория</th><th class="num">Аренда $/м²</th><th class="num">Сервис-чардж %</th><th>Примечание</th></tr></thead><tbody>${list.map(b=>`<tr><td>${b.city}</td><td>${b.district}</td><td>${b.obj}</td><td>${b.cat}</td><td class="num">${b.rent}</td><td class="num">${b.sc}</td><td>${b.note||''}</td></tr>`).join('')||'<tr><td colspan="7" style="color:var(--muted)">Нет записей по фильтру.</td></tr>'}</tbody></table></div>${R().edit?'<div style="margin-top:10px"><button class="btn sm" onclick="addBench()">+ '+t('add')+'</button></div>':''}</div>${footNote()}`;
+}
+function addBench(){const city=prompt('Город:');if(!city)return;const district=prompt('Район:')||'';const obj=prompt('Объект:')||'';const cat=prompt('Категория:')||'';const rent=+prompt('Аренда $/м²:')||0;const sc=+prompt('Сервис-чардж %:')||0;BENCH.push({city,district,obj,cat,rent,sc,note:''});persist();renderBench();}
+
+/* ===== RETAILERS DATABASE (module) ===== */
+function renderBrands(){
+ const canEdit=R().edit;
+ const countries=['Все'].concat(BRANDS.map(b=>b.country).filter((v,i,a)=>v&&a.indexOf(v)===i));
+ const list=BRANDS.filter(b=>(brandFilter.cat==='Все'||b.cat===brandFilter.cat)&&(brandFilter.status==='Все'||b.status===brandFilter.status)&&(brandFilter.country==='Все'||b.country===brandFilter.country)&&(!brandFilter.q||(b.name+' '+b.sub).toLowerCase().indexOf(brandFilter.q.toLowerCase())>=0));
+ const stMap={active:['Активен','st-cd'],target:['Цель','st-off'],refused:['Отказ','st-vac']};
+ const cards=list.map(b=>{const st=stMap[b.status]||['','st-vac'];return `<div class="miniobj" onclick="openBrand('${b.id}')" style="gap:7px"><div style="display:flex;align-items:center;gap:10px">${b.logo?`<img src="${b.logo}" style="width:42px;height:42px;border-radius:8px;object-fit:cover">`:`<div style="width:42px;height:42px;border-radius:8px;background:#f0eeec;display:flex;align-items:center;justify-content:center;font-weight:800;color:#aaa;font-size:15px">${b.name[0]}</div>`}<div style="min-width:0"><b>${b.name}</b><div style="font-size:10.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${b.cat} · ${b.country||'-'}</div></div></div><div style="display:flex;justify-content:space-between;align-items:center"><span class="st ${st[1]}">${st[0]}</span><span style="font-size:10.5px;color:var(--muted)">${b.amin?b.amin+'-'+b.amax+' м²':''}</span></div><div style="font-size:9.5px;color:#aaa">изм.: ${b.editedBy} · ${b.editedAt}</div></div>`;}).join('');
+  $('main').innerHTML=`<div class="ph"><h1>${t('brands')}</h1><span class="pill">${list.length} / ${BRANDS.length}</span></div>
+  <p class="sub">Единая база ритейлеров · фильтры, карточки, профиль PPTX, правки с историей. Полная выгрузка базы отключена.</p>
+  ${pptxReady()?'':'<div class="banner warn">Библиотека PPTX не загрузилась в этом браузере. Для production лучше подключить PptxGenJS локально или разрешить CDN. Контактные данные по-прежнему не включаются в профиль ритейлера.</div>'}
+  <div class="card" style="padding:12px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+  <input placeholder="Поиск по названию..." value="${brandFilter.q}" oninput="brandFilter.q=this.value;renderBrands()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">
+  <select onchange="brandFilter.cat=this.value;renderBrands()" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">${BRANDCATS.map(c=>`<option ${c===brandFilter.cat?'selected':''}>${c}</option>`).join('')}</select>
+  <select onchange="brandFilter.status=this.value;renderBrands()" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px"><option value="Все"${brandFilter.status==='Все'?' selected':''}>Все статусы</option><option value="active"${brandFilter.status==='active'?' selected':''}>Активен</option><option value="target"${brandFilter.status==='target'?' selected':''}>Цель</option><option value="refused"${brandFilter.status==='refused'?' selected':''}>Отказ</option></select>
+  <select onchange="brandFilter.country=this.value;renderBrands()" style="font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">${countries.map(c=>`<option ${c===brandFilter.country?'selected':''}>${c}</option>`).join('')}</select>
+  ${canEdit?'<button class="btn sm" onclick="brandEdit()">+ '+t('add')+'</button>':''}</div></div>
+ <div class="objgrid" style="grid-template-columns:repeat(auto-fill,minmax(225px,1fr))">${cards||'<div style="color:var(--muted);font-size:12.5px;padding:10px">Ничего не найдено.</div>'}</div>
+ <div style="font-size:11px;color:var(--muted);margin-top:10px">Доступ к базе - все роли отдела; правки - с правом редактирования (история сохраняется). Логотипы/витрины - загрузка в карточке.</div>
+ ${footNote()}`;
+}
+function openBrand(id){
+ const b=BRANDS.find(x=>x.id===id),canEdit=R().edit;
+ const hb=(b.hist&&b.hist.length)?b.hist.slice().reverse().map(h=>`<div class="ev"><div class="dt">${h[0]} · ${h[1]}</div><div class="tx">${h[2]}</div></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Изменений нет</div>';
+ $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>${b.name}</h2><div class="s">${b.cat} / ${b.sub} · ${b.country}</div></div>
+ <div class="dbody">
+  <div style="display:flex;gap:8px;margin-bottom:10px">${imgBox(b,'logo','Логотип')}${imgBox(b,'shopfront','Витрина')}${imgBox(b,'interior','Интерьер')}</div>
+  <div class="kv"><span>Формат</span><b>${b.format}</b></div>
+  <div class="kv"><span>Площадь</span><b>${b.amin}-${b.amax} м²</b></div>
+  <div class="kv"><span>Франшиза</span><b>${b.fr}</b></div>
+  <div class="kv"><span>Требования</span><b>${b.reqs}</b></div>
+  <div class="kv"><span>Co-tenancy</span><b>${b.coten}</b></div>
+  <div class="sect">Контакты</div>
+  <div class="kv"><span>Контакт</span><b>${b.person}</b></div>
+  <div class="kv"><span>Телефон</span><b>${b.phone}</b></div>
+  <div class="kv"><span>Email</span><b>${b.email}</b></div>
+  <div class="kv"><span>Сайт / IG</span><b>${b.site} · ${b.ig}</b></div>
+  <div class="sect">Заметки</div><div style="font-size:12.5px">${b.notes||'-'}</div>
+  <div class="sect">История правок</div><div class="tl">${hb}</div>
+  <div style="font-size:11px;color:var(--muted);margin-top:6px">Последнее изменение: ${b.editedBy} · ${b.editedAt}</div>
+  <div style="margin-top:14px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="brandProfile('${b.id}')">Скачать профиль (PPTX, 2 листа)</button>${canEdit?`<button class="btn ghost sm" onclick="brandEdit('${b.id}')">Редактировать</button>`:''}</div>
+ </div>`;
+ $('drawer').classList.add('open');$('dbg').classList.add('open');localize();
+}
+function brandEdit(id){
+ if(!id){const nb=brand({name:'Новый бренд',cat:'Еда и напитки',status:'target'});nb.editedBy=S.user.name;nb.editedAt=iso(TODAY);nb.hist=[[iso(TODAY),S.user.name,'Создан бренд']];BRANDS.push(nb);id=nb.id;}
+ brandForm(id);
+}
+function _bL(tt){return '<label style="display:block;font-size:11px;font-weight:600;color:#555;margin:9px 0 3px">'+tt+'</label>';}
+function _bF(tt,id,val){return _bL(tt)+'<input id="'+id+'" value="'+((val==null?'':val).toString().replace(/"/g,'&quot;'))+'" style="width:100%;font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">';}
+function _bTA(tt,id,val){return _bL(tt)+'<textarea id="'+id+'" style="width:100%;font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px;min-height:50px">'+((val==null?'':val).toString().replace(/</g,'&lt;'))+'</textarea>';}
+function _bSel(tt,id,opts,val){return _bL(tt)+'<select id="'+id+'" style="width:100%;font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">'+opts.map(o=>'<option value="'+o[0]+'"'+(o[0]===val?' selected':'')+'>'+o[1]+'</option>').join('')+'</select>';}
+function brandForm(id){
+ const b=BRANDS.find(x=>x.id===id);
+ const cats=BRANDCATS.filter(c=>c!=='Все').map(c=>[c,c]);
+ const sts=[['active','Активен'],['target','Цель'],['refused','Отказ']];
+ $('drawer').innerHTML='<div class="dh"><span class="x" onclick="openBrand(\''+id+'\')">×</span><h2>Редактирование бренда</h2><div class="s">'+b.name+'</div></div><div class="dbody">'
+ +'<div style="display:flex;gap:8px;margin-bottom:6px">'+imgBox(b,'logo','Логотип')+imgBox(b,'shopfront','Витрина')+imgBox(b,'interior','Интерьер')+'</div>'
+ +_bF('Название','e_name',b.name)
+ +'<div class="row2"><div>'+_bSel('Категория','e_cat',cats,b.cat)+'</div><div>'+_bF('Подкатегория','e_sub',b.sub)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Страна','e_country',b.country)+'</div><div>'+_bSel('Статус','e_status',sts,b.status)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Площадь min, м²','e_amin',b.amin)+'</div><div>'+_bF('Площадь max, м²','e_amax',b.amax)+'</div></div>'
+ +_bF('Формат','e_format',b.format)
+ +_bF('Франшиза / модель','e_fr',b.fr)
+ +_bF('Требования к помещению','e_reqs',b.reqs)
+ +_bF('Co-tenancy','e_coten',b.coten)
+ +'<div class="sect">Контакты (не выводятся в PPTX)</div>'
+ +_bF('Контактное лицо','e_person',b.person)
+ +'<div class="row2"><div>'+_bF('Телефон','e_phone',b.phone)+'</div><div>'+_bF('Email','e_email',b.email)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Сайт','e_site',b.site)+'</div><div>'+_bF('Instagram','e_ig',b.ig)+'</div></div>'
+ +'<div class="sect">Для профиля (PPTX)</div>'
+ +'<div class="row2"><div>'+_bF('Год основания','e_founded',b.founded)+'</div><div>'+_bF('Группа / холдинг','e_group',b.group)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Ценовой уровень','e_price',b.price)+'</div><div>'+_bF('Формат ICSC','e_icsc',b.icsc)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Сеть: точек','e_netPts',b.netPts)+'</div><div>'+_bF('Сеть: стран','e_netCountries',b.netCountries)+'</div></div>'
+ +_bF('Оператор в Узбекистане','e_uzOp',b.uzOp)
+ +_bTA('О бренде','e_about',b.about)
+ +_bTA('Позиционирование','e_pos',b.pos)
+ +_bTA('Концепция и ассортимент','e_concept',b.concept)
+ +_bTA('Рекомендация CASE','e_rec',b.rec)
+ +_bTA('Заметки','e_notes',b.notes)
+ +'<div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="brandSave(\''+id+'\')">Сохранить</button><button class="btn ghost" onclick="openBrand(\''+id+'\')">Отмена</button></div></div>';
+ $('drawer').classList.add('open');$('dbg').classList.add('open');
+}
+function brandSave(id){const b=BRANDS.find(x=>x.id===id);if(!b)return;const g=i=>{const e=$(i);return e?e.value:'';};
+ b.name=g('e_name')||b.name;b.cat=g('e_cat');b.sub=g('e_sub');b.country=g('e_country');b.status=g('e_status');b.amin=+g('e_amin')||0;b.amax=+g('e_amax')||0;b.format=g('e_format');b.fr=g('e_fr');b.reqs=g('e_reqs');b.coten=g('e_coten');b.person=g('e_person');b.phone=g('e_phone');b.email=g('e_email');b.site=g('e_site');b.ig=g('e_ig');b.founded=g('e_founded');b.group=g('e_group');b.price=g('e_price');b.icsc=g('e_icsc');b.netPts=g('e_netPts');b.netCountries=g('e_netCountries');b.uzOp=g('e_uzOp');b.about=g('e_about');b.pos=g('e_pos');b.concept=g('e_concept');b.rec=g('e_rec');b.notes=g('e_notes');
+ b.editedBy=S.user.name;b.editedAt=iso(TODAY);(b.hist=b.hist||[]).push([iso(TODAY),S.user.name,'Правка карточки']);
+ persist();openBrand(id);}
+/* ===== USERS ===== */
+function renderUsers(){
+ if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}
+ $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Единая платформа с логинами; ограничения соответствуют ролям</p><div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:520px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Логин</label><input id="nu_login" placeholder="login"></div></div><label>Роль</label><select id="nu_role">${Object.keys(ROLES).map(k=>`<option value="${k}">${k} - ${ROLES[k].label}</option>`).join('')}</select><button class="btn" style="margin-top:12px" onclick="addUser()">+ ${t('add')}</button></div></div><div class="card"><h3>Пользователи (${USERS.length})</h3><div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Роль</th><th>Аренда</th><th>Финансы</th><th>Правки</th><th>Виза</th><th>Планы</th></tr></thead><tbody>${USERS.map(x=>{const r=ROLES[x.role],y=v=>v?'<span style="color:var(--green)">✔</span>':'<span style="color:#ccc">-</span>';return `<tr><td><b>${x.name}</b><div style="font-size:10px;color:#999">${x.title}</div></td><td>${r.label}</td><td>${y(r.leasing)}</td><td>${y(r.finance)}</td><td>${y(r.edit)}</td><td>${y(r.approve)}</td><td>${y(r.plans)}</td></tr>`;}).join('')}</tbody></table></div></div>${footNote()}`;
+}
+function addUser(){const name=$('nu_name').value.trim(),login=$('nu_login').value.trim(),role=$('nu_role').value;if(!name||!login){alert('Заполните имя и логин');return;}USERS.push({u:login,name,role,title:ROLES[role].label});$('luser').innerHTML=USERS.map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');persist();alert('Пользователь добавлен: '+name+' ('+role+'). В production - выдача логина/пароля и письмо-приглашение.');renderUsers();}
+
+/* ===== DRAWER ===== */
+function openUnit(id){
+ const u=U.find(x=>x.id===id),o=objById(u.obj),fin=R().finance;
+ const os=offerState(u);
+ const offer=u.offer?`<div class="banner warn">⚑ <b>Предложено</b>: ${esc(u.offer.to)} · агент ${esc(u.offer.by||u.offer.role)}. Действует до ${dateRU(os.until)} (${os.days} дн.). Не предлагать другим без подтверждения.</div>`:'';
+ const merged=u.merged?`<div class="kv"><span>Объединено из</span><b>${u.merged.join(' + ')}</b></div>`:'';
+ const vars=u.vars.length?`<div class="varchips">${u.vars.map((v,i)=>`<span>${i+1}. ${v}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Вариантов нет</div>';
+ const dts=u.dates.length?u.dates.map(d=>`<div class="kv"><span>${d[0]}</span><b>${dateRU(d[1])}</b></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Дат нет</div>';
+ const hist=u.hist.length?`<div class="tl">${u.hist.slice().reverse().map(h=>`<div class="ev"><div class="dt">${dateRU(h[0])}</div><div class="tx">${h[1]}</div></div>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Пусто</div>';
+ $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>${u.code}</h2><div class="s">${o.name} · ${u.floor} · ${u.cat}/${u.sub}</div><span class="st ${STCLS[u.status]}" style="margin-top:8px;display:inline-block">${stT(u.status)}</span></div><div class="dbody">${offer}${merged}<div class="kv"><span>Площадь</span><b>${fmtA(u.area)} м²${u.terr?' (+'+fmtA(u.terr)+' терраса)':''}</b></div><div class="kv"><span>Ставка</span><b>${u.rate?u.rate+' $/м²/мес':'-'}</b></div><div class="kv"><span>Аренда/мес</span><b>${fin?(u.total?fmt(u.total):'-'):'•••'}</b></div><div class="kv"><span>Потеря (вакант)</span><b>${fin?(u.gap<0?fmt(Math.abs(u.gap)):'-'):'•••'}</b></div><div class="kv"><span>Брокер</span><b>${u.broker||'-'}</b></div><div class="sect">Варианты (неограниченно)</div>${vars}<div class="sect">Контрольные даты</div>${dts}<div class="sect">Шорт-лист (потенциальные арендаторы)</div>${(u.shortlist&&u.shortlist.length)?`<div class="varchips">${u.shortlist.map(s=>`<span>${s}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Пусто</div>'}<div class="sect">Комментарии</div>${(u.comments&&u.comments.length)?u.comments.map(c=>`<div style="font-size:12px;border-bottom:1px solid #f2f0ed;padding:5px 0"><b>${c[1]}</b> <span style="color:#999">${c[0]}</span><br>${c[2]}</div>`).join(''):'<div style="color:var(--muted);font-size:12px">Нет комментариев</div>'}<div class="sect">История</div>${hist}<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="closeDrawer();go('docs');setTimeout(()=>pickT('kp','${u.id}'),60)">Сформировать КП</button>${R().edit?`<button class="btn ghost sm" onclick="unitForm('${u.id}')">Редактировать</button><button class="btn ghost sm" onclick="addVar('${u.id}')">+ Вариант</button><button class="btn ghost sm" onclick="shortlistPick('${u.id}')">Подобрать арендаторов</button><button class="btn ghost sm" onclick="addUnitDate('${u.id}')">+ дата</button><button class="btn ghost sm" onclick="addComment('${u.id}')">+ Комментарий</button>`:''}</div></div>`;
+ $('drawer').classList.add('open');$('dbg').classList.add('open');localize();
+}
+function closeDrawer(){$('drawer').classList.remove('open');$('dbg').classList.remove('open');}
+function addVar(id){const u=U.find(x=>x.id===id),v=prompt('Бренд-кандидат:');if(v){u.vars.push(v);u.hist.push([iso(TODAY),'Добавлен вариант: '+v]);persist();openUnit(id);}}
+function addUnitDate(id){const u=U.find(x=>x.id===id);const lbl=prompt('Тип даты (Окончание договора / Ревизия ставки / Дедлайн / Открытие ...):');if(!lbl)return;const d=prompt('Дата (ГГГГ-ММ-ДД):','2026-09-01');if(!d)return;u.dates.push([lbl,d]);u.hist.push([iso(TODAY),'Дата: '+lbl+' '+d+' ('+S.user.name+')']);persist();openUnit(id);}
+function unitForm(id){
+ const u=U.find(x=>x.id===id);
+ const sts=[['vac','Вакант'],['neg','Переговоры'],['off','Предложено'],['os','Предложение подписано'],['cs','Контракт на подписании'],['cd','Контракт подписан'],['res','Резерв']];
+ const cats=[['Еда и напитки','Еда и напитки'],['Мода и стиль','Мода и стиль'],['Торговля','Торговля'],['Продукты','Продукты'],['Услуги','Услуги'],['Офис','Офис'],['Электроника','Электроника'],['Развлечения','Развлечения'],['Co-tenancy','Co-tenancy'],['-','-']];
+ $('drawer').innerHTML='<div class="dh"><span class="x" onclick="openUnit(\''+id+'\')">×</span><h2>Редактирование помещения</h2><div class="s">'+u.code+'</div></div><div class="dbody">'
+ +_bF('Код помещения','e_code',u.code)
+ +_bF('Этаж / блок','e_floor',u.floor)
+ +'<div class="row2"><div>'+_bSel('Категория','e_cat',cats,u.cat)+'</div><div>'+_bF('Подкатегория','e_sub',u.sub)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Площадь, м²','e_area',u.area)+'</div><div>'+_bF('Терраса, м²','e_terr',u.terr)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Ставка, $/м²','e_rate',u.rate)+'</div><div>'+_bSel('Статус','e_status',sts,u.status)+'</div></div>'
+ +_bF('Брокер','e_broker',u.broker)
+ +'<div style="font-size:11px;color:var(--muted);margin-top:8px">Аренда/мес пересчитается автоматически (площадь × ставка). Контрольные даты - кнопкой «+ дата» в карточке.</div>'
+ +'<div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="unitSave(\''+id+'\')">Сохранить</button><button class="btn ghost" onclick="openUnit(\''+id+'\')">Отмена</button></div></div>';
+ $('drawer').classList.add('open');$('dbg').classList.add('open');
+}
+function unitSave(id){const u=U.find(x=>x.id===id);if(!u)return;const g=i=>{const e=$(i);return e?e.value:'';};
+ u.code=g('e_code')||u.code;u.floor=g('e_floor');u.cat=g('e_cat');u.sub=g('e_sub');u.area=+g('e_area')||0;u.terr=+g('e_terr')||0;u.rate=+g('e_rate')||0;u.status=g('e_status');u.broker=g('e_broker');
+ u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);
+ u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);persist();openUnit(id);}
+function shortlistPick(id){pickerView(id,false);}
+function pickerView(id,all){
+ const u=U.find(x=>x.id===id);
+ const match=b=>b.status!=='refused'&&(all||(u.cat&&b.cat&&(b.cat===u.cat||b.cat.indexOf(u.cat)>=0||u.cat.indexOf(b.cat)>=0))||(u.sub&&b.sub&&b.sub.indexOf(u.sub)>=0));
+ let list=BRANDS.filter(match);
+ const rows=list.map(b=>`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #f2f0ed"><div style="min-width:0"><b>${b.name}</b><div style="font-size:10.5px;color:var(--muted)">${b.cat} · ${b.country||'-'}${b.amin?' · '+b.amin+'-'+b.amax+' м²':''}</div></div><div style="display:flex;gap:6px;flex-shrink:0"><button class="btn ghost sm" onclick="addToList('${id}','${b.id}','short')">+ шорт-лист</button><button class="btn ghost sm" onclick="addToList('${id}','${b.id}','var')">+ вариант</button></div></div>`).join('');
+ $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="openUnit('${id}')">×</span><h2>Подбор арендаторов</h2><div class="s">${u.code} · категория: ${u.cat} / ${u.sub}</div></div><div class="dbody"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><span style="font-size:12px;color:var(--muted)">${all?'Все бренды':'По категории юнита'} · ${list.length}</span><button class="btn ghost sm" onclick="pickerView('${id}',${all?'false':'true'})">${all?'Только по категории':'Показать все'}</button></div>${rows||'<div style="color:var(--muted);font-size:12.5px">Нет подходящих брендов в этой категории. Нажмите «Показать все».</div>'}<div style="margin-top:12px"><button class="btn ghost sm" onclick="openUnit('${id}')">← Назад к помещению</button></div></div>`;
+ $('drawer').classList.add('open');$('dbg').classList.add('open');localize();
+}
+function addToList(uid,bid,kind){const u=U.find(x=>x.id===uid),b=BRANDS.find(x=>x.id===bid);if(!u||!b)return;if(kind==='short'){u.shortlist=u.shortlist||[];if(u.shortlist.indexOf(b.name)<0)u.shortlist.push(b.name);u.hist.push([iso(TODAY),'Шорт-лист: +'+b.name+' ('+S.user.name+')']);}else{if(u.vars.indexOf(b.name)<0)u.vars.push(b.name);u.hist.push([iso(TODAY),'Вариант: +'+b.name+' ('+S.user.name+')']);}persist();pickerView(uid,false);}
+function addComment(id){const u=U.find(x=>x.id===id);const c=prompt('Комментарий по сделке / предложению:');if(c){u.comments=u.comments||[];u.comments.push([iso(TODAY),S.user.name,c]);u.hist.push([iso(TODAY),'Комментарий ('+S.user.name+')']);persist();openUnit(id);}}
+
+/* ===== DOCUMENTS ===== */
+let DOC={t:'kp',uid:null,last:'',raw:'',fname:'CASE_document',docLang:'ru'};
+const DOCMAP_UZ={'Коммерческое предложение / Договор намерения':'Tijoriy taklif / Niyat shartnomasi','Письмо о намерениях (LOI)':'Niyat xati (LOI)','Служебное напоминание':'Xizmat eslatmasi','Предлагаем помещение(я) на следующих условиях:':'Quyidagi shartlarda joy(lar) taklif qilamiz:','Благодарим за интерес к':'Qiziqishingiz uchun rahmat:','Со стороны Арендодателя':'Ijaraga beruvchi tomonidan','Со стороны Арендатора':'Ijarachi tomonidan','Со стороны Брокера (CASE)':'Broker (CASE) tomonidan','Оплата за обслуживание':'Xizmat haqi','Арендные каникулы (fit-out)':'Ijara taʼtili (fit-out)','Предоплата / депозит':'Avans / depozit','Период пользования':'Foydalanish muddati','Состояние при передаче':'Topshirishdagi holat','Коммунальные платежи':'Kommunal toʻlovlar','Как оплачивается':'Qanday toʻlanadi','Особые условия':'Maxsus shartlar','Повышение аренды':'Ijara oshishi','Аренда террасы':'Terrasa ijarasi','Базовая аренда':'Asosiy ijara','Дата передачи':'Topshirish sanasi','Помещение(я)':'Joy(lar)','Деятельность':'Faoliyat','Уважаемый(ая)':'Hurmatli','Арендатор:':'Ijarachi:','Объект:':'Obyekt:','С уважением':'Hurmat bilan','от имени':'nomidan','Площадь':'Maydon','Подпись':'Imzo','Дата':'Sana','действительно':'amal qiladi','Профиль ритейлера':'Riteyler profili','Контакты и условия':'Kontaktlar va shartlar','Требования к помещению':'Joyga talablar','Контактное лицо':'Aloqa shaxsi','Франшиза':'Franshiza','Формат':'Format','Телефон':'Telefon','Заметки':'Izohlar','Сайт':'Sayt'};
+const DOCMAP_EN={'Коммерческое предложение / Договор намерения':'Commercial Offer / Letter of Intent','Письмо о намерениях (LOI)':'Letter of Intent (LOI)','Служебное напоминание':'Internal Reminder','Предлагаем помещение(я) на следующих условиях:':'We are pleased to offer the unit(s) on the following terms:','Благодарим за интерес к':'Thank you for your interest in','Со стороны Арендодателя':'For the Landlord','Со стороны Арендатора':'For the Tenant','Со стороны Брокера (CASE)':'For the Broker (CASE)','Оплата за обслуживание':'Service charge','Арендные каникулы (fit-out)':'Rent-free (fit-out)','Предоплата / депозит':'Prepayment / deposit','Период пользования':'Lease term','Состояние при передаче':'Handover condition','Коммунальные платежи':'Utilities','Как оплачивается':'How paid','Особые условия':'Special conditions','Повышение аренды':'Rent escalation','Аренда террасы':'Terrace rent','Базовая аренда':'Base rent','Дата передачи':'Handover date','Помещение(я)':'Unit(s)','Деятельность':'Use / Activity','Уважаемый(ая)':'Dear','Арендатор:':'Tenant:','Объект:':'Property:','С уважением':'Best regards','от имени':'on behalf of','Площадь':'Area','Подпись':'Signature','Дата':'Date','действительно':'valid','Профиль ритейлера':'Retailer Profile','Контакты и условия':'Contacts and terms','Требования к помещению':'Premises requirements','Контактное лицо':'Contact person','Франшиза':'Franchise','Формат':'Format','Телефон':'Phone','Заметки':'Notes','Сайт':'Website'};
+function docTr(h){const m=DOC.docLang==='uz'?DOCMAP_UZ:DOC.docLang==='en'?DOCMAP_EN:null;if(!m)return h;for(const k in m)h=h.split(k).join(m[k]);return h;}
+function renderDocs(){
+ $('main').innerHTML=`<div class="ph"><h1>${t('docs')}</h1></div><p class="sub">Глубокие настройки · вывод в Word (.doc) и печать</p><div class="docwrap"><div><div class="card" style="padding:13px"><div class="sect" style="margin-top:0">Шаблон</div><div class="tmpls">${tb('kp','КП аренды (услуги аренды)','Глубокие настройки')}${tb('loi','LOI / Письмо о намерениях','Помещение / бренд / объект')}${tb('remind','Письмо-напоминание','По контрольной дате')}</div><div id="dform"></div></div></div><div><div class="preview"><div id="dprev" class="paper"><div style="color:var(--muted);text-align:center;padding:70px 0">Заполните и нажмите «${t('form')}»</div></div></div><div style="margin-top:9px;display:flex;gap:8px;justify-content:flex-end;align-items:center"><span style="font-size:11px;color:var(--muted)">Язык:</span><select onchange="DOC.docLang=this.value;if(DOC.raw)show(DOC.raw)" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select><button class="btn" onclick="dlWord()">${t('word')}</button><button class="btn ghost" onclick="printDoc()">${t('print')}</button></div></div></div>${footNote()}`;
+ pickT(DOC.t,DOC.uid);
+}
+function tb(k,a,b){return `<div class="tmpl" id="t-${k}" onclick="pickT('${k}')"><b>${a}</b><small style="color:var(--muted)">${b}</small></div>`;}
+function pickT(k,uid){
+ DOC.t=k;if(uid)DOC.uid=uid;if(S.view!=='docs'){go('docs');return;}
+ ['kp','loi','remind'].forEach(x=>{const e=$('t-'+x);if(e)e.classList.toggle('active',x===k);});
+ const f=$('dform');if(!f)return;
+ const realObj=OBJECTS.map(o=>`<option value="${o.id}">${o.name}</option>`).join('');
+ const sel=DOC.uid?U.find(u=>u.id===DOC.uid):null;
+ if(k==='kp'){
+  f.innerHTML=`<div class="form">
+   <label>Объект</label><select id="f_obj" onchange="kCfg()">${realObj}</select>
+   <div class="row2"><div><label>№ КП</label><input id="f_no" value="CA/0001"></div><div><label>Дата</label><input id="f_date" value="${TODAY.toLocaleDateString('ru-RU')}"></div></div>
+   <div class="row2"><div><label>Срок действия КП, дней</label><input id="f_valid" type="number" value="30"></div><div><label>Кому (ФИО)</label><input id="f_addr" placeholder="напр. Хайдаров А."></div></div>
+   <label>Арендатор / торговое название</label><input id="f_ten" value="${sel?(sel.vars[0]||''):''}">
+   <label>Помещение(я) - можно несколько через запятую</label><input id="f_unit" value="${sel?sel.code:''}">
+   <label>Деятельность</label><select id="f_act" onchange="document.getElementById('f_actm').style.display=this.value.indexOf('Другое')>=0?'block':'none'">${ACTS.map(a=>`<option>${a}</option>`).join('')}</select><input id="f_actm" placeholder="ввести деятельность вручную" style="display:none;margin-top:6px">
+   <div class="row2"><div><label>Площадь, м²</label><input id="f_area" type="number" value="${sel?sel.area:100}"></div><div><label>Ставка, $/м²</label><input id="f_rate" type="number" value="${sel&&sel.rate?sel.rate:20}"></div></div>
+   <div class="fsec"><div class="ft">Терраса / посадочное место</div><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="f_terr_on" style="width:auto" onchange="document.getElementById('terrb').style.display=this.checked?'block':'none'"> есть терраса / посадка</label><div id="terrb" style="display:${sel&&sel.terr?'block':'none'}"><div class="row2"><div><label>Площадь террасы, м²</label><input id="f_terr" type="number" value="${sel?sel.terr:0}"></div><div><label>Ставка террасы, $/м²</label><input id="f_terrate" type="number" value="${sel&&sel.rate?(sel.rate/2):10}"></div></div><label style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="f_season" style="width:auto"> сезонная (указать месяцы)</label><input id="f_seasonm" placeholder="напр. апрель - октябрь" style="margin-top:6px"></div></div>
+   <div class="fsec"><div class="ft">Модель аренды</div><select id="f_rmodel" onchange="rmodel()">${RENTMODELS.map(m=>`<option>${m}</option>`).join('')}</select><input id="f_rstep" placeholder="график: год1 X / год2 Y / год3 Z" style="display:none;margin-top:6px"><div id="f_rturnbox" class="row2" style="display:none;margin-top:6px"><div><label>% от оборота</label><input id="f_turn" type="number" value="8"></div><div><label>Порог (min аренда)</label><input id="f_turnmin" placeholder="напр. база"></div></div><div class="row2" style="margin-top:6px"><div><label>Повышение, %/год</label><input id="f_inc" type="number" value="5"></div><div><label>Обслуживание, %</label><input id="f_sc" type="number" value="10"></div></div></div>
+   <div class="fsec"><div class="ft">НДС</div><div class="row2"><div><label>Режим</label><select id="f_vat">${VATOPT.map(v=>`<option value="${v[0]}">${v[1]}</option>`).join('')}</select></div><div><label>Ставка НДС, %</label><input id="f_vatr" type="number" value="12"></div></div></div>
+   <div class="fsec"><div class="ft">CAPEX и каникулы</div><div class="row2"><div><label>CAPEX - кто</label><select id="f_capx"><option>Арендатор</option><option>Арендодатель</option><option>Совместно</option></select></div><div><label>CAPEX - сумма/условие</label><input id="f_capxv" placeholder="напр. $200/м² от Арендодателя"></div></div><div class="row2"><div><label>Каникулы (fit-out), мес</label><input id="f_fit" type="number" value="2"></div><div><label>Период каникул</label><input id="f_fitp" placeholder="напр. с даты передачи"></div></div><div class="row2"><div><label>Предоплата, мес</label><input id="f_prep" type="number" value="1"></div><div><label>Депозит, мес</label><input id="f_dep" type="number" value="1"></div></div></div>
+   <div class="fsec"><div class="ft">Коммунальные платежи</div><div id="umx"></div></div>
+   <label>Состояние при передаче</label><input id="f_cond" value="В черновом виде (shell & core)">
+   <label>Особые условия</label><textarea id="f_special" placeholder="любые особые условия по сделке..."></textarea>
+   <label>Подписант (Арендодатель)</label><input id="f_sig" value="Шермухамедов А.А., Директор">
+   <button class="btn" style="width:100%;margin-top:13px" onclick="genKP()">${t('form')}</button></div>`;
+  if(sel)$('f_obj').value=sel.obj;
+  $('umx').innerHTML=UTILS.map(u=>`<div class="umx"><input type="checkbox" id="u_${u[0]}" checked><span class="un">${u[1]}</span><select id="um_${u[0]}">${UMETHODS.map(m=>`<option>${m}</option>`).join('')}</select></div>`).join('');
+  setUM('heat','за м² Арендодателю');setUM('cool','за м² Арендодателю');setUM('clean','включено в обслуживание');setUM('waste','включено в обслуживание');
+  kCfg();
+ } else if(k==='loi'){
+  f.innerHTML=`<div class="form"><label>Тип LOI</label><select id="f_loitype" onchange="loiType()"><option value="unit">По помещению</option><option value="brand">Общее по бренду (сотрудничество)</option><option value="obj">Общее по объекту (сотрудничество с CASE)</option></select><label>Объект</label><select id="f_obj">${realObj}</select><label id="f_tenL">Арендатор / бренд</label><input id="f_ten" value="${sel?(sel.vars[0]||''):''}"><div id="loiunitbox"><label>Помещение</label><input id="f_unit" value="${sel?sel.code:''}"><div class="row2"><div><label>Площадь</label><input id="f_area" type="number" value="${sel?sel.area:100}"></div><div><label>Ставка</label><input id="f_rate" type="number" value="${sel&&sel.rate?sel.rate:20}"></div></div></div><label>Срок действия LOI, дней</label><input id="f_val" type="number" value="14"><button class="btn" style="width:100%;margin-top:13px" onclick="genLOI()">${t('form')}</button></div>`;
+  if(sel)$('f_obj').value=sel.obj;
+ } else {
+  f.innerHTML=`<div class="form"><label>Объект</label><select id="f_obj">${realObj}</select><label>Арендатор</label><input id="f_ten" value="${DOC._ten||''}"><label>Тема</label><input id="f_sub" value="${DOC._sub||'Окончание срока договора'}"><label>Дата события</label><input id="f_date2" type="date" value="2026-09-01"><button class="btn" style="width:100%;margin-top:13px" onclick="genREM()">${t('form')}</button></div>`;
+ }
+}
+function setUM(k,v){const e=$('um_'+k);if(e)e.value=v;}
+function rmodel(){const v=$('f_rmodel').value;$('f_rstep').style.display=v.indexOf('Нараст')>=0?'block':'none';$('f_rturnbox').style.display=v.indexOf('оборот')>=0?'flex':'none';}
+function loiType(){const v=$('f_loitype').value;$('loiunitbox').style.display=v==='unit'?'block':'none';$('f_tenL').textContent=v==='obj'?'Контрагент / компания':'Арендатор / бренд';}
+function kCfg(){const o=objById($('f_obj').value)||{};const code={ca:'CA',zm:'ZM',gb:'GB',mh:'MH'};if($('f_no'))$('f_no').value=(code[$('f_obj').value]||'XX')+'/0001';if($('f_sc'))$('f_sc').value=o.sc||10;if($('f_inc'))$('f_inc').value=o.inc||5;if($('f_cond'))$('f_cond').value='В черновом виде ('+(o.cond||'shell & core')+')';if($('f_vat'))$('f_vat').value=o.vat||'incl';if($('f_vatr'))$('f_vatr').value=o.vatRate||12;}
+function letter(tt){return `<div class="lh"><div class="b"><span class="c">CASE</span> Advisory</div><div class="meta">${tt}<br>${TODAY.toLocaleDateString('ru-RU')}<br>Ташкент · Центральная Азия</div></div>`;}
+function show(h){DOC.raw=h;DOC.last=docTr(h);const p=$('dprev');if(p)p.innerHTML=DOC.last;}
+function sign3(){return `<div class="sign"><div><b>Со стороны Арендодателя</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div><div><b>Со стороны Арендатора</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div><div><b>Со стороны Брокера (CASE)</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div></div>`;}
+function genKP(){
+ const o=objById($('f_obj').value);
+ const no=$('f_no').value||'-',date=$('f_date').value,valid=+$('f_valid').value||30,addr=$('f_addr').value||'________',ten=$('f_ten').value||'Арендатор';
+ let act=$('f_act').value;if(act.indexOf('Другое')>=0)act=$('f_actm').value||'-';
+ const unit=$('f_unit').value||'-',area=+$('f_area').value||0,rate=+$('f_rate').value||0;
+ const terrOn=$('f_terr_on').checked,terr=+(($('f_terr')||{}).value)||0,terrate=+(($('f_terrate')||{}).value)||0,season=$('f_season')&&$('f_season').checked,seasonm=(($('f_seasonm')||{}).value)||'';
+ const rmod=$('f_rmodel').value,rstep=(($('f_rstep')||{}).value)||'',turn=+(($('f_turn')||{}).value)||0,turnmin=(($('f_turnmin')||{}).value)||'';
+ const inc=+$('f_inc').value||5,sc=+$('f_sc').value||10,vat=$('f_vat').value,vatr=+$('f_vatr').value||0;
+ const capx=$('f_capx').value,capxv=$('f_capxv').value||'-',fit=+$('f_fit').value||0,fitp=$('f_fitp').value||'',prep=+$('f_prep').value||1,dep=+$('f_dep').value||1;
+ const cond=$('f_cond').value,special=$('f_special').value||'-',sig=$('f_sig').value;
+ const m1=area*rate,mt=terrOn?terr*terrate:0;
+ const vatTxt=vat==='na'?'не облагается НДС':vat==='incl'?('включён в ставку (НДС '+vatr+'%)'):('НДС '+vatr+'% сверх ставки');
+ let rentRow;
+ if(rmod.indexOf('Нараст')>=0)rentRow='<b>'+rate+' $/м²/мес</b> (стартовая), нарастающая: '+(rstep||'по графику')+'. Итого старт <b>'+fmt(m1)+'/мес</b>.';
+ else if(rmod.indexOf('оборот')>=0&&rmod.indexOf('База')<0)rentRow='<b>'+turn+'% от товарооборота</b>'+(turnmin?' (мин. '+turnmin+')':'')+'.';
+ else if(rmod.indexOf('База')>=0)rentRow='<b>'+rate+' $/м²/мес</b> + <b>'+turn+'% от оборота</b> сверх порога. База <b>'+fmt(m1)+'/мес</b>.';
+ else rentRow='<b>'+rate+' $/м²/мес</b>, итого <b>'+fmt(m1)+'/мес</b>.';
+ const utils=UTILS.filter(u=>$('u_'+u[0])&&$('u_'+u[0]).checked).map(u=>'<tr><td>'+u[1]+'</td><td>'+$('um_'+u[0]).value+'</td></tr>').join('');
+ let mark='';
+ if(DOC.uid){const u=U.find(x=>x.id===DOC.uid);if(u){if(u.offer&&u.offer.byUser!==S.user.u){const st=offerState(u);if(!confirm('Внимание: '+u.code+' уже предложено ('+u.offer.to+', агент '+(u.offer.by||u.offer.role)+', '+(st?(st.days<0?'бронь просрочена':st.days+' дн. до окончания'):'активная бронь')+'). Это другой агент. Сформировать ещё одно КП?'))return;}u.offer={to:ten,role:S.role,by:S.user.name,byUser:S.user.u,date,no,validDays:valid,validUntil:addDaysISO(date,valid)};if(OCCK.indexOf(u.status)<0)u.status='off';u.hist.push([iso(TODAY),'КП '+no+': '+ten+' (агент '+S.user.name+', до '+u.offer.validUntil+')']);if(ten&&u.vars.indexOf(ten)<0)u.vars.push(ten);persist();mark='<br>✔ '+u.code+' отмечено «Предложено» ('+ten+'), бронь до '+dateRU(u.offer.validUntil)+' - видно всем агентам.';}}
+ DOC.fname='KP_'+no.replace(/\W+/g,'_')+'_'+ten.replace(/\W+/g,'_');
+ show(`${letter('Коммерческое предложение / Договор намерения')}<div style="text-align:right;font-size:11px;color:#555">${date} · № ${no} · действительно ${valid} дн.</div><h2>Коммерческое предложение / Договор намерения</h2><p>Уважаемый(ая) <b>${addr}</b>,</p><p>Арендатор: <b>${ten}</b> · Объект: <b>${o.ru}</b></p><p>Благодарим за интерес к ${o.ru}. Предлагаем помещение(я) на следующих условиях:</p><table><tr><td style="width:38%">Помещение(я)</td><td>${unit}</td></tr><tr><td>Площадь</td><td>${fmtA(area)} м²${terrOn?' + терраса '+fmtA(terr)+' м²'+(season?' (сезонно: '+(seasonm||'-')+')':''):''}; после стройработ перезамер +/- 10%</td></tr><tr><td>Деятельность</td><td>${act}</td></tr><tr><td>Базовая аренда</td><td>${rentRow} Оплата в ${o.cur}.</td></tr>${terrOn?'<tr><td>Аренда террасы</td><td>'+terrate+' $/м²/мес, итого '+fmt(mt)+'/мес'+(season?'; сезонно ('+(seasonm||'-')+')':'')+'</td></tr>':''}<tr><td>НДС</td><td>${vatTxt}</td></tr><tr><td>Повышение аренды</td><td>не более ${inc}% и не чаще раза в год</td></tr><tr><td>Оплата за обслуживание</td><td>${sc}% от аренды, отдельно</td></tr><tr><td>CAPEX</td><td>${capx}${capxv&&capxv!=='-'?' · '+capxv:''}</td></tr><tr><td>Арендные каникулы (fit-out)</td><td>${fit} мес${fitp?' ('+fitp+')':''}</td></tr><tr><td>Предоплата / депозит</td><td>${prep} мес аванс / ${dep} мес депозит</td></tr><tr><td>Период пользования</td><td>5 лет со дня открытия (подлежит согласованию)</td></tr><tr><td>Состояние при передаче</td><td>${cond}</td></tr></table><div style="page-break-before:always;height:0"></div><h2 style="font-size:13px;margin-top:14px">Коммунальные платежи</h2><table><tr><td style="width:38%;font-weight:700">Вид</td><td style="font-weight:700">Как оплачивается</td></tr>${utils||'<tr><td colspan="2">по договорённости</td></tr>'}</table><h2 style="font-size:13px;margin-top:14px">Особые условия</h2><p>${special}</p><p style="margin-top:8px">Для принятия подпишите и верните с: 3 экз. с печатью; предоплатой; копией паспорта; копией лицензии (юр. лица). Предложение действительно ${valid} дней.</p><p style="margin-top:12px">С уважением,<br>от имени <b>${o.ru}</b><br>${sig}<br>Case Real Estate Advisory</p>${sign3()}<div class="note">Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис. Word: кнопка «${t('word')}».${mark}</div>`);
+}
+function genLOI(){
+ const ty=$('f_loitype').value,o=objById($('f_obj').value),ten=$('f_ten').value||'-',val=+$('f_val').value||14;
+ DOC.fname='LOI_'+ten.replace(/\W+/g,'_');
+ let body;
+ if(ty==='unit'){const unit=$('f_unit').value||'-',area=+$('f_area').value||0,rate=+$('f_rate').value||0;body='<p>Намерение заключить договор аренды помещения <b>'+unit+'</b> в <b>'+o.ru+'</b>:</p><table><tr><td>Площадь</td><td class="num">'+fmtA(area)+' м²</td></tr><tr><td>Ставка</td><td class="num">'+rate+' $/м²/мес</td></tr><tr><td>Аренда/мес</td><td class="num">'+fmt(area*rate)+'</td></tr></table>';}
+ else if(ty==='brand')body='<p>Настоящим <b>CASE Advisory</b> и <b>'+ten+'</b> подтверждают намерение о стратегическом сотрудничестве по размещению бренда <b>'+ten+'</b> на объектах под управлением CASE (несколько локаций), на условиях, согласуемых по каждому помещению отдельно.</p>';
+ else body='<p>Настоящим <b>'+ten+'</b> и <b>CASE Advisory</b> подтверждают намерение о сотрудничестве по объекту <b>'+o.ru+'</b> (брокеридж / лизинг / управление), с детализацией в отдельном договоре.</p>';
+ show(`${letter('Letter of Intent (черновик)')}<h2>Письмо о намерениях (LOI)</h2>${body}<p>Настоящее LOI не является обязывающим договором и действует ${val} дней.</p>${sign3()}<div class="note">Черновик. Юридическая проверка обязательна.</div>`);
+}
+function genREM(){const o=objById($('f_obj').value),ten=$('f_ten').value||'-',sub=$('f_sub').value,date=$('f_date2').value,dd=date?daysUntil(date):'';DOC.fname='Reminder_'+ten.replace(/\W+/g,'_');show(`${letter('Служебное напоминание')}<h2>${sub}</h2><p>Объект: <b>${o.ru}</b> · Арендатор: <b>${ten}</b></p><p>Дата события: <b>${date?dateRU(date):'-'}</b>${dd!==''?' (через '+dd+' дней)':''}.</p><p>Просьба подготовить решение и согласовать с ответственным (ASH).</p><div class="note">Автоформируется по контрольной дате.</div>`);}
+function printDoc(){const w=window.open('','_blank');w.document.write(wrapDoc(DOC.last||$('dprev').innerHTML));w.document.close();w.focus();setTimeout(()=>w.print(),300);}
+function wrapDoc(h){return `<html><head><meta charset="utf-8"><title>CASE OS</title><link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap" rel="stylesheet"><style>body{font-family:'Montserrat',Arial,sans-serif;color:#222;max-width:760px;margin:24px auto;padding:0 22px;font-size:12pt}.lh{display:flex;justify-content:space-between;border-bottom:2px solid #9E0000;padding-bottom:10px;margin-bottom:16px}.lh .b{font-size:20pt;font-weight:800}.lh .b .c{color:#9E0000}.lh .meta{font-size:9pt;color:#888;text-align:right}h2{font-size:13pt}table{width:100%;border-collapse:collapse;margin:8px 0}td{padding:5px 8px;border:1px solid #999;font-size:10.5pt;vertical-align:top}.tot{font-weight:800;color:#7a0000}.note{font-size:9pt;color:#888;border-top:1px solid #eee;margin-top:14px;padding-top:8px}.sign{display:flex;gap:18px;margin-top:14px}.sign div{flex:1;font-size:10pt}</style></head><body>${h}</body></html>`;}
+function dlWord(){const html=wrapDoc(DOC.last||$('dprev').innerHTML);const blob=new Blob(['﻿'+html],{type:'application/msword'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(DOC.fname||'CASE_document')+'.doc';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
+
+/* ===== BRAND IMAGES + PPTX PROFILE ===== */
+function imgBox(b,field,label){const can=R().edit;const inner=b[field]?`<img src="${b[field]}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`:`<span style="color:#bbb;font-size:10.5px;text-align:center;line-height:1.3">${label}${can?'<br>+ загрузить':''}</span>`;return `<div onclick="${can?`uploadImg('${b.id}','${field}')`:''}" style="flex:1;height:80px;border:1px dashed #cfc9c1;border-radius:9px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:${can?'pointer':'default'}">${inner}</div>`;}
+function uploadImg(id,field){const inp=document.createElement('input');inp.type='file';inp.accept='image/*';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const b=BRANDS.find(x=>x.id===id);b[field]=r.result;b.editedBy=S.user.name;b.editedAt=iso(TODAY);(b.hist=b.hist||[]).push([iso(TODAY),S.user.name,'Загружено изображение: '+field]);persist();openBrand(id);};r.readAsDataURL(f);};inp.click();}
+function brandProfile(id){
+ const b=BRANDS.find(x=>x.id===id);
+ if(typeof PptxGenJS==='undefined'){alert('PPTX-библиотека не загрузилась (нужен интернет). Повторите позже.');return;}
+ const RED='9E0000',DARK='1B1B1B',GREY='6B6B6B';
+ const p=new PptxGenJS();p.defineLayout({name:'W',width:13.33,height:7.5});p.layout='W';
+ const hdr=(s,right,pg)=>{s.background={color:'FFFFFF'};s.addText('CASE ADVISORY',{x:0.5,y:0.28,w:6,h:0.3,fontFace:'Montserrat',fontSize:12,bold:true,color:RED});s.addText(right,{x:5,y:0.28,w:7.83,h:0.3,align:'right',fontFace:'Montserrat',fontSize:11,color:GREY});s.addShape(p.ShapeType.line,{x:0.5,y:0.66,w:12.33,h:0,line:{color:RED,width:1.5}});s.addText('CASE Advisory  ·  Профиль ритейлера  ·  внутренний документ',{x:0.5,y:7.05,w:9,h:0.3,fontFace:'Montserrat',fontSize:9,color:GREY});s.addText(pg,{x:11.8,y:7.05,w:1,h:0.3,align:'right',fontFace:'Montserrat',fontSize:9,color:GREY});};
+ let s=p.addSlide();hdr(s,'ПРОФИЛЬ РИТЕЙЛЕРА','1 / 2');
+ if(b.logo)s.addImage({data:b.logo,x:0.5,y:0.95,w:1.4,h:1.4});
+ else{s.addShape(p.ShapeType.roundRect,{x:0.5,y:0.95,w:1.4,h:1.4,fill:{color:'F0EEEC'},line:{color:'E0E0E0',width:1}});s.addText((b.name||'?').slice(0,2).toUpperCase(),{x:0.5,y:0.95,w:1.4,h:1.4,align:'center',valign:'middle',fontFace:'Montserrat',fontSize:28,bold:true,color:'AAAAAA'});}
+ s.addText(b.name||'',{x:2.1,y:1.0,w:7,h:0.6,fontFace:'Montserrat',fontSize:28,bold:true,color:DARK});
+ s.addText(b.about||b.notes||b.sub||'',{x:2.1,y:1.65,w:8.5,h:0.4,fontFace:'Montserrat',fontSize:12,color:GREY});
+ s.addText((b.cat||'').toUpperCase()+'    ·    '+(b.country||''),{x:2.1,y:2.08,w:8.5,h:0.3,fontFace:'Montserrat',fontSize:11,bold:true,color:RED});
+ if(b.site||b.ig)s.addText('Онлайн:  '+(b.site||'')+(b.ig?'   '+b.ig:''),{x:2.1,y:2.42,w:8.5,h:0.3,fontFace:'Montserrat',fontSize:10,color:GREY});
+ s.addText('КЛЮЧЕВЫЕ ФАКТЫ',{x:0.5,y:3.05,w:5,h:0.3,fontFace:'Montserrat',fontSize:12,bold:true,color:RED});
+ const facts=[['СТРАНА',b.country],['ГОД ОСНОВАНИЯ',b.founded],['ГРУППА / ХОЛДИНГ',b.group],['ЦЕНОВОЙ УРОВЕНЬ',b.price],['ФОРМАТ (ICSC)',b.icsc],['ТИПОВАЯ ПЛОЩАДЬ',(b.amin&&b.amax)?b.amin+'-'+b.amax+' м²':''],['СЕТЬ (МИР)',(b.netPts||'')+(b.netCountries?' · '+b.netCountries+' стран':'')],['В УЗБЕКИСТАНЕ',b.uzOp]];
+ let fy=3.45;facts.forEach(f=>{s.addText(f[0],{x:0.5,y:fy,w:3.4,h:0.24,fontFace:'Montserrat',fontSize:8.5,color:GREY});s.addText(((f[1]||'').toString()||'уточнить'),{x:0.5,y:fy+0.2,w:3.6,h:0.28,fontFace:'Montserrat',fontSize:11,bold:true,color:DARK});fy+=0.46;});
+ s.addText('О БРЕНДЕ',{x:4.4,y:3.05,w:4,h:0.3,fontFace:'Montserrat',fontSize:12,bold:true,color:RED});
+ s.addText(b.about||b.notes||'-',{x:4.4,y:3.45,w:3.9,h:1.9,fontFace:'Montserrat',fontSize:11,color:DARK,valign:'top'});
+ const imgB=(field,label,x)=>{if(b[field])s.addImage({data:b[field],x:x,y:3.45,w:2.15,h:1.7});else{s.addShape(p.ShapeType.roundRect,{x:x,y:3.45,w:2.15,h:1.7,fill:{color:'FBFAF8'},line:{color:'CFC9C1',width:1,dashType:'dash'}});s.addText(label+' · фото',{x:x,y:3.45,w:2.15,h:1.7,align:'center',valign:'middle',fontFace:'Montserrat',fontSize:10,color:'BBBBBB'});}s.addText(label,{x:x,y:5.2,w:2.15,h:0.25,align:'center',fontFace:'Montserrat',fontSize:9,bold:true,color:GREY});};
+ imgB('shopfront','ВИТРИНА',8.55);imgB('interior','ИНТЕРЬЕР',10.8);
+ let s2=p.addSlide();hdr(s2,'ВЗГЛЯД CASE: РИТЕЙЛ И АРЕНДА','2 / 2');
+ const secs=[['Позиционирование и аудитория',b.pos||('Сегмент '+(b.price||'уточнить')+'. Аудитория - уточнить.')],['Концепция и ассортимент',b.concept||(b.sub||'-')],['Формат и площадь (ICSC)',(b.icsc||'-')+'; в базе '+((b.amin&&b.amax)?b.amin+'-'+b.amax+' м²':'-')+'. Требования: '+(b.reqs||'-')+'.'],['Сеть и развитие',(b.netPts||'-')+' точек, '+(b.netCountries||'-')+' стран. Модель: '+(b.fr||'-')+'.'],['Присутствие в Узбекистане',b.uzOp?('Оператор '+b.uzOp+' (по базе CASE). Кол-во точек - уточнить.'):'Уточнить.'],['Рекомендация CASE  [ДОПУЩЕНИЕ]',b.rec||'Оценить как драйвер трафика и dwell-time; контроль turnover-rent; подтвердить готовность франчайзи.']];
+ let y=1.0;secs.forEach(sec=>{s2.addText('◆ '+sec[0],{x:0.5,y:y,w:12.3,h:0.3,fontFace:'Montserrat',fontSize:12,bold:true,color:RED});s2.addText(sec[1],{x:0.8,y:y+0.32,w:12,h:0.6,fontFace:'Montserrat',fontSize:11,color:DARK,valign:'top'});y+=0.97;});
+ s2.addText('Источники: открытые данные бренда; база CASE Brands.',{x:0.5,y:6.75,w:9,h:0.3,fontFace:'Montserrat',fontSize:8.5,italic:true,color:GREY});
+ p.writeFile({fileName:'Профиль ритейлера - '+(b.name||'brand')+' (CASE).pptx'});
+}
+
+/* ===== FOOT ===== */
+/* ===== PWA: installable; demo data persists offline via localStorage ===== */
+(function(){try{
+ const icon="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" rx="96" fill="#9E0000"/><text x="50%" y="55%" font-family="Montserrat,Arial,sans-serif" font-size="150" font-weight="800" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">CASE</text></svg>');
+ const man={name:'CASE OS - Leasing & Asset Control',short_name:'CASE OS',start_url:'.',scope:'.',display:'standalone',orientation:'portrait',background_color:'#2a0000',theme_color:'#9E0000',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+ const blob=new Blob([JSON.stringify(man)],{type:'application/manifest+json'});
+ const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(blob);document.head.appendChild(l);
+}catch(e){}})();
+function footNote(){return `<div class="foot"><b>CASE OS - прототип.</b> Реестр Creative Avenue - на основе реального LCR; прочее - демо. Изменения автосохраняются в этом браузере; для production нужны бэкенд, общая БД, RLS/RBAC и реальные логины. Multi-tenant: свои объекты + подписка ТЦ (SaaS). Документы выгружаются в Word (.doc), профиль ритейлера - PPTX. <button class="btn ghost sm" style="margin-left:8px" onclick="resetDemo()">Сбросить демо</button></div>`;}
+</script>
+</body>
+</html>
