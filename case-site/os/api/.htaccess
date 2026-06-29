@@ -1,0 +1,4 @@
+# Закрыть прямой HTTP-доступ к конфигу, библиотеке и файлам БД
+<FilesMatch "(^config\.php$|\.sqlite$|^lib\.php$)">
+  Require all denied
+</FilesMatch>

@@ -41,11 +41,11 @@ location /os/ {
 location = /os/sw.js { alias /var/www/caseadvisory/os/sw.js; add_header Cache-Control "no-cache"; }
 ```
 
-## Привязка к Supabase (для входа, P3)
-В Supabase → **Authentication → URL Configuration**:
-- **Site URL**: `https://caseadvisory.uz/os/`
-- **Redirect URLs**: добавить `https://caseadvisory.uz/os/`
-(CORS для REST/Realtime с anon-ключом настраивать не нужно — разрешён по умолчанию.)
+## Бэкенд (PHP + MySQL на этом же хостинге)
+Бэкенд лежит рядом, в `os/api/` + `os/sql/`, и работает с вашей MySQL.
+Установка — см. `os/api/README.md` (создать БД, импортировать схему,
+заполнить `config.php`, создать первого админа через `setup.php`).
+Внешние сервисы не нужны; всё под `caseadvisory.uz/os`.
 
 ## Обновления
 При каждом обновлении платформы:
