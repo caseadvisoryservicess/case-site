@@ -188,7 +188,7 @@ function toggleLang(){LANG=LANG==='ru'?'uz':'ru';$('langTop').textContent=LANG==
  if($('whoRole'))$('whoRole').textContent=R().label;
  if($('gq'))$('gq').placeholder=LANG==='uz'?'Qidiruv: joy, brend, KP...':'Поиск: помещение, бренд, КП...';
  if($('b_out'))$('b_out').textContent=t('out');
- closeDrawer();rebuildObjSel();buildNav();renderPerm();go(S.view);localize();}
+ DOC._langSet=false;DOC.docLang=LANG;closeDrawer();rebuildObjSel();buildNav();renderPerm();go(S.view);localize();}
 
 /* ===== CONFIG ===== */
 const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
@@ -1101,7 +1101,9 @@ function genEmit(meta,html){show(html);const key=(meta.no&&meta.no!=='-')?(meta.
  if(existing){existing.versions=existing.versions||[];existing.versions.push({at:existing.at,by:existing.by,raw:existing.raw,ver:existing.ver||1});existing.ver=(existing.ver||1)+1;existing.at=nowStr();existing.by=S.user?S.user.name:'-';existing.lang=DOC.docLang;existing.fname=DOC.fname;existing.raw=html;existing.to=meta.to;audit('Документ (версия v'+existing.ver+'): '+(meta.type||meta.t||''),(meta.no||'')+' · '+(meta.to||''));}
  else{_doc++;DOCREG.unshift(Object.assign({id:'d'+_doc,by:S.user?S.user.name:'-',at:nowStr(),lang:DOC.docLang,fname:DOC.fname,status:'draft',ver:1,versions:[],raw:html},meta));audit('Документ: '+(meta.type||meta.t||''),(meta.no&&meta.no!=='-'?meta.no+' · ':'')+(meta.to||''));}
  persist();const hc=$('dochist');if(hc){hc.innerHTML=docHistoryHTML();localize();}}
-function viewDoc(id){const r=DOCREG.find(x=>x.id===id);if(!r)return;DOC.t=r.t||'kp';DOC.fname=r.fname;if(r.lang)DOC.docLang=r.lang;const sel=$('docLangSel');if(sel)sel.value=DOC.docLang;show(r.raw);const p=$('dprev');if(p&&p.scrollIntoView)p.scrollIntoView({behavior:'smooth',block:'center'});}
+function setDocLang(l){DOC.docLang=l;DOC._langSet=true;docLangBtnsRefresh();if(DOC.raw)show(DOC.raw);}
+function docLangBtnsRefresh(){document.querySelectorAll('.doclang-btn').forEach(b=>b.classList.toggle('on',b.dataset.l===DOC.docLang));}
+function viewDoc(id){const r=DOCREG.find(x=>x.id===id);if(!r)return;DOC.t=r.t||'kp';DOC.fname=r.fname;if(r.lang){DOC.docLang=r.lang;DOC._langSet=true;}docLangBtnsRefresh();show(r.raw);const p=$('dprev');if(p&&p.scrollIntoView)p.scrollIntoView({behavior:'smooth',block:'center'});}
 const DSTAT=[['draft','Черновик'],['sent','Отправлен'],['acc','Принят'],['rej','Отклонён']];
 const DSTATCLS={draft:'draft',sent:'sent',acc:'acc',rej:'rej'};
 function setDocStatus(id,v){const r=DOCREG.find(x=>x.id===id);if(!r)return;r.status=v;persist();const hc=$('dochist');if(hc){hc.innerHTML=docHistoryHTML();localize();}}
@@ -1165,9 +1167,37 @@ Object.assign(DOCMAP_EN,{
 });
 Object.assign(DOCMAP_UZ,{'Электричество':'Elektr','Вода холодная':'Sovuq suv','Вода горячая':'Issiq suv','Отопление':'Isitish','Охлаждение / кондиц.':'Sovutish / konditsioner','Газ':'Gaz','Интернет / связь':'Internet / aloqa','Вывоз мусора':'Chiqindi olib chiqish','Уборка / клининг':'Tozalash / klining','терраса':'terrasa','сезонно':'mavsimiy'});
 Object.assign(DOCMAP_EN,{'Электричество':'Electricity','Вода холодная':'Cold water','Вода горячая':'Hot water','Отопление':'Heating','Охлаждение / кондиц.':'Cooling / AC','Газ':'Gas','Интернет / связь':'Internet / comms','Вывоз мусора':'Waste removal','Уборка / клининг':'Cleaning','терраса':'terrace','сезонно':'seasonal'});
-function docTr(h){const m=DOC.docLang==='uz'?DOCMAP_UZ:DOC.docLang==='en'?DOCMAP_EN:null;if(!m)return h;const keys=Object.keys(m).sort((a,b)=>b.length-a.length);for(const k of keys)h=h.split(k).join(m[k]);return h;}
+Object.assign(DOCMAP_UZ,{
+ 'Центральная Азия':'Markaziy Osiyo','г. Ташкент, Узбекистан':'Toshkent sh., Oʻzbekiston','Ташкент':'Toshkent',
+ 'Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис.':'CASE OS da CASE formati boʻyicha tayyorlandi (namuna Creative Avenue - KFC).',
+ 'Черновик. Юридическая проверка обязательна.':'Qoralama. Yuridik tekshiruv shart.',
+ 'Автоформируется по контрольной дате.':'Nazorat sanasi boʻyicha avtomatik shakllanadi.',
+ 'Letter of Intent (черновик)':'Letter of Intent (qoralama)','Окончание срока договора':'Shartnoma muddati tugashi',
+ 'отмечено':'belgilandi','«Предложено»':'«Taklif qilindi»','бронь до':'bron muddati','видно всем агентам':'barcha agentlarga koʻrinadi',
+ 'Скачать Word':'Word yuklash','Скачать':'Yuklash','кнопка':'tugma',
+ ' (через ':' (',' дней)':' kun)','через':'keyin','дней':'kun',
+ 'ООО':'MChJ','ИНН':'STIR','тел.':'tel.','ФИО':'F.I.Sh.','г.':'sh.'
+});
+Object.assign(DOCMAP_EN,{
+ 'Центральная Азия':'Central Asia','г. Ташкент, Узбекистан':'Tashkent, Uzbekistan','Ташкент':'Tashkent',
+ 'Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис.':'Generated in CASE OS in the real CASE format (sample Creative Avenue - KFC).',
+ 'Черновик. Юридическая проверка обязательна.':'Draft. Legal review required.',
+ 'Автоформируется по контрольной дате.':'Auto-generated by the control date.',
+ 'Letter of Intent (черновик)':'Letter of Intent (draft)','Окончание срока договора':'Lease term expiry',
+ 'отмечено':'marked','«Предложено»':'«Offered»','бронь до':'reserved until','видно всем агентам':'visible to all agents',
+ 'Скачать Word':'Download Word','Скачать':'Download','кнопка':'button',
+ ' (через ':' (',' дней)':' days)','через':'in','дней':'days',
+ 'ООО':'LLC','ИНН':'TIN','тел.':'tel.','ФИО':'Full name'
+});
+Object.assign(DOCMAP_UZ,{'Директор по аренде':'Ijara boʻyicha direktor','Руководитель':'Rahbar','Агент аренды':'Ijara agenti','Координатор (тыл)':'Koordinator (backofis)','Архитектор':'Arxitektor','Администратор':'Administrator','Директор':'Direktor'});
+Object.assign(DOCMAP_EN,{'Директор по аренде':'Leasing Director','Руководитель':'Head','Агент аренды':'Leasing Agent','Координатор (тыл)':'Coordinator (back office)','Архитектор':'Architect','Администратор':'Administrator','Директор':'Director'});
+function docTr(h){const m=DOC.docLang==='uz'?DOCMAP_UZ:DOC.docLang==='en'?DOCMAP_EN:null;if(!m)return h;const keys=Object.keys(m).sort((a,b)=>b.length-a.length);for(const k of keys)h=h.split(k).join(m[k]);
+ try{OBJECTS.forEach(o=>{if(o.ru&&o.name&&o.ru!==o.name)h=h.split(o.ru).join(o.name);});}catch(e){}
+ return h;}
 function renderDocs(){
- $('main').innerHTML=`<div class="ph"><h1>${t('docs')}</h1></div><p class="sub">Глубокие настройки · вывод в Word (.doc) и печать</p><div class="docwrap"><div><div class="card" style="padding:13px"><div class="sect" style="margin-top:0">Шаблон</div><div class="tmpls">${tb('kp','КП аренды (услуги аренды)','Глубокие настройки')}${tb('loi','LOI / Письмо о намерениях','Помещение / бренд / объект')}${tb('remind','Письмо-напоминание','По контрольной дате')}</div><div id="dform"></div></div></div><div><div class="preview"><div id="dprev" class="paper"><div style="color:var(--muted);text-align:center;padding:70px 0">Заполните и нажмите «${t('form')}»</div></div></div><div style="margin-top:9px;display:flex;gap:8px;justify-content:flex-end;align-items:center"><span style="font-size:11px;color:var(--muted)">Язык:</span><select id="docLangSel" onchange="DOC.docLang=this.value;if(DOC.raw)show(DOC.raw)" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select><button class="btn" onclick="dlWord()">${t('word')}</button><button class="btn ghost" onclick="printDoc()">${t('print')}</button><button class="btn ghost" onclick="sendDocWA()" title="Открыть WhatsApp с текстом (файл приложите вручную)">WhatsApp</button><button class="btn ghost" onclick="sendDocEmail()" title="Открыть письмо (файл приложите вручную)">Email</button></div><div class="card" id="dochist" style="margin-top:12px">${docHistoryHTML()}</div></div></div>${footNote()}`;
+ if(!DOC._langSet)DOC.docLang=LANG;
+ const lb=l=>`<button class="thbtn doclang-btn${DOC.docLang===l?' on':''}" data-l="${l}" onclick="setDocLang('${l}')">${l.toUpperCase()}</button>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('docs')}</h1></div><p class="sub">Глубокие настройки · вывод в Word (.doc) и печать</p><div class="docwrap"><div><div class="card" style="padding:13px"><div class="sect" style="margin-top:0">Шаблон</div><div class="tmpls">${tb('kp','КП аренды (услуги аренды)','Глубокие настройки')}${tb('loi','LOI / Письмо о намерениях','Помещение / бренд / объект')}${tb('remind','Письмо-напоминание','По контрольной дате')}</div><div id="dform"></div></div></div><div><div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;flex-wrap:wrap"><span style="font-size:12px;font-weight:600;color:var(--muted)">Язык документа:</span>${lb('ru')}${lb('uz')}${lb('en')}<span style="font-size:10.5px;color:var(--muted)">— документ формируется на выбранном языке</span></div><div class="preview"><div id="dprev" class="paper"><div style="color:var(--muted);text-align:center;padding:70px 0">Заполните и нажмите «${t('form')}»</div></div></div><div style="margin-top:9px;display:flex;gap:8px;justify-content:flex-end;align-items:center;flex-wrap:wrap"><button class="btn" onclick="dlWord()">${t('word')}</button><button class="btn ghost" onclick="printDoc()">${t('print')}</button><button class="btn ghost" onclick="sendDocWA()" title="Открыть WhatsApp с текстом (файл приложите вручную)">WhatsApp</button><button class="btn ghost" onclick="sendDocEmail()" title="Открыть письмо (файл приложите вручную)">Email</button></div><div class="card" id="dochist" style="margin-top:12px">${docHistoryHTML()}</div></div></div>${footNote()}`;
  pickT(DOC.t,DOC.uid);
 }
 function tb(k,a,b){return `<div class="tmpl" id="t-${k}" onclick="pickT('${k}')"><b>${a}</b><small style="color:var(--muted)">${b}</small></div>`;}
