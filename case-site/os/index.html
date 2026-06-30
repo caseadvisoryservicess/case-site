@@ -195,7 +195,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>Math.round(n).toLocaleString('ru-RU');
 const $=id=>document.getElementById(id);
-const STORAGE_KEY='case-os-demo-state-v6';
+const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 let THEME='light';            /* тёмная/светлая тема */
 let KPSEQ={};                 /* авто-нумерация КП по объектам */
@@ -210,7 +210,7 @@ function dateRU(v){return parseDateAny(v).toLocaleDateString('ru-RU');}
 const USERS=[
  {u:'aziz',name:'Aziz Shermukhamedov',role:'ASH',title:'Founder / CEO'},
  {u:'admin',name:'Администратор',role:'ADM',title:'Система'},
- {u:'bekzod',name:'Bekzod Abdumajidov',role:'BA',title:'Leasing Director'},
+ {u:'ba',name:'Директор по аренде',role:'BA',title:'Leasing Director'},
  {u:'nodir',name:'Нодир',role:'AG',title:'Агент аренды'},
  {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Lease Admin'},
  {u:'beksulton',name:'Beksulton Shaxridinov',role:'BSH',title:'Архитектор'},
@@ -240,8 +240,8 @@ const STCLS={vac:'st-vac',neg:'st-neg',off:'st-off',os:'st-os',cs:'st-cs',cd:'st
 const STAT_UZ={vac:'Boʻsh',neg:'Muzokara',off:'Taklif qilindi',os:'Taklif imzolandi',cs:'Shartnoma imzolanmoqda',cd:'Shartnoma imzolandi',res:'Rezerv'};
 const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]):STAT[k];
 const OCCK=['cd','cs','os'];
-const brokerRole={'Бекзод':'BA','Хилола':'HO','Нодир':'AG','Азиз':'ASH'};
-const brokerUser={'Бекзод':'bekzod','Хилола':'hilola','Нодир':'nodir','Азиз':'aziz'};
+const brokerRole={'Хилола':'HO','Нодир':'AG','Азиз':'ASH'};
+const brokerUser={'Хилола':'hilola','Нодир':'nodir','Азиз':'aziz'};
 const ACTS=['Кафе / ресторан','Фастфуд','Кофейня / пекарня','Магазин одежды (fashion)','Обувь и аксессуары','Парфюмерия и косметика','Электроника','Продукты / супермаркет','Аптека','Услуги (салон / ателье)','Банк / финансы / ATM','Образование / учебный центр','Развлечения / игры','Офис','Пункт выдачи','Ювелирные / часы','Другое (ввести вручную)'];
 const RENTMODELS=['Фиксированная','Нарастающая (step-up по годам)','% от товарооборота (turnover)','База + % от оборота'];
 const VATOPT=[['na','Не облагается НДС'],['incl','НДС включён в ставку'],['top','НДС сверх ставки']];
@@ -253,17 +253,17 @@ function unit(o,code,floor,area,terr,cat,sub,rate,total,gap,status,broker,vars,d
 function uBudget(u){return (u&&u.budget!=null&&u.budget!=='')?(+u.budget||0):(+((u&&u.rate)||0));}
 function uBudgetTotal(u){return Math.round(u.area*uBudget(u));}
 function budgetBar(u){const b=uBudgetTotal(u),o=u.total||0,max=Math.max(b,o,1);const pct=v=>Math.round(v/max*100);const dpct=b?Math.round((o/b-1)*100):0;return `<div style="margin:4px 0 8px"><div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="width:78px;font-size:10.5px;color:#777">Бюджет</span><div class="bw" style="flex:1"><div class="bar" style="width:${pct(b)}%;background:#9aa0a6"></div></div><span style="width:74px;text-align:right;font-size:10.5px">${fmt(b)}</span></div><div style="display:flex;align-items:center;gap:8px;margin:2px 0"><span style="width:78px;font-size:10.5px;color:#777">Предложение</span><div class="bw" style="flex:1"><div class="bar" style="width:${pct(o)}%;background:var(--red)"></div></div><span style="width:74px;text-align:right;font-size:10.5px">${fmt(o)}</span></div><div style="font-size:10.5px;color:${dpct>=0?'var(--green)':'var(--red-d)'};text-align:right">${dpct>=0?'+':''}${dpct}% к бюджету</div></div>`;}
-U.push(unit('ca','B1_107 + B1_108','1 этаж',367.5,75.2,'Еда и напитки','Ресторан',18,8386,0,'cs','Бекзод',['KFC'],[['Подписание контракта','2026-07-12']],'KFC берёт 2 объединённых помещения; на проверке 12.05.2026',['B1_107','B1_108']));
-U.push(unit('ca','B1_104','1 этаж',194.9,19.3,'Еда и напитки','Ресторан',15,3375,0,'neg','Бекзод',['Oq tepa lavash','Papa johns','Belissimo'],[['Окончание брони','2026-07-05']],'КП 25.05.2026; ждём ответ'));
-U.push(unit('ca','B1_106','1 этаж',62.3,39.1,'Еда и напитки','Кафе',20,1801,-1801,'off','Бекзод',['Air waffle','Dog&dog','Amelis','Wokebowl'],[['Дедлайн ответа','2026-07-02']],'Презентация 09.04.2026'));
-U.push(unit('ca','B1_102','1 этаж',17.6,0,'Торговля','Парфюмерия и косметика',25,484,-484,'off','Бекзод',['Китайские сладости'],[['Дедлайн','2026-07-08']],'Островок; презентация 25.05.2026'));
+U.push(unit('ca','B1_107 + B1_108','1 этаж',367.5,75.2,'Еда и напитки','Ресторан',18,8386,0,'cs','-',['KFC'],[['Подписание контракта','2026-07-12']],'KFC берёт 2 объединённых помещения; на проверке 12.05.2026',['B1_107','B1_108']));
+U.push(unit('ca','B1_104','1 этаж',194.9,19.3,'Еда и напитки','Ресторан',15,3375,0,'neg','-',['Oq tepa lavash','Papa johns','Belissimo'],[['Окончание брони','2026-07-05']],'КП 25.05.2026; ждём ответ'));
+U.push(unit('ca','B1_106','1 этаж',62.3,39.1,'Еда и напитки','Кафе',20,1801,-1801,'off','-',['Air waffle','Dog&dog','Amelis','Wokebowl'],[['Дедлайн ответа','2026-07-02']],'Презентация 09.04.2026'));
+U.push(unit('ca','B1_102','1 этаж',17.6,0,'Торговля','Парфюмерия и косметика',25,484,-484,'off','-',['Китайские сладости'],[['Дедлайн','2026-07-08']],'Островок; презентация 25.05.2026'));
 U.push(unit('ca','B1_201','2 этаж',90.9,0,'Офис','Офис',24,2400,0,'neg','Нодир',['23 BK (учебный центр)'],[['Переговоры по ставке','2026-07-04']],'КП 23.06.2026'));
 U.push(unit('ca','B1_205','2 этаж',66,0,'Офис','Офис',24,1452,-1452,'off','Хилола',['Holmuradov Design'],[],'Презентация 16.06.2026'));
-U.push(unit('ca','B2_103','1 этаж',165.3,65.4,'Еда и напитки','Ресторан',18,3920,-3920,'off','Бекзод',['Evos','Wendies','Burger&Co','Burger embassy'],[['Дедлайн','2026-07-15']],'Evos: про аренду в июне; Wendies ждёт KFC/BK'));
-U.push(unit('ca','B5_111','1 этаж',230.7,96.8,'Еда и напитки','Ресторан',15,4605,-4605,'off','Бекзод',['Burger King','Papa johns','Burger&Co'],[],'Papa Johns ждёт KFC; КП 25.05.2026'));
-U.push(unit('ca','B5_104','1 этаж',48.9,0,'Торговля','Парфюмерия и косметика',25,1345,-1345,'off','Бекзод',['mcosmetic','Datum parfume','Toshkent parfume'],[],'Презентация 15.04.2026'));
-U.push(unit('ca','B5_107','1 этаж',58.7,0,'Услуги','Аптека',20,1291,-1291,'neg','Бекзод',['Oxy Med','A5','Savii','Cosmopharm','Navbohor'],[['Решение','2026-07-09']],'5 вариантов'));
-U.push(unit('ca','B2_104','1 этаж',107.6,0,'Торговля','Канцтовары',20,2367,0,'cd','Бекзод',['Kanstik'],[['Открытие','2026-09-01']],'Контракт подписан'));
+U.push(unit('ca','B2_103','1 этаж',165.3,65.4,'Еда и напитки','Ресторан',18,3920,-3920,'off','-',['Evos','Wendies','Burger&Co','Burger embassy'],[['Дедлайн','2026-07-15']],'Evos: про аренду в июне; Wendies ждёт KFC/BK'));
+U.push(unit('ca','B5_111','1 этаж',230.7,96.8,'Еда и напитки','Ресторан',15,4605,-4605,'off','-',['Burger King','Papa johns','Burger&Co'],[],'Papa Johns ждёт KFC; КП 25.05.2026'));
+U.push(unit('ca','B5_104','1 этаж',48.9,0,'Торговля','Парфюмерия и косметика',25,1345,-1345,'off','-',['mcosmetic','Datum parfume','Toshkent parfume'],[],'Презентация 15.04.2026'));
+U.push(unit('ca','B5_107','1 этаж',58.7,0,'Услуги','Аптека',20,1291,-1291,'neg','-',['Oxy Med','A5','Savii','Cosmopharm','Navbohor'],[['Решение','2026-07-09']],'5 вариантов'));
+U.push(unit('ca','B2_104','1 этаж',107.6,0,'Торговля','Канцтовары',20,2367,0,'cd','-',['Kanstik'],[['Открытие','2026-09-01']],'Контракт подписан'));
 U.push(unit('ca','B3_1','3 блок',2909,0,'Офис','Co-Working',5,16000,0,'cd','Азиз',['Hub'],[['Открытие','2026-08-15']],'Якорь подписан'));
 U.push(unit('ca','B2_105','1 этаж',225.7,0,'Услуги','Косметология',15,3724,-3724,'vac','',[],[],''));
 U.push(unit('ca','B5_201','2 этаж',545.1,0,'Услуги','Основная разработка',24,11992,-11992,'vac','',[],[],''));
@@ -316,15 +316,15 @@ const REFUSALS={ca:CA_REFUS.map(r=>({brand:r[0],reason:r[1],date:'2026-06-20'}))
  ['L2_16','Услуги','Услуги',47,20,'off','Хилола',['Idea']],
  ['L2_17','Еда и напитки','Места общественного питания',150,18,'cs','Нодир',['Chaihana']],
 ].forEach(z=>{const[code,cat,sub,area,rate,st,br,vars]=z;const total=Math.round(area*rate);const gap=OCCK.indexOf(st)>=0?0:-total;U.push(unit('zm',code,'2 этаж',area,0,cat,sub,rate,total,gap,st,br,vars,[],''));});
-U.push(unit('gb','G-1','1 этаж',750,0,'Мода и стиль','Fashion',15,11250,-11250,'off','Бекзод',['Sinsay'],[['Якорь','2026-07-10']],'LOI - якорь'));
-U.push(unit('gb','G-4','1 этаж',200,0,'Еда и напитки','Кафе',22,4400,0,'cd','Бекзод',['Café Local'],[],''));
+U.push(unit('gb','G-1','1 этаж',750,0,'Мода и стиль','Fashion',15,11250,-11250,'off','-',['Sinsay'],[['Якорь','2026-07-10']],'LOI - якорь'));
+U.push(unit('gb','G-4','1 этаж',200,0,'Еда и напитки','Кафе',22,4400,0,'cd','-',['Café Local'],[],''));
 U.push(unit('gb','G-2','1 этаж',1200,0,'-','-',0,0,-18000,'vac','',[],[],''));
-U.push(unit('mh','P-550','Цоколь',550,0,'Co-tenancy','Plinth',28,15400,-15400,'off','Бекзод',['Sinsay','Giotto','CTR Chicken'],[['Тизер','2026-06-25']],'Сдаётся целиком'));
+U.push(unit('mh','P-550','Цоколь',550,0,'Co-tenancy','Plinth',28,15400,-15400,'off','-',['Sinsay','Giotto','CTR Chicken'],[['Тизер','2026-06-25']],'Сдаётся целиком'));
 U.forEach(u=>{if(u.comment)u.hist.push([iso(TODAY),u.comment]);if(['neg','off','os','cs'].indexOf(u.status)>=0&&u.vars.length){u.offer={to:u.vars[0],role:brokerRole[u.broker]||'BA',by:u.broker,byUser:brokerUser[u.broker]||'',date:iso(TODAY),validDays:14,validUntil:addDaysISO(TODAY,14),no:'DEMO'};}});
 function iso(d){d=parseDateAny(d);const p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());}
 const CHANGES=[
- {obj:'ca',date:'2026-05-10',type:'Объединение',what:'B1_107 + B1_108 → один юнит для KFC (367.5 м²)',by:'Бекзод'},
- {obj:'ca',date:'2026-05-22',type:'Скидка',what:'B1_104: rent-free 3 мес (fit-out)',by:'Бекзод'},
+ {obj:'ca',date:'2026-05-10',type:'Объединение',what:'B1_107 + B1_108 → один юнит для KFC (367.5 м²)',by:'-'},
+ {obj:'ca',date:'2026-05-22',type:'Скидка',what:'B1_104: rent-free 3 мес (fit-out)',by:'-'},
  {obj:'ca',date:'2026-06-01',type:'Нарастающая аренда',what:'B3_1 Hub: год1 5$, год2 6$, год3 7$/м²',by:'Азиз'},
  {obj:'zm',date:'2026-06-15',type:'Объединение',what:'L1_12 (208.1) + терраса (215.9) → один F&B-якорь для KFC',by:'Нодир'},
 ];
@@ -338,7 +338,7 @@ const BENCH=[
 ];
 const TARGETS={touch:40,meet:10,view:5,loi:2,sign:1};
 const AGENTS=[
- {role:'BA',name:'Bekzod Abdumajidov',title:'Leasing Director',touch:45,meet:12,view:7,loi:3,sign:2,earned:9800,pipe:18200},
+ {role:'BA',name:'Директор по аренде',title:'Leasing Director',touch:0,meet:0,view:0,loi:0,sign:0,earned:0,pipe:0},
  {role:'AG',name:'Нодир',title:'Агент аренды',touch:38,meet:8,view:4,loi:2,sign:1,earned:4200,pipe:8600},
  {role:'HO',name:'Hilola Omonullaeva',title:'Lease Admin (тыл)',touch:30,meet:6,view:2,loi:1,sign:0,earned:0,pipe:2100},
 ];
@@ -1051,12 +1051,7 @@ function addComment(id){const u=U.find(x=>x.id===id);const c=prompt('Комме�
 let DOC={t:'kp',uid:null,last:'',raw:'',fname:'CASE_document',docLang:'ru'};
 const DOCREG=[];let _doc=0;
 /* Контакты «нашего лица» + типовые тексты для документов (выбираются в форме) */
-let DOC_CONTACTS=[
- {name:'Шермухамедов А.А.',title:'Директор, CASE Advisory',phone:'+998 71 200 00 00',email:'office@case.uz'},
- {name:'Бекзод Абдумажидов',title:'Лизинг-менеджер',phone:'+998 90 000 00 01',email:'bekzod@case.uz'},
- {name:'Нодир',title:'Агент по аренде',phone:'+998 90 000 00 02',email:'nodir@case.uz'},
- {name:'Хилола',title:'Агент по аренде',phone:'+998 90 000 00 03',email:'hilola@case.uz'}
-];
+let DOC_CONTACTS=[];  /* заполняется вручную: кнопка «+» в форме документа */
 const COMPANY={legal:'ООО «CASE Real Estate Advisory»',inn:'ИНН 300 000 000',addr:'г. Ташкент, Узбекистан',phone:'+998 71 200 00 00',email:'office@case.uz'};
 function companyReqs(){return `<div style="font-size:9px;color:#888;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:10px">${esc(COMPANY.legal)} · ${esc(COMPANY.inn)} · ${esc(COMPANY.addr)} · тел. ${esc(COMPANY.phone)} · ${esc(COMPANY.email)}</div>`;}
 function stampHTML(){return `<div style="margin-top:6px"><div style="display:inline-block;width:96px;height:96px;border:2px solid #9E0000;border-radius:50%;color:#9E0000;text-align:center;font-size:8px;font-weight:700;line-height:1.25;padding:10px;box-sizing:border-box;transform:rotate(-7deg);opacity:.85">CASE ADVISORY<br>• М.П. •<br>Ташкент · Узбекистан</div></div>`;}
@@ -1192,7 +1187,7 @@ function genKP(){
  const ex=docExtras();
  DOC.fname='KP_'+no.replace(/\W+/g,'_')+'_'+ten.replace(/\W+/g,'_');
  const mno=/(\d+)\s*$/.exec(no);KPSEQ[o.id]=mno?Math.max(KPSEQ[o.id]||0,+mno[1]):((KPSEQ[o.id]||0)+1);
- genEmit({t:'kp',type:'Коммерческое предложение / Договор намерения',no:no,to:ten,obj:o.id},`${letter('Коммерческое предложение / Договор намерения')}<div style="text-align:right;font-size:11px;color:#555">${date} · № ${no} · действительно ${valid} дн.</div><h2>Коммерческое предложение / Договор намерения</h2><p>Уважаемый(ая) <b>${addr}</b>,</p><p>Арендатор: <b>${ten}</b> · Объект: <b>${o.ru}</b></p>${ex.introP}<p>Благодарим за интерес к ${o.ru}. Предлагаем помещение(я) на следующих условиях:</p><table><tr><td style="width:38%">Помещение(я)</td><td>${unit}</td></tr><tr><td>Площадь</td><td>${fmtA(area)} м²${terrOn?' + терраса '+fmtA(terr)+' м²'+(season?' (сезонно: '+(seasonm||'-')+')':''):''}; после стройработ перезамер +/- 10%</td></tr><tr><td>Деятельность</td><td>${act}</td></tr><tr><td>Базовая аренда</td><td>${rentRow} Оплата в ${o.cur}.</td></tr>${terrOn?'<tr><td>Аренда террасы</td><td>'+terrate+' $/м²/мес, итого '+fmt(mt)+'/мес'+(season?'; сезонно ('+(seasonm||'-')+')':'')+'</td></tr>':''}<tr><td>НДС</td><td>${vatTxt}</td></tr><tr><td>Повышение аренды</td><td>не более ${inc}% и не чаще раза в год</td></tr><tr><td>Оплата за обслуживание</td><td>${sc}% от аренды, отдельно</td></tr><tr><td>CAPEX</td><td>${capx}${capxv&&capxv!=='-'?' · '+capxv:''}</td></tr><tr><td>Арендные каникулы (fit-out)</td><td>${fit} мес${fitp?' ('+fitp+')':''}</td></tr><tr><td>Предоплата / депозит</td><td>${prep} мес аванс / ${dep} мес депозит</td></tr><tr><td>Период пользования</td><td>5 лет со дня открытия (подлежит согласованию)</td></tr><tr><td>Состояние при передаче</td><td>${cond}</td></tr></table><div style="page-break-before:always;height:0"></div><h2 style="font-size:13px;margin-top:14px">Коммунальные платежи</h2><table><tr><td style="width:38%;font-weight:700">Вид</td><td style="font-weight:700">Как оплачивается</td></tr>${utils||'<tr><td colspan="2">по договорённости</td></tr>'}</table><h2 style="font-size:13px;margin-top:14px">Особые условия</h2><p>${special}</p><p style="margin-top:8px">Для принятия подпишите и верните с: 3 экз. с печатью; предоплатой; копией паспорта; копией лицензии (юр. лица). Предложение действительно ${valid} дней.</p>${ex.thanksP}<p style="margin-top:12px">С уважением,<br>от имени <b>${o.ru}</b><br>${sig}<br>Case Real Estate Advisory</p>${ex.contactB}${stampHTML()}${sign3()}<div class="note">Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис. Word: кнопка «${t('word')}».${mark}</div>`);
+ genEmit({t:'kp',type:'Коммерческое предложение / Договор намерения',no:no,to:ten,obj:o.id},`${letter('Коммерческое предложение / Договор намерения')}<div style="text-align:right;font-size:11px;color:#555">${date} · № ${no} · действительно ${valid} дн.</div><h2>Коммерческое предложение / Договор намерения</h2><p>Уважаемый(ая) <b>${addr}</b>,</p><p>Арендатор: <b>${ten}</b> · Объект: <b>${o.ru}</b></p>${ex.introP}<p>Благодарим за интерес к ${o.ru}. Предлагаем помещение(я) на следующих условиях:</p><table><tr><td style="width:38%">Помещение(я)</td><td>${unit}</td></tr><tr><td>Площадь</td><td>${fmtA(area)} м²${terrOn?' + терраса '+fmtA(terr)+' м²'+(season?' (сезонно: '+(seasonm||'-')+')':''):''}; после стройработ перезамер +/- 10%</td></tr><tr><td>Деятельность</td><td>${act}</td></tr><tr><td>Базовая аренда</td><td>${rentRow} Оплата в ${o.cur}.</td></tr>${terrOn?'<tr><td>Аренда террасы</td><td>'+terrate+' $/м²/мес, итого '+fmt(mt)+'/мес'+(season?'; сезонно ('+(seasonm||'-')+')':'')+'</td></tr>':''}<tr><td>НДС</td><td>${vatTxt}</td></tr><tr><td>Повышение аренды</td><td>не более ${inc}% и не чаще раза в год</td></tr><tr><td>Оплата за обслуживание</td><td>${sc}% от аренды, отдельно</td></tr><tr><td>CAPEX</td><td>${capx}${capxv&&capxv!=='-'?' · '+capxv:''}</td></tr><tr><td>Арендные каникулы (fit-out)</td><td>${fit} мес${fitp?' ('+fitp+')':''}</td></tr><tr><td>Предоплата / депозит</td><td>${prep} мес аванс / ${dep} мес депозит</td></tr><tr><td>Период пользования</td><td>5 лет со дня открытия (подлежит согласованию)</td></tr><tr><td>Состояние при передаче</td><td>${cond}</td></tr></table><div style="page-break-before:always;height:0"></div><h2 style="font-size:13px;margin-top:14px">Коммунальные платежи</h2><table><tr><td style="width:38%;font-weight:700">Вид</td><td style="font-weight:700">Как оплачивается</td></tr>${utils||'<tr><td colspan="2">по договорённости</td></tr>'}</table><h2 style="font-size:13px;margin-top:14px">Особые условия</h2><p>${special}</p><p style="margin-top:8px">Для принятия подпишите и верните с: 3 экз. с печатью; предоплатой; копией паспорта; копией лицензии (юр. лица). Предложение действительно ${valid} дней.</p>${ex.thanksP}<p style="margin-top:12px">С уважением,<br>от имени <b>${o.ru}</b><br>${sig}<br>Case Real Estate Advisory</p>${ex.contactB}${sign3()}<div class="note">Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис. Word: кнопка «${t('word')}».${mark}</div>`);
 }
 function genLOI(){
  const ty=$('f_loitype').value,o=objById($('f_obj').value),ten=$('f_ten').value||'-',val=+$('f_val').value||14;
