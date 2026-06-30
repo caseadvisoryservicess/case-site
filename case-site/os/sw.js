@@ -1,5 +1,5 @@
 /* CASE OS — service worker: офлайн-режим (network-first для приложения, cache-first для статики) */
-const CACHE = 'case-os-v5';
+const CACHE = 'case-os-v6';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
@@ -21,6 +21,9 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   let url;
   try { url = new URL(req.url); } catch (_) { return; }
+
+  // Бэкенд (вход, данные): НИКОГДА не кэшируем — всегда напрямую в сеть.
+  if (url.origin === location.origin && url.pathname.indexOf('/api/') >= 0) return;
 
   // Навигация (открытие приложения): сначала сеть, офлайн — из кэша.
   if (req.mode === 'navigate') {

@@ -157,6 +157,14 @@ CREATE TABLE IF NOT EXISTS kp_counters (
   obj_id VARCHAR(32) PRIMARY KEY, last_no INT NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Живое состояние интерфейса (общая база данных платформы), одна строка id=1.
+CREATE TABLE IF NOT EXISTS app_state (
+  id         INT PRIMARY KEY,
+  data       LONGTEXT,
+  updated_at DATETIME,
+  updated_by VARCHAR(160)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ---- РОЛИ (7 штук) ----
 INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,admin) VALUES
  ('ASH','Founder / CEO',     1,1,1,1,1,0,1),

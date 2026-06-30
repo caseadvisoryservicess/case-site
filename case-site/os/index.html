@@ -140,8 +140,10 @@ body.dark .kcard{background:#262420}
     <div class="tag">Leasing &amp; Asset Control</div>
     <label id="l_user">Пользователь</label>
     <select id="luser"></select>
+    <label id="l_email" style="display:none">Email</label>
+    <input id="lemail" type="email" autocomplete="username" style="display:none" placeholder="you@caseadvisory.uz">
     <label id="l_pass">Пароль</label>
-    <input id="lpass" type="password" value="demo">
+    <input id="lpass" type="password" autocomplete="current-password" value="demo">
     <button class="go" id="l_go" onclick="doLogin()">Войти</button>
     <div class="lng"><button id="lng_ru" class="on" onclick="setLang('ru')">RU</button><button id="lng_uz" onclick="setLang('uz')">UZ</button></div>
     <div class="hint" id="l_hint"></div>
@@ -197,6 +199,18 @@ const fmtA=n=>Math.round(n).toLocaleString('ru-RU');
 const $=id=>document.getElementById(id);
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
+/* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
+const API_BASE='api/';
+let BACKEND=false;                 /* определяется при запуске */
+const apiURL=p=>API_BASE+p;
+async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date.now();const r=await fetch(u,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
+async function apiPOST(p,data){const r=await fetch(apiURL(p),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(data||{})});let j={};try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('HTTP '+r.status));return j;}
+function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,DOCREG,DOC_CONTACTS,AGENTS,ROLES,LANG,THEME,KPSEQ,ACTLOG,AUDIT,obj:S.obj};}
+async function apiLoadState(){try{const j=await apiGET('state.php');return (j&&j.data)||null;}catch(e){return null;}}
+let _saveT=null,_saveBusy=false,_savePend=false;
+function apiSaveState(){if(!BACKEND)return;clearTimeout(_saveT);_saveT=setTimeout(_doSaveState,800);}
+async function _doSaveState(){if(!BACKEND)return;if(_saveBusy){_savePend=true;return;}_saveBusy=true;try{await apiPOST('state.php',{data:stateBlob()});}catch(e){console.warn('Сохранение в базу не удалось',e);}finally{_saveBusy=false;if(_savePend){_savePend=false;apiSaveState();}}}
+function flushState(){if(!BACKEND)return;try{const blob=new Blob([JSON.stringify({data:stateBlob()})],{type:'application/json'});navigator.sendBeacon(apiURL('state.php'),blob);}catch(e){}}
 let THEME='light';            /* тёмная/светлая тема */
 let KPSEQ={};                 /* авто-нумерация КП по объектам */
 let ACTLOG=[];                /* журнал активности (касания/показы) */
@@ -464,12 +478,13 @@ const glaOf=id=>id==='ALL'?OBJECTS.reduce((s,o)=>s+o.gla,0):objById(id).gla;
 const occPct=id=>{const g=glaOf(id);return g?occArea(id)/g:0;};
 const monthRent=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u)=>s+u.total,0);
 const noi=id=>monthRent(id)*0.78;
-function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,DOCREG,DOC_CONTACTS,AGENTS,ROLES,LANG,THEME,KPSEQ,ACTLOG,AUDIT,obj:S.obj}));}catch(e){}}
-function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;const d=JSON.parse(raw);if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.THEME)THEME=d.THEME;if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.LANG)LANG=d.LANG;if(d.obj)S.obj=d.obj;}catch(e){console.warn('Autosave skipped',e);}}
+function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));}catch(e){}try{apiSaveState();}catch(e){}}
+function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;applyState(JSON.parse(raw));}catch(e){console.warn('Autosave skipped',e);}}
+function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.THEME)THEME=d.THEME;if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.LANG)LANG=d.LANG;if(d.obj)S.obj=d.obj;}catch(e){console.warn('Autosave skipped',e);}}
 function resetDemo(){if(confirm('Сбросить локальные изменения демо и открыть исходные данные?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}
 function exportAllJSON(){try{persist();}catch(e){}const raw=localStorage.getItem(STORAGE_KEY)||'{}';const blob=new Blob([raw],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='CASE_OS_backup_'+iso(TODAY)+'.json';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);try{audit('Бэкап базы (JSON)','');persist();}catch(e){}}
 function importAllJSON(){if(!confirm('Восстановление ЗАМЕНИТ все текущие данные в этом браузере данными из файла. Рекомендуется сперва сделать бэкап. Продолжить?'))return;const inp=document.createElement('input');inp.type='file';inp.accept='.json,application/json';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const obj=JSON.parse(r.result);if(!obj||typeof obj!=='object')throw new Error('Файл не похож на бэкап CASE OS');localStorage.setItem(STORAGE_KEY,JSON.stringify(obj));alert('Данные восстановлены. Страница будет перезагружена.');location.reload();}catch(ex){alert('Ошибка файла: '+(ex&&ex.message||ex));}};r.readAsText(f,'utf-8');};inp.click();}
-window.addEventListener('beforeunload',persist);
+window.addEventListener('beforeunload',function(){persist();flushState();});
 /* ===== Тема оформления + курс ЦБ РУз ===== */
 function applyTheme(){const d=THEME==='dark';document.body.classList.toggle('dark',d);const b=$('themeBtn');if(b)b.textContent=d?'☀️':'🌙';}
 function toggleTheme(){THEME=THEME==='dark'?'light':'dark';applyTheme();persist();}
@@ -484,16 +499,38 @@ function clearSearch(){const q=$('gq'),d=$('gdrop');if(q)q.value='';if(d){d.inne
 function globalSearch(q){const d=$('gdrop');if(!d)return;q=(q||'').trim().toLowerCase();if(q.length<2){d.classList.remove('open');d.innerHTML='';return;}const unitHits=U.filter(u=>(u.code+' '+u.vars.join(' ')+' '+u.cat+' '+u.sub+' '+(u.offer?.no||'')).toLowerCase().includes(q)).slice(0,5);const brandHits=BRANDS.filter(b=>(b.name+' '+b.cat+' '+b.country+' '+b.status).toLowerCase().includes(q)).slice(0,5);const rows=[...unitHits.map(u=>`<div class="gitem" onclick="S.obj='${u.obj}';rebuildObjSel();go('registry');setTimeout(()=>openUnit('${u.id}'),40);clearSearch()"><div><b>${hlt(u.code,q)}</b><small>${esc(objById(u.obj).name)} · ${hlt(u.vars[0]||u.sub,q)}</small></div><span class="kind">LCR</span></div>`),...brandHits.map(b=>`<div class="gitem" onclick="go('brands');setTimeout(()=>openBrand('${b.id}'),40);clearSearch()"><div><b>${hlt(b.name,q)}</b><small>${hlt(b.cat,q)} · ${hlt(b.country||'-',q)}</small></div><span class="kind">BRAND</span></div>`)];d.innerHTML=rows.join('')||'<div class="gitem"><div><b>Ничего не найдено</b><small>Попробуйте код помещения или бренд.</small></div></div>';d.classList.add('open');}
 
 /* ===== LOGIN ===== */
-(function(){$('luser').innerHTML=USERS.map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');applyLoginLang();})();
-function doLogin(){S.role=$('luser').value;S.user=USERS.find(x=>x.role===S.role);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
-function logout(){$('app').classList.add('hidden');$('login').classList.remove('hidden');}
+function setLoginMode(backend){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
+ show('l_user',!backend);show('luser',!backend);show('l_email',backend);show('lemail',backend);
+ const lp=$('lpass');if(lp){lp.value=backend?'':'demo';}const h=$('l_hint');
+ if(h)h.textContent=backend?'Вход по рабочему email и паролю.':'Демо‑режим: выберите роль и нажмите «Войти».';}
+function loginErr(msg){const h=$('l_hint');if(h){h.textContent=msg;h.style.color='var(--red,#c0392b)';}}
+function serverRightChips(r){const m=[['leasing','Аренда'],['finance','Финансы / NOI'],['edit','Правки реестра'],['approve','Виза по ставкам'],['plans','Планы'],['own_only','Только свои сделки'],['admin','Администрирование']];return m.filter(x=>r[x[0]]).map(x=>x[1]);}
+function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
+ if(!ROLES[S.role])ROLES[S.role]={label:user.role_label||user.role,rights:[]};
+ const Rr=ROLES[S.role];Rr.label=user.role_label||Rr.label;
+ Rr.leasing=!!rights.leasing;Rr.finance=!!rights.finance;Rr.edit=!!rights.edit;Rr.approve=!!rights.approve;Rr.plans=!!rights.plans;Rr.admin=!!rights.admin;Rr.ownOnly=!!rights.own_only;
+ Rr.rights=serverRightChips(rights);
+ S.user={u:user.id,id:user.id,name:user.name||user.email,title:user.title||Rr.label,role:user.role,broker:user.broker||null,email:user.email};}
+async function enterWithServerUser(user,rights){applyServerUser(user,rights);const data=await apiLoadState();if(data)applyState(data);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
+async function initAuth(){$('luser').innerHTML=USERS.map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');applyLoginLang();
+ try{const j=await apiGET('auth.php');BACKEND=true;setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
+ catch(e){BACKEND=false;setLoginMode(false);}}
+initAuth();
+async function doLogin(){
+ if(BACKEND){const email=$('lemail').value.trim(),pass=$('lpass').value,btn=$('l_go');
+  if(!email||!pass){loginErr('Введите email и пароль.');return;}
+  btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});await enterWithServerUser(j.user,j.rights);}
+  catch(e){loginErr(e&&e.message||'Ошибка входа');}finally{btn.disabled=false;}return;}
+ S.role=$('luser').value;S.user=USERS.find(x=>x.role===S.role);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
+function logout(){if(BACKEND){try{flushState();}catch(e){}apiPOST('auth.php',{action:'logout'}).catch(()=>{});}
+ $('app').classList.add('hidden');$('login').classList.remove('hidden');if(BACKEND){$('lpass').value='';loginErr('');setLoginMode(true);}}
 function boot(){
- loadPersist();
+ if(!BACKEND)loadPersist();
  $('avatar').textContent=S.user.name[0]||'C';
  $('whoName').firstChild.textContent=S.user.name;$('whoRole').textContent=R().label;$('b_out').textContent=t('out');
  $('langTop').textContent=LANG==='ru'?'UZ':'RU';
  applyTheme();loadFx();
- rebuildObjSel();buildNav();renderPerm();audit('Вход в систему','роль: '+(R().label||S.role));persist();go('dash');
+ rebuildObjSel();buildNav();renderPerm();audit('Вход в систему','роль: '+(R().label||S.role));if(!BACKEND)persist();go('dash');
 }
 function rebuildObjSel(){let h=`<option value="ALL">▦ ${t('allobj')}</option>`;objCountries().forEach(c=>{const os=OBJECTS.filter(o=>objCountry(o)===c);h+=`<optgroup label="${esc(c)}">`+os.map(o=>`<option value="${o.id}">${esc(o.name)} · ${esc(o.city)}</option>`).join('')+`</optgroup>`;});$('objSel').innerHTML=h;$('objSel').value=S.obj;}
 
@@ -642,7 +679,7 @@ function renderRegistry(){
  const toolbar=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${canEdit?`<button class="btn sm" onclick="addUnit()">+ Помещение</button><button class="btn ghost sm" onclick="importRegCSV()">⬆ Импорт CSV</button>`:''}<button class="btn ghost sm" onclick="exportRegCSV()">⬇ Экспорт CSV</button>${forceMine?`<span class="thbtn on" title="Ограничение роли: видны только ваши сделки">Только свои (роль)</span>`:(mine?`<button class="thbtn${S.regMine?' on':''}" onclick="S.regMine=!S.regMine;renderRegistry()">Мои сделки</button>`:'')}</div>`;
  $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1><span class="pill">${Math.round(occPct(S.obj)*100)}% занято</span></div><p class="sub">${allObj?t('allobj'):curObj().name} · ${fus.length} / ${us.length} помещений · клик по строке - карточка${canEdit?' · 2× клик по ставке / брокеру / статусу — быстрая правка':''}</p>${tabs}${toolbar}${regFilterBar(us)}<div class="card" style="padding:6px"><div class="tbl-scroll"><table><thead><tr>${canEdit?`<th class="selcol"><input type="checkbox" ${allSel?'checked':''} onclick="regSelAll(this.checked)" title="Выбрать всё"></th>`:''}${regTh('code','Помещение')}${regTh('cat','Категория')}${regTh('area','м²',1)}${regTh('rate','$/м²',1)}${regTh('budget','Бюджет',1)}${regTh('total','Аренда/мес',1)}${regTh('vars','Варианты')}${regTh('broker','Брокер')}${regTh('status','Статус')}</tr></thead><tbody>${rows}</tbody></table></div></div>${selbar}${footNote()}`;
 }
-function myBrokerName(){for(const k in brokerUser){if(brokerUser[k]===(S.user&&S.user.u))return k;}return null;}
+function myBrokerName(){if(S.user&&S.user.broker)return S.user.broker;for(const k in brokerUser){if(brokerUser[k]===(S.user&&S.user.u))return k;}return null;}
 function regToggleSel(id,on){S.regSel=S.regSel||[];const i=S.regSel.indexOf(id);if(on&&i<0)S.regSel.push(id);else if(!on&&i>=0)S.regSel.splice(i,1);renderRegistry();}
 function regSelAll(on){const us=unitsOf(S.obj);const fr=S.regFilter;const allObj=S.obj==='ALL';const mine=myBrokerName();const forceMine=!!(R().ownOnly&&mine);const fus=us.filter(u=>(fr.status==='Все'||u.status===fr.status)&&(fr.cat==='Все'||u.cat===fr.cat)&&((forceMine||S.regMine)?(mine&&u.broker===mine):true)&&(allObj?(((fr.country||'Все')==='Все'||objCountry(objById(u.obj))===fr.country)&&((fr.city||'Все')==='Все'||objById(u.obj).city===fr.city)):true)&&(!fr.q||(u.code+' '+u.vars.join(' ')+' '+u.sub).toLowerCase().indexOf(fr.q.toLowerCase())>=0));S.regSel=on?fus.map(u=>u.id):[];renderRegistry();}
 function regClearSel(){S.regSel=[];renderRegistry();}
@@ -809,7 +846,7 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
    go('plans');
  }catch(ex){PLAN_MSG='err|Ошибка при обработке файла: '+(ex&&ex.message||ex);go('plans');}};
  if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
-function tryPersist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify({OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,DOCREG,DOC_CONTACTS,AGENTS,ROLES,LANG,THEME,KPSEQ,ACTLOG,AUDIT,obj:S.obj}));return true;}catch(e){return false;}}
+function tryPersist(){let ok=true;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));}catch(e){ok=false;}try{apiSaveState();}catch(e){}return ok;}
 function clearPlan(){if(!confirm('Удалить загруженный чертёж объекта?'))return;delete PLANSVG[S.obj];persist();go('plans');}
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
 function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
