@@ -195,9 +195,9 @@ function toggleLang(){LANG=LANG==='ru'?'uz':'ru';$('langTop').textContent=LANG==
 /* ===== CONFIG ===== */
 const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
-const fmtA=n=>Math.round(n).toLocaleString('ru-RU');
+const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='1.9';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.0';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -952,16 +952,22 @@ function clearPlan(){const blk=curBlock(),fl=curFloor();if(!confirm('Удали�
 function parsePlanLabels(svg){
  const reCode=/^[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*$/;
  const texts=[];svg.querySelectorAll('text').forEach(t=>{const s=(t.textContent||'').replace(/\s+/g,' ').trim();if(!s)return;let cx=0,cy=0;try{const b=t.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}const par=t.parentNode;const g=(par&&par.tagName&&par.tagName.toLowerCase()==='g')?par:null;texts.push({s,cx,cy,p:g});});
- const areaOf=s=>{const m=String(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
- const codeC=texts.filter(o=>reCode.test(o.s.replace(/\s+/g,''))).map(o=>({x:o.cx,y:o.cy}));
+ const combOf=s=>{const m=String(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
+ const numOf=s=>{const m=String(s).replace(',','.').match(/^(\d+(?:\.\d+)?)$/);return m?+m[1]:0;};
+ const isUnit=s=>{s=String(s).trim();return /^(м|m)\s*[²2]?$/i.test(s)||/^(кв\.?\s*м|м²|m²|m2)$/i.test(s);};
+ const codeT=texts.filter(o=>reCode.test(o.s.replace(/\s+/g,'')));
+ const codeC=codeT.map(o=>({x:o.cx,y:o.cy}));
  let md=0;{const ds=[];for(let i=0;i<codeC.length;i++){let best=Infinity;for(let j=0;j<codeC.length;j++){if(i!==j){const d=Math.hypot(codeC[i].x-codeC[j].x,codeC[i].y-codeC[j].y);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
- const thr=md?md*0.55:Infinity; /* площадь берём только из ближайшего окружения помещения */
+ const thr=md?md*0.6:Infinity; /* площадь берём только из ближайшего окружения помещения */
+ const units=texts.filter(o=>isUnit(o.s));
+ /* кандидаты площади: «88.6 м²» одним текстом ИЛИ число «88.6» рядом с подписью «м²» */
+ const cands=[];
+ texts.forEach(o=>{const c=combOf(o.s);if(c){cands.push({val:c,cx:o.cx,cy:o.cy});return;}const n=numOf(o.s);if(n>=2&&n<=100000){let near=Infinity;units.forEach(u=>{if(u===o)return;const d=Math.hypot(u.cx-o.cx,u.cy-o.cy);if(d<near)near=d;});const R=md?md*0.55:Infinity;if(near<=R)cands.push({val:n,cx:o.cx,cy:o.cy});}});
  const out=[];const seen={};
- texts.forEach(o=>{const tok=o.s.replace(/\s+/g,'');if(!reCode.test(tok))return;const key=tok.toLowerCase();if(seen[key])return;seen[key]=1;
-   let area=areaOf(o.s);
-   if(!area)texts.forEach(o2=>{if(area||o2===o)return;if(o.p&&o2.p===o.p){const a=areaOf(o2.s);if(a)area=a;}});
-   if(!area&&o.p){let cand=0;texts.forEach(o2=>{if(o2===o||o2.p!==o.p)return;const mm=o2.s.replace(',','.').match(/^(\d+(?:\.\d+)?)$/);if(mm){const v=+mm[1];if(v>=3&&v<=50000&&v>cand)cand=v;}});if(cand)area=cand;}
-   if(!area&&isFinite(thr)){let best=thr;texts.forEach(o2=>{if(o2===o)return;const a=areaOf(o2.s);if(!a)return;const d=Math.hypot(o2.cx-o.cx,o2.cy-o.cy);if(d<best){best=d;area=a;}});}
+ codeT.forEach(o=>{const tok=o.s.replace(/\s+/g,'');const key=tok.toLowerCase();if(seen[key])return;seen[key]=1;
+   let area=combOf(o.s);
+   if(!area&&o.p)texts.forEach(o2=>{if(area||o2===o||o2.p!==o.p)return;area=combOf(o2.s)||numOf(o2.s);});
+   if(!area){let best=thr;cands.forEach(c=>{const d=Math.hypot(c.cx-o.cx,c.cy-o.cy);if(d<best){best=d;area=c.val;}});}
    out.push({code:tok,area:area||0});});
  return out;}
 function detectUnitsFromSvg(svg){const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);return parsePlanLabels(svg).filter(r=>!have[r.code.toLowerCase()]);}
