@@ -45,10 +45,23 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .nav a:hover{background:var(--soft)}.nav a.active{background:var(--red);color:#fff}.nav a .ic{width:18px;text-align:center}
 .nav .sep{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:#b3aea7;padding:12px 12px 6px;font-weight:700}
 .perm{margin-top:12px;padding:11px;border:1px solid var(--border);border-radius:10px;background:var(--soft);font-size:11px;color:var(--muted)}.perm.collapsed{padding:6px 11px}
-.perm b{color:#333;display:block;margin-bottom:5px;font-size:12px}.perm .chip{display:inline-block;margin:2px 3px 0 0;padding:2px 7px;border-radius:12px;background:#fff;border:1px solid var(--border);font-weight:600;font-size:10px}
-.orgnode{margin-top:8px}.orgbox{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--border);border-radius:10px;background:var(--soft);cursor:pointer;font-size:13px;transition:background .15s}
+.perm b{color:#333;display:block;margin-bottom:5px;font-size:12px}.chip{display:inline-block;margin:2px 3px 0 0;padding:2px 7px;border-radius:12px;background:#fff;border:1px solid var(--border);font-weight:600;font-size:10px}
+.orgtree-wrap{overflow-x:auto;padding:14px 6px 6px}
+.orgtree,.orgtree ul{display:flex;justify-content:center;padding:0;margin:0;list-style:none}
+.orgtree ul{padding-top:22px;position:relative}
+.orgtree li{display:flex;flex-direction:column;align-items:center;position:relative;padding:22px 12px 0 12px;margin:0}
+.orgtree li::before,.orgtree li::after{content:'';position:absolute;top:0;right:50%;border-top:2px solid var(--border);width:50%;height:22px}
+.orgtree li::after{right:auto;left:50%;border-left:2px solid var(--border)}
+.orgtree li:only-child::after,.orgtree li:only-child::before{display:none}
+.orgtree li:only-child{padding-top:0}
+.orgtree li:first-child::before,.orgtree li:last-child::after{border:0 none}
+.orgtree li:last-child::before{border-right:2px solid var(--border);border-radius:0 6px 0 0}
+.orgtree li:first-child::after{border-radius:6px 0 0 0}
+.orgtree ul::before{content:'';position:absolute;top:0;left:50%;border-left:2px solid var(--border);width:0;height:22px}
+.orgbox{display:inline-flex;align-items:center;gap:8px;padding:9px 14px;border:1px solid var(--border);border-radius:10px;background:var(--soft);cursor:pointer;font-size:13px;white-space:nowrap;transition:background .15s}
 .orgbox:hover{background:#f0ede8}.orgbox.open{background:#fdeaea;border-color:#e0a0a0}.orgcnt{display:inline-block;min-width:20px;text-align:center;padding:1px 6px;border-radius:10px;background:#fff;border:1px solid var(--border);font-size:11px;font-weight:700;color:#777}
-.orgpeople{margin:8px 0 8px 4px;padding:10px 12px;border-left:2px solid var(--border);display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
+.orgpanel-h{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:8px}
+.orgpeople{margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px}
 .orgperson{padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:#fff;font-size:12.5px}.orgperson.inactive{opacity:.55}
 tr.sev-crit td{background:#fdeaea}tr.sev-warn td{background:#fff8e1}tr.sev-ok td{background:#eefaf0}
 .scrim{display:none}.main{flex:1;padding:20px 24px;max-width:1320px;width:100%}
@@ -208,7 +221,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.2';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.3';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -962,6 +975,7 @@ function userCenterOf(svg,el){let b;try{b=el.getBBox();}catch(e){return null;}co
 function bindSvgPlan(host,objId,block,floor){
  if(!host)return;const svg=host.querySelector('svg');const note=$('planmatch');
  if(!svg){if(note)note.innerHTML='<span class="sev red">В файле не найден элемент &lt;svg&gt;.</span>';return;}
+ sanitizePlanSvgDom(svg);
  svg.removeAttribute('height');svg.setAttribute('width','100%');svg.style.maxWidth='100%';svg.style.height='auto';svg.setAttribute('preserveAspectRatio','xMidYMid meet');
  const us=unitsOf(objId).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block)),byCode={};us.forEach(u=>byCode[u.code]=u);
  let matched=new Set();
@@ -982,7 +996,7 @@ function bindSvgPlan(host,objId,block,floor){
  let fs=md?md*0.15:vbw*0.011;fs=Math.max(Math.min(fs,vbw*0.02),vbw*0.0035);if(!isFinite(fs)||fs<=0)fs=Math.max(8,vbw*0.01);
  const lh=fs*1.2,pad=fs*0.45;
  const POS=PLAN_LABELPOS[planKey(objId,block,floor)]||(PLAN_LABELPOS[planKey(objId,block,floor)]={});
- const drawLabel=(c,u)=>{const lines=[u.code,(u.vars[0]||u.sub||'').slice(0,18),fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.style.cursor='move';
+ const drawLabel=(c,u)=>{const lines=[u.code,(u.vars[0]||u.sub||'').slice(0,18),fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
   const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',bx);rect.setAttribute('y',by);rect.setAttribute('width',bw);rect.setAttribute('height',bh);rect.setAttribute('rx',pad);rect.setAttribute('fill','#ffffff');rect.setAttribute('fill-opacity','0.9');rect.setAttribute('stroke',unitStrokeHex(u));rect.setAttribute('stroke-width',Math.max(1,fs*0.22));g.appendChild(rect);
   const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',bx+pad+fs*0.4);dot.setAttribute('cy',by+pad+fs*0.55);dot.setAttribute('r',fs*0.42);dot.setAttribute('fill',unitStrokeHex(u));g.appendChild(dot);
   const mk=(s,dy,opt)=>{const tx=document.createElementNS(NS,'text');tx.setAttribute('x',bx+pad+(opt&&opt.code?fs*1.1:0));tx.setAttribute('y',by+pad+dy);tx.setAttribute('font-family','Montserrat,Arial,sans-serif');tx.setAttribute('font-size',opt&&opt.s?opt.s:fs);if(opt&&opt.b)tx.setAttribute('font-weight','800');tx.setAttribute('fill',opt&&opt.c?opt.c:'#222');tx.setAttribute('pointer-events','none');tx.textContent=s;g.appendChild(tx);};
@@ -1025,6 +1039,29 @@ function planLegend(){const m=planMode();const toggle=`<div class="tabs" style="
 function planTools(){const can=(R().edit||R().admin||R().plans);const blk=curBlock();const fl=curFloor();const up=planFor(S.obj,blk,fl);const fln=(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»';const b=up?`<div class="banner ok">✔ Чертёж (${esc(fln)}) загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${can?' <button class="btn ghost sm" style="margin-left:8px" onclick="clearPlan()">Удалить</button>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()">⬆ Загрузить чертёж (${esc(fln)}) (SVG / PNG)</button> <span style="font-size:11px;color:var(--muted)">SVG с id = код помещения · план виден всем</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружают сотрудники с правом правок - план виден всем.</span>`;const auto=(can&&R().edit&&up&&up.kind==='svg')?` <button class="btn ghost sm" onclick="autoUnitsFromPlan()">✚ Создать помещения из чертежа</button>`:'';const at=(R().edit&&S.obj!=='ALL')?` <button class="btn ghost sm" onclick="areaTransferForm()">✂ Перераспределить площадь</button>`:'';const showsLbl=(up&&up.kind==='svg')||(S.obj==='zm'&&curFloor()==='2 этаж');const lbl=showsLbl?` <button class="btn ghost sm" onclick="togglePlanLabels()">${S.planLabels===false?'👁 Показать подписи':'🛇 Скрыть подписи (видеть оригинал)'}</button>`:'';return b+`<div style="margin-bottom:6px">${x}${auto}${lbl}${at}</div>`;}
 function togglePlanLabels(){S.planLabels=(S.planLabels===false);renderPlans();}
 let PLAN_MSG='';
+/* Чертежи из AutoCAD/DWG часто содержат: (1) «слипшуюся» двойную UTF-8/Latin-1 кодировку кириллицы
+   (типичный баг DWG→SVG конвертеров) и (2) необработанные коды форматирования MTEXT (\fArial|b0;, \H0.7x;, \pxt10;),
+   которые ломают и вид подписей, и распознавание площади (число+«м²» перестают стоять рядом). Чиним и то, и другое. */
+function mtextClean(s){
+ if(!s)return s;
+ if(/[-ÿ]{2,}/.test(s)){
+  try{
+   const codes=[...s].map(c=>c.charCodeAt(0));
+   if(codes.every(c=>c<=255)){
+    const fixed=new TextDecoder('utf-8',{fatal:true}).decode(new Uint8Array(codes));
+    if(/[А-Яа-яЁё]/.test(fixed))s=fixed;
+   }
+  }catch(e){}
+ }
+ s=s.replace(/\\[A-Za-z][^\\;]*;/g,'').replace(/\\[PpOoLlKk~]/g,' ');
+ return s.replace(/\s+/g,' ').trim();
+}
+function sanitizePlanSvgDom(host){
+ if(!host||!document.createTreeWalker)return;
+ const w=document.createTreeWalker(host,NodeFilter.SHOW_TEXT,null);const ns=[];let x;
+ while(x=w.nextNode())ns.push(x);
+ ns.forEach(tn=>{const v=mtextClean(tn.nodeValue);if(v!==tn.nodeValue)tn.nodeValue=v;});
+}
 function uploadPlan(){const inp=document.createElement('input');inp.type='file';inp.accept='.svg,image/svg+xml,image/png,image/jpeg';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const isSvg=/svg/i.test(f.type)||/\.svg$/i.test(f.name);const r=new FileReader();
  r.onerror=()=>{PLAN_MSG='err|Не удалось прочитать файл. Попробуйте другой файл.';go('plans');};
  r.onload=()=>{try{
@@ -1032,6 +1069,7 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
    if(isSvg){
      data=String(data).replace(/<\?xml[\s\S]*?\?>/i,'').replace(/<!DOCTYPE[\s\S]*?>/i,'').replace(/<!--[\s\S]*?-->/g,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'').replace(/ on\w+='[^']*'/gi,'').trim();
      if(data.toLowerCase().indexOf('<svg')<0){PLAN_MSG='err|Это не похоже на SVG. Сохраните чертёж как «Plain SVG» (Inkscape: Файл - Сохранить как - Простой SVG).';go('plans');return;}
+     try{const doc=new DOMParser().parseFromString(data,'image/svg+xml');if(!doc.querySelector('parsererror')){sanitizePlanSvgDom(doc.documentElement);data=new XMLSerializer().serializeToString(doc.documentElement);}}catch(e){}
      PLANSVG[planKey(S.obj,curBlock(),curFloor())]={kind:'svg',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};
    }else{PLANSVG[planKey(S.obj,curBlock(),curFloor())]={kind:'img',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};}
    const big=(typeof data==='string'&&data.length>3000000);
@@ -1044,14 +1082,14 @@ function tryPersist(){let ok=true;try{localStorage.setItem(STORAGE_KEY,JSON.stri
 function clearPlan(){const blk=curBlock(),fl=curFloor();if(!confirm('Удалить загруженный чертёж ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»)?'))return;delete PLANSVG[planKey(S.obj,blk,fl)];persist();go('plans');}
 function parsePlanLabels(svg){
  const reCode=/^[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*$/;
- const texts=[];svg.querySelectorAll('text').forEach(t=>{const s=(t.textContent||'').replace(/\s+/g,' ').trim();if(!s)return;let cx=0,cy=0;try{const b=t.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}const par=t.parentNode;const g=(par&&par.tagName&&par.tagName.toLowerCase()==='g')?par:null;texts.push({s,cx,cy,p:g});});
+ const texts=[];svg.querySelectorAll('text').forEach(t=>{if(t.closest&&t.closest('[data-caseos-overlay]'))return;const s=mtextClean(t.textContent);if(!s)return;let cx=0,cy=0;try{const b=t.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}texts.push({s,cx,cy});});
  const combOf=s=>{const m=String(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
  const numOf=s=>{const m=String(s).replace(',','.').match(/^(\d+(?:\.\d+)?)$/);return m?+m[1]:0;};
  const isUnit=s=>{s=String(s).trim();return /^(м|m)\s*[²2]?$/i.test(s)||/^(кв\.?\s*м|м²|m²|m2)$/i.test(s);};
  const codeT=texts.filter(o=>reCode.test(o.s.replace(/\s+/g,'')));
  const codeC=codeT.map(o=>({x:o.cx,y:o.cy}));
  let md=0;{const ds=[];for(let i=0;i<codeC.length;i++){let best=Infinity;for(let j=0;j<codeC.length;j++){if(i!==j){const d=Math.hypot(codeC[i].x-codeC[j].x,codeC[i].y-codeC[j].y);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
- const thr=md?md*0.6:Infinity; /* площадь берём только из ближайшего окружения помещения */
+ const thr=md?md*3:Infinity; /* площадь берём только из ближайшего окружения помещения */
  const units=texts.filter(o=>isUnit(o.s));
  /* кандидаты площади: «88.6 м²» одним текстом ИЛИ число «88.6» рядом с подписью «м²» */
  const cands=[];
@@ -1059,7 +1097,6 @@ function parsePlanLabels(svg){
  const out=[];const seen={};
  codeT.forEach(o=>{const tok=o.s.replace(/\s+/g,'');const key=tok.toLowerCase();if(seen[key])return;seen[key]=1;
    let area=combOf(o.s);
-   if(!area&&o.p)texts.forEach(o2=>{if(area||o2===o||o2.p!==o.p)return;area=combOf(o2.s)||numOf(o2.s);});
    if(!area){let best=thr;cands.forEach(c=>{const d=Math.hypot(c.cx-o.cx,c.cy-o.cy);if(d<best){best=d;area=c.val;}});}
    out.push({code:tok,area:area||0});});
  return out;}
@@ -1262,19 +1299,20 @@ function renderOrg(){
  const byRole={};people.forEach(p=>{(byRole[p.role]=byRole[p.role]||[]).push(p);});
  const root=Object.keys(ROLES).find(k=>!ROLES[k].reportsTo)||Object.keys(ROLES)[0];
  const children=rk=>Object.keys(ROLES).filter(k=>ROLES[k].reportsTo===rk);
- const nodeHTML=(rk,depth)=>{const r=ROLES[rk];if(!r)return '';const list=byRole[rk]||[];const cnt=list.filter(p=>p.active).length;const kids=children(rk);
-  return `<div class="orgnode" style="margin-left:${depth*26}px">
+ const nodeHTML=(rk)=>{const r=ROLES[rk];if(!r)return '';const list=byRole[rk]||[];const cnt=list.filter(p=>p.active).length;const kids=children(rk);
+  return `<li>
     <div class="orgbox${_orgExpanded===rk?' open':''}" onclick="toggleOrgRole('${rk}')"><b>${esc(roleDisplay(rk))}</b><span class="orgcnt">${cnt}</span></div>
-    ${_orgExpanded===rk?orgPeopleHTML(rk,list):''}
-    ${kids.map(k=>nodeHTML(k,depth+1)).join('')}
-  </div>`;};
- $('main').innerHTML=`<div class="ph"><h1>${t('org')}</h1></div><p class="sub">${LANG==='uz'?'Kim kimga boʻysunadi · lavozimni bosing - xodimlar, huquqlar va obyektlar':LANG==='en'?'Who reports to whom · click a position to see its people, rights and properties':'Кто кому подчиняется · клик по должности — сотрудники, права и объекты'}</p><div class="card">${nodeHTML(root,0)}</div>${footNote()}`;
+    ${kids.length?`<ul>${kids.map(nodeHTML).join('')}</ul>`:''}
+  </li>`;};
+ const rk=_orgExpanded,r=rk&&ROLES[rk];
+ const panel=r?`<div class="card" style="margin-top:14px"><div class="orgpanel-h"><b>${esc(roleDisplay(rk))}</b><button class="btn ghost sm" onclick="toggleOrgRole('${rk}')">×</button></div>${orgPeopleHTML(rk,byRole[rk]||[])}</div>`:'';
+ $('main').innerHTML=`<div class="ph"><h1>${t('org')}</h1></div><p class="sub">${LANG==='uz'?'Kim kimga boʻysunadi · lavozimni bosing - xodimlar, huquqlar va obyektlar':LANG==='en'?'Who reports to whom · click a position to see its people, rights and properties':'Кто кому подчиняется · клик по должности — сотрудники, права и объекты'}</p><div class="card"><div class="orgtree-wrap"><ul class="orgtree">${nodeHTML(root)}</ul></div></div>${panel}${footNote()}`;
 }
-function orgPeopleHTML(rk,list){const r=ROLES[rk];const rightsRow=`<div style="margin:6px 0 10px">${(r.rights||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>`;
- if(!list.length)return `<div class="orgpeople">${rightsRow}<div style="color:var(--muted);font-size:12px">${LANG==='uz'?'Bu lavozimda hali hech kim yoʻq.':LANG==='en'?'No one holds this position yet.':'Пока никого нет на этой должности.'}</div></div>`;
+function orgPeopleHTML(rk,list){const r=ROLES[rk];const rightsRow=`<div style="margin:0 0 10px">${(r.rights||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>`;
+ if(!list.length)return `${rightsRow}<div style="color:var(--muted);font-size:12px">${LANG==='uz'?'Bu lavozimda hali hech kim yoʻq.':LANG==='en'?'No one holds this position yet.':'Пока никого нет на этой должности.'}</div>`;
  const rows=list.map(p=>{const objs=personObjects(p.broker||p.name);
   return `<div class="orgperson${p.active?'':' inactive'}"><b>${esc(nameDisplay(p.name))}</b>${p.active?'':' <span class="pill">'+(LANG==='uz'?'oʻchirilgan':LANG==='en'?'disabled':'отключён')+'</span>'}<div style="font-size:11px;color:#999">${esc(p.title||r.label)}</div>${objs.length?`<div style="font-size:11px;color:#777;margin-top:2px">${LANG==='uz'?'Obyektlar':LANG==='en'?'Properties':'Объекты'}: ${objs.map(o=>esc(o.name)).join(', ')}</div>`:''}</div>`;}).join('');
- return `<div class="orgpeople">${rightsRow}${rows}</div>`;}
+ return `${rightsRow}<div class="orgpeople">${rows}</div>`;}
 function toggleOrgRole(rk){_orgExpanded=(_orgExpanded===rk)?null:rk;renderOrg();}
 function renderUsers(){
  if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}
