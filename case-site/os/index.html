@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.15';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.16';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1668,10 +1668,17 @@ function renderAuditCard(){const cols=[
  const legend=`<div style="display:flex;gap:14px;flex-wrap:wrap;margin:0 0 8px;font-size:11px;color:var(--muted)"><span><span class="dot" style="background:#fdeaea;border:1px solid var(--red-d)"></span> критично (удаление, доступ, пароли)</span><span><span class="dot" style="background:#fff8e1;border:1px solid var(--amber)"></span> изменение данных</span><span><span class="dot" style="background:#eefaf0;border:1px solid var(--green)"></span> обычное действие</span></div>`;
  return `<div class="card"><h3>Журнал действий <span class="mut">${AUDIT.length}</span></h3>${AUDIT.length?legend+buildTable('audit',cols,AUDIT.slice(0,300),{rowClass:a=>'sev-'+auditSeverity(a)}):'<div style="color:var(--muted);font-size:12px">Пока нет записей</div>'}</div>`;}
 function toggleRight(rk,right){if(!R().admin){alert('Только администратор может менять права.');return;}if(!ROLES[rk]||right==='admin')return;ROLES[rk][right]=!ROLES[rk][right];audit('Изменение прав роли',rk+' · '+right+' → '+(ROLES[rk][right]?'открыт':'закрыт'));persist();buildNav();renderPerm();renderUsers();}
-function renderDangerZone(){if(!R().admin)return '';return `<div class="card" style="border:1px solid #f3c0c0;background:#fffafa"><h3 style="color:var(--red-d,#9E0000)">⚠ Опасная зона</h3><p style="font-size:12.5px;color:#555;margin:4px 0 10px">«Начать с нуля» удалит ВСЕ рабочие данные (объекты, помещения, бренды, документы, планы, журналы активности) и создаст один пустой объект для чистого старта. <b>Пользователи и роли сохранятся.</b> Перед этим сделайте бэкап базы (phpMyAdmin → Export).</p><button class="btn ghost sm" style="border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="resetAllData()">Очистить и начать с нуля</button> <button class="btn ghost sm" onclick="exportAllJSON()">Скачать бэкап (JSON)</button></div>`;}
-function resetAllData(){if(!R().admin){alert('Только администратор.');return;}
+function renderDangerZone(){if(!R().admin)return '';return `<div class="card" style="border:1px solid #f3c0c0;background:#fffafa"><h3 style="color:var(--red-d,#9E0000)">⚠ Опасная зона</h3><p style="font-size:12.5px;color:#555;margin:4px 0 10px">«Начать с нуля» удалит ВСЕ рабочие данные (объекты, помещения, бренды, документы, планы, журналы активности) и создаст один пустой объект для чистого старта. <b>Пользователи и роли сохранятся.</b> Перед этим сделайте бэкап базы (phpMyAdmin → Export).${BACKEND?' Потребуется <b>пароль CEO</b> для подтверждения.':''}</p><button class="btn ghost sm" style="border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="resetAllData()">Очистить и начать с нуля</button> <button class="btn ghost sm" onclick="exportAllJSON()">Скачать бэкап (JSON)</button></div>`;}
+async function resetAllData(){if(!R().admin){alert('Только администратор.');return;}
  if(!confirm('ВНИМАНИЕ! Будут удалены ВСЕ данные: объекты, помещения, бренды, документы, планы. Будет создан один пустой объект. Пользователи и роли сохранятся.\n\nСделали бэкап? Продолжить?'))return;
- if(prompt('Для подтверждения введите слово  ОЧИСТИТЬ  (заглавными):')!=='ОЧИСТИТЬ'){alert('Отменено.');return;}
+ if(BACKEND){
+  const pass=prompt('Для подтверждения введите пароль CEO (Генерального директора):');
+  if(pass==null)return;
+  try{await apiPOST('auth.php',{action:'verify_ceo',password:pass});}
+  catch(e){alert('Неверный пароль CEO. Сброс отменён.');return;}
+ }else{
+  if(prompt('Для подтверждения введите слово  ОЧИСТИТЬ  (заглавными):')!=='ОЧИСТИТЬ'){alert('Отменено.');return;}
+ }
  OBJECTS.splice(0,OBJECTS.length,{id:'obj1',name:'Новый объект',ru:'Новый объект',country:'Узбекистан',city:'',type:'',gba:0,gla:0,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'incl',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'}});
  U.splice(0,U.length);_u=0;BRANDS.splice(0,BRANDS.length);_b=0;CHANGES.splice(0,CHANGES.length);BENCH.splice(0,BENCH.length);
  Object.keys(REFUSALS).forEach(k=>delete REFUSALS[k]);Object.keys(PLANSVG).forEach(k=>delete PLANSVG[k]);Object.keys(PLANUP).forEach(k=>delete PLANUP[k]);

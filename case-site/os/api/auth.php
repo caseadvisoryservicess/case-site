@@ -32,4 +32,17 @@ if ($a==='login') {
   json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 if ($a==='logout') { audit('Выход'); $_SESSION=[]; session_destroy(); json_out(['auth'=>false]); }
+if ($a==='verify_ceo') {
+  require_login();
+  if (!can('admin')) fail('Только администратор', 403);
+  $pass = (string)($b['password'] ?? '');
+  $st = db()->prepare("SELECT password_hash FROM app_users WHERE role_key='ASH' AND active=1 ORDER BY created_at ASC LIMIT 1");
+  $st->execute();
+  $ceo = $st->fetch();
+  if (!$ceo || !password_verify($pass, $ceo['password_hash'] ?? '')) {
+    audit('Сброс данных: неверный пароль CEO', '');
+    fail('Неверный пароль CEO', 401);
+  }
+  json_out(['ok'=>true]);
+}
 fail('Неизвестное действие', 400);
