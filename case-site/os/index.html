@@ -222,7 +222,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.8';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.9';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -263,23 +263,23 @@ function addDaysISO(v,days){const d=parseDateAny(v);d.setDate(d.getDate()+(+days
 function daysUntil(v){return Math.round((parseDateAny(v)-TODAY)/86400000);}
 function dateRU(v){return parseDateAny(v).toLocaleDateString('ru-RU');}
 const USERS=[
- {u:'aziz',name:'Aziz Shermukhamedov',role:'ASH',title:'Founder / CEO'},
+ {u:'aziz',name:'Aziz Shermukhamedov',role:'ASH',title:'Генеральный директор'},
  {u:'admin',name:'Администратор',role:'ADM',title:'Система'},
- {u:'ba',name:'Директор по аренде',role:'BA',title:'Leasing Director'},
+ {u:'ba',name:'Директор по аренде',role:'BA',title:'Директор по аренде'},
  {u:'nodir',name:'Нодир',role:'AG',title:'Агент аренды'},
- {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Lease Admin'},
+ {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Администратор аренды (тыл)'},
  {u:'beksulton',name:'Beksulton Shaxridinov',role:'BSH',title:'Архитектор'},
- {u:'humoyun',name:'Humoyun Mirkamolov',role:'HM',title:'Advisory Manager'},
+ {u:'humoyun',name:'Humoyun Mirkamolov',role:'HM',title:'Менеджер по консалтингу'},
 ];
 const ROLES={
- ASH:{label:'Founder / CEO',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,reportsTo:null,rights:['Полный доступ','Финансы / NOI','Виза по ставкам','Все дашборды']},
+ ASH:{label:'Генеральный директор',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,reportsTo:null,rights:['Полный доступ','Финансы / NOI','Виза по ставкам','Все дашборды']},
  ADM:{label:'Администратор',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,reportsTo:'ASH',rights:['Управление пользователями','Все комиссии','Загрузка планов','Все права']},
- BA:{label:'Leasing Director',leasing:true,finance:true,edit:true,approve:false,reportsTo:'ASH',rights:['Аренда: полный','Совокупные + личные KPI','Правки реестра','Ставки → виза ASH']},
+ BA:{label:'Директор по аренде',leasing:true,finance:true,edit:true,approve:false,reportsTo:'ASH',rights:['Аренда: полный','Совокупные + личные KPI','Правки реестра','Ставки → виза ASH']},
  AG:{label:'Агент аренды',leasing:true,finance:false,edit:true,approve:false,reportsTo:'BA',rights:['Показы / КП','Бронь помещений','Свои KPI и комиссии','Без финансов отдела']},
- HO:{label:'Lease Admin (тыл)',leasing:true,finance:false,edit:true,approve:false,reportsTo:'BA',rights:['Реестр и даты','Документы','Координация','Без финансов']},
+ HO:{label:'Администратор аренды (тыл)',leasing:true,finance:false,edit:true,approve:false,reportsTo:'BA',rights:['Реестр и даты','Документы','Координация','Без финансов']},
  BSH:{label:'Архитектор',leasing:true,finance:false,edit:true,approve:false,plans:true,reportsTo:'ASH',rights:['Загрузка чертежей','Интерактивный план','Реестр (просмотр)','Без финансов']},
- HM:{label:'Advisory Manager',leasing:true,finance:true,edit:false,approve:false,reportsTo:'ASH',rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
- CFO:{label:'CFO (финансовый директор)',leasing:true,finance:true,edit:false,approve:true,plans:false,reportsTo:'ASH',rights:['Все финансы / NOI','Виза по ставкам','Все дашборды','Без правок реестра']},
+ HM:{label:'Менеджер по консалтингу',leasing:true,finance:true,edit:false,approve:false,reportsTo:'ASH',rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
+ CFO:{label:'Финансовый директор',leasing:true,finance:true,edit:false,approve:true,plans:false,reportsTo:'ASH',rights:['Все финансы / NOI','Виза по ставкам','Все дашборды','Без правок реестра']},
 };
 const OBJECTS=[
  {id:'ca',name:'Creative Avenue',ru:'Креативное авеню',country:'Узбекистан',city:'Ташкент',type:'Mixed-use',gba:18500,gla:17560,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'dual',vat:'incl',vatRate:12,comm:{type:'milestone',total:6,note:'2% сделка + 2% этаж + 2% здание'}},
@@ -398,9 +398,9 @@ const BENCH=[
 ];
 const TARGETS={touch:40,meet:10,view:5,loi:2,sign:1};
 const AGENTS=[
- {role:'BA',name:'Директор по аренде',title:'Leasing Director',touch:0,meet:0,view:0,loi:0,sign:0,earned:0,pipe:0},
+ {role:'BA',name:'Директор по аренде',title:'Директор по аренде',touch:0,meet:0,view:0,loi:0,sign:0,earned:0,pipe:0},
  {role:'AG',name:'Нодир',title:'Агент аренды',touch:38,meet:8,view:4,loi:2,sign:1,earned:4200,pipe:8600},
- {role:'HO',name:'Hilola Omonullaeva',title:'Lease Admin (тыл)',touch:30,meet:6,view:2,loi:1,sign:0,earned:0,pipe:2100},
+ {role:'HO',name:'Hilola Omonullaeva',title:'Администратор аренды (тыл)',touch:30,meet:6,view:2,loi:1,sign:0,earned:0,pipe:2100},
 ];
 
 /* ===== RETAILERS DATABASE ===== */
@@ -454,7 +454,11 @@ Object.assign(ENMAP,{
  "Скачать презентацию проекта":"Download project presentation","Прикрепить презентацию проекта (PDF)":"Attach project presentation (PDF)",
  "Обновить презентацию проекта (PDF)":"Update project presentation (PDF)","Удалить презентацию":"Delete presentation",
  "Карты":"Maps","✎ Координаты":"✎ Coordinates",
- "+ Объект":"+ Property","Добавить новый объект в портфель":"Add a new property to the portfolio"
+ "+ Объект":"+ Property","Добавить новый объект в портфель":"Add a new property to the portfolio",
+ "Генеральный директор":"CEO","Директор по аренде":"Leasing Director","Администратор аренды (тыл)":"Lease Admin (back office)",
+ "Менеджер по консалтингу":"Advisory Manager","Финансовый директор":"CFO",
+ "Ген. директор":"CEO","Дир. аренды":"Leasing Dir.","Адм. аренды":"Lease Adm.","Консультант":"Advisor","Финдиректор":"CFO","Админ":"Admin",
+ "+ Добавить сотрудника":"+ Add employee"
 });
 
 const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
@@ -561,7 +565,11 @@ Object.assign(UZMAP,{
  'Скачать презентацию проекта':'Loyiha taqdimotini yuklab olish','Прикрепить презентацию проекта (PDF)':'Loyiha taqdimotini biriktirish (PDF)',
  'Обновить презентацию проекта (PDF)':'Loyiha taqdimotini yangilash (PDF)','Удалить презентацию':'Taqdimotni oʻchirish',
  'Карты':'Xaritalar','✎ Координаты':'✎ Koordinata',
- '+ Объект':'+ Obyekt','Добавить новый объект в портфель':'Portfelga yangi obyekt qoʻshish'
+ '+ Объект':'+ Obyekt','Добавить новый объект в портфель':'Portfelga yangi obyekt qoʻshish',
+ 'Генеральный директор':'Bosh direktor','Директор по аренде':'Ijara boʻyicha direktor','Администратор аренды (тыл)':'Ijara administratori (orqa ofis)',
+ 'Менеджер по консалтингу':'Konsalting menejeri','Финансовый директор':'Moliya direktori',
+ 'Ген. директор':'Bosh dir.','Дир. аренды':'Ijara dir.','Адм. аренды':'Ijara adm.','Консультант':'Konsultant','Финдиректор':'Moliya dir.','Админ':'Administrator',
+ '+ Добавить сотрудника':'+ Xodim qoʻshish'
 });
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
@@ -583,7 +591,7 @@ const UI_KEY=STORAGE_KEY+'-ui';
 function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames}));}catch(e){}}
 function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;}catch(e){}}
 /* ===== Краткие / полные имена и должности — личная настройка отображения (не меняет данные) ===== */
-const ROLE_SHORT={ASH:'CEO',ADM:'Админ',BA:'Дир. по аренде',AG:'Агент',HO:'Lease Adm.',BSH:'Архитектор',HM:'Adv. Mgr',CFO:'CFO'};
+const ROLE_SHORT={ASH:'Ген. директор',ADM:'Админ',BA:'Дир. аренды',AG:'Агент',HO:'Адм. аренды',BSH:'Архитектор',HM:'Консультант',CFO:'Финдиректор'};
 function roleShortLabel(rk){return ROLE_SHORT[rk]||(ROLES[rk]&&ROLES[rk].label)||rk||'';}
 function roleDisplay(rk){if(!ROLES[rk])return rk||'';return S.compactNames?roleShortLabel(rk):ROLES[rk].label;}
 function nameDisplay(full){if(!full)return '';if(!S.compactNames)return full;const parts=String(full).trim().split(/\s+/);if(parts.length<2)return full;return parts[0]+' '+parts.slice(1).map(p=>p&&p[0]?p[0].toUpperCase()+'.':'').join(' ');}
@@ -866,6 +874,7 @@ function deleteObject(id){if(!R().admin){alert('Только администр�
 function deleteUnit(id){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u)return;if(!confirm('Удалить помещение «'+u.code+'»? Это нельзя отменить.'))return;const i=U.indexOf(u);if(i>=0)U.splice(i,1);audit('Удалено помещение',u.code);closeDrawer();persist();go('registry');}
 function editCell(id,field,td){const u=U.find(x=>x.id===id);if(!u||!R().edit)return;
  if(field==='status'){const sts=[['vac','Вакант'],['neg','Переговоры'],['off','Предложено'],['os','Предложение подписано'],['cs','Контракт на подписании'],['cd','Контракт подписан'],['res','Резерв']];td.innerHTML='<select class="inlineedit" onclick="event.stopPropagation()" onchange="saveCell(\''+id+'\',\'status\',this.value)">'+sts.map(s=>'<option value="'+s[0]+'"'+(s[0]===u.status?' selected':'')+'>'+stT(s[0])+'</option>').join('')+'</select>';const sl=td.querySelector('select');if(sl)sl.focus();return;}
+ if(field==='broker'){const bopts=brokerNames(),bcur=u.broker||'',blist=(bcur&&bopts.indexOf(bcur)<0)?[bcur,...bopts]:bopts;td.innerHTML='<select class="inlineedit" onclick="event.stopPropagation()" onchange="saveCell(\''+id+'\',\'broker\',this.value)"><option value="">-</option>'+blist.map(n=>'<option value="'+esc(n)+'"'+(n===bcur?' selected':'')+'>'+esc(n)+'</option>').join('')+'</select>';const sl=td.querySelector('select');if(sl)sl.focus();return;}
  const val=field==='rate'?(u.rate||''):(u[field]||'');td.innerHTML='<input class="inlineedit'+(field==='rate'?' num':'')+'"'+(field==='rate'?' type="number"':'')+' value="'+esc(val)+'" onclick="event.stopPropagation()" onkeydown="if(event.key===\'Enter\')this.blur();else if(event.key===\'Escape\'){this.dataset.cancel=1;this.blur();}" onblur="if(this.dataset.cancel)renderRegistry();else saveCell(\''+id+'\',\''+field+'\',this.value)">';const inp=td.querySelector('input');if(inp){inp.focus();try{inp.select();}catch(e){}}}
 function saveCell(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;if(field==='rate'){u.rate=+v||0;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}else if(field==='status'){u.status=v;u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}else u[field]=v;u.hist.push([iso(TODAY),'Быстрая правка ('+field+') в реестре ('+S.user.name+')']);audit('Быстрая правка',u.code+' · '+field+'='+v);persist();renderRegistry();}
 function toggleRegEdit(){if(!R().edit){alert('Нет прав на правки реестра.');return;}S.regEdit=!S.regEdit;audit('Режим правки таблицы',S.regEdit?'включён':'выключен');renderRegistry();}
@@ -885,7 +894,8 @@ function regEditRow(u,showBlk,allObj,ch){const inS='font-family:inherit;font-siz
  c+=`<td class="num" ${stp}>${inp('budget',u.budget,1)}</td>`;
  c+=`<td class="num">${fin?fmt(u.total||0):'•••'}</td>`;
  c+=`<td ${stp} style="font-size:11px;color:#777">${u.vars&&u.vars.length?esc(u.vars.join(', ')):'-'}</td>`;
- c+=`<td ${stp}>${inp('broker',u.broker)}</td>`;
+ const bopts=brokerNames(),bcur=u.broker||'',blist=(bcur&&bopts.indexOf(bcur)<0)?[bcur,...bopts]:bopts;
+ c+=`<td ${stp}><select onchange="saveCellLive('${u.id}','broker',this.value)" style="${inS}"><option value="">-</option>${blist.map(n=>`<option value="${esc(n)}"${n===bcur?' selected':''}>${esc(n)}</option>`).join('')}</select></td>`;
  c+=`<td ${stp}>${statusSel} <button class="btn ghost sm" title="Удалить помещение" style="padding:2px 6px" onclick="deleteUnit('${u.id}')">🗑</button></td>`;
  c+='</tr>';return c;}
 function addUnit(){if(!R().edit)return;const obj=S.obj==='ALL'?'ca':S.obj;const nu=unit(obj,'NEW-'+(_u+1),'1 этаж',0,0,'Услуги','',0,0,0,'vac','',[],[],'');U.push(nu);nu.hist.push([iso(TODAY),'Создано помещение ('+S.user.name+')']);persist();go('registry');setTimeout(()=>unitForm(nu.id),60);}
@@ -1401,6 +1411,7 @@ function drawYandexMap(objs){
 let _orgExpanded=null;
 function personObjects(name){if(!name)return[];const objs=new Set();U.forEach(u=>{if(u.broker&&String(u.broker).trim().toLowerCase()===String(name).trim().toLowerCase())objs.add(u.obj);});return [...objs].map(id=>objById(id)).filter(Boolean);}
 function orgPeople(){if(BACKEND)return (SRV_USERS||[]).map(u=>({id:u.id,name:u.name,title:u.title,role:u.role_key,broker:u.broker_name,active:(+u.active===1||u.active===true)}));return USERS.map(u=>({id:u.u,name:u.name,title:u.title,role:u.role,broker:u.name,active:u.active!==false}));}
+function brokerNames(){if(BACKEND&&SRV_USERS===null){loadSrvUsers();return[];}const names=orgPeople().filter(p=>p.active!==false).map(p=>p.broker||p.name).filter(Boolean);return[...new Set(names)].sort((a,b)=>a.localeCompare(b,'ru'));}
 function renderOrg(){
  if(BACKEND&&SRV_USERS===null){loadSrvUsers();$('main').innerHTML=`<div class="ph"><h1>${t('org')}</h1></div><div class="card" style="color:var(--muted)">${LANG==='uz'?'Yuklanmoqda…':LANG==='en'?'Loading…':'Загрузка…'}</div>`;return;}
  const people=orgPeople();
@@ -1413,7 +1424,7 @@ function renderOrg(){
     ${kids.length?`<ul>${kids.map(nodeHTML).join('')}</ul>`:''}
   </li>`;};
  const rk=_orgExpanded,r=rk&&ROLES[rk];
- const panel=r?`<div class="card" style="margin-top:14px"><div class="orgpanel-h"><b>${esc(roleDisplay(rk))}</b><button class="btn ghost sm" onclick="toggleOrgRole('${rk}')">×</button></div>${orgPeopleHTML(rk,byRole[rk]||[])}</div>`:'';
+ const panel=r?`<div class="card" style="margin-top:14px"><div class="orgpanel-h"><b>${esc(roleDisplay(rk))}</b><div style="display:flex;gap:8px">${R().admin?`<button class="btn ghost sm" onclick="addPersonToRole('${rk}')">+ Добавить сотрудника</button>`:''}<button class="btn ghost sm" onclick="toggleOrgRole('${rk}')">×</button></div></div>${orgPeopleHTML(rk,byRole[rk]||[])}</div>`:'';
  $('main').innerHTML=`<div class="ph"><h1>${t('org')}</h1></div><p class="sub">${LANG==='uz'?'Kim kimga boʻysunadi · lavozimni bosing - xodimlar, huquqlar va obyektlar':LANG==='en'?'Who reports to whom · click a position to see its people, rights and properties':'Кто кому подчиняется · клик по должности — сотрудники, права и объекты'}</p><div class="card"><div class="orgtree-wrap"><ul class="orgtree">${nodeHTML(root)}</ul></div></div>${panel}${footNote()}`;
 }
 function orgPeopleHTML(rk,list){const r=ROLES[rk];const rightsRow=`<div style="margin:0 0 10px">${(r.rights||[]).map(x=>`<span class="chip">${esc(x)}</span>`).join('')}</div>`;
@@ -1425,20 +1436,25 @@ function toggleOrgRole(rk){_orgExpanded=(_orgExpanded===rk)?null:rk;renderOrg();
 function renderUsers(){
  if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}
  if(BACKEND){if(SRV_USERS===null){loadSrvUsers();$('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><div class="card" style="color:var(--muted)">Загрузка пользователей…</div>`;return;}renderUsersBackend();return;}
- $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Единая платформа с логинами; ограничения соответствуют ролям</p><div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:520px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Логин</label><input id="nu_login" placeholder="login"></div></div><label>Роль</label><select id="nu_role">${roleOptions('AG')}</select><button class="btn" style="margin-top:12px" onclick="addUser()">+ ${t('add')}</button></div></div>${demoUsersCard()}${renderRoleMatrix()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;
+ const preRole=_prefillRole;_prefillRole=null;
+ $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Единая платформа с логинами; ограничения соответствуют ролям</p><div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:520px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Логин</label><input id="nu_login" placeholder="login"></div></div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select><button class="btn" style="margin-top:12px" onclick="addUser()">+ ${t('add')}</button></div></div>${demoUsersCard()}${renderRoleMatrix()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;
+ if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
-let SRV_USERS=null;
-function _rerenderUsersOrOrg(){if(S.view==='org')renderOrg();else renderUsers();}
+let SRV_USERS=null,_prefillRole=null;
+function addPersonToRole(rk){if(!R().admin)return;_prefillRole=rk;go('users');}
+function _rerenderUsersOrOrg(){if(S.view==='org')renderOrg();else if(S.view==='registry')renderRegistry();else renderUsers();}
 async function loadSrvUsers(){try{const j=await apiGET('data.php?table=app_users');SRV_USERS=(j.rows||[]).slice();}catch(e){SRV_USERS=[];}_rerenderUsersOrOrg();}
 function reloadSrvUsers(){SRV_USERS=null;_rerenderUsersOrOrg();}
 function roleOptions(sel){return Object.keys(ROLES).map(k=>`<option value="${k}"${sel===k?' selected':''}>${esc(ROLES[k].label)}</option>`).join('');}
 function renderUsersBackend(){
  const users=SRV_USERS||[];
- const addForm=`<div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:560px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Email (логин)</label><input id="nu_email" type="email" placeholder="user@caseadvisory.uz"></div></div><div class="row2"><div><label>Пароль (мин. 6)</label><input id="nu_pass" type="text" placeholder="временный пароль"></div><div><label>Роль</label><select id="nu_role">${roleOptions('AG')}</select></div></div><label>Имя брокера (для «только свои сделки», необязательно)</label><input id="nu_broker" placeholder="как в поле «Брокер» у помещений"><button class="btn" style="margin-top:12px" onclick="srvAddUser()">+ Создать пользователя</button></div></div>`;
+ const preRole=_prefillRole;_prefillRole=null;
+ const addForm=`<div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:560px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Email (логин)</label><input id="nu_email" type="email" placeholder="user@caseadvisory.uz"></div></div><div class="row2"><div><label>Пароль (мин. 6)</label><input id="nu_pass" type="text" placeholder="временный пароль"></div><div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select></div></div><label>Имя брокера (для «только свои сделки», необязательно)</label><input id="nu_broker" placeholder="как в поле «Брокер» у помещений"><button class="btn" style="margin-top:12px" onclick="srvAddUser()">+ Создать пользователя</button></div></div>`;
  const rows=users.map(u=>{const act=(+u.active===1||u.active===true);const self=S.user&&S.user.id===u.id;return `<tr><td><b>${esc(nameDisplay(u.name||''))}</b>${self?' <span class="pill">вы</span>':''}<div style="font-size:10px;color:#999">${esc(u.email||'')}</div></td><td><select onchange="srvSetRole('${u.id}',this.value)" style="font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:7px">${roleOptions(u.role_key)}</select></td><td>${esc(u.broker_name||'-')}</td><td>${act?'<span style="color:var(--green)">активен</span>':'<span style="color:#bbb">отключён</span>'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="srvUserEdit('${u.id}')">Изменить</button> <button class="btn ghost sm" onclick="srvSetPass('${u.id}')">Пароль</button> <button class="btn ghost sm" onclick="srvSetActive('${u.id}',${act?0:1})">${act?'Отключить':'Включить'}</button></td></tr>`;}).join('');
  const list=`<div class="card"><h3>Пользователи (${users.length}) <span class="mut">реальные учётки входа (база)</span></h3><div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Роль</th><th>Брокер</th><th>Статус</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="color:var(--muted)">Пока только вы. Добавьте сотрудников выше.</td></tr>'}</tbody></table></div></div>`;
  $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Учётные записи входа и права ролей</p>${addForm}${list}${renderRoleMatrix()}${backupCard()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;localize();
  loadBackupList();
+ if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
 function backupCard(){if(!R().admin)return '';return `<div class="card" id="backupCard"><h3>Резервные копии базы <span class="mut">ежедневный автоматический бэкап</span></h3>
  <p style="font-size:12.5px;color:#555;margin:4px 0 10px">Бэкап сохраняет ВСЮ базу (структуру + данные) в защищённую папку на сервере, скачать может только администратор. Для автоматического ежедневного запуска настройте один раз <b>Cron Job</b> в панели хостинга (см. кнопку «Как настроить ежедневный запуск» ниже).</p>

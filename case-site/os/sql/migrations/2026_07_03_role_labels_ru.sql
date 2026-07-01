@@ -1,4 +1,6 @@
--- CASE OS — сид ролей (MySQL). Импорт после schema_mysql.sql.
+-- Приводит названия должностей в таблице ролей к единому русскому языку
+-- (было: смесь рус/англ — "Founder / CEO", "Leasing Director" и т.п.).
+-- Идемпотентно, безопасно для повторного запуска.
 INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,admin) VALUES
  ('ASH','Генеральный директор',        1,1,1,1,1,0,1),
  ('ADM','Администратор',               1,1,1,1,1,0,1),
@@ -7,7 +9,5 @@ INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,admin
  ('HO', 'Администратор аренды (тыл)',  1,0,1,0,0,0,0),
  ('BSH','Архитектор',                  1,0,1,0,1,0,0),
  ('HM', 'Менеджер по консалтингу',     1,1,0,0,0,0,0),
- ('CFO','Финансовый директор',1,1,0,1,0,0,0)
-ON DUPLICATE KEY UPDATE
- label=VALUES(label), leasing=VALUES(leasing), finance=VALUES(finance), edit=VALUES(edit),
- approve=VALUES(approve), plans=VALUES(plans), own_only=VALUES(own_only), admin=VALUES(admin);
+ ('CFO','Финансовый директор',         1,1,0,1,0,0,0)
+ON DUPLICATE KEY UPDATE label=VALUES(label);

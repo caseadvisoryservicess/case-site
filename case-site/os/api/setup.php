@@ -22,5 +22,5 @@ $email = trim($_POST['email'] ?? ''); $pass = (string)($_POST['password'] ?? '')
 if (!$email || strlen($pass) < 6) fail('Укажите email и пароль (мин. 6 символов)', 400);
 $id = uuid();
 db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,broker_name,active) VALUES (?,?,?,?,?,?,?,1)')
-  ->execute([$id,$email,password_hash($pass,PASSWORD_DEFAULT),$name,'Founder / CEO','ASH',null]);
+  ->execute([$id,$email,password_hash($pass,PASSWORD_DEFAULT),$name,'Генеральный директор','ASH',null]);
 json_out(['ok'=>true,'message'=>'Администратор создан. Теперь УДАЛИТЕ setup.php с сервера и войдите в систему.']);
