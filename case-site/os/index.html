@@ -236,14 +236,14 @@ function toggleLang(){const i=LANG_CYCLE.indexOf(LANG);LANG=LANG_CYCLE[(i+1)%LAN
  if($('whoRole'))$('whoRole').textContent=roleDisplay(S.role);if($('whoName'))$('whoName').firstChild.textContent=nameDisplay(S.user.name);
  if($('gq'))$('gq').placeholder=LANG==='uz'?'Qidiruv: joy, brend, KP...':LANG==='en'?'Search: unit, brand, LOI...':'Поиск: помещение, бренд, КП...';
  if($('b_out'))$('b_out').textContent=t('out');
- DOC._langSet=false;DOC.docLang=LANG;closeDrawer();rebuildObjSel();buildNav();renderPerm();go(S.view);localize();}
+ DOC._langSet=false;DOC.docLang=LANG;closeDrawer();rebuildObjSel();buildNav();renderPerm();go(S.view);localize();quizRelang();}
 
 /* ===== CONFIG ===== */
 const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.13';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.14';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1111,6 +1111,7 @@ function quizRecordAnswer(q,idx,correct){
 function quizClose(){const box=$('quizPop');if(box)box.remove();_quizCurrent=null;}
 function quizMinimize(){const box=$('quizPop');if(!box)return;box.outerHTML=`<button id="quizPop" class="quizpop-badge" onclick="quizExpand()" title="${esc(quizT('title'))}">?</button>`;}
 function quizExpand(){const box=$('quizPop');if(box&&box.tagName==='BUTTON')box.remove();if(_quizCurrent)quizRenderPopup(_quizCurrent);}
+function quizRelang(){const box=$('quizPop');if(!box||!_quizCurrent)return;if(box.tagName==='BUTTON'){box.title=quizT('title');return;}quizRenderPopup(_quizCurrent);}
 function quizStatsCardHTML(){
  const uk=quizUserKey();const st=QUIZSTATS[uk];
  const pct=(c,t)=>t?Math.round(c/t*100):0;
