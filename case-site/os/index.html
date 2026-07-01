@@ -221,7 +221,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.6';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.7';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -447,7 +447,12 @@ Object.assign(ENMAP,{
  "✎ Добавить координаты":"✎ Add coordinates","Открыть объект →":"Open property →",
  "Широта (lat)":"Latitude (lat)","Долгота (lng)":"Longitude (lng)",
  "Для карты. Найдите объект на ":"For the map. Find the property on ",", кликните правой кнопкой по точке → «Что здесь?» — координаты скопируются.":", right-click the point → \"What's here?\" — the coordinates will be copied.",
- "Яндекс.Картах":"Yandex Maps"
+ "Яндекс.Картах":"Yandex Maps",
+ "Все объекты (":"All properties (",
+ " · без координат":" · without coordinates","Открыть →":"Open →",
+ "Скачать презентацию проекта":"Download project presentation","Прикрепить презентацию проекта (PDF)":"Attach project presentation (PDF)",
+ "Обновить презентацию проекта (PDF)":"Update project presentation (PDF)","Удалить презентацию":"Delete presentation",
+ "Карты":"Maps","✎ Координаты":"✎ Coordinates"
 });
 
 const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
@@ -552,7 +557,8 @@ Object.assign(UZMAP,{
  'Яндекс.Картах':'Yandex Xaritalar',
  'Все объекты (':'Barcha obyektlar (',' · без координат':' · koordinatasiz','Открыть →':'Ochish →',
  'Скачать презентацию проекта':'Loyiha taqdimotini yuklab olish','Прикрепить презентацию проекта (PDF)':'Loyiha taqdimotini biriktirish (PDF)',
- 'Обновить презентацию проекта (PDF)':'Loyiha taqdimotini yangilash (PDF)','Удалить презентацию':'Taqdimotni oʻchirish'
+ 'Обновить презентацию проекта (PDF)':'Loyiha taqdimotini yangilash (PDF)','Удалить презентацию':'Taqdimotni oʻchirish',
+ 'Карты':'Xaritalar','✎ Координаты':'✎ Koordinata'
 });
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
@@ -1346,13 +1352,19 @@ function loadYandexMaps(cb){
 }
 function renderMap(){
  const can=R().admin;
- const withCoord=OBJECTS.filter(o=>o.lat!=null&&o.lng!=null&&isFinite(o.lat)&&isFinite(o.lng));
- const noCoord=OBJECTS.filter(o=>!(o.lat!=null&&o.lng!=null&&isFinite(o.lat)&&isFinite(o.lng)));
+ const withCoord=OBJECTS.filter(hasGeo);
  const keyForm=can?`<div class="card" style="margin-bottom:12px"><b style="display:block;margin-bottom:6px">Ключ Яндекс.Карт (JS API)</b><div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Бесплатный ключ - на <a href="https://yandex.ru/dev/maps/jsapi/" target="_blank" style="color:var(--red-d)">Яндекс.Картах для разработчиков</a> (раздел «JavaScript API и HTTP Геокодер»). Один ключ на всю компанию.</div><div style="display:flex;gap:8px"><input id="map_key" value="${esc(MAPCFG.apikey||'')}" placeholder="Вставьте API-ключ" style="flex:1;font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px"><button class="btn sm" onclick="saveMapKey()">Сохранить</button></div></div>`:'';
  const noKeyMsg=`<div class="card" style="color:var(--muted)">${can?'Задайте API-ключ выше, чтобы включить карту.':'Карта пока не настроена администратором.'}</div>`;
- const missingList=(can&&noCoord.length)?`<div class="card" style="margin-top:12px"><b style="display:block;margin-bottom:8px">Без координат (${noCoord.length})</b>${noCoord.map(o=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${esc(o.name)} <span style="color:var(--muted);font-size:11px">· ${esc(o.city||'')}</span></span><button class="btn ghost sm" onclick="addObjectForm('${o.id}')">✎ Добавить координаты</button></div>`).join('')}</div>`:'';
- const allList=`<div class="card" style="margin-top:12px"><b style="display:block;margin-bottom:8px">Все объекты (${OBJECTS.length})</b>${OBJECTS.map(o=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${esc(o.name)} <span style="color:var(--muted);font-size:11px">· ${esc(o.city||'')}${o.lat!=null?'':' · без координат'}</span></span><button class="btn ghost sm" onclick="S.obj='${o.id}';go('plans')">Открыть →</button></div>`).join('')}</div>`;
- $('main').innerHTML=`<div class="ph"><h1>${t('map')}</h1></div><p class="sub">Объекты компании на карте</p>${keyForm}${MAPCFG.apikey?'<div class="card" style="padding:0;overflow:hidden"><div id="yamap" style="width:100%;height:520px"></div></div>':noKeyMsg}${missingList}${allList}${footNote()}`;
+ const mapCols=[
+  {k:'name',label:'Объект',get:o=>o.name,sortable:true,filter:'text',render:o=>`<b>${esc(o.name)}</b><div style="font-size:10px;color:#999">${esc(o.city||'')}${hasGeo(o)?'':' · без координат'}</div>`},
+  {k:'gba',label:'GBA, м²',get:o=>o.gba||0,num:true,sortable:true,render:o=>fmtA(o.gba||0)},
+  {k:'gla',label:'GLA, м²',get:o=>o.gla||0,num:true,sortable:true,render:o=>fmtA(o.gla||0)},
+  {k:'occ',label:'Заполняемость',get:o=>Math.round(occPct(o.id)*100),num:true,sortable:true,render:o=>Math.round(occPct(o.id)*100)+'%'},
+  {k:'maps',label:'Карты',get:()=>'',render:o=>`<a href="${gmapUrl(o)}" target="_blank" rel="noopener" class="btn ghost sm" style="color:var(--blue)" title="Google Maps">G</a> <a href="${yandexMapUrl(o)}" target="_blank" rel="noopener" class="btn ghost sm" style="color:var(--red-d)" title="Яндекс.Карты">Я</a> <a href="${gisUrl(o)}" target="_blank" rel="noopener" class="btn ghost sm" style="color:var(--teal)" title="2GIS">2GIS</a>`},
+  {k:'open',label:'',get:()=>'',render:o=>`<button class="btn ghost sm" onclick="S.obj='${o.id}';go('plans')">Открыть →</button>${(can&&!hasGeo(o))?` <button class="btn ghost sm" onclick="addObjectForm('${o.id}')">✎ Координаты</button>`:''}`}
+ ];
+ const allList=`<div class="card" style="margin-top:12px"><b style="display:block;margin-bottom:8px">Все объекты (${OBJECTS.length})</b>${buildTable('map_objs',mapCols,OBJECTS)}</div>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('map')}</h1></div><p class="sub">Объекты компании на карте</p>${keyForm}${MAPCFG.apikey?'<div class="card" style="padding:0;overflow:hidden"><div id="yamap" style="width:100%;height:520px"></div></div>':noKeyMsg}${allList}${footNote()}`;
  if(MAPCFG.apikey)loadYandexMaps(()=>drawYandexMap(withCoord));
 }
 function saveMapKey(){if(!R().admin)return;const v=($('map_key')&&$('map_key').value||'').trim();MAPCFG.apikey=v;audit('Настройка карты',v?'ключ обновлён':'ключ очищен');persist();go('map');}
