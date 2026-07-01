@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.12';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.13';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1056,7 +1056,7 @@ function quizT(k){
 function quizUserKey(){return S.user?(BACKEND?S.user.id:(S.user.u||S.role)):'';}
 function quizLoadUi(){try{return JSON.parse(localStorage.getItem(QUIZ_UI_KEY)||'{}');}catch(e){return {};}}
 function quizSaveUi(o){try{localStorage.setItem(QUIZ_UI_KEY,JSON.stringify(o));}catch(e){}}
-function quizStartTimer(){if(_quizTimerOn)return;_quizTimerOn=true;setTimeout(maybeShowQuiz,45000);setInterval(maybeShowQuiz,60000);}
+function quizStartTimer(){if(_quizTimerOn)return;_quizTimerOn=true;setTimeout(maybeShowQuiz,3000);setInterval(maybeShowQuiz,60000);}
 function quizBank(){return (typeof QUIZ_BANK!=='undefined'&&Array.isArray(QUIZ_BANK))?QUIZ_BANK:[];}
 function quizPick(){const bank=quizBank();if(!bank.length)return null;const uk=quizUserKey();const st=QUIZSTATS[uk];let seen=(st&&st.seen)||[];let pool=bank.filter(q=>seen.indexOf(q.id)<0);if(!pool.length)pool=bank;return pool[Math.floor(Math.random()*pool.length)];}
 function maybeShowQuiz(){
