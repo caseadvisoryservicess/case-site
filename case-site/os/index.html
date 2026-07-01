@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.17';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.18';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1362,14 +1362,19 @@ function parsePlanLabels(svg){
  const numOf=s=>{const m=degroup(String(s).trim()).replace(',','.').match(/^(\d+(?:\.\d+)?)$/);return m?+m[1]:0;};
  const isUnit=s=>{s=String(s).trim();return /^(м|m)\s*[²2]?$/i.test(s)||/^(кв\.?\s*м|м²|m²|m2)$/i.test(s);};
 
+ /* Illustrator и другие CAD-экспортёры позиционируют <text> через transform="matrix(...)",
+    а не x/y — тогда getBBox() возвращает координаты ДО этой матрицы (почти всегда ~0,0 для
+    всех подписей сразу), и по расстоянию их отличить невозможно. Настоящую позицию на чертеже
+    даёт только getBBox() в паре с getCTM() (учитывает все transform у элемента и его родителей). */
+ const posOf=el=>{try{const b=el.getBBox();const ctm=el.getCTM();if(!ctm)return{cx:b.x+b.width/2,cy:b.y+b.height/2};const pt=svg.createSVGPoint();pt.x=b.x+b.width/2;pt.y=b.y+b.height/2;const tp=pt.matrixTransform(ctm);return{cx:tp.x,cy:tp.y};}catch(e){return{cx:0,cy:0};}};
  const groups=[];const flat=[];
  svg.querySelectorAll('text').forEach(t=>{
    if(t.closest&&t.closest('[data-caseos-overlay]'))return;
    const tspans=t.querySelectorAll('tspan');
-   let gcx=0,gcy=0;try{const b=t.getBBox();gcx=b.x+b.width/2;gcy=b.y+b.height/2;}catch(e){}
+   const gp=posOf(t);const gcx=gp.cx,gcy=gp.cy;
    const lines=[];
    if(tspans.length>1){
-     tspans.forEach(ts=>{const s=mtextClean(ts.textContent);if(!s)return;let cx=gcx,cy=gcy;try{const b=ts.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}lines.push({s,cx,cy});});
+     tspans.forEach(ts=>{const s=mtextClean(ts.textContent);if(!s)return;const p=posOf(ts);lines.push({s,cx:p.cx||gcx,cy:p.cy||gcy});});
    }else{
      const raw=mtextClean(t.textContent);if(!raw)return;
      const parts=raw.split(/\n+/).map(s=>s.trim()).filter(Boolean);
@@ -1386,12 +1391,21 @@ function parsePlanLabels(svg){
  let md=0;{const ds=[];for(let i=0;i<codeTAll.length;i++){let best=Infinity;for(let j=0;j<codeTAll.length;j++){if(i!==j){const d=Math.hypot(codeTAll[i].cx-codeTAll[j].cx,codeTAll[i].cy-codeTAll[j].cy);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
  let svgDiag=0;try{const b=svg.getBBox();svgDiag=Math.hypot(b.width,b.height);}catch(e){}
  const thr=md?md*3:(svgDiag?svgDiag*0.12:Infinity);
- const unitsT=flat.filter(o=>isUnit(o.s));
+ /* категория — более строгий радиус, чем площадь: сокращение вроде «РБП» относится к своему
+    помещению, только если оно реально рядом (иначе лучше оставить пустым, чем угадать чужое) */
+ const thrCat=md?md*0.5:thr;
+ /* «2»/«²» отдельным текстом — почти всегда обрывок надписи «м²», разнесённой на 2-3 подписи
+    («м» + «2»), а не отдельное значение площади — не берём в кандидаты. */
+ const isBareExp=s=>{const t=String(s).trim();return t==='2'||t==='²';};
+ /* «100» без единиц рядом — тоже вероятная площадь (у многих CAD-экспортов «м²» вообще уезжает
+    в отдельную подпись далеко в стороне или пишется словом «квадрат»/«metr»); полагаться на то,
+    что рядом обязательно есть отдельная подпись-единица, ненадёжно — вместо этого просто отдаём
+    выбор ближайшему коду ниже (глобальный порог thr уже страхует от подхвата случайных далёких чисел). */
  const cands=[];
- flat.forEach(o=>{const c=combOf(o.s);if(c){cands.push({val:c,cx:o.cx,cy:o.cy});return;}const n=numOf(o.s);if(n>=2&&n<=100000){let near=Infinity;unitsT.forEach(u=>{if(u===o)return;const d=Math.hypot(u.cx-o.cx,u.cy-o.cy);if(d<near)near=d;});const R=md?md*0.55:Infinity;if(near<=R)cands.push({val:n,cx:o.cx,cy:o.cy});}});
+ flat.forEach(o=>{if(isBareExp(o.s))return;const c=combOf(o.s);if(c){cands.push({val:c,cx:o.cx,cy:o.cy});return;}const n=numOf(o.s);if(n>=2&&n<=100000)cands.push({val:n,cx:o.cx,cy:o.cy});});
  const catCands=[];flat.forEach(o=>{const c=catFromLabel(o.s);if(c)catCands.push({cat:c.cat,sub:c.sub,cx:o.cx,cy:o.cy});});
  const nearestArea=(cx,cy)=>{let best=thr,val=0;cands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;val=c.val;}});return val;};
- const nearestCat=(cx,cy)=>{let best=thr,cat='',sub='';catCands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;cat=c.cat;sub=c.sub;}});return {cat,sub};};
+ const nearestCat=(cx,cy)=>{let best=thrCat,cat='',sub='';catCands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;cat=c.cat;sub=c.sub;}});return {cat,sub};};
 
  const out=[];const seen={};
  groups.forEach(grp=>{
@@ -1406,7 +1420,7 @@ function parsePlanLabels(svg){
    let area=0;
    for(const l of grp.lines){const c=combOf(l.s);if(c){area=c;break;}}
    if(!area)for(let i=0;i<grp.lines.length-1&&!area;i++){const c=combOf(grp.lines[i].s+' '+grp.lines[i+1].s);if(c)area=c;}
-   if(!area){const cand=grp.lines.find(l=>{const tok=l.s.replace(/\s+/g,'');if(tok.toLowerCase()===key)return false;if(catFromLabel(l.s))return false;if(isUnit(l.s))return false;const n=numOf(l.s);return n>=2&&n<=100000;});if(cand)area=numOf(cand.s);}
+   if(!area){const cand=grp.lines.find(l=>{const tok=l.s.replace(/\s+/g,'');if(tok.toLowerCase()===key)return false;if(catFromLabel(l.s))return false;if(isUnit(l.s))return false;if(isBareExp(l.s))return false;const n=numOf(l.s);return n>=2&&n<=100000;});if(cand)area=numOf(cand.s);}
    if(!area)area=nearestArea(anchor.cx,anchor.cy);
 
    let cat='',sub='';
