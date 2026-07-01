@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.16';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.17';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1309,10 +1309,19 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
  r.onload=()=>{try{
    let data=r.result;
    if(isSvg){
-     data=String(data).replace(/<\?xml[\s\S]*?\?>/i,'').replace(/<!DOCTYPE[\s\S]*?>/i,'').replace(/<!--[\s\S]*?-->/g,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'').replace(/ on\w+='[^']*'/gi,'').trim();
-     if(data.toLowerCase().indexOf('<svg')<0){PLAN_MSG='err|Это не похоже на SVG. Сохраните чертёж как «Plain SVG» (Inkscape: Файл - Сохранить как - Простой SVG).';go('plans');return;}
-     try{const doc=new DOMParser().parseFromString(data,'image/svg+xml');if(!doc.querySelector('parsererror')){sanitizePlanSvgDom(doc.documentElement);data=new XMLSerializer().serializeToString(doc.documentElement);}}catch(e){}
+     data=String(data).replace(/^﻿/,'').replace(/<\?xml[\s\S]*?\?>/i,'').replace(/<!DOCTYPE[\s\S]*?>/i,'').replace(/<!--[\s\S]*?-->/g,'').replace(/<script[\s\S]*?<\/script>/gi,'').replace(/ on\w+="[^"]*"/gi,'').replace(/ on\w+='[^']*'/gi,'').trim();
+     if(data.toLowerCase().indexOf('<svg')<0){PLAN_MSG='err|Это не похоже на SVG (тег &lt;svg&gt; не найден в файле). Проверьте, что выбран именно .svg-файл, экспортированный из AutoCAD/Revit/Illustrator как «Plain/Simple SVG», либо пришлите файл нам для диагностики.';go('plans');return;}
+     let parseWarn='';
+     try{
+       /* некоторые экспортёры CAD дают невалидный XML (незаэкранированный "&") — чиним перед разбором */
+       const safeData=data.replace(/&(?!amp;|lt;|gt;|quot;|apos;|#\d+;|#x[0-9a-fA-F]+;)/g,'&amp;');
+       const doc=new DOMParser().parseFromString(safeData,'image/svg+xml');
+       const perr=doc.querySelector('parsererror');
+       if(!perr){data=safeData;sanitizePlanSvgDom(doc.documentElement);data=new XMLSerializer().serializeToString(doc.documentElement);}
+       else{parseWarn=mtextClean(perr.textContent||'').slice(0,200);}
+     }catch(e){parseWarn=(e&&e.message)||String(e);}
      PLANSVG[planKey(S.obj,curBlock(),curFloor())]={kind:'svg',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};
+     if(parseWarn){PLAN_MSG='warn|Чертёж загружен, но SVG оказался не полностью корректным XML (могут не сработать распознавание кодов/площадей и «Создать помещения из чертежа»). Причина: '+parseWarn+'. Попробуйте пересохранить файл как «Plain SVG» и загрузить заново.';go('plans');return;}
    }else{PLANSVG[planKey(S.obj,curBlock(),curFloor())]={kind:'img',data,by:R().label,date:TODAY.toLocaleDateString('ru-RU')};}
    const big=(typeof data==='string'&&data.length>3000000);
    if(big){PLAN_MSG='warn|Файл большой ('+Math.round(data.length/1024)+' КБ) - показан в этой сессии, но не сохранён локально. Для постоянного хранения нужен бэкенд или более лёгкий SVG.';}
@@ -1322,25 +1331,90 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
  if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
 function tryPersist(){let ok=true;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));}catch(e){ok=false;}try{apiSaveState();}catch(e){}return ok;}
 function clearPlan(){const blk=curBlock(),fl=curFloor();if(!confirm('Удалить загруженный чертёж ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»)?'))return;delete PLANSVG[planKey(S.obj,blk,fl)];persist();go('plans');}
+/* сокращения категорий на чертежах ТРЦ → категория/подкатегория реестра.
+   Дополняйте по мере встречающихся на чертежах обозначений. */
+const CODE_CAT_MAP={
+ 'РБП':{cat:'Еда и напитки',sub:'QSR (ресторан быстрого питания)'},
+ 'РПБ':{cat:'Еда и напитки',sub:'QSR (ресторан быстрого питания)'},
+ 'QSR':{cat:'Еда и напитки',sub:'QSR (ресторан быстрого питания)'},
+ 'ФУДКОРТ':{cat:'Еда и напитки',sub:'Фудкорт'},
+ 'ФУД КОРТ':{cat:'Еда и напитки',sub:'Фудкорт'},
+ 'КАФЕ':{cat:'Еда и напитки',sub:'Кафе / ресторан'},
+ 'РЕСТОРАН':{cat:'Еда и напитки',sub:'Кафе / ресторан'},
+ 'ДЕТСКАЯ ПЛОЩАДКА':{cat:'Развлечения',sub:'Детская площадка'},
+ 'ИГРОВАЯ ЗОНА':{cat:'Развлечения',sub:'Детская площадка'},
+ 'КИНОТЕАТР':{cat:'Развлечения',sub:'Кинотеатр'},
+ 'СУПЕРМАРКЕТ':{cat:'Продукты',sub:'Супермаркет'},
+ 'ГИПЕРМАРКЕТ':{cat:'Продукты',sub:'Гипермаркет'},
+ 'АПТЕКА':{cat:'Услуги',sub:'Аптека'},
+ 'БАНК':{cat:'Услуги',sub:'Банк / финансы / ATM'},
+};
+function catFromLabel(s){const k=String(s||'').trim().toUpperCase().replace(/[.,;:!?]+$/,'');if(CODE_CAT_MAP[k])return CODE_CAT_MAP[k];
+ /* запасной вариант: сокращение — отдельное слово где-то внутри строки (код+категория+площадь склеены в одну подпись) */
+ const words=k.split(/[^A-ZА-ЯЁ0-9]+/).filter(Boolean);
+ for(const w of words)if(CODE_CAT_MAP[w])return CODE_CAT_MAP[w];
+ return null;}
 function parsePlanLabels(svg){
  const reCode=/^[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*$/;
- const texts=[];svg.querySelectorAll('text').forEach(t=>{if(t.closest&&t.closest('[data-caseos-overlay]'))return;const s=mtextClean(t.textContent);if(!s)return;let cx=0,cy=0;try{const b=t.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}texts.push({s,cx,cy});});
- const combOf=s=>{const m=String(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
- const numOf=s=>{const m=String(s).replace(',','.').match(/^(\d+(?:\.\d+)?)$/);return m?+m[1]:0;};
+ const reInline=/(?:^|[\s(])([A-Za-zА-Яа-я]{1,4}[\-_]\d[\w\-]*)(?=[\s)]|$)/;
+ const degroup=s=>String(s).replace(/(\d)[\s ](\d{3}(?:[.,]|\b))/g,'$1$2');
+ const combOf=s=>{const m=degroup(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
+ const numOf=s=>{const m=degroup(String(s).trim()).replace(',','.').match(/^(\d+(?:\.\d+)?)$/);return m?+m[1]:0;};
  const isUnit=s=>{s=String(s).trim();return /^(м|m)\s*[²2]?$/i.test(s)||/^(кв\.?\s*м|м²|m²|m2)$/i.test(s);};
- const codeT=texts.filter(o=>reCode.test(o.s.replace(/\s+/g,'')));
- const codeC=codeT.map(o=>({x:o.cx,y:o.cy}));
- let md=0;{const ds=[];for(let i=0;i<codeC.length;i++){let best=Infinity;for(let j=0;j<codeC.length;j++){if(i!==j){const d=Math.hypot(codeC[i].x-codeC[j].x,codeC[i].y-codeC[j].y);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
- const thr=md?md*3:Infinity; /* площадь берём только из ближайшего окружения помещения */
- const units=texts.filter(o=>isUnit(o.s));
- /* кандидаты площади: «88.6 м²» одним текстом ИЛИ число «88.6» рядом с подписью «м²» */
+
+ const groups=[];const flat=[];
+ svg.querySelectorAll('text').forEach(t=>{
+   if(t.closest&&t.closest('[data-caseos-overlay]'))return;
+   const tspans=t.querySelectorAll('tspan');
+   let gcx=0,gcy=0;try{const b=t.getBBox();gcx=b.x+b.width/2;gcy=b.y+b.height/2;}catch(e){}
+   const lines=[];
+   if(tspans.length>1){
+     tspans.forEach(ts=>{const s=mtextClean(ts.textContent);if(!s)return;let cx=gcx,cy=gcy;try{const b=ts.getBBox();cx=b.x+b.width/2;cy=b.y+b.height/2;}catch(e){}lines.push({s,cx,cy});});
+   }else{
+     const raw=mtextClean(t.textContent);if(!raw)return;
+     const parts=raw.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+     (parts.length?parts:[raw]).forEach(s=>lines.push({s,cx:gcx,cy:gcy}));
+   }
+   if(!lines.length)return;
+   const gi=groups.length;groups.push({lines});
+   lines.forEach(l=>flat.push({s:l.s,cx:l.cx,cy:l.cy,g:gi}));
+ });
+
+ const codeTAll=flat.filter(o=>reCode.test(o.s.replace(/\s+/g,'')));
+ {const already={};codeTAll.forEach(o=>already[o.s.replace(/\s+/g,'').toLowerCase()]=1);
+  flat.forEach(o=>{if(reCode.test(o.s.replace(/\s+/g,'')))return;const m=o.s.match(reInline);if(m&&!already[m[1].toLowerCase()]){already[m[1].toLowerCase()]=1;codeTAll.push({s:m[1],cx:o.cx,cy:o.cy,g:o.g});}});}
+ let md=0;{const ds=[];for(let i=0;i<codeTAll.length;i++){let best=Infinity;for(let j=0;j<codeTAll.length;j++){if(i!==j){const d=Math.hypot(codeTAll[i].cx-codeTAll[j].cx,codeTAll[i].cy-codeTAll[j].cy);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
+ let svgDiag=0;try{const b=svg.getBBox();svgDiag=Math.hypot(b.width,b.height);}catch(e){}
+ const thr=md?md*3:(svgDiag?svgDiag*0.12:Infinity);
+ const unitsT=flat.filter(o=>isUnit(o.s));
  const cands=[];
- texts.forEach(o=>{const c=combOf(o.s);if(c){cands.push({val:c,cx:o.cx,cy:o.cy});return;}const n=numOf(o.s);if(n>=2&&n<=100000){let near=Infinity;units.forEach(u=>{if(u===o)return;const d=Math.hypot(u.cx-o.cx,u.cy-o.cy);if(d<near)near=d;});const R=md?md*0.55:Infinity;if(near<=R)cands.push({val:n,cx:o.cx,cy:o.cy});}});
+ flat.forEach(o=>{const c=combOf(o.s);if(c){cands.push({val:c,cx:o.cx,cy:o.cy});return;}const n=numOf(o.s);if(n>=2&&n<=100000){let near=Infinity;unitsT.forEach(u=>{if(u===o)return;const d=Math.hypot(u.cx-o.cx,u.cy-o.cy);if(d<near)near=d;});const R=md?md*0.55:Infinity;if(near<=R)cands.push({val:n,cx:o.cx,cy:o.cy});}});
+ const catCands=[];flat.forEach(o=>{const c=catFromLabel(o.s);if(c)catCands.push({cat:c.cat,sub:c.sub,cx:o.cx,cy:o.cy});});
+ const nearestArea=(cx,cy)=>{let best=thr,val=0;cands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;val=c.val;}});return val;};
+ const nearestCat=(cx,cy)=>{let best=thr,cat='',sub='';catCands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;cat=c.cat;sub=c.sub;}});return {cat,sub};};
+
  const out=[];const seen={};
- codeT.forEach(o=>{const tok=o.s.replace(/\s+/g,'');const key=tok.toLowerCase();if(seen[key])return;seen[key]=1;
-   let area=combOf(o.s);
-   if(!area){let best=thr;cands.forEach(c=>{const d=Math.hypot(c.cx-o.cx,c.cy-o.cy);if(d<best){best=d;area=c.val;}});}
-   out.push({code:tok,area:area||0});});
+ groups.forEach(grp=>{
+   let codeTok=null;
+   const codeLine=grp.lines.find(l=>reCode.test(l.s.replace(/\s+/g,'')));
+   if(codeLine)codeTok=codeLine.s.replace(/\s+/g,'');
+   else{const merged=mtextClean(grp.lines.map(l=>l.s).join(' '));const m=merged.match(reInline);if(m)codeTok=m[1];}
+   if(!codeTok)return;
+   const key=codeTok.toLowerCase();if(seen[key])return;seen[key]=1;
+   const anchor=grp.lines.find(l=>l.s.replace(/\s+/g,'').toLowerCase()===key)||grp.lines[0];
+
+   let area=0;
+   for(const l of grp.lines){const c=combOf(l.s);if(c){area=c;break;}}
+   if(!area)for(let i=0;i<grp.lines.length-1&&!area;i++){const c=combOf(grp.lines[i].s+' '+grp.lines[i+1].s);if(c)area=c;}
+   if(!area){const cand=grp.lines.find(l=>{const tok=l.s.replace(/\s+/g,'');if(tok.toLowerCase()===key)return false;if(catFromLabel(l.s))return false;if(isUnit(l.s))return false;const n=numOf(l.s);return n>=2&&n<=100000;});if(cand)area=numOf(cand.s);}
+   if(!area)area=nearestArea(anchor.cx,anchor.cy);
+
+   let cat='',sub='';
+   for(const l of grp.lines){const c=catFromLabel(l.s);if(c){cat=c.cat;sub=c.sub;break;}}
+   if(!cat){const nc=nearestCat(anchor.cx,anchor.cy);cat=nc.cat;sub=nc.sub;}
+
+   out.push({code:codeTok,area:area||0,cat,sub});
+ });
  return out;}
 function detectUnitsFromSvg(svg){const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);return parsePlanLabels(svg).filter(r=>!have[r.code.toLowerCase()]);}
 function planDiff(objId,block,floor,labels){const reg=unitsOf(objId).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block));const rc={};reg.forEach(u=>rc[String(u.code).trim().toLowerCase()]=u);const pc={};labels.forEach(l=>pc[l.code.toLowerCase()]=l);
@@ -1348,27 +1422,28 @@ function planDiff(objId,block,floor,labels){const reg=unitsOf(objId).filter(u=>(
  const onlyInReg=reg.filter(u=>!pc[String(u.code).trim().toLowerCase()]);
  const areaDiff=[];labels.forEach(l=>{const u=rc[l.code.toLowerCase()];if(u&&l.area>0&&Math.abs((+u.area||0)-l.area)>=0.5)areaDiff.push({id:u.id,code:u.code,plan:l.area,reg:+u.area||0});});
  return {onlyOnPlan,onlyInReg,areaDiff};}
-function openPlanReviewFromList(list){S._planRows=(list||[]).map(l=>({code:l.code,area:l.area||0}));openPlanReview('Новые помещения с чертежа (которых нет в реестре). Проверьте и нажмите «Создать».');}
+function openPlanReviewFromList(list){S._planRows=(list||[]).map(l=>({code:l.code,area:l.area||0,cat:l.cat||'',sub:l.sub||''}));openPlanReview('Новые помещения с чертежа (которых нет в реестре). Проверьте и нажмите «Создать».');}
 function updateAreasFromPlan(){const d=S._planDiff;if(!d||!d.areaDiff.length)return;if(!confirm('Обновить площади из чертежа у '+d.areaDiff.length+' помещений? Текущие площади будут заменены значениями с плана.'))return;let n=0;d.areaDiff.forEach(x=>{const u=U.find(z=>z.id===x.id);if(u){u.area=x.plan;u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Площадь обновлена из чертежа: '+x.reg+' → '+x.plan+' ('+S.user.name+')']);n++;}});audit('Площади из чертежа',n+' шт.');persist();PLAN_MSG='ok|Обновлено площадей: '+n+'.';go('plans');}
 function autoUnitsFromPlan(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав на изменение реестра.');return;}const host=$('planhost');const svg=host&&host.querySelector('svg');if(!svg){alert('Чертёж этажа не загружен или это растровая картинка (нужен SVG).');return;}
  const found=detectUnitsFromSvg(svg);
- S._planRows=found.length?found:[{code:'',area:0}];
+ S._planRows=found.length?found:[{code:'',area:0,cat:'',sub:''}];
  openPlanReview(found.length?'':'Коды на чертеже не распознаны автоматически — добавьте помещения вручную или загрузите из Excel/CSV.');}
+const PLANREV_CATS=['Еда и напитки','Мода и стиль','Торговля','Продукты','Услуги','Офис','Электроника','Развлечения','Co-tenancy'];
 function openPlanReview(note){const blk=curBlock(),fl=curFloor();const rows=S._planRows||[];const inS='font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:7px';
- const body=rows.map((r,i)=>`<tr><td><input value="${esc(r.code||'')}" oninput="S._planRows[${i}].code=this.value" style="${inS};width:130px"></td><td><input type="number" step="0.1" min="0" value="${r.area||''}" oninput="S._planRows[${i}].area=+this.value||0" style="${inS};width:96px" placeholder="0"></td><td><button class="btn ghost sm" title="Удалить строку" onclick="planReviewDel(${i})">✕</button></td></tr>`).join('');
+ const body=rows.map((r,i)=>`<tr><td><input value="${esc(r.code||'')}" oninput="S._planRows[${i}].code=this.value" style="${inS};width:120px"></td><td><input type="number" step="0.1" min="0" value="${r.area||''}" oninput="S._planRows[${i}].area=+this.value||0" style="${inS};width:88px" placeholder="0"></td><td><select onchange="S._planRows[${i}].cat=this.value" style="${inS};width:150px"><option value=""${r.cat?'':' selected'}>—</option>${PLANREV_CATS.map(c=>`<option value="${esc(c)}"${r.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input value="${esc(r.sub||'')}" oninput="S._planRows[${i}].sub=this.value" style="${inS};width:170px" placeholder="напр. QSR"></td><td><button class="btn ghost sm" title="Удалить строку" onclick="planReviewDel(${i})">✕</button></td></tr>`).join('');
  $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>Помещения из чертежа</h2><div class="s">${blk?'Блок «'+esc(blk)+'» · ':''}Этаж «${esc(fl)}» · ${rows.length} шт. — проверьте и подтвердите</div></div><div class="dbody">
   ${note?`<div class="banner warn" style="margin-bottom:8px">${esc(note)}</div>`:''}
-  <p style="font-size:12.5px;color:var(--muted)">Проверьте коды и площади, распознанные с чертежа. Можно исправить прямо здесь, удалить лишние, добавить строки или загрузить список из Excel/CSV (колонки «Код», «Площадь»). После «Создать» помещения появятся со статусом «Вакант»; ставки и категории заполните в реестре.</p>
+  <p style="font-size:12.5px;color:var(--muted)">Проверьте коды, площади и категории, распознанные с чертежа (категория — по подписи рядом с кодом, например «РБП» → Еда и напитки / QSR). Можно исправить прямо здесь, удалить лишние, добавить строки или загрузить список из Excel/CSV (колонки «Код», «Площадь»). После «Создать» помещения появятся со статусом «Вакант»; ставки уточните в реестре.</p>
   <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap"><button class="btn ghost sm" onclick="planReviewAdd()">+ строка</button><button class="btn ghost sm" onclick="planReviewImport()">⬆ Загрузить из Excel/CSV</button><button class="btn ghost sm" onclick="planReviewClear()">Очистить</button></div>
-  <div class="tbl-scroll"><table><thead><tr><th>Код помещения</th><th>Площадь, м²</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="3" style="color:var(--muted)">Список пуст — добавьте строки.</td></tr>'}</tbody></table></div>
+  <div class="tbl-scroll"><table><thead><tr><th>Код помещения</th><th>Площадь, м²</th><th>Категория</th><th>Подкатегория</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="5" style="color:var(--muted)">Список пуст — добавьте строки.</td></tr>'}</tbody></table></div>
   <div style="margin-top:16px;display:flex;gap:8px"><button class="btn" onclick="doCreatePlanUnits()">Создать помещения</button><button class="btn ghost" onclick="closeDrawer()">Отмена</button></div>
  </div>`;
  $('drawer').classList.add('open');$('dbg').classList.add('open');}
-function planReviewAdd(){S._planRows=S._planRows||[];S._planRows.push({code:'',area:0});openPlanReview();}
+function planReviewAdd(){S._planRows=S._planRows||[];S._planRows.push({code:'',area:0,cat:'',sub:''});openPlanReview();}
 function planReviewDel(i){S._planRows.splice(i,1);openPlanReview();}
 function planReviewClear(){if(!confirm('Очистить список?'))return;S._planRows=[];openPlanReview();}
 function planReviewImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(!rows.length){alert('Файл пуст.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());let ci=head.findIndex(h=>/код|code/.test(h)),ai=head.findIndex(h=>/площад|area|кв|м2|м²/.test(h));const start=(ci>=0||ai>=0)?1:0;if(ci<0)ci=0;if(ai<0)ai=1;const out=[];for(let i=start;i<rows.length;i++){const code=String(rows[i][ci]||'').trim();if(!code)continue;const area=+String(rows[i][ai]||'').replace(',','.').replace(/[^0-9.]/g,'')||0;out.push({code,area});}if(!out.length){alert('Не нашёл строк. Нужны колонки «Код» и «Площадь» (или просто два столбца: код, площадь).');return;}S._planRows=out;openPlanReview('Загружено из файла: '+out.length+' строк. Проверьте и нажмите «Создать».');}catch(ex){alert('Ошибка чтения CSV: '+(ex&&ex.message||ex));}};r.readAsText(f,'utf-8');};inp.click();}
-function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0,skip=0;const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skip++;return;}seen[k]=1;const nu=unit(S.obj,r.code,fl,r.area||0,0,'Услуги','',0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'») ('+S.user.name+')']);U.push(nu);add++;});audit('Помещения из чертежа',(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'» · '+add+' шт.');S._planRows=null;persist();closeDrawer();PLAN_MSG='ok|Создано помещений: '+add+(skip?(', пропущено (дубли/уже есть): '+skip):'')+'. Заполните ставки и категории в реестре.';go('plans');}
+function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0,cat:r.cat||'Услуги',sub:r.sub||''})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0,skip=0;const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skip++;return;}seen[k]=1;const nu=unit(S.obj,r.code,fl,r.area||0,0,r.cat,r.sub,0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'») ('+S.user.name+')']);U.push(nu);add++;});audit('Помещения из чертежа',(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'» · '+add+' шт.');S._planRows=null;persist();closeDrawer();PLAN_MSG='ok|Создано помещений: '+add+(skip?(', пропущено (дубли/уже есть): '+skip):'')+'. Проверьте ставки в реестре.';go('plans');}
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
 function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
 function pstrHex(s){return{vac:'#999999',neg:'#1565c0',off:'#9E0000',os:'#0e8a8a',cs:'#e08600',cd:'#2e7d32',res:'#6a3fb5'}[s]||'#777777';}
