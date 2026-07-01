@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.18';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.19';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -1150,6 +1150,7 @@ const PLANSVG={}; /* ключ objId::этаж -> {kind:'svg'|'img', data, by, da
 const PLAN_LABELPOS={}; /* ключ objId::этаж -> {код: {dx,dy}} - сдвиги подписей (перетаскивание) */
 let MAPCFG={apikey:''}; /* общий на всю компанию ключ Яндекс.Карт (admin вводит один раз) */
 const PLAN_CODES={}; /* ключ objId::блок::этаж -> [{code,area}] коды с последнего чертежа (для сверки с реестром) */
+let PLAN_LAST_DUPS=[]; /* коды, встретившиеся на чертеже 2+ раза при последнем разборе (не сохраняется - только для предупреждения) */
 function floorLabel(f){f=(f==null?'':String(f)).trim();return f||'Без этажа';}
 function floorCmp(a,b){const na=parseFloat(String(a).replace(/[^0-9.\-]/g,'')),nb=parseFloat(String(b).replace(/[^0-9.\-]/g,''));const aa=isNaN(na)?9999:na,bb=isNaN(nb)?9999:nb;return aa-bb||String(a).localeCompare(String(b),'ru');}
 /* ===== Блоки (некоторые объекты разделены на блоки, напр. Creative Avenue) ===== */
@@ -1238,6 +1239,7 @@ function bindSvgPlan(host,objId,block,floor){
  if(note)note.innerHTML+=` <b>Привязано ${matched.size}</b> помещений${S.planLabels===false?' (подписи скрыты)':' (подписи можно перетаскивать)'}. ✔`;
  /* сверка плана с реестром (реестр — основа; чертёж можно перезаливать без потери данных) */
  try{const labels=parsePlanLabels(svg);const key=planKey(objId,block||'',floor||'');const prev=JSON.stringify(PLAN_CODES[key]||null);const now=JSON.stringify(labels);if(prev!==now){PLAN_CODES[key]=labels;tryPersist();}
+  if(PLAN_LAST_DUPS.length){const dl=PLAN_LAST_DUPS.map(esc).join(', ');if(note)note.innerHTML+=`<div class="banner warn" style="margin-top:8px"><b>⚠ Дубликат кода на чертеже:</b> ${dl} — на плане этот код встречается больше одного раза. В реестр попадёт только первое найденное помещение, остальные с тем же кодом будут пропущены при «Создать помещения из чертежа». Переименуйте лишние помещения на чертеже (уникальный код на каждое) и загрузите план заново.</div>`;}
   const d=planDiff(objId,block,floor,labels);S._planDiff=d;
   if(d.onlyOnPlan.length||d.onlyInReg.length||d.areaDiff.length){const canE=R().edit||R().admin||R().plans;
    const op=d.onlyOnPlan.map(x=>esc(x.code)).slice(0,20).join(', ');
@@ -1348,6 +1350,13 @@ const CODE_CAT_MAP={
  'ГИПЕРМАРКЕТ':{cat:'Продукты',sub:'Гипермаркет'},
  'АПТЕКА':{cat:'Услуги',sub:'Аптека'},
  'БАНК':{cat:'Услуги',sub:'Банк / финансы / ATM'},
+ 'ОБЩАЯ МОДА':{cat:'Мода и стиль',sub:'Общая мода'},
+ 'МОДА':{cat:'Мода и стиль',sub:'Общая мода'},
+ 'ОБУВЬ':{cat:'Мода и стиль',sub:'Обувь и аксессуары'},
+ 'ЭЛЕКТРОНИКА':{cat:'Электроника',sub:'Электроника'},
+ 'ЮВЕЛИРНЫЕ':{cat:'Мода и стиль',sub:'Ювелирные изделия'},
+ 'КОСМЕТИКА':{cat:'Услуги',sub:'Парфюмерия и косметика'},
+ 'ПАРФЮМЕРИЯ':{cat:'Услуги',sub:'Парфюмерия и косметика'},
 };
 function catFromLabel(s){const k=String(s||'').trim().toUpperCase().replace(/[.,;:!?]+$/,'');if(CODE_CAT_MAP[k])return CODE_CAT_MAP[k];
  /* запасной вариант: сокращение — отдельное слово где-то внутри строки (код+категория+площадь склеены в одну подпись) */
@@ -1407,14 +1416,14 @@ function parsePlanLabels(svg){
  const nearestArea=(cx,cy)=>{let best=thr,val=0;cands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;val=c.val;}});return val;};
  const nearestCat=(cx,cy)=>{let best=thrCat,cat='',sub='';catCands.forEach(c=>{const d=Math.hypot(c.cx-cx,c.cy-cy);if(d<best){best=d;cat=c.cat;sub=c.sub;}});return {cat,sub};};
 
- const out=[];const seen={};
+ const out=[];const seen={};const dups=[];
  groups.forEach(grp=>{
    let codeTok=null;
    const codeLine=grp.lines.find(l=>reCode.test(l.s.replace(/\s+/g,'')));
    if(codeLine)codeTok=codeLine.s.replace(/\s+/g,'');
    else{const merged=mtextClean(grp.lines.map(l=>l.s).join(' '));const m=merged.match(reInline);if(m)codeTok=m[1];}
    if(!codeTok)return;
-   const key=codeTok.toLowerCase();if(seen[key])return;seen[key]=1;
+   const key=codeTok.toLowerCase();if(seen[key]){if(dups.indexOf(codeTok)<0)dups.push(codeTok);return;}seen[key]=1;
    const anchor=grp.lines.find(l=>l.s.replace(/\s+/g,'').toLowerCase()===key)||grp.lines[0];
 
    let area=0;
@@ -1429,6 +1438,7 @@ function parsePlanLabels(svg){
 
    out.push({code:codeTok,area:area||0,cat,sub});
  });
+ PLAN_LAST_DUPS=dups;
  return out;}
 function detectUnitsFromSvg(svg){const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);return parsePlanLabels(svg).filter(r=>!have[r.code.toLowerCase()]);}
 function planDiff(objId,block,floor,labels){const reg=unitsOf(objId).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block));const rc={};reg.forEach(u=>rc[String(u.code).trim().toLowerCase()]=u);const pc={};labels.forEach(l=>pc[l.code.toLowerCase()]=l);
@@ -1441,7 +1451,8 @@ function updateAreasFromPlan(){const d=S._planDiff;if(!d||!d.areaDiff.length)ret
 function autoUnitsFromPlan(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав на изменение реестра.');return;}const host=$('planhost');const svg=host&&host.querySelector('svg');if(!svg){alert('Чертёж этажа не загружен или это растровая картинка (нужен SVG).');return;}
  const found=detectUnitsFromSvg(svg);
  S._planRows=found.length?found:[{code:'',area:0,cat:'',sub:''}];
- openPlanReview(found.length?'':'Коды на чертеже не распознаны автоматически — добавьте помещения вручную или загрузите из Excel/CSV.');}
+ const dupNote=PLAN_LAST_DUPS.length?('⚠ Дубликат кода на чертеже: '+PLAN_LAST_DUPS.join(', ')+' — встречается больше одного раза, в список попало только одно из этих помещений. Переименуйте лишние на чертеже. '):'';
+ openPlanReview(dupNote+(found.length?'':'Коды на чертеже не распознаны автоматически — добавьте помещения вручную или загрузите из Excel/CSV.'));}
 const PLANREV_CATS=['Еда и напитки','Мода и стиль','Торговля','Продукты','Услуги','Офис','Электроника','Развлечения','Co-tenancy'];
 function openPlanReview(note){const blk=curBlock(),fl=curFloor();const rows=S._planRows||[];const inS='font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:7px';
  const body=rows.map((r,i)=>`<tr><td><input value="${esc(r.code||'')}" oninput="S._planRows[${i}].code=this.value" style="${inS};width:120px"></td><td><input type="number" step="0.1" min="0" value="${r.area||''}" oninput="S._planRows[${i}].area=+this.value||0" style="${inS};width:88px" placeholder="0"></td><td><select onchange="S._planRows[${i}].cat=this.value" style="${inS};width:150px"><option value=""${r.cat?'':' selected'}>—</option>${PLANREV_CATS.map(c=>`<option value="${esc(c)}"${r.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input value="${esc(r.sub||'')}" oninput="S._planRows[${i}].sub=this.value" style="${inS};width:170px" placeholder="напр. QSR"></td><td><button class="btn ghost sm" title="Удалить строку" onclick="planReviewDel(${i})">✕</button></td></tr>`).join('');
