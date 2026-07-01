@@ -53,11 +53,23 @@ function current_user(): ?array {
   if (empty($_SESSION['uid'])) return null;
   static $u = null;
   if ($u && $u['id']===$_SESSION['uid']) return $u;
-  $st = db()->prepare('SELECT u.id,u.email,u.name,u.title,u.role_key,u.broker_name,u.active,
-      r.label AS role_label,r.leasing,r.finance,r.edit,r.approve,r.plans,r.own_only,r.admin
-    FROM app_users u JOIN roles r ON r.`key`=u.role_key WHERE u.id=?');
-  $st->execute([$_SESSION['uid']]);
-  $u = $st->fetch() ?: null;
+  try {
+    $st = db()->prepare('SELECT u.id,u.email,u.name,u.title,u.role_key,u.broker_name,u.projects,u.active,
+        r.label AS role_label,r.leasing,r.finance,r.edit,r.approve,r.plans,r.own_only,r.project_scope,r.admin
+      FROM app_users u JOIN roles r ON r.`key`=u.role_key WHERE u.id=?');
+    $st->execute([$_SESSION['uid']]);
+    $u = $st->fetch() ?: null;
+  } catch (Throwable $e) {
+    // старая схема БД (миграции ещё не применены) — работаем без project_scope/projects,
+    // чтобы обновление файлов платформы не блокировало вход до применения миграций.
+    $st = db()->prepare('SELECT u.id,u.email,u.name,u.title,u.role_key,u.broker_name,u.active,
+        r.label AS role_label,r.leasing,r.finance,r.edit,r.approve,r.plans,r.own_only,r.admin
+      FROM app_users u JOIN roles r ON r.`key`=u.role_key WHERE u.id=?');
+    $st->execute([$_SESSION['uid']]);
+    $u = $st->fetch() ?: null;
+    if ($u) { $u['project_scope'] = 0; $u['projects'] = null; }
+  }
+  if ($u && is_string($u['projects'] ?? null)) $u['projects'] = json_decode($u['projects'], true) ?: [];
   return $u;
 }
 function require_login(): array {
@@ -78,19 +90,19 @@ function audit(string $action, string $detail=''): void {
 // ── Реестр таблиц (белый список) ──────────────────────────────────────
 function tables(): array {
   return [
-    'objects'=>['pk'=>'id','idtype'=>'text','cols'=>['id','name','ru','country','city','type','gba','gla','plan','sc','inc','cur','cond','levels','vat','vat_rate','comm'],'json'=>['comm'],'read'=>'leasing','write'=>'edit'],
-    'units'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','code','floor','area','terr','cat','sub','rate','budget','status','broker','assigned_to','vars','shortlist','merged','offer'],'json'=>['vars','shortlist','merged','offer'],'finance'=>['rate','budget'],'read'=>'leasing','write'=>'edit','own_only'=>'broker'],
+    'objects'=>['pk'=>'id','idtype'=>'text','cols'=>['id','name','ru','country','city','type','gba','gla','plan','sc','inc','cur','cond','levels','vat','vat_rate','comm'],'json'=>['comm'],'read'=>'leasing','write'=>'edit','proj_scope'=>'id'],
+    'units'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','code','floor','area','terr','cat','sub','rate','budget','status','broker','assigned_to','vars','shortlist','merged','offer'],'json'=>['vars','shortlist','merged','offer'],'finance'=>['rate','budget'],'read'=>'leasing','write'=>'edit','own_only'=>'broker','proj_scope'=>'obj_id'],
     'brands'=>['pk'=>'id','idtype'=>'auto','cols'=>['name','cat','sub','country','amin','amax','format','fr','reqs','coten','person','phone','email','site','ig','status','notes','about','pos','concept','rec','founded','group','price','icsc','uz_op','net_pts','net_countries','logo','shopfront','interior','edited_by'],'read'=>'leasing','write'=>'edit'],
-    'registry_changes'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','date','type','what','by_name'],'read'=>'leasing','write'=>'edit'],
+    'registry_changes'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','date','type','what','by_name'],'read'=>'leasing','write'=>'edit','proj_scope'=>'obj_id'],
     'benchmarks'=>['pk'=>'id','idtype'=>'auto','cols'=>['city','district','obj','cat','rent','sc','note'],'read'=>'leasing','write'=>'edit'],
-    'refusals'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','brand','reason','date'],'read'=>'leasing','write'=>'edit'],
+    'refusals'=>['pk'=>'id','idtype'=>'auto','cols'=>['obj_id','brand','reason','date'],'read'=>'leasing','write'=>'edit','proj_scope'=>'obj_id'],
     'control_dates'=>['pk'=>'id','idtype'=>'auto','cols'=>['unit_id','label','date'],'read'=>'leasing','write'=>'edit'],
-    'documents'=>['pk'=>'id','idtype'=>'auto','cols'=>['t','type','no','to_name','obj_id','lang','fname','status','ver','raw','by_id'],'read'=>'leasing','write'=>'edit'],
+    'documents'=>['pk'=>'id','idtype'=>'auto','cols'=>['t','type','no','to_name','obj_id','lang','fname','status','ver','raw','by_id'],'read'=>'leasing','write'=>'edit','proj_scope'=>'obj_id'],
     'contacts'=>['pk'=>'id','idtype'=>'auto','cols'=>['name','title','phone','email'],'read'=>'leasing','write'=>'edit'],
     'agent_metrics'=>['pk'=>'user_id','idtype'=>'text','cols'=>['user_id','touch','meet','view','loi','sign','earned','pipe'],'read'=>'leasing','write'=>'edit'],
     'kp_counters'=>['pk'=>'obj_id','idtype'=>'text','cols'=>['obj_id','last_no'],'read'=>'leasing','write'=>'edit'],
-    'roles'=>['pk'=>'key','idtype'=>'text','cols'=>['key','label','leasing','finance','edit','approve','plans','own_only','admin'],'read'=>'leasing','write'=>'admin'],
-    'app_users'=>['pk'=>'id','idtype'=>'uuid','cols'=>['id','email','name','title','role_key','broker_name','active'],'read'=>'leasing','write'=>'admin'],
+    'roles'=>['pk'=>'key','idtype'=>'text','cols'=>['key','label','leasing','finance','edit','approve','plans','own_only','project_scope','admin'],'read'=>'leasing','write'=>'admin'],
+    'app_users'=>['pk'=>'id','idtype'=>'uuid','cols'=>['id','email','name','title','role_key','broker_name','projects','active'],'json'=>['projects'],'read'=>'leasing','write'=>'admin'],
     'activity_log'=>['pk'=>'id','idtype'=>'auto','cols'=>['kind','by_id','obj_id'],'read'=>'leasing','write'=>'leasing'],
     'audit_log'=>['pk'=>'id','idtype'=>'auto','cols'=>['by_id','by_name','role_key','action','detail'],'read'=>'admin','write'=>null],
   ];
@@ -112,6 +124,15 @@ function list_table(string $table, array $filters): array {
   if (!empty($d['own_only']) && can('own_only') && !can('admin')) {
     $u = current_user();
     $where[] = q($d['own_only']).'=?'; $args[] = $u['broker_name'];
+  }
+  // proj_scope — внешний агент видит только назначенные ему объекты
+  if (!empty($d['proj_scope']) && can('project_scope') && !can('admin')) {
+    $u = current_user();
+    $allowed = is_array($u['projects'] ?? null) ? $u['projects'] : [];
+    if (!$allowed) $allowed = ['__none__'];
+    $ph = implode(',', array_fill(0, count($allowed), '?'));
+    $where[] = q($d['proj_scope']).' IN ('.$ph.')';
+    foreach ($allowed as $a) $args[] = $a;
   }
   $sql = 'SELECT * FROM '.q($table);
   if ($where) $sql .= ' WHERE '.implode(' AND ', $where);

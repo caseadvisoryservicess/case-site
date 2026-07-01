@@ -1,6 +1,6 @@
 -- ============================================================
 -- CASE OS — ПОЛНАЯ УСТАНОВКА БАЗЫ ОДНИМ ФАЙЛОМ
--- Создаёт базу caseos, все таблицы и 7 ролей.
+-- Создаёт базу caseos, все таблицы и 9 ролей.
 -- Импорт: phpMyAdmin → вкладка Import → выбрать этот файл → Go.
 -- Базу заранее выбирать НЕ нужно — файл сам её создаёт и выбирает.
 -- Повторный запуск безопасен (IF NOT EXISTS / ON DUPLICATE KEY).
@@ -20,7 +20,8 @@ CREATE TABLE IF NOT EXISTS roles (
   edit      TINYINT(1) NOT NULL DEFAULT 0,
   approve   TINYINT(1) NOT NULL DEFAULT 0,
   plans     TINYINT(1) NOT NULL DEFAULT 0,
-  own_only  TINYINT(1) NOT NULL DEFAULT 0,
+  own_only      TINYINT(1) NOT NULL DEFAULT 0,
+  project_scope TINYINT(1) NOT NULL DEFAULT 0,
   admin     TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS app_users (
   title         VARCHAR(160),
   role_key      VARCHAR(16) NOT NULL,
   broker_name   VARCHAR(120),
+  projects      TEXT,
   active        TINYINT(1) NOT NULL DEFAULT 1,
   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_user_role FOREIGN KEY (role_key) REFERENCES roles(`key`)
@@ -165,21 +167,22 @@ CREATE TABLE IF NOT EXISTS app_state (
   updated_by VARCHAR(160)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- ---- РОЛИ (8 штук) ----
-INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,admin) VALUES
- ('ASH','Генеральный директор',        1,1,1,1,1,0,1),
- ('ADM','Администратор',               1,1,1,1,1,0,1),
- ('BA', 'Директор по аренде',          1,1,1,0,0,0,0),
- ('AG', 'Агент аренды',                1,0,1,0,0,0,0),
- ('HO', 'Администратор аренды (тыл)',  1,0,1,0,0,0,0),
- ('BSH','Архитектор',                  1,0,1,0,1,0,0),
- ('HM', 'Менеджер по консалтингу',     1,1,0,0,0,0,0),
- ('CFO','Финансовый директор',1,1,0,1,0,0,0)
+-- ---- РОЛИ (9 штук) ----
+INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,project_scope,admin) VALUES
+ ('ASH','Генеральный директор',        1,1,1,1,1,0,0,1),
+ ('ADM','Администратор',               1,1,1,1,1,0,0,1),
+ ('BA', 'Директор по аренде',          1,1,1,0,0,0,0,0),
+ ('AG', 'Агент аренды',                1,0,1,0,0,0,0,0),
+ ('AGX','Внешний агент',               1,0,1,0,0,1,1,0),
+ ('HO', 'Администратор аренды (тыл)',  1,0,1,0,0,0,0,0),
+ ('BSH','Архитектор',                  1,0,1,0,1,0,0,0),
+ ('HM', 'Менеджер по консалтингу',     1,1,0,0,0,0,0,0),
+ ('CFO','Финансовый директор',1,1,0,1,0,0,0,0)
 ON DUPLICATE KEY UPDATE
  label=VALUES(label), leasing=VALUES(leasing), finance=VALUES(finance), edit=VALUES(edit),
- approve=VALUES(approve), plans=VALUES(plans), own_only=VALUES(own_only), admin=VALUES(admin);
+ approve=VALUES(approve), plans=VALUES(plans), own_only=VALUES(own_only), project_scope=VALUES(project_scope), admin=VALUES(admin);
 
 SET FOREIGN_KEY_CHECKS=1;
 
--- Проверка после импорта (выполнится автоматически, покажет таблицу с числом 7):
+-- Проверка после импорта (выполнится автоматически, покажет таблицу с числом 9):
 SELECT COUNT(*) AS roles_count FROM roles;

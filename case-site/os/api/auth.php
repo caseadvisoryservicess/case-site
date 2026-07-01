@@ -4,11 +4,13 @@ require __DIR__.'/lib.php';
 
 function publicUser(array $u): array {
   return ['id'=>$u['id'],'email'=>$u['email'],'name'=>$u['name'],'title'=>$u['title'],
-          'role'=>$u['role_key'],'role_label'=>$u['role_label'],'broker'=>$u['broker_name']];
+          'role'=>$u['role_key'],'role_label'=>$u['role_label'],'broker'=>$u['broker_name'],
+          'projects'=>is_array($u['projects'] ?? null) ? $u['projects'] : []];
 }
 function rightsOf(array $u): array {
   return ['leasing'=>(bool)$u['leasing'],'finance'=>(bool)$u['finance'],'edit'=>(bool)$u['edit'],
-          'approve'=>(bool)$u['approve'],'plans'=>(bool)$u['plans'],'own_only'=>(bool)$u['own_only'],'admin'=>(bool)$u['admin']];
+          'approve'=>(bool)$u['approve'],'plans'=>(bool)$u['plans'],'own_only'=>(bool)$u['own_only'],
+          'project_scope'=>(bool)$u['project_scope'],'admin'=>(bool)$u['admin']];
 }
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {

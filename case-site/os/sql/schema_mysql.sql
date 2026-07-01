@@ -13,7 +13,8 @@ CREATE TABLE IF NOT EXISTS roles (
   edit      TINYINT(1) NOT NULL DEFAULT 0,
   approve   TINYINT(1) NOT NULL DEFAULT 0,
   plans     TINYINT(1) NOT NULL DEFAULT 0,
-  own_only  TINYINT(1) NOT NULL DEFAULT 0,
+  own_only      TINYINT(1) NOT NULL DEFAULT 0,
+  project_scope TINYINT(1) NOT NULL DEFAULT 0,
   admin     TINYINT(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS app_users (
   title         VARCHAR(160),
   role_key      VARCHAR(16) NOT NULL,
   broker_name   VARCHAR(120),
+  projects      TEXT,
   active        TINYINT(1) NOT NULL DEFAULT 1,
   created_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   CONSTRAINT fk_user_role FOREIGN KEY (role_key) REFERENCES roles(`key`)
