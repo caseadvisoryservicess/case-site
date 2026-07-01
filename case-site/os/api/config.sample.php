@@ -9,4 +9,5 @@ return [
   'pass'   => 'ПАРОЛЬ_БАЗЫ',
   'charset'=> 'utf8mb4',
   'sqlite_path' => __DIR__ . '/caseos.sqlite', // используется только при driver=sqlite
+  'backup_token' => 'ПРИДУМАЙТЕ_ДЛИННУЮ_СЛУЧАЙНУЮ_СТРОКУ', // для ежедневного авто-бэкапа по cron (см. DEPLOY.md)
 ];
