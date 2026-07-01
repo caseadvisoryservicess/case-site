@@ -175,6 +175,7 @@ body.dark .kcard{background:#262420}
     <span class="demo" id="appVer" title="Версия платформы">v—</span>
     <span class="demo" id="offBadge" title="Статус подключения к базе" style="display:none;background:#fff3e0;color:#9a6b00;border-color:#f0d9a0"></span>
     <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
+    <button class="btn ghost sm" id="addObjBtn" style="display:none" onclick="addObjectForm()" title="Добавить новый объект в портфель">+ Объект</button>
     <div class="gsearch"><input id="gq" aria-label="Global search" placeholder="Поиск: помещение, бренд, КП..." oninput="globalSearch(this.value)" onkeydown="if(event.key==='Escape')clearSearch()"><div id="gdrop" class="gdrop"></div></div>
     <span class="rate-cur" id="fxRate" title="Курс ЦБ РУз" style="display:none"></span>
     <button class="langbtn" id="namesBtn" aria-label="Краткие / полные имена и должности" title="Краткие / полные имена и должности" onclick="toggleCompactNames()">Аб</button>
@@ -221,7 +222,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.7';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.8';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -452,7 +453,8 @@ Object.assign(ENMAP,{
  " · без координат":" · without coordinates","Открыть →":"Open →",
  "Скачать презентацию проекта":"Download project presentation","Прикрепить презентацию проекта (PDF)":"Attach project presentation (PDF)",
  "Обновить презентацию проекта (PDF)":"Update project presentation (PDF)","Удалить презентацию":"Delete presentation",
- "Карты":"Maps","✎ Координаты":"✎ Coordinates"
+ "Карты":"Maps","✎ Координаты":"✎ Coordinates",
+ "+ Объект":"+ Property","Добавить новый объект в портфель":"Add a new property to the portfolio"
 });
 
 const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
@@ -558,7 +560,8 @@ Object.assign(UZMAP,{
  'Все объекты (':'Barcha obyektlar (',' · без координат':' · koordinatasiz','Открыть →':'Ochish →',
  'Скачать презентацию проекта':'Loyiha taqdimotini yuklab olish','Прикрепить презентацию проекта (PDF)':'Loyiha taqdimotini biriktirish (PDF)',
  'Обновить презентацию проекта (PDF)':'Loyiha taqdimotini yangilash (PDF)','Удалить презентацию':'Taqdimotni oʻchirish',
- 'Карты':'Xaritalar','✎ Координаты':'✎ Koordinata'
+ 'Карты':'Xaritalar','✎ Координаты':'✎ Koordinata',
+ '+ Объект':'+ Obyekt','Добавить новый объект в портфель':'Portfelga yangi obyekt qoʻshish'
 });
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
@@ -647,10 +650,11 @@ function boot(){
  if(!BACKEND)loadPersist();
  $('avatar').textContent=S.user.name[0]||'C';
  $('whoName').firstChild.textContent=nameDisplay(S.user.name);$('whoRole').textContent=roleDisplay(S.role);$('b_out').textContent=t('out');
+ $('addObjBtn').style.display=R().admin?'':'none';
  $('langTop').textContent=LANG_CYCLE[(LANG_CYCLE.indexOf(LANG)+1)%LANG_CYCLE.length].toUpperCase();
  applyTheme();loadFx();{const av=$('appVer');if(av)av.textContent=(BACKEND?'':'DEMO · ')+'v'+APP_VERSION;}updateOfflineBadge();
  if(S.obj!=='ALL'&&!objById(S.obj))S.obj=(OBJECTS[0]&&OBJECTS[0].id)||'ALL';
- const validViews=['dash','registry','pipeline','dates','kpi','plans','docs','brands','refus','bench','map','org','users'];
+ const validViews=['dash','registry','kpi','plans','docs','brands','bench','map','org','users'];
  if(validViews.indexOf(S.view)<0)S.view='dash';
  if(S.view==='users'&&!R().admin)S.view='dash';
  rebuildObjSel();buildNav();renderPerm();audit('Вход в систему','роль: '+(R().label||S.role));if(!BACKEND)persist();go(S.view);
@@ -658,7 +662,7 @@ function boot(){
 function rebuildObjSel(){let h=`<option value="ALL">▦ ${t('allobj')}</option>`;objCountries().forEach(c=>{const os=OBJECTS.filter(o=>objCountry(o)===c);h+=`<optgroup label="${esc(c)}">`+os.map(o=>`<option value="${o.id}">${esc(o.name)} · ${esc(o.city)}</option>`).join('')+`</optgroup>`;});$('objSel').innerHTML=h;$('objSel').value=S.obj;}
 
 /* ===== NAV ===== */
-const NAV=[['dash','▦'],['registry','▤'],['plans','▭'],['map','⌖'],['pipeline','⮞'],['dates','◷'],['brands','✦'],['refus','⊘'],['docs','▣'],['kpi','★'],['bench','◈'],['org','☖'],['SEP',''],['users','◍']];
+const NAV=[['dash','▦'],['registry','▤'],['plans','▭'],['map','⌖'],['brands','✦'],['docs','▣'],['kpi','★'],['bench','◈'],['org','☖'],['SEP',''],['users','◍']];
 function buildNav(){
  $('nav').innerHTML=NAV.map(n=>{
   if(n[0]==='SEP')return `<div class="sep">${t('admin')}</div>`;
@@ -676,7 +680,7 @@ function go(v){
  const prev=S.view;S.view=v;if(prev!==v)S._focus=null;
  [...document.querySelectorAll('#nav a')].forEach(a=>a.classList.toggle('active',a.dataset.v===v));
  $('side').classList.remove('open');$('scrim').classList.remove('open');
- ({dash:renderDash,registry:renderRegistry,pipeline:renderPipeline,dates:renderDates,kpi:renderKPI,plans:renderPlans,docs:renderDocs,brands:renderBrands,refus:renderRefus,bench:renderBench,map:renderMap,org:renderOrg,users:renderUsers}[v]||renderDash)();
+ ({dash:renderDash,registry:renderRegistry,kpi:renderKPI,plans:renderPlans,docs:renderDocs,brands:renderBrands,bench:renderBench,map:renderMap,org:renderOrg,users:renderUsers}[v]||renderDash)();
  localize();
  if(S._focus){const e=$(S._focus);if(e&&e.focus){try{e.focus();if(e.setSelectionRange&&typeof e.value==='string')e.setSelectionRange(e.value.length,e.value.length);}catch(_){}}}
  saveUiPrefs();
@@ -718,6 +722,7 @@ function renderDash(){
  <div class="ph"><h1>${t('dash')}</h1><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>${S.obj!=='ALL'?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Объект</button>`:''}`:''}${R().leasing?`<button class="btn ghost sm" onclick="logActivity()">+ Активность</button>`:''}${R().finance?`<button class="btn ghost sm" onclick="ownerReport()">Отчёт (PDF)</button>`:''}<span class="pill">${curObj().plan||''}</span></div></div>
  <p class="sub">${S.obj==='ALL'?t('allobj'):t('objectlb')+': '+curObj().name} · ${t('rolelb')}: ${R().label}</p>
  ${dashAlertHTML()}
+ ${S.dashDatesOpen?datesCardHTML():''}
   <div class="kpis">
    <div class="kpi"><div class="lab">${S.obj==='ALL'?t('objects'):t('objectlb')}</div><div class="val">${S.obj==='ALL'?OBJECTS.length:1}</div><div class="sub2">${S.obj==='ALL'?OBJECTS.filter(o=>o.plan==='Подписка ТЦ').length+' '+t('subSaaS'):(curObj().city||'')}</div></div>
    <div class="kpi"><div class="lab">${t('occupancy')}</div><div class="val">${op}%</div><div class="sub2">${fmtA(totOcc)} / ${fmtA(totGla)} м²</div></div>
@@ -770,7 +775,12 @@ function ownerReport(){if(!R().finance){alert('Отчёт доступен ро�
  const totRent=objs.reduce((s,o)=>s+unitsOf(o.id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((a,u)=>a+(u.total||0),0),0);
  const html=`${letter('Отчёт для владельца')}<h2>Сводка по портфелю${(S.geoCountry&&S.geoCountry!=='Все')?' — '+esc(S.geoCountry):''}${(S.geoCity&&S.geoCity!=='Все')?', '+esc(S.geoCity):''}</h2><table><tr><td style="font-weight:700">Объект</td><td style="font-weight:700">Локация</td><td style="font-weight:700;text-align:right">Занятость</td><td style="font-weight:700;text-align:right">Аренда/мес</td><td style="font-weight:700;text-align:right">Потери/мес</td></tr>${rowsO}<tr style="font-weight:800"><td colspan="3">Итого аренда/мес</td><td style="text-align:right" colspan="2">${fmt(Math.round(totRent))}</td></tr></table><p style="font-size:10px;color:#888;margin-top:12px">Сформировано в CASE OS · ${esc(nowStr())}</p>`;
  const w=window.open('','_blank');if(!w){alert('Разрешите всплывающие окна для печати/PDF.');return;}w.document.write(wrapDoc(html));w.document.close();w.focus();setTimeout(()=>{try{w.print();}catch(e){}},300);audit('Отчёт для владельца','печать / PDF');}
-function dashAlertHTML(){const ds=allDates().filter(d=>(S.obj==='ALL'||d.obj===S.obj));const over=ds.filter(d=>d.days<0);const soon=ds.filter(d=>d.days>=0&&d.days<=7);const offs=scopedUnits().filter(u=>{const s=offerState(u);return s&&s.days<0;});if(!over.length&&!soon.length&&!offs.length)return'';const parts=[];if(over.length)parts.push('<b>'+over.length+'</b> просроченных дат');if(soon.length)parts.push('<b>'+soon.length+'</b> в ближайшие 7 дней');if(offs.length)parts.push('<b>'+offs.length+'</b> просроч. броней');return `<div class="banner warn" style="cursor:pointer" onclick="go('dates')">⏰ Внимание: ${parts.join(' · ')}. Нажмите, чтобы открыть «Критич. даты».</div>`;}
+function dashAlertHTML(){const ds=allDates().filter(d=>(S.obj==='ALL'||d.obj===S.obj));const over=ds.filter(d=>d.days<0);const soon=ds.filter(d=>d.days>=0&&d.days<=7);const offs=scopedUnits().filter(u=>{const s=offerState(u);return s&&s.days<0;});if(!over.length&&!soon.length&&!offs.length)return'';const parts=[];if(over.length)parts.push('<b>'+over.length+'</b> просроченных дат');if(soon.length)parts.push('<b>'+soon.length+'</b> в ближайшие 7 дней');if(offs.length)parts.push('<b>'+offs.length+'</b> просроч. броней');return `<div class="banner warn" style="cursor:pointer" onclick="toggleDashDates()">⏰ Внимание: ${parts.join(' · ')}. Нажмите, чтобы ${S.dashDatesOpen?'скрыть':'открыть'} «Критич. даты».</div>`;}
+function toggleDashDates(){S.dashDatesOpen=!S.dashDatesOpen;renderDash();}
+function datesCardHTML(){const list=allDates().filter(d=>(S.obj==='ALL'||d.obj===S.obj));const cnt=n=>list.filter(d=>d.days>=0&&d.days<=n).length;
+ const legend=`<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;margin-bottom:10px">`+[['≤7 дн','#fdeaea','var(--red-d)'],['≤30 дн','#fdf3e0','var(--amber)'],['≤60 дн','#fff8ec','var(--amber)'],['≤90 дн','#e4eefb','var(--blue)']].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span>${x[0]}</span>`).join('')+`</div>`;
+ return `<div class="card"><h3>${t('dates')} <button class="btn ghost sm" style="float:right" onclick="toggleDashDates()">✕</button></h3><div class="kpis"><div class="kpi"><div class="lab">≤ 7 дней</div><div class="val">${cnt(7)}</div></div><div class="kpi"><div class="lab">≤ 30 дней</div><div class="val">${cnt(30)}</div></div><div class="kpi"><div class="lab">≤ 60 дней</div><div class="val">${cnt(60)}</div></div><div class="kpi"><div class="lab">≤ 90 дней</div><div class="val">${cnt(90)}</div></div></div>
+ ${legend}${list.length?list.map(d=>{const b=dateBand(d.days);return `<div style="display:flex;gap:13px;align-items:center;padding:10px 2px;border-bottom:1px solid #f0eeec"><div style="width:58px;text-align:center;border-radius:10px;padding:6px 0;font-weight:800;font-size:15px;background:${b.bg};color:${b.fg}">${d.days}<div style="font-size:8.5px">${d.days<0?'просроч':'дней'}</div></div><div style="flex:1"><b>${d.type}</b><div style="font-size:11.5px;color:var(--muted)">${d.who} · ${objById(d.obj).name} · ${d.code}</div></div><div style="font-size:11.5px;color:#555;font-weight:600">${dateRU(d.date)}</div></div>`;}).join(''):'<div style="color:var(--muted);font-size:12.5px;padding:6px">Срочных дат нет.</div>'}<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Production: авто-алерты в Telegram/почту ответственному за 90 / 60 / 30 / 7 дней до даты.</div></div>`;}
 function logActivity(){const me=AGENTS.find(a=>a.role===S.role);const kinds=[['touch','Касание'],['meet','Встреча'],['view','Показ'],['loi','LOI'],['sign','Подписание']];
  $('drawer').innerHTML='<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>Быстрая активность</h2><div class="s">'+esc(me?me.name:S.user.name)+' · '+esc(nowStr())+'</div></div><div class="dbody">'+(me?'':'<div class="banner warn">Для вашей роли личные KPI не ведутся — запись попадёт только в общий журнал.</div>')+'<div style="display:flex;flex-direction:column;gap:8px">'+kinds.map(k=>'<button class="btn ghost" style="justify-content:flex-start;text-align:left" onclick="addActivity(\''+k[0]+'\')">+ '+k[1]+'</button>').join('')+'</div><div class="sect">Последние записи ('+ACTLOG.length+')</div>'+(ACTLOG.length?ACTLOG.slice(0,15).map(a=>'<div style="font-size:12px;border-bottom:1px solid #f2f0ed;padding:5px 0"><b>'+esc(a.kindLabel)+'</b> <span style="color:#999">'+esc(a.at)+'</span><br>'+esc(a.by)+(a.obj&&objById(a.obj)?' · '+esc(objById(a.obj).name):'')+'</div>').join(''):'<div style="color:var(--muted);font-size:12px">Пока нет записей</div>')+'</div>';
  $('drawer').classList.add('open');$('dbg').classList.add('open');localize();}
@@ -782,7 +792,7 @@ function regFilterBar(us){const fr=S.regFilter;const cats=['Все'].concat(us.m
  return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">${geoSel}${(S.obj!=='ALL'&&hasBlocks(S.obj))?`<select onchange="S.regFilter.block=this.value;renderRegistry()" style="${ss}">${[['Все','Все блоки']].concat(blocksOf(S.obj).map(b=>[b,'Блок '+b])).map(o=>`<option value="${esc(o[0])}"${(fr.block||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}${(S.obj!=='ALL'&&new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor))).size>1)?`<select onchange="S.regFilter.floor=this.value;renderRegistry()" style="${ss}">${[['Все','Все этажи']].concat(Array.from(new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor)))).sort(floorCmp).map(f=>[f,f])).map(o=>`<option value="${esc(o[0])}"${(fr.floor||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}<select onchange="S.regFilter.status=this.value;renderRegistry()" style="${ss}">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;renderRegistry()" style="${ss}">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
 function renderRegistry(){
  const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
- const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button></div>`;
+ const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button><button class="${S.regTab==='refus'?'on':''}" onclick="S.regTab='refus';renderRegistry()">${t('refus')}</button></div>`;
  if(S.regTab==='chg'){
   const ch=CHANGES.filter(c=>allObj||c.obj===S.obj);
   const ccols=[{k:'date',label:'Дата',get:c=>c.date,sortable:true}];
@@ -791,6 +801,16 @@ function renderRegistry(){
   ccols.push({k:'what',label:'Изменение',get:c=>c.what,filter:'text'});
   ccols.push({k:'by',label:'Кто',get:c=>c.by,sortable:true,filter:'select'});
   $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><p class="sub">${allObj?t('allobj'):curObj().name} · вторая сторона LCR: объединение / разделение / скидки / нарастающая аренда</p>${tabs}<div class="card">${buildTable('reg_chg',ccols,ch)}${R().edit?'<div style="margin-top:10px"><button class="btn sm" onclick="addChange()">+ '+t('add')+' изменение</button></div>':''}</div>${footNote()}`;
+  return;
+ }
+ if(S.regTab==='refus'){
+  const list=refusList(S.obj);const canEditR=R().edit;
+  const rcols=[{k:'brand',label:'Бренд',get:r=>r.brand,sortable:true,filter:'text',render:r=>`<b>${esc(r.brand)}</b>`}];
+  if(allObj)rcols.push({k:'obj',label:'Объект',get:r=>objById(r.obj).name,sortable:true,filter:'select'});
+  rcols.push({k:'reason',label:'Причина',get:r=>r.reason,sortable:true,filter:'text'});
+  rcols.push({k:'date',label:'Дата',get:r=>r.date||'',sortable:true});
+  if(canEditR)rcols.push({k:'_del',label:'',get:()=>'',render:r=>`<button class="btn ghost sm" title="Удалить" onclick="deleteRefus('${r.obj}',${r._i})">🗑</button>`});
+  $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><p class="sub">${allObj?t('allobj'):curObj().name} · журнал отказов с причиной - не предлагать повторно + рыночные сигналы</p>${tabs}<div class="card">${buildTable('refus',rcols,list)}${canEditR?'<div style="margin-top:10px"><button class="btn sm" onclick="addRefus()">+ '+t('add')+' отказ</button></div>':''}</div><div style="font-size:11.5px;color:var(--muted)">Сигнал: спрос на локации у метро/вузов; крупные F&B ждут якорей (KFC/BK).</div>${footNote()}`;
   return;
  }
  const fr=S.regFilter;fr.country=fr.country||'Все';fr.city=fr.city||'Все';const mine=myBrokerName();const forceMine=!!(R().ownOnly&&mine);const canEdit=R().edit;S.regSel=S.regSel||[];const selSet=S.regSel;const showBlk=(allObj||hasBlocks(S.obj));
@@ -910,37 +930,34 @@ function renderKanban(){const fin=R().finance;const cols=[['neg','Перегов
  const board=cols.map(c=>{const items=us.filter(u=>u.status===c[0]);return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('kover')" ondragleave="this.classList.remove('kover')" ondrop="this.classList.remove('kover');kanDrop(event,'${c[0]}')"><div class="kch"><span class="st ${STCLS[c[0]]}">${stT(c[0])}</span> <span class="mut">${items.length}</span></div>${items.map(u=>`<div class="kcard" draggable="true" ondragstart="kanDrag(event,'${u.id}')" onclick="openUnit('${u.id}')"><b>${esc(u.code)}</b><div style="font-size:10.5px;color:var(--muted)">${esc(u.vars[0]||u.sub||'')}${S.obj==='ALL'?' · '+esc(objById(u.obj).name):''}</div><div style="font-size:10.5px">${fmtA(u.area)} м²${fin&&u.total?' · '+fmt(u.total):''}</div></div>`).join('')||'<div style="font-size:11px;color:#bbb;padding:6px">—</div>'}</div>`;}).join('');
  return `<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px">${board}</div>`;}
 function kanDrag(e,id){try{e.dataTransfer.setData('text/plain',id);e.dataTransfer.effectAllowed='move';}catch(_){}}
-function kanDrop(e,st){e.preventDefault();let id='';try{id=e.dataTransfer.getData('text/plain');}catch(_){}const u=U.find(x=>x.id===id);if(!u)return;if(!R().edit){alert('Нет прав на изменение статуса.');return;}if(u.status!==st){u.status=st;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Канбан: статус → '+stT(st)+' ('+S.user.name+')']);audit('Канбан (статус)',u.code+' → '+stT(st));persist();}renderPipeline();}
+function kanDrop(e,st){e.preventDefault();let id='';try{id=e.dataTransfer.getData('text/plain');}catch(_){}const u=U.find(x=>x.id===id);if(!u)return;if(!R().edit){alert('Нет прав на изменение статуса.');return;}if(u.status!==st){u.status=st;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Канбан: статус → '+stT(st)+' ('+S.user.name+')']);audit('Канбан (статус)',u.code+' → '+stT(st));persist();}renderKPI();}
 function barRow(label,pct,suf,val){return `<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span>${esc(label)}</span><span>${val}${suf}</span></div><div class="bw"><div class="bar" style="width:${Math.max(3,Math.min(100,pct))}%"></div></div></div>`;}
 function chartsCard(){const objs=geoObjects();if(!objs.length)return '';const occBars=objs.map(o=>{const p=Math.round(occPct(o.id)*100);return barRow(o.name,p,'%',p);}).join('');
  const catAgg={};objs.forEach(o=>unitsOf(o.id).forEach(u=>{if(!u.cat||u.cat==='-'||!u.rate)return;(catAgg[u.cat]=catAgg[u.cat]||{sum:0,n:0});catAgg[u.cat].sum+=u.rate;catAgg[u.cat].n++;}));const cats=Object.keys(catAgg);const maxR=Math.max(1,...cats.map(k=>catAgg[k].sum/catAgg[k].n));const rateBars=cats.map(k=>{const v=Math.round(catAgg[k].sum/catAgg[k].n);return barRow(k,Math.round(v/maxR*100),' $/м²',v);}).join('');
  return `<div class="grid2"><div class="card"><h3>Занятость по объектам</h3>${occBars||'<div class="mut">нет данных</div>'}</div><div class="card"><h3>Средняя ставка по категориям</h3>${rateBars||'<div class="mut">нет данных</div>'}</div></div>`;}
 function funnelHTML(){const st=[['Касания',75],['Встречи',18],['Показы',9],['LOI',4],['Подписано',1]],max=st[0][1];return `<div style="display:flex;flex-direction:column;gap:7px">${st.map(s=>`<div style="display:flex;align-items:center;gap:10px"><div style="width:92px;font-size:12px;font-weight:600;color:#444">${s[0]}</div><div style="flex:1;background:#f0eeec;border-radius:8px;overflow:hidden"><div style="height:30px;width:${Math.max(8,s[1]/max*100)}%;background:linear-gradient(90deg,var(--red),var(--red-l));display:flex;align-items:center;padding:0 10px;color:#fff;font-weight:700;font-size:12px">${s[1]}</div></div></div>`).join('')}</div>`;}
-function renderPipeline(){
+function renderPipelineTab(mtabs){
  const wkCols=[{k:'name',label:'Кто',get:a=>a.name,sortable:true,render:a=>`<b>${esc(a.name)}</b>`},{k:'touch',label:'Касания',get:a=>a.touch,num:true,sortable:true},{k:'meet',label:'Встречи',get:a=>a.meet,num:true,sortable:true},{k:'view',label:'Показы',get:a=>a.view,num:true,sortable:true},{k:'loi',label:'LOI',get:a=>a.loi,num:true,sortable:true},{k:'sign',label:'Подп.',get:a=>a.sign,num:true,sortable:true}];
  const act=U.filter(u=>u.status==='off'||u.status==='neg');
  const actCols=[{k:'brand',label:'Бренд',get:u=>u.vars[0]||'-',sortable:true,filter:'text',render:u=>`<b>${esc(u.vars[0]||'-')}</b>${u.vars.length>1?` <span class="pill">+${u.vars.length-1}</span>`:''}`},{k:'obj',label:'Объект',get:u=>objById(u.obj).name,sortable:true,filter:'select'},{k:'country',label:'Страна',get:u=>objCountry(objById(u.obj)),sortable:true,filter:'select'},{k:'city',label:'Город',get:u=>objById(u.obj).city,sortable:true,filter:'select'},{k:'code',label:'Пом.',get:u=>u.code,sortable:true,filter:'text'},{k:'area',label:'Площадь',get:u=>u.area,num:true,sortable:true,render:u=>fmtA(u.area)+' м²'},{k:'status',label:'Статус',get:u=>stT(u.status),sortable:true,filter:'select',render:u=>`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`},{k:'broker',label:'Брокер',get:u=>u.broker||'-',sortable:true,filter:'select'}];
- const ptabs=`<div class="tabs"><button class="${S.pipeTab==='kanban'?'':'on'}" onclick="S.pipeTab='metrics';renderPipeline()">Метрики</button><button class="${S.pipeTab==='kanban'?'on':''}" onclick="S.pipeTab='kanban';renderPipeline()">Канбан сделок</button></div>`;
- if(S.pipeTab==='kanban'){$('main').innerHTML=`<div class="ph"><h1>${t('pipeline')}</h1></div><p class="sub">${S.obj==='ALL'?t('allobj'):curObj().name} · перетаскивайте карточки между этапами${R().edit?'':' (просмотр)'}</p>${ptabs}<div class="card">${renderKanban()}</div>${footNote()}`;return;}
- $('main').innerHTML=`<div class="ph"><h1>${t('pipeline')}</h1></div><p class="sub">Двусторонний движок · leading-метрики недели</p>${ptabs}<div class="grid2"><div class="card"><h3>Воронка</h3>${funnelHTML()}<div style="font-size:11px;color:var(--muted);margin-top:10px">Касание→LOI 5.3% · LOI→подписание 25%</div></div><div class="card"><h3>Leading-метрики</h3>${buildTable('pipe_lead',wkCols,AGENTS.slice())}</div></div><div class="card"><h3>Активные сделки <span class="mut">${act.length}</span></h3>${buildTable('pipe_act',actCols,act,{rowClick:u=>`openUnit('${u.id}')`})}</div>${footNote()}`;
+ const ptabs=`<div class="tabs"><button class="${S.pipeTab==='kanban'?'':'on'}" onclick="S.pipeTab='metrics';renderKPI()">Метрики</button><button class="${S.pipeTab==='kanban'?'on':''}" onclick="S.pipeTab='kanban';renderKPI()">Канбан сделок</button></div>`;
+ if(S.pipeTab==='kanban'){$('main').innerHTML=`<div class="ph"><h1>${t('kpi')}</h1></div>${mtabs}<p class="sub">${S.obj==='ALL'?t('allobj'):curObj().name} · перетаскивайте карточки между этапами${R().edit?'':' (просмотр)'}</p>${ptabs}<div class="card">${renderKanban()}</div>${footNote()}`;return;}
+ $('main').innerHTML=`<div class="ph"><h1>${t('kpi')}</h1></div>${mtabs}<p class="sub">Двусторонний движок · leading-метрики недели</p>${ptabs}<div class="grid2"><div class="card"><h3>Воронка</h3>${funnelHTML()}<div style="font-size:11px;color:var(--muted);margin-top:10px">Касание→LOI 5.3% · LOI→подписание 25%</div></div><div class="card"><h3>Leading-метрики</h3>${buildTable('pipe_lead',wkCols,AGENTS.slice())}</div></div><div class="card"><h3>Активные сделки <span class="mut">${act.length}</span></h3>${buildTable('pipe_act',actCols,act,{rowClick:u=>`openUnit('${u.id}')`})}</div>${footNote()}`;
 }
 
 /* ===== DATES ===== */
 function allDates(){const o=[];U.forEach(u=>u.dates.forEach(d=>{const days=daysUntil(d[1]);o.push({obj:u.obj,code:u.code,who:u.vars[0]||u.sub,type:d[0],date:d[1],days});}));o.sort((a,b)=>a.days-b.days);return o;}
 function dateBand(days){if(days<0)return{bg:'#f7d2d2',fg:'var(--red-d)',k:'просроч'};if(days<=7)return{bg:'#fdeaea',fg:'var(--red-d)',k:'≤7'};if(days<=30)return{bg:'#fdf3e0',fg:'var(--amber)',k:'≤30'};if(days<=60)return{bg:'#fff8ec',fg:'var(--amber)',k:'≤60'};if(days<=90)return{bg:'#e4eefb',fg:'var(--blue)',k:'≤90'};return{bg:'#f1f1f1',fg:'#777',k:'>90'};}
-function renderDates(){const list=allDates();const cnt=n=>list.filter(d=>d.days>=0&&d.days<=n).length;
- const legend=`<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;margin-bottom:10px">`+[['≤7 дн','#fdeaea','var(--red-d)'],['≤30 дн','#fdf3e0','var(--amber)'],['≤60 дн','#fff8ec','var(--amber)'],['≤90 дн','#e4eefb','var(--blue)']].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span>${x[0]}</span>`).join('')+`</div>`;
- $('main').innerHTML=`<div class="ph"><h1>${t('dates')}</h1></div><p class="sub">Все объекты · контрольные даты как структурные поля · авто-алерты за 90 / 60 / 30 / 7 дней</p>
- <div class="kpis"><div class="kpi"><div class="lab">≤ 7 дней</div><div class="val">${cnt(7)}</div></div><div class="kpi"><div class="lab">≤ 30 дней</div><div class="val">${cnt(30)}</div></div><div class="kpi"><div class="lab">≤ 60 дней</div><div class="val">${cnt(60)}</div></div><div class="kpi"><div class="lab">≤ 90 дней</div><div class="val">${cnt(90)}</div></div></div>
- ${legend}<div class="card">${list.map(d=>{const b=dateBand(d.days);return `<div style="display:flex;gap:13px;align-items:center;padding:10px 2px;border-bottom:1px solid #f0eeec"><div style="width:58px;text-align:center;border-radius:10px;padding:6px 0;font-weight:800;font-size:15px;background:${b.bg};color:${b.fg}">${d.days}<div style="font-size:8.5px">${d.days<0?'просроч':'дней'}</div></div><div style="flex:1"><b>${d.type}</b><div style="font-size:11.5px;color:var(--muted)">${d.who} · ${objById(d.obj).name} · ${d.code}</div></div><div style="font-size:11.5px;color:#555;font-weight:600">${dateRU(d.date)}</div></div>`;}).join('')}</div><div style="font-size:11.5px;color:var(--muted)">Production: авто-алерты в Telegram/почту ответственному за 90 / 60 / 30 / 7 дней до даты.</div>${footNote()}`;}
 
 /* ===== KPI ===== */
 function renderKPI(){
+ const mtabs=`<div class="tabs"><button class="${S.kpiTab==='pipeline'?'':'on'}" onclick="S.kpiTab='kpi';renderKPI()">${t('kpi')}</button><button class="${S.kpiTab==='pipeline'?'on':''}" onclick="S.kpiTab='pipeline';renderKPI()">${t('funnel')}</button></div>`;
+ if(S.kpiTab==='pipeline'){renderPipelineTab(mtabs);return;}
  const role=S.role,fin=R().finance,agg=['ASH','ADM','BA'].indexOf(role)>=0,per=['ASH','ADM'].indexOf(role)>=0,me=AGENTS.find(a=>a.role===role);
  const pct=a=>Math.round(((a.touch/TARGETS.touch+a.meet/TARGETS.meet+a.view/TARGETS.view+a.loi/TARGETS.loi+a.sign/TARGETS.sign)/5)*100);
  const bar=(v,tg,l)=>`<div style="display:flex;align-items:center;gap:8px;margin:4px 0"><span style="width:92px;font-size:11.5px;color:#555">${l}</span><div class="bw" style="flex:1"><div class="bar" style="width:${Math.min(100,Math.round(v/tg*100))}%;background:${v>=tg?'var(--green)':'var(--red)'}"></div></div><span style="width:54px;text-align:right;font-size:11.5px">${v}/${tg}</span></div>`;
  const bars=a=>bar(a.touch,TARGETS.touch,'Касания')+bar(a.meet,TARGETS.meet,'Встречи')+bar(a.view,TARGETS.view,'Показы')+bar(a.loi,TARGETS.loi,'LOI')+bar(a.sign,TARGETS.sign,'Подписано');
- let h=`<div class="ph"><h1>${t('kpi')}</h1></div><p class="sub">Роль: ${R().label} · эта неделя (демо)</p>`;
+ let h=`<div class="ph"><h1>${t('kpi')}</h1></div><p class="sub">Роль: ${R().label} · эта неделя (демо)</p>${mtabs}`;
  if(me){h+=`<div class="card"><h3>Мои показатели <span class="mut">${me.name}</span></h3><div class="kpis" style="grid-template-columns:repeat(3,1fr);margin-bottom:13px"><div class="kpi"><div class="lab">Выполнение KPI</div><div class="val">${pct(me)}%</div></div><div class="kpi"><div class="lab">Моя комиссия</div><div class="val">${fmt(me.earned)}</div><div class="sub2">${me.sign} сделок</div></div><div class="kpi"><div class="lab">В пайплайне</div><div class="val">${fmt(me.pipe)}</div></div></div>${bars(me)}</div>`;}
  else h+=`<div class="card" style="color:var(--muted);font-size:12.5px">Роль ${R().label} не закрывает сделки лично - персональной комиссии нет.</div>`;
  if(agg){const T=AGENTS.reduce((s,a)=>({sign:s.sign+a.sign,loi:s.loi+a.loi,view:s.view+a.view,earned:s.earned+a.earned,pipe:s.pipe+a.pipe}),{sign:0,loi:0,view:0,earned:0,pipe:0});h+=`<div class="card"><h3>Совокупно по отделу</h3><div class="kpis" style="grid-template-columns:repeat(4,1fr)"><div class="kpi"><div class="lab">Сделок</div><div class="val">${T.sign}</div></div><div class="kpi"><div class="lab">Сов. комиссия</div><div class="val">${fmt(T.earned)}</div></div><div class="kpi"><div class="lab">Пайплайн</div><div class="val">${fmt(T.pipe)}</div></div><div class="kpi"><div class="lab">Показы/нед</div><div class="val">${T.view}</div></div></div></div>`;}
@@ -1219,15 +1236,8 @@ function planSVG_zm(){
 
 /* ===== REFUSALS ===== */
 function refusList(id){if(id==='ALL')return OBJECTS.flatMap(o=>(REFUSALS[o.id]||[]).map((r,i)=>Object.assign({obj:o.id,_i:i},r)));return (REFUSALS[id]||[]).map((r,i)=>Object.assign({obj:id,_i:i},r));}
-function renderRefus(){const allObj=S.obj==='ALL';const list=refusList(S.obj);const canEdit=R().edit;
- const cols=[{k:'brand',label:'Бренд',get:r=>r.brand,sortable:true,filter:'text',render:r=>`<b>${esc(r.brand)}</b>`}];
- if(allObj)cols.push({k:'obj',label:'Объект',get:r=>objById(r.obj).name,sortable:true,filter:'select'});
- cols.push({k:'reason',label:'Причина',get:r=>r.reason,sortable:true,filter:'text'});
- cols.push({k:'date',label:'Дата',get:r=>r.date||'',sortable:true});
- if(canEdit)cols.push({k:'_del',label:'',get:()=>'',render:r=>`<button class="btn ghost sm" title="Удалить" onclick="deleteRefus('${r.obj}',${r._i})">🗑</button>`});
- $('main').innerHTML=`<div class="ph"><h1>${t('refus')}</h1></div><p class="sub">${curObj().name} · журнал отказов с причиной - не предлагать повторно + рыночные сигналы</p><div class="card">${buildTable('refus',cols,list)}${canEdit?'<div style="margin-top:10px"><button class="btn sm" onclick="addRefus()">+ '+t('add')+' отказ</button></div>':''}</div><div style="font-size:11.5px;color:var(--muted)">Сигнал: спрос на локации у метро/вузов; крупные F&B ждут якорей (KFC/BK).</div>${footNote()}`;}
-function addRefus(){const oid=S.obj==='ALL'?'ca':S.obj;const brand=prompt('Бренд, который отказал:');if(!brand)return;const reason=prompt('Причина отказа:')||'';(REFUSALS[oid]=REFUSALS[oid]||[]).push({brand,reason,date:iso(TODAY)});audit('Добавлен отказ',brand);persist();renderRefus();}
-function deleteRefus(oid,i){if(!R().edit){alert('Недостаточно прав.');return;}const arr=REFUSALS[oid];if(!arr||!arr[i])return;const brand=arr[i].brand;if(!confirm('Удалить запись об отказе «'+brand+'»?'))return;arr.splice(i,1);audit('Удалён отказ',brand);persist();renderRefus();}
+function addRefus(){const oid=S.obj==='ALL'?'ca':S.obj;const brand=prompt('Бренд, который отказал:');if(!brand)return;const reason=prompt('Причина отказа:')||'';(REFUSALS[oid]=REFUSALS[oid]||[]).push({brand,reason,date:iso(TODAY)});audit('Добавлен отказ',brand);persist();renderRegistry();}
+function deleteRefus(oid,i){if(!R().edit){alert('Недостаточно прав.');return;}const arr=REFUSALS[oid];if(!arr||!arr[i])return;const brand=arr[i].brand;if(!confirm('Удалить запись об отказе «'+brand+'»?'))return;arr.splice(i,1);audit('Удалён отказ',brand);persist();renderRegistry();}
 
 /* ===== BENCHMARKING ===== */
 function renderBench(){
