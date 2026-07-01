@@ -222,7 +222,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.9';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.10';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -458,7 +458,9 @@ Object.assign(ENMAP,{
  "Генеральный директор":"CEO","Директор по аренде":"Leasing Director","Администратор аренды (тыл)":"Lease Admin (back office)",
  "Менеджер по консалтингу":"Advisory Manager","Финансовый директор":"CFO",
  "Ген. директор":"CEO","Дир. аренды":"Leasing Dir.","Адм. аренды":"Lease Adm.","Консультант":"Advisor","Финдиректор":"CFO","Админ":"Admin",
- "+ Добавить сотрудника":"+ Add employee"
+ "+ Добавить сотрудника":"+ Add employee",
+ "Обновление базы данных":"Database update","После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.":"After updating the platform files (new version), click this button once — it applies only new database structure/data changes. Already-applied ones are skipped, no data is lost.",
+ "⇪ Применить миграции":"⇪ Apply migrations","Применяю…":"Applying…","Новых миграций нет — база уже актуальна.":"No new migrations — the database is already up to date.","Применено: ":"Applied: ","миграции":"migrations"
 });
 
 const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
@@ -569,7 +571,9 @@ Object.assign(UZMAP,{
  'Генеральный директор':'Bosh direktor','Директор по аренде':'Ijara boʻyicha direktor','Администратор аренды (тыл)':'Ijara administratori (orqa ofis)',
  'Менеджер по консалтингу':'Konsalting menejeri','Финансовый директор':'Moliya direktori',
  'Ген. директор':'Bosh dir.','Дир. аренды':'Ijara dir.','Адм. аренды':'Ijara adm.','Консультант':'Konsultant','Финдиректор':'Moliya dir.','Админ':'Administrator',
- '+ Добавить сотрудника':'+ Xodim qoʻshish'
+ '+ Добавить сотрудника':'+ Xodim qoʻshish',
+ 'Обновление базы данных':'Bazani yangilash','После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.':'Platforma fayllari yangilangandan soʻng (yangi versiya) bu tugmani bir marta bosing — faqat yangi baza oʻzgarishlari qoʻllaniladi. Allaqachon qoʻllanilganlari oʻtkazib yuboriladi, maʼlumotlar yoʻqolmaydi.',
+ '⇪ Применить миграции':'⇪ Migratsiyalarni qoʻllash','Применяю…':'Qoʻllanmoqda…','Новых миграций нет — база уже актуальна.':'Yangi migratsiya yoʻq — baza allaqachon dolzarb.','Применено: ':'Qoʻllandi: ','миграции':'migratsiyalar'
 });
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
@@ -1452,7 +1456,7 @@ function renderUsersBackend(){
  const addForm=`<div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:560px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Email (логин)</label><input id="nu_email" type="email" placeholder="user@caseadvisory.uz"></div></div><div class="row2"><div><label>Пароль (мин. 6)</label><input id="nu_pass" type="text" placeholder="временный пароль"></div><div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select></div></div><label>Имя брокера (для «только свои сделки», необязательно)</label><input id="nu_broker" placeholder="как в поле «Брокер» у помещений"><button class="btn" style="margin-top:12px" onclick="srvAddUser()">+ Создать пользователя</button></div></div>`;
  const rows=users.map(u=>{const act=(+u.active===1||u.active===true);const self=S.user&&S.user.id===u.id;return `<tr><td><b>${esc(nameDisplay(u.name||''))}</b>${self?' <span class="pill">вы</span>':''}<div style="font-size:10px;color:#999">${esc(u.email||'')}</div></td><td><select onchange="srvSetRole('${u.id}',this.value)" style="font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:7px">${roleOptions(u.role_key)}</select></td><td>${esc(u.broker_name||'-')}</td><td>${act?'<span style="color:var(--green)">активен</span>':'<span style="color:#bbb">отключён</span>'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="srvUserEdit('${u.id}')">Изменить</button> <button class="btn ghost sm" onclick="srvSetPass('${u.id}')">Пароль</button> <button class="btn ghost sm" onclick="srvSetActive('${u.id}',${act?0:1})">${act?'Отключить':'Включить'}</button></td></tr>`;}).join('');
  const list=`<div class="card"><h3>Пользователи (${users.length}) <span class="mut">реальные учётки входа (база)</span></h3><div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Роль</th><th>Брокер</th><th>Статус</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="5" style="color:var(--muted)">Пока только вы. Добавьте сотрудников выше.</td></tr>'}</tbody></table></div></div>`;
- $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Учётные записи входа и права ролей</p>${addForm}${list}${renderRoleMatrix()}${backupCard()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;localize();
+ $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Учётные записи входа и права ролей</p>${addForm}${list}${renderRoleMatrix()}${migrationsCard()}${backupCard()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;localize();
  loadBackupList();
  if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
@@ -1466,6 +1470,17 @@ function renderBackupList(list){const el=$('backupList');if(!el)return;if(!list.
  const fmtSize=b=>b>1048576?(b/1048576).toFixed(1)+' МБ':(b/1024).toFixed(0)+' КБ';
  el.innerHTML='<div class="tbl-scroll"><table><thead><tr><th>Файл</th><th>Дата</th><th class="num">Размер</th><th></th></tr></thead><tbody>'+list.map(b=>`<tr><td>${esc(b.name)}</td><td>${new Date(b.time*1000).toLocaleString('ru-RU')}</td><td class="num">${fmtSize(b.size)}</td><td><a href="api/backup.php?action=download&name=${encodeURIComponent(b.name)}" class="btn ghost sm">Скачать</a></td></tr>`).join('')+'</tbody></table></div>';}
 async function runBackupNow(){const btn=event&&event.target;if(btn)btn.disabled=true;try{const j=await apiPOST0('backup.php');renderBackupList(j.backups||[]);alert('Бэкап создан: '+j.file);}catch(e){alert('Ошибка бэкапа: '+(e&&e.message||e));}finally{if(btn)btn.disabled=false;}}
+function migrationsCard(){if(!R().admin)return '';return `<div class="card"><h3>Обновление базы данных <span class="mut">миграции</span></h3>
+ <p style="font-size:12.5px;color:#555;margin:4px 0 10px">После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.</p>
+ <button class="btn sm" onclick="runMigrations()">⇪ Применить миграции</button>
+ <div id="migResult" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
+ </div>`;}
+async function runMigrations(){const btn=event&&event.target;if(btn)btn.disabled=true;const el=$('migResult');if(el)el.textContent='Применяю…';
+ try{const j=await apiPOST0('migrate.php');const applied=j.applied||[],already=j.already||[];
+  if(el)el.innerHTML=applied.length?('Применено: <b>'+applied.map(esc).join(', ')+'</b>'):'Новых миграций нет — база уже актуальна.';
+  if(applied.length)alert('Применено миграций: '+applied.length+'\n'+applied.join('\n')+'\n\nОбновите страницу, чтобы увидеть изменения.');
+ }catch(e){if(el)el.textContent='Ошибка: '+(e&&e.message||e);}
+ finally{if(btn)btn.disabled=false;}}
 async function apiPOST0(p){const r=await fetch(apiURL(p),{method:'POST',credentials:'same-origin'});let j={};try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('HTTP '+r.status));return j;}
 function showCronHelp(){const url=location.origin+location.pathname.replace(/index\.html$/,'')+'api/backup.php?token=ВАШ_ТОКЕН_ИЗ_CONFIG';
  alert('Ежедневный автоматический бэкап (один раз настроить):\n\n1. Откройте os/api/config.php и добавьте строку:\n   \'backup_token\' => \'придумайте-длинную-случайную-строку\',\n\n2. В cPanel хостинга откройте раздел «Cron Jobs».\n\n3. Добавьте задачу на каждый день (например, 03:00 ночи), команда:\n   wget -q -O /dev/null "'+url+'"\n   (замените ВАШ_ТОКЕН_ИЗ_CONFIG на строку из шага 1)\n\n4. Готово - бэкап будет создаваться автоматически каждую ночь, старше 30 дней удаляются сами.');}

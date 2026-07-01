@@ -1,5 +1,5 @@
 /* CASE OS — service worker: офлайн-режим (network-first для приложения, cache-first для статики) */
-const CACHE = 'case-os-v23';
+const CACHE = 'case-os-v24';
 const ASSETS = ['./', './index.html'];
 
 self.addEventListener('install', e => {
