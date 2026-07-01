@@ -196,13 +196,13 @@ body.dark .kcard{background:#262420}
 /* ===== i18n ===== */
 const I18N={
  ru:{user:'Пользователь',pass:'Пароль',enter:'Войти',hint:'Демо-среда. Роль определяет доступ. Логины/пароли - в production через реальную авторизацию.',out:'Выход',
-  dash:'Дашборд',registry:'Реестр (LCR)',pipeline:'Воронка',dates:'Критич. даты',kpi:'KPI и комиссии',plans:'Планировки',docs:'Документы',refus:'Отказы',bench:'Бенчмаркинг',org:'Команда',users:'Пользователи',admin:'Администрирование',
+  dash:'Дашборд',registry:'Реестр (LCR)',pipeline:'Воронка',dates:'Критич. даты',kpi:'KPI и комиссии',plans:'Планировки',docs:'Документы',refus:'Отказы',bench:'Бенчмаркинг',map:'Карта',org:'Команда',users:'Пользователи',admin:'Администрирование',
   allobj:'Все объекты',form:'Сформировать',word:'Скачать Word',print:'Печать / PDF',add:'Добавить',avg:'Средние показатели',objects:'Объектов',occupancy:'Заполняемость',inwork:'В работе',noimo:'NOI / мес',rentmo:'Аренда / мес',avgocc:'Ср. заполняемость',avgrate:'Ср. ставка',avgsc:'Ср. сервис-чардж',lossvac:'Потеря (вакант)',portfolio:'по портфелю',occport:'Заполняемость портфеля',occupied:'Занято',free:'Свободно',funnel:'Воронка',thisweek:'эта неделя',statuses:'Статусы',rolelb:'роль',objectlb:'Объект',clickreg:'клик → реестр',byobj:'по объектам',byocc:'по занятым',ofrent:'от аренды',permonth:'в месяц',subSaaS:'по подписке (SaaS)',proposed:'предложено',tosign:'к подписанию',brands:'База брендов'},
  uz:{user:'Foydalanuvchi',pass:'Parol',enter:'Kirish',hint:'Demo. Rol kirishni belgilaydi. Loginlar - productionda haqiqiy avtorizatsiya orqali.',out:'Chiqish',
-  dash:'Boshqaruv paneli',registry:'Reyestr (LCR)',pipeline:'Voronka',dates:'Muhim sanalar',kpi:'KPI va komissiya',plans:'Planirovkalar',docs:'Hujjatlar',refus:'Rad etishlar',bench:'Benchmarking',org:'Jamoa',users:'Foydalanuvchilar',admin:'Administratsiya',
+  dash:'Boshqaruv paneli',registry:'Reyestr (LCR)',pipeline:'Voronka',dates:'Muhim sanalar',kpi:'KPI va komissiya',plans:'Planirovkalar',docs:'Hujjatlar',refus:'Rad etishlar',bench:'Benchmarking',map:'Xarita',org:'Jamoa',users:'Foydalanuvchilar',admin:'Administratsiya',
   allobj:'Barcha obyektlar',form:'Shakllantirish',word:'Word yuklash',print:'Chop etish / PDF',add:'Qoʻshish',avg:'Oʻrtacha koʻrsatkichlar',objects:'Obyektlar',occupancy:'Bandlik',inwork:'Ishda',noimo:'NOI / oy',rentmo:'Ijara / oy',avgocc:'Oʻrt. bandlik',avgrate:'Oʻrt. stavka',avgsc:'Oʻrt. service charge',lossvac:'Yoʻqotish (boʻsh)',portfolio:'portfel boʻyicha',occport:'Portfel bandligi',occupied:'Band',free:'Boʻsh',funnel:'Voronka',thisweek:'shu hafta',statuses:'Statuslar',rolelb:'rol',objectlb:'Obyekt',clickreg:'bosing → reyestr',byobj:'obyektlar boʻyicha',byocc:'band boʻyicha',ofrent:'ijaradan',permonth:'oyiga',subSaaS:'obuna (SaaS)',proposed:'taklif',tosign:'imzoga',brands:'Brendlar bazasi'},
  en:{user:'User',pass:'Password',enter:'Log in',hint:'Demo environment. Role determines access.',out:'Log out',
-  dash:'Dashboard',registry:'Registry (LCR)',pipeline:'Pipeline',dates:'Key dates',kpi:'KPI & commissions',plans:'Floor plans',docs:'Documents',refus:'Refusals',bench:'Benchmarking',org:'Team',users:'Users',admin:'Administration',
+  dash:'Dashboard',registry:'Registry (LCR)',pipeline:'Pipeline',dates:'Key dates',kpi:'KPI & commissions',plans:'Floor plans',docs:'Documents',refus:'Refusals',bench:'Benchmarking',map:'Map',org:'Team',users:'Users',admin:'Administration',
   allobj:'All properties',form:'Generate',word:'Download Word',print:'Print / PDF',add:'Add',avg:'Average metrics',objects:'Properties',occupancy:'Occupancy',inwork:'In progress',noimo:'NOI / mo',rentmo:'Rent / mo',avgocc:'Avg. occupancy',avgrate:'Avg. rate',avgsc:'Avg. service charge',lossvac:'Vacancy loss',portfolio:'portfolio-wide',occport:'Portfolio occupancy',occupied:'Occupied',free:'Vacant',funnel:'Pipeline',thisweek:'this week',statuses:'Statuses',rolelb:'role',objectlb:'Property',clickreg:'click → registry',byobj:'by property',byocc:'by occupied',ofrent:'of rent',permonth:'per month',subSaaS:'subscription (SaaS)',proposed:'offered',tosign:'to sign',brands:'Brand database'}
 };
 let LANG='ru';
@@ -221,7 +221,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.3';     /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.4';     /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -230,7 +230,7 @@ let BACKEND=false;                 /* определяется при запус
 const apiURL=p=>API_BASE+p;
 async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date.now();const r=await fetch(u,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});if(!r.ok)throw new Error('HTTP '+r.status);return r.json();}
 async function apiPOST(p,data){const r=await fetch(apiURL(p),{method:'POST',credentials:'same-origin',headers:{'Content-Type':'application/json'},body:JSON.stringify(data||{})});let j={};try{j=await r.json();}catch(e){}if(!r.ok)throw new Error((j&&j.error)||('HTTP '+r.status));return j;}
-function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT};}
+function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG};}
 let _lastServerUpdate=null;
 async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;return (j&&j.data)||null;}catch(e){return null;}}
 /* ===== Автообновление: подтягиваем общие данные без ручного F5, аккуратно (не мешая активной работе) ===== */
@@ -282,7 +282,7 @@ const ROLES={
 };
 const OBJECTS=[
  {id:'ca',name:'Creative Avenue',ru:'Креативное авеню',country:'Узбекистан',city:'Ташкент',type:'Mixed-use',gba:18500,gla:17560,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'dual',vat:'incl',vatRate:12,comm:{type:'milestone',total:6,note:'2% сделка + 2% этаж + 2% здание'}},
- {id:'zm',name:'Zarafshan Mall',ru:'Зарафшан Молл',country:'Узбекистан',city:'Зарафшан',type:'Mall',gba:26000,gla:17800,plan:'Подписка ТЦ',sc:12,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'top',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'}},
+ {id:'zm',name:'Zarafshan Mall',ru:'Зарафшан Молл',country:'Узбекистан',city:'Зарафшан',type:'Mall',gba:26000,gla:17800,plan:'Подписка ТЦ',sc:12,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'top',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'},lat:41.581678,lng:64.216257},
  {id:'gb',name:'Gulistan (Бухара)',ru:'Гулистан (Бухара)',country:'Узбекистан',city:'Бухара',type:'Mixed-use',gba:14000,gla:9200,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'dual',vat:'incl',vatRate:12,comm:{type:'flat',total:8,note:'8% годовой аренды'}},
  {id:'mh',name:'Mega House Giotto-550',ru:'Mega House (Giotto-550)',country:'Узбекистан',city:'Бухара',type:'Plinth retail',gba:550,gla:550,plan:'Свой объект',sc:10,inc:5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:'single',vat:'top',vatRate:12,comm:{type:'flat',total:10,note:'10% годовой аренды'}},
 ];
@@ -438,7 +438,16 @@ Object.assign(ENMAP,{
  "Добавить в реестр":"Add to registry","Обновить площади из чертежа":"Update areas from drawing","Открыть планировки":"Open floor plans","По блокам":"By block","По этажам":"By floor",
  "Блок":"Block","Этаж":"Floor","Бюджет":"Budget",
  "2× клик по ставке / брокеру / статусу — быстрая правка":"2× click — rate / broker / status quick edit",
- "2× клик — изменить ставку":"2× click — edit rate","2× клик — изменить статус":"2× click — edit status","2× клик — изменить":"2× click — edit"
+ "2× клик — изменить ставку":"2× click — edit rate","2× клик — изменить статус":"2× click — edit status","2× клик — изменить":"2× click — edit",
+ "Объекты компании на карте":"Company properties on the map","Ключ Яндекс.Карт (JS API)":"Yandex Maps key (JS API)",
+ "Бесплатный ключ - на ":"Free key - at ","Яндекс.Картах для разработчиков":"Yandex Maps for developers",
+ " (раздел «JavaScript API и HTTP Геокодер»). Один ключ на всю компанию.":" (\"JavaScript API and HTTP Geocoder\" section). One key for the whole company.",
+ "Вставьте API-ключ":"Paste the API key","Задайте API-ключ выше, чтобы включить карту.":"Set the API key above to enable the map.",
+ "Карта пока не настроена администратором.":"The map has not been set up by an administrator yet.","Без координат (":"Without coordinates (",
+ "✎ Добавить координаты":"✎ Add coordinates","Открыть объект →":"Open property →",
+ "Широта (lat)":"Latitude (lat)","Долгота (lng)":"Longitude (lng)",
+ "Для карты. Найдите объект на ":"For the map. Find the property on ",", кликните правой кнопкой по точке → «Что здесь?» — координаты скопируются.":", right-click the point → \"What's here?\" — the coordinates will be copied.",
+ "Яндекс.Картах":"Yandex Maps"
 });
 
 const UZMAP={'Дашборд':'Boshqaruv paneli','Реестр (LCR)':'Reyestr (LCR)','Воронка':'Voronka','Критич. даты':'Muhim sanalar','KPI и комиссии':'KPI va komissiya','Планировки':'Planirovkalar','Документы':'Hujjatlar','Отказы':'Rad etishlar','Бенчмаркинг':'Benchmarking','База брендов':'Brendlar bazasi','Пользователи':'Foydalanuvchilar','Администрирование':'Administratsiya','Помещение':'Joy','Категория':'Toifa','Брокер':'Broker','Статус':'Holat','Варианты':'Variantlar','Варианты (кандидаты)':'Variantlar (nomzodlar)','Аренда/мес':'Ijara/oy','Аренда / мес':'Ijara / oy','План / бюджет':'Reja / byudjet','Изменения (в ходе сдачи)':'Oʻzgarishlar (ijara jarayonida)','Добавить':'Qoʻshish','Сформировать':'Shakllantirish','Скачать Word':'Word yuklash','Печать / PDF':'Chop etish / PDF','Шаблон':'Shablon','Объект':'Obyekt','Объекты':'Obyektlar','Бренд':'Brend','Бренды':'Brendlar','Контакты':'Kontaktlar','Профиль ритейлера':'Riteyler profili','Скачать профиль (2 листа)':'Profilni yuklash (2 varaq)','Редактировать':'Tahrirlash','Сохранить':'Saqlash','Поиск':'Qidiruv','Все':'Barchasi','Страна':'Mamlakat','Формат':'Format','Требования':'Talablar','Площадь':'Maydon','Активные сделки':'Faol bitimlar','Leading-метрики':'Leading-metrikalar','Мои показатели':'Mening koʻrsatkichlarim','Выполнение KPI':'KPI bajarilishi','Моя комиссия':'Mening komissiyam','Совокупно по отделу':'Boʻlim boʻyicha jami','По агентам':'Agentlar boʻyicha','Комиссии по проектам':'Loyihalar boʻyicha komissiya','Критические даты и алерты':'Muhim sanalar va ogohlantirishlar','Только для администратора':'Faqat administrator uchun','Добавить пользователя':'Foydalanuvchi qoʻshish','Имя':'Ism','Логин':'Login','Роль':'Rol','История':'Tarix','Шорт-лист':'Short-list','Комментарии':'Izohlar','Подобрать арендаторов':'Ijarachilarni tanlash','Добавить комментарий':'Izoh qoʻshish','Вакант':'Boʻsh','Переговоры':'Muzokara','Предложено':'Taklif qilindi','Контракт подписан':'Shartnoma imzolandi','Журнал отказов':'Rad etishlar jurnali','Причина':'Sabab','Загрузить чертёж (SVG / PDF / DWG)':'Chizmani yuklash (SVG / PDF / DWG)','Последнее изменение':'Oxirgi oʻzgarish','Действует':'Amal qiladi','Продление':'Uzaytirish','Резерв':'Rezerv','Активен':'Faol','Цель':'Maqsad','Отказ':'Rad etildi'};
@@ -531,7 +540,16 @@ Object.assign(UZMAP,{
  'Добавить в реестр':'Reyestrga qoʻshish','Обновить площади из чертежа':'Chizmadan maydonlarni yangilash','Открыть планировки':'Planirovkalarni ochish','По блокам':'Bloklar boʻyicha','По этажам':'Qavatlar boʻyicha',
  'Блок':'Blok','Этаж':'Qavat','Бюджет':'Byudjet',
  '2× клик по ставке / брокеру / статусу — быстрая правка':'2× bosish — narx / broker / holatni tez tahrirlash',
- '2× клик — изменить ставку':'2× bosish — narxni oʻzgartirish','2× клик — изменить статус':'2× bosish — holatni oʻzgartirish','2× клик — изменить':'2× bosish — oʻzgartirish'
+ '2× клик — изменить ставку':'2× bosish — narxni oʻzgartirish','2× клик — изменить статус':'2× bosish — holatni oʻzgartirish','2× клик — изменить':'2× bosish — oʻzgartirish',
+ 'Объекты компании на карте':'Kompaniya obyektlari xaritada','Ключ Яндекс.Карт (JS API)':'Yandex Xaritalar kaliti (JS API)',
+ 'Бесплатный ключ - на ':'Bepul kalit - ','Яндекс.Картах для разработчиков':'Yandex Xaritalar (dasturchilar uchun)',
+ ' (раздел «JavaScript API и HTTP Геокодер»). Один ключ на всю компанию.':' («JavaScript API va HTTP Geokoder» boʻlimi). Butun kompaniya uchun bitta kalit.',
+ 'Вставьте API-ключ':'API-kalitni kiriting','Задайте API-ключ выше, чтобы включить карту.':'Xaritani yoqish uchun yuqorida API-kalitni kiriting.',
+ 'Карта пока не настроена администратором.':'Xarita hali administrator tomonidan sozlanmagan.','Без координат (':'Koordinatasiz (',
+ '✎ Добавить координаты':'✎ Koordinata qoʻshish','Открыть объект →':'Obyektni ochish →',
+ 'Широта (lat)':'Kenglik (lat)','Долгота (lng)':'Uzunlik (lng)',
+ 'Для карты. Найдите объект на ':'Xarita uchun. Obyektni topib oling: ',', кликните правой кнопкой по точке → «Что здесь?» — координаты скопируются.':', nuqtani oʻng tugma bilan bosing → «Bu yerda nima bor?» — koordinata nusxalanadi.',
+ 'Яндекс.Картах':'Yandex Xaritalar'
 });
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
@@ -570,7 +588,7 @@ const monthRent=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u
 const noi=id=>monthRent(id)*0.78;
 function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));}catch(e){}try{apiSaveState();}catch(e){}}
 function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;applyState(JSON.parse(raw));}catch(e){console.warn('Autosave skipped',e);}}
-function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;
+function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.MAPCFG&&typeof d.MAPCFG==='object')Object.assign(MAPCFG,d.MAPCFG);
  /* язык/тема/текущий объект и раздел — личные настройки браузера, из общих данных компании НЕ берём */
 }catch(e){console.warn('Autosave skipped',e);}}
 function resetDemo(){if(confirm('Сбросить локальные изменения демо и открыть исходные данные?')){localStorage.removeItem(STORAGE_KEY);location.reload();}}
@@ -623,7 +641,7 @@ function boot(){
  $('langTop').textContent=LANG_CYCLE[(LANG_CYCLE.indexOf(LANG)+1)%LANG_CYCLE.length].toUpperCase();
  applyTheme();loadFx();{const av=$('appVer');if(av)av.textContent=(BACKEND?'':'DEMO · ')+'v'+APP_VERSION;}updateOfflineBadge();
  if(S.obj!=='ALL'&&!objById(S.obj))S.obj=(OBJECTS[0]&&OBJECTS[0].id)||'ALL';
- const validViews=['dash','registry','pipeline','dates','kpi','plans','docs','brands','refus','bench','org','users'];
+ const validViews=['dash','registry','pipeline','dates','kpi','plans','docs','brands','refus','bench','map','org','users'];
  if(validViews.indexOf(S.view)<0)S.view='dash';
  if(S.view==='users'&&!R().admin)S.view='dash';
  rebuildObjSel();buildNav();renderPerm();audit('Вход в систему','роль: '+(R().label||S.role));if(!BACKEND)persist();go(S.view);
@@ -631,7 +649,7 @@ function boot(){
 function rebuildObjSel(){let h=`<option value="ALL">▦ ${t('allobj')}</option>`;objCountries().forEach(c=>{const os=OBJECTS.filter(o=>objCountry(o)===c);h+=`<optgroup label="${esc(c)}">`+os.map(o=>`<option value="${o.id}">${esc(o.name)} · ${esc(o.city)}</option>`).join('')+`</optgroup>`;});$('objSel').innerHTML=h;$('objSel').value=S.obj;}
 
 /* ===== NAV ===== */
-const NAV=[['dash','▦'],['registry','▤'],['pipeline','⮞'],['dates','◷'],['kpi','★'],['plans','▭'],['docs','▣'],['brands','✦'],['refus','⊘'],['bench','◈'],['org','☖'],['SEP',''],['users','◍']];
+const NAV=[['dash','▦'],['registry','▤'],['pipeline','⮞'],['dates','◷'],['kpi','★'],['plans','▭'],['docs','▣'],['brands','✦'],['refus','⊘'],['bench','◈'],['map','⌖'],['org','☖'],['SEP',''],['users','◍']];
 function buildNav(){
  $('nav').innerHTML=NAV.map(n=>{
   if(n[0]==='SEP')return `<div class="sep">${t('admin')}</div>`;
@@ -649,7 +667,7 @@ function go(v){
  const prev=S.view;S.view=v;if(prev!==v)S._focus=null;
  [...document.querySelectorAll('#nav a')].forEach(a=>a.classList.toggle('active',a.dataset.v===v));
  $('side').classList.remove('open');$('scrim').classList.remove('open');
- ({dash:renderDash,registry:renderRegistry,pipeline:renderPipeline,dates:renderDates,kpi:renderKPI,plans:renderPlans,docs:renderDocs,brands:renderBrands,refus:renderRefus,bench:renderBench,org:renderOrg,users:renderUsers}[v]||renderDash)();
+ ({dash:renderDash,registry:renderRegistry,pipeline:renderPipeline,dates:renderDates,kpi:renderKPI,plans:renderPlans,docs:renderDocs,brands:renderBrands,refus:renderRefus,bench:renderBench,map:renderMap,org:renderOrg,users:renderUsers}[v]||renderDash)();
  localize();
  if(S._focus){const e=$(S._focus);if(e&&e.focus){try{e.focus();if(e.setSelectionRange&&typeof e.value==='string')e.setSelectionRange(e.value.length,e.value.length);}catch(_){}}}
  saveUiPrefs();
@@ -797,12 +815,14 @@ function addObjectForm(id){if(!R().admin)return;const o=(id&&id!=='ALL')?objById
  +_bSel('План','o_plan',[['Свой объект','Свой объект'],['Подписка ТЦ','Подписка ТЦ']],v('plan','Свой объект'))
  +'<div class="row2"><div>'+_bF('Сервис-чардж, %','o_sc',v('sc','10'))+'</div><div>'+_bF('Индексация, %','o_inc',v('inc','5'))+'</div></div>'
  +'<div class="row2"><div>'+_bF('Комиссия CASE, %','o_comm',commV)+'</div><div>'+_bSel('Этажность','o_levels',[['single','Один уровень'],['dual','Несколько уровней']],v('levels','single'))+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Широта (lat)','o_lat',v('lat',''))+'</div><div>'+_bF('Долгота (lng)','o_lng',v('lng',''))+'</div></div>'
+ +'<div style="font-size:11px;color:var(--muted);margin-top:-8px;margin-bottom:8px">Для карты. Найдите объект на <a href="https://yandex.ru/maps" target="_blank" style="color:var(--red-d)">Яндекс.Картах</a>, кликните правой кнопкой по точке → «Что здесь?» — координаты скопируются.</div>'
  +(o?'':'<div style="font-size:11px;color:var(--muted);margin-top:8px">После создания помещения добавляются в «Реестре» кнопкой «+ Помещение», планировку загружает архитектор.</div>')
  +'<div style="margin-top:14px;display:flex;gap:8px;align-items:center"><button class="btn" onclick="saveObject('+(o?("'"+id+"'"):'')+')">'+(o?'Сохранить':'Создать')+'</button><button class="btn ghost" onclick="closeDrawer()">Отмена</button>'+(o?'<button class="btn ghost" style="margin-left:auto;border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="deleteObject(\''+id+'\')">Удалить объект</button>':'')+'</div></div></div>';
  $('drawer').classList.add('open');$('dbg').classList.add('open');localize();}
-function saveObject(id){const g=i=>{const e=$(i);return e?e.value.trim():'';};const name=g('o_name');if(!name){alert('Введите название объекта');return;}const comm=+g('o_comm')||8;
- if(id){const o=objById(id);if(!o)return;o.name=name;o.ru=g('o_ru')||name;o.country=g('o_country')||'Узбекистан';o.city=g('o_city');o.type=g('o_type');o.gba=+g('o_gba')||0;o.gla=+g('o_gla')||0;o.plan=g('o_plan')||'Свой объект';o.sc=+g('o_sc')||10;o.inc=+g('o_inc')||5;o.levels=g('o_levels')||'single';o.comm={type:(o.comm&&o.comm.type)||'flat',total:comm,note:comm+'% годовой аренды'};audit('Изменён объект',o.name);persist();closeDrawer();rebuildObjSel();go(S.view==='dash'?'dash':'registry');return;}
- let base=(name.toLowerCase().replace(/[^a-z0-9]/g,'')||'obj').slice(0,4);let nid=base,n=1;while(objById(nid))nid=base+(++n);OBJECTS.push({id:nid,name,ru:g('o_ru')||name,country:g('o_country')||'Узбекистан',city:g('o_city'),type:g('o_type'),gba:+g('o_gba')||0,gla:+g('o_gla')||0,plan:g('o_plan')||'Свой объект',sc:+g('o_sc')||10,inc:+g('o_inc')||5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:g('o_levels')||'single',vat:'incl',vatRate:12,comm:{type:'flat',total:comm,note:comm+'% годовой аренды'}});audit('Создан объект',name);persist();closeDrawer();S.obj=nid;rebuildObjSel();go('registry');}
+function saveObject(id){const g=i=>{const e=$(i);return e?e.value.trim():'';};const name=g('o_name');if(!name){alert('Введите название объекта');return;}const comm=+g('o_comm')||8;const lat=g('o_lat')?+g('o_lat'):null,lng=g('o_lng')?+g('o_lng'):null;
+ if(id){const o=objById(id);if(!o)return;o.name=name;o.ru=g('o_ru')||name;o.country=g('o_country')||'Узбекистан';o.city=g('o_city');o.type=g('o_type');o.gba=+g('o_gba')||0;o.gla=+g('o_gla')||0;o.plan=g('o_plan')||'Свой объект';o.sc=+g('o_sc')||10;o.inc=+g('o_inc')||5;o.levels=g('o_levels')||'single';o.lat=lat;o.lng=lng;o.comm={type:(o.comm&&o.comm.type)||'flat',total:comm,note:comm+'% годовой аренды'};audit('Изменён объект',o.name);persist();closeDrawer();rebuildObjSel();go(S.view==='dash'?'dash':'registry');return;}
+ let base=(name.toLowerCase().replace(/[^a-z0-9]/g,'')||'obj').slice(0,4);let nid=base,n=1;while(objById(nid))nid=base+(++n);OBJECTS.push({id:nid,name,ru:g('o_ru')||name,country:g('o_country')||'Узбекистан',city:g('o_city'),type:g('o_type'),gba:+g('o_gba')||0,gla:+g('o_gla')||0,plan:g('o_plan')||'Свой объект',sc:+g('o_sc')||10,inc:+g('o_inc')||5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:g('o_levels')||'single',vat:'incl',vatRate:12,lat,lng,comm:{type:'flat',total:comm,note:comm+'% годовой аренды'}});audit('Создан объект',name);persist();closeDrawer();S.obj=nid;rebuildObjSel();go('registry');}
 function deleteObject(id){if(!R().admin){alert('Только администратор.');return;}const o=objById(id);if(!o)return;if(OBJECTS.length<=1){alert('Нельзя удалить единственный объект. Сначала создайте другой.');return;}const n=U.filter(u=>u.obj===id).length;if(!confirm('Удалить объект «'+o.name+'»'+(n?(' вместе с '+n+' помещениями'):'')+'? Это нельзя отменить.'))return;if(prompt('Для подтверждения введите название объекта:')!==o.name){alert('Название не совпало. Отменено.');return;}
  const i=OBJECTS.findIndex(x=>x.id===id);if(i>=0)OBJECTS.splice(i,1);
  for(let k=U.length-1;k>=0;k--)if(U[k].obj===id)U.splice(k,1);
@@ -925,6 +945,7 @@ function renderKPI(){
 const PLANUP={};
 const PLANSVG={}; /* ключ objId::этаж -> {kind:'svg'|'img', data, by, date} - чертёж этажа */
 const PLAN_LABELPOS={}; /* ключ objId::этаж -> {код: {dx,dy}} - сдвиги подписей (перетаскивание) */
+let MAPCFG={apikey:''}; /* общий на всю компанию ключ Яндекс.Карт (admin вводит один раз) */
 const PLAN_CODES={}; /* ключ objId::блок::этаж -> [{code,area}] коды с последнего чертежа (для сверки с реестром) */
 function floorLabel(f){f=(f==null?'':String(f)).trim();return f||'Без этажа';}
 function floorCmp(a,b){const na=parseFloat(String(a).replace(/[^0-9.\-]/g,'')),nb=parseFloat(String(b).replace(/[^0-9.\-]/g,''));const aa=isNaN(na)?9999:na,bb=isNaN(nb)?9999:nb;return aa-bb||String(a).localeCompare(String(b),'ru');}
@@ -1288,6 +1309,46 @@ function brandSave(id){const b=BRANDS.find(x=>x.id===id);if(!b)return;const g=i=
  b.name=g('e_name')||b.name;b.cat=g('e_cat');b.sub=g('e_sub');b.country=g('e_country');b.status=g('e_status');b.amin=+g('e_amin')||0;b.amax=+g('e_amax')||0;b.format=g('e_format');b.fr=g('e_fr');b.reqs=g('e_reqs');b.coten=g('e_coten');b.person=g('e_person');b.phone=g('e_phone');b.email=g('e_email');b.site=g('e_site');b.ig=g('e_ig');b.founded=g('e_founded');b.group=g('e_group');b.price=g('e_price');b.icsc=g('e_icsc');b.netPts=g('e_netPts');b.netCountries=g('e_netCountries');b.uzOp=g('e_uzOp');b.about=g('e_about');b.pos=g('e_pos');b.concept=g('e_concept');b.rec=g('e_rec');b.notes=g('e_notes');
  b.editedBy=S.user.name;b.editedAt=iso(TODAY);(b.hist=b.hist||[]).push([iso(TODAY),S.user.name,'Правка карточки']);
  persist();openBrand(id);}
+/* ===== Карта объектов (Яндекс.Карты) ===== */
+let _yamapInstance=null,_yamapLoading=false;
+function loadYandexMaps(cb){
+ if(window.ymaps&&window.ymaps.Map){cb();return;}
+ if(_yamapLoading){setTimeout(()=>loadYandexMaps(cb),300);return;}
+ _yamapLoading=true;
+ const s=document.createElement('script');
+ s.src='https://api-maps.yandex.ru/2.1/?apikey='+encodeURIComponent(MAPCFG.apikey||'')+'&lang=ru_RU';
+ s.onload=()=>{window.ymaps.ready(()=>{_yamapLoading=false;cb();});};
+ s.onerror=()=>{_yamapLoading=false;const h=$('yamap');if(h)h.innerHTML='<div class="banner warn">⚠ Не удалось загрузить Яндекс.Карты. Проверьте API-ключ и подключение к интернету.</div>';};
+ document.head.appendChild(s);
+}
+function renderMap(){
+ const can=R().admin;
+ const withCoord=OBJECTS.filter(o=>o.lat!=null&&o.lng!=null&&isFinite(o.lat)&&isFinite(o.lng));
+ const noCoord=OBJECTS.filter(o=>!(o.lat!=null&&o.lng!=null&&isFinite(o.lat)&&isFinite(o.lng)));
+ const keyForm=can?`<div class="card" style="margin-bottom:12px"><b style="display:block;margin-bottom:6px">Ключ Яндекс.Карт (JS API)</b><div style="font-size:11.5px;color:var(--muted);margin-bottom:8px">Бесплатный ключ - на <a href="https://yandex.ru/dev/maps/jsapi/" target="_blank" style="color:var(--red-d)">Яндекс.Картах для разработчиков</a> (раздел «JavaScript API и HTTP Геокодер»). Один ключ на всю компанию.</div><div style="display:flex;gap:8px"><input id="map_key" value="${esc(MAPCFG.apikey||'')}" placeholder="Вставьте API-ключ" style="flex:1;font-family:inherit;font-size:13px;padding:7px 9px;border:1px solid var(--border);border-radius:8px"><button class="btn sm" onclick="saveMapKey()">Сохранить</button></div></div>`:'';
+ const noKeyMsg=`<div class="card" style="color:var(--muted)">${can?'Задайте API-ключ выше, чтобы включить карту.':'Карта пока не настроена администратором.'}</div>`;
+ const missingList=(can&&noCoord.length)?`<div class="card" style="margin-top:12px"><b style="display:block;margin-bottom:8px">Без координат (${noCoord.length})</b>${noCoord.map(o=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)"><span>${esc(o.name)} <span style="color:var(--muted);font-size:11px">· ${esc(o.city||'')}</span></span><button class="btn ghost sm" onclick="addObjectForm('${o.id}')">✎ Добавить координаты</button></div>`).join('')}</div>`:'';
+ $('main').innerHTML=`<div class="ph"><h1>${t('map')}</h1></div><p class="sub">Объекты компании на карте</p>${keyForm}${MAPCFG.apikey?'<div class="card" style="padding:0;overflow:hidden"><div id="yamap" style="width:100%;height:520px"></div></div>':noKeyMsg}${missingList}${footNote()}`;
+ if(MAPCFG.apikey)loadYandexMaps(()=>drawYandexMap(withCoord));
+}
+function saveMapKey(){if(!R().admin)return;const v=($('map_key')&&$('map_key').value||'').trim();MAPCFG.apikey=v;audit('Настройка карты',v?'ключ обновлён':'ключ очищен');persist();go('map');}
+function drawYandexMap(objs){
+ const host=$('yamap');if(!host||!window.ymaps)return;
+ if(_yamapInstance){try{_yamapInstance.destroy();}catch(e){}_yamapInstance=null;}
+ const center=objs.length?[objs[0].lat,objs[0].lng]:[41.311081,69.240562];
+ const map=new ymaps.Map(host,{center,zoom:objs.length>1?6:12,controls:['zoomControl']});
+ _yamapInstance=map;
+ objs.forEach(o=>{
+  const occ=Math.round(occPct(o.id)*100);
+  const pm=new ymaps.Placemark([o.lat,o.lng],{
+   balloonContentHeader:esc(o.name),
+   balloonContentBody:`${esc(o.city||'')}${o.city?' · ':''}${esc(o.type||'')}<br>Заполняемость: ${occ}%<br><a href="#" onclick="S.obj='${o.id}';go('dash');return false;">Открыть объект →</a>`,
+   hintContent:o.name
+  },{preset:'islands#redDotIcon'});
+  map.geoObjects.add(pm);
+ });
+ if(objs.length>1)map.setBounds(map.geoObjects.getBounds(),{checkZoomRange:true,zoomMargin:40});
+}
 /* ===== USERS ===== */
 /* ===== Команда: иерархия «кто кому подчиняется», должности → сотрудники → права → объекты ===== */
 let _orgExpanded=null;
