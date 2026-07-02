@@ -58,9 +58,17 @@ if ($a==='request_code') {
   $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=? AND active=1');
   $st->execute([$email]);
   if (!$st->fetch()) fail('Этот email не зарегистрирован в системе (или учётка отключена). Обратитесь к администратору.', 404);
-  // не чаще одного кода в минуту
+  // не чаще одного кода в минуту; таблица кодов создаётся сама при первом использовании
+  // (миграцию запускать не обязательно — иначе замкнутый круг: для миграции нужен вход)
   try { $st = db()->prepare('SELECT created_at FROM login_codes WHERE email=?'); $st->execute([$email]); }
-  catch (Throwable $e) { fail('Вход по коду ещё не активирован: администратору нужно один раз нажать «Применить миграции» (Пользователи → Обновление базы данных). Пока войдите по паролю.', 503); }
+  catch (Throwable $e) {
+    try {
+      db()->exec('CREATE TABLE IF NOT EXISTS login_codes (
+        email VARCHAR(190) PRIMARY KEY, code_hash VARCHAR(255), expires_at DATETIME,
+        attempts INT NOT NULL DEFAULT 0, created_at DATETIME)');
+      $st = db()->prepare('SELECT created_at FROM login_codes WHERE email=?'); $st->execute([$email]);
+    } catch (Throwable $e2) { fail('Не удалось подготовить вход по коду ('.$e2->getMessage().'). Обратитесь к администратору.', 500); }
+  }
   $prev = $st->fetch();
   if ($prev && strtotime($prev['created_at']) > time() - 60) fail('Код уже отправлен. Подождите минуту и попробуйте снова (проверьте папку «Спам»).', 429);
   $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
@@ -74,8 +82,9 @@ if ($a==='request_code') {
 if ($a==='verify_code') {
   $email = mb_strtolower(trim($b['email'] ?? '')); $code = trim((string)($b['code'] ?? ''));
   if (!$email || !$code) fail('Укажите email и код из письма', 400);
-  $st = db()->prepare('SELECT * FROM login_codes WHERE email=?');
-  $st->execute([$email]); $lc = $st->fetch();
+  $lc = null;
+  try { $st = db()->prepare('SELECT * FROM login_codes WHERE email=?'); $st->execute([$email]); $lc = $st->fetch(); }
+  catch (Throwable $e) { fail('Код не запрошен или уже использован. Нажмите «Получить код».', 400); }
   if (!$lc) fail('Код не запрошен или уже использован. Нажмите «Получить код».', 400);
   if (strtotime($lc['expires_at']) < time()) { db()->prepare('DELETE FROM login_codes WHERE email=?')->execute([$email]); fail('Код истёк. Запросите новый.', 400); }
   if ((int)$lc['attempts'] >= 5) { db()->prepare('DELETE FROM login_codes WHERE email=?')->execute([$email]); audit('Код входа: превышены попытки', $email); fail('Слишком много неверных попыток. Запросите новый код.', 429); }
