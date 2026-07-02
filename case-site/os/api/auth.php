@@ -13,14 +13,18 @@ function rightsOf(array $u): array {
           'project_scope'=>(bool)$u['project_scope'],'admin'=>(bool)$u['admin']];
 }
 
+// Вход по коду из письма включён по умолчанию. Временное отключение (например,
+// на локальном XAMPP, где нет почты): в config.php добавьте 'code_login' => false —
+// тогда вход будет по паролю. При переезде на хостинг уберите эту строку.
+function code_login_enabled(): bool { $c = cfg(); return !array_key_exists('code_login', $c) || !empty($c['code_login']); }
 // Вход по паролю по умолчанию ОТКЛЮЧЁН (вход только по коду из письма).
-// Аварийное включение (если хостинг не отправляет почту): в config.php добавьте
-// 'allow_password_login' => true — и временно станет доступен вход по паролю.
-function password_login_allowed(): bool { $c = cfg(); return !empty($c['allow_password_login']); }
+// Он доступен, если код из письма отключён (code_login => false) либо аварийно:
+// в config.php добавьте 'allow_password_login' => true.
+function password_login_allowed(): bool { $c = cfg(); return !code_login_enabled() || !empty($c['allow_password_login']); }
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  if (!$u || !$u['active']) json_out(['auth'=>false,'pass_login'=>password_login_allowed()]);
+  if (!$u || !$u['active']) json_out(['auth'=>false,'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled()]);
   json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 
@@ -95,6 +99,7 @@ if ($a==='login') {
   json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 if ($a==='request_code') {
+  if (!code_login_enabled()) fail('Вход по коду временно отключён — используйте вход по паролю.', 403);
   $email = mb_strtolower(trim($b['email'] ?? ''));
   if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Укажите корректный email', 400);
   $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=? AND active=1');
@@ -122,6 +127,7 @@ if ($a==='request_code') {
   json_out(['ok'=>true]);
 }
 if ($a==='verify_code') {
+  if (!code_login_enabled()) fail('Вход по коду временно отключён — используйте вход по паролю.', 403);
   $email = mb_strtolower(trim($b['email'] ?? '')); $code = trim((string)($b['code'] ?? ''));
   if (!$email || !$code) fail('Укажите email и код из письма', 400);
   $lc = null;

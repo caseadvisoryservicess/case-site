@@ -246,7 +246,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.29';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.30';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -729,7 +729,7 @@ function clearSearch(){const q=$('gq'),d=$('gdrop');if(q)q.value='';if(d){d.inne
 function globalSearch(q){const d=$('gdrop');if(!d)return;q=(q||'').trim().toLowerCase();if(q.length<2){d.classList.remove('open');d.innerHTML='';return;}const unitHits=U.filter(u=>(u.code+' '+u.vars.join(' ')+' '+u.cat+' '+u.sub+' '+(u.offer?.no||'')).toLowerCase().includes(q)).slice(0,5);const brandHits=BRANDS.filter(b=>(b.name+' '+b.cat+' '+b.country+' '+b.status).toLowerCase().includes(q)).slice(0,5);const rows=[...unitHits.map(u=>`<div class="gitem" onclick="S.obj='${u.obj}';rebuildObjSel();go('registry');setTimeout(()=>openUnit('${u.id}'),40);clearSearch()"><div><b>${hlt(u.code,q)}</b><small>${esc(objById(u.obj).name)} · ${hlt(u.vars[0]||u.sub,q)}</small></div><span class="kind">LCR</span></div>`),...brandHits.map(b=>`<div class="gitem" onclick="go('brands');setTimeout(()=>openBrand('${b.id}'),40);clearSearch()"><div><b>${hlt(b.name,q)}</b><small>${hlt(b.cat,q)} · ${hlt(b.country||'-',q)}</small></div><span class="kind">BRAND</span></div>`)];d.innerHTML=rows.join('')||'<div class="gitem"><div><b>Ничего не найдено</b><small>Попробуйте код помещения или бренд.</small></div></div>';d.classList.add('open');}
 
 /* ===== LOGIN ===== */
-let LOGIN_METHOD='code',_otpSent=false,_passAllowed=false; /* вход по коду из письма; пароль — только если разрешён на сервере (config.php: allow_password_login) */
+let LOGIN_METHOD='code',_otpSent=false,_passAllowed=false,_codeAllowed=true; /* вход по коду из письма; пароль — только если разрешён на сервере (config.php: allow_password_login); код можно временно отключить (config.php: code_login => false) */
 function loginT(k){const D={
  getcode:{ru:'Получить код',uz:'Kod olish',en:'Get code'},
  enter:{ru:'Войти',uz:'Kirish',en:'Sign in'},
@@ -753,10 +753,10 @@ function updateLoginUI(){
  show('l_code',isCode&&_otpSent);show('lcode',isCode&&_otpSent);
  const lc=$('l_code');if(lc)lc.textContent=loginT('code');
  const go=$('l_go');if(go)go.textContent=isCode?(_otpSent?loginT('enter'):loginT('getcode')):loginT('enter');
- const alt=$('l_alt');if(alt){const passLink=_passAllowed?`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--muted)">${esc(loginT('usepass'))}</a>`:'';const resendLink=_otpSent?`<a href="#" onclick="otpResend();return false" style="color:var(--red-d)">${esc(loginT('resend'))}</a>`:'';const codeHtml=[resendLink,passLink].filter(Boolean).join(' · ');alt.innerHTML=isCode?codeHtml:`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--red-d)">${esc(loginT('usecode'))}</a>`;alt.style.display=alt.innerHTML?'':'none';}
+ const alt=$('l_alt');if(alt){const passLink=_passAllowed?`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--muted)">${esc(loginT('usepass'))}</a>`:'';const resendLink=_otpSent?`<a href="#" onclick="otpResend();return false" style="color:var(--red-d)">${esc(loginT('resend'))}</a>`:'';const codeHtml=[resendLink,passLink].filter(Boolean).join(' · ');alt.innerHTML=isCode?codeHtml:(_codeAllowed?`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--red-d)">${esc(loginT('usecode'))}</a>`:'');alt.style.display=alt.innerHTML?'':'none';}
  const h=$('l_hint');if(h&&!h.dataset.err){h.style.color='';h.textContent=isCode?loginT('hintcode'):loginT('hintpass');}
 }
-function toggleLoginMethod(){if(LOGIN_METHOD==='code'&&!_passAllowed)return;LOGIN_METHOD=(LOGIN_METHOD==='code')?'pass':'code';_otpSent=false;const c=$('lcode');if(c)c.value='';const h=$('l_hint');if(h)delete h.dataset.err;loginErr('');updateLoginUI();}
+function toggleLoginMethod(){if(LOGIN_METHOD==='code'&&!_passAllowed)return;if(LOGIN_METHOD==='pass'&&!_codeAllowed)return;LOGIN_METHOD=(LOGIN_METHOD==='code')?'pass':'code';_otpSent=false;const c=$('lcode');if(c)c.value='';const h=$('l_hint');if(h)delete h.dataset.err;loginErr('');updateLoginUI();}
 async function otpResend(){_otpSent=false;updateLoginUI();await doLogin();}
 function setLoginMode(backend){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
  show('l_user',!backend);show('luser',!backend);show('l_email',backend);show('lemail',backend);
@@ -774,7 +774,7 @@ function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
  S.user={u:user.id,id:user.id,name:user.name||user.email,title:user.title||Rr.label,role:user.role,broker:user.broker||null,email:user.email,projects:user.projects||[]};}
 async function enterWithServerUser(user,rights){applyServerUser(user,rights);const data=await apiLoadState();if(data)applyState(data);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
 async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false).map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');$('lng_ru')&&$('lng_ru').classList.toggle('on',LANG==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',LANG==='uz');$('lng_en')&&$('lng_en').classList.toggle('on',LANG==='en');applyLoginLang();
- try{const j=await apiGET('auth.php');BACKEND=true;_passAllowed=!!(j&&j.pass_login);if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
+ try{const j=await apiGET('auth.php');BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
  catch(e){BACKEND=false;setLoginMode(false);}}
 initAuth();
 async function doLogin(){
