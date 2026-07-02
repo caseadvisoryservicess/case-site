@@ -13,9 +13,14 @@ function rightsOf(array $u): array {
           'project_scope'=>(bool)$u['project_scope'],'admin'=>(bool)$u['admin']];
 }
 
+// Вход по паролю по умолчанию ОТКЛЮЧЁН (вход только по коду из письма).
+// Аварийное включение (если хостинг не отправляет почту): в config.php добавьте
+// 'allow_password_login' => true — и временно станет доступен вход по паролю.
+function password_login_allowed(): bool { $c = cfg(); return !empty($c['allow_password_login']); }
+
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  if (!$u || !$u['active']) json_out(['auth'=>false]);
+  if (!$u || !$u['active']) json_out(['auth'=>false,'pass_login'=>password_login_allowed()]);
   json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 
@@ -36,6 +41,7 @@ function send_login_code(string $email, string $code): bool {
 
 $b = body(); $a = $b['action'] ?? '';
 if ($a==='login') {
+  if (!password_login_allowed()) { audit('Попытка входа по паролю (отключён)', trim($b['email'] ?? '')); fail('Вход по паролю отключён. Используйте вход по коду из письма.', 403); }
   $email = trim($b['email'] ?? ''); $pass = (string)($b['password'] ?? '');
   $st = db()->prepare('SELECT * FROM app_users WHERE email=? AND active=1');
   $st->execute([$email]); $row = $st->fetch();
