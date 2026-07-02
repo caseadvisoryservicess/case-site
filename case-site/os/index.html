@@ -243,7 +243,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.19';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.20';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -602,6 +602,71 @@ Object.assign(UZMAP,{
  'Обновление базы данных':'Bazani yangilash','После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.':'Platforma fayllari yangilangandan soʻng (yangi versiya) bu tugmani bir marta bosing — faqat yangi baza oʻzgarishlari qoʻllaniladi. Allaqachon qoʻllanilganlari oʻtkazib yuboriladi, maʼlumotlar yoʻqolmaydi.',
  '⇪ Применить миграции':'⇪ Migratsiyalarni qoʻllash','Применяю…':'Qoʻllanmoqda…','Новых миграций нет — база уже актуальна.':'Yangi migratsiya yoʻq — baza allaqachon dolzarb.','Применено: ':'Qoʻllandi: ','миграции':'migratsiyalar'
 });
+/* доперевод: строки, найденные автопроверкой локализации (v2.20) */
+Object.assign(UZMAP,{
+ '/мес':'/oy','/год':'/yil','в ближайшие':'kelgusi','Помещений':'Joylar','Итого':'Jami',
+ 'Текущая аренда':'Joriy ijara','Прогноз за 12 мес':'12 oylik prognoz','Потенциал':'Potensial',
+ 'по бюджетной ставке':'byudjet stavkasi boʻyicha','Потеря':'Yoʻqotish','План vs факт+работа':'Reja vs fakt+jarayon',
+ 'бюджет владельца vs предложения и подписанное':'egasining byudjeti vs takliflar va imzolangan',
+ 'от бюджета':'byudjetdan','недополученная аренда (помещения вне сделки)':'olinmagan ijara (bitimdan tashqari joylar)',
+ 'Распределение помещений по статусу':'Joylarning holat boʻyicha taqsimoti',
+ 'Учётные записи входа и права ролей':'Kirish hisoblari va rol huquqlari','Email (логин)':'Email (login)',
+ '(мин. 6)':'(kamida 6)','Имя брокера (для «только свои сделки», необязательно)':'Broker ismi («faqat oʻz bitimlari» uchun, ixtiyoriy)',
+ 'Создать пользователя':'Foydalanuvchi yaratish','Проекты (внешние)':'Loyihalar (tashqi)','Проекты…':'Loyihalar…',
+ 'шаблоны доступа (это не люди) · клик по ячейке — открыть / закрыть':'kirish shablonlari (bu odamlar emas) · katakka bosing — ochish / yopish',
+ '(база)':'(baza)','пароль CEO':'CEO paroli','для подтверждения.':'tasdiqlash uchun.',
+ 'Скачать бэкап (JSON)':'Bekap yuklab olish (JSON)','Создать бэкап сейчас':'Hozir bekap yaratish',
+ 'Бэкапов ещё нет. Нажмите':'Bekaplar hali yoʻq. Bosing:','Резервные копии базы':'Baza zaxira nusxalari',
+ 'ежедневный автоматический бэкап':'kunlik avtomatik bekap','Опасная зона':'Xavfli zona',
+ 'Очистить и начать с нуля':'Tozalash va noldan boshlash','критично (удаление, доступ, пароли)':'kritik (oʻchirish, kirish, parollar)',
+ 'изменение данных':'maʼlumot oʻzgarishi','обычное действие':'oddiy amal',
+ 'Без изменений':'Oʻzgarishsiz','Надбавка':'Ustama','Скидка':'Chegirma','Язык документа:':'Hujjat tili:',
+ '— документ формируется на выбранном языке':'— hujjat tanlangan tilda shakllantiriladi',
+ 'Заполните и нажмите':'Toʻldiring va bosing','Заполните форму слева и нажмите':'Chapdagi shaklni toʻldiring va bosing',
+ 'В черновом виде (shell & core) с подведёнными коммуникациями':'Qora holatda (shell & core), kommunikatsiyalar yetkazilgan',
+ 'В черновом виде (shell & core)':'Qora holatda (shell & core)','White box (под чистовую отделку)':'White box (toza pardoz uchun)',
+ 'С готовой отделкой (turnkey)':'Tayyor pardoz bilan (turnkey)','В текущем состоянии (as is)':'Joriy holatda (as is)',
+ 'Ctrl/Cmd — выбор нескольких. Можно дополнить вручную.':'Ctrl/Cmd — bir nechtasini tanlash. Qoʻlda toʻldirish mumkin.',
+ '(предложение)':'(taklif)','наценка':'ustama','(владельцу):':'(egasiga):',
+ 'SVG с id = код помещения · план виден всем':'SVG, id = joy kodi · reja hammaga koʻrinadi',
+ 'Масштаб: кнопки или Ctrl + колесо мыши.':'Masshtab: tugmalar yoki Ctrl + sichqoncha gʻildiragi.',
+ 'построена из помещений реестра':'reyestr joylaridan qurilgan',
+ 'Выгрузка LCR в Excel (как ваш шаблон) на выбранном языке':'LCR ni Excelga yuklash (shabloningiz kabi) tanlangan tilda',
+ 'Включить правку прямо в таблице':'Jadval ichida tahrirlashni yoqish','Excel — Русский':'Excel — Rus tili',
+ 'Удалить':'Oʻchirish','Яндекс.Карты':'Yandex Xaritalar'
+});
+Object.assign(ENMAP,{
+ '/мес':'/mo','/год':'/yr','в ближайшие':'in the next','Помещений':'Units','Итого':'Total',
+ 'Текущая аренда':'Current rent','Прогноз за 12 мес':'12-month forecast','Потенциал':'Potential',
+ 'по бюджетной ставке':'at budget rate','Потеря':'Loss','План vs факт+работа':'Plan vs actual+pipeline',
+ 'бюджет владельца vs предложения и подписанное':'owner budget vs offers and signed',
+ 'от бюджета':'of budget','недополученная аренда (помещения вне сделки)':'uncollected rent (units without a deal)',
+ 'Распределение помещений по статусу':'Unit distribution by status',
+ 'Учётные записи входа и права ролей':'Login accounts and role permissions','Email (логин)':'Email (login)',
+ '(мин. 6)':'(min. 6)','Имя брокера (для «только свои сделки», необязательно)':'Broker name (for "own deals only", optional)',
+ 'Создать пользователя':'Create user','Проекты (внешние)':'Projects (external)','Проекты…':'Projects…',
+ 'шаблоны доступа (это не люди) · клик по ячейке — открыть / закрыть':'access templates (not people) · click a cell to toggle',
+ '(база)':'(database)','пароль CEO':'CEO password','для подтверждения.':'for confirmation.',
+ 'Скачать бэкап (JSON)':'Download backup (JSON)','Создать бэкап сейчас':'Create backup now',
+ 'Бэкапов ещё нет. Нажмите':'No backups yet. Click:','Резервные копии базы':'Database backups',
+ 'ежедневный автоматический бэкап':'daily automatic backup','Опасная зона':'Danger zone',
+ 'Очистить и начать с нуля':'Wipe and start from scratch','критично (удаление, доступ, пароли)':'critical (deletion, access, passwords)',
+ 'изменение данных':'data change','обычное действие':'regular action',
+ 'Без изменений':'No change','Надбавка':'Markup','Скидка':'Discount','Язык документа:':'Document language:',
+ '— документ формируется на выбранном языке':'— the document is generated in the selected language',
+ 'Заполните форму слева и нажмите':'Fill in the form on the left and click',
+ 'В черновом виде (shell & core) с подведёнными коммуникациями':'Shell & core with utilities brought in',
+ 'В черновом виде (shell & core)':'Shell & core condition','White box (под чистовую отделку)':'White box (ready for finishing)',
+ 'С готовой отделкой (turnkey)':'Fully fitted (turnkey)','В текущем состоянии (as is)':'As-is condition',
+ 'Ctrl/Cmd — выбор нескольких. Можно дополнить вручную.':'Ctrl/Cmd — multi-select. You can add items manually.',
+ '(предложение)':'(offer)','наценка':'markup','(владельцу):':'(to owner):',
+ 'SVG с id = код помещения · план виден всем':'SVG with id = unit code · plan visible to everyone',
+ 'Масштаб: кнопки или Ctrl + колесо мыши.':'Zoom: buttons or Ctrl + mouse wheel.',
+ 'построена из помещений реестра':'built from registry units',
+ 'Выгрузка LCR в Excel (как ваш шаблон) на выбранном языке':'Export LCR to Excel (like your template) in the selected language',
+ 'Включить правку прямо в таблице':'Enable in-table editing','Excel — Русский':'Excel — Russian',
+ 'Удалить':'Delete','Яндекс.Карты':'Yandex Maps'
+});
 let _UZK={};
 function curMap(){return LANG==='uz'?UZMAP:LANG==='en'?ENMAP:null;}
 function uzKeys(){const map=curMap();if(!map)return[];if(!_UZK[LANG])_UZK[LANG]=Object.keys(map).sort((a,b)=>b.length-a.length);return _UZK[LANG];}
@@ -934,7 +999,7 @@ function regEditRow(u,showBlk,allObj,ch){const inS='font-family:inherit;font-siz
  c+=`<td ${stp}><select onchange="saveCellLive('${u.id}','broker',this.value)" style="${inS}"><option value="">-</option>${blist.map(n=>`<option value="${esc(n)}"${n===bcur?' selected':''}>${esc(n)}</option>`).join('')}</select></td>`;
  c+=`<td ${stp}>${statusSel} <button class="btn ghost sm" title="Удалить помещение" style="padding:2px 6px" onclick="deleteUnit('${u.id}')">🗑</button></td>`;
  c+='</tr>';return c;}
-function addUnit(){if(!R().edit)return;const obj=S.obj==='ALL'?'ca':S.obj;const nu=unit(obj,'NEW-'+(_u+1),'1 этаж',0,0,'Услуги','',0,0,0,'vac','',[],[],'');U.push(nu);nu.hist.push([iso(TODAY),'Создано помещение ('+S.user.name+')']);persist();go('registry');setTimeout(()=>unitForm(nu.id),60);}
+function addUnit(){if(!R().edit)return;if(S.obj==='ALL'){alert('Выберите конкретный объект в шапке (сейчас выбрано «Все объекты») — помещение создаётся в выбранном объекте.');return;}const nu=unit(S.obj,'NEW-'+(_u+1),'1 этаж',0,0,'Услуги','',0,0,0,'vac','',[],[],'');U.push(nu);nu.hist.push([iso(TODAY),'Создано помещение ('+S.user.name+')']);persist();go('registry');setTimeout(()=>unitForm(nu.id),60);}
 function regBulkKP(){const ids=(S.regSel||[]).slice();if(!ids.length){alert('Сначала выберите помещения галочками.');return;}const sel=ids.map(i=>U.find(u=>u.id===i)).filter(Boolean);if(!sel.length)return;const codes=sel.map(u=>u.code).join(', ');const area=Math.round(sel.reduce((s,u)=>s+u.area,0));const rate=sel[0].rate||20;const obj=sel[0].obj;DOC.t='kp';DOC.uid=null;go('docs');setTimeout(()=>{if($('f_obj')){$('f_obj').value=obj;kCfg();}if($('f_unit'))$('f_unit').value=codes;if($('f_area'))$('f_area').value=area;if($('f_rate'))$('f_rate').value=rate;rebuildUnitSel();},90);}
 function bulkStatus(st){if(!R().edit)return;const ids=(S.regSel||[]).slice();if(!ids.length)return;let n=0;ids.forEach(id=>{const u=U.find(x=>x.id===id);if(!u)return;u.status=st;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Статус → '+stT(st)+' (масс., '+S.user.name+')']);n++;});audit('Массовая смена статуса',n+' пом. → '+stT(st));persist();renderRegistry();}
 function bulkBroker(b){if(!R().edit)return;const ids=(S.regSel||[]).slice();if(!ids.length)return;b=(b||'').trim();let n=0;ids.forEach(id=>{const u=U.find(x=>x.id===id);if(!u)return;u.broker=b;u.hist.push([iso(TODAY),'Брокер → '+b+' (масс., '+S.user.name+')']);n++;});audit('Массовая смена брокера',n+' пом. → '+b);persist();renderRegistry();}
@@ -1468,7 +1533,9 @@ function planReviewAdd(){S._planRows=S._planRows||[];S._planRows.push({code:'',a
 function planReviewDel(i){S._planRows.splice(i,1);openPlanReview();}
 function planReviewClear(){if(!confirm('Очистить список?'))return;S._planRows=[];openPlanReview();}
 function planReviewImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(!rows.length){alert('Файл пуст.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());let ci=head.findIndex(h=>/код|code/.test(h)),ai=head.findIndex(h=>/площад|area|кв|м2|м²/.test(h));const start=(ci>=0||ai>=0)?1:0;if(ci<0)ci=0;if(ai<0)ai=1;const out=[];for(let i=start;i<rows.length;i++){const code=String(rows[i][ci]||'').trim();if(!code)continue;const area=+String(rows[i][ai]||'').replace(',','.').replace(/[^0-9.]/g,'')||0;out.push({code,area});}if(!out.length){alert('Не нашёл строк. Нужны колонки «Код» и «Площадь» (или просто два столбца: код, площадь).');return;}S._planRows=out;openPlanReview('Загружено из файла: '+out.length+' строк. Проверьте и нажмите «Создать».');}catch(ex){alert('Ошибка чтения CSV: '+(ex&&ex.message||ex));}};r.readAsText(f,'utf-8');};inp.click();}
-function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0,cat:r.cat||'Услуги',sub:r.sub||''})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0,skip=0;const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skip++;return;}seen[k]=1;const nu=unit(S.obj,r.code,fl,r.area||0,0,r.cat,r.sub,0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'») ('+S.user.name+')']);U.push(nu);add++;});audit('Помещения из чертежа',(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'» · '+add+' шт.');S._planRows=null;persist();closeDrawer();PLAN_MSG='ok|Создано помещений: '+add+(skip?(', пропущено (дубли/уже есть): '+skip):'')+'. Проверьте ставки в реестре.';go('plans');}
+function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0,cat:r.cat||'Услуги',sub:r.sub||''})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0;const skipped=[];const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skipped.push(r.code);return;}seen[k]=1;const nu=unit(S.obj,r.code,fl,r.area||0,0,r.cat,r.sub,0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'») ('+S.user.name+')']);U.push(nu);add++;});
+ if(!add&&skipped.length){alert('Ничего не создано: код'+(skipped.length>1?'ы':'')+' '+skipped.join(', ')+' уже есть в реестре этого объекта (возможно, на другом этаже).\n\nЧтобы изменить существующее помещение — откройте его в реестре. Чтобы создать новое — укажите другой, свободный код.');S._planRows=rows;openPlanReview('Не создано: '+skipped.join(', ')+' — такие коды уже есть в реестре.');return;}
+ audit('Помещения из чертежа',(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'» · '+add+' шт.');S._planRows=null;persist();closeDrawer();PLAN_MSG=(skipped.length?'warn|':'ok|')+'Создано помещений: '+add+(skipped.length?('. ⚠ Пропущено — код уже есть в реестре: '+skipped.join(', ')):'')+'. Проверьте ставки в реестре.';go('plans');}
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
 function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
 function pstrHex(s){return{vac:'#999999',neg:'#1565c0',off:'#9E0000',os:'#0e8a8a',cs:'#e08600',cd:'#2e7d32',res:'#6a3fb5'}[s]||'#777777';}
