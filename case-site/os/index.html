@@ -246,7 +246,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.26';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.27';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -975,7 +975,7 @@ function renderRegistry(){
   <td>${hlt(u.cat,hq)}<div style="font-size:10px;color:#999">${u.sub}</div></td>
   <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#999">+'+fmtA(u.terr)+' терр.</div>':''}</td>
   <td class="num"${canEdit?` title="2× клик — изменить ставку" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','rate',this)"`:''}>${u.rate||'-'}</td><td class="num">${fin?(()=>{const b=uBudget(u);if(!b)return '-';const d=u.rate?Math.round((u.rate/b-1)*100):0;return b+(u.rate&&d!==0?'<div style="font-size:9.5px;color:'+(d>0?'var(--green)':'var(--red-d)')+'">'+(d>0?'+':'')+d+'%</div>':'');})():'•••'}</td><td class="num">${fin?(u.total?fmt(u.total):'-'):'•••'}</td>
-  <td>${u.vars.length?`<span class="pill">${u.vars.length}</span> ${hlt(u.vars.slice(0,2).join(', '),hq)}${u.vars.length>2?'…':''}`:'<span style="color:#bbb">-</span>'}</td>
+  <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(of.to)}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)).length?`<div style="font-size:10.5px;color:#999">${hlt(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)).slice(0,2).join(', '),hq)}</div>`:''):(u.vars.length?`<span class="pill">${u.vars.length}</span> ${hlt(u.vars.slice(0,2).join(', '),hq)}${u.vars.length>2?'…':''}`:'<span style="color:#bbb">-</span>')}</td>
   <td${canEdit?` title="2× клик — изменить" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','broker',this)"`:''}>${u.broker||'-'}</td>
    <td${canEdit?` title="2× клик — изменить статус" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','status',this)"`:''}><span class="st ${STCLS[u.status]}">${stT(u.status)}</span>${reservationBadge(u)}</td></tr>`;}).join('');
  const allSel=fus.length&&fus.every(u=>selSet.indexOf(u.id)>=0);
@@ -1354,11 +1354,17 @@ function bindSvgPlan(host,objId,block,floor){
  fs*=(S.planLabelScale||1); /* пользовательский размер подписей: кнопки А− / А+ на странице планировок */
  const lh=fs*1.2,pad=fs*0.45;
  const POS=PLAN_LABELPOS[planKey(objId,block,floor)]||(PLAN_LABELPOS[planKey(objId,block,floor)]={});
- const drawLabel=(c,u)=>{const lines=[u.code,(u.vars[0]||u.sub||'').slice(0,18),fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
+ const drawLabel=(c,u)=>{
+  /* при активных предложениях подпись показывает бренды и ближайший срок ответа */
+  const offs=(u.offers&&u.offers.length)?u.offers:(u.offer?[u.offer]:[]);
+  const brandLine=offs.length?(offs.map(x=>x.to).join(', ')).slice(0,22):((u.vars[0]||u.sub||'').slice(0,18));
+  let deadLine='';if(offs.length){const nearest=offs.reduce((m,x)=>(!m||new Date(x.validUntil)<new Date(m.validUntil))?x:m,null);const dd=Math.ceil((new Date(nearest.validUntil)-TODAY)/86400000);deadLine='ответ до '+dateRU(nearest.validUntil)+(dd<0?' ⚠':' ('+dd+' дн.)');}
+  const lines=[u.code,brandLine,fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];if(deadLine)lines.push(deadLine);
+  const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
   const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',bx);rect.setAttribute('y',by);rect.setAttribute('width',bw);rect.setAttribute('height',bh);rect.setAttribute('rx',pad);rect.setAttribute('fill','#ffffff');rect.setAttribute('fill-opacity','0.9');rect.setAttribute('stroke',unitStrokeHex(u));rect.setAttribute('stroke-width',Math.max(1,fs*0.22));g.appendChild(rect);
   const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',bx+pad+fs*0.4);dot.setAttribute('cy',by+pad+fs*0.55);dot.setAttribute('r',fs*0.42);dot.setAttribute('fill',unitStrokeHex(u));g.appendChild(dot);
   const mk=(s,dy,opt)=>{const tx=document.createElementNS(NS,'text');tx.setAttribute('x',bx+pad+(opt&&opt.code?fs*1.1:0));tx.setAttribute('y',by+pad+dy);tx.setAttribute('font-family','Montserrat,Arial,sans-serif');tx.setAttribute('font-size',opt&&opt.s?opt.s:fs);if(opt&&opt.b)tx.setAttribute('font-weight','800');tx.setAttribute('fill',opt&&opt.c?opt.c:'#222');tx.setAttribute('pointer-events','none');tx.textContent=s;g.appendChild(tx);};
-  mk(u.code,lh*0.85,{b:1,code:1});mk(lines[1],lh*1.95,{});mk(lines[2],lh*3.0,{c:'#555',s:fs*0.92});mk(stT(u.status),lh*4.05,{b:1,s:fs*0.92,c:unitStrokeHex(u)});
+  mk(u.code,lh*0.85,{b:1,code:1});mk(lines[1],lh*1.95,{});mk(lines[2],lh*3.0,{c:'#555',s:fs*0.92});if(lines[3])mk(lines[3],lh*4.05,{c:'#9E0000',s:fs*0.88});mk(stT(u.status),lh*(lines[3]?5.1:4.05),{b:1,s:fs*0.92,c:unitStrokeHex(u)});
   const tt=document.createElementNS(NS,'title');tt.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status)+' · перетащите, чтобы сдвинуть';g.appendChild(tt);
   const off={dx:(POS[u.code]&&POS[u.code].dx)||0,dy:(POS[u.code]&&POS[u.code].dy)||0};if(off.dx||off.dy)g.setAttribute('transform','translate('+off.dx+','+off.dy+')');
   let drag=null;
@@ -1960,7 +1966,9 @@ function demoDelUser(i){if(!USERS[i])return;if(!confirm('Удалить сотр
 function openUnit(id){
  const u=U.find(x=>x.id===id),o=objById(u.obj),fin=R().finance;
  const os=offerState(u);
- const offer=u.offer?`<div class="banner warn">⚑ <b>Предложено</b>: ${esc(u.offer.to)} · агент ${esc(u.offer.by||u.offer.role)}. Действует до ${dateRU(os.until)} (${os.days} дн.). Не предлагать другим без подтверждения.</div>`:'';
+ const offList=(u.offers&&u.offers.length)?u.offers:(u.offer?[u.offer]:[]);
+ const offerTermsTxt=t2=>{if(!t2)return '';const p=[];if(t2.fit)p.push('каникулы '+t2.fit+' мес'+(t2.fitp?' ('+t2.fitp+')':''));if(t2.rstep)p.push('нарастающая: '+t2.rstep);else if(t2.rmod&&t2.rmod.indexOf('Фикс')<0)p.push(t2.rmod);return p.length?' · '+p.join(' · '):'';};
+ const offer=offList.length?`<div class="banner warn">⚑ <b>Предложено${offList.length>1?' ('+offList.length+' брендам)':''}</b>:${offList.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="margin-top:4px">• <b>${esc(of.to)}</b>${of.rate?' · '+of.rate+' $/м²':''}${of.no&&of.no!=='-'?' · КП '+esc(of.no)+(of.rev>1?' <span class="pill">ред.'+of.rev+'</span>':''):''} · агент ${esc(of.by||of.role||'')}${esc(offerTermsTxt(of.terms))} · <b>ответ до ${dateRU(of.validUntil)}</b> (${d<0?'просрочено':d+' дн.'})${R().edit?` <a href="#" onclick="extendOffer('${u.id}','${esc(of.to)}');return false" title="Продлить срок ответа (арендатор попросил время на решение)" style="color:var(--red-d)">＋срок</a>`:''}</div>`;}).join('')}<div style="margin-top:5px;font-size:11px">Не предлагать другим без подтверждения.</div></div>`:'';
  const merged=u.merged?`<div class="kv"><span>Объединено из</span><b>${u.merged.join(' + ')}</b></div>`:'';
  const vars=u.vars.length?`<div class="varchips">${u.vars.map((v,i)=>`<span>${i+1}. ${v}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Вариантов нет</div>';
  const dts=u.dates.length?u.dates.map(d=>`<div class="kv"><span>${d[0]}</span><b>${dateRU(d[1])}</b></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Дат нет</div>';
@@ -2004,6 +2012,17 @@ function doTransferArea(){const f=U.find(x=>x.id===$('at_from').value),t=U.find(
  audit('Перераспределение площади',note);persist();closeDrawer();go(S.view);}
 function addVar(id){const u=U.find(x=>x.id===id),v=prompt('Бренд-кандидат:');if(v){u.vars.push(v);u.hist.push([iso(TODAY),'Добавлен вариант: '+v]);persist();openUnit(id);}}
 function addUnitDate(id){const u=U.find(x=>x.id===id);const lbl=prompt('Тип даты (Окончание договора / Ревизия ставки / Дедлайн / Открытие ...):');if(!lbl)return;const d=prompt('Дата (ГГГГ-ММ-ДД):','2026-09-01');if(!d)return;u.dates.push([lbl,d]);u.hist.push([iso(TODAY),'Дата: '+lbl+' '+d+' ('+S.user.name+')']);persist();openUnit(id);}
+/* продление срока ответа по предложению (арендатор попросил время на обдумывание) */
+function extendOffer(unitId,brand){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===unitId);if(!u)return;
+ const list=(u.offers&&u.offers.length)?u.offers:(u.offer?[u.offer]:[]);
+ const of=list.find(x=>x.to===brand)||list[0];if(!of)return;
+ const v=prompt('На сколько дней продлить срок ответа для «'+of.to+'» (КП '+(of.no||'')+')?\nСейчас — до '+dateRU(of.validUntil)+'.','7');
+ if(v==null)return;const days=Math.round(+v);if(!(days>0)){alert('Введите число дней больше нуля.');return;}
+ const oldUntil=of.validUntil;of.validUntil=addDaysISO(new Date(of.validUntil),days);of.validDays=(of.validDays||0)+days;
+ if(u.offer&&u.offer.to===of.to&&u.offer.no===of.no){u.offer.validUntil=of.validUntil;u.offer.validDays=of.validDays;}
+ u.dates=(u.dates||[]).map(d=>(d[0].indexOf('Окончание брони')===0&&(d[0].indexOf(of.to)>=0||d[0].indexOf('КП '+of.no)>=0))?[d[0],of.validUntil]:d);
+ u.hist.push([iso(TODAY),'Срок ответа продлён: '+of.to+' (КП '+(of.no||'')+') '+dateRU(oldUntil)+' → '+dateRU(of.validUntil)+' (+'+days+' дн., '+S.user.name+')']);
+ audit('Продление срока КП',u.code+' · '+of.to+' → '+of.validUntil);persist();openUnit(unitId);if(S.view==='registry')renderRegistry();}
 /* этап «до КП»: бренд(ы) проявили интерес — фиксируем без цены. Цена и детали появятся при формировании КП. */
 function negotiateUnit(id){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u)return;
  const v=prompt('Бренд(ы), с которыми идут переговоры по «'+u.code+'» (через запятую).\nЦена и условия здесь НЕ указываются — они появятся при формировании КП (Документы):',u.vars.join(', '));
@@ -2098,7 +2117,7 @@ function docExtras(){const g=id=>{const e=$(id);return e?e.value:'';};const intr
  return {introP,thanksP,contactB};}
 function nowStr(){try{return new Date().toLocaleString('ru-RU');}catch(e){return dateRU(TODAY);}}
 function genEmit(meta,html){show(html);const key=(meta.no&&meta.no!=='-')?(meta.t+'|'+meta.no+'|'+meta.obj):null;const existing=key?DOCREG.find(d=>(d.t+'|'+d.no+'|'+d.obj)===key):null;
- if(existing){existing.versions=existing.versions||[];existing.versions.push({at:existing.at,by:existing.by,raw:existing.raw,ver:existing.ver||1});existing.ver=(existing.ver||1)+1;existing.at=nowStr();existing.by=S.user?S.user.name:'-';existing.lang=DOC.docLang;existing.fname=DOC.fname;existing.raw=html;existing.to=meta.to;audit('Документ (версия v'+existing.ver+'): '+(meta.type||meta.t||''),(meta.no||'')+' · '+(meta.to||''));}
+ if(existing){existing.versions=existing.versions||[];existing.versions.push({at:existing.at,by:existing.by,raw:existing.raw,ver:existing.ver||1});existing.ver=(existing.ver||1)+1;existing.at=nowStr();existing.by=S.user?S.user.name:'-';existing.lang=DOC.docLang;existing.fname=DOC.fname;existing.raw=html;existing.to=meta.to;if(meta.form){existing.versions[existing.versions.length-1].form=existing.form||null;existing.form=meta.form;}audit('Документ (версия v'+existing.ver+'): '+(meta.type||meta.t||''),(meta.no||'')+' · '+(meta.to||''));}
  else{_doc++;DOCREG.unshift(Object.assign({id:'d'+_doc,by:S.user?S.user.name:'-',at:nowStr(),lang:DOC.docLang,fname:DOC.fname,status:'draft',ver:1,versions:[],raw:html},meta));audit('Документ: '+(meta.type||meta.t||''),(meta.no&&meta.no!=='-'?meta.no+' · ':'')+(meta.to||''));}
  persist();const hc=$('dochist');if(hc){hc.innerHTML=docHistoryHTML();localize();}}
 function setDocLang(l){DOC.docLang=l;DOC._langSet=true;docLangBtnsRefresh();
@@ -2110,13 +2129,34 @@ function setDocLang(l){DOC.docLang=l;DOC._langSet=true;docLangBtnsRefresh();
  if(DOC.raw)show(DOC.raw);}
 function docLangBtnsRefresh(){document.querySelectorAll('.doclang-btn').forEach(b=>b.classList.toggle('on',b.dataset.l===DOC.docLang));}
 function viewDoc(id){const r=DOCREG.find(x=>x.id===id);if(!r)return;DOC.t=r.t||'kp';DOC.fname=r.fname;if(r.lang){DOC.docLang=r.lang;DOC._langSet=true;}docLangBtnsRefresh();show(r.raw);const p=$('dprev');if(p&&p.scrollIntoView)p.scrollIntoView({behavior:'smooth',block:'center'});}
+/* перевыпуск КП: форма заполняется из сохранённого снимка, номер тот же — при формировании
+   старая версия уйдёт в историю (v1, v2, ...), отличия запишутся в историю помещений. */
+function reissueKP(id){const r=DOCREG.find(x=>x.id===id);if(!r||!r.form)return;const f=r.form;
+ DOC.uid=null;DOC.t='kp';if(S.view!=='docs'){go('docs');}
+ setTimeout(()=>{pickT('kp');setTimeout(()=>{
+  const set=(i,v)=>{const e=$(i);if(e!=null&&v!=null&&v!=='')e.value=v;};
+  set('f_obj',f.obj);if(typeof kCfg==='function')kCfg();
+  setTimeout(()=>{
+   set('f_no',f.no);set('f_valid',f.valid);set('f_addr',f.addr);set('f_ten',f.ten);
+   set('f_unit',f.unit);set('f_area',f.area);set('f_rate',f.rate);set('f_budget',f.budget);
+   if($('f_terr_on')){$('f_terr_on').checked=!!f.terrOn;}set('f_terr',f.terr);set('f_terrate',f.terrate);
+   if($('f_season'))$('f_season').checked=!!f.season;set('f_seasonm',f.seasonm);
+   set('f_rmodel',f.rmod);set('f_rstep',f.rstep);set('f_turn',f.turn);set('f_turnmin',f.turnmin);
+   set('f_inc',f.inc);set('f_sc',f.sc);set('f_vat',f.vat);set('f_vatr',f.vatr);
+   set('f_capx',f.capx);set('f_capxv',f.capxv);set('f_fit',f.fit);set('f_fitp',f.fitp);set('f_prep',f.prep);set('f_dep',f.dep);
+   set('f_cond',f.cond);set('f_special',f.special);set('f_sig',f.sig);
+   if(f.act){const a=$('f_act');if(a){const has=[...a.options].some(o=>o.value===f.act);if(has)a.value=f.act;else{a.value=[...a.options].map(o=>o.value).find(v=>v.indexOf('Другое')>=0)||a.value;const m=$('f_actm');if(m)m.value=f.act;}}}
+   if(typeof pricePrev==='function')pricePrev();
+   alert('Форма заполнена из КП '+f.no+' (текущая версия v'+(r.ver||1)+').\nИзмените условия (ставка, каникулы, график, срок ответа) и нажмите «Сформировать» — выйдет редакция v'+((r.ver||1)+1)+', предыдущая сохранится в истории.');
+  },120);
+ },120);},60);}
 const DSTAT=[['draft','Черновик'],['sent','Отправлен'],['acc','Принят'],['rej','Отклонён']];
 const DSTATCLS={draft:'draft',sent:'sent',acc:'acc',rej:'rej'};
 function setDocStatus(id,v){const r=DOCREG.find(x=>x.id===id);if(!r)return;r.status=v;persist();const hc=$('dochist');if(hc){hc.innerHTML=docHistoryHTML();localize();}}
 function docHistoryHTML(){
  const tlabel={kp:'КП',loi:'LOI',remind:'Напоминание'};
  if(!DOCREG.length)return `<div class="sect" style="margin-top:0">Реестр документов</div><div style="font-size:12px;color:var(--muted)">Пока не сформировано ни одного документа. Заполните форму слева и нажмите «${t('form')}» - документ появится здесь с автором, датой и кнопкой просмотра.</div>`;
- const rows=DOCREG.map(d=>`<tr><td><b>${esc(d.no&&d.no!=='-'?d.no:(tlabel[d.t]||d.type||'-'))}</b>${d.ver>1?` <span class="pill" title="${d.versions?d.versions.length:0} пред. версий">v${d.ver}</span>`:''}<div style="font-size:10px;color:#999">${esc(d.type||'')}</div></td><td>${esc(d.to||'-')}<div style="font-size:10px;color:#999">${esc(objById(d.obj)?objById(d.obj).name:'')}</div></td><td style="font-size:11px">${esc(d.by)}<div style="font-size:10px;color:#999">${esc(d.at)} · ${String(d.lang||'').toUpperCase()}</div></td><td><select onchange="setDocStatus('${d.id}',this.value)" style="font-family:inherit;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:6px">${DSTAT.map(s=>`<option value="${s[0]}"${(d.status||'draft')===s[0]?' selected':''}>${s[1]}</option>`).join('')}</select></td><td><button class="btn ghost sm" onclick="viewDoc('${d.id}')">Просмотр</button></td></tr>`).join('');
+ const rows=DOCREG.map(d=>`<tr><td><b>${esc(d.no&&d.no!=='-'?d.no:(tlabel[d.t]||d.type||'-'))}</b>${d.ver>1?` <span class="pill" title="${d.versions?d.versions.length:0} пред. версий">v${d.ver}</span>`:''}<div style="font-size:10px;color:#999">${esc(d.type||'')}</div></td><td>${esc(d.to||'-')}<div style="font-size:10px;color:#999">${esc(objById(d.obj)?objById(d.obj).name:'')}</div></td><td style="font-size:11px">${esc(d.by)}<div style="font-size:10px;color:#999">${esc(d.at)} · ${String(d.lang||'').toUpperCase()}</div></td><td><select onchange="setDocStatus('${d.id}',this.value)" style="font-family:inherit;font-size:11px;padding:3px 5px;border:1px solid var(--border);border-radius:6px">${DSTAT.map(s=>`<option value="${s[0]}"${(d.status||'draft')===s[0]?' selected':''}>${s[1]}</option>`).join('')}</select></td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="viewDoc('${d.id}')">Просмотр</button>${d.t==='kp'&&d.form?` <button class="btn ghost sm" onclick="reissueKP('${d.id}')" title="Перевыпустить это КП в новой редакции (встречное предложение арендатора и т.п.). Текущая версия сохранится в истории.">↻ Ред.</button>`:''}</td></tr>`).join('');
  return `<div class="sect" style="margin-top:0">Реестр документов <span class="mut" style="font-weight:500;color:var(--muted)">${DOCREG.length}</span></div><div class="tbl-scroll"><table><thead><tr><th>№ / тип</th><th>Кому</th><th>Кто / когда</th><th>Статус</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
 }
 const DOCMAP_UZ={'Коммерческое предложение / Договор намерения':'Tijoriy taklif / Niyat shartnomasi','Письмо о намерениях (LOI)':'Niyat xati (LOI)','Служебное напоминание':'Xizmat eslatmasi','Предлагаем помещение(я) на следующих условиях:':'Quyidagi shartlarda joy(lar) taklif qilamiz:','Благодарим за интерес к':'Qiziqishingiz uchun rahmat:','Со стороны Арендодателя':'Ijaraga beruvchi tomonidan','Со стороны Арендатора':'Ijarachi tomonidan','Со стороны Брокера (CASE)':'Broker (CASE) tomonidan','Оплата за обслуживание':'Xizmat haqi','Арендные каникулы (fit-out)':'Ijara taʼtili (fit-out)','Предоплата / депозит':'Avans / depozit','Период пользования':'Foydalanish muddati','Состояние при передаче':'Topshirishdagi holat','Коммунальные платежи':'Kommunal toʻlovlar','Как оплачивается':'Qanday toʻlanadi','Особые условия':'Maxsus shartlar','Повышение аренды':'Ijara oshishi','Аренда террасы':'Terrasa ijarasi','Базовая аренда':'Asosiy ijara','Дата передачи':'Topshirish sanasi','Помещение(я)':'Joy(lar)','Деятельность':'Faoliyat','Уважаемый(ая)':'Hurmatli','Арендатор:':'Ijarachi:','Объект:':'Obyekt:','С уважением':'Hurmat bilan','от имени':'nomidan','Площадь':'Maydon','Подпись':'Imzo','Дата':'Sana','действительно':'amal qiladi','Профиль ритейлера':'Riteyler profili','Контакты и условия':'Kontaktlar va shartlar','Требования к помещению':'Joyga talablar','Контактное лицо':'Aloqa shaxsi','Франшиза':'Franshiza','Формат':'Format','Телефон':'Telefon','Заметки':'Izohlar','Сайт':'Sayt'};
@@ -2218,7 +2258,7 @@ function pickT(k,uid){
    <label>Объект</label><select id="f_obj" onchange="kCfg()">${realObj}</select>
    <div class="row2"><div><label>№ КП</label><input id="f_no" value="CA/0001"></div><div><label>Дата</label><input id="f_date" value="${TODAY.toLocaleDateString('ru-RU')}"></div></div>
    <div class="row2"><div><label>Срок действия КП, дней</label><input id="f_valid" type="number" value="30"></div><div><label>Кому (ФИО)</label><input id="f_addr" placeholder="напр. Хайдаров А."></div></div>
-   <label>Арендатор / торговое название</label><input id="f_ten" value="${sel?(sel.vars[0]||''):''}">
+   <label>Арендатор / торговое название <span class="mut" style="font-weight:500">из Базы брендов · начните вводить для поиска</span></label><input id="f_ten" list="brandDL" value="${sel?(sel.vars[0]||''):''}" placeholder="начните вводить название бренда…">${brandDatalist()}
    <label>Помещение(я) — можно выбрать несколько</label><select multiple id="f_unitSel" size="5" onchange="unitSelMulti()" style="width:100%;font-family:inherit;font-size:13px;padding:6px;border:1px solid var(--border);border-radius:8px"></select><input id="f_unit" value="${sel?sel.code:''}" placeholder="или впишите вручную через запятую" style="margin-top:6px"><div style="font-size:10.5px;color:var(--muted);margin-top:3px">Ctrl/Cmd — выбор нескольких. Можно дополнить вручную.</div>
    <label>Деятельность</label><select id="f_act" onchange="document.getElementById('f_actm').style.display=this.value.indexOf('Другое')>=0?'block':'none'">${ACTS.map(a=>`<option value="${esc(a)}">${a}</option>`).join('')}</select><input id="f_actm" placeholder="ввести деятельность вручную" style="display:none;margin-top:6px">
    <div class="row2"><div><label>Площадь, м²</label><input id="f_area" type="number" value="${sel?sel.area:100}" oninput="pricePrev()"></div><div><label>Ставка, $/м² (предложение)</label><input id="f_rate" type="number" value="${sel&&sel.rate?sel.rate:20}" oninput="pricePrev()"></div></div>
@@ -2238,7 +2278,7 @@ function pickT(k,uid){
   UTILS.forEach(u=>umMethod(u[0]));
   kCfg();pricePrev();if($('f_sigSel'))sigSel($('f_sigSel').value);
  } else if(k==='loi'){
-  f.innerHTML=`<div class="form"><label>Тип LOI</label><select id="f_loitype" onchange="loiType()"><option value="unit">По помещению</option><option value="brand">Общее по бренду (сотрудничество)</option><option value="obj">Общее по объекту (сотрудничество с CASE)</option></select><label>Объект</label><select id="f_obj">${realObj}</select><label id="f_tenL">Арендатор / бренд</label><input id="f_ten" value="${sel?(sel.vars[0]||''):''}"><div id="loiunitbox"><label>Помещение</label><input id="f_unit" value="${sel?sel.code:''}"><div class="row2"><div><label>Площадь</label><input id="f_area" type="number" value="${sel?sel.area:100}"></div><div><label>Ставка</label><input id="f_rate" type="number" value="${sel&&sel.rate?sel.rate:20}"></div></div></div><label>Срок действия LOI, дней</label><input id="f_val" type="number" value="14">${docExtraFields()}<button class="btn" style="width:100%;margin-top:13px" onclick="genLOI()">${t('form')}</button></div>`;
+  f.innerHTML=`<div class="form"><label>Тип LOI</label><select id="f_loitype" onchange="loiType()"><option value="unit">По помещению</option><option value="brand">Общее по бренду (сотрудничество)</option><option value="obj">Общее по объекту (сотрудничество с CASE)</option></select><label>Объект</label><select id="f_obj">${realObj}</select><label id="f_tenL">Арендатор / бренд</label><input id="f_ten" list="brandDL" value="${sel?(sel.vars[0]||''):''}">${brandDatalist()}<div id="loiunitbox"><label>Помещение</label><input id="f_unit" value="${sel?sel.code:''}"><div class="row2"><div><label>Площадь</label><input id="f_area" type="number" value="${sel?sel.area:100}"></div><div><label>Ставка</label><input id="f_rate" type="number" value="${sel&&sel.rate?sel.rate:20}"></div></div></div><label>Срок действия LOI, дней</label><input id="f_val" type="number" value="14">${docExtraFields()}<button class="btn" style="width:100%;margin-top:13px" onclick="genLOI()">${t('form')}</button></div>`;
   if(sel)$('f_obj').value=sel.obj;
  } else {
   f.innerHTML=`<div class="form"><label>Объект</label><select id="f_obj">${realObj}</select><label>Арендатор</label><input id="f_ten" value="${DOC._ten||''}"><label>Тема</label><input id="f_sub" value="${DOC._sub||'Окончание срока договора'}"><label>Дата события</label><input id="f_date2" type="date" value="2026-09-01">${docExtraFields()}<button class="btn" style="width:100%;margin-top:13px" onclick="genREM()">${t('form')}</button></div>`;
@@ -2267,9 +2307,20 @@ function applyPricing(){const gv=id=>+(($(id)||{}).value)||0;const b=gv('f_budge
 function letter(tt){return `<div class="lh"><div class="b"><span class="c">CASE</span> Advisory</div><div class="meta">${tt}<br>${TODAY.toLocaleDateString('ru-RU')}<br>Ташкент · Центральная Азия</div></div>${companyReqs()}`;}
 function show(h){DOC.raw=h;DOC.last=docTr(h);const p=$('dprev');if(p)p.innerHTML=DOC.last;}
 function sign3(){return `<div class="sign"><div><b>Со стороны Арендодателя</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div><div><b>Со стороны Арендатора</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div><div><b>Со стороны Брокера (CASE)</b><br>Подпись ______<br>ФИО ______<br>Дата ______</div></div>`;}
+/* выпадающий список брендов (с поиском по вводу) для форм документов */
+function brandDatalist(){return `<datalist id="brandDL">${BRANDS.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name),'ru')).map(b=>`<option value="${esc(b.name)}">`).join('')}</datalist>`;}
+/* бренд обязан быть в Базе брендов — иначе предлагаем добавить (единая база = меньше опечаток и дублей) */
+function ensureBrandInBase(name){name=(name||'').trim();if(!name)return false;
+ if(BRANDS.some(b=>String(b.name).trim().toLowerCase()===name.toLowerCase()))return true;
+ if(!confirm('Бренда «'+name+'» нет в Базе брендов.\n\nДокументы формируются только по брендам из базы (так все агенты видят единый список и историю). Добавить «'+name+'» в базу сейчас и продолжить?'))return false;
+ const nb=brand({name,cat:'Услуги',sub:'',country:'',amin:0,amax:0,phone:'',email:'',site:'',ig:'',status:'target',notes:'Создан автоматически при формировании документа'});
+ nb.editedBy=S.user.name;nb.editedAt=iso(TODAY);nb.hist=[[iso(TODAY),S.user.name,'Создан при формировании документа']];
+ BRANDS.push(nb);audit('Создан бренд (из документа)',name);persist();return true;}
 function genKP(){
  const o=objById($('f_obj').value);
  const no=$('f_no').value||'-',date=$('f_date').value,valid=+$('f_valid').value||30,addr=$('f_addr').value||'________',ten=$('f_ten').value||'Арендатор';
+ if(!$('f_ten').value.trim()){alert('Укажите арендатора (бренд) — выберите из списка или начните вводить название.');return;}
+ if(!ensureBrandInBase(ten))return;
  let act=$('f_act').value;if(act.indexOf('Другое')>=0)act=$('f_actm').value||'-';
  const unit=$('f_unit').value||'-',area=+$('f_area').value||0,rate=+$('f_rate').value||0,budget=+(($('f_budget')||{}).value)||0;
  const terrOn=$('f_terr_on').checked,terr=+(($('f_terr')||{}).value)||0,terrate=+(($('f_terrate')||{}).value)||0,season=$('f_season')&&$('f_season').checked,seasonm=(($('f_seasonm')||{}).value)||'';
@@ -2285,6 +2336,21 @@ function genKP(){
  else if(rmod.indexOf('База')>=0)rentRow='<b>'+rate+' $/м²/мес</b> + <b>'+turn+'% от оборота</b> сверх порога. База <b>'+fmt(m1)+'/мес</b>.';
  else rentRow='<b>'+rate+' $/м²/мес</b>, итого <b>'+fmt(m1)+'/мес</b>.';
  const utils=UTILS.filter(u=>$('u_'+u[0])&&$('u_'+u[0]).checked).map(u=>{const meth=$('um_'+u[0]).value;const amt=(($('ua_'+u[0])||{}).value||'').trim();return '<tr><td>'+u[1]+'</td><td>'+meth+(amt?' · '+esc(amt):'')+'</td></tr>';}).join('');
+ /* снимок формы — для перевыпуска КП в новой редакции и сравнения «было → стало» */
+ const formSnap={obj:o.id,no,date,valid,addr,ten,act,unit,area,rate,budget,terrOn,terr,terrate,season,seasonm,rmod,rstep,turn,turnmin,inc,sc,vat,vatr,capx,capxv,fit,fitp,prep,dep,cond,special,sig};
+ /* если КП с таким номером уже существует — это новая редакция: считаем отличия для истории */
+ let revDiff='';let revN=1;
+ {const prev=DOCREG.find(d=>d.t==='kp'&&d.no===no&&d.obj===o.id);
+  if(prev){revN=(prev.ver||1)+1;
+   if(prev.form){const f=prev.form;const dd=[];
+    if(+f.rate!==+rate)dd.push('ставка '+f.rate+' → '+rate+' $/м²');
+    if(+f.budget!==+budget)dd.push('бюджет '+f.budget+' → '+budget);
+    if(+f.valid!==+valid)dd.push('срок '+f.valid+' → '+valid+' дн.');
+    if(+f.fit!==+fit)dd.push('каникулы '+(f.fit||0)+' → '+(fit||0)+' мес');
+    if(String(f.rmod)!==String(rmod))dd.push('модель аренды: «'+f.rmod+'» → «'+rmod+'»');
+    if(String(f.rstep||'')!==String(rstep||''))dd.push('график нарастания: «'+(f.rstep||'—')+'» → «'+(rstep||'—')+'»');
+    if(String(f.ten)!==String(ten))dd.push('арендатор «'+f.ten+'» → «'+ten+'»');
+    revDiff=dd.join('; ');}}}
  let mark='';
  /* КП — источник правды для ставки/статуса: обновляем ВСЕ помещения из поля «Помещение(я)»
     (включая массовое КП из реестра), а не только открытое из карточки. */
@@ -2292,26 +2358,31 @@ function genKP(){
   const targets=[];const seenIds={};
   codesList.forEach(c=>{const uu=U.find(x=>x.obj===o.id&&String(x.code).trim().toLowerCase()===c.toLowerCase());if(uu&&!seenIds[uu.id]){seenIds[uu.id]=1;targets.push(uu);}});
   if(DOC.uid){const uu=U.find(x=>x.id===DOC.uid);if(uu&&!seenIds[uu.id]){seenIds[uu.id]=1;targets.push(uu);}}
-  const conflicts=targets.filter(u=>u.offer&&u.offer.byUser!==S.user.u);
+  const conflicts=targets.filter(u=>u.offer&&u.offer.byUser!==S.user.u&&u.offer.to!==ten);
   if(conflicts.length&&!confirm('Внимание, уже предложено другим агентом:\n'+conflicts.map(u=>{const st=offerState(u);return u.code+' — '+u.offer.to+' (агент '+(u.offer.by||u.offer.role)+', '+(st?(st.days<0?'бронь просрочена':st.days+' дн. до окончания'):'бронь')+')';}).join('\n')+'\n\nСформировать ещё одно КП поверх?'))return;
   const marked=[];
+  const terms={fit:fit||0,fitp:fitp||'',rmod,rstep:rstep||''};
   targets.forEach(u=>{
    if(budget>0)u.budget=budget;
    if(rate>0){u.rate=rate;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}
-   u.offer={to:ten,role:S.role,by:S.user.name,byUser:S.user.u,date,no,validDays:valid,validUntil:addDaysISO(date,valid)};
+   const newOffer={to:ten,role:S.role,by:S.user.name,byUser:S.user.u,date,no,rate:rate||0,validDays:valid,validUntil:addDaysISO(date,valid),rev:revN,terms};
+   /* несколько одновременных предложений разным брендам: ведём список, по одному на бренд */
+   u.offers=(u.offers||[]).filter(x=>x.to!==ten&&x.no!==no);u.offers.push(newOffer);
+   u.offer=newOffer; /* последний — для совместимости (баннеры, канбан, воронка) */
    if(OCCK.indexOf(u.status)<0)u.status='off';
-   u.dates=(u.dates||[]).filter(d=>!/Окончание брони/.test(d[0]));
-   u.dates.push(['Окончание брони (КП '+no+')',u.offer.validUntil]);
-   u.hist.push([iso(TODAY),'КП '+no+': '+ten+' (агент '+S.user.name+(rate>0?', ставка '+rate+' $/м²':'')+', до '+u.offer.validUntil+')']);
+   u.dates=(u.dates||[]).filter(d=>!(d[0].indexOf('Окончание брони')===0&&d[0].indexOf('КП '+no)>=0));
+   u.dates.push(['Окончание брони (КП '+no+', '+ten+')',newOffer.validUntil]);
+   u.hist.push([iso(TODAY),(revN>1?'КП '+no+' ред.'+revN+(revDiff?' ('+revDiff+')':''):'КП '+no)+': '+ten+' (агент '+S.user.name+(rate>0?', ставка '+rate+' $/м²':'')+(terms.fit?', каникулы '+terms.fit+' мес':'')+(terms.rstep?', нарастающая: '+terms.rstep:'')+', ответ до '+newOffer.validUntil+')']);
    if(ten&&u.vars.indexOf(ten)<0)u.vars.push(ten);
    marked.push(u.code);
   });
-  if(marked.length){persist();mark='<br>✔ Реестр и планировка обновлены: '+marked.join(', ')+' — «Предложено» ('+esc(ten)+')'+(rate>0?', ставка '+rate+' $/м²':'')+', бронь до '+dateRU(addDaysISO(date,valid))+'. Видно всем агентам.';}
-  else if(codesList.length){mark='<br>⚠ Помещения '+codesList.join(', ')+' не найдены в реестре объекта «'+esc(o.name)+'» — реестр не обновлён. Проверьте коды.';}}
+  if(marked.length){persist();mark='<br>✔ Реестр и планировка обновлены: '+marked.join(', ')+' — «Предложено» ('+esc(ten)+')'+(rate>0?', ставка '+rate+' $/м²':'')+', ответ до '+dateRU(addDaysISO(date,valid))+(revN>1?'. Новая редакция v'+revN+(revDiff?': '+esc(revDiff):''):'')+'. Видно всем агентам.';}
+  else if(codesList.length){mark='<br>⚠ Помещения '+codesList.join(', ')+' не найдены в реестре объекта «'+esc(o.name)+'» — реестр не обновлён. Проверьте коды.';}
+  if(revN>1)audit('КП: новая редакция',no+' v'+revN+(revDiff?' — '+revDiff:''));}
  const ex=docExtras();
  DOC.fname='KP_'+no.replace(/\W+/g,'_')+'_'+ten.replace(/\W+/g,'_');
  const mno=/(\d+)\s*$/.exec(no);KPSEQ[o.id]=mno?Math.max(KPSEQ[o.id]||0,+mno[1]):((KPSEQ[o.id]||0)+1);
- genEmit({t:'kp',type:'Коммерческое предложение / Договор намерения',no:no,to:ten,obj:o.id},`${letter('Коммерческое предложение / Договор намерения')}<div style="text-align:right;font-size:11px;color:#555">${date} · № ${no} · действительно ${valid} дн.</div><h2>Коммерческое предложение / Договор намерения</h2><p>Уважаемый(ая) <b>${addr}</b>,</p><p>Арендатор: <b>${ten}</b> · Объект: <b>${o.ru}</b></p>${ex.introP}<p>Благодарим за интерес к ${o.ru}. Предлагаем помещение(я) на следующих условиях:</p><table><tr><td style="width:38%">Помещение(я)</td><td>${unit}</td></tr><tr><td>Площадь</td><td>${fmtA(area)} м²${terrOn?' + терраса '+fmtA(terr)+' м²'+(season?' (сезонно: '+(seasonm||'-')+')':''):''}; после стройработ перезамер +/- 10%</td></tr><tr><td>Деятельность</td><td>${act}</td></tr><tr><td>Базовая аренда</td><td>${rentRow} Оплата в ${o.cur}.</td></tr>${terrOn?'<tr><td>Аренда террасы</td><td>'+terrate+' $/м²/мес, итого '+fmt(mt)+'/мес'+(season?'; сезонно ('+(seasonm||'-')+')':'')+'</td></tr>':''}<tr><td>НДС</td><td>${vatTxt}</td></tr><tr><td>Повышение аренды</td><td>не более ${inc}% и не чаще раза в год</td></tr><tr><td>Оплата за обслуживание</td><td>${sc}% от аренды, отдельно</td></tr><tr><td>CAPEX</td><td>${capx}${capxv&&capxv!=='-'?' · '+capxv:''}</td></tr><tr><td>Арендные каникулы (fit-out)</td><td>${fit} мес${fitp?' ('+fitp+')':''}</td></tr><tr><td>Предоплата / депозит</td><td>${prep} мес аванс / ${dep} мес депозит</td></tr><tr><td>Период пользования</td><td>5 лет со дня открытия (подлежит согласованию)</td></tr><tr><td>Состояние при передаче</td><td>${cond}</td></tr></table><div style="page-break-before:always;height:0"></div><h2 style="font-size:13px;margin-top:14px">Коммунальные платежи</h2><table><tr><td style="width:38%;font-weight:700">Вид</td><td style="font-weight:700">Как оплачивается</td></tr>${utils||'<tr><td colspan="2">по договорённости</td></tr>'}</table><h2 style="font-size:13px;margin-top:14px">Особые условия</h2><p>${special}</p><p style="margin-top:8px">Для принятия подпишите и верните с: 3 экз. с печатью; предоплатой; копией паспорта; копией лицензии (юр. лица). Предложение действительно ${valid} дней.</p>${ex.thanksP}<p style="margin-top:12px">С уважением,<br>от имени <b>${o.ru}</b><br>${sig}<br>Case Real Estate Advisory</p>${ex.contactB}${sign3()}<div class="note">Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис. Word: кнопка «${t('word')}».${mark}</div>`);
+ genEmit({t:'kp',type:'Коммерческое предложение / Договор намерения',no:no,to:ten,obj:o.id,form:formSnap},`${letter('Коммерческое предложение / Договор намерения')}<div style="text-align:right;font-size:11px;color:#555">${date} · № ${no} · действительно ${valid} дн.</div><h2>Коммерческое предложение / Договор намерения</h2><p>Уважаемый(ая) <b>${addr}</b>,</p><p>Арендатор: <b>${ten}</b> · Объект: <b>${o.ru}</b></p>${ex.introP}<p>Благодарим за интерес к ${o.ru}. Предлагаем помещение(я) на следующих условиях:</p><table><tr><td style="width:38%">Помещение(я)</td><td>${unit}</td></tr><tr><td>Площадь</td><td>${fmtA(area)} м²${terrOn?' + терраса '+fmtA(terr)+' м²'+(season?' (сезонно: '+(seasonm||'-')+')':''):''}; после стройработ перезамер +/- 10%</td></tr><tr><td>Деятельность</td><td>${act}</td></tr><tr><td>Базовая аренда</td><td>${rentRow} Оплата в ${o.cur}.</td></tr>${terrOn?'<tr><td>Аренда террасы</td><td>'+terrate+' $/м²/мес, итого '+fmt(mt)+'/мес'+(season?'; сезонно ('+(seasonm||'-')+')':'')+'</td></tr>':''}<tr><td>НДС</td><td>${vatTxt}</td></tr><tr><td>Повышение аренды</td><td>не более ${inc}% и не чаще раза в год</td></tr><tr><td>Оплата за обслуживание</td><td>${sc}% от аренды, отдельно</td></tr><tr><td>CAPEX</td><td>${capx}${capxv&&capxv!=='-'?' · '+capxv:''}</td></tr><tr><td>Арендные каникулы (fit-out)</td><td>${fit} мес${fitp?' ('+fitp+')':''}</td></tr><tr><td>Предоплата / депозит</td><td>${prep} мес аванс / ${dep} мес депозит</td></tr><tr><td>Период пользования</td><td>5 лет со дня открытия (подлежит согласованию)</td></tr><tr><td>Состояние при передаче</td><td>${cond}</td></tr></table><div style="page-break-before:always;height:0"></div><h2 style="font-size:13px;margin-top:14px">Коммунальные платежи</h2><table><tr><td style="width:38%;font-weight:700">Вид</td><td style="font-weight:700">Как оплачивается</td></tr>${utils||'<tr><td colspan="2">по договорённости</td></tr>'}</table><h2 style="font-size:13px;margin-top:14px">Особые условия</h2><p>${special}</p><p style="margin-top:8px">Для принятия подпишите и верните с: 3 экз. с печатью; предоплатой; копией паспорта; копией лицензии (юр. лица). Предложение действительно ${valid} дней.</p>${ex.thanksP}<p style="margin-top:12px">С уважением,<br>от имени <b>${o.ru}</b><br>${sig}<br>Case Real Estate Advisory</p>${ex.contactB}${sign3()}<div class="note">Сформировано в CASE OS по реальному формату CASE (образец Creative Avenue - KFC). Тире - дефис. Word: кнопка «${t('word')}».${mark}</div>`);
 }
 function genLOI(){
  const ty=$('f_loitype').value,o=objById($('f_obj').value),ten=$('f_ten').value||'-',val=+$('f_val').value||14;
