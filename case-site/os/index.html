@@ -246,7 +246,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.30';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.31';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -783,7 +783,10 @@ async function doLogin(){
    if(!email){loginErr(loginT('needemail'));return;}
    if(!_otpSent){ /* шаг 1: запросить код на почту */
     btn.disabled=true;try{await apiPOST('auth.php',{action:'request_code',email});_otpSent=true;loginErr('');updateLoginUI();const h=$('l_hint');if(h){h.textContent=loginT('sent')+email+loginT('sent2');}const c=$('lcode');if(c){c.value='';setTimeout(()=>c.focus(),50);}}
-    catch(e){const m=e&&e.message||'';loginErr(/Неизвестное действие/.test(m)?'Файлы на сервере обновлены не полностью: загрузите на хостинг ВСЮ папку os/api из архива (auth.php старой версии не знает вход по коду).':m||'Ошибка отправки кода');}finally{btn.disabled=false;}return;}
+    catch(e){const m=e&&e.message||'';
+     if(/Код уже отправлен/.test(m)){ /* код уже в почте — откроем поле ввода, чтобы его можно было ввести сразу */
+      _otpSent=true;updateLoginUI();loginErr(m+' Если письмо с кодом уже пришло — введите код ниже.');const c=$('lcode');if(c)setTimeout(()=>c.focus(),50);}
+     else loginErr(/Неизвестное действие/.test(m)?'Файлы на сервере обновлены не полностью: загрузите на хостинг ВСЮ папку os/api из архива (auth.php старой версии не знает вход по коду).':m||'Ошибка отправки кода');}finally{btn.disabled=false;}return;}
    const code=$('lcode').value.trim(); /* шаг 2: проверить код */
    if(!code){loginErr(loginT('needcode'));return;}
    btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'verify_code',email,code});_otpSent=false;$('lcode').value='';await enterWithServerUser(j.user,j.rights);}
