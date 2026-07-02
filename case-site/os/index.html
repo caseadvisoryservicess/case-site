@@ -246,7 +246,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.22';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.23';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -687,8 +687,8 @@ let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',st
 /* Личные настройки экрана (язык, тема, текущий объект/раздел) — хранятся ТОЛЬКО в этом браузере,
    отдельно от общих данных компании, чтобы смена языка/раздела одним сотрудником не влияла на других. */
 const UI_KEY=STORAGE_KEY+'-ui';
-function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames}));}catch(e){}}
-function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;}catch(e){}}
+function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1}));}catch(e){}}
+function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;}catch(e){}}
 /* ===== Краткие / полные имена и должности — личная настройка отображения (не меняет данные) ===== */
 const ROLE_SHORT={ASH:'Ген. директор',ADM:'Админ',BA:'Дир. аренды',AG:'Агент',AGX:'Внеш. агент',HO:'Адм. аренды',BSH:'Архитектор',HM:'Консультант',CFO:'Финдиректор'};
 function roleShortLabel(rk){return ROLE_SHORT[rk]||(ROLES[rk]&&ROLES[rk].label)||rk||'';}
@@ -1326,7 +1326,8 @@ function bindSvgPlan(host,objId,block,floor){
  const NS='http://www.w3.org/2000/svg';
  /* адаптивный размер подписи: по типичному расстоянию между помещениями */
  let md=0;{const cs=codeEls.map(e=>e.c).filter(Boolean);const ds=[];for(let i=0;i<cs.length;i++){let best=Infinity;for(let j=0;j<cs.length;j++){if(i!==j){const d=Math.hypot(cs[i].x-cs[j].x,cs[i].y-cs[j].y);if(d<best)best=d;}}if(isFinite(best))ds.push(best);}ds.sort((a,b)=>a-b);md=ds.length?ds[Math.floor(ds.length/2)]:0;}
- let fs=md?md*0.15:vbw*0.011;fs=Math.max(Math.min(fs,vbw*0.02),vbw*0.0035);if(!isFinite(fs)||fs<=0)fs=Math.max(8,vbw*0.01);
+ let fs=md?md*0.13:vbw*0.009;fs=Math.max(Math.min(fs,vbw*0.012),vbw*0.0035);if(!isFinite(fs)||fs<=0)fs=Math.max(8,vbw*0.009);
+ fs*=(S.planLabelScale||1); /* пользовательский размер подписей: кнопки А− / А+ на странице планировок */
  const lh=fs*1.2,pad=fs*0.45;
  const POS=PLAN_LABELPOS[planKey(objId,block,floor)]||(PLAN_LABELPOS[planKey(objId,block,floor)]={});
  const drawLabel=(c,u)=>{const lines=[u.code,(u.vars[0]||u.sub||'').slice(0,18),fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
@@ -1388,7 +1389,8 @@ function uploadPresentation(){if(!(R().edit||R().admin||R().plans))return;const 
   go('plans');};
  r.readAsDataURL(f);};inp.click();}
 function deletePresentation(){if(!(R().edit||R().admin||R().plans))return;if(!confirm('Удалить презентацию проекта для «'+curObj().name+'»?'))return;delete PROJECT_PPT[S.obj];audit('Удалена презентация',curObj().name);persist();go('plans');}
-function planTools(){const can=(R().edit||R().admin||R().plans);const blk=curBlock();const fl=curFloor();const up=planFor(S.obj,blk,fl);const fln=(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»';const b=up?`<div class="banner ok">✔ Чертёж (${esc(fln)}) загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${can?' <button class="btn ghost sm" style="margin-left:8px" onclick="clearPlan()">Удалить</button>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()">⬆ Загрузить чертёж (${esc(fln)}) (SVG / PNG)</button> <span style="font-size:11px;color:var(--muted)">SVG с id = код помещения · план виден всем</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружают сотрудники с правом правок - план виден всем.</span>`;const auto=(can&&R().edit&&up&&up.kind==='svg')?` <button class="btn ghost sm" onclick="autoUnitsFromPlan()">✚ Создать помещения из чертежа</button>`:'';const at=(R().edit&&S.obj!=='ALL')?` <button class="btn ghost sm" onclick="areaTransferForm()">✂ Перераспределить площадь</button>`:'';const showsLbl=(up&&up.kind==='svg')||(S.obj==='zm'&&curFloor()==='2 этаж');const lbl=showsLbl?` <button class="btn ghost sm" onclick="togglePlanLabels()">${S.planLabels===false?'👁 Показать подписи':'🛇 Скрыть подписи (видеть оригинал)'}</button>`:'';return b+`<div style="margin-bottom:6px">${x}${auto}${lbl}${at}</div>`;}
+function planTools(){const can=(R().edit||R().admin||R().plans);const blk=curBlock();const fl=curFloor();const up=planFor(S.obj,blk,fl);const fln=(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»';const b=up?`<div class="banner ok">✔ Чертёж (${esc(fln)}) загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${can?' <button class="btn ghost sm" style="margin-left:8px" onclick="clearPlan()">Удалить</button>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()">⬆ Загрузить чертёж (${esc(fln)}) (SVG / PNG)</button> <span style="font-size:11px;color:var(--muted)">SVG с id = код помещения · план виден всем</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружают сотрудники с правом правок - план виден всем.</span>`;const auto=(can&&R().edit&&up&&up.kind==='svg')?` <button class="btn ghost sm" onclick="autoUnitsFromPlan()">✚ Создать помещения из чертежа</button>`:'';const at=(R().edit&&S.obj!=='ALL')?` <button class="btn ghost sm" onclick="areaTransferForm()">✂ Перераспределить площадь</button>`:'';const showsLbl=(up&&up.kind==='svg')||(S.obj==='zm'&&curFloor()==='2 этаж');const lbl=showsLbl?` <button class="btn ghost sm" onclick="togglePlanLabels()">${S.planLabels===false?'👁 Показать подписи':'🛇 Скрыть подписи (видеть оригинал)'}</button>`:'';const sz=(showsLbl&&S.planLabels!==false)?` <button class="btn ghost sm" onclick="planLabelSize(-1)" title="Уменьшить подписи на плане">А−</button><button class="btn ghost sm" onclick="planLabelSize(1)" title="Увеличить подписи на плане">А+</button>`:'';return b+`<div style="margin-bottom:6px">${x}${auto}${lbl}${sz}${at}</div>`;}
+function planLabelSize(dir){const steps=[0.6,0.75,0.9,1,1.15,1.35,1.6];const cur=S.planLabelScale||1;let i=steps.reduce((bi,v,ix)=>Math.abs(v-cur)<Math.abs(steps[bi]-cur)?ix:bi,0);i=Math.max(0,Math.min(steps.length-1,i+dir));S.planLabelScale=steps[i];saveUiPrefs();go('plans');}
 function togglePlanLabels(){S.planLabels=(S.planLabels===false);renderPlans();}
 let PLAN_MSG='';
 /* Чертежи из AutoCAD/DWG часто содержат: (1) «слипшуюся» двойную UTF-8/Latin-1 кодировку кириллицы
