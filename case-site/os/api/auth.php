@@ -24,17 +24,59 @@ if ($_SERVER['REQUEST_METHOD']==='GET') {
   json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 
-// Отправка письма с кодом. На cPanel работает штатный mail(); при необходимости
-// адрес отправителя задаётся в config.php: 'mail_from' => 'no-reply@ваш-домен'.
+// Минимальный SMTP-клиент (без внешних библиотек): порт 465 (ssl), 587 (tls/STARTTLS)
+// или без шифрования (none — только для локальных тестов).
+function smtp_send(array $smtp, string $from, string $to, string $subject, string $body): bool {
+  $host = $smtp['host'] ?? ''; if (!$host) return false;
+  $port = (int)($smtp['port'] ?? 465);
+  $secure = $smtp['secure'] ?? 'ssl';
+  $user = (string)($smtp['user'] ?? ''); $pass = (string)($smtp['pass'] ?? '');
+  $timeout = 12;
+  $remote = ($secure === 'ssl' ? 'ssl://' : '').$host.':'.$port;
+  $fp = @stream_socket_client($remote, $errno, $errstr, $timeout);
+  if (!$fp) return false;
+  stream_set_timeout($fp, $timeout);
+  $read = function() use ($fp) { $d=''; while (($l = fgets($fp, 515)) !== false) { $d .= $l; if (strlen($l) < 4 || $l[3] !== '-') break; } return $d; };
+  $cmd  = function($c) use ($fp, $read) { fwrite($fp, $c."\r\n"); return $read(); };
+  $is   = function($resp, $codes) { return in_array(substr($resp, 0, 3), (array)$codes, true); };
+  $bye  = function() use ($fp) { @fclose($fp); return false; };
+  if (!$is($read(), '220')) return $bye();
+  if (!$is($cmd('EHLO caseos.local'), '250')) return $bye();
+  if ($secure === 'tls') {
+    if (!$is($cmd('STARTTLS'), '220')) return $bye();
+    if (!@stream_socket_enable_crypto($fp, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) return $bye();
+    if (!$is($cmd('EHLO caseos.local'), '250')) return $bye();
+  }
+  if ($user !== '') {
+    if (!$is($cmd('AUTH LOGIN'), '334')) return $bye();
+    if (!$is($cmd(base64_encode($user)), '334')) return $bye();
+    if (!$is($cmd(base64_encode($pass)), '235')) return $bye();
+  }
+  if (!$is($cmd('MAIL FROM:<'.$from.'>'), '250')) return $bye();
+  if (!$is($cmd('RCPT TO:<'.$to.'>'), ['250','251'])) return $bye();
+  if (!$is($cmd('DATA'), '354')) return $bye();
+  $headers = "From: CASE OS <$from>\r\nTo: <$to>\r\nSubject: $subject\r\nMIME-Version: 1.0\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Transfer-Encoding: 8bit\r\nDate: ".date('r');
+  $msg = $headers."\r\n\r\n".str_replace("\n.", "\n..", $body)."\r\n.";
+  if (!$is($cmd($msg), '250')) return $bye();
+  $cmd('QUIT'); @fclose($fp);
+  return true;
+}
+// Отправка письма с кодом. Приоритет: SMTP из config.php ('smtp' => [...]) — самый
+// надёжный путь на хостинге; иначе штатный mail(). Отправитель: 'mail_from'.
 // Для локальной отладки: 'mail_debug_file' => '/путь/файл' — код пишется в файл.
 function send_login_code(string $email, string $code): bool {
   $cfg = cfg();
   $subject = '=?UTF-8?B?'.base64_encode('Код входа в CASE OS').'?=';
   $body = "Ваш код для входа в CASE OS: $code\n\nКод действует 10 минут. Если вы не запрашивали вход — просто проигнорируйте это письмо.";
-  $from = $cfg['mail_from'] ?? ('no-reply@'.preg_replace('/^www\./','',$_SERVER['HTTP_HOST'] ?? 'caseadvisory.uz'));
-  $headers = "From: CASE OS <$from>\r\nContent-Type: text/plain; charset=utf-8\r\nMIME-Version: 1.0";
+  $from = $cfg['mail_from'] ?? ($cfg['smtp']['user'] ?? ('no-reply@'.preg_replace('/^www\./','',$_SERVER['HTTP_HOST'] ?? 'caseadvisory.uz')));
   $sent = false;
-  try { $sent = @mail($email, $subject, $body, $headers); } catch (Throwable $e) {}
+  if (!empty($cfg['smtp']['host'])) {
+    try { $sent = smtp_send($cfg['smtp'], $from, $email, $subject, $body); } catch (Throwable $e) {}
+  }
+  if (!$sent) {
+    $headers = "From: CASE OS <$from>\r\nContent-Type: text/plain; charset=utf-8\r\nMIME-Version: 1.0";
+    try { $sent = @mail($email, $subject, $body, $headers); } catch (Throwable $e) {}
+  }
   if (!empty($cfg['mail_debug_file'])) { @file_put_contents($cfg['mail_debug_file'], date('c')." $email $code\n", FILE_APPEND); $sent = true; }
   return (bool)$sent;
 }
@@ -75,7 +117,7 @@ if ($a==='request_code') {
   db()->prepare('DELETE FROM login_codes WHERE email=?')->execute([$email]);
   db()->prepare('INSERT INTO login_codes (email,code_hash,expires_at,attempts,created_at) VALUES (?,?,?,0,?)')
     ->execute([$email, password_hash($code, PASSWORD_DEFAULT), date('Y-m-d H:i:s', time()+600), date('Y-m-d H:i:s')]);
-  if (!send_login_code($email, $code)) fail('Не удалось отправить письмо. Попробуйте вход по паролю или обратитесь к администратору.', 500);
+  if (!send_login_code($email, $code)) fail('Хостинг не отправил письмо. Администратору: 1) создайте почтовый ящик (например no-reply@ваш-домен) в cPanel → Email Accounts; 2) пропишите его SMTP-данные в os/api/config.php (блок smtp — образец в config.sample.php). Аварийно можно временно включить вход по паролю: allow_password_login => true.', 500);
   audit('Запрошен код входа', $email);
   json_out(['ok'=>true]);
 }
