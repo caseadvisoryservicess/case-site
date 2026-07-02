@@ -182,7 +182,10 @@ body.dark .kcard{background:#262420}
     <input id="lemail" type="email" autocomplete="username" style="display:none" placeholder="you@caseadvisory.uz">
     <label id="l_pass">Пароль</label>
     <input id="lpass" type="password" autocomplete="current-password" value="demo">
+    <label id="l_code" style="display:none">Код из письма</label>
+    <input id="lcode" inputmode="numeric" autocomplete="one-time-code" maxlength="6" style="display:none" placeholder="123456">
     <button class="go" id="l_go" onclick="doLogin()">Войти</button>
+    <div class="hint" id="l_alt" style="display:none;margin-top:8px"></div>
     <div class="lng"><button id="lng_ru" class="on" onclick="setLang('ru')">RU</button><button id="lng_uz" onclick="setLang('uz')">UZ</button><button id="lng_en" onclick="setLang('en')">EN</button></div>
     <div class="hint" id="l_hint"></div>
   </div>
@@ -230,7 +233,7 @@ const I18N={
 let LANG='ru';
 const t=k=>(I18N[LANG][k]||I18N.ru[k]||k);
 function setLang(l){LANG=l;$('lng_ru')&&$('lng_ru').classList.toggle('on',l==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',l==='uz');$('lng_en')&&$('lng_en').classList.toggle('on',l==='en');applyLoginLang();try{saveUiPrefs();}catch(e){}}
-function applyLoginLang(){$('l_user').textContent=t('user');$('l_pass').textContent=t('pass');$('l_go').textContent=t('enter');$('l_hint').textContent=t('hint');}
+function applyLoginLang(){$('l_user').textContent=t('user');$('l_pass').textContent=t('pass');$('l_go').textContent=t('enter');$('l_hint').textContent=t('hint');try{if(typeof BACKEND!=='undefined'&&BACKEND&&typeof updateLoginUI==='function')updateLoginUI();}catch(e){}}
 const LANG_CYCLE=['ru','uz','en'];
 function toggleLang(){const i=LANG_CYCLE.indexOf(LANG);LANG=LANG_CYCLE[(i+1)%LANG_CYCLE.length];$('langTop').textContent=LANG_CYCLE[(LANG_CYCLE.indexOf(LANG)+1)%LANG_CYCLE.length].toUpperCase();
  if($('whoRole'))$('whoRole').textContent=roleDisplay(S.role);if($('whoName'))$('whoName').firstChild.textContent=nameDisplay(S.user.name);
@@ -243,7 +246,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='2.20';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='2.21';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='case-os-demo-state-v7';
 if(location.search.indexOf('resetDemo=1')>=0){try{if(confirm('Сбросить демо-данные в этом браузере? Текущие изменения будут удалены.'))localStorage.removeItem(STORAGE_KEY);history.replaceState(null,'',location.pathname);}catch(e){}}
 /* ===== Бэкенд (PHP+MySQL). Если недоступен — работает демо-режим (localStorage) ===== */
@@ -726,11 +729,41 @@ function clearSearch(){const q=$('gq'),d=$('gdrop');if(q)q.value='';if(d){d.inne
 function globalSearch(q){const d=$('gdrop');if(!d)return;q=(q||'').trim().toLowerCase();if(q.length<2){d.classList.remove('open');d.innerHTML='';return;}const unitHits=U.filter(u=>(u.code+' '+u.vars.join(' ')+' '+u.cat+' '+u.sub+' '+(u.offer?.no||'')).toLowerCase().includes(q)).slice(0,5);const brandHits=BRANDS.filter(b=>(b.name+' '+b.cat+' '+b.country+' '+b.status).toLowerCase().includes(q)).slice(0,5);const rows=[...unitHits.map(u=>`<div class="gitem" onclick="S.obj='${u.obj}';rebuildObjSel();go('registry');setTimeout(()=>openUnit('${u.id}'),40);clearSearch()"><div><b>${hlt(u.code,q)}</b><small>${esc(objById(u.obj).name)} · ${hlt(u.vars[0]||u.sub,q)}</small></div><span class="kind">LCR</span></div>`),...brandHits.map(b=>`<div class="gitem" onclick="go('brands');setTimeout(()=>openBrand('${b.id}'),40);clearSearch()"><div><b>${hlt(b.name,q)}</b><small>${hlt(b.cat,q)} · ${hlt(b.country||'-',q)}</small></div><span class="kind">BRAND</span></div>`)];d.innerHTML=rows.join('')||'<div class="gitem"><div><b>Ничего не найдено</b><small>Попробуйте код помещения или бренд.</small></div></div>';d.classList.add('open');}
 
 /* ===== LOGIN ===== */
+let LOGIN_METHOD='code',_otpSent=false; /* вход по коду из письма (по умолчанию) или по паролю */
+function loginT(k){const D={
+ getcode:{ru:'Получить код',uz:'Kod olish',en:'Get code'},
+ enter:{ru:'Войти',uz:'Kirish',en:'Sign in'},
+ code:{ru:'Код из письма',uz:'Xatdagi kod',en:'Code from email'},
+ sent:{ru:'Код отправлен на ',uz:'Kod yuborildi: ',en:'Code sent to '},
+ sent2:{ru:' (действует 10 минут). Если письма нет — проверьте «Спам».',uz:' (10 daqiqa amal qiladi). Xat kelmasa — «Spam»ni tekshiring.',en:' (valid for 10 minutes). Check Spam if it is missing.'},
+ usepass:{ru:'Войти по паролю',uz:'Parol bilan kirish',en:'Sign in with password'},
+ usecode:{ru:'Войти по коду из письма',uz:'Email kodi bilan kirish',en:'Sign in with a code from email'},
+ resend:{ru:'Отправить код ещё раз',uz:'Kodni qayta yuborish',en:'Resend code'},
+ hintcode:{ru:'Введите рабочий email — пришлём одноразовый код для входа.',uz:'Ish emailingizni kiriting — kirish uchun bir martalik kod yuboramiz.',en:'Enter your work email — we will send a one-time sign-in code.'},
+ hintpass:{ru:'Вход по рабочему email и паролю.',uz:'Ish email va parol bilan kirish.',en:'Sign in with your work email and password.'},
+ needemail:{ru:'Введите email.',uz:'Email kiriting.',en:'Enter your email.'},
+ needcode:{ru:'Введите код из письма.',uz:'Xatdagi kodni kiriting.',en:'Enter the code from the email.'},
+ needpass:{ru:'Введите email и пароль.',uz:'Email va parolni kiriting.',en:'Enter email and password.'}
+};const o=D[k];return o?(o[LANG]||o.ru):k;}
+function updateLoginUI(){
+ if(!BACKEND)return;
+ const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
+ const isCode=LOGIN_METHOD==='code';
+ show('l_pass',!isCode);show('lpass',!isCode);
+ show('l_code',isCode&&_otpSent);show('lcode',isCode&&_otpSent);
+ const lc=$('l_code');if(lc)lc.textContent=loginT('code');
+ const go=$('l_go');if(go)go.textContent=isCode?(_otpSent?loginT('enter'):loginT('getcode')):loginT('enter');
+ const alt=$('l_alt');if(alt){alt.style.display='';alt.innerHTML=isCode?((_otpSent?`<a href="#" onclick="otpResend();return false" style="color:var(--red-d)">${esc(loginT('resend'))}</a> · `:'')+`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--muted)">${esc(loginT('usepass'))}</a>`):`<a href="#" onclick="toggleLoginMethod();return false" style="color:var(--red-d)">${esc(loginT('usecode'))}</a>`;}
+ const h=$('l_hint');if(h&&!h.dataset.err){h.style.color='';h.textContent=isCode?loginT('hintcode'):loginT('hintpass');}
+}
+function toggleLoginMethod(){LOGIN_METHOD=(LOGIN_METHOD==='code')?'pass':'code';_otpSent=false;const c=$('lcode');if(c)c.value='';const h=$('l_hint');if(h)delete h.dataset.err;loginErr('');updateLoginUI();}
+async function otpResend(){_otpSent=false;updateLoginUI();await doLogin();}
 function setLoginMode(backend){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
  show('l_user',!backend);show('luser',!backend);show('l_email',backend);show('lemail',backend);
  const lp=$('lpass');if(lp){lp.value=backend?'':'demo';}const h=$('l_hint');
- if(h)h.textContent=backend?'Вход по рабочему email и паролю.':'Демо‑режим: выберите роль и нажмите «Войти».';}
-function loginErr(msg){const h=$('l_hint');if(h){h.textContent=msg;h.style.color='var(--red,#c0392b)';}}
+ if(backend){if(h){delete h.dataset.err;h.style.color='';}updateLoginUI();}
+ else{show('l_pass',true);show('lpass',true);show('l_code',false);show('lcode',false);show('l_alt',false);if(h)h.textContent='Демо‑режим: выберите роль и нажмите «Войти».';}}
+function loginErr(msg){const h=$('l_hint');if(h){if(msg){h.dataset.err='1';h.textContent=msg;h.style.color='var(--red,#c0392b)';}else{delete h.dataset.err;h.textContent='';h.style.color='';}}}
 function serverRightChips(r){const m=[['leasing','Аренда'],['finance','Финансы / NOI'],['edit','Правки реестра'],['approve','Виза по ставкам'],['plans','Планы'],['own_only','Только свои сделки'],['project_scope','Только назначенные проекты'],['admin','Администрирование']];return m.filter(x=>r[x[0]]).map(x=>x[1]);}
 function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
  if(!ROLES[S.role])ROLES[S.role]={label:user.role_label||user.role,rights:[]};
@@ -745,13 +778,23 @@ async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false)
  catch(e){BACKEND=false;setLoginMode(false);}}
 initAuth();
 async function doLogin(){
- if(BACKEND){const email=$('lemail').value.trim(),pass=$('lpass').value,btn=$('l_go');
-  if(!email||!pass){loginErr('Введите email и пароль.');return;}
+ if(BACKEND){const email=$('lemail').value.trim(),btn=$('l_go');
+  if(LOGIN_METHOD==='code'){
+   if(!email){loginErr(loginT('needemail'));return;}
+   if(!_otpSent){ /* шаг 1: запросить код на почту */
+    btn.disabled=true;try{await apiPOST('auth.php',{action:'request_code',email});_otpSent=true;loginErr('');updateLoginUI();const h=$('l_hint');if(h){h.textContent=loginT('sent')+email+loginT('sent2');}const c=$('lcode');if(c){c.value='';setTimeout(()=>c.focus(),50);}}
+    catch(e){loginErr(e&&e.message||'Ошибка отправки кода');}finally{btn.disabled=false;}return;}
+   const code=$('lcode').value.trim(); /* шаг 2: проверить код */
+   if(!code){loginErr(loginT('needcode'));return;}
+   btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'verify_code',email,code});_otpSent=false;$('lcode').value='';await enterWithServerUser(j.user,j.rights);}
+   catch(e){loginErr(e&&e.message||'Ошибка входа');}finally{btn.disabled=false;}return;}
+  const pass=$('lpass').value;
+  if(!email||!pass){loginErr(loginT('needpass'));return;}
   btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});await enterWithServerUser(j.user,j.rights);}
   catch(e){loginErr(e&&e.message||'Ошибка входа');}finally{btn.disabled=false;}return;}
  S.role=$('luser').value;S.user=USERS.find(x=>x.role===S.role);$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
 function logout(){if(BACKEND){try{flushState();}catch(e){}apiPOST('auth.php',{action:'logout'}).catch(()=>{});}
- $('app').classList.add('hidden');$('login').classList.remove('hidden');if(BACKEND){$('lpass').value='';loginErr('');setLoginMode(true);}}
+ $('app').classList.add('hidden');$('login').classList.remove('hidden');if(BACKEND){$('lpass').value='';const c=$('lcode');if(c)c.value='';_otpSent=false;loginErr('');setLoginMode(true);}}
 function boot(){
  if(!BACKEND)loadPersist();
  $('avatar').textContent=S.user.name[0]||'C';

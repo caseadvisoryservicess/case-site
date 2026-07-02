@@ -167,6 +167,15 @@ CREATE TABLE IF NOT EXISTS app_state (
   updated_by VARCHAR(160)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Одноразовые коды входа по email (OTP). Код хранится только в виде хеша.
+CREATE TABLE IF NOT EXISTS login_codes (
+  email      VARCHAR(190) PRIMARY KEY,
+  code_hash  VARCHAR(255),
+  expires_at DATETIME,
+  attempts   INT NOT NULL DEFAULT 0,
+  created_at DATETIME
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 -- ---- РОЛИ (9 штук) ----
 INSERT INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,project_scope,admin) VALUES
  ('ASH','Генеральный директор',        1,1,1,1,1,0,0,1),

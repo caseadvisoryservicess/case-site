@@ -10,4 +10,5 @@ return [
   'charset'=> 'utf8mb4',
   'sqlite_path' => __DIR__ . '/caseos.sqlite', // используется только при driver=sqlite
   'backup_token' => 'ПРИДУМАЙТЕ_ДЛИННУЮ_СЛУЧАЙНУЮ_СТРОКУ', // для ежедневного авто-бэкапа по cron (см. DEPLOY.md)
+  'mail_from' => 'no-reply@ВАШ-ДОМЕН', // отправитель писем с кодом входа; для лучшей доставки создайте этот ящик в cPanel
 ];
