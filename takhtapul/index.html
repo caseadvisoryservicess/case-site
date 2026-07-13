@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Бизнес-центр SFB — аренда и продажа помещений 179 и 430 м² | ул. Тахтапуль 31, Ташкент</title>
 <meta name="description" content="Аренда и продажа помещений свободного назначения 179 м² и 430,4 м² в бизнес-центре SFB на ул. Тахтапуль, 31 (Шайхантахурский район, Ташкент). Под офис, клинику, сервис или учебный центр. Лифт, подземный паркинг, потолки 3,4 м. Ввод — сентябрь 2026. Цена — по запросу.">
-<meta name="keywords" content="аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, бизнес-центр SFB, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения">
+<meta name="keywords" content="аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, бизнес-центр SFB, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения, ofis ijarasi Toshkent, tijorat ko'chmas mulki">
 <meta name="robots" content="index, follow">
 <meta name="geo.region" content="UZ">
 <meta name="geo.placename" content="Ташкент">
@@ -16,6 +16,8 @@
 <meta property="og:image" content="assets/og-cover.jpg">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ru_RU">
+<meta property="og:locale:alternate" content="uz_UZ">
+<meta property="og:locale:alternate" content="en_US">
 <meta property="og:site_name" content="Бизнес-центр SFB">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="Бизнес-центр SFB — Тахтапул 31, Ташкент">
@@ -105,9 +107,15 @@ nav.s .brand-s{color:var(--muted)}
 .nl a:hover{color:#fff}
 nav.s .nl a{color:var(--muted)}
 nav.s .nl a:hover{color:var(--ink)}
-.nav-r{display:flex;align-items:center;gap:18px}
+.nav-r{display:flex;align-items:center;gap:14px}
 .nav-tel{font-size:13.5px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap;transition:color .3s}
 nav.s .nav-tel{color:var(--ink)}
+.lang{display:flex;gap:2px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:100px;padding:3px;backdrop-filter:blur(6px)}
+.lang button{border:none;background:transparent;color:rgba(255,255,255,.72);font-family:var(--h);font-size:11px;font-weight:700;letter-spacing:.8px;padding:5px 9px;border-radius:100px;cursor:pointer;transition:background .2s,color .2s}
+.lang button.on{background:#fff;color:var(--ink)}
+nav.s .lang{background:var(--stone-100);border-color:var(--line)}
+nav.s .lang button{color:var(--muted)}
+nav.s .lang button.on{background:var(--granite);color:#fff}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--h);font-size:13px;font-weight:700;letter-spacing:.3px;padding:13px 26px;border-radius:10px;text-decoration:none;border:none;cursor:pointer;transition:background .2s,color .2s,border-color .2s,transform .15s;white-space:nowrap}
 .btn:active{transform:translateY(1px)}
 .btn-dark{background:var(--granite);color:#fff}
@@ -255,7 +263,7 @@ nav.s .burger span{background:var(--ink)}
 .lc span{font-size:12.5px;color:rgba(255,255,255,.45)}
 .form-card{background:#fff;border-radius:22px;padding:42px 40px;box-shadow:0 40px 90px -40px rgba(0,0,0,.55)}
 .form-card h3{font-size:22px;font-weight:800;margin-bottom:6px}
-.form-card>p{font-size:13.5px;color:var(--muted);margin-bottom:26px}
+.form-card>p,.form-card form>p{font-size:13.5px;color:var(--muted);margin-bottom:26px}
 .frow{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .fg{margin-bottom:14px}
 .fg label{display:block;font-size:12px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);margin-bottom:7px}
@@ -358,29 +366,32 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="nav-in">
     <a href="#" class="brand">
       <span class="brand-mark">SFB</span>
-      <span class="brand-t"><span class="brand-n">Бизнес-центр SFB</span><span class="brand-s">Тахтапул 31 · Ташкент</span></span>
+      <span class="brand-t"><span class="brand-n" data-i18n="brand.n">Бизнес-центр SFB</span><span class="brand-s" data-i18n="brand.s">Тахтапул 31 · Ташкент</span></span>
     </a>
     <ul class="nl">
-      <li><a href="#uses">Назначение</a></li>
-      <li><a href="#lots">Помещения</a></li>
-      <li><a href="#building">О здании</a></li>
-      <li><a href="#location">Локация</a></li>
-      <li><a href="#faq">Вопросы</a></li>
+      <li><a href="#uses" data-i18n="nav.uses">Назначение</a></li>
+      <li><a href="#lots" data-i18n="nav.lots">Помещения</a></li>
+      <li><a href="#building" data-i18n="nav.building">О здании</a></li>
+      <li><a href="#location" data-i18n="nav.location">Локация</a></li>
+      <li><a href="#faq" data-i18n="nav.faq">Вопросы</a></li>
     </ul>
     <div class="nav-r">
+      <div class="lang" id="langSw" role="group" aria-label="Язык / Til / Language">
+        <button type="button" data-lang="ru" class="on">RU</button><button type="button" data-lang="uz">UZ</button><button type="button" data-lang="en">EN</button>
+      </div>
       <a class="nav-tel" href="tel:+998909220700">+998 90 922 07 00</a>
-      <a href="#lead" class="btn btn-bronze btn-sm">Оставить заявку</a>
+      <a href="#lead" class="btn btn-bronze btn-sm" data-i18n="nav.cta">Оставить заявку</a>
       <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
 <div class="mmenu" id="mmenu">
-  <a href="#uses">Назначение</a>
-  <a href="#lots">Помещения</a>
-  <a href="#building">О здании</a>
-  <a href="#location">Локация</a>
-  <a href="#faq">Вопросы</a>
-  <a href="#lead" style="color:var(--bronze-d)">Оставить заявку →</a>
+  <a href="#uses" data-i18n="nav.uses">Назначение</a>
+  <a href="#lots" data-i18n="nav.lots">Помещения</a>
+  <a href="#building" data-i18n="nav.building">О здании</a>
+  <a href="#location" data-i18n="nav.location">Локация</a>
+  <a href="#faq" data-i18n="nav.faq">Вопросы</a>
+  <a href="#lead" style="color:var(--bronze-d)" data-i18n="nav.ctaArrow">Оставить заявку →</a>
 </div>
 
 <!-- HERO -->
@@ -389,23 +400,23 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="hero-ov"></div>
   <div class="hero-c">
     <div class="hero-badges">
-      <span class="hbadge gold">Продано 75% здания</span>
-      <span class="hbadge">Продажа и аренда</span>
-      <span class="hbadge">Ввод — сентябрь 2026</span>
+      <span class="hbadge gold" data-i18n="hero.b1">Продано 75% здания</span>
+      <span class="hbadge" data-i18n="hero.b2">Продажа и аренда</span>
+      <span class="hbadge" data-i18n="hero.b3">Ввод — сентябрь 2026</span>
     </div>
-    <h1>Помещения свободного назначения <span>179 и 430&nbsp;м²</span> в бизнес-центре SFB</h1>
-    <p class="hero-sub">Новое здание на первой линии ул. Тахтапуль в центре Ташкента. Open space с потолками <strong>3,4&nbsp;м</strong>, лифт и подземный паркинг. Подходит под <strong>офис, клинику, сервис или учебный центр</strong>. Цена и условия — по&nbsp;запросу.</p>
+    <h1 data-i18n="hero.h1">Помещения свободного назначения <span>179 и 430&nbsp;м²</span> в бизнес-центре SFB</h1>
+    <p class="hero-sub" data-i18n="hero.sub">Новое здание на первой линии ул. Тахтапуль в центре Ташкента. Open space с потолками <strong>3,4&nbsp;м</strong>, лифт и подземный паркинг. Подходит под <strong>офис, клинику, сервис или учебный центр</strong>. Цена и условия — по&nbsp;запросу.</p>
     <div class="hero-btns">
-      <a href="#lead" class="btn btn-bronze">Получить планировки и цены</a>
-      <a href="#lots" class="btn btn-ghost">Смотреть помещения</a>
+      <a href="#lead" class="btn btn-bronze" data-i18n="hero.btn1">Получить планировки и цены</a>
+      <a href="#lots" class="btn btn-ghost" data-i18n="hero.btn2">Смотреть помещения</a>
     </div>
   </div>
   <div class="hero-stats">
     <div class="hero-stats-in">
-      <div class="hstat"><div class="hstat-n">4 <small>этажа</small></div><div class="hstat-l">и лифт на все уровни</div></div>
-      <div class="hstat"><div class="hstat-n">3,4 <small>м</small></div><div class="hstat-l">высота потолков</div></div>
-      <div class="hstat"><div class="hstat-n">12 <small>мест</small></div><div class="hstat-l">подземный паркинг</div></div>
-      <div class="hstat"><div class="hstat-n">IX <small>2026</small></div><div class="hstat-l">ввод в эксплуатацию (кадастр)</div></div>
+      <div class="hstat"><div class="hstat-n" data-i18n="hero.s1n">4 <small>этажа</small></div><div class="hstat-l" data-i18n="hero.s1l">и лифт на все уровни</div></div>
+      <div class="hstat"><div class="hstat-n" data-i18n="hero.s2n">3,4 <small>м</small></div><div class="hstat-l" data-i18n="hero.s2l">высота потолков</div></div>
+      <div class="hstat"><div class="hstat-n" data-i18n="hero.s3n">12 <small>мест</small></div><div class="hstat-l" data-i18n="hero.s3l">подземный паркинг</div></div>
+      <div class="hstat"><div class="hstat-n">IX <small>2026</small></div><div class="hstat-l" data-i18n="hero.s4l">ввод в эксплуатацию (кадастр)</div></div>
     </div>
   </div>
 </header>
@@ -413,32 +424,32 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
 <!-- USES -->
 <section class="uses" id="uses">
   <div class="wrap">
-    <div class="lbl r">Свободное назначение</div>
-    <h2 class="r">Одно помещение — четыре сценария бизнеса</h2>
-    <p class="sub r">Нежилой фонд со свободным назначением: вы сами выбираете, чем будет ваше пространство. Черновая отделка позволяет спроектировать помещение под задачу с нуля.</p>
+    <div class="lbl r" data-i18n="uses.lbl">Свободное назначение</div>
+    <h2 class="r" data-i18n="uses.h2">Одно помещение — четыре сценария бизнеса</h2>
+    <p class="sub r" data-i18n="uses.sub">Нежилой фонд со свободным назначением: вы сами выбираете, чем будет ваше пространство. Черновая отделка позволяет спроектировать помещение под задачу с нуля.</p>
     <div class="uses-grid">
       <div class="ucard r">
         <div class="ucard-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M3 9h18M8 21h8M12 18v3"/></svg></div>
-        <h3>Офис / штаб-квартира</h3>
-        <p>Open space до 430 м² на этаж: кабинеты, переговорные и опен-спейс в любой конфигурации. Отдельный этаж — отдельная адресная идентичность компании.</p>
+        <h3 data-i18n="uses.u1h">Офис / штаб-квартира</h3>
+        <p data-i18n="uses.u1p">Open space до 430 м² на этаж: кабинеты, переговорные и опен-спейс в любой конфигурации. Отдельный этаж — отдельная адресная идентичность компании.</p>
       </div>
       <div class="ucard r d1">
         <div class="ucard-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v18M3 12h18"/><circle cx="12" cy="12" r="9"/></svg></div>
-        <h3>Клиника / медицина</h3>
-        <p>На втором этаже уже работает стоматология — здание формируется как медицинский кластер. Инженерные сети подведены до границ помещения.</p>
+        <h3 data-i18n="uses.u2h">Клиника / медицина</h3>
+        <p data-i18n="uses.u2p">На втором этаже уже работает стоматология — здание формируется как медицинский кластер. Инженерные сети подведены до границ помещения.</p>
       </div>
       <div class="ucard r d2">
         <div class="ucard-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h16M6 20V9l6-5 6 5v11M10 20v-5h4v5"/></svg></div>
-        <h3>Сервис и услуги</h3>
-        <p>Салон, студия, шоурум, банковский или нотариальный офис — витринное остекление и первая линия улицы дают постоянный поток клиентов.</p>
+        <h3 data-i18n="uses.u3h">Сервис и услуги</h3>
+        <p data-i18n="uses.u3p">Салон, студия, шоурум, банковский или нотариальный офис — витринное остекление и первая линия улицы дают постоянный поток клиентов.</p>
       </div>
       <div class="ucard r d3">
         <div class="ucard-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 4L2 9l10 5 10-5-10-5zM6 11.5V16c0 1.5 2.7 3 6 3s6-1.5 6-3v-4.5"/></svg></div>
-        <h3>Образование</h3>
-        <p>Учебный центр, курсы, языковая школа, IT-академия: этаж целиком со своими санузлами и понятной навигацией для студентов.</p>
+        <h3 data-i18n="uses.u4h">Образование</h3>
+        <p data-i18n="uses.u4p">Учебный центр, курсы, языковая школа, IT-академия: этаж целиком со своими санузлами и понятной навигацией для студентов.</p>
       </div>
     </div>
-    <p class="uses-note r">* Формат здания не предусматривает размещение общеобразовательных школ и детских садов.</p>
+    <p class="uses-note r" data-i18n="uses.note">* Формат здания не предусматривает размещение общеобразовательных школ и детских садов.</p>
   </div>
 </section>
 
@@ -447,37 +458,37 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="wrap">
     <div class="lots-head r">
       <div>
-        <div class="lbl">Свободные лоты</div>
-        <h2>Два последних помещения</h2>
-        <p class="sub">75% здания уже продано: первый этаж занят коммерцией, половина второго — стоматологией, четвёртый — офисом. В продаже и аренде остались два лота.</p>
+        <div class="lbl" data-i18n="lots.lbl">Свободные лоты</div>
+        <h2 data-i18n="lots.h2">Два последних помещения</h2>
+        <p class="sub" data-i18n="lots.sub">75% здания уже продано: первый этаж занят коммерцией, половина второго — стоматологией, четвёртый — офисом. В продаже и аренде остались два лота.</p>
       </div>
-      <a href="#lead" class="btn btn-dark">Запросить актуальные условия</a>
+      <a href="#lead" class="btn btn-dark" data-i18n="lots.cta">Запросить актуальные условия</a>
     </div>
 
     <!-- LOT 1 -->
     <article class="lot r">
       <div class="lot-plan" data-zoom="assets/plan-2.jpg">
         <img src="assets/plan-2.jpg" alt="План 2-го этажа — помещение 179 м², границы выделены красным" loading="lazy">
-        <span class="lot-plan-hint">Нажмите, чтобы увеличить</span>
+        <span class="lot-plan-hint" data-i18n="lots.hint">Нажмите, чтобы увеличить</span>
       </div>
       <div class="lot-info">
-        <span class="lot-tag">В продаже · Возможна аренда</span>
-        <h3>2 этаж — 179 м²</h3>
-        <p class="lot-area">Помещение свободного назначения · open space</p>
+        <span class="lot-tag" data-i18n="lots.tag">В продаже · Возможна аренда</span>
+        <h3 data-i18n="lots.l1h">2 этаж — 179 м²</h3>
+        <p class="lot-area" data-i18n="lots.l1a">Помещение свободного назначения · open space</p>
         <ul class="lot-feats">
-          <li>Витринное остекление по двум сторонам</li>
-          <li>Потолки 3,4 м</li>
-          <li>Свободная планировка без несущих перегородок</li>
-          <li>Технический блок под кабинеты или процедурные</li>
-          <li>Соседство со стоматологией — готовый медицинский трафик</li>
-          <li>Лифт и лестница у входа в помещение</li>
+          <li data-i18n="lots.l1f1">Витринное остекление по двум сторонам</li>
+          <li data-i18n="lots.l1f2">Потолки 3,4 м</li>
+          <li data-i18n="lots.l1f3">Свободная планировка без несущих перегородок</li>
+          <li data-i18n="lots.l1f4">Технический блок под кабинеты или процедурные</li>
+          <li data-i18n="lots.l1f5">Соседство со стоматологией — готовый медицинский трафик</li>
+          <li data-i18n="lots.l1f6">Лифт и лестница у входа в помещение</li>
         </ul>
         <div class="lot-price">
-          <div><div class="lp-l">Продажа · Аренда</div><div class="lp-v" style="font-size:18px;padding-top:4px">цена и условия — по запросу</div></div>
+          <div><div class="lp-l" data-i18n="lots.priceL">Продажа · Аренда</div><div class="lp-v" style="font-size:18px;padding-top:4px" data-i18n="lots.priceV">цена и условия — по запросу</div></div>
         </div>
         <div class="lot-btns">
-          <a href="#lead" class="btn btn-bronze" data-lot="2 этаж — 179 м²">Узнать цену и условия</a>
-          <a href="tel:+998909220700" class="btn btn-line">Позвонить</a>
+          <a href="#lead" class="btn btn-bronze" data-lot="2 этаж — 179 м²" data-i18n="lots.btn1">Узнать цену и условия</a>
+          <a href="tel:+998909220700" class="btn btn-line" data-i18n="lots.btn2">Позвонить</a>
         </div>
       </div>
     </article>
@@ -486,26 +497,26 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
     <article class="lot r">
       <div class="lot-plan" data-zoom="assets/plan-3.jpg">
         <img src="assets/plan-3.jpg" alt="План 3-го этажа — этаж целиком 430,4 м²" loading="lazy">
-        <span class="lot-plan-hint">Нажмите, чтобы увеличить</span>
+        <span class="lot-plan-hint" data-i18n="lots.hint">Нажмите, чтобы увеличить</span>
       </div>
       <div class="lot-info">
-        <span class="lot-tag">В продаже · Возможна аренда</span>
-        <h3>3 этаж — 430,4 м²</h3>
-        <p class="lot-area">Этаж целиком · открытая зона 415,5 м² + балкон</p>
+        <span class="lot-tag" data-i18n="lots.tag">В продаже · Возможна аренда</span>
+        <h3 data-i18n="lots.l2h">3 этаж — 430,4 м²</h3>
+        <p class="lot-area" data-i18n="lots.l2a">Этаж целиком · открытая зона 415,5 м² + балкон</p>
         <ul class="lot-feats">
-          <li>Весь этаж — единственный собственник</li>
-          <li>Панорамное остекление по периметру</li>
-          <li>Два санузла на этаже</li>
-          <li>Делится на 3 блока: 172,7 / 106,6 / 40,5 м²</li>
-          <li>Колонная сетка до 7,2 м — легко зонировать</li>
-          <li>Балкон 14,9 м²</li>
+          <li data-i18n="lots.l2f1">Весь этаж — единственный собственник</li>
+          <li data-i18n="lots.l2f2">Панорамное остекление по периметру</li>
+          <li data-i18n="lots.l2f3">Два санузла на этаже</li>
+          <li data-i18n="lots.l2f4">Делится на 3 блока: 172,7 / 106,6 / 40,5 м²</li>
+          <li data-i18n="lots.l2f5">Колонная сетка до 7,2 м — легко зонировать</li>
+          <li data-i18n="lots.l2f6">Балкон 14,9 м²</li>
         </ul>
         <div class="lot-price">
-          <div><div class="lp-l">Продажа · Аренда</div><div class="lp-v" style="font-size:18px;padding-top:4px">цена и условия — по запросу</div></div>
+          <div><div class="lp-l" data-i18n="lots.priceL">Продажа · Аренда</div><div class="lp-v" style="font-size:18px;padding-top:4px" data-i18n="lots.priceV">цена и условия — по запросу</div></div>
         </div>
         <div class="lot-btns">
-          <a href="#lead" class="btn btn-bronze" data-lot="3 этаж — 430,4 м²">Узнать цену и условия</a>
-          <a href="tel:+998909220700" class="btn btn-line">Позвонить</a>
+          <a href="#lead" class="btn btn-bronze" data-lot="3 этаж — 430,4 м²" data-i18n="lots.btn1">Узнать цену и условия</a>
+          <a href="tel:+998909220700" class="btn btn-line" data-i18n="lots.btn2">Позвонить</a>
         </div>
       </div>
     </article>
@@ -517,18 +528,18 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="wrap">
     <div class="bld-grid">
       <div class="r">
-        <div class="lbl">О здании</div>
-        <h2>Архитектура, которая работает на любой бизнес</h2>
-        <p class="sub">Компактный бизнес-центр на 4 этажа с подземным уровнем. Нейтральная современная архитектура одинаково уместна для клиники, офиса и учебного центра.</p>
+        <div class="lbl" data-i18n="bld.lbl">О здании</div>
+        <h2 data-i18n="bld.h2">Архитектура, которая работает на любой бизнес</h2>
+        <p class="sub" data-i18n="bld.sub">Компактный бизнес-центр на 4 этажа с подземным уровнем. Нейтральная современная архитектура одинаково уместна для клиники, офиса и учебного центра.</p>
         <div class="specs">
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg></div><div><b>4 этажа + лифт</b><span>подвал, паркинг и все уровни</span></div></div>
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16M4 20h16M8 4v3m8-3v3M8 17v3m8-3v3M4 12h16"/></svg></div><div><b>Потолки 3,4 м</b><span>свет и воздух в любом сценарии</span></div></div>
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M5 17h14M6 17l1.5-6h9L18 17M8 11V8a4 4 0 018 0v3"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg></div><div><b>Подземный паркинг</b><span>12 машиномест, 347 м²</span></div></div>
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><div><b>Open Space</b><span>свободные планировки этажей</span></div></div>
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div><div><b>Инженерия до границ</b><span>сети подведены к каждому лоту</span></div></div>
-          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div><div><b>Черновая отделка</b><span>границы фиксируются в договоре</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M3 21h18M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16"/><path d="M9 7h2m2 0h2M9 11h2m2 0h2M9 15h2m2 0h2"/></svg></div><div><b data-i18n="bld.s1b">4 этажа + лифт</b><span data-i18n="bld.s1s">подвал, паркинг и все уровни</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M4 4h16M4 20h16M8 4v3m8-3v3M8 17v3m8-3v3M4 12h16"/></svg></div><div><b data-i18n="bld.s2b">Потолки 3,4 м</b><span data-i18n="bld.s2s">свет и воздух в любом сценарии</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M5 17h14M6 17l1.5-6h9L18 17M8 11V8a4 4 0 018 0v3"/><circle cx="7.5" cy="19" r="1.5"/><circle cx="16.5" cy="19" r="1.5"/></svg></div><div><b data-i18n="bld.s3b">Подземный паркинг</b><span data-i18n="bld.s3s">12 машиномест, 347 м²</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg></div><div><b>Open Space</b><span data-i18n="bld.s4s">свободные планировки этажей</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"/></svg></div><div><b data-i18n="bld.s5b">Инженерия до границ</b><span data-i18n="bld.s5s">сети подведены к каждому лоту</span></div></div>
+          <div class="spec"><div class="spec-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 3l8 4v5c0 5-3.5 8-8 9-4.5-1-8-4-8-9V7l8-4z"/></svg></div><div><b data-i18n="bld.s6b">Черновая отделка</b><span data-i18n="bld.s6s">границы фиксируются в договоре</span></div></div>
         </div>
-        <div class="facade-note">
+        <div class="facade-note" data-i18n="bld.note">
           <b>Фасад в природных серых тонах:</b> цоколь из тёмного гранита, выше — светлая штукатурка и облицовка под светло-серый травертин, панорамное остекление в графитовых профилях и вечерняя архитектурная подсветка.
         </div>
       </div>
@@ -543,16 +554,16 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
 <!-- INVEST -->
 <section class="invest" id="invest">
   <div class="wrap">
-    <div class="lbl r">Инвесторам</div>
-    <h2 class="r">Почему входить сейчас</h2>
+    <div class="lbl r" data-i18n="inv.lbl">Инвесторам</div>
+    <h2 class="r" data-i18n="inv.h2">Почему входить сейчас</h2>
     <div class="inv-grid">
-      <div class="inv r"><div class="inv-n">01</div><h3>Цена стадии строительства</h3><p>Стоимость фиксируется договором до завершения фасадных работ — вход сейчас выгоднее, чем покупка готового помещения. Актуальную цену вышлем по запросу.</p></div>
-      <div class="inv r d1"><div class="inv-n">02</div><h3>Рост капитализации к вводу</h3><p>Готовое нежилое помещение в центральной локации с кадастром оценивается рынком выше, чем лот на этапе стройки — разница и есть ваш первый доход.</p></div>
-      <div class="inv r d2"><div class="inv-n">03</div><h3>Арендный потенциал</h3><p>Первая линия оживлённой улицы, дефицит качественных небольших БЦ в старом городе и свободное назначение расширяют круг арендаторов — от медицины до образования.</p></div>
+      <div class="inv r"><div class="inv-n">01</div><h3 data-i18n="inv.i1h">Цена стадии строительства</h3><p data-i18n="inv.i1p">Стоимость фиксируется договором до завершения фасадных работ — вход сейчас выгоднее, чем покупка готового помещения. Актуальную цену вышлем по запросу.</p></div>
+      <div class="inv r d1"><div class="inv-n">02</div><h3 data-i18n="inv.i2h">Рост капитализации к вводу</h3><p data-i18n="inv.i2p">Готовое нежилое помещение в центральной локации с кадастром оценивается рынком выше, чем лот на этапе стройки — разница и есть ваш первый доход.</p></div>
+      <div class="inv r d2"><div class="inv-n">03</div><h3 data-i18n="inv.i3h">Арендный потенциал</h3><p data-i18n="inv.i3p">Первая линия оживлённой улицы, дефицит качественных небольших БЦ в старом городе и свободное назначение расширяют круг арендаторов — от медицины до образования.</p></div>
     </div>
     <div class="inv-strip r">
-      <p><b>Гибкая сделка:</b> рассматриваем продажу, долгосрочную аренду, а для инвесторов — продажу помещения с уже подписанным арендатором как готового арендного бизнеса.</p>
-      <a href="#lead" class="btn btn-bronze">Обсудить условия</a>
+      <p data-i18n="inv.strip"><b>Гибкая сделка:</b> рассматриваем продажу, долгосрочную аренду, а для инвесторов — продажу помещения с уже подписанным арендатором как готового арендного бизнеса.</p>
+      <a href="#lead" class="btn btn-bronze" data-i18n="inv.cta">Обсудить условия</a>
     </div>
   </div>
 </section>
@@ -563,14 +574,14 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
     <div class="prog-grid">
       <div class="prog-img r"><img src="assets/construction.jpg" alt="Ход строительства бизнес-центра SFB — монолитный каркас готов" loading="lazy"></div>
       <div class="r d1">
-        <div class="lbl">Ход строительства</div>
-        <h2>Каркас готов — идут фасадные работы</h2>
-        <p class="sub">Стройка в активной фазе, ввод в эксплуатацию по кадастру — сентябрь 2026 года.</p>
+        <div class="lbl" data-i18n="prog.lbl">Ход строительства</div>
+        <h2 data-i18n="prog.h2">Каркас готов — идут фасадные работы</h2>
+        <p class="sub" data-i18n="prog.sub">Стройка в активной фазе, ввод в эксплуатацию по кадастру — сентябрь 2026 года.</p>
         <ul class="tl">
-          <li class="done"><span class="tl-dot">✓</span><div><b>Монолитный каркас и кладка</b><span>4 этажа + подземный уровень — завершены</span></div></li>
-          <li class="now"><span class="tl-dot"></span><div><b>Фасадные работы</b><span>идут сейчас: гранит, штукатурка, остекление</span></div></li>
-          <li><span class="tl-dot"></span><div><b>Инженерные системы и благоустройство</b><span>разводка сетей, паркинг, входная группа</span></div></li>
-          <li><span class="tl-dot"></span><div><b>Ввод в эксплуатацию</b><span>сентябрь 2026 — постановка на кадастр</span></div></li>
+          <li class="done"><span class="tl-dot">✓</span><div><b data-i18n="prog.t1b">Монолитный каркас и кладка</b><span data-i18n="prog.t1s">4 этажа + подземный уровень — завершены</span></div></li>
+          <li class="now"><span class="tl-dot"></span><div><b data-i18n="prog.t2b">Фасадные работы</b><span data-i18n="prog.t2s">идут сейчас: гранит, штукатурка, остекление</span></div></li>
+          <li><span class="tl-dot"></span><div><b data-i18n="prog.t3b">Инженерные системы и благоустройство</b><span data-i18n="prog.t3s">разводка сетей, паркинг, входная группа</span></div></li>
+          <li><span class="tl-dot"></span><div><b data-i18n="prog.t4b">Ввод в эксплуатацию</b><span data-i18n="prog.t4s">сентябрь 2026 — постановка на кадастр</span></div></li>
         </ul>
       </div>
     </div>
@@ -582,18 +593,18 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="wrap">
     <div class="loc-grid">
       <div class="r">
-        <div class="lbl">Локация</div>
-        <h2>Центр старого города, первая линия</h2>
-        <p class="sub">Шайхантахурский район — плотная деловая и жилая застройка, устойчивый дневной трафик и быстрая связь с центром Ташкента.</p>
+        <div class="lbl" data-i18n="loc.lbl">Локация</div>
+        <h2 data-i18n="loc.h2">Центр старого города, первая линия</h2>
+        <p class="sub" data-i18n="loc.sub">Шайхантахурский район — плотная деловая и жилая застройка, устойчивый дневной трафик и быстрая связь с центром Ташкента.</p>
         <div class="loc-addr">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>
-          <div><b>г. Ташкент, ул. Тахтапуль, 31</b><span>Шайхантахурский район · 41.33894, 69.26335</span></div>
+          <div><b data-i18n="loc.addr">г. Ташкент, ул. Тахтапуль, 31</b><span data-i18n="loc.addrS">Шайхантахурский район · 41.33894, 69.26335</span></div>
         </div>
         <ul class="loc-list">
-          <li><span>Метро «Гафур Гулям»</span><b>≈ 2 км</b></li>
-          <li><span>Базар Чорсу и старый город</span><b>≈ 3 км</b></li>
-          <li><span>Tashkent City Park</span><b>≈ 3 км</b></li>
-          <li><span>Аэропорт им. Ислама Каримова</span><b>≈ 10 км</b></li>
+          <li><span data-i18n="loc.p1">Метро «Гафур Гулям»</span><b data-i18n="loc.d1">≈ 2 км</b></li>
+          <li><span data-i18n="loc.p2">Базар Чорсу и старый город</span><b data-i18n="loc.d2">≈ 3 км</b></li>
+          <li><span>Tashkent City Park</span><b data-i18n="loc.d3">≈ 3 км</b></li>
+          <li><span data-i18n="loc.p4">Аэропорт им. Ислама Каримова</span><b data-i18n="loc.d4">≈ 10 км</b></li>
         </ul>
       </div>
       <div class="map r d1">
@@ -608,57 +619,57 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="wrap">
     <div class="lead-grid">
       <div class="r">
-        <div class="lbl">Заявка</div>
-        <h2>Получите планировки, цены и условия сделки</h2>
-        <p class="sub">Оставьте контакты — вышлем поэтажные планы, актуальный прайс и график стройки, ответим на вопросы по аренде и покупке.</p>
+        <div class="lbl" data-i18n="lead.lbl">Заявка</div>
+        <h2 data-i18n="lead.h2">Получите планировки, цены и условия сделки</h2>
+        <p class="sub" data-i18n="lead.sub">Оставьте контакты — вышлем поэтажные планы, актуальный прайс и график стройки, ответим на вопросы по аренде и покупке.</p>
         <div class="lead-contacts">
           <a class="lc" href="tel:+998909220700">
             <span class="lc-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></span>
-            <span><b>+998 90 922 07 00</b><span>отдел продаж</span></span>
+            <span><b>+998 90 922 07 00</b><span data-i18n="lead.c1">отдел продаж</span></span>
           </a>
           <a class="lc" href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener">
             <span class="lc-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4L3 11l5.5 2L10 19l3-3.5L18 19l3-15z"/></svg></span>
-            <span><b>@muhammadaxmadiy</b><span>Telegram — ответим быстрее всего</span></span>
+            <span><b>@muhammadaxmadiy</b><span data-i18n="lead.c2">Telegram — ответим быстрее всего</span></span>
           </a>
         </div>
       </div>
       <div class="form-card r d1">
         <form id="leadForm" novalidate>
-          <h3>Оставить заявку</h3>
-          <p>Ответим в течение рабочего дня. Никакого спама — только по вашему запросу.</p>
+          <h3 data-i18n="form.h3">Оставить заявку</h3>
+          <p data-i18n="form.p">Ответим в течение рабочего дня. Никакого спама — только по вашему запросу.</p>
           <div class="frow">
-            <div class="fg"><label for="f-name">Имя *</label><input id="f-name" name="Имя" type="text" required autocomplete="name" placeholder="Как к вам обращаться"></div>
-            <div class="fg"><label for="f-phone">Телефон *</label><input id="f-phone" name="Телефон" type="tel" required autocomplete="tel" placeholder="+998 __ ___ __ __"></div>
+            <div class="fg"><label for="f-name" data-i18n="form.lName">Имя *</label><input id="f-name" name="Имя" type="text" required autocomplete="name" placeholder="Как к вам обращаться" data-i18n-ph="name"></div>
+            <div class="fg"><label for="f-phone" data-i18n="form.lPhone">Телефон *</label><input id="f-phone" name="Телефон" type="tel" required autocomplete="tel" placeholder="+998 __ ___ __ __"></div>
           </div>
-          <div class="fg"><label for="f-email">Email</label><input id="f-email" name="Email" type="email" autocomplete="email" placeholder="для отправки планировок"></div>
+          <div class="fg"><label for="f-email">Email</label><input id="f-email" name="Email" type="email" autocomplete="email" placeholder="для отправки планировок" data-i18n-ph="email"></div>
           <div class="frow">
-            <div class="fg"><label for="f-int">Интересует</label>
+            <div class="fg"><label for="f-int" data-i18n="form.lInt">Интересует</label>
               <select id="f-int" name="Интересует">
-                <option>Покупка</option>
-                <option>Аренда</option>
-                <option>Покупка как инвестиция</option>
-                <option>Консультация</option>
+                <option value="Покупка" data-i18n="form.o1">Покупка</option>
+                <option value="Аренда" data-i18n="form.o2">Аренда</option>
+                <option value="Покупка как инвестиция" data-i18n="form.o3">Покупка как инвестиция</option>
+                <option value="Консультация" data-i18n="form.o4">Консультация</option>
               </select>
             </div>
-            <div class="fg"><label for="f-lot">Помещение</label>
+            <div class="fg"><label for="f-lot" data-i18n="form.lLot">Помещение</label>
               <select id="f-lot" name="Помещение">
-                <option>2 этаж — 179 м²</option>
-                <option>3 этаж — 430,4 м²</option>
-                <option>Оба лота</option>
-                <option>Ещё не выбрал(а)</option>
+                <option value="2 этаж — 179 м²" data-i18n="form.oL1">2 этаж — 179 м²</option>
+                <option value="3 этаж — 430,4 м²" data-i18n="form.oL2">3 этаж — 430,4 м²</option>
+                <option value="Оба лота" data-i18n="form.oL3">Оба лота</option>
+                <option value="Ещё не выбрал(а)" data-i18n="form.oL4">Ещё не выбрал(а)</option>
               </select>
             </div>
           </div>
-          <div class="fg"><label for="f-msg">Комментарий</label><textarea id="f-msg" name="Комментарий" placeholder="Например: планируем открыть клинику, интересует аренда с последующим выкупом"></textarea></div>
+          <div class="fg"><label for="f-msg" data-i18n="form.lMsg">Комментарий</label><textarea id="f-msg" name="Комментарий" placeholder="Например: планируем открыть клинику, интересует аренда с последующим выкупом" data-i18n-ph="msg"></textarea></div>
           <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off">
-          <button type="submit" class="btn btn-bronze form-btn" id="formBtn">Отправить заявку</button>
-          <div class="form-err" id="formErr">Не удалось отправить онлайн. Позвоните <a href="tel:+998909220700">+998 90 922 07 00</a>, напишите в <a href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener">Telegram</a> или на <a href="mailto:caseadvisoryservicess@gmail.com">почту</a>.</div>
-          <p class="form-note">Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных.</p>
+          <button type="submit" class="btn btn-bronze form-btn" id="formBtn" data-i18n="form.send">Отправить заявку</button>
+          <div class="form-err" id="formErr" data-i18n="form.err">Не удалось отправить онлайн. Позвоните <a href="tel:+998909220700">+998 90 922 07 00</a>, напишите в <a href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener">Telegram</a> или на <a href="mailto:caseadvisoryservicess@gmail.com">почту</a>.</div>
+          <p class="form-note" data-i18n="form.note">Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных.</p>
         </form>
         <div class="form-ok" id="formOk">
           <div class="form-ok-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
-          <h4>Заявка отправлена!</h4>
-          <p>Мы свяжемся с вами в течение рабочего дня.<br>Хотите быстрее — напишите в <a href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener"><b>Telegram @muhammadaxmadiy</b></a>.</p>
+          <h4 data-i18n="form.okH">Заявка отправлена!</h4>
+          <p data-i18n="form.okP">Мы свяжемся с вами в течение рабочего дня.<br>Хотите быстрее — напишите в <a href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener"><b>Telegram @muhammadaxmadiy</b></a>.</p>
         </div>
       </div>
     </div>
@@ -668,36 +679,36 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
 <!-- FAQ -->
 <section class="faq" id="faq">
   <div class="wrap">
-    <div class="lbl c r">Частые вопросы</div>
-    <h2 class="r" style="text-align:center">Коротко о главном</h2>
+    <div class="lbl c r" data-i18n="faq.lbl">Частые вопросы</div>
+    <h2 class="r" style="text-align:center" data-i18n="faq.h2">Коротко о главном</h2>
     <div class="faq-list r">
       <details open>
-        <summary>Какой бизнес можно разместить?</summary>
-        <p>Помещения имеют свободное (нежилое) назначение: офис, клиника или медицинский кабинет, сфера услуг, шоурум, учебный центр или курсы. Размещение общеобразовательных школ и детских садов форматом здания не предусмотрено.</p>
+        <summary data-i18n="faq.q1">Какой бизнес можно разместить?</summary>
+        <p data-i18n="faq.a1">Помещения имеют свободное (нежилое) назначение: офис, клиника или медицинский кабинет, сфера услуг, шоурум, учебный центр или курсы. Размещение общеобразовательных школ и детских садов форматом здания не предусмотрено.</p>
       </details>
       <details>
-        <summary>Сколько стоят помещения?</summary>
-        <p>Цену и условия продажи или аренды озвучиваем по запросу — оставьте заявку на сайте или позвоните <a href="tel:+998909220700">+998 90 922 07 00</a>. Стоимость фиксируется договором на этапе строительства.</p>
+        <summary data-i18n="faq.q2">Сколько стоят помещения?</summary>
+        <p data-i18n="faq.a2">Цену и условия продажи или аренды озвучиваем по запросу — оставьте заявку на сайте или позвоните <a href="tel:+998909220700">+998 90 922 07 00</a>. Стоимость фиксируется договором на этапе строительства.</p>
       </details>
       <details>
-        <summary>В каком состоянии передаются помещения?</summary>
-        <p>В черновой отделке — это позволяет спроектировать пространство под ваш бизнес без демонтажа. Инженерные сети подведены до границ помещения. Границы лота фиксируются в договоре купли-продажи по поэтажному плану.</p>
+        <summary data-i18n="faq.q3">В каком состоянии передаются помещения?</summary>
+        <p data-i18n="faq.a3">В черновой отделке — это позволяет спроектировать пространство под ваш бизнес без демонтажа. Инженерные сети подведены до границ помещения. Границы лота фиксируются в договоре купли-продажи по поэтажному плану.</p>
       </details>
       <details>
-        <summary>Когда здание будет сдано?</summary>
-        <p>Монолитный каркас завершён, сейчас идут фасадные работы. Ввод в эксплуатацию и постановка на кадастр — сентябрь 2026 года.</p>
+        <summary data-i18n="faq.q4">Когда здание будет сдано?</summary>
+        <p data-i18n="faq.a4">Монолитный каркас завершён, сейчас идут фасадные работы. Ввод в эксплуатацию и постановка на кадастр — сентябрь 2026 года.</p>
       </details>
       <details>
-        <summary>Можно ли арендовать, а не покупать?</summary>
-        <p>Да. Оба лота доступны как к покупке, так и в долгосрочную аренду — ставка и условия обсуждаются индивидуально. Для инвесторов возможна покупка помещения с уже подписанным договором аренды.</p>
+        <summary data-i18n="faq.q5">Можно ли арендовать, а не покупать?</summary>
+        <p data-i18n="faq.a5">Да. Оба лота доступны как к покупке, так и в долгосрочную аренду — ставка и условия обсуждаются индивидуально. Для инвесторов возможна покупка помещения с уже подписанным договором аренды.</p>
       </details>
       <details>
-        <summary>Кто соседи по зданию?</summary>
-        <p>75% здания продано: на первом этаже — коммерция (торговая галерея), на половине второго этажа — стоматологическая клиника, четвёртый этаж занят офисом. Свободны помещение 179 м² на втором этаже и весь третий этаж — 430,4 м².</p>
+        <summary data-i18n="faq.q6">Кто соседи по зданию?</summary>
+        <p data-i18n="faq.a6">75% здания продано: на первом этаже — коммерция (торговая галерея), на половине второго этажа — стоматологическая клиника, четвёртый этаж занят офисом. Свободны помещение 179 м² на втором этаже и весь третий этаж — 430,4 м².</p>
       </details>
       <details>
-        <summary>Есть ли парковка?</summary>
-        <p>Да, в здании подземный паркинг на 12 машиномест (347 м²) с въездом с улицы Тахтапуль, плюс гостевые места перед входом.</p>
+        <summary data-i18n="faq.q7">Есть ли парковка?</summary>
+        <p data-i18n="faq.a7">Да, в здании подземный паркинг на 12 машиномест (347 м²) с въездом с улицы Тахтапуль, плюс гостевые места перед входом.</p>
       </details>
     </div>
   </div>
@@ -708,25 +719,381 @@ footer{background:var(--granite);padding:46px 0 40px;border-top:1px solid rgba(2
   <div class="wrap foot">
     <div class="foot-l brand" style="text-decoration:none">
       <span class="brand-mark">SFB</span>
-      <span class="brand-t"><span class="brand-n">Бизнес-центр SFB</span><span class="brand-s">г. Ташкент, ул. Тахтапуль, 31</span></span>
+      <span class="brand-t"><span class="brand-n" data-i18n="brand.n">Бизнес-центр SFB</span><span class="brand-s" data-i18n="foot.addr">г. Ташкент, ул. Тахтапуль, 31</span></span>
     </div>
     <div class="foot-r">
       <a href="tel:+998909220700">+998 90 922 07 00</a> · <a href="https://t.me/muhammadaxmadiy" target="_blank" rel="noopener">@muhammadaxmadiy</a><br>
-      Информация на сайте носит справочный характер и не является публичной офертой. Визуализации — иллюстративные. © 2026 SFB
+      <span data-i18n="foot.legal">Информация на сайте носит справочный характер и не является публичной офертой. Визуализации — иллюстративные. © 2026 SFB</span>
     </div>
   </div>
 </footer>
 
 <!-- MOBILE CTA -->
 <div class="mcta">
-  <a href="tel:+998909220700" class="btn btn-line">Позвонить</a>
-  <a href="#lead" class="btn btn-bronze">Оставить заявку</a>
+  <a href="tel:+998909220700" class="btn btn-line" data-i18n="lots.btn2">Позвонить</a>
+  <a href="#lead" class="btn btn-bronze" data-i18n="nav.cta">Оставить заявку</a>
 </div>
 
 <!-- LIGHTBOX -->
 <div class="lb" id="lb"><img alt="Планировка крупно" id="lbImg"></div>
 
 <script>
+// ─── i18n: русский — базовый (в разметке), узбекский и английский — в словаре ───
+var I18N = {
+  uz: {
+    "meta.title": "SFB biznes markazi — 179 va 430 m² maydonlar ijarasi va sotuvi | Taxtapul 31, Toshkent",
+    "meta.desc": "Toshkent, Taxtapul ko'chasi 31-uydagi SFB biznes markazida 179 va 430,4 m² erkin maqsadli maydonlar ijarasi va sotuvi. Ofis, klinika, servis yoki o'quv markazi uchun. Lift, yerosti avtoturargohi, shiftlar 3,4 m. Topshirish — 2026-yil sentyabr. Narx — so'rov bo'yicha.",
+    "brand.n": "SFB biznes markazi",
+    "brand.s": "Taxtapul 31 · Toshkent",
+    "nav.uses": "Yo'nalishlar",
+    "nav.lots": "Maydonlar",
+    "nav.building": "Bino haqida",
+    "nav.location": "Manzil",
+    "nav.faq": "Savollar",
+    "nav.cta": "Ariza qoldirish",
+    "nav.ctaArrow": "Ariza qoldirish →",
+    "hero.b1": "Binoning 75% sotilgan",
+    "hero.b2": "Sotuv va ijara",
+    "hero.b3": "Topshirish — 2026 sentyabr",
+    "hero.h1": "SFB biznes markazida <span>179 va 430&nbsp;m²</span> erkin maqsadli maydonlar",
+    "hero.sub": "Toshkent markazida, Taxtapul ko'chasining birinchi qatoridagi yangi bino. Shiftlari <strong>3,4&nbsp;m</strong> bo'lgan open space, lift va yerosti avtoturargohi. <strong>Ofis, klinika, servis yoki o'quv markazi</strong> uchun mos. Narx va shartlar — so'rov bo'yicha.",
+    "hero.btn1": "Rejalar va narxlarni olish",
+    "hero.btn2": "Maydonlarni ko'rish",
+    "hero.s1n": "4 <small>qavat</small>",
+    "hero.s1l": "barcha qavatlarga lift",
+    "hero.s2n": "3,4 <small>m</small>",
+    "hero.s2l": "shift balandligi",
+    "hero.s3n": "12 <small>o'rin</small>",
+    "hero.s3l": "yerosti avtoturargohi",
+    "hero.s4l": "foydalanishga topshirish (kadastr)",
+    "uses.lbl": "Erkin maqsad",
+    "uses.h2": "Bitta maydon — to'rt xil biznes ssenariysi",
+    "uses.sub": "Erkin maqsadli noturar fond: maydoningiz nima bo'lishini o'zingiz tanlaysiz. Qora suvoq holati xonani vazifangizga moslab noldan loyihalash imkonini beradi.",
+    "uses.u1h": "Ofis / bosh ofis",
+    "uses.u1p": "Har qavatda 430 m² gacha open space: kabinetlar, majlis xonalari va istalgan konfiguratsiya. Alohida qavat — kompaniyaning alohida manzilli identiteti.",
+    "uses.u2h": "Klinika / tibbiyot",
+    "uses.u2p": "Ikkinchi qavatda allaqachon stomatologiya ishlaydi — bino tibbiyot klasteri sifatida shakllanmoqda. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan.",
+    "uses.u3h": "Servis va xizmatlar",
+    "uses.u3p": "Salon, studiya, shourum, bank yoki notarial ofis — vitrina oynalari va ko'chaning birinchi qatori doimiy mijozlar oqimini beradi.",
+    "uses.u4h": "Ta'lim",
+    "uses.u4p": "O'quv markazi, kurslar, til maktabi, IT-akademiya: butun qavat, o'z sanuzellari va talabalar uchun qulay navigatsiya bilan.",
+    "uses.note": "* Bino formati umumta'lim maktablari va bolalar bog'chalarini joylashtirishni nazarda tutmaydi.",
+    "lots.lbl": "Bo'sh lotlar",
+    "lots.h2": "Oxirgi ikkita maydon",
+    "lots.sub": "Binoning 75% allaqachon sotilgan: birinchi qavat — tijorat, ikkinchi qavatning yarmi — stomatologiya, to'rtinchi qavat — ofis. Sotuv va ijarada ikkita lot qoldi.",
+    "lots.cta": "Dolzarb shartlarni so'rash",
+    "lots.hint": "Kattalashtirish uchun bosing",
+    "lots.tag": "Sotuvda · Ijara mumkin",
+    "lots.l1h": "2-qavat — 179 m²",
+    "lots.l1a": "Erkin maqsadli maydon · open space",
+    "lots.l1f1": "Ikki tomondan vitrina oynalari",
+    "lots.l1f2": "Shiftlar 3,4 m",
+    "lots.l1f3": "Yuk ko'taruvchi to'siqlarsiz erkin planirovka",
+    "lots.l1f4": "Kabinetlar yoki muolaja xonalari uchun texnik blok",
+    "lots.l1f5": "Stomatologiya bilan qo'shnichilik — tayyor tibbiy trafik",
+    "lots.l1f6": "Kirish oldida lift va zinapoya",
+    "lots.l2h": "3-qavat — 430,4 m²",
+    "lots.l2a": "Butun qavat · 415,5 m² ochiq zona + balkon",
+    "lots.l2f1": "Butun qavat — yagona mulkdor",
+    "lots.l2f2": "Perimetr bo'ylab panoramik oynalar",
+    "lots.l2f3": "Qavatda ikkita sanuzel",
+    "lots.l2f4": "3 blokka bo'linadi: 172,7 / 106,6 / 40,5 m²",
+    "lots.l2f5": "Ustunlar qadami 7,2 m gacha — zonalash oson",
+    "lots.l2f6": "Balkon 14,9 m²",
+    "lots.priceL": "Sotuv · Ijara",
+    "lots.priceV": "narx va shartlar — so'rov bo'yicha",
+    "lots.btn1": "Narx va shartlarni bilish",
+    "lots.btn2": "Qo'ng'iroq qilish",
+    "bld.lbl": "Bino haqida",
+    "bld.h2": "Har qanday biznes uchun ishlaydigan arxitektura",
+    "bld.sub": "4 qavatli, yerosti darajasiga ega ixcham biznes markaz. Neytral zamonaviy arxitektura klinika, ofis va o'quv markazi uchun birdek mos.",
+    "bld.s1b": "4 qavat + lift",
+    "bld.s1s": "yerto'la, avtoturargoh va barcha qavatlar",
+    "bld.s2b": "Shiftlar 3,4 m",
+    "bld.s2s": "har qanday ssenariyda yorug'lik va havo",
+    "bld.s3b": "Yerosti avtoturargohi",
+    "bld.s3s": "12 o'rin, 347 m²",
+    "bld.s4s": "qavatlarning erkin planirovkasi",
+    "bld.s5b": "Muhandislik tarmoqlari chegaragacha",
+    "bld.s5s": "tarmoqlar har bir lotga yetkazilgan",
+    "bld.s6b": "Qora suvoq holati",
+    "bld.s6s": "chegaralar shartnomada belgilanadi",
+    "bld.note": "<b>Tabiiy kulrang ohanglardagi fasad:</b> to'q granit tsokol, yuqorida — och suvoq va och-kulrang travertin uslubidagi qoplama, grafit profillardagi panoramik oynalar va kechki arxitektura yoritilishi.",
+    "inv.lbl": "Investorlarga",
+    "inv.h2": "Nega aynan hozir",
+    "inv.i1h": "Qurilish bosqichi narxi",
+    "inv.i1p": "Narx fasad ishlari tugagunga qadar shartnoma bilan belgilab qo'yiladi — hozir kirish tayyor maydonni sotib olishdan foydaliroq. Dolzarb narxni so'rov bo'yicha yuboramiz.",
+    "inv.i2h": "Topshirishga qadar kapitalizatsiya o'sishi",
+    "inv.i2p": "Markaziy joylashuvdagi kadastrli tayyor noturar maydon bozor tomonidan qurilish bosqichidagi lotdan qimmatroq baholanadi — farq sizning birinchi daromadingiz.",
+    "inv.i3h": "Ijara salohiyati",
+    "inv.i3p": "Gavjum ko'chaning birinchi qatori, eski shaharda sifatli kichik biznes markazlar tanqisligi va erkin maqsad ijarachilar doirasini kengaytiradi — tibbiyotdan ta'limgacha.",
+    "inv.strip": "<b>Moslashuvchan bitim:</b> sotuv, uzoq muddatli ijara, investorlar uchun esa — imzolangan ijarachisi bor maydonni tayyor ijara biznesi sifatida sotishni ko'rib chiqamiz.",
+    "inv.cta": "Shartlarni muhokama qilish",
+    "prog.lbl": "Qurilish jarayoni",
+    "prog.h2": "Karkas tayyor — fasad ishlari ketmoqda",
+    "prog.sub": "Qurilish faol bosqichda, kadastr bo'yicha foydalanishga topshirish — 2026-yil sentyabr.",
+    "prog.t1b": "Monolit karkas va g'isht terish",
+    "prog.t1s": "4 qavat + yerosti darajasi — yakunlangan",
+    "prog.t2b": "Fasad ishlari",
+    "prog.t2s": "hozir davom etmoqda: granit, suvoq, oynalash",
+    "prog.t3b": "Muhandislik tizimlari va obodonlashtirish",
+    "prog.t3s": "tarmoqlarni tortish, avtoturargoh, kirish guruhi",
+    "prog.t4b": "Foydalanishga topshirish",
+    "prog.t4s": "2026-yil sentyabr — kadastrga qo'yish",
+    "loc.lbl": "Manzil",
+    "loc.h2": "Eski shahar markazi, birinchi qator",
+    "loc.sub": "Shayxontohur tumani — zich ishbilarmonlik va turar-joy qurilishi, barqaror kunduzgi trafik va Toshkent markazi bilan tez aloqa.",
+    "loc.addr": "Toshkent sh., Taxtapul ko'chasi, 31",
+    "loc.addrS": "Shayxontohur tumani · 41.33894, 69.26335",
+    "loc.p1": "«G'afur G'ulom» metro bekati",
+    "loc.p2": "Chorsu bozori va eski shahar",
+    "loc.p4": "Islom Karimov nomidagi aeroport",
+    "loc.d1": "≈ 2 km",
+    "loc.d2": "≈ 3 km",
+    "loc.d3": "≈ 3 km",
+    "loc.d4": "≈ 10 km",
+    "lead.lbl": "Ariza",
+    "lead.h2": "Rejalar, narxlar va bitim shartlarini oling",
+    "lead.sub": "Kontaktlaringizni qoldiring — qavat rejalari, dolzarb narxlar va qurilish grafigini yuboramiz, ijara va xarid bo'yicha savollarga javob beramiz.",
+    "lead.c1": "sotuv bo'limi",
+    "lead.c2": "Telegram — eng tez javob beramiz",
+    "form.h3": "Ariza qoldirish",
+    "form.p": "Ish kuni davomida javob beramiz. Hech qanday spam — faqat so'rovingiz bo'yicha.",
+    "form.lName": "Ismingiz *",
+    "form.lPhone": "Telefon *",
+    "form.lInt": "Nima qiziqtiradi",
+    "form.lLot": "Maydon",
+    "form.lMsg": "Izoh",
+    "form.o1": "Sotib olish",
+    "form.o2": "Ijara",
+    "form.o3": "Investitsiya sifatida xarid",
+    "form.o4": "Konsultatsiya",
+    "form.oL1": "2-qavat — 179 m²",
+    "form.oL2": "3-qavat — 430,4 m²",
+    "form.oL3": "Ikkala lot",
+    "form.oL4": "Hali tanlamadim",
+    "form.send": "Arizani yuborish",
+    "form.sending": "Yuborilmoqda…",
+    "form.err": "Onlayn yuborib bo'lmadi. <a href='tel:+998909220700'>+998 90 922 07 00</a> raqamiga qo'ng'iroq qiling, <a href='https://t.me/muhammadaxmadiy' target='_blank' rel='noopener'>Telegram</a> orqali yoki <a href='mailto:caseadvisoryservicess@gmail.com'>pochta</a>ga yozing.",
+    "form.note": "«Arizani yuborish» tugmasini bosish orqali shaxsiy ma'lumotlarni qayta ishlashga rozilik bildirasiz.",
+    "form.okH": "Ariza yuborildi!",
+    "form.okP": "Ish kuni davomida siz bilan bog'lanamiz.<br>Tezroq kerak bo'lsa — <a href='https://t.me/muhammadaxmadiy' target='_blank' rel='noopener'><b>Telegram @muhammadaxmadiy</b></a> ga yozing.",
+    "ph.name": "Sizga qanday murojaat qilaylik",
+    "ph.email": "rejalarni yuborish uchun",
+    "ph.msg": "Masalan: klinika ochmoqchimiz, keyinchalik sotib olish sharti bilan ijara qiziqtiradi",
+    "faq.lbl": "Ko'p beriladigan savollar",
+    "faq.h2": "Asosiysi haqida qisqacha",
+    "faq.q1": "Qanday biznes joylashtirish mumkin?",
+    "faq.a1": "Maydonlar erkin (noturar) maqsadga ega: ofis, klinika yoki tibbiy kabinet, xizmat ko'rsatish sohasi, shourum, o'quv markazi yoki kurslar. Umumta'lim maktablari va bolalar bog'chalarini joylashtirish bino formatida nazarda tutilmagan.",
+    "faq.q2": "Maydonlar qancha turadi?",
+    "faq.a2": "Sotuv yoki ijara narxi va shartlarini so'rov bo'yicha aytamiz — saytda ariza qoldiring yoki <a href='tel:+998909220700'>+998 90 922 07 00</a> raqamiga qo'ng'iroq qiling. Narx qurilish bosqichida shartnoma bilan belgilab qo'yiladi.",
+    "faq.q3": "Maydonlar qanday holatda topshiriladi?",
+    "faq.a3": "Qora suvoq holatida — bu maydonni demontajsiz biznesingizga moslab loyihalash imkonini beradi. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan. Lot chegaralari qavat rejasi bo'yicha oldi-sotdi shartnomasida belgilanadi.",
+    "faq.q4": "Bino qachon topshiriladi?",
+    "faq.a4": "Monolit karkas yakunlangan, hozir fasad ishlari ketmoqda. Foydalanishga topshirish va kadastrga qo'yish — 2026-yil sentyabr.",
+    "faq.q5": "Sotib olmasdan ijaraga olsa bo'ladimi?",
+    "faq.a5": "Ha. Ikkala lot ham sotib olish, ham uzoq muddatli ijara uchun ochiq — stavka va shartlar alohida kelishiladi. Investorlar uchun imzolangan ijara shartnomasi bilan maydon sotib olish mumkin.",
+    "faq.q6": "Binoda qo'shnilar kim?",
+    "faq.a6": "Binoning 75% sotilgan: birinchi qavatda — tijorat (savdo galereyasi), ikkinchi qavatning yarmida — stomatologiya klinikasi, to'rtinchi qavatni ofis egallagan. 2-qavatdagi 179 m² maydon va butun 3-qavat (430,4 m²) bo'sh.",
+    "faq.q7": "Avtoturargoh bormi?",
+    "faq.a7": "Ha, binoda Taxtapul ko'chasidan kiriladigan 12 o'rinli (347 m²) yerosti avtoturargohi hamda kirish oldida mehmonlar uchun joylar bor.",
+    "foot.addr": "Toshkent sh., Taxtapul ko'chasi, 31",
+    "foot.legal": "Saytdagi ma'lumotlar ma'lumot uchun bo'lib, ommaviy oferta hisoblanmaydi. Vizualizatsiyalar illyustrativ. © 2026 SFB"
+  },
+  en: {
+    "meta.title": "SFB Business Center — 179 & 430 m² premises for sale and lease | 31 Takhtapul st., Tashkent",
+    "meta.desc": "Flexible-use commercial premises of 179 and 430.4 m² for sale and lease in the SFB business center at 31 Takhtapul street, Tashkent. For an office, clinic, services or education center. Elevator, underground parking, 3.4 m ceilings. Completion — September 2026. Price on request.",
+    "brand.n": "SFB Business Center",
+    "brand.s": "Takhtapul 31 · Tashkent",
+    "nav.uses": "Use cases",
+    "nav.lots": "Premises",
+    "nav.building": "The building",
+    "nav.location": "Location",
+    "nav.faq": "FAQ",
+    "nav.cta": "Request info",
+    "nav.ctaArrow": "Request info →",
+    "hero.b1": "75% of the building sold",
+    "hero.b2": "For sale & lease",
+    "hero.b3": "Completion — Sept 2026",
+    "hero.h1": "Flexible-use premises of <span>179 and 430&nbsp;m²</span> in the SFB Business Center",
+    "hero.sub": "A new building on the first line of Takhtapul street in central Tashkent. Open space with <strong>3.4&nbsp;m</strong> ceilings, an elevator and underground parking. Suited for <strong>an office, clinic, services or an education center</strong>. Price and terms on request.",
+    "hero.btn1": "Get floor plans & pricing",
+    "hero.btn2": "View the premises",
+    "hero.s1n": "4 <small>floors</small>",
+    "hero.s1l": "elevator to every level",
+    "hero.s2n": "3.4 <small>m</small>",
+    "hero.s2l": "ceiling height",
+    "hero.s3n": "12 <small>spaces</small>",
+    "hero.s3l": "underground parking",
+    "hero.s4l": "completion & cadastre",
+    "uses.lbl": "Flexible use",
+    "uses.h2": "One space — four business scenarios",
+    "uses.sub": "Non-residential stock with flexible use: you decide what your space becomes. Shell-and-core condition lets you design the premises for your needs from scratch.",
+    "uses.u1h": "Office / headquarters",
+    "uses.u1p": "Open space of up to 430 m² per floor: private offices, meeting rooms and open plan in any configuration. A whole floor gives your company its own address identity.",
+    "uses.u2h": "Clinic / medical",
+    "uses.u2p": "A dental clinic already operates on the second floor — the building is forming into a medical cluster. Utilities are brought to the boundary of the premises.",
+    "uses.u3h": "Services & retail",
+    "uses.u3p": "A salon, studio, showroom, bank or notary office — storefront glazing and the first line of the street bring a constant flow of clients.",
+    "uses.u4h": "Education",
+    "uses.u4p": "A training center, courses, language school or IT academy: an entire floor with its own bathrooms and clear wayfinding for students.",
+    "uses.note": "* The building format does not allow general-education schools or kindergartens.",
+    "lots.lbl": "Available units",
+    "lots.h2": "The last two units",
+    "lots.sub": "75% of the building is already sold: the ground floor is retail, half of the second floor is a dental clinic, the fourth floor is an office. Two units remain for sale or lease.",
+    "lots.cta": "Request current terms",
+    "lots.hint": "Click to enlarge",
+    "lots.tag": "For sale · Lease available",
+    "lots.l1h": "2nd floor — 179 m²",
+    "lots.l1a": "Flexible-use premises · open space",
+    "lots.l1f1": "Storefront glazing on two sides",
+    "lots.l1f2": "3.4 m ceilings",
+    "lots.l1f3": "Open layout with no load-bearing partitions",
+    "lots.l1f4": "Utility block for offices or treatment rooms",
+    "lots.l1f5": "Next to the dental clinic — ready medical footfall",
+    "lots.l1f6": "Elevator and stairs at the unit entrance",
+    "lots.l2h": "3rd floor — 430.4 m²",
+    "lots.l2a": "Entire floor · 415.5 m² open area + balcony",
+    "lots.l2f1": "The whole floor — a single owner",
+    "lots.l2f2": "Panoramic glazing around the perimeter",
+    "lots.l2f3": "Two bathrooms on the floor",
+    "lots.l2f4": "Divides into 3 blocks: 172.7 / 106.6 / 40.5 m²",
+    "lots.l2f5": "Column grid up to 7.2 m — easy to zone",
+    "lots.l2f6": "14.9 m² balcony",
+    "lots.priceL": "Sale · Lease",
+    "lots.priceV": "price and terms on request",
+    "lots.btn1": "Get price & terms",
+    "lots.btn2": "Call",
+    "bld.lbl": "The building",
+    "bld.h2": "Architecture that works for any business",
+    "bld.sub": "A compact four-story business center with an underground level. Neutral modern architecture suits a clinic, an office and an education center equally well.",
+    "bld.s1b": "4 floors + elevator",
+    "bld.s1s": "basement, parking and all levels",
+    "bld.s2b": "3.4 m ceilings",
+    "bld.s2s": "light and air in any scenario",
+    "bld.s3b": "Underground parking",
+    "bld.s3s": "12 spaces, 347 m²",
+    "bld.s4s": "open floor layouts",
+    "bld.s5b": "Utilities to the boundary",
+    "bld.s5s": "services brought to every unit",
+    "bld.s6b": "Shell & core",
+    "bld.s6s": "boundaries fixed in the contract",
+    "bld.note": "<b>A facade in natural grey tones:</b> a dark granite base, light plaster and light-grey travertine-style cladding above, panoramic glazing in graphite frames and evening architectural lighting.",
+    "inv.lbl": "For investors",
+    "inv.h2": "Why enter now",
+    "inv.i1h": "Construction-stage price",
+    "inv.i1p": "The price is fixed by contract before facade works are completed — entering now is better value than buying a finished unit. We will send the current price on request.",
+    "inv.i2h": "Appreciation by completion",
+    "inv.i2p": "A finished, registered commercial unit in a central location is valued higher than a unit at the construction stage — that difference is your first return.",
+    "inv.i3h": "Rental potential",
+    "inv.i3p": "The first line of a busy street, a shortage of quality small business centers in the old city and flexible use widen the tenant pool — from medical to education.",
+    "inv.strip": "<b>A flexible deal:</b> we consider a sale, a long-term lease, and for investors — selling a unit with a signed tenant in place as a ready rental business.",
+    "inv.cta": "Discuss terms",
+    "prog.lbl": "Construction progress",
+    "prog.h2": "Frame complete — facade works underway",
+    "prog.sub": "Construction is in the active phase; completion and cadastre registration — September 2026.",
+    "prog.t1b": "Monolithic frame and masonry",
+    "prog.t1s": "4 floors + underground level — complete",
+    "prog.t2b": "Facade works",
+    "prog.t2s": "in progress: granite, plaster, glazing",
+    "prog.t3b": "Utilities and landscaping",
+    "prog.t3s": "service runs, parking, entrance area",
+    "prog.t4b": "Completion",
+    "prog.t4s": "September 2026 — cadastre registration",
+    "loc.lbl": "Location",
+    "loc.h2": "Old city center, first line",
+    "loc.sub": "Shaykhantakhur district — dense business and residential fabric, steady daytime traffic and quick access to central Tashkent.",
+    "loc.addr": "31 Takhtapul street, Tashkent",
+    "loc.addrS": "Shaykhantakhur district · 41.33894, 69.26335",
+    "loc.p1": "Gafur Gulyam metro station",
+    "loc.p2": "Chorsu bazaar and the old city",
+    "loc.p4": "Islam Karimov airport",
+    "loc.d1": "≈ 2 km",
+    "loc.d2": "≈ 3 km",
+    "loc.d3": "≈ 3 km",
+    "loc.d4": "≈ 10 km",
+    "lead.lbl": "Request",
+    "lead.h2": "Get floor plans, pricing and deal terms",
+    "lead.sub": "Leave your contacts — we will send floor plans, current pricing and the construction schedule, and answer your questions about lease and purchase.",
+    "lead.c1": "sales team",
+    "lead.c2": "Telegram — fastest reply",
+    "form.h3": "Send a request",
+    "form.p": "We reply within one business day. No spam — only what you asked for.",
+    "form.lName": "Name *",
+    "form.lPhone": "Phone *",
+    "form.lInt": "Interested in",
+    "form.lLot": "Unit",
+    "form.lMsg": "Comment",
+    "form.o1": "Purchase",
+    "form.o2": "Lease",
+    "form.o3": "Purchase as investment",
+    "form.o4": "Consultation",
+    "form.oL1": "2nd floor — 179 m²",
+    "form.oL2": "3rd floor — 430.4 m²",
+    "form.oL3": "Both units",
+    "form.oL4": "Not decided yet",
+    "form.send": "Send request",
+    "form.sending": "Sending…",
+    "form.err": "Couldn't send online. Call <a href='tel:+998909220700'>+998 90 922 07 00</a>, message us on <a href='https://t.me/muhammadaxmadiy' target='_blank' rel='noopener'>Telegram</a> or by <a href='mailto:caseadvisoryservicess@gmail.com'>email</a>.",
+    "form.note": "By clicking “Send request” you consent to the processing of your personal data.",
+    "form.okH": "Request sent!",
+    "form.okP": "We will contact you within one business day.<br>Need it faster? Message <a href='https://t.me/muhammadaxmadiy' target='_blank' rel='noopener'><b>@muhammadaxmadiy on Telegram</b></a>.",
+    "ph.name": "How should we address you",
+    "ph.email": "to receive the floor plans",
+    "ph.msg": "E.g.: we plan to open a clinic, interested in a lease with a buyout option",
+    "faq.lbl": "FAQ",
+    "faq.h2": "The essentials, briefly",
+    "faq.q1": "What businesses are allowed?",
+    "faq.a1": "The premises have flexible (non-residential) use: an office, clinic or medical practice, services, a showroom, a training center or courses. General-education schools and kindergartens are not permitted by the building format.",
+    "faq.q2": "How much do the units cost?",
+    "faq.a2": "We share the price and terms of sale or lease on request — leave a request on the site or call <a href='tel:+998909220700'>+998 90 922 07 00</a>. The price is fixed by contract at the construction stage.",
+    "faq.q3": "In what condition are the units handed over?",
+    "faq.a3": "Shell and core — so you can design the space for your business without demolition. Utilities are brought to the boundary of the premises. Unit boundaries are fixed in the sale contract per the floor plan.",
+    "faq.q4": "When will the building be completed?",
+    "faq.a4": "The monolithic frame is complete and facade works are underway. Completion and cadastre registration — September 2026.",
+    "faq.q5": "Can I lease instead of buying?",
+    "faq.a5": "Yes. Both units are available for purchase or long-term lease — the rate and terms are discussed individually. Investors can buy a unit with a signed lease in place.",
+    "faq.q6": "Who are the neighbors?",
+    "faq.a6": "75% of the building is sold: retail on the ground floor, a dental clinic on half of the second floor, and an office on the fourth. The 179 m² unit on the second floor and the entire third floor (430.4 m²) remain available.",
+    "faq.q7": "Is there parking?",
+    "faq.a7": "Yes — an underground garage for 12 cars (347 m²) with entry from Takhtapul street, plus guest spaces by the entrance.",
+    "foot.addr": "31 Takhtapul st., Tashkent",
+    "foot.legal": "Information on this site is for reference only and does not constitute a public offer. Visualizations are illustrative. © 2026 SFB"
+  }
+};
+
+var CUR = 'ru';
+var RU = {};
+var i18nEls = document.querySelectorAll('[data-i18n]');
+i18nEls.forEach(function(el){ if (!(el.dataset.i18n in RU)) RU[el.dataset.i18n] = el.innerHTML; });
+var phEls = document.querySelectorAll('[data-i18n-ph]');
+phEls.forEach(function(el){ RU['ph.' + el.dataset.i18nPh] = el.placeholder; });
+RU['meta.title'] = document.title;
+var metaDesc = document.querySelector('meta[name="description"]');
+RU['meta.desc'] = metaDesc ? metaDesc.content : '';
+RU['form.sending'] = 'Отправляем…';
+
+function tr(key){ return CUR === 'ru' ? RU[key] : (I18N[CUR][key] || RU[key]); }
+
+function setLang(l){
+  if (l !== 'ru' && !I18N[l]) l = 'ru';
+  CUR = l;
+  document.documentElement.lang = l;
+  i18nEls.forEach(function(el){ el.innerHTML = tr(el.dataset.i18n); });
+  phEls.forEach(function(el){ el.placeholder = tr('ph.' + el.dataset.i18nPh); });
+  document.title = tr('meta.title');
+  if (metaDesc) metaDesc.content = tr('meta.desc');
+  document.querySelectorAll('#langSw button').forEach(function(b){ b.classList.toggle('on', b.dataset.lang === l); });
+  try { localStorage.setItem('sfb-lang', l); } catch(e){}
+}
+document.querySelectorAll('#langSw button').forEach(function(b){
+  b.addEventListener('click', function(){ setLang(b.dataset.lang); });
+});
+try {
+  var saved = localStorage.getItem('sfb-lang');
+  if (saved && saved !== 'ru') setLang(saved);
+} catch(e){}
+
 // nav state
 var nav = document.getElementById('nav');
 addEventListener('scroll', function(){ nav.classList.toggle('s', scrollY > 40); }, {passive:true});
@@ -742,12 +1109,12 @@ var obs = new IntersectionObserver(function(es){
 },{threshold:.12});
 document.querySelectorAll('.r').forEach(function(el){ obs.observe(el); });
 
-// lot preselect
+// lot preselect (сравниваем по value — оно всегда на русском, независимо от языка интерфейса)
 document.querySelectorAll('[data-lot]').forEach(function(a){
   a.addEventListener('click', function(){
     var sel = document.getElementById('f-lot');
     for (var i=0;i<sel.options.length;i++){
-      if (sel.options[i].text === a.dataset.lot){ sel.selectedIndex = i; break; }
+      if (sel.options[i].value === a.dataset.lot){ sel.selectedIndex = i; break; }
     }
   });
 });
@@ -760,10 +1127,13 @@ document.querySelectorAll('[data-zoom]').forEach(function(el){
 lb.addEventListener('click', function(){ lb.classList.remove('open'); lbImg.removeAttribute('src'); });
 addEventListener('keydown', function(e){ if(e.key==='Escape') lb.classList.remove('open'); });
 
-// lead form → email через FormSubmit
+// ─── Заявки: письмо на почту (FormSubmit) + строка в Google Таблицу (Apps Script) ───
+var LEAD_EMAIL = 'caseadvisoryservicess@gmail.com';
+// URL веб-приложения Google Apps Script (см. crm-apps-script.gs). Пока пусто — заявки идут только на почту.
+var SHEETS_ENDPOINT = '';
+
 var form = document.getElementById('leadForm'), btn = document.getElementById('formBtn'),
     ok = document.getElementById('formOk'), err = document.getElementById('formErr');
-var LEAD_EMAIL = 'caseadvisoryservicess@gmail.com';
 form.addEventListener('submit', function(e){
   e.preventDefault();
   err.classList.remove('show');
@@ -774,15 +1144,36 @@ form.addEventListener('submit', function(e){
   if (email.value && email.value.indexOf('@') === -1){ email.focus(); email.style.borderColor='#b04545'; return; }
   if (form.querySelector('.hp input, input.hp').value) return; // honeypot
 
-  btn.disabled = true; btn.textContent = 'Отправляем…';
+  btn.disabled = true; btn.textContent = tr('form.sending');
+  var vals = {
+    name: name.value.trim(),
+    phone: phone.value.trim(),
+    email: email.value.trim(),
+    interest: document.getElementById('f-int').value,
+    lot: document.getElementById('f-lot').value,
+    message: document.getElementById('f-msg').value.trim(),
+    lang: CUR
+  };
+
+  // 1) в Google Таблицу — fire-and-forget, не блокирует отправку письма
+  if (SHEETS_ENDPOINT){
+    try {
+      var fd = new FormData();
+      Object.keys(vals).forEach(function(k){ fd.append(k, vals[k]); });
+      fetch(SHEETS_ENDPOINT, {method:'POST', mode:'no-cors', body: fd});
+    } catch(ignored){}
+  }
+
+  // 2) письмо на почту
   var data = {
-    'Имя': name.value.trim(),
-    'Телефон': phone.value.trim(),
-    'Email': email.value.trim() || '—',
-    'Интересует': document.getElementById('f-int').value,
-    'Помещение': document.getElementById('f-lot').value,
-    'Комментарий': document.getElementById('f-msg').value.trim() || '—',
-    '_subject': 'Заявка с лендинга SFB Тахтапул: ' + document.getElementById('f-int').value + ', ' + document.getElementById('f-lot').value,
+    'Имя': vals.name,
+    'Телефон': vals.phone,
+    'Email': vals.email || '—',
+    'Интересует': vals.interest,
+    'Помещение': vals.lot,
+    'Комментарий': vals.message || '—',
+    'Язык сайта': CUR.toUpperCase(),
+    '_subject': 'Заявка с лендинга SFB Тахтапул: ' + vals.interest + ', ' + vals.lot,
     '_template': 'table',
     '_captcha': 'false'
   };
@@ -796,7 +1187,7 @@ form.addEventListener('submit', function(e){
   }).then(function(){
     form.style.display = 'none'; ok.classList.add('show');
   }).catch(function(){
-    btn.disabled = false; btn.textContent = 'Отправить заявку';
+    btn.disabled = false; btn.textContent = tr('form.send');
     err.classList.add('show');
   });
 });
