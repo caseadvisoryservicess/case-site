@@ -1,0 +1,5 @@
+node_modules/
+data/.secret
+data/users.json
+data/projects/*/project.json.bak
+sites/
