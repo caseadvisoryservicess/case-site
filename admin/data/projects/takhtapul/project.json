@@ -3,8 +3,16 @@
   "name": "Бизнес-центр SFB — Тахтапул 31",
   "brand": {
     "mark": "SFB",
-    "name": { "ru": "Бизнес-центр SFB", "uz": "SFB biznes markazi", "en": "SFB Business Center" },
-    "tag": { "ru": "Тахтапул 31 · Ташкент", "uz": "Taxtapul 31 · Toshkent", "en": "Takhtapul 31 · Tashkent" }
+    "name": {
+      "ru": "Бизнес-центр SFB",
+      "uz": "SFB biznes markazi",
+      "en": "SFB Business Center"
+    },
+    "tag": {
+      "ru": "Тахтапул 31 · Ташкент",
+      "uz": "Taxtapul 31 · Toshkent",
+      "en": "Takhtapul 31 · Tashkent"
+    }
   },
   "contacts": {
     "phone": "+998 90 922 07 00",
@@ -28,9 +36,21 @@
   "hero": {
     "image": "hero.jpg",
     "badges": [
-      { "ru": "Продано 75% здания", "uz": "Binoning 75% sotilgan", "en": "75% of the building sold" },
-      { "ru": "Продажа и аренда", "uz": "Sotuv va ijara", "en": "For sale & lease" },
-      { "ru": "Ввод — сентябрь 2026", "uz": "Topshirish — 2026 sentyabr", "en": "Completion — Sept 2026" }
+      {
+        "ru": "Продано 75% здания",
+        "uz": "Binoning 75% sotilgan",
+        "en": "75% of the building sold"
+      },
+      {
+        "ru": "Продажа и аренда",
+        "uz": "Sotuv va ijara",
+        "en": "For sale & lease"
+      },
+      {
+        "ru": "Ввод — сентябрь 2026",
+        "uz": "Topshirish — 2026 sentyabr",
+        "en": "Completion — Sept 2026"
+      }
     ],
     "title": {
       "ru": "Помещения свободного назначения <span>179 и 430&nbsp;м²</span> в бизнес-центре SFB",
@@ -43,15 +63,63 @@
       "en": "A new building on the first line of Takhtapul street in central Tashkent. Open space with <strong>3.4&nbsp;m</strong> ceilings, an elevator and underground parking. Suited for <strong>an office, clinic, services or an education center</strong>. Price and terms on request."
     },
     "stats": [
-      { "n": { "ru": "4 <small>этажа</small>", "uz": "4 <small>qavat</small>", "en": "4 <small>floors</small>" }, "l": { "ru": "и лифт на все уровни", "uz": "barcha qavatlarga lift", "en": "elevator to every level" } },
-      { "n": { "ru": "3,4 <small>м</small>", "uz": "3,4 <small>m</small>", "en": "3.4 <small>m</small>" }, "l": { "ru": "высота потолков", "uz": "shift balandligi", "en": "ceiling height" } },
-      { "n": { "ru": "12 <small>мест</small>", "uz": "12 <small>o'rin</small>", "en": "12 <small>spaces</small>" }, "l": { "ru": "подземный паркинг", "uz": "yerosti avtoturargohi", "en": "underground parking" } },
-      { "n": { "ru": "IX <small>2026</small>", "uz": "", "en": "" }, "l": { "ru": "ввод в эксплуатацию (кадастр)", "uz": "foydalanishga topshirish (kadastr)", "en": "completion & cadastre" } }
+      {
+        "n": {
+          "ru": "4 <small>этажа</small>",
+          "uz": "4 <small>qavat</small>",
+          "en": "4 <small>floors</small>"
+        },
+        "l": {
+          "ru": "и лифт на все уровни",
+          "uz": "barcha qavatlarga lift",
+          "en": "elevator to every level"
+        }
+      },
+      {
+        "n": {
+          "ru": "3,4 <small>м</small>",
+          "uz": "3,4 <small>m</small>",
+          "en": "3.4 <small>m</small>"
+        },
+        "l": {
+          "ru": "высота потолков",
+          "uz": "shift balandligi",
+          "en": "ceiling height"
+        }
+      },
+      {
+        "n": {
+          "ru": "12 <small>мест</small>",
+          "uz": "12 <small>o'rin</small>",
+          "en": "12 <small>spaces</small>"
+        },
+        "l": {
+          "ru": "подземный паркинг",
+          "uz": "yerosti avtoturargohi",
+          "en": "underground parking"
+        }
+      },
+      {
+        "n": {
+          "ru": "IX <small>2026</small>",
+          "uz": "",
+          "en": ""
+        },
+        "l": {
+          "ru": "ввод в эксплуатацию (кадастр)",
+          "uz": "foydalanishga topshirish (kadastr)",
+          "en": "completion & cadastre"
+        }
+      }
     ]
   },
   "uses": {
     "enabled": true,
-    "h2": { "ru": "Одно помещение — четыре сценария бизнеса", "uz": "Bitta maydon — to'rt xil biznes ssenariysi", "en": "One space — four business scenarios" },
+    "h2": {
+      "ru": "Одно помещение — четыре сценария бизнеса",
+      "uz": "Bitta maydon — to'rt xil biznes ssenariysi",
+      "en": "One space — four business scenarios"
+    },
     "sub": {
       "ru": "Нежилой фонд со свободным назначением: вы сами выбираете, чем будет ваше пространство. Черновая отделка позволяет спроектировать помещение под задачу с нуля.",
       "uz": "Erkin maqsadli noturar fond: maydoningiz nima bo'lishini o'zingiz tanlaysiz. Qora suvoq holati xonani vazifangizga moslab noldan loyihalash imkonini beradi.",
@@ -65,7 +133,11 @@
     "cards": [
       {
         "icon": "office",
-        "h": { "ru": "Офис / штаб-квартира", "uz": "Ofis / bosh ofis", "en": "Office / headquarters" },
+        "h": {
+          "ru": "Офис / штаб-квартира",
+          "uz": "Ofis / bosh ofis",
+          "en": "Office / headquarters"
+        },
         "p": {
           "ru": "Open space до 430 м² на этаж: кабинеты, переговорные и опен-спейс в любой конфигурации. Отдельный этаж — отдельная адресная идентичность компании.",
           "uz": "Har qavatda 430 m² gacha open space: kabinetlar, majlis xonalari va istalgan konfiguratsiya. Alohida qavat — kompaniyaning alohida manzilli identiteti.",
@@ -74,7 +146,11 @@
       },
       {
         "icon": "clinic",
-        "h": { "ru": "Клиника / медицина", "uz": "Klinika / tibbiyot", "en": "Clinic / medical" },
+        "h": {
+          "ru": "Клиника / медицина",
+          "uz": "Klinika / tibbiyot",
+          "en": "Clinic / medical"
+        },
         "p": {
           "ru": "На втором этаже уже работает стоматология — здание формируется как медицинский кластер. Инженерные сети подведены до границ помещения.",
           "uz": "Ikkinchi qavatda allaqachon stomatologiya ishlaydi — bino tibbiyot klasteri sifatida shakllanmoqda. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan.",
@@ -83,7 +159,11 @@
       },
       {
         "icon": "service",
-        "h": { "ru": "Сервис и услуги", "uz": "Servis va xizmatlar", "en": "Services & retail" },
+        "h": {
+          "ru": "Сервис и услуги",
+          "uz": "Servis va xizmatlar",
+          "en": "Services & retail"
+        },
         "p": {
           "ru": "Салон, студия, шоурум, банковский или нотариальный офис — витринное остекление и первая линия улицы дают постоянный поток клиентов.",
           "uz": "Salon, studiya, shourum, bank yoki notarial ofis — vitrina oynalari va ko'chaning birinchi qatori doimiy mijozlar oqimini beradi.",
@@ -92,7 +172,11 @@
       },
       {
         "icon": "education",
-        "h": { "ru": "Образование", "uz": "Ta'lim", "en": "Education" },
+        "h": {
+          "ru": "Образование",
+          "uz": "Ta'lim",
+          "en": "Education"
+        },
         "p": {
           "ru": "Учебный центр, курсы, языковая школа, IT-академия: этаж целиком со своими санузлами и понятной навигацией для студентов.",
           "uz": "O'quv markazi, kurslar, til maktabi, IT-akademiya: butun qavat, o'z sanuzellari va talabalar uchun qulay navigatsiya bilan.",
@@ -102,7 +186,11 @@
     ]
   },
   "lots": {
-    "h2": { "ru": "Два последних помещения", "uz": "Oxirgi ikkita maydon", "en": "The last two units" },
+    "h2": {
+      "ru": "Два последних помещения",
+      "uz": "Oxirgi ikkita maydon",
+      "en": "The last two units"
+    },
     "sub": {
       "ru": "75% здания уже продано: первый этаж занят коммерцией, половина второго — стоматологией, четвёртый — офисом. В продаже и аренде остались два лота.",
       "uz": "Binoning 75% allaqachon sotilgan: birinchi qavat — tijorat, ikkinchi qavatning yarmi — stomatologiya, to'rtinchi qavat — ofis. Sotuv va ijarada ikkita lot qoldi.",
@@ -110,62 +198,213 @@
     },
     "items": [
       {
-        "title": { "ru": "2 этаж — 179 м²", "uz": "2-qavat — 179 m²", "en": "2nd floor — 179 m²" },
-        "area": { "ru": "Помещение свободного назначения · open space", "uz": "Erkin maqsadli maydon · open space", "en": "Flexible-use premises · open space" },
+        "title": {
+          "ru": "2 этаж — 179 м²",
+          "uz": "2-qavat — 179 m²",
+          "en": "2nd floor — 179 m²"
+        },
+        "area": {
+          "ru": "Помещение свободного назначения · open space",
+          "uz": "Erkin maqsadli maydon · open space",
+          "en": "Flexible-use premises · open space"
+        },
         "plan": "plan-2.jpg",
         "features": [
-          { "ru": "Витринное остекление по двум сторонам", "uz": "Ikki tomondan vitrina oynalari", "en": "Storefront glazing on two sides" },
-          { "ru": "Потолки 3,4 м", "uz": "Shiftlar 3,4 m", "en": "3.4 m ceilings" },
-          { "ru": "Свободная планировка без несущих перегородок", "uz": "Yuk ko'taruvchi to'siqlarsiz erkin planirovka", "en": "Open layout with no load-bearing partitions" },
-          { "ru": "Технический блок под кабинеты или процедурные", "uz": "Kabinetlar yoki muolaja xonalari uchun texnik blok", "en": "Utility block for offices or treatment rooms" },
-          { "ru": "Соседство со стоматологией — готовый медицинский трафик", "uz": "Stomatologiya bilan qo'shnichilik — tayyor tibbiy trafik", "en": "Next to the dental clinic — ready medical footfall" },
-          { "ru": "Лифт и лестница у входа в помещение", "uz": "Kirish oldida lift va zinapoya", "en": "Elevator and stairs at the unit entrance" }
+          {
+            "ru": "Витринное остекление по двум сторонам",
+            "uz": "Ikki tomondan vitrina oynalari",
+            "en": "Storefront glazing on two sides"
+          },
+          {
+            "ru": "Потолки 3,4 м",
+            "uz": "Shiftlar 3,4 m",
+            "en": "3.4 m ceilings"
+          },
+          {
+            "ru": "Свободная планировка без несущих перегородок",
+            "uz": "Yuk ko'taruvchi to'siqlarsiz erkin planirovka",
+            "en": "Open layout with no load-bearing partitions"
+          },
+          {
+            "ru": "Технический блок под кабинеты или процедурные",
+            "uz": "Kabinetlar yoki muolaja xonalari uchun texnik blok",
+            "en": "Utility block for offices or treatment rooms"
+          },
+          {
+            "ru": "Соседство со стоматологией — готовый медицинский трафик",
+            "uz": "Stomatologiya bilan qo'shnichilik — tayyor tibbiy trafik",
+            "en": "Next to the dental clinic — ready medical footfall"
+          },
+          {
+            "ru": "Лифт и лестница у входа в помещение",
+            "uz": "Kirish oldida lift va zinapoya",
+            "en": "Elevator and stairs at the unit entrance"
+          }
         ]
       },
       {
-        "title": { "ru": "3 этаж — 430,4 м²", "uz": "3-qavat — 430,4 m²", "en": "3rd floor — 430.4 m²" },
-        "area": { "ru": "Этаж целиком · открытая зона 415,5 м² + балкон", "uz": "Butun qavat · 415,5 m² ochiq zona + balkon", "en": "Entire floor · 415.5 m² open area + balcony" },
+        "title": {
+          "ru": "3 этаж — 430,4 м²",
+          "uz": "3-qavat — 430,4 m²",
+          "en": "3rd floor — 430.4 m²"
+        },
+        "area": {
+          "ru": "Этаж целиком · открытая зона 415,5 м² + балкон",
+          "uz": "Butun qavat · 415,5 m² ochiq zona + balkon",
+          "en": "Entire floor · 415.5 m² open area + balcony"
+        },
         "plan": "plan-3.jpg",
         "features": [
-          { "ru": "Весь этаж — единственный собственник", "uz": "Butun qavat — yagona mulkdor", "en": "The whole floor — a single owner" },
-          { "ru": "Панорамное остекление по периметру", "uz": "Perimetr bo'ylab panoramik oynalar", "en": "Panoramic glazing around the perimeter" },
-          { "ru": "Два санузла на этаже", "uz": "Qavatda ikkita sanuzel", "en": "Two bathrooms on the floor" },
-          { "ru": "Делится на 3 блока: 172,7 / 106,6 / 40,5 м²", "uz": "3 blokka bo'linadi: 172,7 / 106,6 / 40,5 m²", "en": "Divides into 3 blocks: 172.7 / 106.6 / 40.5 m²" },
-          { "ru": "Колонная сетка до 7,2 м — легко зонировать", "uz": "Ustunlar qadami 7,2 m gacha — zonalash oson", "en": "Column grid up to 7.2 m — easy to zone" },
-          { "ru": "Балкон 14,9 м²", "uz": "Balkon 14,9 m²", "en": "14.9 m² balcony" }
+          {
+            "ru": "Весь этаж — единственный собственник",
+            "uz": "Butun qavat — yagona mulkdor",
+            "en": "The whole floor — a single owner"
+          },
+          {
+            "ru": "Панорамное остекление по периметру",
+            "uz": "Perimetr bo'ylab panoramik oynalar",
+            "en": "Panoramic glazing around the perimeter"
+          },
+          {
+            "ru": "Два санузла на этаже",
+            "uz": "Qavatda ikkita sanuzel",
+            "en": "Two bathrooms on the floor"
+          },
+          {
+            "ru": "Делится на 3 блока: 172,7 / 106,6 / 40,5 м²",
+            "uz": "3 blokka bo'linadi: 172,7 / 106,6 / 40,5 m²",
+            "en": "Divides into 3 blocks: 172.7 / 106.6 / 40.5 m²"
+          },
+          {
+            "ru": "Колонная сетка до 7,2 м — легко зонировать",
+            "uz": "Ustunlar qadami 7,2 m gacha — zonalash oson",
+            "en": "Column grid up to 7.2 m — easy to zone"
+          },
+          {
+            "ru": "Балкон 14,9 м²",
+            "uz": "Balkon 14,9 m²",
+            "en": "14.9 m² balcony"
+          }
         ]
       }
     ]
   },
   "building": {
     "enabled": true,
-    "h2": { "ru": "Архитектура, которая работает на любой бизнес", "uz": "Har qanday biznes uchun ishlaydigan arxitektura", "en": "Architecture that works for any business" },
+    "h2": {
+      "ru": "Архитектура, которая работает на любой бизнес",
+      "uz": "Har qanday biznes uchun ishlaydigan arxitektura",
+      "en": "Architecture that works for any business"
+    },
     "sub": {
       "ru": "Компактный бизнес-центр на 4 этажа с подземным уровнем. Нейтральная современная архитектура одинаково уместна для клиники, офиса и учебного центра.",
       "uz": "4 qavatli, yerosti darajasiga ega ixcham biznes markaz. Neytral zamonaviy arxitektura klinika, ofis va o'quv markazi uchun birdek mos.",
       "en": "A compact four-story business center with an underground level. Neutral modern architecture suits a clinic, an office and an education center equally well."
     },
     "specs": [
-      { "icon": "building", "b": { "ru": "4 этажа + лифт", "uz": "4 qavat + lift", "en": "4 floors + elevator" }, "s": { "ru": "подвал, паркинг и все уровни", "uz": "yerto'la, avtoturargoh va barcha qavatlar", "en": "basement, parking and all levels" } },
-      { "icon": "ceiling", "b": { "ru": "Потолки 3,4 м", "uz": "Shiftlar 3,4 m", "en": "3.4 m ceilings" }, "s": { "ru": "свет и воздух в любом сценарии", "uz": "har qanday ssenariyda yorug'lik va havo", "en": "light and air in any scenario" } },
-      { "icon": "parking", "b": { "ru": "Подземный паркинг", "uz": "Yerosti avtoturargohi", "en": "Underground parking" }, "s": { "ru": "12 машиномест, 347 м²", "uz": "12 o'rin, 347 m²", "en": "12 spaces, 347 m²" } },
-      { "icon": "grid", "b": { "ru": "Open Space", "uz": "Open Space", "en": "Open Space" }, "s": { "ru": "свободные планировки этажей", "uz": "qavatlarning erkin planirovkasi", "en": "open floor layouts" } },
-      { "icon": "power", "b": { "ru": "Инженерия до границ", "uz": "Muhandislik tarmoqlari chegaragacha", "en": "Utilities to the boundary" }, "s": { "ru": "сети подведены к каждому лоту", "uz": "tarmoqlar har bir lotga yetkazilgan", "en": "services brought to every unit" } },
-      { "icon": "shield", "b": { "ru": "Черновая отделка", "uz": "Qora suvoq holati", "en": "Shell & core" }, "s": { "ru": "границы фиксируются в договоре", "uz": "chegaralar shartnomada belgilanadi", "en": "boundaries fixed in the contract" } }
+      {
+        "icon": "building",
+        "b": {
+          "ru": "4 этажа + лифт",
+          "uz": "4 qavat + lift",
+          "en": "4 floors + elevator"
+        },
+        "s": {
+          "ru": "подвал, паркинг и все уровни",
+          "uz": "yerto'la, avtoturargoh va barcha qavatlar",
+          "en": "basement, parking and all levels"
+        }
+      },
+      {
+        "icon": "ceiling",
+        "b": {
+          "ru": "Потолки 3,4 м",
+          "uz": "Shiftlar 3,4 m",
+          "en": "3.4 m ceilings"
+        },
+        "s": {
+          "ru": "свет и воздух в любом сценарии",
+          "uz": "har qanday ssenariyda yorug'lik va havo",
+          "en": "light and air in any scenario"
+        }
+      },
+      {
+        "icon": "parking",
+        "b": {
+          "ru": "Подземный паркинг",
+          "uz": "Yerosti avtoturargohi",
+          "en": "Underground parking"
+        },
+        "s": {
+          "ru": "12 машиномест, 347 м²",
+          "uz": "12 o'rin, 347 m²",
+          "en": "12 spaces, 347 m²"
+        }
+      },
+      {
+        "icon": "grid",
+        "b": {
+          "ru": "Open Space",
+          "uz": "Open Space",
+          "en": "Open Space"
+        },
+        "s": {
+          "ru": "свободные планировки этажей",
+          "uz": "qavatlarning erkin planirovkasi",
+          "en": "open floor layouts"
+        }
+      },
+      {
+        "icon": "power",
+        "b": {
+          "ru": "Инженерия до границ",
+          "uz": "Muhandislik tarmoqlari chegaragacha",
+          "en": "Utilities to the boundary"
+        },
+        "s": {
+          "ru": "сети подведены к каждому лоту",
+          "uz": "tarmoqlar har bir lotga yetkazilgan",
+          "en": "services brought to every unit"
+        }
+      },
+      {
+        "icon": "shield",
+        "b": {
+          "ru": "Черновая отделка",
+          "uz": "Qora suvoq holati",
+          "en": "Shell & core"
+        },
+        "s": {
+          "ru": "границы фиксируются в договоре",
+          "uz": "chegaralar shartnomada belgilanadi",
+          "en": "boundaries fixed in the contract"
+        }
+      }
     ],
     "note": {
       "ru": "<b>Фасад в природных серых тонах:</b> цоколь из тёмного гранита, выше — светлая штукатурка и облицовка под светло-серый травертин, панорамное остекление в графитовых профилях и вечерняя архитектурная подсветка.",
       "uz": "<b>Tabiiy kulrang ohanglardagi fasad:</b> to'q granit tsokol, yuqorida — och suvoq va och-kulrang travertin uslubidagi qoplama, grafit profillardagi panoramik oynalar va kechki arxitektura yoritilishi.",
       "en": "<b>A facade in natural grey tones:</b> a dark granite base, light plaster and light-grey travertine-style cladding above, panoramic glazing in graphite frames and evening architectural lighting."
     },
-    "images": ["facade-angle.jpg", "facade-evening.jpg"]
+    "images": [
+      "facade-angle.jpg",
+      "facade-evening.jpg"
+    ]
   },
   "invest": {
     "enabled": true,
-    "h2": { "ru": "Почему входить сейчас", "uz": "Nega aynan hozir", "en": "Why enter now" },
+    "h2": {
+      "ru": "Почему входить сейчас",
+      "uz": "Nega aynan hozir",
+      "en": "Why enter now"
+    },
     "cards": [
       {
-        "h": { "ru": "Цена стадии строительства", "uz": "Qurilish bosqichi narxi", "en": "Construction-stage price" },
+        "h": {
+          "ru": "Цена стадии строительства",
+          "uz": "Qurilish bosqichi narxi",
+          "en": "Construction-stage price"
+        },
         "p": {
           "ru": "Стоимость фиксируется договором до завершения фасадных работ — вход сейчас выгоднее, чем покупка готового помещения. Актуальную цену вышлем по запросу.",
           "uz": "Narx fasad ishlari tugagunga qadar shartnoma bilan belgilab qo'yiladi — hozir kirish tayyor maydonni sotib olishdan foydaliroq. Dolzarb narxni so'rov bo'yicha yuboramiz.",
@@ -173,7 +412,11 @@
         }
       },
       {
-        "h": { "ru": "Рост капитализации к вводу", "uz": "Topshirishga qadar kapitalizatsiya o'sishi", "en": "Appreciation by completion" },
+        "h": {
+          "ru": "Рост капитализации к вводу",
+          "uz": "Topshirishga qadar kapitalizatsiya o'sishi",
+          "en": "Appreciation by completion"
+        },
         "p": {
           "ru": "Готовое нежилое помещение в центральной локации с кадастром оценивается рынком выше, чем лот на этапе стройки — разница и есть ваш первый доход.",
           "uz": "Markaziy joylashuvdagi kadastrli tayyor noturar maydon bozor tomonidan qurilish bosqichidagi lotdan qimmatroq baholanadi — farq sizning birinchi daromadingiz.",
@@ -181,7 +424,11 @@
         }
       },
       {
-        "h": { "ru": "Арендный потенциал", "uz": "Ijara salohiyati", "en": "Rental potential" },
+        "h": {
+          "ru": "Арендный потенциал",
+          "uz": "Ijara salohiyati",
+          "en": "Rental potential"
+        },
         "p": {
           "ru": "Первая линия оживлённой улицы, дефицит качественных небольших БЦ в старом городе и свободное назначение расширяют круг арендаторов — от медицины до образования.",
           "uz": "Gavjum ko'chaning birinchi qatori, eski shaharda sifatli kichik biznes markazlar tanqisligi va erkin maqsad ijarachilar doirasini kengaytiradi — tibbiyotdan ta'limgacha.",
@@ -197,7 +444,11 @@
   },
   "progress": {
     "enabled": true,
-    "h2": { "ru": "Каркас готов — идут фасадные работы", "uz": "Karkas tayyor — fasad ishlari ketmoqda", "en": "Frame complete — facade works underway" },
+    "h2": {
+      "ru": "Каркас готов — идут фасадные работы",
+      "uz": "Karkas tayyor — fasad ishlari ketmoqda",
+      "en": "Frame complete — facade works underway"
+    },
     "sub": {
       "ru": "Стройка в активной фазе, ввод в эксплуатацию по кадастру — сентябрь 2026 года.",
       "uz": "Qurilish faol bosqichda, kadastr bo'yicha foydalanishga topshirish — 2026-yil sentyabr.",
@@ -205,33 +456,141 @@
     },
     "image": "construction.jpg",
     "steps": [
-      { "state": "done", "b": { "ru": "Монолитный каркас и кладка", "uz": "Monolit karkas va g'isht terish", "en": "Monolithic frame and masonry" }, "s": { "ru": "4 этажа + подземный уровень — завершены", "uz": "4 qavat + yerosti darajasi — yakunlangan", "en": "4 floors + underground level — complete" } },
-      { "state": "now", "b": { "ru": "Фасадные работы", "uz": "Fasad ishlari", "en": "Facade works" }, "s": { "ru": "идут сейчас: гранит, штукатурка, остекление", "uz": "hozir davom etmoqda: granit, suvoq, oynalash", "en": "in progress: granite, plaster, glazing" } },
-      { "state": "next", "b": { "ru": "Инженерные системы и благоустройство", "uz": "Muhandislik tizimlari va obodonlashtirish", "en": "Utilities and landscaping" }, "s": { "ru": "разводка сетей, паркинг, входная группа", "uz": "tarmoqlarni tortish, avtoturargoh, kirish guruhi", "en": "service runs, parking, entrance area" } },
-      { "state": "next", "b": { "ru": "Ввод в эксплуатацию", "uz": "Foydalanishga topshirish", "en": "Completion" }, "s": { "ru": "сентябрь 2026 — постановка на кадастр", "uz": "2026-yil sentyabr — kadastrga qo'yish", "en": "September 2026 — cadastre registration" } }
+      {
+        "state": "done",
+        "b": {
+          "ru": "Монолитный каркас и кладка",
+          "uz": "Monolit karkas va g'isht terish",
+          "en": "Monolithic frame and masonry"
+        },
+        "s": {
+          "ru": "4 этажа + подземный уровень — завершены",
+          "uz": "4 qavat + yerosti darajasi — yakunlangan",
+          "en": "4 floors + underground level — complete"
+        }
+      },
+      {
+        "state": "now",
+        "b": {
+          "ru": "Фасадные работы",
+          "uz": "Fasad ishlari",
+          "en": "Facade works"
+        },
+        "s": {
+          "ru": "идут сейчас: гранит, штукатурка, остекление",
+          "uz": "hozir davom etmoqda: granit, suvoq, oynalash",
+          "en": "in progress: granite, plaster, glazing"
+        }
+      },
+      {
+        "state": "next",
+        "b": {
+          "ru": "Инженерные системы и благоустройство",
+          "uz": "Muhandislik tizimlari va obodonlashtirish",
+          "en": "Utilities and landscaping"
+        },
+        "s": {
+          "ru": "разводка сетей, паркинг, входная группа",
+          "uz": "tarmoqlarni tortish, avtoturargoh, kirish guruhi",
+          "en": "service runs, parking, entrance area"
+        }
+      },
+      {
+        "state": "next",
+        "b": {
+          "ru": "Ввод в эксплуатацию",
+          "uz": "Foydalanishga topshirish",
+          "en": "Completion"
+        },
+        "s": {
+          "ru": "сентябрь 2026 — постановка на кадастр",
+          "uz": "2026-yil sentyabr — kadastrga qo'yish",
+          "en": "September 2026 — cadastre registration"
+        }
+      }
     ]
   },
   "location": {
-    "h2": { "ru": "Центр старого города, первая линия", "uz": "Eski shahar markazi, birinchi qator", "en": "Old city center, first line" },
+    "h2": {
+      "ru": "Центр старого города, первая линия",
+      "uz": "Eski shahar markazi, birinchi qator",
+      "en": "Old city center, first line"
+    },
     "sub": {
       "ru": "Шайхантахурский район — плотная деловая и жилая застройка, устойчивый дневной трафик и быстрая связь с центром Ташкента.",
       "uz": "Shayxontohur tumani — zich ishbilarmonlik va turar-joy qurilishi, barqaror kunduzgi trafik va Toshkent markazi bilan tez aloqa.",
       "en": "Shaykhantakhur district — dense business and residential fabric, steady daytime traffic and quick access to central Tashkent."
     },
-    "address": { "ru": "г. Ташкент, ул. Тахтапуль, 31", "uz": "Toshkent sh., Taxtapul ko'chasi, 31", "en": "31 Takhtapul street, Tashkent" },
-    "addressNote": { "ru": "Шайхантахурский район · 41.33894, 69.26335", "uz": "Shayxontohur tumani · 41.33894, 69.26335", "en": "Shaykhantakhur district · 41.33894, 69.26335" },
+    "address": {
+      "ru": "г. Ташкент, ул. Тахтапуль, 31",
+      "uz": "Toshkent sh., Taxtapul ko'chasi, 31",
+      "en": "31 Takhtapul street, Tashkent"
+    },
+    "addressNote": {
+      "ru": "Шайхантахурский район · 41.33894, 69.26335",
+      "uz": "Shayxontohur tumani · 41.33894, 69.26335",
+      "en": "Shaykhantakhur district · 41.33894, 69.26335"
+    },
     "city": "Ташкент",
     "lat": 41.33894,
     "lng": 69.26335,
     "pois": [
-      { "name": { "ru": "Метро «Гафур Гулям»", "uz": "«G'afur G'ulom» metro bekati", "en": "Gafur Gulyam metro station" }, "dist": { "ru": "≈ 2 км", "uz": "≈ 2 km", "en": "≈ 2 km" } },
-      { "name": { "ru": "Базар Чорсу и старый город", "uz": "Chorsu bozori va eski shahar", "en": "Chorsu bazaar and the old city" }, "dist": { "ru": "≈ 3 км", "uz": "≈ 3 km", "en": "≈ 3 km" } },
-      { "name": { "ru": "Tashkent City Park", "uz": "Tashkent City Park", "en": "Tashkent City Park" }, "dist": { "ru": "≈ 3 км", "uz": "≈ 3 km", "en": "≈ 3 km" } },
-      { "name": { "ru": "Аэропорт им. Ислама Каримова", "uz": "Islom Karimov nomidagi aeroport", "en": "Islam Karimov airport" }, "dist": { "ru": "≈ 10 км", "uz": "≈ 10 km", "en": "≈ 10 km" } }
+      {
+        "name": {
+          "ru": "Метро «Гафур Гулям»",
+          "uz": "«G'afur G'ulom» metro bekati",
+          "en": "Gafur Gulyam metro station"
+        },
+        "dist": {
+          "ru": "≈ 2 км",
+          "uz": "≈ 2 km",
+          "en": "≈ 2 km"
+        }
+      },
+      {
+        "name": {
+          "ru": "Базар Чорсу и старый город",
+          "uz": "Chorsu bozori va eski shahar",
+          "en": "Chorsu bazaar and the old city"
+        },
+        "dist": {
+          "ru": "≈ 3 км",
+          "uz": "≈ 3 km",
+          "en": "≈ 3 km"
+        }
+      },
+      {
+        "name": {
+          "ru": "Tashkent City Park",
+          "uz": "Tashkent City Park",
+          "en": "Tashkent City Park"
+        },
+        "dist": {
+          "ru": "≈ 3 км",
+          "uz": "≈ 3 km",
+          "en": "≈ 3 km"
+        }
+      },
+      {
+        "name": {
+          "ru": "Аэропорт им. Ислама Каримова",
+          "uz": "Islom Karimov nomidagi aeroport",
+          "en": "Islam Karimov airport"
+        },
+        "dist": {
+          "ru": "≈ 10 км",
+          "uz": "≈ 10 km",
+          "en": "≈ 10 km"
+        }
+      }
     ]
   },
   "lead": {
-    "h2": { "ru": "Получите планировки, цены и условия сделки", "uz": "Rejalar, narxlar va bitim shartlarini oling", "en": "Get floor plans, pricing and deal terms" },
+    "h2": {
+      "ru": "Получите планировки, цены и условия сделки",
+      "uz": "Rejalar, narxlar va bitim shartlarini oling",
+      "en": "Get floor plans, pricing and deal terms"
+    },
     "sub": {
       "ru": "Оставьте контакты — вышлем поэтажные планы, актуальный прайс и график стройки, ответим на вопросы по аренде и покупке.",
       "uz": "Kontaktlaringizni qoldiring — qavat rejalari, dolzarb narxlar va qurilish grafigini yuboramiz, ijara va xarid bo'yicha savollarga javob beramiz.",
@@ -240,7 +599,11 @@
   },
   "faq": [
     {
-      "q": { "ru": "Какой бизнес можно разместить?", "uz": "Qanday biznes joylashtirish mumkin?", "en": "What businesses are allowed?" },
+      "q": {
+        "ru": "Какой бизнес можно разместить?",
+        "uz": "Qanday biznes joylashtirish mumkin?",
+        "en": "What businesses are allowed?"
+      },
       "a": {
         "ru": "Помещения имеют свободное (нежилое) назначение: офис, клиника или медицинский кабинет, сфера услуг, шоурум, учебный центр или курсы. Размещение общеобразовательных школ и детских садов форматом здания не предусмотрено.",
         "uz": "Maydonlar erkin (noturar) maqsadga ega: ofis, klinika yoki tibbiy kabinet, xizmat ko'rsatish sohasi, shourum, o'quv markazi yoki kurslar. Umumta'lim maktablari va bolalar bog'chalarini joylashtirish bino formatida nazarda tutilmagan.",
@@ -248,7 +611,11 @@
       }
     },
     {
-      "q": { "ru": "Сколько стоят помещения?", "uz": "Maydonlar qancha turadi?", "en": "How much do the units cost?" },
+      "q": {
+        "ru": "Сколько стоят помещения?",
+        "uz": "Maydonlar qancha turadi?",
+        "en": "How much do the units cost?"
+      },
       "a": {
         "ru": "Цену и условия продажи или аренды озвучиваем по запросу — оставьте заявку на сайте или позвоните <a href=\"tel:+998909220700\">+998 90 922 07 00</a>. Стоимость фиксируется договором на этапе строительства.",
         "uz": "Sotuv yoki ijara narxi va shartlarini so'rov bo'yicha aytamiz — saytda ariza qoldiring yoki <a href='tel:+998909220700'>+998 90 922 07 00</a> raqamiga qo'ng'iroq qiling. Narx qurilish bosqichida shartnoma bilan belgilab qo'yiladi.",
@@ -256,7 +623,11 @@
       }
     },
     {
-      "q": { "ru": "В каком состоянии передаются помещения?", "uz": "Maydonlar qanday holatda topshiriladi?", "en": "In what condition are the units handed over?" },
+      "q": {
+        "ru": "В каком состоянии передаются помещения?",
+        "uz": "Maydonlar qanday holatda topshiriladi?",
+        "en": "In what condition are the units handed over?"
+      },
       "a": {
         "ru": "В черновой отделке — это позволяет спроектировать пространство под ваш бизнес без демонтажа. Инженерные сети подведены до границ помещения. Границы лота фиксируются в договоре купли-продажи по поэтажному плану.",
         "uz": "Qora suvoq holatida — bu maydonni demontajsiz biznesingizga moslab loyihalash imkonini beradi. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan. Lot chegaralari qavat rejasi bo'yicha oldi-sotdi shartnomasida belgilanadi.",
@@ -264,7 +635,11 @@
       }
     },
     {
-      "q": { "ru": "Когда здание будет сдано?", "uz": "Bino qachon topshiriladi?", "en": "When will the building be completed?" },
+      "q": {
+        "ru": "Когда здание будет сдано?",
+        "uz": "Bino qachon topshiriladi?",
+        "en": "When will the building be completed?"
+      },
       "a": {
         "ru": "Монолитный каркас завершён, сейчас идут фасадные работы. Ввод в эксплуатацию и постановка на кадастр — сентябрь 2026 года.",
         "uz": "Monolit karkas yakunlangan, hozir fasad ishlari ketmoqda. Foydalanishga topshirish va kadastrga qo'yish — 2026-yil sentyabr.",
@@ -272,7 +647,11 @@
       }
     },
     {
-      "q": { "ru": "Можно ли арендовать, а не покупать?", "uz": "Sotib olmasdan ijaraga olsa bo'ladimi?", "en": "Can I lease instead of buying?" },
+      "q": {
+        "ru": "Можно ли арендовать, а не покупать?",
+        "uz": "Sotib olmasdan ijaraga olsa bo'ladimi?",
+        "en": "Can I lease instead of buying?"
+      },
       "a": {
         "ru": "Да. Оба лота доступны как к покупке, так и в долгосрочную аренду — ставка и условия обсуждаются индивидуально. Для инвесторов возможна покупка помещения с уже подписанным договором аренды.",
         "uz": "Ha. Ikkala lot ham sotib olish, ham uzoq muddatli ijara uchun ochiq — stavka va shartlar alohida kelishiladi. Investorlar uchun imzolangan ijara shartnomasi bilan maydon sotib olish mumkin.",
@@ -280,7 +659,11 @@
       }
     },
     {
-      "q": { "ru": "Кто соседи по зданию?", "uz": "Binoda qo'shnilar kim?", "en": "Who are the neighbors?" },
+      "q": {
+        "ru": "Кто соседи по зданию?",
+        "uz": "Binoda qo'shnilar kim?",
+        "en": "Who are the neighbors?"
+      },
       "a": {
         "ru": "75% здания продано: на первом этаже — коммерция (торговая галерея), на половине второго этажа — стоматологическая клиника, четвёртый этаж занят офисом. Свободны помещение 179 м² на втором этаже и весь третий этаж — 430,4 м².",
         "uz": "Binoning 75% sotilgan: birinchi qavatda — tijorat (savdo galereyasi), ikkinchi qavatning yarmida — stomatologiya klinikasi, to'rtinchi qavatni ofis egallagan. 2-qavatdagi 179 m² maydon va butun 3-qavat (430,4 m²) bo'sh.",
@@ -288,7 +671,11 @@
       }
     },
     {
-      "q": { "ru": "Есть ли парковка?", "uz": "Avtoturargoh bormi?", "en": "Is there parking?" },
+      "q": {
+        "ru": "Есть ли парковка?",
+        "uz": "Avtoturargoh bormi?",
+        "en": "Is there parking?"
+      },
       "a": {
         "ru": "Да, в здании подземный паркинг на 12 машиномест (347 м²) с въездом с улицы Тахтапуль, плюс гостевые места перед входом.",
         "uz": "Ha, binoda Taxtapul ko'chasidan kiriladigan 12 o'rinli (347 m²) yerosti avtoturargohi hamda kirish oldida mehmonlar uchun joylar bor.",
@@ -297,7 +684,11 @@
     }
   ],
   "footer": {
-    "addr": { "ru": "г. Ташкент, ул. Тахтапуль, 31", "uz": "Toshkent sh., Taxtapul ko'chasi, 31", "en": "31 Takhtapul st., Tashkent" },
+    "addr": {
+      "ru": "г. Ташкент, ул. Тахтапуль, 31",
+      "uz": "Toshkent sh., Taxtapul ko'chasi, 31",
+      "en": "31 Takhtapul st., Tashkent"
+    },
     "legal": {
       "ru": "Информация на сайте носит справочный характер и не является публичной офертой. Визуализации — иллюстративные. © 2026 SFB",
       "uz": "Saytdagi ma'lumotlar ma'lumot uchun bo'lib, ommaviy oferta hisoblanmaydi. Vizualizatsiyalar illyustrativ. © 2026 SFB",
