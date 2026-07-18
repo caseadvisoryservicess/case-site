@@ -36,7 +36,8 @@ Google Apps Script (поле «Google Таблица»), — строкой в C
 
 ## Деплой
 
-Любой Node-хостинг: Render / Railway / Fly / VPS. Команда старта — `node server.js`,
-персистентной должна быть папка `admin/data` (и желательно `admin/sites`).
-За HTTPS-доменом панель можно спрятать за nginx или использовать встроенный
-прокси хостинга.
+Пошаговая инструкция — в **[DEPLOY.md](DEPLOY.md)**: локальный запуск,
+Render.com (готовый `render.yaml` в корне репозитория), VPS
+(`deploy/install-vps.sh` + `deploy/nginx.conf.example`) и Docker
+(`Dockerfile`, `docker-compose.yml`). Персистентной должна быть папка
+`admin/data`; собранные сайты панель пересоздаёт сама при старте.

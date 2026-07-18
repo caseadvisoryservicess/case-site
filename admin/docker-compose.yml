@@ -1,0 +1,17 @@
+services:
+  panel:
+    build: .
+    container_name: sfb-panel
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      # пароль администратора при первом запуске (логин: admin)
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+    volumes:
+      - panel-data:/app/data
+      - panel-sites:/app/sites
+
+volumes:
+  panel-data:
+  panel-sites:

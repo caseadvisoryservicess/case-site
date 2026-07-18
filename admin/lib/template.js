@@ -130,6 +130,7 @@ function renderLanding(cfg) {
   const dict = { uz: Object.assign({}, UI_I18N.uz), en: Object.assign({}, UI_I18N.en) };
   const t = makeT(dict);
 
+  const siteBase = String(cfg.seo.domain || '').trim().replace(/\/+$/, '');
   const phone = cfg.contacts.phone || '';
   const tel = telHref(phone);
   const tg = (cfg.contacts.telegram || '').replace(/^@/, '');
@@ -376,6 +377,10 @@ ${steps}
 <meta name="description" content="${escAttr(L(cfg.seo.description))}">
 ${cfg.seo.keywords ? `<meta name="keywords" content="${escAttr(cfg.seo.keywords)}">` : ''}
 <meta name="robots" content="index, follow">
+${(cfg.seo.googleVerification || '').trim() ? `<meta name="google-site-verification" content="${escAttr(cfg.seo.googleVerification.trim())}">` : ''}
+${(cfg.seo.yandexVerification || '').trim() ? `<meta name="yandex-verification" content="${escAttr(cfg.seo.yandexVerification.trim())}">` : ''}
+${siteBase ? `<link rel="canonical" href="${escAttr(siteBase)}/">` : ''}
+${siteBase ? `<meta property="og:url" content="${escAttr(siteBase)}/">` : ''}
 <meta name="geo.region" content="UZ">
 <meta name="geo.placename" content="${escAttr(loc.city || 'Ташкент')}">
 <meta name="geo.position" content="${Number(loc.lat) || 0};${Number(loc.lng) || 0}">
@@ -595,7 +600,13 @@ ${FORM_JS}
 </body>
 </html>`;
 
-  return { html, images: [...images] };
+  // robots.txt и sitemap.xml для Google и Яндекса
+  const robots = `User-agent: *\nAllow: /\n${siteBase ? `\nSitemap: ${siteBase}/sitemap.xml\n` : ''}`;
+  const sitemap = siteBase
+    ? `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n  <url><loc>${esc(siteBase)}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>\n</urlset>\n`
+    : null;
+
+  return { html, images: [...images], robots, sitemap };
 }
 
 // ─── CSS (общий для всех лендингов; фирменная палитра) ───

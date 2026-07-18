@@ -1,0 +1,26 @@
+# /etc/nginx/sites-available/sfb-panel
+# Панель на panel.вашдомен, лендинг Тахтапула на sfb.вашдомен (отдаётся статикой напрямую).
+# После правки: ln -s в sites-enabled, nginx -t && systemctl reload nginx,
+# затем HTTPS: apt install certbot python3-certbot-nginx && certbot --nginx
+
+server {
+    listen 80;
+    server_name panel.example.uz;           # ← домен панели
+
+    client_max_body_size 25m;               # загрузка фото до 20 МБ
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+
+server {
+    listen 80;
+    server_name sfb.example.uz;             # ← домен лендинга
+    root /opt/case-site/admin/sites/takhtapul;   # ← путь к собранному лендингу
+    index index.html;
+    location / { try_files $uri $uri/ =404; }
+}

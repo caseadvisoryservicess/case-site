@@ -27,6 +27,16 @@ const PORT = process.env.PORT || 3000;
 fs.mkdirSync(PROJECTS, { recursive: true });
 fs.mkdirSync(SITES, { recursive: true });
 
+// при пустой data/ (например, чистый том в Docker) — заполнить из seed-data/
+const SEED = path.join(ROOT, 'seed-data');
+if (fs.existsSync(SEED) && fs.readdirSync(PROJECTS).length === 0) {
+  const seedProjects = path.join(SEED, 'projects');
+  if (fs.existsSync(seedProjects)) {
+    fs.cpSync(seedProjects, PROJECTS, { recursive: true });
+    console.log('Данные проектов заполнены из seed-data/');
+  }
+}
+
 // ─── секрет для подписи сессионных cookie (создаётся один раз) ───
 const SECRET_FILE = path.join(DATA, '.secret');
 if (!fs.existsSync(SECRET_FILE)) fs.writeFileSync(SECRET_FILE, crypto.randomBytes(32).toString('hex'), { mode: 0o600 });
@@ -36,10 +46,13 @@ const SECRET = fs.readFileSync(SECRET_FILE, 'utf8').trim();
 const USERS_FILE = path.join(DATA, 'users.json');
 function loadUsers() {
   if (!fs.existsSync(USERS_FILE)) {
-    // первый запуск: admin / admin — сменить сразу после входа!
-    const seed = [{ username: 'admin', hash: bcrypt.hashSync('admin', 10), role: 'admin', projects: [] }];
+    // первый запуск: пароль админа из переменной окружения ADMIN_PASSWORD, иначе "admin"
+    const pass = process.env.ADMIN_PASSWORD || 'admin';
+    const seed = [{ username: 'admin', hash: bcrypt.hashSync(pass, 10), role: 'admin', projects: [] }];
     fs.writeFileSync(USERS_FILE, JSON.stringify(seed, null, 2));
-    console.log('Создан пользователь admin с паролем "admin" — смените пароль после первого входа!');
+    console.log(process.env.ADMIN_PASSWORD
+      ? 'Создан пользователь admin с паролем из ADMIN_PASSWORD.'
+      : 'Создан пользователь admin с паролем "admin" — смените пароль после первого входа!');
   }
   return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
 }
@@ -79,7 +92,10 @@ function uploadsDir(slug) { return path.join(projectDir(slug), 'uploads'); }
 
 const app = express();
 app.disable('x-powered-by');
+app.set('trust proxy', 1); // за nginx/Render: корректные req.secure и IP
 app.use(express.json({ limit: '3mb' }));
+
+app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // ─── auth middleware ───
 function auth(req, res, next) {
@@ -130,7 +146,8 @@ app.post('/api/login', (req, res) => {
   }
   attempts.delete(key);
   const token = sign({ u: user.username, exp: Date.now() + SESSION_TTL });
-  res.setHeader('Set-Cookie', `sfb_session=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL / 1000}`);
+  const secure = req.secure || req.headers['x-forwarded-proto'] === 'https' ? '; Secure' : '';
+  res.setHeader('Set-Cookie', `sfb_session=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL / 1000}${secure}`);
   res.json({ ok: true, user: { username: user.username, role: user.role, projects: user.projects || [] } });
 });
 app.post('/api/logout', (req, res) => {
@@ -257,12 +274,14 @@ app.get('/uploads/:slug/:file', (req, res) => {
 // ─── API: сборка лендинга ───
 function generate(slug) {
   const cfg = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8'));
-  const { html, images } = renderLanding(cfg);
+  const { html, images, robots, sitemap } = renderLanding(cfg);
   const out = path.join(SITES, slug);
   const assets = path.join(out, 'assets');
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(assets, { recursive: true });
   fs.writeFileSync(path.join(out, 'index.html'), html);
+  fs.writeFileSync(path.join(out, 'robots.txt'), robots);
+  if (sitemap) fs.writeFileSync(path.join(out, 'sitemap.xml'), sitemap);
   for (const img of images) {
     const src = path.join(uploadsDir(slug), path.basename(img));
     if (fs.existsSync(src)) fs.copyFileSync(src, path.join(assets, path.basename(img)));
@@ -344,8 +363,20 @@ app.delete('/api/users/:username', auth, adminOnly, (req, res) => {
 app.use('/p', express.static(SITES, { fallthrough: false, index: 'index.html' }));
 app.use(express.static(path.join(ROOT, 'public')));
 
+// после рестарта/деплоя пересобрать лендинги, которых нет на диске
+function regenerateMissing() {
+  for (const slug of fs.readdirSync(PROJECTS)) {
+    if (!SLUG_RE.test(slug) || !fs.existsSync(projectFile(slug))) continue;
+    if (!fs.existsSync(path.join(SITES, slug, 'index.html'))) {
+      try { generate(slug); console.log(`Пересобран лендинг: /p/${slug}/`); }
+      catch (e) { console.error(`Не удалось пересобрать ${slug}:`, e.message); }
+    }
+  }
+}
+
 app.listen(PORT, () => {
-  loadUsers(); // создаст admin/admin при первом запуске
+  loadUsers(); // создаст админа при первом запуске
+  regenerateMissing();
   console.log(`Панель запущена: http://localhost:${PORT}`);
   console.log(`Собранные лендинги: http://localhost:${PORT}/p/<slug>/`);
 });

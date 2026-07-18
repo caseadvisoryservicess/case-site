@@ -721,7 +721,16 @@
     return [
       mlField('Заголовок страницы (title)', 'seo.title'),
       mlField('Описание (description)', 'seo.description', { textarea: true }),
-      fieldText('Ключевые слова (keywords)', 'seo.keywords', { textarea: true, rows: 3, hint: 'Через запятую' })
+      fieldText('Ключевые слова (keywords)', 'seo.keywords', { textarea: true, rows: 3, hint: 'Через запятую' }),
+      fieldText('Домен лендинга', 'seo.domain', {
+        hint: 'Например https://sfb-takhtapul.uz — по нему соберутся sitemap.xml, robots.txt и canonical. Пусто — эти файлы будут без абсолютных ссылок.'
+      }),
+      fieldText('Подтверждение Google Search Console', 'seo.googleVerification', {
+        hint: 'Код из мета-тега google-site-verification (только значение content)'
+      }),
+      fieldText('Подтверждение Яндекс Вебмастера', 'seo.yandexVerification', {
+        hint: 'Код из мета-тега yandex-verification (только значение content)'
+      })
     ];
   }
 

@@ -28,7 +28,10 @@ function newProject(slug, name) {
     seo: {
       title: ml('Название проекта — продажа и аренда помещений'),
       description: ml('Краткое описание проекта для поисковиков (1–2 предложения).'),
-      keywords: ''
+      keywords: '',
+      domain: '',
+      googleVerification: '',
+      yandexVerification: ''
     },
     hero: {
       image: '',

@@ -1,0 +1,8 @@
+node_modules
+sites
+data/.secret
+data/users.json
+data/projects/*/project.json.bak
+deploy
+README.md
+DEPLOY.md

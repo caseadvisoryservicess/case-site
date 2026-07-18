@@ -1,0 +1,19 @@
+# Blueprint для Render.com: New + → Blueprint → выбрать этот репозиторий.
+# После merge в main замените branch ниже (или удалите строку branch).
+services:
+  - type: web
+    name: sfb-panel
+    runtime: node
+    plan: starter            # нужен платный план: у free нет постоянного диска (данные стирались бы при каждом деплое)
+    branch: claude/taktapul-landing-page-qetpu1
+    rootDir: admin
+    buildCommand: npm ci
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    envVars:
+      - key: ADMIN_PASSWORD  # Render спросит значение при создании — задайте свой пароль администратора
+        sync: false
+    disk:
+      name: sfb-panel-data
+      mountPath: /opt/render/project/src/admin/data
+      sizeGB: 1
