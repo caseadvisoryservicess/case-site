@@ -1,0 +1,18 @@
+{
+    "converted_at": "2026-07-19 00:15:46",
+    "total": 3206,
+    "by_source_file": {
+        "business_center": 104,
+        "mahallas": 545,
+        "medicine": 1530,
+        "pharmacy": 1027
+    },
+    "by_category": {
+        "business_center": 104,
+        "mahallas": 545,
+        "medicine": 1530,
+        "pharmacy": 1027
+    },
+    "note": "Все записи — реальные, из ваших файлов; single-source ⇒ confidence C ⇒ очередь на ручную проверку\/кросс-матч с Google\/Яндекс\/2GIS.",
+    "output": "data\/geo_collect_out"
+}

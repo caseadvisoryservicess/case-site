@@ -12,3 +12,13 @@
   ExpiresByType image/svg+xml "access plus 1 day"
   ExpiresByType application/pdf "access plus 1 day"
 </IfModule>
+
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "same-origin"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+</IfModule>
+
+Options -Indexes

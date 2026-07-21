@@ -1,0 +1,9 @@
+# CASE OS protected project files. Files must only be served through api/project_files.php.
+Options -Indexes
+<IfModule mod_authz_core.c>
+  Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+  Order allow,deny
+  Deny from all
+</IfModule>

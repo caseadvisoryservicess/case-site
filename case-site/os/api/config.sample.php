@@ -27,4 +27,16 @@ return [
     'user'   => 'no-reply@ВАШ-ДОМЕН',
     'pass'   => 'ПАРОЛЬ_ЯЩИКА',
   ],
+  // GIS / Location Intelligence keys (optional, keep real keys only in production config.php)
+  'openrouteservice_key' => '',
+  'yandex_isochrone_key' => '',
+  'dgis_key' => '',            // 2GIS Places API — сбор геобазы (api/geo_collector.php)
+  'google_maps_key' => '',     // Google Places API (New) — сбор геобазы
+  'yandex_search_key' => '',   // Яндекс Geosearch API (поиск организаций) — сбор геобазы
+  // Примечание: Geosearch ≠ Isochrone. Для коллектора нужен именно ключ Geosearch (поиск по организациям).
+
+  // Telegram-бот для дайджеста контрольных дат (см. api/cron_critical_dates.php).
+  // Создать бота через @BotFather в Telegram, вписать токен сюда; получателей
+  // настроить в api/notify_recipients.php (см. api/notify_recipients.sample.php).
+  'telegram_bot_token' => '',
 ];

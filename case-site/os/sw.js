@@ -1,53 +1,31 @@
-/* CASE OS — service worker: офлайн-режим (network-first для приложения, cache-first для статики) */
-const CACHE = 'case-os-v45';
-const ASSETS = ['./', './index.html'];
-
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll(ASSETS)).catch(() => {}).then(() => self.skipWaiting())
-  );
+// CASE OS v4.17.0 service worker
+const CACHE = 'case-os-v4170';
+const ASSETS = ['./', './index.html', './v32-upgrade.js', './v326-commission-engines.js', './v35-stable.js', './v3515-ux.js', './jszip.min.js', './v3518-brands-import.js', './v3520-workspaces.js', './v400-feasibility.js', './feasibility-studio.html', './v420-geoanalytics.js', './v420-geo-studio.js', './geoanalytics-studio.html', './v440-engineering.js', './v450-guides.js', './v490-caseos.js', './v490-workflow.js', './v492-portfolio-proposals.js', './v493-portfolio-suite.js', './leaflet.case.js', './leaflet.case.css', './data/case_portfolio_projects_v4.9.3.json', './data/case_portfolio_projects_v4.9.3.csv', './data/case_portfolio.geojson', './data/case_portfolio.seed.js', './mep-studio.html', './lift-studio.html', './leaflet.markercluster.js', './data/mep_norms.json', './data/bundle_tashkent_realdata.json', './data/mahallas_tashkent.json', './v496-commissions.js', './v410-feature-flags.js', './v417-master-plan.js'];
+self.addEventListener('install', event => {
+  event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS)).catch(() => null));
+  self.skipWaiting();
 });
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys()
-      .then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k))))
-      .then(() => self.clients.claim())
-  );
+self.addEventListener('activate', event => {
+  event.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
-
-self.addEventListener('fetch', e => {
-  const req = e.request;
+self.addEventListener('fetch', event => {
+  const req = event.request;
   if (req.method !== 'GET') return;
-  let url;
-  try { url = new URL(req.url); } catch (_) { return; }
-
-  // Бэкенд (вход, данные): НИКОГДА не кэшируем — всегда напрямую в сеть.
-  if (url.origin === location.origin && url.pathname.indexOf('/api/') >= 0) return;
-
-  // Навигация (открытие приложения): сначала сеть, офлайн — из кэша.
-  if (req.mode === 'navigate') {
-    e.respondWith(
-      fetch(req).then(r => {
-        const cp = r.clone();
-        caches.open(CACHE).then(c => c.put(req, cp)).catch(() => {});
-        return r;
-      }).catch(() => caches.match(req).then(r => r || caches.match('./index.html')))
-    );
-    return;
-  }
-
-  // Прочие GET (шрифты, библиотеки): сначала кэш, затем сеть.
-  e.respondWith(
-    caches.match(req).then(cached => cached || fetch(req).then(resp => {
-      try {
-        if (resp && resp.status === 200 &&
-            (url.origin === location.origin || /fonts\.(googleapis|gstatic)\.com$/.test(url.host))) {
-          const cp = resp.clone();
-          caches.open(CACHE).then(c => c.put(req, cp)).catch(() => {});
-        }
-      } catch (_) {}
-      return resp;
-    }).catch(() => cached))
-  );
+  const url = new URL(req.url);
+  if (url.pathname.includes('/api/')) return;
+  // Оффлайн-заглушку (index.html) возвращаем ТОЛЬКО для навигации (открыли/перезагрузили
+  // страницу) — иначе неудавшийся запрос скрипта/JSON/картинки без своей копии в кэше получал
+  // тело index.html с кодом 200, что ломало парсинг на стороне вызывающего кода без понятной
+  // причины (независимый аудит, P2-08). Для остальных типов запросов без сети и без кэша —
+  // настоящая ошибка, а не подмена контента.
+  const isNavigation = req.mode === 'navigate' || req.destination === 'document';
+  event.respondWith(fetch(req, {cache:'no-store'}).then(res => {
+    const copy = res.clone();
+    caches.open(CACHE).then(cache => cache.put(req, copy)).catch(() => null);
+    return res;
+  }).catch(() => caches.match(req).then(r => {
+    if (r) return r;
+    if (isNavigation) return caches.match('./index.html');
+    return new Response('', {status: 504, statusText: 'Offline and not cached'});
+  })));
 });

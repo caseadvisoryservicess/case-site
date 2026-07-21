@@ -1,0 +1,35 @@
+-- CASE OS legacy module — investor purchase requests.
+-- Safe to run multiple times.
+
+CREATE TABLE IF NOT EXISTS `investor_requests` (
+  `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  `investor_name` VARCHAR(190) NOT NULL,
+  `country` VARCHAR(120) NULL,
+  `city` VARCHAR(120) NULL,
+  `asset_type` VARCHAR(120) NULL,
+  `area_min` DECIMAL(14,2) NULL,
+  `area_max` DECIMAL(14,2) NULL,
+  `budget_min` DECIMAL(16,2) NULL,
+  `budget_max` DECIMAL(16,2) NULL,
+  `cap_rate` VARCHAR(80) NULL,
+  `proof_funds` VARCHAR(80) NULL,
+  `preferences` TEXT NULL,
+  `stage` VARCHAR(40) NOT NULL DEFAULT 'new',
+  `source` VARCHAR(80) NULL,
+  `contact` VARCHAR(255) NULL,
+  `broker` VARCHAR(190) NULL,
+  `next_action` VARCHAR(255) NULL,
+  `due_date` DATE NULL,
+  `potential_fee` DECIMAL(16,2) NULL DEFAULT 0,
+  `visibility` VARCHAR(40) NOT NULL DEFAULT 'internal',
+  `partner_id` BIGINT UNSIGNED NULL,
+  `created_by` VARCHAR(190) NULL,
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `updated_at` TIMESTAMP NULL DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  KEY `idx_investor_requests_city` (`country`,`city`),
+  KEY `idx_investor_requests_stage` (`stage`),
+  KEY `idx_investor_requests_broker` (`broker`),
+  KEY `idx_investor_requests_budget` (`budget_min`,`budget_max`),
+  KEY `idx_investor_requests_area` (`area_min`,`area_max`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

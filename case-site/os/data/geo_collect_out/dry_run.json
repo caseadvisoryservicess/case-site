@@ -1,0 +1,44 @@
+{
+    "dry_run": true,
+    "city": "Tashkent",
+    "grid_cells": 440,
+    "grid_km": 1.5,
+    "categories": [
+        "hotels",
+        "restaurants",
+        "cafes",
+        "fast_food",
+        "shopping",
+        "supermarkets",
+        "markets",
+        "street_retail",
+        "parks",
+        "playgrounds",
+        "entertainment",
+        "sports",
+        "culture",
+        "tourism",
+        "education",
+        "medicine",
+        "pharmacy",
+        "residential",
+        "warehouses",
+        "parking",
+        "transport_hubs",
+        "finance",
+        "government",
+        "fuel_auto"
+    ],
+    "active_sources": [
+        "osm",
+        "google",
+        "yandex",
+        "dgis"
+    ],
+    "estimated_requests": {
+        "osm": 24,
+        "google": 31680,
+        "yandex": 31680,
+        "dgis": 31680
+    }
+}

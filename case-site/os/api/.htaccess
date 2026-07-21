@@ -2,3 +2,8 @@
 <FilesMatch "(^config\.php$|\.sqlite$|^lib\.php$)">
   Require all denied
 </FilesMatch>
+
+Options -Indexes
+<FilesMatch "(^config\.php$|^config\..*\.php$|^lib\.php$|\.sqlite$|\.sql$|\.sql\.gz$|\.log$|^\.env$)">
+  Require all denied
+</FilesMatch>

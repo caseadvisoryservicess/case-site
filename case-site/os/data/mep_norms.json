@@ -1,0 +1,45 @@
+{
+  "meta": {
+    "title": "CASE OS — нормы инженерных нагрузок (MEP) по видам деятельности",
+    "version": "1.0",
+    "date": "2026-07-18",
+    "disclaimer": "Значения — расчётные ориентиры на стадии концепции/ТЗ (design/connected load), а не замена детального проекта. Для retail/mall-типов взяты из практики tenant fit-out (матрица заказчика, откалибрована по ASHRAE); для прочих — ASHRAE 62.1 (вентиляция), ASHRAE 90.1/NEC (электрика), отраслевые данные водо-/газопотребления. Перед выдачей клиенту согласовать с инженером-проектировщиком и местными нормами ШНК/КМК РУз.",
+    "sources": [
+      "ASHRAE 62.1 (ventilation rates: Rp cfm/person + Ra cfm/ft²)",
+      "ASHRAE 90.1 / NEC 220 (lighting & connected electrical load densities)",
+      "Заказчик: MEP_Matrix_General (tenant fit-out ТРЦ) — сверено с ASHRAE",
+      "EIA CBECS, EngineeringToolbox, USGBC (water demand)",
+      "World LPG Association / ASHRAE PNNL (commercial kitchen gas)"
+    ],
+    "units": {
+      "cooling": "Вт/м² (охлаждение, расчётная нагрузка)",
+      "heating": "Вт/м² (отопление, расчётная нагрузка)",
+      "power": "Вт/м² (электрика: освещение+розетки+вентиляторы, присоединённая)",
+      "fresh_air_area": "л/с на м² (наружный воздух по площади, ASHRAE 62.1 Ra)",
+      "fresh_air_person": "л/с на чел (наружный воздух на человека, ASHRAE 62.1 Rp)",
+      "water": "л/сут (на человека или на м²/номер — см. water_basis)",
+      "gas": "Вт/м² (газ, если применимо — кухни/отопление)",
+      "occupancy": "м² на человека (плотность людей)"
+    }
+  },
+  "types": [
+    {"key":"office","label":"Офис / Бизнес-центр","cooling":[120,160],"heating":[70,90],"power":[80,100],"fresh_air_area":0.31,"fresh_air_person":2.36,"occupancy":10,"water":60,"water_basis":"person","gas":0,"notes":"ASHRAE: офис 5 cfm/чел + 0.06 cfm/фт²; электрика ~75-100 Вт/м²; вода 57-76 л/чел·сут."},
+    {"key":"line_shop","label":"Магазин (line shop, <1000 м²)","cooling":[250,250],"heating":[80,100],"power":[140,140],"fresh_air_area":0.61,"fresh_air_person":3.54,"occupancy":7,"water":0,"water_basis":"optional","gas":0,"notes":"Матрица заказчика: cooling 250 Вт/м², power мин.10 кВт или 140 Вт/м². Вода — опция (аптека/парикмахерская/оптика)."},
+    {"key":"anchor","label":"Якорный арендатор (>1000 м²)","cooling":[300,300],"heating":[90,110],"power":[100,120],"fresh_air_area":0.61,"fresh_air_person":3.54,"occupancy":10,"water":0,"water_basis":"optional","gas":0,"notes":"Матрица заказчика: cooling 300, power мин.80 кВт или 100-120 Вт/м² для >500 м²."},
+    {"key":"supermarket","label":"Супермаркет","cooling":[350,400],"heating":[90,110],"power":[300,350],"fresh_air_area":0.61,"fresh_air_person":3.54,"occupancy":7,"water":0,"water_basis":"required","gas":0,"notes":"Матрица: cooling 400, power 300-350 Вт/м². LPG зависит от оператора (электро vs газ). Требуется дренаж/вода."},
+    {"key":"hypermarket","label":"Гипермаркет","cooling":[350,400],"heating":[90,110],"power":[300,350],"fresh_air_area":0.61,"fresh_air_person":3.54,"occupancy":7,"water":0,"water_basis":"required","gas":0,"notes":"Как супермаркет, больший масштаб; кухня/готовая еда — доп. LPG/вытяжка."},
+    {"key":"cafe","label":"Кафе (без готовки)","cooling":[350,350],"heating":[90,110],"power":[350,350],"fresh_air_area":0.92,"fresh_air_person":3.54,"occupancy":3,"water":0,"water_basis":"required","gas":0,"notes":"Матрица: cooling 350, power мин.50 кВт или 350 Вт/м². Без горячей готовки — LPG не нужен."},
+    {"key":"restaurant","label":"Ресторан / F&B (с кухней)","cooling":[500,500],"heating":[90,110],"power":[600,600],"fresh_air_area":0.92,"fresh_air_person":3.54,"occupancy":3,"water":0,"water_basis":"required","gas":250,"notes":"Матрица: cooling 500, power 600 Вт/м². Кухонная вытяжка 40 возд.обм/ч на 40% площади. LPG/газ для кухни. F&B в 3-6× выше офиса (ASHRAE)."},
+    {"key":"food_court","label":"Фудкорт (F&B unit)","cooling":[500,500],"heating":[90,110],"power":[600,600],"fresh_air_area":0.92,"fresh_air_person":3.54,"occupancy":2,"water":0,"water_basis":"required","gas":250,"notes":"Как ресторан; высокая плотность людей в общей зоне посадки."},
+    {"key":"clinic","label":"Клиника / медцентр","cooling":[350,350],"heating":[80,100],"power":[300,350],"fresh_air_area":0.61,"fresh_air_person":4.72,"occupancy":10,"water":0,"water_basis":"required","gas":0,"notes":"Матрица: cooling 350. Повышенная вентиляция и требования к дренажу/воде. Стационар — отдельные нормы (ниже)."},
+    {"key":"hospital","label":"Больница / стационар","cooling":[300,350],"heating":[90,120],"power":[180,220],"fresh_air_area":1.0,"fresh_air_person":4.72,"occupancy":15,"water":400,"water_basis":"person","gas":0,"notes":"Электрика ~20 Вт/фт²=215 Вт/м² (ASHRAE). Вода — самый интенсивный тип (запас на 3 суток). Аварийное питание обязательно."},
+    {"key":"cinema","label":"Кинотеатр","cooling":[120,160],"heating":[70,90],"power":[120,160],"fresh_air_area":0.4,"fresh_air_person":3.8,"occupancy":1,"water":0,"water_basis":"required","gas":0,"notes":"Матрица: cooling 120-160 Вт/м². Очень высокая плотность людей (залы) — вентиляция по людям доминирует."},
+    {"key":"fec","label":"Развлекательный центр (FEC)","cooling":[60,100],"heating":[70,90],"power":[100,150],"fresh_air_area":0.4,"fresh_air_person":3.8,"occupancy":4,"water":0,"water_basis":"required","gas":0,"notes":"Матрица: cooling 60-100 Вт/м². Нагрузка сильно зависит от аттракционов/оборудования."},
+    {"key":"common_area","label":"Общая зона (mall common)","cooling":[120,160],"heating":[60,90],"power":[60,100],"fresh_air_area":0.3,"fresh_air_person":3.8,"occupancy":5,"water":0,"water_basis":"landlord","gas":0,"notes":"Матрица: cooling 120-160. Ответственность арендодателя (landlord)."},
+    {"key":"hotel","label":"Гостиница","cooling":[150,200],"heating":[80,110],"power":[60,90],"fresh_air_area":0.3,"fresh_air_person":3.8,"occupancy":30,"water":443,"water_basis":"room","gas":0,"notes":"Электрика ~6 Вт/фт²=65 Вт/м² (ASHRAE). Вода ~443 л/номер·сут. Номерной фонд + F&B/SPA — отдельные зоны."},
+    {"key":"school","label":"Школа / образование","cooling":[120,160],"heating":[70,100],"power":[70,100],"fresh_air_area":0.61,"fresh_air_person":4.72,"occupancy":4,"water":40,"water_basis":"person","gas":0,"notes":"ASHRAE класс: 10 cfm/чел + 0.12 cfm/фт²; плотность 35 чел/1000 фт². Вода ~40 л/учащийся·сут."},
+    {"key":"warehouse","label":"Склад / логистика","cooling":[0,40],"heating":[30,50],"power":[20,40],"fresh_air_area":0.3,"fresh_air_person":2.5,"occupancy":100,"water":10,"water_basis":"person","gas":0,"notes":"ASHRAE: склад ~2 Вт/фт²=22 Вт/м², освещение 0.25 VA/фт². Часто без охлаждения (только вентиляция/отопление)."},
+    {"key":"residential","label":"Жильё (квартира)","cooling":[80,120],"heating":[60,90],"power":[40,60],"fresh_air_area":0.35,"fresh_air_person":3.5,"occupancy":30,"water":200,"water_basis":"person","gas":40,"notes":"Вода ~150-250 л/чел·сут. Газ — плита/отопление, если газифицировано. Нагрузки на квартиру, не на общую площадь дома."},
+    {"key":"gym","label":"Фитнес / спорт","cooling":[150,200],"heating":[70,100],"power":[80,120],"fresh_air_area":0.9,"fresh_air_person":9.4,"occupancy":5,"water":30,"water_basis":"person","gas":0,"notes":"Высокая вентиляция на человека (нагрузка активности). Душевые — повышенное водопотребление и ГВС."}
+  ]
+}

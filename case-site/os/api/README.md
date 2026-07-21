@@ -49,3 +49,46 @@
 - `audit_log` — только запись и чтение (admin); правка/удаление не предусмотрены.
 - `config.php`, `lib.php`, `*.sqlite` закрыты через `.htaccess`.
 - Белый список таблиц/столбцов в `lib.php` — защита от инъекций.
+
+
+## Financial Feasibility (v4.5.0)
+- `GET api/feasibility_models.php` — список сценариев финансовой модели.
+- `GET api/feasibility_models.php?id=...` — модель и история ревизий.
+- `POST api/feasibility_models.php {action:save,...}` — создать или сохранить новую ревизию.
+- `POST api/feasibility_models.php {action:restore,id,revision}` — восстановить ревизию как новую версию.
+- `POST api/feasibility_models.php {action:delete,id}` — удалить модель и её историю.
+
+Endpoint повторно проверяет на сервере матрицу разделов CASE OS. Раздел доступен любому пользователю, которому администратор включил `Финансовую модель проекта`; сохранение дополнительно требует права `Правки`, `Финансы` или `Администрирование`.
+
+## CASE OS v4.9.3 workflow and project files
+
+The shared `state.php` payload now includes the CASE workflow entities used by CRM, Advisory delivery, tasks, Scope Changes, deliverables and layout versioning. Access remains constrained by the effective workspace matrix. Users without the legacy global `edit` flag may save workflow records only when the relevant workflow workspace is explicitly available to their role/user. Project-scoped users receive and save only the workflow rows assigned to their projects; rows from other projects are restored from the server copy during save.
+
+`project_files.php` is the authenticated file gateway for layout versions and document templates:
+
+- maximum file size: 25 MiB;
+- CSRF and same-origin checks on upload;
+- workspace and project-scope checks on upload and download;
+- allow-listed extensions and executable payload rejection;
+- SHA-256 recorded for every uploaded file;
+- physical files are stored in `data/case_files/`, which is denied from direct web access by `.htaccess`.
+
+Do not expose `data/case_files/` directly through the web server. Keep its `.htaccess` in place and back up the directory together with the database.
+
+## CASE OS v4.9.9 — Geoanalytics persistence
+
+Geoanalytics no longer writes through the general `state.php` round-trip. Use `geo_state.php`:
+
+- `GET geo_state.php` — current server GEO_DATA and geo revision;
+- `POST geo_state.php` — transactional GEO_DATA save;
+- `GET geo_state.php?history=1` — recent protected snapshots for editors;
+- `POST geo_state.php` with `action=restore` and `history_id` — admin restore.
+
+The general `state.php` preserves server GEO_DATA when a stale full-state client tries to change it.
+
+## CASE OS v4.10.0 — global module lifecycle
+
+`MODULE_FLAGS` хранит глобальный статус каждого раздела: `active`, `beta` или `hidden`.
+Настройка изменяется только администратором. Сервер фильтрует effective workspace views,
+не принимает неизвестные ID/статусы и всегда оставляет активными `dash` и `users`, чтобы
+администратор не мог заблокировать доступ к настройкам. Отдельная SQL-миграция не требуется.

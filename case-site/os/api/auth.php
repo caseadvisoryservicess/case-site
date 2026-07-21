@@ -17,15 +17,17 @@ function rightsOf(array $u): array {
 // на локальном XAMPP, где нет почты): в config.php добавьте 'code_login' => false —
 // тогда вход будет по паролю. При переезде на хостинг уберите эту строку.
 function code_login_enabled(): bool { $c = cfg(); return !array_key_exists('code_login', $c) || !empty($c['code_login']); }
-// Вход по паролю по умолчанию ОТКЛЮЧЁН (вход только по коду из письма).
-// Он доступен, если код из письма отключён (code_login => false) либо аварийно:
-// в config.php добавьте 'allow_password_login' => true.
-function password_login_allowed(): bool { $c = cfg(); return !code_login_enabled() || !empty($c['allow_password_login']); }
+// Вход по паролю доступен ВСЕГДА параллельно с кодом из письма (по умолчанию) —
+// сотрудники сами выбирают способ на экране входа; это подстраховка на случай,
+// если письмо с кодом не пришло или сессия оборвалась в неудобный момент.
+// Чтобы разрешить только код из письма (без пароля), в config.php добавьте
+// 'allow_password_login' => false.
+function password_login_allowed(): bool { $c = cfg(); if (array_key_exists('allow_password_login', $c)) return !empty($c['allow_password_login']); return true; }
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  if (!$u || !$u['active']) json_out(['auth'=>false,'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled()]);
-  json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  if (!$u || !$u['active']) json_out(['auth'=>false,'csrf'=>csrf_token(),'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled()]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 
 // Минимальный SMTP-клиент (без внешних библиотек): порт 465 (ssl), 587 (tls/STARTTLS)
@@ -85,26 +87,94 @@ function send_login_code(string $email, string $code): bool {
   return (bool)$sent;
 }
 
+// ── Дросселирование попыток входа (P1-03) ──────────────────────────────
+// Таблица создаётся лениво по тому же принципу, что login_codes выше: миграцию
+// заранее запускать не нужно (иначе замкнутый круг — для миграции нужен вход).
+// scope_key разделяет счётчики "по e-mail" и "по IP", чтобы блокировать и точечный
+// перебор одного аккаунта, и перебор многих аккаунтов с одного адреса.
+function throttle_ensure_table(): void {
+  try { db()->query('SELECT 1 FROM login_throttle LIMIT 1'); }
+  catch (Throwable $e) {
+    try {
+      db()->exec('CREATE TABLE IF NOT EXISTS login_throttle (
+        scope_key VARCHAR(190) PRIMARY KEY, fail_count INT NOT NULL DEFAULT 0,
+        last_fail_at DATETIME, locked_until DATETIME)');
+    } catch (Throwable $e2) {}
+  }
+}
+function client_ip(): string { return (string)($_SERVER['REMOTE_ADDR'] ?? '0.0.0.0'); }
+function throttle_locked_seconds(string $scopeKey): int {
+  throttle_ensure_table();
+  try {
+    $st = db()->prepare('SELECT locked_until FROM login_throttle WHERE scope_key=?');
+    $st->execute([$scopeKey]);
+    $row = $st->fetch();
+    if ($row && $row['locked_until'] && strtotime($row['locked_until']) > time()) return strtotime($row['locked_until']) - time();
+  } catch (Throwable $e) {}
+  return 0;
+}
+// Каждое обращение увеличивает счётчик; после $freeAttempts бесплатных попыток
+// включается экспоненциальная задержка (baseSeconds*2^n), ограниченная capSeconds.
+function throttle_register_event(string $scopeKey, int $freeAttempts, int $baseSeconds, int $capSeconds): void {
+  throttle_ensure_table();
+  try {
+    $st = db()->prepare('SELECT fail_count FROM login_throttle WHERE scope_key=?');
+    $st->execute([$scopeKey]); $row = $st->fetch();
+    $count = $row ? ((int)$row['fail_count'] + 1) : 1;
+    $lockedUntil = null;
+    if ($count > $freeAttempts) {
+      $secs = min($capSeconds, $baseSeconds * (2 ** min(10, $count - $freeAttempts)));
+      $lockedUntil = date('Y-m-d H:i:s', time() + $secs);
+    }
+    if ($row) db()->prepare('UPDATE login_throttle SET fail_count=?, last_fail_at=?, locked_until=? WHERE scope_key=?')
+      ->execute([$count, date('Y-m-d H:i:s'), $lockedUntil, $scopeKey]);
+    else db()->prepare('INSERT INTO login_throttle (scope_key,fail_count,last_fail_at,locked_until) VALUES (?,?,?,?)')
+      ->execute([$scopeKey, $count, date('Y-m-d H:i:s'), $lockedUntil]);
+  } catch (Throwable $e) {}
+}
+function throttle_clear(string $scopeKey): void {
+  throttle_ensure_table();
+  try { db()->prepare('DELETE FROM login_throttle WHERE scope_key=?')->execute([$scopeKey]); } catch (Throwable $e) {}
+}
+
 $b = body(); $a = $b['action'] ?? '';
 if ($a==='login') {
   if (!password_login_allowed()) { audit('Попытка входа по паролю (отключён)', trim($b['email'] ?? '')); fail('Вход по паролю отключён. Используйте вход по коду из письма.', 403); }
   $email = trim($b['email'] ?? ''); $pass = (string)($b['password'] ?? '');
+  $emailKey = 'login-email:'.mb_strtolower($email); $ipKey = 'login-ip:'.client_ip();
+  $lockedFor = max(throttle_locked_seconds($emailKey), throttle_locked_seconds($ipKey));
+  if ($lockedFor > 0) { audit('Вход заблокирован (превышены попытки)', $email); fail('Слишком много неудачных попыток входа. Повторите через '.ceil($lockedFor/60).' мин.', 429); }
   $st = db()->prepare('SELECT * FROM app_users WHERE email=? AND active=1');
   $st->execute([$email]); $row = $st->fetch();
-  if (!$row || !password_verify($pass, $row['password_hash'] ?? '')) fail('Неверный логин или пароль', 401);
+  if (!$row || !password_verify($pass, $row['password_hash'] ?? '')) {
+    throttle_register_event($emailKey, 5, 15, 900);
+    throttle_register_event($ipKey, 10, 15, 900);
+    fail('Неверный логин или пароль', 401);
+  }
+  throttle_clear($emailKey); throttle_clear($ipKey);
   session_regenerate_id(true);
   $_SESSION['uid'] = $row['id'];
   audit('Вход в систему', 'роль: '.$row['role_key']);
   $u = current_user();
-  json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 if ($a==='request_code') {
   if (!code_login_enabled()) fail('Вход по коду временно отключён — используйте вход по паролю.', 403);
   $email = mb_strtolower(trim($b['email'] ?? ''));
   if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Укажите корректный email', 400);
+  $ipKey = 'reqcode-ip:'.client_ip();
+  $lockedFor = throttle_locked_seconds($ipKey);
+  if ($lockedFor > 0) fail('Слишком много запросов кода. Повторите через '.ceil($lockedFor/60).' мин.', 429);
+  throttle_register_event($ipKey, 8, 30, 600);
+  // Умышленно НЕ различаем "email не найден" и "email найден" в ответе клиенту —
+  // иначе endpoint превращается в оракул для перебора зарегистрированных адресов
+  // (независимый аудит, P1-03). Письмо реально уходит только зарегистрированному
+  // активному аккаунту; для остальных запрос тихо завершается тем же ответом.
   $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=? AND active=1');
   $st->execute([$email]);
-  if (!$st->fetch()) fail('Этот email не зарегистрирован в системе (или учётка отключена). Обратитесь к администратору.', 404);
+  $registered = (bool)$st->fetch();
+  $generic = ['ok'=>true,'message'=>'Если такой адрес зарегистрирован в системе, письмо с кодом отправлено. Проверьте папку «Спам».'];
+  if (!$registered) { audit('Запрос кода для незарегистрированного email', $email); json_out($generic); }
   // не чаще одного кода в минуту; таблица кодов создаётся сама при первом использовании
   // (миграцию запускать не обязательно — иначе замкнутый круг: для миграции нужен вход)
   try { $st = db()->prepare('SELECT created_at FROM login_codes WHERE email=?'); $st->execute([$email]); }
@@ -117,14 +187,14 @@ if ($a==='request_code') {
     } catch (Throwable $e2) { fail('Не удалось подготовить вход по коду ('.$e2->getMessage().'). Обратитесь к администратору.', 500); }
   }
   $prev = $st->fetch();
-  if ($prev && strtotime($prev['created_at']) > time() - 60) fail('Код уже отправлен. Подождите минуту и попробуйте снова (проверьте папку «Спам»).', 429);
+  if ($prev && strtotime($prev['created_at']) > time() - 60) json_out($generic); // уже отправлен недавно — тот же общий ответ, не 429 с деталями
   $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
   db()->prepare('DELETE FROM login_codes WHERE email=?')->execute([$email]);
   db()->prepare('INSERT INTO login_codes (email,code_hash,expires_at,attempts,created_at) VALUES (?,?,?,0,?)')
     ->execute([$email, password_hash($code, PASSWORD_DEFAULT), date('Y-m-d H:i:s', time()+600), date('Y-m-d H:i:s')]);
   if (!send_login_code($email, $code)) fail('Хостинг не отправил письмо. Администратору: 1) создайте почтовый ящик (например no-reply@ваш-домен) в cPanel → Email Accounts; 2) пропишите его SMTP-данные в os/api/config.php (блок smtp — образец в config.sample.php). Аварийно можно временно включить вход по паролю: allow_password_login => true.', 500);
   audit('Запрошен код входа', $email);
-  json_out(['ok'=>true]);
+  json_out($generic);
 }
 if ($a==='verify_code') {
   if (!code_login_enabled()) fail('Вход по коду временно отключён — используйте вход по паролю.', 403);
@@ -148,7 +218,7 @@ if ($a==='verify_code') {
   $_SESSION['uid'] = $row['id'];
   audit('Вход по коду из письма', 'роль: '.$row['role_key']);
   $u = current_user();
-  json_out(['auth'=>true,'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
 }
 if ($a==='logout') { audit('Выход'); $_SESSION=[]; session_destroy(); json_out(['auth'=>false]); }
 if ($a==='verify_ceo') {

@@ -1,0 +1,4580 @@
+{
+  "type": "FeatureCollection",
+  "name": "CASE Portfolio v4.9.3",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.8187,
+          41.3275
+        ]
+      },
+      "properties": {
+        "id": "portfolio-001",
+        "sourceId": 1,
+        "name": "QTU Mall",
+        "country": "Albania",
+        "city": "Tirana",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Balkan Finance Investment Group (Balfin)",
+        "architect": "Öncüoğlu Architects",
+        "gba": 47000.0,
+        "gla": 27500.0,
+        "openingYear": 2005,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          19.83129,
+          41.31718
+        ]
+      },
+      "properties": {
+        "id": "portfolio-002",
+        "sourceId": 2,
+        "name": "TEG Mall",
+        "country": "Albania",
+        "city": "Tirana",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Balkan Finance Investment Group (Balfin)",
+        "architect": "Yazgan Design Architecture",
+        "gba": 96000.0,
+        "gla": 50400.0,
+        "openingYear": 2011,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          50.636,
+          26.253
+        ]
+      },
+      "properties": {
+        "id": "portfolio-003",
+        "sourceId": 3,
+        "name": "Mall of Dilmunia",
+        "country": "Bahrain",
+        "city": "Dilmunia Island",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Dilmunia Mall Development Company W.L.L.",
+        "architect": "DP Architects",
+        "gba": 125000.0,
+        "gla": 40700.0,
+        "openingYear": 2020,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.8262,
+          21.4225
+        ]
+      },
+      "properties": {
+        "id": "portfolio-004",
+        "sourceId": 4,
+        "name": "Abraj Al Bait / Burj Boulevard",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Makkah",
+        "category": "Integrated / Super-Regional Mall",
+        "type": "mixed",
+        "investor": "Saudi Bin Laden Group, Ministry of Islamic Affairs",
+        "architect": "Dar Al-Handasah Architects",
+        "gba": 75000.0,
+        "gla": 45000.0,
+        "openingYear": 2012,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          49.5869,
+          25.3833
+        ]
+      },
+      "properties": {
+        "id": "portfolio-005",
+        "sourceId": 5,
+        "name": "Al Amer Mall",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Al Ahsa",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Abdullah Ali Al Amer & Bros. Trading Co",
+        "architect": "N/A",
+        "gba": 60000.0,
+        "gla": 33100.0,
+        "openingYear": 2024,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          50.2083,
+          26.2794
+        ]
+      },
+      "properties": {
+        "id": "portfolio-006",
+        "sourceId": 6,
+        "name": "Al Rashid Mall",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Al Khobar",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Al-Rashid Trading & Contracting Co CJSC",
+        "architect": "DLR Group, Architecture & Planning Group (APG)",
+        "gba": 400000.0,
+        "gla": 116000.0,
+        "openingYear": 1995,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.6142,
+          24.4686
+        ]
+      },
+      "properties": {
+        "id": "portfolio-007",
+        "sourceId": 7,
+        "name": "Al Salam Gardens",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Madinah",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Injaz Real Estate Development",
+        "architect": "N/A",
+        "gba": 35000.0,
+        "gla": 25500.0,
+        "openingYear": 2024,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          50.0888,
+          26.4207
+        ]
+      },
+      "properties": {
+        "id": "portfolio-008",
+        "sourceId": 8,
+        "name": "Arkaziya Mall",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Dammam",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "RIKAZ Properties Co Ltd",
+        "architect": "N/A",
+        "gba": 67000.0,
+        "gla": 44800.0,
+        "openingYear": 2026,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.83636,
+          21.41218
+        ]
+      },
+      "properties": {
+        "id": "portfolio-009",
+        "sourceId": 9,
+        "name": "Jabal Omar",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Makkah",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "Jabal Omar Development Co",
+        "architect": "Ateliers Lion",
+        "gba": 120000.0,
+        "gla": 50000.0,
+        "openingYear": 2017,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.62459,
+          24.45828
+        ]
+      },
+      "properties": {
+        "id": "portfolio-010",
+        "sourceId": 10,
+        "name": "KEC HUB",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Madinah",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Knowledge Economic City Company",
+        "architect": "Chapman Taylor",
+        "gba": 180000.0,
+        "gla": 72000.0,
+        "openingYear": 2025,
+        "scope": [
+          "Merchandise Mix",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.5945,
+          24.47017
+        ]
+      },
+      "properties": {
+        "id": "portfolio-011",
+        "sourceId": 11,
+        "name": "Madinah Gate",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Madinah",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Knowledge Economic City Company",
+        "architect": "DLR Group",
+        "gba": 60000.0,
+        "gla": 23000.0,
+        "openingYear": 2024,
+        "scope": [
+          "Merchandise Mix",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.63338,
+          24.48199
+        ]
+      },
+      "properties": {
+        "id": "portfolio-012",
+        "sourceId": 12,
+        "name": "Rua al Madinah",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Madinah",
+        "category": "Masterplan Development",
+        "type": "mixed",
+        "investor": "Rua Al Madinah Holding Company",
+        "architect": "Gensler",
+        "gba": 1500000.0,
+        "gla": 120000.0,
+        "openingYear": 2030,
+        "scope": [
+          "Market Research",
+          "Brand Sourcing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          50.21885,
+          26.26908
+        ]
+      },
+      "properties": {
+        "id": "portfolio-013",
+        "sourceId": 13,
+        "name": "Shorofat Park",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Al Khobar",
+        "category": "Park / lifestyle",
+        "type": "other",
+        "investor": "Assayel Arabia Real Estate",
+        "architect": "N/A",
+        "gba": 150000.0,
+        "gla": 25000.0,
+        "openingYear": 2023,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          39.1925,
+          21.4858
+        ]
+      },
+      "properties": {
+        "id": "portfolio-014",
+        "sourceId": 14,
+        "name": "Souq 7",
+        "country": "Kingdom of Saudi Arabia",
+        "city": "Jeddah",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "AWJ Holdings",
+        "architect": "Architectural Centre",
+        "gba": 800000.0,
+        "gla": 340000.0,
+        "openingYear": 2017,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          51.531,
+          25.2854
+        ]
+      },
+      "properties": {
+        "id": "portfolio-015",
+        "sourceId": 15,
+        "name": "Ezdan Mall Gharaffa",
+        "country": "Qatar",
+        "city": "Doha",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Ezdan Holding Group",
+        "architect": "Boulos Group",
+        "gba": 125000.0,
+        "gla": 36000.0,
+        "openingYear": 2013,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          51.54146,
+          25.27508
+        ]
+      },
+      "properties": {
+        "id": "portfolio-016",
+        "sourceId": 16,
+        "name": "Katara Cultural Village",
+        "country": "Qatar",
+        "city": "Doha",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Cultural Village Foundation",
+        "architect": "Cansult Maunsell",
+        "gba": 200000.0,
+        "gla": 119000.0,
+        "openingYear": 2010,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          51.51117,
+          25.28697
+        ]
+      },
+      "properties": {
+        "id": "portfolio-017",
+        "sourceId": 17,
+        "name": "Old Doha Port / Mina District",
+        "country": "Qatar",
+        "city": "Doha",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Cultural Village Foundation",
+        "architect": "Erga Group, Dar Al-Handasah",
+        "gba": 800000.0,
+        "gla": 16200.0,
+        "openingYear": 2019,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          51.55031,
+          25.29879
+        ]
+      },
+      "properties": {
+        "id": "portfolio-018",
+        "sourceId": 18,
+        "name": "Box Park / Mina District",
+        "country": "Qatar",
+        "city": "Doha",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Cultural Village Foundation",
+        "architect": "Erga Group, Dar Al-Handasah",
+        "gba": 18000.0,
+        "gla": 1300.0,
+        "openingYear": 2019,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "RRR Strategy",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          51.493,
+          25.423
+        ]
+      },
+      "properties": {
+        "id": "portfolio-019",
+        "sourceId": 19,
+        "name": "Qetaifan Lifestyle Centre",
+        "country": "Qatar",
+        "city": "Qetaifan Island / Lusail",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Qetaifan Projects Company",
+        "architect": "Atkins",
+        "gba": 15000.0,
+        "gla": 12200.0,
+        "openingYear": 2025,
+        "scope": [
+          "Merchandise Mix",
+          "Zoning"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.787,
+          38.5598
+        ]
+      },
+      "properties": {
+        "id": "portfolio-020",
+        "sourceId": 20,
+        "name": "82 Mall / 82 Towers",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "SOM LLC",
+        "architect": "InterProject LLC",
+        "gba": 58000.0,
+        "gla": 36000.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.79909,
+          38.54948
+        ]
+      },
+      "properties": {
+        "id": "portfolio-021",
+        "sourceId": 21,
+        "name": "Afsona",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "N/A",
+        "architect": "InterProject LLC",
+        "gba": 22000.0,
+        "gla": 16000.0,
+        "openingYear": 2028,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.76407,
+          38.56137
+        ]
+      },
+      "properties": {
+        "id": "portfolio-022",
+        "sourceId": 22,
+        "name": "Airport Mall",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Integrated / Neighbourhood Mall + Hotel",
+        "type": "hotel",
+        "investor": "N/A",
+        "architect": "InterProject LLC",
+        "gba": 39000.0,
+        "gla": 23000.0,
+        "openingYear": null,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.80933,
+          38.57319
+        ]
+      },
+      "properties": {
+        "id": "portfolio-023",
+        "sourceId": 23,
+        "name": "Central Mall",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Sebiston Group LLC",
+        "architect": "Archikom LLC",
+        "gba": 44000.0,
+        "gla": 16700.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.78121,
+          38.5342
+        ]
+      },
+      "properties": {
+        "id": "portfolio-024",
+        "sourceId": 24,
+        "name": "Deniz Restaurant @82 Mall",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Restaurant",
+        "type": "other",
+        "investor": "Doniyor Sadikov",
+        "architect": "Reventt LLC",
+        "gba": 1450.0,
+        "gla": 1450.0,
+        "openingYear": 2027,
+        "scope": [
+          "Concept Design",
+          "Zoning"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.7664,
+          38.58511
+        ]
+      },
+      "properties": {
+        "id": "portfolio-025",
+        "sourceId": 25,
+        "name": "Dushanbe International Airport",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Airport",
+        "type": "other",
+        "investor": "N/A",
+        "architect": "InterProject LLC",
+        "gba": 12000.0,
+        "gla": 12000.0,
+        "openingYear": 2027,
+        "scope": [
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.82898,
+          38.55097
+        ]
+      },
+      "properties": {
+        "id": "portfolio-026",
+        "sourceId": 26,
+        "name": "Dushanbe Towers",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "Binokori Shark LLC",
+        "architect": "Ark Sinon LLC",
+        "gba": 36000.0,
+        "gla": 27000.0,
+        "openingYear": 2029,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.74388,
+          38.54229
+        ]
+      },
+      "properties": {
+        "id": "portfolio-027",
+        "sourceId": 27,
+        "name": "Eftalit",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Business Centre",
+        "type": "office",
+        "investor": "Savr LLC",
+        "architect": "InterProject LLC, Yekalon",
+        "gba": 21000.0,
+        "gla": 15000.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.5306,
+          38.5231
+        ]
+      },
+      "properties": {
+        "id": "portfolio-028",
+        "sourceId": 28,
+        "name": "Gissar Mall",
+        "country": "Tajikistan",
+        "city": "Gissar",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Sebiston Group LLC",
+        "architect": "InterProject LLC, Archikom LLC",
+        "gba": 33000.0,
+        "gla": 16800.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.80544,
+          38.59925
+        ]
+      },
+      "properties": {
+        "id": "portfolio-029",
+        "sourceId": 29,
+        "name": "Grafik",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Office / commercial building",
+        "type": "office",
+        "investor": "Grafik LLC",
+        "architect": "Loyikhakash LLC",
+        "gba": 7500.0,
+        "gla": 4486.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.80943,
+          38.51728
+        ]
+      },
+      "properties": {
+        "id": "portfolio-030",
+        "sourceId": 30,
+        "name": "Intercontinental Opera Hotel & Commercial Tower",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Mixed-use",
+        "type": "mixed",
+        "investor": "Savr LLC",
+        "architect": "Benoy",
+        "gba": 32000.0,
+        "gla": 22000.0,
+        "openingYear": 2028,
+        "scope": [
+          "Market Research",
+          "Concept Design Review",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.3622,
+          39.0776
+        ]
+      },
+      "properties": {
+        "id": "portfolio-031",
+        "sourceId": 31,
+        "name": "Iskandarkul Four Seasons Resort",
+        "country": "Tajikistan",
+        "city": "Ayni (Iskandarkul)",
+        "category": "Resort Hotel",
+        "type": "hotel",
+        "investor": "Saidmurod Davlatov",
+        "architect": "Reventt LLC",
+        "gba": 35000.0,
+        "gla": 29900.0,
+        "openingYear": 2028,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.37438,
+          39.06728
+        ]
+      },
+      "properties": {
+        "id": "portfolio-032",
+        "sourceId": 32,
+        "name": "Iskandarkul Serenity Resort",
+        "country": "Tajikistan",
+        "city": "Ayni (Iskandarkul)",
+        "category": "Resort Hotel",
+        "type": "hotel",
+        "investor": "Saidmurod Davlatov",
+        "architect": "Reventt LLC",
+        "gba": 24000.0,
+        "gla": 21000.0,
+        "openingYear": 2029,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.6222,
+          40.2833
+        ]
+      },
+      "properties": {
+        "id": "portfolio-033",
+        "sourceId": 33,
+        "name": "Navruzgoh",
+        "country": "Tajikistan",
+        "city": "Khujand",
+        "category": "Park / event ground",
+        "type": "other",
+        "investor": "Azizbek Rajabov",
+        "architect": "N/A",
+        "gba": 250000.0,
+        "gla": 80000.0,
+        "openingYear": null,
+        "scope": [
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.72907,
+          38.58099
+        ]
+      },
+      "properties": {
+        "id": "portfolio-034",
+        "sourceId": 34,
+        "name": "Orien Centre",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Orien Bank",
+        "architect": "Kamron",
+        "gba": 21000.0,
+        "gla": 3400.0,
+        "openingYear": 2025,
+        "scope": [
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.85291,
+          38.57596
+        ]
+      },
+      "properties": {
+        "id": "portfolio-035",
+        "sourceId": 35,
+        "name": "Outlet Village",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Outlet village",
+        "type": "mall",
+        "investor": "N/A",
+        "architect": "InterProject LLC",
+        "gba": 120000.0,
+        "gla": 56000.0,
+        "openingYear": null,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.74983,
+          38.50962
+        ]
+      },
+      "properties": {
+        "id": "portfolio-036",
+        "sourceId": 36,
+        "name": "Scandinavia",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Sebiston Group LLC",
+        "architect": "Kokhi Memoron LLC",
+        "gba": 120000.0,
+        "gla": 52000.0,
+        "openingYear": 2029,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.76997,
+          38.62035
+        ]
+      },
+      "properties": {
+        "id": "portfolio-037",
+        "sourceId": 37,
+        "name": "Sky Mall & Resedance",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Shirkati Sokhitmoni Binokoron LLC",
+        "architect": "InterProject LLC",
+        "gba": 32000.0,
+        "gla": 9300.0,
+        "openingYear": 2027,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Interior Design",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.7447,
+          24.2075
+        ]
+      },
+      "properties": {
+        "id": "portfolio-038",
+        "sourceId": 38,
+        "name": "Al Ain Community Centre",
+        "country": "UAE",
+        "city": "Al Ain",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Al Falaj Commercial Investment Company LLC",
+        "architect": "Urban Landscape UAE",
+        "gba": 6500.0,
+        "gla": 5400.0,
+        "openingYear": 2025,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          56.3265,
+          25.1288
+        ]
+      },
+      "properties": {
+        "id": "portfolio-039",
+        "sourceId": 39,
+        "name": "Fujairah Mall",
+        "country": "UAE",
+        "city": "Fujairah",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Fujairah Mall",
+        "architect": "N/A",
+        "gba": 136000.0,
+        "gla": 35000.0,
+        "openingYear": 2015,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "RRR Strategy"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.2708,
+          25.2048
+        ]
+      },
+      "properties": {
+        "id": "portfolio-040",
+        "sourceId": 40,
+        "name": "Marinascape Mall",
+        "country": "UAE",
+        "city": "Dubai",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "Trident International Holdings",
+        "architect": "Archon Consultants",
+        "gba": 6000.0,
+        "gla": 3200.0,
+        "openingYear": 2008,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "RRR Strategy"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          53.4839,
+          24.1136
+        ]
+      },
+      "properties": {
+        "id": "portfolio-041",
+        "sourceId": 41,
+        "name": "Mirfa Bay",
+        "country": "UAE",
+        "city": "Mirfa (Abu Dhabi region)",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Modon",
+        "architect": "N/A",
+        "gba": 110000.0,
+        "gla": 3300.0,
+        "openingYear": 2024,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "RRR Strategy"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          54.3773,
+          24.4539
+        ]
+      },
+      "properties": {
+        "id": "portfolio-042",
+        "sourceId": 42,
+        "name": "Nation Towers Mall",
+        "country": "UAE",
+        "city": "Abu Dhabi",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "International Capital Trading LLC",
+        "architect": "WZMH Architects",
+        "gba": 40000.0,
+        "gla": 19500.0,
+        "openingYear": 2013,
+        "scope": [
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Budgeting",
+          "Tenant Mix",
+          "Leasing",
+          "RRR Strategy"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          55.28125,
+          25.19448
+        ]
+      },
+      "properties": {
+        "id": "portfolio-043",
+        "sourceId": 43,
+        "name": "Ribbon Mall",
+        "country": "UAE",
+        "city": "Dubai",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Union Properties",
+        "architect": "N/A",
+        "gba": 610.0,
+        "gla": 610.0,
+        "openingYear": 2016,
+        "scope": [
+          "Tenant Mix",
+          "Leasing"
+        ],
+        "businessLines": [
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.2401,
+          41.2995
+        ]
+      },
+      "properties": {
+        "id": "portfolio-044",
+        "sourceId": 44,
+        "name": "Alpomish / Ecobozor / Atlas Mebel (Beruniy)",
+        "country": "Uzbekistan",
+        "city": "Tashkent (Beruniy)",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 75000.0,
+        "gla": 11200.0,
+        "openingYear": 2022,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.8,
+          38.8667
+        ]
+      },
+      "properties": {
+        "id": "portfolio-045",
+        "sourceId": 45,
+        "name": "Anjir",
+        "country": "Uzbekistan",
+        "city": "Kokdala, Kashkadarya region",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Orzumurod Xushvaqtov",
+        "architect": "N/A",
+        "gba": 3500.0,
+        "gla": 3100.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.2401,
+          41.2995
+        ]
+      },
+      "properties": {
+        "id": "portfolio-046",
+        "sourceId": 46,
+        "name": "Atlas Chilanzar",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 11500.0,
+        "gla": 9000.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          71.7843,
+          40.3842
+        ]
+      },
+      "properties": {
+        "id": "portfolio-047",
+        "sourceId": 47,
+        "name": "Atlas Fergana",
+        "country": "Uzbekistan",
+        "city": "Fergana",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 7500.0,
+        "gla": 5500.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.8,
+          38.8667
+        ]
+      },
+      "properties": {
+        "id": "portfolio-048",
+        "sourceId": 48,
+        "name": "Atlas Karshi",
+        "country": "Uzbekistan",
+        "city": "Karshi",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 5800.0,
+        "gla": 3900.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.975,
+          39.627
+        ]
+      },
+      "properties": {
+        "id": "portfolio-049",
+        "sourceId": 49,
+        "name": "Atlas Samarkand",
+        "country": "Uzbekistan",
+        "city": "Samarkand",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 5000.0,
+        "gla": 3700.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.2401,
+          41.2995
+        ]
+      },
+      "properties": {
+        "id": "portfolio-050",
+        "sourceId": 50,
+        "name": "Atlas Yunus Abad",
+        "country": "Uzbekistan",
+        "city": "Tashkent (Yunusabad)",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 5500.0,
+        "gla": 4500.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.98,
+          41.62
+        ]
+      },
+      "properties": {
+        "id": "portfolio-051",
+        "sourceId": 51,
+        "name": "Bostonliq Resort",
+        "country": "Uzbekistan",
+        "city": "Bostanliq (Tashkent region)",
+        "category": "Resort Hotel",
+        "type": "hotel",
+        "investor": "UGAM RIVER RESORT LLC",
+        "architect": "Reventt LLC",
+        "gba": 13000.0,
+        "gla": 13000.0,
+        "openingYear": 2028,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory",
+          "Brand Sourcing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.25269,
+          41.28918
+        ]
+      },
+      "properties": {
+        "id": "portfolio-052",
+        "sourceId": 52,
+        "name": "Carrefour Atlas Chilonzor",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Hyper / Supermarket",
+        "type": "mall",
+        "investor": "Majid Al Futtaim",
+        "architect": "Majid Al Futtaim",
+        "gba": 1200.0,
+        "gla": 1200.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Project Management"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.21623,
+          41.30107
+        ]
+      },
+      "properties": {
+        "id": "portfolio-053",
+        "sourceId": 53,
+        "name": "Carrefour Atlas Yunusobod",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Hyper / Supermarket",
+        "type": "mall",
+        "investor": "Majid Al Futtaim",
+        "architect": "Majid Al Futtaim",
+        "gba": 850.0,
+        "gla": 850.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Project Management"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.26334,
+          41.31289
+        ]
+      },
+      "properties": {
+        "id": "portfolio-054",
+        "sourceId": 54,
+        "name": "Carrefour Qoratosh",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Hyper / Supermarket",
+        "type": "mall",
+        "investor": "Majid Al Futtaim",
+        "architect": "Majid Al Futtaim",
+        "gba": 2500.0,
+        "gla": 2500.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Project Management"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.23407,
+          41.2739
+        ]
+      },
+      "properties": {
+        "id": "portfolio-055",
+        "sourceId": 55,
+        "name": "Carrefour Hypermarket (Atlas Mebel)",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Hyper / Supermarket",
+        "type": "mall",
+        "investor": "Majid Al Futtaim",
+        "architect": "Majid Al Futtaim",
+        "gba": 10000.0,
+        "gla": 10000.0,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Project Management"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.21866,
+          41.32481
+        ]
+      },
+      "properties": {
+        "id": "portfolio-056",
+        "sourceId": 56,
+        "name": "Chilonzor Mall",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "N/A",
+        "architect": "N/A",
+        "gba": 9500.0,
+        "gla": 7500.0,
+        "openingYear": null,
+        "scope": [
+          "Merchandise Mix",
+          "Tenant Mix",
+          "Zoning",
+          "Leasing",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.2838,
+          41.29067
+        ]
+      },
+      "properties": {
+        "id": "portfolio-057",
+        "sourceId": 57,
+        "name": "Index",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Retail Hub",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 710000.0,
+        "gla": 226700.0,
+        "openingYear": 2022,
+        "scope": [
+          "Retail Strategy",
+          "Design / Architecture Advisory",
+          "Zoning"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.975,
+          39.627
+        ]
+      },
+      "properties": {
+        "id": "portfolio-058",
+        "sourceId": 58,
+        "name": "Logistika Markazi, Mirbozor",
+        "country": "Uzbekistan",
+        "city": "Samarkand region",
+        "category": "Logistics Centre",
+        "type": "warehouse",
+        "investor": "Narpay Holding LLC",
+        "architect": "Reventt LLC",
+        "gba": 32400.0,
+        "gla": 27500.0,
+        "openingYear": 2027,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.19522,
+          41.28199
+        ]
+      },
+      "properties": {
+        "id": "portfolio-059",
+        "sourceId": 59,
+        "name": "Magic City",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Thematic Park",
+        "type": "other",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Dome + Partners, Polin Waterparks, Sanderson, Prime Tower LLC",
+        "gba": 25000.0,
+        "gla": 19100.0,
+        "openingYear": 2021,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.25929,
+          41.33895
+        ]
+      },
+      "properties": {
+        "id": "portfolio-060",
+        "sourceId": 60,
+        "name": "Magnit Mall",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "N/A",
+        "architect": "N/A",
+        "gba": 6000.0,
+        "gla": 4000.0,
+        "openingYear": 2015,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          71.7247,
+          40.4711
+        ]
+      },
+      "properties": {
+        "id": "portfolio-061",
+        "sourceId": 61,
+        "name": "Margilon City Mall",
+        "country": "Uzbekistan",
+        "city": "Margilon",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Steel & Protect LLC",
+        "architect": "Reventt LLC",
+        "gba": 49000.0,
+        "gla": 22000.0,
+        "openingYear": 2027,
+        "scope": [
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.26345,
+          41.25698
+        ]
+      },
+      "properties": {
+        "id": "portfolio-062",
+        "sourceId": 62,
+        "name": "MediaPark Buyuk Ipak Yuli",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 3800.0,
+        "gla": 2600.0,
+        "openingYear": 2017,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.1798,
+          41.32069
+        ]
+      },
+      "properties": {
+        "id": "portfolio-063",
+        "sourceId": 63,
+        "name": "MediaPark Karatash",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 13800.0,
+        "gla": 11500.0,
+        "openingYear": 2015,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          70.9425,
+          40.5286
+        ]
+      },
+      "properties": {
+        "id": "portfolio-064",
+        "sourceId": 64,
+        "name": "MediaPark Kokand",
+        "country": "Uzbekistan",
+        "city": "Kokand",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 1800.0,
+        "gla": 1740.0,
+        "openingYear": 2015,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.2401,
+          41.2995
+        ]
+      },
+      "properties": {
+        "id": "portfolio-065",
+        "sourceId": 65,
+        "name": "MediaPark Sergeli",
+        "country": "Uzbekistan",
+        "city": "Tashkent (Sergeli)",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 5600.0,
+        "gla": 4272.0,
+        "openingYear": 2016,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          64.2036,
+          41.5744
+        ]
+      },
+      "properties": {
+        "id": "portfolio-066",
+        "sourceId": 66,
+        "name": "Mega Center Zarafshon",
+        "country": "Uzbekistan",
+        "city": "Zarafshan",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Oila Group",
+        "architect": "Marjonabegim Jozibasi LLC",
+        "gba": 8000.0,
+        "gla": 6800.0,
+        "openingYear": 2022,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.98728,
+          39.61668
+        ]
+      },
+      "properties": {
+        "id": "portfolio-067",
+        "sourceId": 67,
+        "name": "Mirbozor",
+        "country": "Uzbekistan",
+        "city": "Samarkand region",
+        "category": "Regional Bazaar",
+        "type": "mall",
+        "investor": "Narpay Holding LLC",
+        "architect": "Reventt LLC",
+        "gba": 207000.0,
+        "gla": 98600.0,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.3792,
+          40.0844
+        ]
+      },
+      "properties": {
+        "id": "portfolio-068",
+        "sourceId": 68,
+        "name": "Navoi City Park",
+        "country": "Uzbekistan",
+        "city": "Navoi",
+        "category": "Amusement park",
+        "type": "other",
+        "investor": "Navoi Viloyat Hokimiyati",
+        "architect": "Shaxarsozlik LITI",
+        "gba": 300000.0,
+        "gla": 15000.0,
+        "openingYear": 2027,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.39156,
+          40.07408
+        ]
+      },
+      "properties": {
+        "id": "portfolio-069",
+        "sourceId": 69,
+        "name": "Navoi Mall",
+        "country": "Uzbekistan",
+        "city": "Navoi",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Oila Group",
+        "architect": "Reventt LLC",
+        "gba": 56000.0,
+        "gla": 29900.0,
+        "openingYear": 2028,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          59.61,
+          42.46
+        ]
+      },
+      "properties": {
+        "id": "portfolio-070",
+        "sourceId": 70,
+        "name": "Nukus Panorama (Exo Bazar)",
+        "country": "Uzbekistan",
+        "city": "Nukus",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "TRTS NUKUS ECO BAZAR LLC",
+        "architect": "Prime Tower LLC",
+        "gba": 25000.0,
+        "gla": 17300.0,
+        "openingYear": 2023,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.3087,
+          41.31566
+        ]
+      },
+      "properties": {
+        "id": "portfolio-071",
+        "sourceId": 71,
+        "name": "Olmazor City (retail)",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Street Retail",
+        "type": "street",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 25000.0,
+        "gla": 20000.0,
+        "openingYear": 2021,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.8,
+          41.3
+        ]
+      },
+      "properties": {
+        "id": "portfolio-072",
+        "sourceId": 72,
+        "name": "Oqtosh Avenue Hotel",
+        "country": "Uzbekistan",
+        "city": "Oqtosh (Tashkent region)",
+        "category": "Resort Hotel",
+        "type": "hotel",
+        "investor": "Oqtosh Avenue LLC",
+        "architect": "Reventt LLC, Safronova",
+        "gba": 10200.0,
+        "gla": 10200.0,
+        "openingYear": 2027,
+        "scope": [
+          "Concept Design",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.20142,
+          41.24932
+        ]
+      },
+      "properties": {
+        "id": "portfolio-073",
+        "sourceId": 73,
+        "name": "Pixel Buyuk Ipak Yuli",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 100.0,
+        "gla": 100.0,
+        "openingYear": 2019,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.22237,
+          41.36005
+        ]
+      },
+      "properties": {
+        "id": "portfolio-074",
+        "sourceId": 74,
+        "name": "Pixel Chilanzar",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 1500.0,
+        "gla": 1500.0,
+        "openingYear": 2018,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          71.79671,
+          40.37388
+        ]
+      },
+      "properties": {
+        "id": "portfolio-075",
+        "sourceId": 75,
+        "name": "Pixel Fergana",
+        "country": "Uzbekistan",
+        "city": "Fergana",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 550.0,
+        "gla": 550.0,
+        "openingYear": 2019,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          65.81214,
+          38.85638
+        ]
+      },
+      "properties": {
+        "id": "portfolio-076",
+        "sourceId": 76,
+        "name": "Pixel Karshi",
+        "country": "Uzbekistan",
+        "city": "Karshi",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 200.0,
+        "gla": 200.0,
+        "openingYear": 2019,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.98728,
+          39.61668
+        ]
+      },
+      "properties": {
+        "id": "portfolio-077",
+        "sourceId": 77,
+        "name": "Pixel Samarkand",
+        "country": "Uzbekistan",
+        "city": "Samarkand",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 225.0,
+        "gla": 225.0,
+        "openingYear": 2019,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.25269,
+          41.28918
+        ]
+      },
+      "properties": {
+        "id": "portfolio-078",
+        "sourceId": 78,
+        "name": "Pixel Yunus Abad",
+        "country": "Uzbekistan",
+        "city": "Tashkent (Yunusabad)",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 300.0,
+        "gla": 300.0,
+        "openingYear": 2019,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.95172,
+          39.62857
+        ]
+      },
+      "properties": {
+        "id": "portfolio-079",
+        "sourceId": 79,
+        "name": "Samarqand (Mixed-use)",
+        "country": "Uzbekistan",
+        "city": "Samarkand",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "Sanjar Makhmudov",
+        "architect": "Ravoq LLC",
+        "gba": 14800.0,
+        "gla": 11500.0,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.31192,
+          41.26154
+        ]
+      },
+      "properties": {
+        "id": "portfolio-080",
+        "sourceId": 80,
+        "name": "Sapphire Terrace",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Construction Technology",
+        "architect": "Surur Dizayn Servis",
+        "gba": 12000.0,
+        "gla": 10000.0,
+        "openingYear": 2026,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.95172,
+          39.62857
+        ]
+      },
+      "properties": {
+        "id": "portfolio-081",
+        "sourceId": 81,
+        "name": "Sohil boyi",
+        "country": "Uzbekistan",
+        "city": "Samarkand region",
+        "category": "Lifestyle Centre",
+        "type": "mall",
+        "investor": "Narpay Holding LLC",
+        "architect": "Reventt LLC",
+        "gba": 23000.0,
+        "gla": 18000.0,
+        "openingYear": 2027,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Management Advisory",
+          "Marketing Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "pipeline",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.14771,
+          41.29051
+        ]
+      },
+      "properties": {
+        "id": "portfolio-082",
+        "sourceId": 82,
+        "name": "Tashkent City Boulevard",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Street Retail",
+        "type": "street",
+        "investor": "AKFA Group",
+        "architect": "Özgüven Mimarlık, Prime Tower LLC",
+        "gba": 35000.0,
+        "gla": 27000.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.30364,
+          41.35608
+        ]
+      },
+      "properties": {
+        "id": "portfolio-083",
+        "sourceId": 83,
+        "name": "Tashkent City Gardens Residence (retail)",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Street Retail",
+        "type": "street",
+        "investor": "AKFA Group",
+        "architect": "Özgüven Mimarlık, Prime Tower LLC",
+        "gba": 10000.0,
+        "gla": 7500.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.24438,
+          41.22157
+        ]
+      },
+      "properties": {
+        "id": "portfolio-084",
+        "sourceId": 84,
+        "name": "Tashkent City Park",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Amusement park",
+        "type": "other",
+        "investor": "AKFA Group",
+        "architect": "Özgüven Mimarlık, Prime Tower LLC",
+        "gba": 140000.0,
+        "gla": 1380.0,
+        "openingYear": 2020,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing",
+          "Management"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          63.5586,
+          42.1561
+        ]
+      },
+      "properties": {
+        "id": "portfolio-085",
+        "sourceId": 85,
+        "name": "Uchquduq Mall",
+        "country": "Uzbekistan",
+        "city": "Uchquduq (Navoi region)",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Oila Group",
+        "architect": "N/A",
+        "gba": 7200.0,
+        "gla": 5400.0,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          64.21624,
+          41.56408
+        ]
+      },
+      "properties": {
+        "id": "portfolio-086",
+        "sourceId": 86,
+        "name": "Zarafshon (Kindergarten)",
+        "country": "Uzbekistan",
+        "city": "Zarafshon",
+        "category": "Community / Neighborhood Mall",
+        "type": "mall",
+        "investor": "Elmurod Amonov",
+        "architect": "Reventt LLC",
+        "gba": 3000.0,
+        "gla": 2850.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.16305,
+          41.35763
+        ]
+      },
+      "properties": {
+        "id": "portfolio-087",
+        "sourceId": 87,
+        "name": "Zenit",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Street retail",
+        "type": "street",
+        "investor": "N/A",
+        "architect": "Prime Tower LLC",
+        "gba": 15000.0,
+        "gla": 11500.0,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.35444,
+          41.29552
+        ]
+      },
+      "properties": {
+        "id": "portfolio-088",
+        "sourceId": 88,
+        "name": "Atlas Mebel",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Family entertainment centre",
+        "type": "mall",
+        "investor": "AKFA Group (Atlas)",
+        "architect": "Prime Tower LLC",
+        "gba": 10000.0,
+        "gla": 8500.0,
+        "openingYear": 2017,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Management",
+          "Marketing"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          66.99767,
+          39.64039
+        ]
+      },
+      "properties": {
+        "id": "portfolio-089",
+        "sourceId": 89,
+        "name": "Jartepa Bazaar",
+        "country": "Uzbekistan",
+        "city": "Samarkand region",
+        "category": "Regional Bazaar",
+        "type": "mall",
+        "investor": "N/A",
+        "architect": "Ravoq LLC",
+        "gba": 100000.0,
+        "gla": 31000.0,
+        "openingYear": 2026,
+        "scope": [
+          "Concept Design",
+          "Retail Strategy",
+          "Zoning",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.1482,
+          41.24184
+        ]
+      },
+      "properties": {
+        "id": "portfolio-090",
+        "sourceId": 90,
+        "name": "Creative Avenue",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Creative Cluster",
+        "type": "other",
+        "investor": "VELION CREATIVE LLC",
+        "architect": "Akitekt",
+        "gba": 21400.0,
+        "gla": 17600.0,
+        "openingYear": 2026,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Tenant Mix",
+          "Leasing",
+          "Design / Architecture Advisory",
+          "Marketing Advisory",
+          "Management Advisory"
+        ],
+        "businessLines": [
+          "Advisory",
+          "Leasing & Sales",
+          "Property & Asset Management",
+          "Marketing"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "completed",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.218626,
+          41.276934
+        ]
+      },
+      "properties": {
+        "id": "portfolio-091",
+        "sourceId": 91,
+        "name": "Buyuk Ipak Yuli BC",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Business Centre",
+        "type": "office",
+        "investor": "",
+        "architect": "",
+        "gba": null,
+        "gla": null,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_approximate",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": true,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE projects list.xlsx · inferred city",
+        "geocodeMethod": "inferred_city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.227832,
+          41.302301
+        ]
+      },
+      "properties": {
+        "id": "portfolio-092",
+        "sourceId": 92,
+        "name": "Sayram BC",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Business Centre",
+        "type": "office",
+        "investor": "",
+        "architect": "",
+        "gba": null,
+        "gla": null,
+        "openingYear": null,
+        "scope": [],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_approximate",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": true,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE projects list.xlsx · inferred city",
+        "geocodeMethod": "inferred_city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          69.217462,
+          41.314564
+        ]
+      },
+      "properties": {
+        "id": "portfolio-093",
+        "sourceId": 93,
+        "name": "Samsung BC",
+        "country": "Uzbekistan",
+        "city": "Tashkent",
+        "category": "Business Centre",
+        "type": "office",
+        "investor": "",
+        "architect": "",
+        "gba": null,
+        "gla": null,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_approximate",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": true,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE projects list.xlsx · inferred city",
+        "geocodeMethod": "inferred_city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          68.783231,
+          38.526014
+        ]
+      },
+      "properties": {
+        "id": "portfolio-094",
+        "sourceId": 94,
+        "name": "Dushanbe Towers 2",
+        "country": "Tajikistan",
+        "city": "Dushanbe",
+        "category": "Mixed-Use",
+        "type": "mixed",
+        "investor": "",
+        "architect": "",
+        "gba": null,
+        "gla": null,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_approximate",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": true,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE projects list.xlsx · inferred city",
+        "geocodeMethod": "inferred_city",
+        "dataVersion": "4.9.3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          71.73713,
+          40.46078
+        ]
+      },
+      "properties": {
+        "id": "portfolio-095",
+        "sourceId": 95,
+        "name": "Margilon City Mall 2",
+        "country": "Uzbekistan",
+        "city": "Margilon",
+        "category": "Regional Mall",
+        "type": "mall",
+        "investor": "Burch LLC",
+        "architect": "Reventt LLC",
+        "gba": null,
+        "gla": null,
+        "openingYear": null,
+        "scope": [
+          "Market Research",
+          "Concept Design",
+          "Retail Strategy",
+          "Merchandise Mix",
+          "Zoning",
+          "Financial Feasibility Analysis",
+          "Design / Architecture Advisory"
+        ],
+        "businessLines": [
+          "Advisory"
+        ],
+        "note": "",
+        "coordinateAccuracy": "city_geocoded",
+        "verification": "needs_review",
+        "source": "CASE projects list.xlsx",
+        "sourceDate": "2026-07-20",
+        "inferredLocation": false,
+        "portfolio": true,
+        "status": "unknown",
+        "coordinateSource": "CASE Portfolio GeoJSON · city-level geocode",
+        "geocodeMethod": "city",
+        "dataVersion": "4.9.3"
+      }
+    }
+  ]
+}

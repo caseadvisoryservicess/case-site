@@ -9,7 +9,11 @@ require __DIR__.'/lib.php';
 $cfg = cfg();
 $token = $_GET['token'] ?? '';
 $viaCron = $token !== '' && isset($cfg['backup_token']) && hash_equals((string)$cfg['backup_token'], (string)$token);
-if (!$viaCron) {
+// Cron-token разрешён только для создания новой резервной копии.
+// Список и скачивание бэкапов всегда доступны только авторизованному admin.
+$action = $_GET['action'] ?? '';
+if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') require_valid_csrf();
+if (!$viaCron || in_array($action, ['list','download'], true)) {
   require_login();
   if (!can('admin')) fail('Только администратор', 403);
 }
@@ -22,19 +26,21 @@ function backupList(string $dir): array {
   foreach (glob($dir.'/*.sql.gz') ?: [] as $f) {
     $out[] = ['name'=>basename($f), 'size'=>filesize($f), 'time'=>filemtime($f)];
   }
-  usort($out, fn($a,$b)=>$b['time']<=>$a['time']);
+  usort($out, function($a,$b){ return $b['time']<=>$a['time']; });
   return $out;
 }
 
-if (($_GET['action'] ?? '') === 'list') {
+if ($action === 'list') {
   json_out(['backups'=>backupList($dir)]);
 }
-if (($_GET['action'] ?? '') === 'download') {
+if ($action === 'download') {
   $name = basename((string)($_GET['name'] ?? ''));
   $path = $dir.'/'.$name;
   if ($name === '' || !preg_match('/^[\w.\-]+\.sql\.gz$/', $name) || !is_file($path)) fail('Файл не найден', 404);
   header('Content-Type: application/gzip');
   header('Content-Disposition: attachment; filename="'.$name.'"');
+  header('X-Content-Type-Options: nosniff');
+  header('Cache-Control: no-store');
   header('Content-Length: '.filesize($path));
   readfile($path);
   exit;
@@ -52,7 +58,7 @@ if ($driver === 'mysql') {
     $sql .= "DROP TABLE IF EXISTS `$t`;\n".$create['Create Table'].";\n\n";
     $rows = $pdo->query('SELECT * FROM `'.$t.'`');
     foreach ($rows as $row) {
-      $cols = array_map(fn($c)=>'`'.$c.'`', array_keys($row));
+      $cols = array_map(function($c){ return '`'.$c.'`'; }, array_keys($row));
       $vals = array_map(function($v) use ($pdo) { return $v === null ? 'NULL' : $pdo->quote((string)$v); }, array_values($row));
       $sql .= 'INSERT INTO `'.$t.'` ('.implode(',', $cols).') VALUES ('.implode(',', $vals).");\n";
     }
@@ -65,7 +71,7 @@ if ($driver === 'mysql') {
     $rows = $pdo->query('SELECT * FROM "'.$t.'"');
     foreach ($rows as $row) {
       $cols = array_keys($row);
-      $vals = array_map(fn($v)=>$v===null?'NULL':$pdo->quote((string)$v), array_values($row));
+      $vals = array_map(function($v) use ($pdo){ return $v===null?'NULL':$pdo->quote((string)$v); }, array_values($row));
       $sql .= 'INSERT INTO "'.$t.'" ("'.implode('","', $cols).'") VALUES ('.implode(',', $vals).");\n";
     }
   }
@@ -74,7 +80,8 @@ $sql .= "SET FOREIGN_KEY_CHECKS=1;\n";
 
 $fname = 'caseos_'.date('Y-m-d_His').'.sql.gz';
 $fpath = $dir.'/'.$fname;
-file_put_contents($fpath, gzencode($sql, 6));
+$gz = gzencode($sql, 6);
+if ($gz === false || file_put_contents($fpath, $gz, LOCK_EX) === false) fail('Не удалось записать файл бэкапа', 500);
 
 // удалить бэкапы старше 30 дней
 $cutoff = time() - 30*86400;

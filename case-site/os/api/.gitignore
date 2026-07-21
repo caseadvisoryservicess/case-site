@@ -1,2 +1,3 @@
 config.php
+notify_recipients.php
 *.sqlite

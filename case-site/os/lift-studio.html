@@ -1,0 +1,216 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASE OS — Lift</title>
+<style>
+:root{--red:#9E0000;--red-d:#7a0000;--ink:#1a1a1a;--muted:#6b6b6b;--line:#e3e3e3;--bg:#f6f6f7;--card:#fff;--ok:#1b7a4a;--warn:#b5793a;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}
+.wrap{max-width:1060px;margin:0 auto;padding:18px}
+h1{font-size:20px;margin:0 0 2px}h2{font-size:15px;margin:0 0 10px;color:var(--red-d)}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+label{display:block;font-size:12px;color:var(--muted);margin:9px 0 3px}
+input,select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff}
+input.err,select.err{border-color:var(--bad);background:#fdf0ef}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:#faf2f2;border:1px solid var(--line);border-radius:9px;padding:11px 13px;margin-bottom:9px}
+.kpi b{display:block;font-size:22px;color:var(--red-d)}
+.kpi span{font-size:11px;color:var(--muted)}
+.verdict{font-weight:800;padding:2px 8px;border-radius:6px;font-size:12px}
+.v-ok{background:#e6f4ec;color:var(--ok)}.v-warn{background:#fbf1e5;color:var(--warn)}.v-bad{background:#fbe9e7;color:var(--bad)}
+.errmsg{color:var(--bad);font-size:12px;margin:6px 0 0;min-height:1px}
+.tablewrap{overflow-x:auto;max-width:100%}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:right}th:first-child,td:first-child{text-align:left}
+th{background:#faf2f2;color:var(--red-d);font-size:11.5px;text-transform:uppercase}
+.mini{font-size:11px;color:var(--muted);line-height:1.55}
+@media(max-width:760px){.grid{grid-template-columns:1fr}}
+</style></head><body>
+<div class="wrap">
+  <div class="grid">
+    <div class="card">
+      <h2 id="h_input">Исходные данные</h2>
+      <label for="btype" id="l_btype">Тип здания (целевые нормы качества)</label>
+      <select id="btype"></select>
+      <div class="f2">
+        <div><label for="floors" id="l_floors">Кол-во надземных этажей (выше лобби)</label><input id="floors" type="number" min="1" max="200" value="15"></div>
+        <div><label for="fh" id="l_fh">Высота этажа, м</label><input id="fh" type="number" min="2" max="10" step="0.1" value="3.5"></div>
+      </div>
+      <div class="f2">
+        <div><label for="cars" id="l_cars">Кол-во лифтов в группе</label><input id="cars" type="number" min="1" max="24" value="4"></div>
+        <div><label for="cap" id="l_cap">Вместимость кабины, чел</label><input id="cap" type="number" min="4" max="40" value="13"></div>
+      </div>
+      <div class="f2">
+        <div><label for="speed" id="l_speed">Номинальная скорость, м/с</label><input id="speed" type="number" min="0.4" max="10" step="0.1" value="2.5"></div>
+        <div><label for="door" id="l_door">Тип дверей</label><select id="door">
+          <option value="c2" id="o_c2">Центральные 2-створч. (быстрые)</option>
+          <option value="s2" id="o_s2">Боковые 2-створч.</option>
+          <option value="c4" id="o_c4">Центральные 4-створч. (широкие)</option>
+        </select></div>
+      </div>
+      <h2 style="margin-top:16px" id="h_pop">Население здания</h2>
+      <label for="popmode" id="l_popmode">Способ задания</label>
+      <select id="popmode"><option value="direct" id="o_direct">Задать напрямую (чел)</option><option value="area" id="o_area">Рассчитать из площади</option></select>
+      <div id="popDirect"><label for="pop" id="l_pop">Население здания, чел</label><input id="pop" type="number" min="1" max="1000000" value="1200"></div>
+      <div id="popArea" style="display:none">
+        <div class="f2">
+          <div><label for="nia" id="l_nia">Полезная площадь на этаж (NIA), м²</label><input id="nia" type="number" min="1" max="1000000" value="700"></div>
+          <div><label for="app" id="l_app">Площадь на человека, м²/чел</label><input id="app" type="number" min="1" max="200" step="0.5" value="10"></div>
+        </div>
+      </div>
+      <p class="errmsg" id="calcErr" role="alert" aria-live="polite"></p>
+    </div>
+    <div class="card">
+      <h2 id="h_res">Результат</h2>
+      <div class="kpi"><b id="rInt">—</b><span id="s_int">Интервал (INT) — среднее время ожидания-прибытия <span id="vInt" class="verdict"></span></span></div>
+      <div class="kpi"><b id="rHC">—</b><span id="s_hc">Провозная способность за 5 мин (% населения) <span id="vHC" class="verdict"></span></span></div>
+      <div class="kpi"><b id="rRTT">—</b><span id="s_rtt">Время кругового рейса (RTT)</span></div>
+      <div class="tablewrap">
+      <table>
+        <tr><th id="c_ind">Показатель</th><th id="c_val">Значение</th></tr>
+        <tr><td id="c_travel">Высота подъёма (travel), м</td><td id="rTravel">—</td></tr>
+        <tr><td id="c_stops">Вероятное число остановок (S)</td><td id="rStops">—</td></tr>
+        <tr><td id="c_rev">Высший этаж реверса (H)</td><td id="rH">—</td></tr>
+        <tr><td id="c_pass">Пассажиров за рейс (P, при 80%)</td><td id="rP">—</td></tr>
+        <tr><td id="c_grp">Провозная способность группы, чел/5 мин</td><td id="rHCabs">—</td></tr>
+        <tr><td id="c_tgt">Целевой интервал / %5мин для типа</td><td id="rTarget">—</td></tr>
+      </table>
+      </div>
+    </div>
+  </div>
+  <div class="card"><h2 id="h_meth">Методика и оговорка</h2>
+    <p class="mini" id="methTxt"></p>
+  </div>
+</div>
+<script>
+function qlang(){try{var m=(location.search||'').match(/[?&]lang=([a-z]{2})/i);var l=m?m[1].toLowerCase():'ru';return (l==='uz'||l==='en')?l:'ru';}catch(e){return 'ru';}}
+var LANG=qlang();
+var DICT={
+ title:{ru:'CASE OS — Калькулятор лифтов',uz:'CASE OS — Lift kalkulyatori',en:'CASE OS — Lift traffic calculator'},
+ h_input:{ru:'Исходные данные',uz:'Boshlangʻich maʼlumotlar',en:'Inputs'},
+ l_btype:{ru:'Тип здания (целевые нормы качества)',uz:'Bino turi (sifat normalari)',en:'Building type (target quality norms)'},
+ l_floors:{ru:'Кол-во надземных этажей (выше лобби)',uz:'Yer usti qavatlari soni (lobbidan yuqori)',en:'Floors above lobby'},
+ l_fh:{ru:'Высота этажа, м',uz:'Qavat balandligi, m',en:'Floor height, m'},
+ l_cars:{ru:'Кол-во лифтов в группе',uz:'Guruhdagi liftlar soni',en:'Lifts in group'},
+ l_cap:{ru:'Вместимость кабины, чел',uz:'Kabina sigʻimi, kishi',en:'Car capacity, persons'},
+ l_speed:{ru:'Номинальная скорость, м/с',uz:'Nominal tezlik, m/s',en:'Rated speed, m/s'},
+ l_door:{ru:'Тип дверей',uz:'Eshik turi',en:'Door type'},
+ o_c2:{ru:'Центральные 2-створч. (быстрые)',uz:'Markaziy 2 tavaqali (tez)',en:'Centre-opening 2-panel (fast)'},
+ o_s2:{ru:'Боковые 2-створч.',uz:'Yon 2 tavaqali',en:'Side-opening 2-panel'},
+ o_c4:{ru:'Центральные 4-створч. (широкие)',uz:'Markaziy 4 tavaqali (keng)',en:'Centre-opening 4-panel (wide)'},
+ h_pop:{ru:'Население здания',uz:'Bino aholisi',en:'Building population'},
+ l_popmode:{ru:'Способ задания',uz:'Kiritish usuli',en:'Input method'},
+ o_direct:{ru:'Задать напрямую (чел)',uz:'Toʻgʻridan-toʻgʻri (kishi)',en:'Enter directly (persons)'},
+ o_area:{ru:'Рассчитать из площади',uz:'Maydondan hisoblash',en:'Derive from area'},
+ l_pop:{ru:'Население здания, чел',uz:'Bino aholisi, kishi',en:'Building population, persons'},
+ l_nia:{ru:'Полезная площадь на этаж (NIA), м²',uz:'Qavatdagi foydali maydon (NIA), m²',en:'Net area per floor (NIA), m²'},
+ l_app:{ru:'Площадь на человека, м²/чел',uz:'Kishiga maydon, m²/kishi',en:'Area per person, m²/person'},
+ h_res:{ru:'Результат',uz:'Natija',en:'Result'},
+ s_int:{ru:'Интервал (INT) — среднее время ожидания-прибытия',uz:'Interval (INT) — oʻrtacha kutish-kelish vaqti',en:'Interval (INT) — average wait-to-arrival'},
+ s_hc:{ru:'Провозная способность за 5 мин (% населения)',uz:'5 daqiqadagi tashuv quvvati (% aholi)',en:'5-min handling capacity (% of population)'},
+ s_rtt:{ru:'Время кругового рейса (RTT)',uz:'Aylanma reys vaqti (RTT)',en:'Round-trip time (RTT)'},
+ c_ind:{ru:'Показатель',uz:'Koʻrsatkich',en:'Metric'},c_val:{ru:'Значение',uz:'Qiymat',en:'Value'},
+ c_travel:{ru:'Высота подъёма (travel), м',uz:'Koʻtarilish balandligi (travel), m',en:'Travel height, m'},
+ c_stops:{ru:'Вероятное число остановок (S)',uz:'Ehtimoliy toʻxtashlar soni (S)',en:'Probable stops (S)'},
+ c_rev:{ru:'Высший этаж реверса (H)',uz:'Eng yuqori revers qavati (H)',en:'Highest reversal floor (H)'},
+ c_pass:{ru:'Пассажиров за рейс (P, при 80%)',uz:'Reysdagi yoʻlovchilar (P, 80%)',en:'Passengers per trip (P, at 80%)'},
+ c_grp:{ru:'Провозная способность группы, чел/5 мин',uz:'Guruh tashuv quvvati, kishi/5 daq',en:'Group handling capacity, persons/5 min'},
+ c_tgt:{ru:'Целевой интервал / %5мин для типа',uz:'Tur boʻyicha maqsadli interval / %5daq',en:'Target interval / %5min for type'},
+ h_meth:{ru:'Методика и оговорка',uz:'Uslubiyot va izoh',en:'Method & disclaimer'},
+ meth:{ru:'Расчёт up-peak по CIBSE Guide D: вероятные остановки S = N·(1−((N−1)/N)^P); высший реверс H = N − Σ(i/N)^P; RTT = 2·H·tv + (S+1)·ts + 2·P·tp; интервал INT = RTT/L; провозная способность за 5 мин = 300·P·L/RTT; %5мин = HC/население. P = 80% вместимости. tv — время прохода этажа на номинальной скорости (упрощённо, без детального разгона/торможения). ts/tp зависят от типа дверей. Финальный подбор кабин/скорости/числа лифтов — с поставщиком (KONE/Otis/Schindler и т.п.) по детальному моделированию.',
+   uz:'CIBSE Guide D boʻyicha up-peak hisobi: S = N·(1−((N−1)/N)^P); H = N − Σ(i/N)^P; RTT = 2·H·tv + (S+1)·ts + 2·P·tp; INT = RTT/L; 5 daq tashuv = 300·P·L/RTT; %5daq = HC/aholi. P = sigʻimning 80%. tv — qavatdan oʻtish vaqti (soddalashtirilgan). ts/tp eshik turiga bogʻliq. Yakuniy tanlov — yetkazib beruvchi bilan (KONE/Otis/Schindler) batafsil modellashtirish boʻyicha.',
+   en:'CIBSE Guide D up-peak: probable stops S = N·(1−((N−1)/N)^P); highest reversal H = N − Σ(i/N)^P; RTT = 2·H·tv + (S+1)·ts + 2·P·tp; interval INT = RTT/L; 5-min handling = 300·P·L/RTT; %5min = HC/population. P = 80% of capacity. tv is single-floor transit at rated speed (simplified, no detailed accel/decel). ts/tp depend on door type. Final car/speed/count selection is done with a supplier (KONE/Otis/Schindler) via detailed simulation.'},
+ v_ok:{ru:'ОТЛИЧНО',uz:'AʼLO',en:'EXCELLENT'},v_warn:{ru:'ПРИЕМЛЕМО',uz:'QONIQARLI',en:'ACCEPTABLE'},v_bad:{ru:'НЕДОСТАТОЧНО',uz:'YETARLI EMAS',en:'INADEQUATE'},
+ err_generic:{ru:'Проверьте выделенные поля: значения должны быть числами в допустимом диапазоне.',uz:'Belgilangan maydonlarni tekshiring: qiymatlar ruxsat etilgan diapazondagi son boʻlishi kerak.',en:'Check the highlighted fields: values must be numbers within the supported range.'},
+ sec:{ru:'сек',uz:'son',en:'s'},
+ from:{ru:'из',uz:'dan',en:'of'},
+ per5:{ru:'чел / 5 мин',uz:'kishi / 5 daq',en:'persons / 5 min'},
+ tgt_int:{ru:'INT ≤ %A сек · %5мин ≥ %B %',uz:'INT ≤ %A son · %5daq ≥ %B %',en:'INT ≤ %A s · %5min ≥ %B %'}
+};
+function T(k){var e=DICT[k];return e?(e[LANG]||e.ru):k;}
+// целевые нормы качества по типам зданий (CIBSE Guide D, типовые ориентиры)
+var BTYPES=[
+ {k:'office_prestige',ru:'Офис — престиж-класс',uz:'Ofis — prestij-klass',en:'Office — prestige',intGood:25,hc:17},
+ {k:'office_good',ru:'Офис — качественный',uz:'Ofis — sifatli',en:'Office — good',intGood:30,hc:15},
+ {k:'office_std',ru:'Офис — стандарт',uz:'Ofis — standart',en:'Office — standard',intGood:35,hc:13},
+ {k:'residential',ru:'Жильё (квартиры)',uz:'Turar joy (kvartiralar)',en:'Residential',intGood:60,hc:6},
+ {k:'hotel',ru:'Гостиница',uz:'Mehmonxona',en:'Hotel',intGood:40,hc:12},
+ {k:'hospital',ru:'Больница',uz:'Kasalxona',en:'Hospital',intGood:30,hc:15},
+ {k:'mixed',ru:'Mixed-use / ТРЦ',uz:'Mixed-use / savdo markazi',en:'Mixed-use / mall',intGood:40,hc:12}
+];
+function btLabel(t){return t[LANG]||t.ru;}
+var DOORS={c2:{ts:9.0,tp:1.2},s2:{ts:10.5,tp:1.2},c4:{ts:11.0,tp:1.0}};
+// допустимые диапазоны входных значений (реалистичные пределы)
+var BOUNDS={floors:[1,200],fh:[2,10],cars:[1,24],cap:[4,40],speed:[0.4,10],pop:[1,1000000],nia:[1,1000000],app:[1,200]};
+function $(id){return document.getElementById(id);}
+function pow(a,b){return Math.pow(a,b);}
+function clearResults(){
+  ['rInt','rHC','rRTT','rTravel','rStops','rH','rP','rHCabs','rTarget'].forEach(function(id){$(id).textContent='—';});
+  $('vInt').textContent='';$('vInt').className='verdict';$('vHC').textContent='';$('vHC').className='verdict';
+}
+function validField(id){
+  var el=$(id); if(!el)return true; var b=BOUNDS[id]; if(!b)return true;
+  var v=parseFloat(el.value);
+  var ok=isFinite(v)&&v>=b[0]&&v<=b[1];
+  el.classList.toggle('err',!ok);
+  return ok;
+}
+function compute(){
+  var mode=$('popmode').value;
+  var fields=['floors','fh','cars','cap','speed'].concat(mode==='area'?['nia','app']:['pop']);
+  ['pop','nia','app'].forEach(function(id){$(id).classList.remove('err');});
+  var bad=[];
+  fields.forEach(function(id){if(!validField(id))bad.push(id);});
+  var err=$('calcErr');
+  if(bad.length){clearResults();err.textContent=T('err_generic');return;}
+  err.textContent='';
+  var N=+$('floors').value, fh=+$('fh').value, L=+$('cars').value,
+      cap=+$('cap').value, v=+$('speed').value, dr=DOORS[$('door').value]||DOORS.c2;
+  var bt=BTYPES.find(function(x){return x.k===$('btype').value;})||BTYPES[0];
+  var pop;
+  if(mode==='area'){pop=Math.round(N*(+$('nia').value)/(+$('app').value));}
+  else pop=+$('pop').value;
+  if(!(pop>=1)){clearResults();$('pop').classList.add('err');err.textContent=T('err_generic');return;}
+  var P=cap*0.8;
+  var S=N*(1-pow((N-1)/N,P));
+  var H=N; for(var i=1;i<=N-1;i++){H-=pow(i/N,P);}
+  var tv=fh/v;
+  var ts=dr.ts, tp=dr.tp;
+  var RTT=2*H*tv + (S+1)*ts + 2*P*tp;
+  var INT=RTT/L;
+  var HCg=300*P*L/RTT;
+  var pct=100*HCg/pop;
+  var travel=N*fh;
+  function vInt(x){return x<=bt.intGood?['v_ok','v-ok']:(x<=bt.intGood*1.25?['v_warn','v-warn']:['v_bad','v-bad']);}
+  function vHC(x){return x>=bt.hc?['v_ok','v-ok']:(x>=bt.hc*0.85?['v_warn','v-warn']:['v_bad','v-bad']);}
+  var a=vInt(INT), b=vHC(pct);
+  $('rInt').textContent=INT.toFixed(1)+' '+T('sec');
+  $('vInt').textContent=T(a[0]);$('vInt').className='verdict '+a[1];
+  $('rHC').textContent=pct.toFixed(1)+' %';
+  $('vHC').textContent=T(b[0]);$('vHC').className='verdict '+b[1];
+  $('rRTT').textContent=RTT.toFixed(1)+' '+T('sec');
+  $('rTravel').textContent=travel.toFixed(1);
+  $('rStops').textContent=S.toFixed(2);
+  $('rH').textContent=H.toFixed(2);
+  $('rP').textContent=P.toFixed(1)+' ('+T('from')+' '+cap+')';
+  $('rHCabs').textContent=Math.round(HCg)+' '+T('per5');
+  $('rTarget').textContent=T('tgt_int').replace('%A',bt.intGood).replace('%B',bt.hc)+'  ('+btLabel(bt)+')';
+}
+function applyLang(){
+  document.documentElement.lang=LANG; document.title=T('title');
+  ['h_input','l_btype','l_floors','l_fh','l_cars','l_cap','l_speed','l_door','o_c2','o_s2','o_c4','h_pop','l_popmode','o_direct','o_area','l_pop','l_nia','l_app','h_res','s_rtt','c_ind','c_val','c_travel','c_stops','c_rev','c_pass','c_grp','c_tgt','h_meth'].forEach(function(id){var e=$(id);if(e)e.textContent=T(id);});
+  // подписи с вложенным verdict-спаном обновляем через первый текстовый узел
+  $('s_int').childNodes[0].nodeValue=T('s_int')+' ';
+  $('s_hc').childNodes[0].nodeValue=T('s_hc')+' ';
+  $('methTxt').textContent=T('meth');
+}
+(function(){
+  var s=$('btype');BTYPES.forEach(function(t){var o=document.createElement('option');o.value=t.k;o.textContent=btLabel(t);s.appendChild(o);});
+  applyLang();
+  $('popmode').onchange=function(){$('popDirect').style.display=this.value==='direct'?'':'none';$('popArea').style.display=this.value==='area'?'':'none';compute();};
+  ['btype','floors','fh','cars','cap','speed','door','popmode','pop','nia','app'].forEach(function(id){$(id).addEventListener('input',compute);});
+  compute();
+})();
+</script>
+</body></html>

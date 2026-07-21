@@ -1,0 +1,317 @@
+<!doctype html><html lang="ru"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CASE OS — MEP</title>
+<style>
+:root{--red:#9E0000;--red-d:#7a0000;--ink:#1a1a1a;--muted:#6b6b6b;--line:#e3e3e3;--bg:#f6f6f7;--card:#fff;--bad:#b3261e}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,system-ui,sans-serif;color:var(--ink);background:var(--bg);font-size:14px}
+.wrap{max-width:1120px;margin:0 auto;padding:18px}
+h1{font-size:20px;margin:0 0 2px}h2{font-size:15px;margin:18px 0 8px;color:var(--red-d)}
+.sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 3px}
+input,select{width:100%;padding:7px 9px;border:1px solid var(--line);border-radius:7px;font-size:14px;font-family:inherit;background:#fff}
+input.err,select.err{border-color:var(--bad);background:#fdf0ef}
+.row{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:10px;align-items:end}
+.btn{background:var(--red);color:#fff;border:none;border-radius:7px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+.btn.ghost{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:5px 10px;font-size:12px}
+.tablewrap{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px;min-width:640px}
+th,td{border:1px solid var(--line);padding:6px 8px;text-align:right}
+th{background:#faf2f2;color:var(--red-d);font-weight:700;font-size:11.5px;text-transform:uppercase;letter-spacing:.02em}
+td:first-child,th:first-child{text-align:left}
+tfoot td{font-weight:800;background:#fbfbfb}
+.tot{display:flex;flex-wrap:wrap;gap:12px;margin-top:10px}
+.kpi{flex:1;min-width:130px;background:#faf2f2;border:1px solid var(--line);border-radius:9px;padding:10px 12px}
+.kpi b{display:block;font-size:20px;color:var(--red-d)}
+.kpi span{font-size:11px;color:var(--muted)}
+.mini{font-size:11px;color:var(--muted);line-height:1.5}
+.tbd{color:#b5793a;font-weight:700}
+.errmsg{color:var(--bad);font-size:12px;margin:8px 0 0;min-height:1px}
+.del{color:var(--red);cursor:pointer;border:none;background:none;font-size:16px}
+textarea{width:100%;min-height:150px;border:1px solid var(--line);border-radius:7px;padding:10px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+@media(max-width:720px){.row{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<div class="wrap">
+  <div class="card">
+    <h2 style="margin-top:0" id="h_spaces">Помещения объекта</h2>
+    <div class="row">
+      <div><label for="ntype" id="l_type">Тип деятельности / помещения</label><select id="ntype"></select></div>
+      <div><label for="narea" id="l_area">Площадь, м²</label><input id="narea" type="number" min="1" max="1000000" step="1" value="500"></div>
+      <div><label for="npeople" id="l_people">Люди (авто по норме)</label><input id="npeople" type="number" min="0" max="100000" step="1" placeholder="авто"></div>
+      <div><button class="btn" id="addBtn">＋ Добавить</button></div>
+    </div>
+    <p class="errmsg" id="addErr" role="alert" aria-live="polite"></p>
+    <div class="tablewrap">
+    <table id="tbl"><thead><tr>
+      <th id="c_room">Помещение</th><th id="c_area">Пл., м²</th><th id="c_ppl">Чел.</th><th id="c_cool">Охлажд., кВт</th><th id="c_heat">Отопл., кВт</th><th id="c_pow">Электро, кВт</th><th id="c_air">Свеж. воздух, л/с</th><th id="c_wat">Вода, л/сут</th><th id="c_gas">Газ, кВт</th><th></th>
+    </tr></thead><tbody id="tbody"></tbody>
+    <tfoot><tr><td id="c_total">ИТОГО</td><td id="tArea">0</td><td id="tPpl">0</td><td id="tCool">0</td><td id="tHeat">0</td><td id="tPow">0</td><td id="tAir">0</td><td id="tWat">0</td><td id="tGas">0</td><td></td></tr></tfoot>
+    </table>
+    </div>
+    <div class="tot">
+      <div class="kpi"><b id="kCool">0 кВт</b><span id="s_cool">Холодопроизводительность (охлаждение)</span></div>
+      <div class="kpi"><b id="kPow">0 кВт</b><span id="s_pow">Присоединённая эл. мощность</span></div>
+      <div class="kpi"><b id="kHeat">0 кВт</b><span id="s_heat">Тепловая нагрузка (отопление)</span></div>
+      <div class="kpi"><b id="kAir">0 л/с</b><span id="s_air">Наружный (свежий) воздух</span></div>
+      <div class="kpi"><b id="kWat">0 м³/сут</b><span id="s_wat">Водопотребление</span></div>
+    </div>
+    <p class="mini" id="tbdNote"></p>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0"><span id="h_norm">Норма по выбранному типу</span> <span id="normFor" class="mini"></span></h2>
+    <div id="normBox" class="mini"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0" id="h_tz">Техническое задание (ТЗ) по инженерным сетям</h2>
+    <p class="mini" id="tz_hint">Готовый черновик ТЗ по выбранным помещениям — скопируйте в документ Advisory/лизинга.</p>
+    <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap"><button class="btn sm" id="genBtn">Сформировать ТЗ</button><button class="btn ghost sm" id="copyBtn">Копировать</button><button class="btn ghost sm" id="csvBtn">Экспорт CSV</button></div>
+    <textarea id="tz" aria-label="Текст технического задания (ТЗ)" placeholder="Нажмите «Сформировать ТЗ»…"></textarea>
+  </div>
+  <p class="mini" id="srcNote"></p>
+</div>
+<script>
+// ---- i18n -----------------------------------------------------------------
+function qlang(){try{var m=(location.search||'').match(/[?&]lang=([a-z]{2})/i);var l=m?m[1].toLowerCase():'ru';return (l==='uz'||l==='en')?l:'ru';}catch(e){return 'ru';}}
+var LANG=qlang();
+var DICT={
+ title:{ru:'CASE OS — MEP-калькулятор нагрузок',uz:'CASE OS — MEP yuklama kalkulyatori',en:'CASE OS — MEP load calculator'},
+ h_spaces:{ru:'Помещения объекта',uz:'Obyekt binolari',en:'Building spaces'},
+ l_type:{ru:'Тип деятельности / помещения',uz:'Faoliyat / bino turi',en:'Activity / space type'},
+ l_area:{ru:'Площадь, м²',uz:'Maydon, m²',en:'Area, m²'},
+ l_people:{ru:'Люди (авто по норме)',uz:'Odamlar (norma boʻyicha avto)',en:'People (auto by norm)'},
+ b_add:{ru:'＋ Добавить',uz:'＋ Qoʻshish',en:'＋ Add'},
+ c_room:{ru:'Помещение',uz:'Bino',en:'Space'},
+ c_area:{ru:'Пл., м²',uz:'Mayd., m²',en:'Area, m²'},
+ c_ppl:{ru:'Чел.',uz:'Odam',en:'People'},
+ c_cool:{ru:'Охлажд., кВт',uz:'Sovutish, kVt',en:'Cooling, kW'},
+ c_heat:{ru:'Отопл., кВт',uz:'Isitish, kVt',en:'Heating, kW'},
+ c_pow:{ru:'Электро, кВт',uz:'Elektr, kVt',en:'Power, kW'},
+ c_air:{ru:'Свеж. воздух, л/с',uz:'Toza havo, l/s',en:'Fresh air, l/s'},
+ c_wat:{ru:'Вода, л/сут',uz:'Suv, l/kun',en:'Water, l/day'},
+ c_gas:{ru:'Газ, кВт',uz:'Gaz, kVt',en:'Gas, kW'},
+ c_total:{ru:'ИТОГО',uz:'JAMI',en:'TOTAL'},
+ s_cool:{ru:'Холодопроизводительность (охлаждение)',uz:'Sovutish quvvati',en:'Cooling capacity'},
+ s_pow:{ru:'Присоединённая эл. мощность',uz:'Ulangan elektr quvvati',en:'Connected electrical load'},
+ s_heat:{ru:'Тепловая нагрузка (отопление)',uz:'Isitish yuklamasi',en:'Heating load'},
+ s_air:{ru:'Наружный (свежий) воздух',uz:'Tashqi (toza) havo',en:'Outdoor (fresh) air'},
+ s_wat:{ru:'Водопотребление',uz:'Suv sarfi',en:'Water demand'},
+ h_norm:{ru:'Норма по выбранному типу',uz:'Tanlangan tur boʻyicha norma',en:'Norm for selected type'},
+ h_tz:{ru:'Техническое задание (ТЗ) по инженерным сетям',uz:'Muhandislik tarmoqlari boʻyicha TT',en:'Engineering brief (spec)'},
+ tz_hint:{ru:'Готовый черновик ТЗ по выбранным помещениям — скопируйте в документ Advisory/лизинга.',uz:'Tanlangan binolar boʻyicha TT qoralamasi — Advisory/ijara hujjatiga koʻchiring.',en:'Draft engineering brief for the selected spaces — copy into an Advisory/leasing document.'},
+ b_gen:{ru:'Сформировать ТЗ',uz:'TT tuzish',en:'Generate brief'},
+ b_copy:{ru:'Копировать',uz:'Nusxa olish',en:'Copy'},
+ b_csv:{ru:'Экспорт CSV',uz:'CSV eksport',en:'Export CSV'},
+ tz_ph:{ru:'Нажмите «Сформировать ТЗ»…',uz:'«TT tuzish» tugmasini bosing…',en:'Click “Generate brief”…'},
+ err_area:{ru:'Укажите корректную площадь (число больше 0).',uz:'Toʻgʻri maydon kiriting (0 dan katta son).',en:'Enter a valid area (a number greater than 0).'},
+ err_people:{ru:'Число людей не может быть отрицательным или нечисловым. Оставьте поле пустым для авто-расчёта.',uz:'Odamlar soni manfiy yoki notoʻgʻri boʻlishi mumkin emas. Avto-hisob uchun boʻsh qoldiring.',en:'People count cannot be negative or non-numeric. Leave empty for auto-calculation.'},
+ err_area_big:{ru:'Площадь неправдоподобно велика (>1 000 000 м²).',uz:'Maydon haddan tashqari katta (>1 000 000 m²).',en:'Area is implausibly large (>1,000,000 m²).'},
+ tbd:{ru:'ТБД',uz:'Aniqlanadi',en:'TBD'},
+ tbd_water:{ru:'ТБД — уточнить у оператора',uz:'Aniqlanadi — operatordan soʻrang',en:'TBD — operator brief required'},
+ landlord:{ru:'аренд-ль',uz:'ijaraga beruvchi',en:'landlord'},
+ optional:{ru:'опц.',uz:'ixtiyoriy',en:'optional'},
+ tbd_note:{ru:'Часть помещений (супермаркет, F&B, клиника, кино, FEC…) требует воду/канализацию, но точный расход задаётся по технологическому заданию оператора — в сумму по воде такие помещения не включены и показаны как «ТБД».',uz:'Ayrim binolar (supermarket, F&B, klinika, kino, FEC…) suv/kanalizatsiyani talab qiladi, lekin aniq sarf operator texnologik topshirigʻiga koʻra belgilanadi — bunday binolar suv jamiga kiritilmagan va «Aniqlanadi» deb koʻrsatilgan.',en:'Some spaces (supermarket, F&B, clinic, cinema, FEC…) require water/drainage, but the exact demand is set by the operator’s process brief — these are excluded from the water total and shown as “TBD”.'},
+ add_first:{ru:'Добавьте хотя бы одно помещение.',uz:'Kamida bitta bino qoʻshing.',en:'Add at least one space.'},
+ nb_cool:{ru:'Охлаждение',uz:'Sovutish',en:'Cooling'},nb_heat:{ru:'Отопление',uz:'Isitish',en:'Heating'},
+ nb_pow:{ru:'Электрика',uz:'Elektr',en:'Power'},nb_air:{ru:'Свежий воздух',uz:'Toza havo',en:'Fresh air'},
+ nb_dens:{ru:'Плотность',uz:'Zichlik',en:'Occupancy'},nb_wat:{ru:'Вода',uz:'Suv',en:'Water'},nb_gas:{ru:'Газ',uz:'Gaz',en:'Gas'},
+ nb_perm2:{ru:'м²/чел',uz:'m²/odam',en:'m²/person'},
+ src:{ru:'Источники',uz:'Manbalar',en:'Sources'},
+ tz_title:{ru:'ТЕХНИЧЕСКОЕ ЗАДАНИЕ ПО ИНЖЕНЕРНЫМ СЕТЯМ (MEP)',uz:'MUHANDISLIK TARMOQLARI BOʻYICHA TEXNIK TOPSHIRIQ (MEP)',en:'ENGINEERING SERVICES BRIEF (MEP)'},
+ tz_date:{ru:'Дата',uz:'Sana',en:'Date'},
+ tz_loads:{ru:'Расчётные нагрузки по помещениям:',uz:'Binolar boʻyicha hisobiy yuklamalar:',en:'Estimated loads by space:'},
+ tz_total:{ru:'ИТОГО ПО ОБЪЕКТУ',uz:'OBYEKT BOʻYICHA JAMI',en:'PROJECT TOTAL'},
+ tz_cool:{ru:'Холодоснабжение (охлаждение)',uz:'Sovutish taʼminoti',en:'Cooling supply'},
+ tz_heat:{ru:'Теплоснабжение (отопление)',uz:'Issiqlik taʼminoti',en:'Heating supply'},
+ tz_pow:{ru:'Электроснабжение (присоединённая мощность)',uz:'Elektr taʼminoti (ulangan quvvat)',en:'Electrical supply (connected load)'},
+ tz_air:{ru:'Вентиляция (наружный воздух)',uz:'Ventilyatsiya (tashqi havo)',en:'Ventilation (outdoor air)'},
+ tz_wat:{ru:'Водоснабжение/канализация',uz:'Suv taʼminoti/kanalizatsiya',en:'Water supply/drainage'},
+ tz_gas:{ru:'Газоснабжение',uz:'Gaz taʼminoti',en:'Gas supply'},
+ tz_wat_tbd:{ru:'требуется, расход — по ТЗ оператора (ТБД)',uz:'talab qilinadi, sarf — operator TT boʻyicha (aniqlanadi)',en:'required, demand per operator brief (TBD)'},
+ tz_adj:{ru:'Смежные разделы (уточнить по типам помещений):',uz:'Aloqador boʻlimlar (bino turiga qarab aniqlang):',en:'Related sections (clarify per space type):'},
+ tz_a1:{ru:'Кухни F&B — вытяжка ~40 возд.обм/ч на 40% площади + подпор; жироуловители; газ/LPG.',uz:'F&B oshxonalari — ~40 havo alm/soat 40% maydonga + puflash; yogʻ tutgichlar; gaz/LPG.',en:'F&B kitchens — exhaust ~40 ACH over 40% of area + makeup air; grease traps; gas/LPG.'},
+ tz_a2:{ru:'Аварийное электроснабжение — системы безопасности (пожаротушение, дымоудаление, эвак. освещение).',uz:'Avariya elektr taʼminoti — xavfsizlik tizimlari (yongʻin, tutun chiqarish, evakuatsiya yoritish).',en:'Standby power — life-safety systems (fire, smoke extraction, emergency lighting).'},
+ tz_a3:{ru:'Пожаротушение (спринклеры), пожарная сигнализация, СОУЭ, дымоудаление — по базовому проекту.',uz:'Yongʻin oʻchirish (sprinkler), yongʻin signalizatsiyasi, ogohlantirish, tutun chiqarish — asosiy loyiha boʻyicha.',en:'Sprinklers, fire alarm, PA/voice evacuation, smoke control — per base build.'},
+ tz_a4:{ru:'Слаботочные сети: телефон/данные, СКС, BMS.',uz:'Past kuchlanishli tarmoqlar: telefon/maʼlumot, SKS, BMS.',en:'Low-voltage: telecom/data, structured cabling, BMS.'},
+ tz_a5:{ru:'Дренаж конденсата, вентиляционные стояки, канализация (хоз-быт/кухня/ливневая).',uz:'Kondensat drenaji, ventilyatsiya stoyaklari, kanalizatsiya (maishiy/oshxona/yomgʻir).',en:'Condensate drainage, ventilation risers, drainage (domestic/kitchen/storm).'},
+ tz_basis:{ru:'Основание норм: ASHRAE 62.1 (вентиляция), ASHRAE 90.1/NEC (электрика), отраслевая практика.',uz:'Norma asosi: ASHRAE 62.1 (ventilyatsiya), ASHRAE 90.1/NEC (elektr), soha amaliyoti.',en:'Norm basis: ASHRAE 62.1 (ventilation), ASHRAE 90.1/NEC (electrical), industry practice.'},
+ tz_warn:{ru:'ВНИМАНИЕ: расчёт — ориентир на стадии концепции/ТЗ. Финальные значения — по проекту с учётом ШНК/КМК РУз и подтверждения инженера.',uz:'DIQQAT: hisob — konsepsiya/TT bosqichida yoʻriqnoma. Yakuniy qiymatlar — loyiha boʻyicha, ShNK/QMQ hamda muhandis tasdigʻi bilan.',en:'NOTE: this is a concept-stage estimate. Final values follow detailed design per local codes and engineer sign-off.'}
+};
+function T(k){var e=DICT[k];return e?(e[LANG]||e.ru):k;}
+
+// Trilingual space-type names (keys mirror data/mep_norms.json). UI chrome is localized;
+// type taxonomy shown in the chosen language, falling back to the JSON RU label.
+var TYPE_I18N={
+ office:{uz:'Ofis / Biznes-markaz',en:'Office / Business centre'},
+ line_shop:{uz:'Doʻkon (line shop, <1000 m²)',en:'Line shop (<1000 m²)'},
+ anchor:{uz:'Langar ijarachi (>1000 m²)',en:'Anchor tenant (>1000 m²)'},
+ supermarket:{uz:'Supermarket',en:'Supermarket'},
+ hypermarket:{uz:'Gipermarket',en:'Hypermarket'},
+ cafe:{uz:'Kafe (oshxonasiz)',en:'Cafe (no cooking)'},
+ restaurant:{uz:'Restoran / F&B (oshxona bilan)',en:'Restaurant / F&B (with kitchen)'},
+ food_court:{uz:'Fudkort (F&B unit)',en:'Food court (F&B unit)'},
+ clinic:{uz:'Klinika / tibbiyot markazi',en:'Clinic / medical centre'},
+ hospital:{uz:'Kasalxona / statsionar',en:'Hospital / inpatient'},
+ cinema:{uz:'Kinoteatr',en:'Cinema'},
+ fec:{uz:'Koʻngilochar markaz (FEC)',en:'Family entertainment centre (FEC)'},
+ common_area:{uz:'Umumiy zona (mall)',en:'Common area (mall)'},
+ hotel:{uz:'Mehmonxona',en:'Hotel'},
+ school:{uz:'Maktab / taʼlim',en:'School / education'},
+ warehouse:{uz:'Ombor / logistika',en:'Warehouse / logistics'},
+ residential:{uz:'Turar joy (kvartira)',en:'Residential (apartment)'},
+ gym:{uz:'Fitnes / sport',en:'Gym / sport'}
+};
+function typeLabel(t){var o=TYPE_I18N[t.key];if(o&&LANG!=='ru'&&o[LANG])return o[LANG];return t.label;}
+
+var NORMS=null, ROWS=[];
+function num(v){return Math.round(v).toLocaleString('ru');}
+function num1(v){return (Math.round(v*10)/10).toLocaleString('ru');}
+function midv(a){return Array.isArray(a)?(a[0]+a[1])/2:a;}
+function typeByKey(k){return NORMS.types.find(function(t){return t.key===k;});}
+
+// Вода: number = расход л/сут; иначе спец-режим (tbd/landlord/optional).
+function waterInfo(t,area,ppl){
+  var b=t.water_basis;
+  if(b==='person') return {kind:'num',val:(t.water||0)*ppl};
+  if(b==='room') return {kind:'num',val:(t.water||0)*(t.occupancy>0?area/t.occupancy:0)};
+  if(b==='required') return (t.water>0)?{kind:'num',val:t.water*(t.occupancy>0?area/t.occupancy:0)}:{kind:'tbd',val:0};
+  if(b==='landlord') return {kind:'landlord',val:0};
+  if(b==='optional') return {kind:'optional',val:0};
+  return {kind:'num',val:(t.water||0)*ppl};
+}
+function calc(t,area,people){
+  var ppl=(people!=null&&people!=='')?+people:(t.occupancy>0?area/t.occupancy:0);
+  if(!(ppl>=0))ppl=0;
+  var cool=midv(t.cooling)*area/1000, heat=midv(t.heating)*area/1000, pow=midv(t.power)*area/1000;
+  var air=t.fresh_air_area*area + t.fresh_air_person*ppl;
+  var w=waterInfo(t,area,ppl);
+  var gas=(t.gas||0)*area/1000;
+  return {ppl:ppl,cool:cool,heat:heat,pow:pow,air:air,water:w,gas:gas};
+}
+function waterCell(w){
+  if(w.kind==='num') return num(w.val);
+  if(w.kind==='tbd') return '<span class="tbd">'+T('tbd')+'</span>';
+  return '<span title="'+(w.kind==='landlord'?T('landlord'):T('optional'))+'">—</span>';
+}
+function render(){
+  var tb=document.getElementById('tbody'); tb.innerHTML='';
+  var T2={area:0,ppl:0,cool:0,heat:0,pow:0,air:0,wat:0,gas:0}; var tbd=0;
+  ROWS.forEach(function(r,i){
+    var t=typeByKey(r.key); if(!t)return; var c=calc(t,r.area,r.people);
+    T2.area+=r.area;T2.ppl+=c.ppl;T2.cool+=c.cool;T2.heat+=c.heat;T2.pow+=c.pow;T2.air+=c.air;T2.gas+=c.gas;
+    if(c.water.kind==='num')T2.wat+=c.water.val; else if(c.water.kind==='tbd')tbd++;
+    var tr=document.createElement('tr');
+    tr.innerHTML='<td>'+typeLabel(t)+'</td><td>'+num(r.area)+'</td><td>'+num(c.ppl)+'</td><td>'+num1(c.cool)+'</td><td>'+num1(c.heat)+'</td><td>'+num1(c.pow)+'</td><td>'+num(c.air)+'</td><td>'+waterCell(c.water)+'</td><td>'+num1(c.gas)+'</td><td><button class="del" data-i="'+i+'" title="удалить">×</button></td>';
+    tb.appendChild(tr);
+  });
+  document.getElementById('tArea').textContent=num(T2.area);
+  document.getElementById('tPpl').textContent=num(T2.ppl);
+  document.getElementById('tCool').textContent=num1(T2.cool);
+  document.getElementById('tHeat').textContent=num1(T2.heat);
+  document.getElementById('tPow').textContent=num1(T2.pow);
+  document.getElementById('tAir').textContent=num(T2.air);
+  document.getElementById('tWat').innerHTML=num(T2.wat)+(tbd?' <span class="tbd">+'+T('tbd')+'</span>':'');
+  document.getElementById('tGas').textContent=num1(T2.gas);
+  document.getElementById('kCool').textContent=num1(T2.cool)+' кВт';
+  document.getElementById('kPow').textContent=num1(T2.pow)+' кВт';
+  document.getElementById('kHeat').textContent=num1(T2.heat)+' кВт';
+  document.getElementById('kAir').textContent=num(T2.air)+' л/с';
+  // вода: если есть только «ТБД» и числовой суммы нет — не показываем «0 м³», показываем ТБД
+  var kw=document.getElementById('kWat');
+  if(T2.wat>0){kw.innerHTML=num1(T2.wat/1000)+' м³/сут'+(tbd?' <span class="tbd">+'+T('tbd')+'</span>':'');}
+  else if(tbd>0){kw.innerHTML='<span class="tbd">'+T('tbd_water')+'</span>';}
+  else{kw.textContent='—';}
+  document.getElementById('tbdNote').textContent=tbd?T('tbd_note'):'';
+  tb.querySelectorAll('.del').forEach(function(b){b.onclick=function(){ROWS.splice(+b.dataset.i,1);render();};});
+}
+function showNorm(){
+  var t=typeByKey(document.getElementById('ntype').value); if(!t)return;
+  document.getElementById('normFor').textContent='— '+typeLabel(t);
+  var rng=function(a){return Array.isArray(a)?(a[0]===a[1]?a[0]:a[0]+'–'+a[1]):a;};
+  var wtxt=(t.water_basis==='required'&&!(t.water>0))?T('tbd_water')
+          :(t.water_basis==='landlord'?T('landlord'):(t.water_basis==='optional'?T('optional'):(t.water?t.water+' л/сут':'—')));
+  document.getElementById('normBox').innerHTML=
+    '<b>'+T('nb_cool')+':</b> '+rng(t.cooling)+' Вт/м² &nbsp;·&nbsp; <b>'+T('nb_heat')+':</b> '+rng(t.heating)+' Вт/м² &nbsp;·&nbsp; <b>'+T('nb_pow')+':</b> '+rng(t.power)+' Вт/м²<br>'+
+    '<b>'+T('nb_air')+':</b> '+t.fresh_air_area+' л/с·м² + '+t.fresh_air_person+' л/с·чел &nbsp;·&nbsp; <b>'+T('nb_dens')+':</b> '+t.occupancy+' '+T('nb_perm2')+'<br>'+
+    '<b>'+T('nb_wat')+':</b> '+wtxt+' &nbsp;·&nbsp; <b>'+T('nb_gas')+':</b> '+(t.gas||'—')+(t.gas?' Вт/м²':'')+'<br>'+
+    '<span style="color:#7a0000">'+(t.notes||'')+'</span>';
+}
+function genTZ(){
+  if(!ROWS.length){document.getElementById('tz').value=T('add_first');return;}
+  var d=new Date().toISOString().slice(0,10);
+  var L=[T('tz_title'),T('tz_date')+': '+d,'',T('tz_loads'),''];
+  var T2={area:0,cool:0,heat:0,pow:0,air:0,wat:0,gas:0}; var tbd=0;
+  ROWS.forEach(function(r){var t=typeByKey(r.key);var c=calc(t,r.area,r.people);
+    T2.area+=r.area;T2.cool+=c.cool;T2.heat+=c.heat;T2.pow+=c.pow;T2.air+=c.air;T2.gas+=c.gas;
+    if(c.water.kind==='num')T2.wat+=c.water.val; else if(c.water.kind==='tbd')tbd++;
+    var wl=(c.water.kind==='num')?(num(c.water.val)+' л/сут'):(c.water.kind==='tbd'?T('tz_wat_tbd'):'—');
+    L.push('• '+typeLabel(t)+' — '+num(r.area)+' м²:');
+    L.push('   '+T('nb_cool')+': '+num1(c.cool)+' кВт · '+T('nb_heat')+': '+num1(c.heat)+' кВт · '+T('nb_pow')+': '+num1(c.pow)+' кВт');
+    L.push('   '+T('nb_air')+': '+num(c.air)+' л/с · '+T('nb_wat')+': '+wl+(c.gas>0?' · '+T('nb_gas')+': '+num1(c.gas)+' кВт':''));
+    L.push('');
+  });
+  L.push(T('tz_total')+' ('+num(T2.area)+' м²):');
+  L.push('  • '+T('tz_cool')+': '+num1(T2.cool)+' кВт');
+  L.push('  • '+T('tz_heat')+': '+num1(T2.heat)+' кВт');
+  L.push('  • '+T('tz_pow')+': '+num1(T2.pow)+' кВт');
+  L.push('  • '+T('tz_air')+': '+num(T2.air)+' л/с ('+num1(T2.air*3.6)+' м³/ч)');
+  L.push('  • '+T('tz_wat')+': '+num1(T2.wat/1000)+' м³/сут'+(tbd?' (+ '+tbd+' '+T('tbd')+')':''));
+  if(T2.gas>0)L.push('  • '+T('tz_gas')+': '+num1(T2.gas)+' кВт');
+  L.push('');
+  L.push(T('tz_adj'));
+  ['tz_a1','tz_a2','tz_a3','tz_a4','tz_a5'].forEach(function(k){L.push('  • '+T(k));});
+  L.push('');
+  L.push(T('tz_basis'));
+  L.push(T('tz_warn'));
+  document.getElementById('tz').value=L.join('\n');
+}
+function csv(){
+  var head=[T('c_room'),'Площадь м2',T('c_ppl'),'Охлаждение кВт','Отопление кВт','Электро кВт','Свеж.воздух л/с','Вода л/сут','Газ кВт'];
+  var lines=[head.join(';')];
+  ROWS.forEach(function(r){var t=typeByKey(r.key);var c=calc(t,r.area,r.people);
+    var wv=(c.water.kind==='num')?Math.round(c.water.val):T('tbd');
+    lines.push([typeLabel(t),r.area,Math.round(c.ppl),Math.round(c.cool*10)/10,Math.round(c.heat*10)/10,Math.round(c.pow*10)/10,Math.round(c.air),wv,Math.round(c.gas*10)/10].join(';'));});
+  var b=new Blob(['﻿'+lines.join('\n')],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='CASE_OS_MEP_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+}
+function applyLang(){
+  document.documentElement.lang=LANG;
+  document.title=T('title');
+  var set=function(id,txt){var e=document.getElementById(id);if(e)e.textContent=txt;};
+  ['h_spaces','l_type','l_area','l_people','c_room','c_area','c_ppl','c_cool','c_heat','c_pow','c_air','c_wat','c_gas','c_total','s_cool','s_pow','s_heat','s_air','s_wat','h_norm','h_tz','tz_hint'].forEach(function(id){set(id,T(id));});
+  set('addBtn',T('b_add')); set('genBtn',T('b_gen')); set('copyBtn',T('b_copy')); set('csvBtn',T('b_csv'));
+  var np=document.getElementById('npeople'); if(np)np.placeholder=(LANG==='en'?'auto':(LANG==='uz'?'avto':'авто'));
+  var tz=document.getElementById('tz'); if(tz)tz.placeholder=T('tz_ph');
+}
+function validateAdd(){
+  var areaEl=document.getElementById('narea'), pplEl=document.getElementById('npeople'), err=document.getElementById('addErr');
+  areaEl.classList.remove('err'); pplEl.classList.remove('err'); err.textContent='';
+  var area=parseFloat(areaEl.value);
+  if(!(area>0)||!isFinite(area)){areaEl.classList.add('err');err.textContent=T('err_area');return null;}
+  if(area>1000000){areaEl.classList.add('err');err.textContent=T('err_area_big');return null;}
+  var pv=pplEl.value;
+  var people=null;
+  if(pv!==''&&pv!=null){var p=parseFloat(pv);if(!isFinite(p)||p<0){pplEl.classList.add('err');err.textContent=T('err_people');return null;}people=p;}
+  return {area:area,people:people};
+}
+applyLang();
+fetch('data/mep_norms.json',{cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+  NORMS=j;
+  var sel=document.getElementById('ntype');
+  j.types.forEach(function(t){var o=document.createElement('option');o.value=t.key;o.textContent=typeLabel(t);sel.appendChild(o);});
+  document.getElementById('srcNote').textContent=T('src')+': '+j.meta.sources.join(' · ');
+  sel.onchange=showNorm; showNorm();
+  document.getElementById('addBtn').onclick=function(){
+    var v=validateAdd(); if(!v)return;
+    ROWS.push({key:sel.value,area:v.area,people:v.people}); render();
+  };
+  document.getElementById('genBtn').onclick=genTZ;
+  document.getElementById('copyBtn').onclick=function(){var t=document.getElementById('tz');t.select();try{document.execCommand('copy');}catch(e){}};
+  document.getElementById('csvBtn').onclick=csv;
+  render();
+}).catch(function(e){document.querySelector('.wrap').insertAdjacentHTML('afterbegin','<div class="card" style="color:#9E0000">Не удалось загрузить нормы (data/mep_norms.json): '+e.message+'</div>');});
+</script>
+</body></html>
