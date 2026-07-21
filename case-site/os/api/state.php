@@ -127,6 +127,7 @@ function workspace_view_keys(): array {
     'bench'=>['BENCH','REFUSALS'],
     'v32_requests'=>['BRAND_REQUESTS'],
     'v32_investors'=>['INVESTOR_REQUESTS'],
+    'v32_demand'=>['BRAND_REQUESTS','INVESTOR_REQUESTS'],
     'v32_sales'=>['SALES_ASSETS','SALES_BUYERS'],
     'v32_partners'=>['CASE_PARTNERS','PARTNER_REFERRALS'],
     'v326_lease'=>['LEASE_COMMISSION_DEALS','COMMISSION_ENGINE_CFG','COMMLOST'],

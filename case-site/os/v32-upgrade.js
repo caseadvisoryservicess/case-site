@@ -291,7 +291,7 @@
   function installGo(){
     var old=window.go; if(typeof old!=='function'||old._v32) return;
     window.go=function(v){
-      if(['v32_action','v32_requests','v32_investors','v32_sales','v32_partners'].indexOf(v)>=0){ renderV32(v); return; }
+      if(['v32_action','v32_requests','v32_investors','v32_demand','v32_sales','v32_partners'].indexOf(v)>=0){ renderV32(v); return; }
       return old.apply(this,arguments);
     };
     window.go._v32=true;
@@ -304,12 +304,17 @@
     if(v==='v32_action') main.innerHTML=renderAction();
     if(v==='v32_requests') main.innerHTML=renderRequests();
     if(v==='v32_investors') main.innerHTML=renderInvestors();
+    if(v==='v32_demand') main.innerHTML=renderDemand();
     if(v==='v32_sales') main.innerHTML=renderSales();
     if(v==='v32_partners') main.innerHTML=renderPartners();
     applyTranslation(main);
     try{ saveUiPrefs(); }catch(e){}
   }
 
+  function renderDemand(){ ensureData(); var tab=(window.V32_DEMAND_TAB==='rent')?'rent':'buy';
+    function tb(k,label){ return '<button onclick="window.V32_DEMAND_TAB=\''+k+'\';go(\'v32_demand\')" style="font-family:inherit;font-size:13px;font-weight:600;padding:7px 14px;border:1px solid var(--border);border-radius:9px;cursor:pointer;margin-right:6px;'+(tab===k?'background:var(--red-d,#a3132a);color:#fff;border-color:var(--red-d,#a3132a)':'background:var(--panel,#fff);color:var(--muted)')+'">'+h(label)+'</button>'; }
+    var tabs='<div style="margin:0 0 8px;display:flex;flex-wrap:wrap;gap:4px">'+tb('buy','Покупка · инвесторы')+tb('rent','Аренда · запросы брендов')+'</div>';
+    return tabs+(tab==='rent'?renderRequests():renderInvestors()); }
   function pageHead(title,sub,btns){ return '<div class="ph"><h1>'+h(title)+'</h1></div><p class="sub">'+h(sub||'')+'</p>'+(btns?'<div class="v32-tools" style="margin:8px 0 10px"><div></div><div>'+btns+'</div></div>':''); }
   function visibleRows(rows){ if(canManage()) return rows; var b=brokerName(), u=userName(); return rows.filter(function(r){ return !r.broker || r.broker===b || r.broker===u || r.owner===b || r.owner===u || r.visibility==='partners'; }); }
   function actionRowsHTML(){ var is=issues(), rows=allBonusRows(); var tasks=[]; is.overdue.slice(0,8).forEach(function(u){ tasks.push([tr('tasksToday'),u.code,(u.dates&&u.dates[0]&&u.dates[0][0])||tr('nextAction'),u.broker||'-']); }); window.BRAND_REQUESTS.filter(function(r){return r.due&&r.due<=addDays(7);}).slice(0,8).forEach(function(r){tasks.push([tr('requests'),r.brand,r.nextAction||'-',r.broker||'-']);}); window.INVESTOR_REQUESTS.filter(function(r){return r.due&&r.due<=addDays(7);}).slice(0,8).forEach(function(r){tasks.push([tr('investorLeads'),r.investor,r.nextAction||'-',r.broker||'-']);}); window.SALES_ASSETS.filter(function(a){return a.due&&a.due<=addDays(7);}).slice(0,8).forEach(function(a){tasks.push([tr('sales'),a.name,a.nextAction||'-',a.broker||'-']);});
