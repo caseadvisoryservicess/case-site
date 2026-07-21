@@ -363,7 +363,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.20.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.20.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1699,7 +1699,7 @@ function addChange(){const ty=prompt('Тип (Объединение/Разде�
 
 /* ===== PIPELINE ===== */
 /* Переключатель связки Таблица | Планировка | Канбан (реестр и планировки — одно рабочее место) */
-function regPlanTabs(cur){return `<div class="tabs" style="margin-bottom:10px"><button class="${cur==='table'?'on':''}" onclick="go('registry')">▤ Таблица</button><button class="${cur==='plan'?'on':''}" onclick="S.planViewTab='plan';go('plans')">▭ Планировка</button><button class="${cur==='kanban'?'on':''}" onclick="S.planViewTab='kanban';go('plans')">⫽ Канбан</button></div>`;}
+function regPlanTabs(cur){return `<div class="tabs" style="margin-bottom:10px"><button class="${cur==='table'?'on':''}" onclick="go('registry')">▤ Таблица</button><button class="${cur==='plan'?'on':''}" onclick="S.planViewTab='plan';go('plans')">▭ Планировка</button><button class="${cur==='kanban'?'on':''}" onclick="S.planViewTab='kanban';go('plans')">⫽ Канбан</button><button class="${cur==='master'?'on':''}" onclick="go('plan_master')" title="Версии, валидация плана и реестра, генерация LCR, оригинальная планировка, передача Advisory → Leasing">✓ Валидация / LCR</button></div>`;}
 function renderKanban(){const fin=R().finance;const cols=[['neg','Переговоры'],['off','Предложено'],['os','Предложение подписано'],['cs','Контракт на подписании'],['cd','Контракт подписан']];const us=unitsOf(S.obj);
  const board=cols.map(c=>{const items=us.filter(u=>u.status===c[0]);return `<div class="kcol" ondragover="event.preventDefault();this.classList.add('kover')" ondragleave="this.classList.remove('kover')" ondrop="this.classList.remove('kover');kanDrop(event,'${c[0]}')"><div class="kch"><span class="st ${STCLS[c[0]]}">${stT(c[0])}</span> <span class="mut">${items.length}</span></div>${items.map(u=>`<div class="kcard" draggable="true" ondragstart="kanDrag(event,'${u.id}')" onclick="openUnit('${u.id}')"><b>${esc(u.code)}</b><div style="font-size:10.5px;color:var(--muted)">${esc(u.vars[0]||u.sub||'')}${S.obj==='ALL'?' · '+esc(objById(u.obj).name):''}</div><div style="font-size:10.5px">${fmtA(u.area)} м²${fin&&u.total?' · '+fmt(u.total):''}</div></div>`).join('')||'<div style="font-size:11px;color:#6d6d6d;padding:6px">—</div>'}</div>`;}).join('');
  return `<div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:6px">${board}</div>`;}

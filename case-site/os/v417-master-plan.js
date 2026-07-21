@@ -251,7 +251,8 @@
       case 'handover':body=renderHandover(pid);break;
       default:body=renderOverview(pid);
     }
-    main.innerHTML='<div class="ph"><h1>Планировки и LCR</h1></div>'+tabbar()+body;
+    var lcrTabs='';try{if(typeof regPlanTabs==='function')lcrTabs=regPlanTabs('master');}catch(e){}
+    main.innerHTML='<div class="ph"><h1>Планировки и LCR</h1></div>'+lcrTabs+tabbar()+body;
     try{if(typeof localize==='function')localize();}catch(e){}
   }
   window.renderPlanMaster=render;

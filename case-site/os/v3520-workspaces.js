@@ -42,7 +42,7 @@
     {v:'lift',g:'advisory',icon:'⇅',ru:'Расчёт лифтов',uz:'Lift hisobi',en:'Lift calculation',nav:true},
 
     {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта проектов',uz:'Loyihalar xaritasi',en:'Project map',nav:true},
-    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:true},
+    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:false}, /* доступ из «Контроль аренды (LCR)» → вкладка «Валидация / LCR»; убран из сайдбара как дубль (интерактивный план уже вкладка внутри LCR, а Advisory имеет свои «Планировки») */
     {v:'registry',g:'leasing',icon:'▤',ru:'Контроль аренды (LCR)',uz:'Ijara nazorati (LCR)',en:'Lease control (LCR)',nav:true},
     {v:'v32_sales',g:'leasing',icon:'◆',ru:'Контроль продажи (SCR)',uz:'Sotuv nazorati (SCR)',en:'Sales control (SCR)',nav:true},
     {v:'brands',g:'leasing',icon:'✦',ru:'База брендов',uz:'Brendlar bazasi',en:'Brand database',nav:true},
