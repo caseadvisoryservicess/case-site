@@ -39,6 +39,18 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .who{display:flex;align-items:center;gap:9px}.who .av{width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
 .who .nm{font-size:12px;font-weight:700;line-height:1.1}.who .nm small{display:block;color:var(--muted);font-weight:500;font-size:10.5px}
 .who .out{font-size:11px;color:var(--muted);background:none;border:1px solid var(--border);border-radius:7px;padding:5px 8px}
+#profileWrap{position:relative}
+.profile-btn{display:flex;align-items:center;gap:9px;background:none;border:1px solid transparent;border-radius:10px;padding:3px 6px;cursor:pointer}
+.profile-btn:hover{border-color:var(--border);background:#fafafa}
+.prof-caret{font-size:10px;color:var(--muted)}
+.profile-menu{position:absolute;right:0;top:calc(100% + 6px);min-width:210px;background:#fff;border:1px solid var(--border);border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.14);padding:6px;display:none;z-index:60}
+.profile-menu.open{display:block}
+.profile-menu .pm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 9px;font-size:12px;color:var(--muted)}
+.profile-menu .pm-item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink)}
+.profile-menu .pm-item:hover{background:#f5f5f5}
+.profile-menu .pm-out{color:var(--red-d,#9E0000);border-top:1px solid var(--border);margin-top:4px}
+.ph-help{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:10px;width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--muted);font-weight:800;font-size:12px;cursor:pointer;line-height:1}
+.ph-help:hover{border-color:var(--red);color:var(--red-d,#9E0000)}
 .shell{display:block;min-height:calc(100vh - var(--topbar-h,55px))}
 .side{position:fixed;top:var(--topbar-h,55px);bottom:0;left:0;width:58px;background:#fff;border-right:1px solid var(--border);padding:8px 6px;z-index:39;overflow-x:hidden;overflow-y:auto;transition:width .18s ease,box-shadow .18s ease}
 .side:hover,.side.open{width:264px;box-shadow:10px 0 30px rgba(20,20,20,.13)}
@@ -295,17 +307,21 @@ body.dark .quizpop-ok{color:#7fd089}
   <div class="topbar">
     <button class="burger" aria-label="Открыть меню" onclick="toggleSide()">☰</button>
     <div class="brand" title="Перейти на главный экран"><span><span class="c">CASE</span> OS</span><span class="tag">Company &amp; Real Estate Operating System</span></div>
-    <span class="demo" id="appVer" title="Версия платформы">v—</span>
-    <span class="demo" id="offBadge" title="Статус подключения к базе" style="display:none;background:#fff3e0;color:#9a6b00;border-color:#f0d9a0"></span>
     <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
     <button class="btn ghost sm" id="addObjBtn" style="display:none" onclick="addObjectForm()" title="Добавить новый объект в портфель">+ Объект</button>
     <div class="gsearch"><input id="gq" aria-label="Global search" placeholder="Поиск: помещение, бренд, КП..." oninput="globalSearch(this.value)" onfocus="searchFocus()" onkeydown="if(event.key==='Escape')clearSearch();else if(event.key==='Enter')searchRemember(this.value)"><span id="gclear" class="gclear" title="Очистить" onclick="clearSearch();var g=document.getElementById('gq');if(g)g.focus()">✕</span><div id="gdrop" class="gdrop"></div></div>
-    <span class="rate-cur" id="fxRate" title="Курс ЦБ РУз" style="display:none"></span>
-    <button class="langbtn" id="namesBtn" aria-label="Краткие / полные имена и должности" title="Краткие / полные имена и должности" onclick="toggleCompactNames()">Аб</button>
-    <button class="langbtn" id="themeBtn" aria-label="Тёмная тема" title="Тёмная / светлая тема" onclick="toggleTheme()">🌙</button>
-    <button class="langbtn" id="langTop" aria-label="Switch language" onclick="toggleLang()">UZ</button>
-    <button class="langbtn" id="guideBtn" aria-label="Инструкция раздела" title="Инструкция текущего раздела" onclick="try{openGuide(S.view)}catch(e){}">?</button>
-    <div class="who"><div class="av" id="avatar">A</div><div class="nm" id="whoName">-<small id="whoRole">-</small></div><button class="out" id="b_out" onclick="logout()">Выход</button></div>
+    <div class="who" id="profileWrap">
+      <button class="profile-btn" id="profileBtn" aria-haspopup="true" aria-expanded="false" title="Профиль и настройки" onclick="toggleProfileMenu(event)"><div class="av" id="avatar">A</div><div class="nm" id="whoName">-<small id="whoRole">-</small></div><span class="prof-caret" aria-hidden="true">▾</span></button>
+      <div class="profile-menu" id="profileMenu" role="menu" aria-label="Профиль и настройки">
+        <div class="pm-row"><span>Версия</span><span class="demo" id="appVer" title="Версия платформы">v—</span></div>
+        <div class="pm-row"><span>База</span><span class="demo" id="offBadge" title="Статус подключения к базе" style="display:none;background:#fff3e0;color:#9a6b00;border-color:#f0d9a0"></span></div>
+        <div class="pm-row"><span>Курс ЦБ РУз</span><span class="rate-cur" id="fxRate" title="Курс ЦБ РУз" style="display:none"></span></div>
+        <div class="pm-row"><span>Тема</span><button class="langbtn" id="themeBtn" aria-label="Тёмная / светлая тема" title="Тёмная / светлая тема" onclick="toggleTheme()">🌙</button></div>
+        <div class="pm-row"><span>Язык</span><button class="langbtn" id="langTop" aria-label="Switch language" onclick="toggleLang()">UZ</button></div>
+        <div class="pm-row"><span>Имена</span><button class="langbtn" id="namesBtn" aria-label="Краткие / полные имена и должности" title="Краткие / полные имена и должности" onclick="toggleCompactNames()">Аб</button></div>
+        <button class="pm-item pm-out" id="b_out" onclick="logout()">Выход</button>
+      </div>
+    </div>
   </div>
   <div class="shell">
     <div class="scrim" id="scrim" onclick="toggleSide()"></div>
@@ -3698,6 +3714,18 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v496-commissions.js?v=4.17.0" defer></script>
 <script src="v410-feature-flags.js?v=4.17.0" defer></script>
 <script src="v417-master-plan.js?v=4.17.0" defer></script>
+<script>
+/* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
+(function(){
+  window.toggleProfileMenu=function(e){if(e&&e.stopPropagation)e.stopPropagation();var m=document.getElementById('profileMenu'),b=document.getElementById('profileBtn');if(!m)return;var open=m.classList.toggle('open');if(b)b.setAttribute('aria-expanded',open?'true':'false');};
+  document.addEventListener('click',function(e){var m=document.getElementById('profileMenu');if(!m||!m.classList.contains('open'))return;if(e.target.closest&&e.target.closest('#profileWrap'))return;m.classList.remove('open');var b=document.getElementById('profileBtn');if(b)b.setAttribute('aria-expanded','false');});
+  document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('profileMenu');if(m&&m.classList.contains('open'))m.classList.remove('open');}});
+  function injectHelp(){var main=document.getElementById('main');if(!main)return;main.querySelectorAll('.ph').forEach(function(ph){if(ph.querySelector('.ph-help'))return;var h1=ph.querySelector('h1');if(!h1)return;var b=document.createElement('button');b.className='ph-help';b.type='button';b.title='Инструкция раздела';b.setAttribute('aria-label','Инструкция раздела');b.textContent='?';b.onclick=function(ev){if(ev&&ev.stopPropagation)ev.stopPropagation();try{openGuide((typeof S!=='undefined'&&S.view)||'');}catch(_){}};h1.appendChild(b);});}
+  var main=document.getElementById('main');
+  if(main){try{new MutationObserver(function(){injectHelp();}).observe(main,{childList:true,subtree:true});}catch(_){}}
+  if(document.readyState!=='loading')injectHelp();else document.addEventListener('DOMContentLoaded',injectHelp);
+})();
+</script>
 
 </body>
 </html>
