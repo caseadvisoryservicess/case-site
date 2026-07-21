@@ -104,7 +104,7 @@
       var clean=JSON.parse(raw),j=null;
       if(BACKEND&&typeof apiPOST==='function')j=await apiPOST('geo_state.php',{data:clean,reason:String(reason||'ручное редактирование'),expected_geo_revision:G.geoRevision||0});
       else{GEO_DATA=clean;if(typeof persist==='function')persist();j={ok:true,data:clean,geo_revision:G.geoRevision||0,updated_at:new Date().toISOString(),updated_by:(S&&S.user&&S.user.name)||''};}
-      if(!j||!j.ok)throw new Error('Сервер не подтвердил сохранение');
+      if(!j||!j.ok)throw new Error('Сервер не подтвердил сохранение'+(j&&j.error?(': '+j.error):(j?(' (ответ без ok: '+JSON.stringify(j).slice(0,160)+')'):' (пустой ответ)')));
       GEO_DATA=(j.data&&typeof j.data==='object')?j.data:clean;G.geoRevision=+j.geo_revision||G.geoRevision||0;G.lastLoadedAt=j.updated_at||new Date().toISOString();
       if(typeof _serverRev!=='undefined'&&j.app_revision!=null)_serverRev=+j.app_revision||_serverRev;
       if(typeof _lastServerUpdate!=='undefined'&&j.updated_at)_lastServerUpdate=j.updated_at;
