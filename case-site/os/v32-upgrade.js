@@ -340,13 +340,70 @@
       '<div class="v32-card"><div class="v32-tools"><input id="v32ReqQ" value="'+h(window.V32_REQ_Q||'')+'" placeholder="'+h(tr('search'))+'" oninput="window.V32_REQ_Q=this.value;go(\'v32_requests\')"><div><span class="v32-pill">'+h(tr('areaMin'))+' / '+h(tr('areaMax'))+'</span><span class="v32-pill">'+h(tr('fee'))+': '+money(sum(rows,'potentialFee'))+'</span></div></div>'+
       (rows.length?'<table class="v32-table"><tr><th>'+h(tr('brand'))+'</th><th>'+h(tr('country'))+' / '+h(tr('city'))+'</th><th>'+h(tr('category'))+'</th><th>'+h(tr('areaMin'))+'</th><th>'+h(tr('areaMax'))+'</th><th>'+h(tr('budget'))+'</th><th>'+h(tr('stage'))+'</th><th>'+h(tr('nextAction'))+'</th><th>'+h(tr('broker'))+'</th><th>'+h(tr('actions'))+'</th></tr>'+rows.map(function(r){return '<tr><td><b>'+h(r.brand)+'</b><div class="mut">'+h(r.source||'')+'</div></td><td>'+h(r.country||'-')+'<br><span class="mut">'+h(r.city||'-')+'</span></td><td>'+h(r.category||'-')+'</td><td>'+h(r.areaMin||'-')+'</td><td>'+h(r.areaMax||'-')+'</td><td>'+h(r.budgetMax?('$'+r.budgetMax+'/m²'):'-')+'<div class="mut">'+h(tr('fee'))+': '+money(r.potentialFee||0)+'</div></td><td>'+h(stageLabel(r.stage))+'</td><td>'+h(r.nextAction||'-')+'<div class="mut">'+h(r.due||'')+'</div></td><td>'+h(r.broker||'-')+'</td><td><button class="btn ghost sm" onclick="v32MatchRequest(\''+r.id+'\')">'+h(tr('match'))+'</button> <button class="btn ghost sm" onclick="v32RequestForm(\''+r.id+'\')">'+h(tr('edit'))+'</button></td></tr>';}).join('')+'</table>':'<div class="v32-empty">'+h(tr('noRows'))+'</div>')+'</div>'+footSafe();
   }
-  function renderSales(){
-    ensureData(); var assets=visibleRows(window.SALES_ASSETS), buyers=visibleRows(window.SALES_BUYERS), bonus=allBonusRows().filter(function(r){return r.kind===tr('sales');});
-    return pageHead(tr('sales'),tr('salesSub'),'<button class="btn" onclick="v32AssetForm()">+ '+h(tr('addAsset'))+'</button> <button class="btn ghost" onclick="v32BuyerForm()">+ '+h(tr('addBuyer'))+'</button> <button class="btn ghost" onclick="go(\'v32_investors\')">'+h(tr('investorLeads'))+'</button> <button class="btn ghost" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(tr('salesPlan'))+'</button>')+
+  /* ── SCR = структура как LCR: поюнитный реестр продаж (те же юниты U) + план продаж + инвест-объекты ── */
+  var SCRL={
+   ru:{reg:'Реестр продаж',plan:'Планировка продаж',assets:'Инвест-объекты (целиком)',price:'Цена $/м²',sum:'Сумма продажи',sstatus:'Статус продажи',avg:'Ср. цена $/м²',portfolio:'Портфель продаж, $',units:'Юнитов',code:'Код',block:'Блок',floor:'Этаж',cat:'Категория',area:'Площадь м²',broker:'Брокер',selObj:'Выберите конкретный объект в шапке, чтобы вести поюнитный реестр продаж.',noUnits:'В объекте пока нет помещений. Реестр общий с «Контроль аренды (LCR)» — добавьте помещения там или сгенерируйте с плана.',openPlan:'Открыть план продаж →',assetsHint:'Продажа объектов целиком (инвесторам): NDA, due diligence, оферта, SPA, закрытие.'},
+   uz:{reg:'Sotuv reestri',plan:'Sotuv planirovkasi',assets:'Invest-obyektlar (butun)',price:'Narx $/m²',sum:'Sotuv summasi',sstatus:'Sotuv holati',avg:'Oʻrt. narx $/m²',portfolio:'Sotuv portfeli, $',units:'Yunitlar',code:'Kod',block:'Blok',floor:'Qavat',cat:'Toifa',area:'Maydon m²',broker:'Broker',selObj:'Poyunit sotuv reestri uchun tepada aniq obyekt tanlang.',noUnits:'Obyektda hozircha xonalar yoʻq. Reestr «Ijara nazorati (LCR)» bilan umumiy.',openPlan:'Sotuv planini ochish →',assetsHint:'Obyektlarni butunligicha sotish (investorlarga): NDA, DD, oferta, SPA.'},
+   en:{reg:'Sales register',plan:'Sales floor plan',assets:'Investment assets (whole)',price:'Price $/m²',sum:'Sale total',sstatus:'Sale status',avg:'Avg price $/m²',portfolio:'Sales portfolio, $',units:'Units',code:'Code',block:'Block',floor:'Floor',cat:'Category',area:'Area m²',broker:'Broker',selObj:'Pick a specific property in the header to run the per-unit sales register.',noUnits:'No units yet. The register is shared with Lease Control (LCR).',openPlan:'Open sales plan →',assetsHint:'Selling whole assets to investors: NDA, due diligence, offer, SPA, closing.'}
+  };
+  function scrT(k){var L=lang();return (SCRL[L]&&SCRL[L][k])||SCRL.ru[k]||k;}
+  function scrCanEdit(){try{var r=rights();return !!(r.edit||r.admin);}catch(e){return false;}}
+  function scrUnits(){try{var oid=(typeof S==='object'&&S.obj)?S.obj:'ALL';var all=(typeof U!=='undefined'&&Array.isArray(U))?U:[];return oid==='ALL'?all.slice():all.filter(function(u){return u.obj===oid;});}catch(e){return [];}}
+  function scrSaleOf(u){try{return (typeof saleOf==='function')?saleOf(u):(u.saleStatus||'savail');}catch(e){return u.saleStatus||'savail';}}
+  function scrSaleLabel(s){try{return (typeof ssT==='function')?ssT(s):s;}catch(e){return s;}}
+  function scrFloor(u){try{return (typeof floorLabel==='function')?floorLabel(u.floor):(u.floor||'');}catch(e){return u.floor||'';}}
+  function scrBlock(u){try{return (typeof unitBlock==='function')?unitBlock(u):(u.block||'');}catch(e){return u.block||'';}}
+  var SCR_SALE_STS=[['savail','Свободно'],['sresv','Бронь'],['sdeal','Договор/задаток'],['ssold','Продано']];
+  function scrRegistry(){
+    var oid=(typeof S==='object'&&S.obj)?S.obj:'ALL';
+    if(oid==='ALL')return '<div class="v32-card"><div class="v32-empty">'+h(scrT('selObj'))+'</div></div>';
+    var units=scrUnits(), canEdit=scrCanEdit();
+    var sold=0,resv=0,deal=0,avail=0,portfolio=0,priceSum=0,priceN=0;
+    units.forEach(function(u){var st=scrSaleOf(u);if(st==='ssold')sold++;else if(st==='sresv')resv++;else if(st==='sdeal')deal++;else avail++;var pr=+u.salePrice||0,ar=+u.area||0;if(pr>0){portfolio+=pr*ar;priceSum+=pr;priceN++;}});
+    var avg=priceN?Math.round(priceSum/priceN):0;
+    var kpis='<div class="v32-card"><div class="v32-kpis">'
+      +'<div class="v32-kpi"><small>'+h(scrT('units'))+'</small><b>'+units.length+'</b></div>'
+      +'<div class="v32-kpi"><small>Свободно</small><b>'+avail+'</b></div>'
+      +'<div class="v32-kpi"><small>Бронь</small><b>'+resv+'</b></div>'
+      +'<div class="v32-kpi"><small>Договор</small><b>'+deal+'</b></div>'
+      +'<div class="v32-kpi"><small>Продано</small><b>'+sold+'</b></div>'
+      +'<div class="v32-kpi"><small>'+h(scrT('avg'))+'</small><b>'+money(avg)+'</b></div>'
+      +'<div class="v32-kpi"><small>'+h(scrT('portfolio'))+'</small><b>'+money(Math.round(portfolio))+'</b></div>'
+      +'</div></div>';
+    if(!units.length)return kpis+'<div class="v32-card"><div class="v32-empty">'+h(scrT('noUnits'))+'</div></div>';
+    var rows=units.map(function(u){
+      var st=scrSaleOf(u),pr=+u.salePrice||0,ar=+u.area||0,total=Math.round(pr*ar);
+      var stCell=canEdit
+        ?'<select onchange="scrSetSaleStatus(\''+u.id+'\',this.value)" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border,#ccc);border-radius:7px">'+SCR_SALE_STS.map(function(o){return '<option value="'+o[0]+'"'+(st===o[0]?' selected':'')+'>'+h(o[1])+'</option>';}).join('')+'</select>'
+        :h(scrSaleLabel(st));
+      var prCell=canEdit
+        ?'<input type="number" min="0" step="1" value="'+(pr||'')+'" onchange="scrSetSalePrice(\''+u.id+'\',this.value)" style="width:92px;font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border,#ccc);border-radius:7px" placeholder="—">'
+        :(pr?money(pr):'—');
+      return '<tr><td><b>'+h(u.code||'')+'</b></td><td>'+h(scrBlock(u)||'-')+'</td><td>'+h(scrFloor(u)||'-')+'</td><td>'+h(u.cat||'-')+'</td><td>'+h(ar||'-')+'</td><td>'+prCell+'</td><td><b>'+(total?money(total):'—')+'</b></td><td>'+stCell+'</td><td>'+h(u.broker||'-')+'</td></tr>';
+    }).join('');
+    return kpis+'<div class="v32-card"><div class="v32-head"><div><div class="v32-eyebrow">SALES REGISTER (SCR)</div><h3>'+h((typeof objById==='function'?((objById(oid)||{}).name||oid):oid))+'</h3></div><div><button class="btn ghost sm" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button></div></div><div class="tbl-scroll"><table class="v32-table"><tr><th>'+h(scrT('code'))+'</th><th>'+h(scrT('block'))+'</th><th>'+h(scrT('floor'))+'</th><th>'+h(scrT('cat'))+'</th><th>'+h(scrT('area'))+'</th><th>'+h(scrT('price'))+'</th><th>'+h(scrT('sum'))+'</th><th>'+h(scrT('sstatus'))+'</th><th>'+h(scrT('broker'))+'</th></tr>'+rows+'</table></div></div>';
+  }
+  function renderSaleAssets(){
+    var assets=visibleRows(window.SALES_ASSETS), buyers=visibleRows(window.SALES_BUYERS), bonus=allBonusRows().filter(function(r){return r.kind===tr('sales');});
+    var tools='<div class="v32-tools" style="margin:0 0 10px"><div class="mut" style="font-size:12px;color:var(--muted)">'+h(scrT('assetsHint'))+'</div><div><button class="btn" onclick="v32AssetForm()">+ '+h(tr('addAsset'))+'</button> <button class="btn ghost" onclick="v32BuyerForm()">+ '+h(tr('addBuyer'))+'</button> <button class="btn ghost" onclick="go(\'v32_investors\')">'+h(tr('investorLeads'))+'</button></div></div>';
+    return tools+
       '<div class="v32-card"><div class="v32-kpis"><div class="v32-kpi"><small>'+h(tr('property'))+'</small><b>'+assets.length+'</b></div><div class="v32-kpi"><small>'+h(tr('investorLeads'))+'</small><b>'+window.INVESTOR_REQUESTS.length+'</b></div><div class="v32-kpi"><small>'+h(tr('buyer'))+'</small><b>'+buyers.length+'</b></div><div class="v32-kpi"><small>'+h(tr('commission'))+'</small><b>'+money(sum(assets,'expectedCommission'))+'</b></div><div class="v32-kpi"><small>'+h(tr('weighted'))+'</small><b>'+money(sum(bonus,'weighted'))+'</b></div><div class="v32-kpi bad"><small>'+h(tr('lost'))+'</small><b>'+money(sum(bonus,'lost'))+'</b></div></div></div>'+
       '<div class="v32-card"><div class="v32-head"><div><div class="v32-eyebrow">SALE ASSETS</div><h3>'+h(tr('property'))+'</h3></div></div>'+(assets.length?'<table class="v32-table"><tr><th>'+h(tr('property'))+'</th><th>'+h(tr('city'))+'</th><th>'+h(tr('areaMin'))+'</th><th>'+h(tr('price'))+'</th><th>'+h(tr('stage'))+'</th><th>'+h(tr('nextAction'))+'</th><th>'+h(tr('broker'))+'</th><th>'+h(tr('actions'))+'</th></tr>'+assets.map(function(a){return '<tr><td><b>'+h(a.name)+'</b><div class="mut">'+h(a.type||'')+' · '+h(a.visibility||'')+'</div></td><td>'+h(a.country||'')+'<br><span class="mut">'+h(a.city||'')+'</span></td><td>'+h(a.area||'-')+'</td><td>'+money(a.price||0)+'<div class="mut">'+h(tr('commission'))+': '+money(a.expectedCommission||((+a.price||0)*(+a.commissionRate||0)/100))+'</div></td><td>'+h(stageLabel(a.stage))+'</td><td>'+h(a.nextAction||'-')+'<div class="mut">'+h(a.due||'')+'</div></td><td>'+h(a.broker||'-')+'</td><td><button class="btn ghost sm" onclick="v32MatchBuyers(\''+a.id+'\')">'+h(tr('match'))+'</button> <button class="btn ghost sm" onclick="v32AssetForm(\''+a.id+'\')">'+h(tr('edit'))+'</button></td></tr>';}).join('')+'</table>':'<div class="v32-empty">'+h(tr('noRows'))+'</div>')+'</div>'+
-      '<div class="v32-card"><div class="v32-head"><div><div class="v32-eyebrow">BUYERS</div><h3>'+h(tr('buyer'))+'</h3></div></div>'+(buyers.length?'<table class="v32-table"><tr><th>'+h(tr('buyer'))+'</th><th>'+h(tr('country'))+' / '+h(tr('city'))+'</th><th>'+h(tr('budget'))+'</th><th>'+h(tr('areaMin'))+'-'+h(tr('areaMax'))+'</th><th>'+h(tr('broker'))+'</th><th>'+h(tr('actions'))+'</th></tr>'+buyers.map(function(b){return '<tr><td><b>'+h(b.name)+'</b><div class="mut">'+h(b.assetType||'')+'</div></td><td>'+h(b.country||'')+'<br><span class="mut">'+h(b.city||'')+'</span></td><td>'+money(b.budgetMin||0)+' - '+money(b.budgetMax||0)+'</td><td>'+h(b.areaMin||'-')+' - '+h(b.areaMax||'-')+'</td><td>'+h(b.broker||'-')+'</td><td><button class="btn ghost sm" onclick="v32BuyerForm(\''+b.id+'\')">'+h(tr('edit'))+'</button></td></tr>';}).join('')+'</table>':'<div class="v32-empty">'+h(tr('noRows'))+'</div>')+'</div>'+footSafe();
+      '<div class="v32-card"><div class="v32-head"><div><div class="v32-eyebrow">BUYERS</div><h3>'+h(tr('buyer'))+'</h3></div></div>'+(buyers.length?'<table class="v32-table"><tr><th>'+h(tr('buyer'))+'</th><th>'+h(tr('country'))+' / '+h(tr('city'))+'</th><th>'+h(tr('budget'))+'</th><th>'+h(tr('areaMin'))+'-'+h(tr('areaMax'))+'</th><th>'+h(tr('broker'))+'</th><th>'+h(tr('actions'))+'</th></tr>'+buyers.map(function(b){return '<tr><td><b>'+h(b.name)+'</b><div class="mut">'+h(b.assetType||'')+'</div></td><td>'+h(b.country||'')+'<br><span class="mut">'+h(b.city||'')+'</span></td><td>'+money(b.budgetMin||0)+' - '+money(b.budgetMax||0)+'</td><td>'+h(b.areaMin||'-')+' - '+h(b.areaMax||'-')+'</td><td>'+h(b.broker||'-')+'</td><td><button class="btn ghost sm" onclick="v32BuyerForm(\''+b.id+'\')">'+h(tr('edit'))+'</button></td></tr>';}).join('')+'</table>':'<div class="v32-empty">'+h(tr('noRows'))+'</div>')+'</div>';
   }
+  function renderSales(){
+    ensureData();
+    var tab=window.SCR_TAB||'reg';
+    var tb=function(k,ic,lbl){return '<button class="'+(tab===k?'on':'')+'" onclick="scrTab(\''+k+'\')">'+ic+' '+h(lbl)+'</button>';};
+    var tabbar='<div class="tabs" style="margin-bottom:10px">'+tb('reg','▤',scrT('reg'))+tb('plan','▭',scrT('plan'))+tb('assets','◆',scrT('assets'))+'</div>';
+    var head=pageHead(tr('sales'),tr('salesSub'),'');
+    if(tab==='assets')return head+tabbar+renderSaleAssets()+footSafe();
+    if(tab==='plan')return head+tabbar+'<div class="v32-card"><h3>'+h(scrT('plan'))+'</h3><p class="sub" style="margin:6px 0 12px">Интерактивный план объекта, раскрашенный по статусу продажи юнитов (свободно / бронь / договор / продано). Тот же движок, что в LCR.</p><button class="btn" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">'+h(scrT('openPlan'))+'</button></div>'+footSafe();
+    return head+tabbar+scrRegistry()+footSafe();
+  }
+  window.scrTab=function(t){window.SCR_TAB=t;try{go('v32_sales');}catch(e){}};
+  window.scrSetSaleStatus=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;u.saleStatus=v;if(typeof persist==='function')persist();else persistV32();try{if(typeof audit==='function')audit('SCR: статус продажи',(u.code||'')+' → '+v);}catch(e){}go('v32_sales');}catch(e){}};
+  window.scrSetSalePrice=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;var p=Math.max(0,+String(v).replace(',','.')||0);u.salePrice=p;if(typeof persist==='function')persist();else persistV32();}catch(e){}};
   function renderPartners(){
     ensureData(); var rows=canManage()?window.CASE_PARTNERS:visibleRows(window.CASE_PARTNERS);
     return pageHead(tr('partners'),tr('partnersSub'),canManage()?'<button class="btn" onclick="v32PartnerForm()">+ '+h(tr('addPartner'))+'</button>':'')+
