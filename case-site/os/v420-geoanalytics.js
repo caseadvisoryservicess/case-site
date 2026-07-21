@@ -97,7 +97,7 @@
   async function saveGeo(data,reason){
     if(!canEdit()||G.saving)return;
     var raw='';try{raw=JSON.stringify(data);}catch(e){toast(tr('Ошибка структуры геоданных','Geo maʼlumotlar tuzilmasi xatosi','Invalid geo data structure'));return;}
-    if(!data||typeof data!=='object'||Array.isArray(data)||raw.length>8000000){toast(tr('Геоданные не сохранены: неверный или слишком большой пакет','Geo maʼlumotlar saqlanmadi: paket noto‘g‘ri yoki juda katta','Geo data were not saved: invalid or oversized payload'));return;}
+    if(!data||typeof data!=='object'||Array.isArray(data)||raw.length>31457280){toast(tr('Геоданные не сохранены: неверный или слишком большой пакет','Geo maʼlumotlar saqlanmadi: paket noto‘g‘ri yoki juda katta','Geo data were not saved: invalid or oversized payload'));return;}
     G.saving=true;notifyFrame('asaas-geo-saving',{reason:String(reason||'ручное редактирование')});
     try{localStorage.setItem('case_os_geo_pending_v1',raw);}catch(e){}
     try{

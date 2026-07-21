@@ -35,14 +35,14 @@
     {v:'advisory_research',g:'advisory',icon:'◈',ru:'Исследование рынка',uz:'Bozor tadqiqoti',en:'Market research',nav:true,future:true},
     {v:'advisory_concept',g:'advisory',icon:'✦',ru:'Концепция',uz:'Konsepsiya',en:'Concept development',nav:true,future:true},
     {v:'advisory_area',g:'advisory',icon:'▥',ru:'Программа площадей',uz:'Maydonlar dasturi',en:'Area programme',nav:true,future:true},
-    {v:'plans',g:'advisory',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:true},
     {v:'feasibility',g:'advisory',icon:'∑',ru:'Финансовая модель проекта',uz:'Loyiha moliyaviy modeli',en:'Project financial model',nav:true},
     {v:'advisory_business_plan',g:'advisory',icon:'▧',ru:'Бизнес-план',uz:'Biznes-reja',en:'Business plan',nav:true,future:true},
     {v:'mep',g:'advisory',icon:'⚡',ru:'MEP / техническое задание',uz:'MEP / texnik topshiriq',en:'MEP / technical brief',nav:true},
     {v:'lift',g:'advisory',icon:'⇅',ru:'Расчёт лифтов',uz:'Lift hisobi',en:'Lift calculation',nav:true},
 
     {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта проектов',uz:'Loyihalar xaritasi',en:'Project map',nav:true},
-    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:false}, /* доступ из «Контроль аренды (LCR)» → вкладка «Валидация / LCR»; убран из сайдбара как дубль (интерактивный план уже вкладка внутри LCR, а Advisory имеет свои «Планировки») */
+    {v:'plans',g:'leasing',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:true}, /* перенесено из Advisory в Leasing по требованию: планировка — функция отдела аренды. Внутри «Контроль аренды (LCR)» тот же план доступен вкладкой. */
+    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:false}, /* доступ из «Контроль аренды (LCR)» → вкладка «Валидация / LCR» (валидация плана↔реестра, генерация LCR, версии, Handover) */
     {v:'registry',g:'leasing',icon:'▤',ru:'Контроль аренды (LCR)',uz:'Ijara nazorati (LCR)',en:'Lease control (LCR)',nav:true},
     {v:'v32_sales',g:'leasing',icon:'◆',ru:'Контроль продажи (SCR)',uz:'Sotuv nazorati (SCR)',en:'Sales control (SCR)',nav:true},
     {v:'brands',g:'leasing',icon:'✦',ru:'База брендов',uz:'Brendlar bazasi',en:'Brand database',nav:true},

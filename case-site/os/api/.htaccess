@@ -3,6 +3,26 @@
   Require all denied
 </FilesMatch>
 
+# Разрешить сохранение крупных чертежей/презентаций/геоданных (до ~30 МБ в состоянии).
+# json_body_limit_bytes() в lib.php = 40 МБ; здесь поднимаем лимиты PHP до 48 МБ.
+# На части хостингов post_max_size задаётся только через .user.ini (см. api/.user.ini) —
+# оба файла безвредны, если директива не поддерживается.
+<IfModule mod_php.c>
+  php_value post_max_size 48M
+  php_value upload_max_filesize 48M
+  php_value memory_limit 256M
+</IfModule>
+<IfModule mod_php7.c>
+  php_value post_max_size 48M
+  php_value upload_max_filesize 48M
+  php_value memory_limit 256M
+</IfModule>
+<IfModule mod_php8.c>
+  php_value post_max_size 48M
+  php_value upload_max_filesize 48M
+  php_value memory_limit 256M
+</IfModule>
+
 Options -Indexes
 <FilesMatch "(^config\.php$|^config\..*\.php$|^lib\.php$|\.sqlite$|\.sql$|\.sql\.gz$|\.log$|^\.env$)">
   Require all denied

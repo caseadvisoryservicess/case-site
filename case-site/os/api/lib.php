@@ -82,7 +82,7 @@ function require_same_origin_for_write(): void {
   if ($origin && !same_host($origin)) fail('Запрос отклонён: другой origin', 403);
   if (!$origin && $referer && !same_host($referer)) fail('Запрос отклонён: другой referer', 403);
 }
-function json_body_limit_bytes(): int { return 10 * 1024 * 1024; }
+function json_body_limit_bytes(): int { return 40 * 1024 * 1024; } /* 40 МБ: вмещает состояние с чертежами/презентациями до ~30 МБ (запас на прочие ключи). Требует post_max_size ≥ 48M на хостинге (см. api/.htaccess). */
 function csrf_token(): string {
   if (empty($_SESSION['csrf_token']) || !is_string($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
