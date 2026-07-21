@@ -459,11 +459,16 @@
     /* класс lrow (не styrow) — это конечный вид, в который buildPanel() в geoanalytics-studio.html
        превращает строки БЦ/Медицина/Аптеки после загрузки страницы; здесь строим тот же вид сразу,
        чтобы все строки слоёв выглядели одинаково без ожидания того (более раннего) прохода. */
-    return '<div class="lrow geo-poi-row" data-poi-k="'+k+'"><label class="ck"><input type="checkbox" id="geoLayer-'+k+'" onchange="geoTogglePoiLayer(\''+k+'\')"> '+esc(d.label)+' <small id="geoLayerCount-'+k+'" class="geo-poi-count">'+(loading?'загрузка…':n)+'</small></label><input type="color" id="geoColor-'+k+'" value="'+d.color+'" title="фикс. цвет" oninput="geoPoiColor(\''+k+'\',this.value)"></div>'
-      +'<div class="styrow sub geo-poi-sub"><label>размер</label><input type="range" id="geoR-'+k+'" min="3" max="12" value="'+radius+'" oninput="geoPoiRadius(\''+k+'\',this.value)" title="размер точки"><label>прозр.</label><input type="range" id="geoOp-'+k+'" min="20" max="100" value="'+opacity+'" oninput="geoPoiOpacity(\''+k+'\',this.value)" title="непрозрачность"></div>'
+    /* #91: компактная строка — только чекбокс, название, счётчик, цвет-индикатор и ⚙.
+       Все настройки (размер/прозрачность/подписи + доп. фильтр) спрятаны в поповер ⚙ рядом с надписью. */
+    return '<div class="lrow geo-poi-row" data-poi-k="'+k+'"><label class="ck"><input type="checkbox" id="geoLayer-'+k+'" onchange="geoTogglePoiLayer(\''+k+'\')"> '+esc(d.label)+' <small id="geoLayerCount-'+k+'" class="geo-poi-count">'+(loading?'загрузка…':n)+'</small></label><span class="geo-dot" style="background:'+esc(d.color)+'"></span><button type="button" class="geo-gear" title="Настройки слоя" aria-label="Настройки слоя" onclick="geoToggleGear(\''+k+'\')">⚙</button></div>'
+      +'<div class="geo-poi-gear" id="geoGear-'+k+'" style="display:none">'
+      +'<div class="styrow sub geo-poi-sub"><label>цвет</label><input type="color" id="geoColor-'+k+'" value="'+d.color+'" title="фикс. цвет" oninput="geoPoiColor(\''+k+'\',this.value)"><label>размер</label><input type="range" id="geoR-'+k+'" min="3" max="12" value="'+radius+'" oninput="geoPoiRadius(\''+k+'\',this.value)" title="размер точки"><label>прозр.</label><input type="range" id="geoOp-'+k+'" min="20" max="100" value="'+opacity+'" oninput="geoPoiOpacity(\''+k+'\',this.value)" title="непрозрачность"></div>'
       +'<div class="styrow sub geo-poi-sub"><label class="ck"><input type="checkbox" id="geoLab-'+k+'" title="показывать надписи на карте"'+(labels?' checked':'')+' onchange="geoPoiLabels(\''+k+'\',this.checked)"> подписи</label><label>размер подписи</label><input type="range" id="geoLS-'+k+'" min="8" max="20" value="'+labelSize+'" oninput="geoPoiLabelSize(\''+k+'\',this.value)" title="размер надписи на карте"></div>'
-      +(k==='street_retail'?retailSubPanelHtml():'');
+      +(k==='street_retail'?retailSubPanelHtml():'')
+      +'</div>';
   }
+  window.geoToggleGear=function(k){var g=document.getElementById('geoGear-'+k);if(!g)return;var open=g.style.display==='none';g.style.display=open?'block':'none';var btn=document.querySelector('.geo-poi-row[data-poi-k="'+k+'"] .geo-gear');if(btn)btn.classList.toggle('on',open);};
   // Единая настройка стиля слоя (цвет/размер/прозрачность/подписи) - раньше сохранялся
   // только цвет (asaas_geo_layer_colors). Ключ переименован, но старые сохранённые цвета
   // всё ещё читаются один раз для обратной совместимости.
