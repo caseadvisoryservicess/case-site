@@ -118,7 +118,7 @@ function workspace_view_keys(): array {
     'case_projects'=>['OBJECTS'],
     'map'=>['MAPCFG','GEO_DATA','CASE_PORTFOLIO_PROJECTS','OBJECTS'],
     'analytics_hub'=>['GEO_DATA','MAPCFG'],
-    'geoanalytics'=>['GEO_DATA','MAPCFG','CASE_PORTFOLIO_PROJECTS'],
+    'geoanalytics'=>['GEO_DATA','MAPCFG'],
     'registry'=>['OBJECTS','U','CHANGES','PROJECT_PPT'],
     'dates'=>['OBJECTS'],
     'plans'=>['PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT'],

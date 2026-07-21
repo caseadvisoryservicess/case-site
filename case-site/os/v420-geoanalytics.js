@@ -136,10 +136,10 @@
       window.go=function(v){
         if(v==='geoanalytics'||v==='map'||v==='analytics_hub'){
           if(v==='map'){G.tab=isExternal()?'market':'ours';}
-          else if(v==='analytics_hub'&&(G.tab!=='ours'&&G.tab!=='market')){G.tab='market';}
+          else{G.tab='market';}/* geoanalytics/analytics_hub → рынок и POI (детальная студия) */
           if(!canView()){try{if(typeof toast==='function')toast(tr('Этот раздел не входит в вашу рабочую область.','Bu bo‘lim sizning ishchi sohangizga kirmaydi.','This module is outside your workspace.'));}catch(e){}return oldGo.call(this,(window.asaasWorkspaceFirst&&window.asaasWorkspaceFirst())||'dash');}
           try{S.view='geoanalytics';}catch(e){}
-          var navV=(G.tab==='ours')?'map':'analytics_hub';
+          var navV=(G.tab==='ours')?'map':'geoanalytics';
           document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('active',a.dataset.v===navV);});
           try{if(typeof window.asaasNavClose==='function')window.asaasNavClose();}catch(e){}
           var side=document.getElementById('side'),scrim=document.getElementById('scrim');if(side)side.classList.remove('open');if(scrim)scrim.classList.remove('open');
