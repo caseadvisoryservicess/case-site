@@ -128,6 +128,7 @@ select { cursor: pointer; }
   font-size: 16px;
 }
 .sub-title { margin: 4px 0 10px; font-size: 13px; font-weight: 650; }
+.texts-intro { margin: 0 0 18px; font-size: 13px; }
 
 /* ---------------------------------------------------------------- ML widget */
 .ml-toggle {
@@ -551,6 +552,104 @@ select { cursor: pointer; }
 .tab-content .image-picker { background: var(--bg); }
 .tab-content .list-item .image-picker { background: #fff; }
 
+/* ---------------------------------------------------------------- leads (CRM) */
+.nav-badge {
+  display: inline-block;
+  margin-left: 7px;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.45;
+  text-align: center;
+}
+
+.leads-toolbar {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 0 0 18px;
+}
+.leads-toolbar select.leads-filter { width: auto; min-width: 150px; }
+.toolbar-spacer { flex: 1; }
+
+.leads-card { padding: 12px 16px; }
+.leads-table { width: 100%; border-collapse: collapse; }
+.leads-table th {
+  text-align: left;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 6px 10px 10px;
+}
+.leads-table td {
+  padding: 12px 10px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  font-size: 14px;
+}
+.td-date { white-space: nowrap; color: var(--muted); font-size: 13px; }
+.lead-warn { cursor: help; font-size: 13px; }
+.lead-name { font-weight: 650; }
+.lead-phone { display: inline-block; font-size: 13px; text-decoration: none; }
+.lead-phone:hover { text-decoration: underline; }
+.lead-msg {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--muted);
+  max-width: 260px;
+}
+.td-interest { font-size: 13px; }
+.td-interest .muted { font-size: 12px; }
+
+.status-sel {
+  width: auto;
+  min-width: 132px;
+  padding: 6px 10px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+}
+.status-sel.st-new  { background: #e9f0fb; border-color: #b9cdec; color: #2c5a9c; }
+.status-sel.st-work { background: #fdf3da; border-color: #ead398; color: #86610e; }
+.status-sel.st-meet { background: #f2ecfa; border-color: #d3c3ef; color: #66489b; }
+.status-sel.st-neg  { background: #fdecdc; border-color: #efc6a0; color: #9a561a; }
+.status-sel.st-deal { background: #e6f4e7; border-color: #b2dab7; color: #2e7c39; }
+.status-sel.st-lost { background: #efefee; border-color: #d6d6d4; color: #75787c; }
+
+.lead-note {
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font: 13px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+  max-width: 200px;
+}
+.lead-note:hover { background: rgba(168, 128, 76, .1); }
+.lead-note.empty { color: var(--muted); font-weight: 600; font-size: 12px; }
+
+.lead-del {
+  border: 0;
+  background: none;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+}
+.lead-del:hover { color: var(--danger); background: rgba(178, 60, 43, .08); }
+
+.modal-narrow { max-width: 480px; }
+
 /* ---------------------------------------------------------------- users */
 .table-wrap { overflow-x: auto; }
 .users-table { width: 100%; border-collapse: collapse; }
@@ -621,4 +720,30 @@ select { cursor: pointer; }
 
   .et-name-text { max-width: 55vw; }
   .image-picker { flex-direction: column; }
+
+  /* лиды — карточки вместо таблицы */
+  .leads-card { padding: 12px; background: none; border: 0; }
+  .leads-table thead { display: none; }
+  .leads-table, .leads-table tbody, .leads-table tr, .leads-table td { display: block; width: 100%; }
+  .leads-table tr {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 14px;
+    margin: 0 0 10px;
+  }
+  .leads-table td { border: 0; padding: 6px 0; }
+  .leads-table td[data-l]::before {
+    content: attr(data-l);
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+  .td-del { text-align: right; }
+  .lead-msg { max-width: none; }
+  .toolbar-spacer { display: none; }
 }

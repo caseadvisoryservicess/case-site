@@ -17,6 +17,10 @@
   var tabsNavEl = null;
   var tabContentEl = null;
 
+  var leadsBadgeEl = null;     // бейдж «новых» лидов на кнопке «Лиды»
+  var leadsFilterProject = ''; // фильтры раздела «Лиды» (живут между переходами)
+  var leadsFilterStatus = '';
+
   // ---------------------------------------------------------------- helpers
   function esc(s) {
     return String(s).replace(/[&<>"']/g, function (c) {
@@ -109,6 +113,14 @@
     if (isNaN(d.getTime())) return String(s);
     return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) +
       ', ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  // Дата лида: dd.mm hh:mm
+  function fmtLeadTs(s) {
+    var d = new Date(s);
+    if (isNaN(d.getTime())) return String(s || '');
+    function p2(n) { return (n < 10 ? '0' : '') + n; }
+    return p2(d.getDate()) + '.' + p2(d.getMonth() + 1) + ' ' + p2(d.getHours()) + ':' + p2(d.getMinutes());
   }
 
   // Обёртка для async-обработчиков: ошибки, уже показанные пользователю, не всплывают.
@@ -272,6 +284,7 @@
     });
 
     var ru = langInput('ru');
+    if (opts.placeholder) ru.placeholder = opts.placeholder; // подсказка стандартного текста — только в RU
     return h('div', { class: 'field' },
       h('div', { class: 'label-row' }, h('label', null, label), toggle),
       ru,
@@ -468,11 +481,17 @@
 
   // ---------------------------------------------------------------- header (список/пользователи)
   function header(active) {
+    leadsBadgeEl = h('span', { class: 'nav-badge' });
+    leadsBadgeEl.hidden = true;
     var nav = [
       h('button', {
         class: 'nav-btn' + (active === 'projects' ? ' active' : ''),
         onclick: guard(showProjects)
-      }, 'Лендинги')
+      }, 'Лендинги'),
+      h('button', {
+        class: 'nav-btn' + (active === 'leads' ? ' active' : ''),
+        onclick: guard(showLeads)
+      }, 'Лиды', leadsBadgeEl)
     ];
     if (me && me.role === 'admin') {
       nav.push(h('button', {
@@ -521,6 +540,7 @@
 
       app.appendChild(header('projects'));
       app.appendChild(h('main', { class: 'container' }, titleRow, list));
+      refreshLeadsBadge();
     });
   }
 
@@ -590,6 +610,7 @@
     { id: 'location', label: 'Локация', render: tabLocation },
     { id: 'lead', label: 'Заявка', render: tabLead },
     { id: 'faq', label: 'FAQ', render: tabFaq },
+    { id: 'texts', label: 'Кнопки и тексты', render: tabTexts },
     { id: 'footer', label: 'Футер', render: tabFooter }
   ];
 
@@ -707,6 +728,10 @@
       fieldText('Метка логотипа (до 3 букв)', 'brand.mark', { placeholder: 'SFB' }),
       mlField('Название', 'brand.name'),
       mlField('Подпись под названием (адрес · город)', 'brand.tag'),
+      fieldText('Акцентный цвет (hex)', 'brand.accent', {
+        placeholder: '#a8804c',
+        hint: 'Например #a8804c. Кнопки и акценты лендинга. Пусто — фирменная бронза.'
+      }),
       groupTitle('Контакты'),
       row(
         fieldText('Телефон', 'contacts.phone', { placeholder: '+998 …' }),
@@ -718,6 +743,9 @@
       }),
       fieldText('Кнопка «Войти» на лендинге', 'adminUrl', {
         hint: 'Адрес входа в эту панель, например /admin/ или https://panel.caseadvisory.uz. Пусто — кнопки не будет.'
+      }),
+      fieldText('Приём заявок (URL)', 'leadEndpoint', {
+        hint: 'Куда лендинг шлёт заявки. Пусто — в эту панель (работает на /p/ и за /admin/). Для лендинга на другом хостинге: полный адрес, например https://panel.example.com/api/lead/takhtapul'
       })
     ];
   }
@@ -942,6 +970,76 @@
     ];
   }
 
+  // Все надписи лендинга. Пустое значение = используется стандартный текст,
+  // стандарт показан как placeholder в RU-поле.
+  function tabTexts() {
+    function t(label, path, ph, opts) {
+      opts = opts || {};
+      if (ph) opts.placeholder = ph;
+      return mlField(label, path, opts);
+    }
+    return [
+      h('p', { class: 'muted texts-intro' },
+        'Все надписи лендинга. Пустое поле — используется стандартный текст (показан как подсказка).'),
+      groupTitle('Меню и шапка'),
+      row(t('Пункт «Назначение»', 'texts.nav.uses', 'Назначение'),
+        t('Пункт «Помещения»', 'texts.nav.lots', 'Помещения')),
+      row(t('Пункт «О здании»', 'texts.nav.building', 'О здании'),
+        t('Пункт «Локация»', 'texts.nav.location', 'Локация')),
+      row(t('Пункт «Вопросы»', 'texts.nav.faq', 'Вопросы'),
+        t('Кнопка заявки в шапке', 'texts.nav.cta', 'Оставить заявку')),
+      t('Кнопка входа для сотрудников', 'texts.nav.login', 'Войти'),
+      groupTitle('Главный экран'),
+      row(t('Кнопка 1', 'texts.hero.btn1', 'Получить планировки и цены'),
+        t('Кнопка 2', 'texts.hero.btn2', 'Смотреть помещения')),
+      groupTitle('Подписи над секциями'),
+      row(t('Над секцией «Назначение»', 'texts.uses.lbl', 'Свободное назначение'),
+        t('Над секцией «Лоты»', 'texts.lots.lbl', 'Свободные лоты')),
+      row(t('Над секцией «О здании»', 'texts.bld.lbl', 'О здании'),
+        t('Над секцией «Инвесторам»', 'texts.inv.lbl', 'Инвесторам')),
+      row(t('Над секцией «Стройка»', 'texts.prog.lbl', 'Ход строительства'),
+        t('Над секцией «Локация»', 'texts.loc.lbl', 'Локация')),
+      row(t('Над секцией «Заявка»', 'texts.lead.lbl', 'Заявка'),
+        t('Над секцией «Вопросы»', 'texts.faq.lbl', 'Частые вопросы')),
+      t('Заголовок FAQ', 'texts.faq.h2', 'Коротко о главном'),
+      groupTitle('Лоты'),
+      t('Кнопка над лотами', 'texts.lots.cta', 'Запросить актуальные условия'),
+      row(t('Плашка статуса', 'texts.lots.tag', 'В продаже · Возможна аренда'),
+        t('Подсказка на плане', 'texts.lots.hint', 'Нажмите, чтобы увеличить')),
+      row(t('Подпись цены', 'texts.lots.priceL', 'Продажа · Аренда'),
+        t('Текст цены', 'texts.lots.priceV', 'цена и условия — по запросу')),
+      row(t('Кнопка лота', 'texts.lots.btn1', 'Узнать цену и условия'),
+        t('Кнопка «Позвонить»', 'texts.lots.btn2', 'Позвонить')),
+      t('Кнопка «Инвесторам»', 'texts.inv.cta', 'Обсудить условия'),
+      groupTitle('Форма заявки'),
+      t('Заголовок', 'texts.form.h3', 'Оставить заявку'),
+      t('Подзаголовок', 'texts.form.p', '', { textarea: true }),
+      row(t('Подпись телефона в контактах', 'texts.lead.c1', 'отдел продаж'),
+        t('Подпись Telegram', 'texts.lead.c2', 'Telegram — ответим быстрее всего')),
+      row(t('Поле «Имя»', 'texts.form.lName', 'Имя *'),
+        t('Поле «Телефон»', 'texts.form.lPhone', 'Телефон *')),
+      row(t('Поле «Email»', 'texts.form.lEmail', 'Email'),
+        t('Поле «Интересует»', 'texts.form.lInt', 'Интересует')),
+      row(t('Поле «Помещение»', 'texts.form.lLot', 'Помещение'),
+        t('Поле «Комментарий»', 'texts.form.lMsg', 'Комментарий')),
+      row(t('Вариант 1', 'texts.form.o1', 'Покупка'),
+        t('Вариант 2', 'texts.form.o2', 'Аренда')),
+      row(t('Вариант 3', 'texts.form.o3', 'Покупка как инвестиция'),
+        t('Вариант 4', 'texts.form.o4', 'Консультация')),
+      row(t('Вариант «Оба лота»', 'texts.form.oLall', 'Оба лота'),
+        t('Вариант «Ещё не выбрал(а)»', 'texts.form.oLnone', 'Ещё не выбрал(а)')),
+      row(t('Кнопка отправки', 'texts.form.send', 'Отправить заявку'),
+        t('Текст при отправке', 'texts.form.sending', 'Отправляем…')),
+      t('Согласие под кнопкой', 'texts.form.note', '', { textarea: true }),
+      t('Заголовок после отправки', 'texts.form.okH', 'Заявка отправлена!'),
+      groupTitle('Плейсхолдеры полей'),
+      row(t('Подсказка в поле «Имя»', 'texts.ph.name', 'Как к вам обращаться'),
+        t('Подсказка в поле «Телефон»', 'texts.ph.phone', '+998 __ ___ __ __')),
+      row(t('Подсказка в поле «Email»', 'texts.ph.email', 'для отправки планировок'),
+        t('Подсказка в поле «Комментарий»', 'texts.ph.msg', 'Ваш комментарий'))
+    ];
+  }
+
   // ---------------------------------------------------------------- users
   function showUsers() {
     return Promise.all([api('/api/users'), api('/api/projects')]).then(function (res) {
@@ -965,6 +1063,7 @@
         h('h2', { class: 'group-title users-create-title' }, 'Новый пользователь'),
         h('div', { class: 'card' }, createUserForm(allSlugs))
       ));
+      refreshLeadsBadge();
     });
   }
 
@@ -1073,6 +1172,254 @@
       });
     }));
     return form;
+  }
+
+  // ---------------------------------------------------------------- CRM «Лиды»
+  var LEAD_SOURCES = ['Звонок', 'Telegram', 'Рекомендация', 'Другое'];
+  var LEAD_ST_CLASS = {
+    'Новый': 'st-new', 'В работе': 'st-work', 'Встреча/показ': 'st-meet',
+    'Переговоры': 'st-neg', 'Договор': 'st-deal', 'Отказ': 'st-lost'
+  };
+
+  function setLeadsBadge(n) {
+    if (!leadsBadgeEl) return;
+    if (n > 0) { leadsBadgeEl.textContent = String(n); leadsBadgeEl.hidden = false; }
+    else { leadsBadgeEl.textContent = ''; leadsBadgeEl.hidden = true; }
+  }
+  // Тихо обновляет бейдж «новых» лидов в шапке (без тостов при ошибке).
+  function refreshLeadsBadge() {
+    api('/api/leads').then(function (d) {
+      var leads = (d && d.leads) || [];
+      setLeadsBadge(leads.filter(function (l) { return l.status === 'Новый'; }).length);
+    }).catch(function () {});
+  }
+
+  function leadApiPath(l) {
+    return '/api/leads/' + encodeURIComponent(l.project) + '/' + encodeURIComponent(l.id);
+  }
+
+  function showLeads() {
+    return Promise.all([api('/api/leads'), api('/api/projects')]).then(function (res) {
+      var leads = (res[0] && res[0].leads) || [];
+      var statuses = (res[0] && res[0].statuses) || Object.keys(LEAD_ST_CLASS);
+      var projects = (res[1] && res[1].projects) || [];
+      var isAdmin = me && me.role === 'admin';
+      document.title = 'Лиды — Панель SFB';
+      app.innerHTML = '';
+
+      var names = {};
+      projects.forEach(function (p) { names[p.slug] = p.name || p.slug; });
+
+      function countNew() {
+        return leads.filter(function (l) { return l.status === 'Новый'; }).length;
+      }
+
+      // ---- фильтры
+      var projSel = h('select', { class: 'leads-filter' },
+        h('option', { value: '' }, 'Все проекты'),
+        projects.map(function (p) { return h('option', { value: p.slug }, p.name || p.slug); })
+      );
+      if (leadsFilterProject && names[leadsFilterProject] === undefined) leadsFilterProject = '';
+      projSel.value = leadsFilterProject;
+      projSel.addEventListener('change', function () { leadsFilterProject = projSel.value; renderList(); });
+
+      var stSel = h('select', { class: 'leads-filter' },
+        h('option', { value: '' }, 'Все статусы'),
+        statuses.map(function (s) { return h('option', { value: s }, s); })
+      );
+      if (leadsFilterStatus && statuses.indexOf(leadsFilterStatus) === -1) leadsFilterStatus = '';
+      stSel.value = leadsFilterStatus;
+      stSel.addEventListener('change', function () { leadsFilterStatus = stSel.value; renderList(); });
+
+      var listBox = h('div', { class: 'leads-list' });
+
+      // ---- строка таблицы
+      function leadRow(l) {
+        var statusSel = h('select', { class: 'status-sel ' + (LEAD_ST_CLASS[l.status] || 'st-new') },
+          statuses.map(function (s) { return h('option', { value: s }, s); })
+        );
+        statusSel.value = l.status;
+        statusSel.addEventListener('change', guard(function () {
+          var prev = l.status;
+          return api(leadApiPath(l), { method: 'PUT', body: { status: statusSel.value } })
+            .then(function () {
+              l.status = statusSel.value;
+              statusSel.className = 'status-sel ' + (LEAD_ST_CLASS[l.status] || 'st-new');
+              setLeadsBadge(countNew());
+              toast('Статус обновлён');
+            })
+            .catch(function (err) { statusSel.value = prev; throw err; });
+        }));
+
+        var noteBtn = h('button', {
+          type: 'button',
+          class: 'lead-note' + (l.note ? '' : ' empty'),
+          title: 'Изменить заметку'
+        }, l.note || '＋ заметка');
+        noteBtn.addEventListener('click', guard(function () {
+          var v = prompt('Заметка по лиду «' + (l.name || '') + '»:', l.note || '');
+          if (v === null) return;
+          return api(leadApiPath(l), { method: 'PUT', body: { note: v } }).then(function () {
+            l.note = v;
+            noteBtn.textContent = v || '＋ заметка';
+            noteBtn.classList.toggle('empty', !v);
+            toast('Заметка сохранена');
+          });
+        }));
+
+        var cells = [
+          h('td', { class: 'td-date' },
+            fmtLeadTs(l.ts),
+            l.emailSent === false ? h('span', { class: 'lead-warn', title: 'Письмо не отправилось' }, ' ⚠') : null
+          ),
+          h('td', { class: 'td-client' },
+            h('div', { class: 'lead-name' }, l.name || '—'),
+            l.phone ? h('a', { class: 'lead-phone', href: 'tel:' + String(l.phone).replace(/[^+\d]/g, '') }, l.phone) : null,
+            l.message ? h('div', { class: 'lead-msg', title: 'Комментарий клиента' }, l.message) : null
+          ),
+          h('td', { 'data-l': 'Проект' }, names[l.project] || l.project),
+          h('td', { 'data-l': 'Интерес', class: 'td-interest' },
+            l.interest ? h('div', null, l.interest) : null,
+            l.lot ? h('div', { class: 'muted' }, l.lot) : null,
+            (!l.interest && !l.lot) ? '—' : null
+          ),
+          h('td', { 'data-l': 'Источник' }, l.source || '—'),
+          h('td', { 'data-l': 'Статус', class: 'td-status' }, statusSel),
+          h('td', { 'data-l': 'Заметка', class: 'td-note' }, noteBtn)
+        ];
+        if (isAdmin) {
+          cells.push(h('td', { class: 'td-del' }, h('button', {
+            type: 'button', class: 'lead-del', title: 'Удалить лид',
+            onclick: guard(function () {
+              if (!confirm('Удалить лид «' + (l.name || '') + '»?')) return;
+              return api(leadApiPath(l), { method: 'DELETE' }).then(function () {
+                var i = leads.indexOf(l);
+                if (i !== -1) leads.splice(i, 1);
+                setLeadsBadge(countNew());
+                toast('Лид удалён');
+                renderList();
+              });
+            })
+          }, '✕')));
+        }
+        return h('tr', null, cells);
+      }
+
+      function renderList() {
+        listBox.innerHTML = '';
+        if (!leads.length) {
+          listBox.appendChild(h('div', { class: 'card empty-card' },
+            h('p', { class: 'muted' }, 'Пока нет лидов. Заявки с лендингов будут появляться здесь автоматически.')));
+          return;
+        }
+        var shown = leads.filter(function (l) {
+          if (leadsFilterProject && l.project !== leadsFilterProject) return false;
+          if (leadsFilterStatus && l.status !== leadsFilterStatus) return false;
+          return true;
+        });
+        if (!shown.length) {
+          listBox.appendChild(h('div', { class: 'card empty-card' },
+            h('p', { class: 'muted' }, 'Нет лидов по выбранным фильтрам.')));
+          return;
+        }
+        var head = [
+          h('th', null, 'Дата'), h('th', null, 'Клиент'), h('th', null, 'Проект'),
+          h('th', null, 'Интерес'), h('th', null, 'Источник'), h('th', null, 'Статус'), h('th', null, 'Заметка')
+        ];
+        if (isAdmin) head.push(h('th', null, ''));
+        listBox.appendChild(h('div', { class: 'card leads-card' },
+          h('div', { class: 'table-wrap' },
+            h('table', { class: 'leads-table' },
+              h('thead', null, h('tr', null, head)),
+              h('tbody', null, shown.map(leadRow))
+            )
+          )
+        ));
+      }
+
+      // ---- ручное добавление лида
+      function addLeadDialog() {
+        if (!projects.length) { toast('Нет доступных проектов', 'error'); return; }
+        function close() {
+          document.removeEventListener('keydown', onKey);
+          overlay.remove();
+        }
+        function onKey(e) { if (e.key === 'Escape') close(); }
+
+        var mProj = h('select', null, projects.map(function (p) {
+          return h('option', { value: p.slug }, p.name || p.slug);
+        }));
+        mProj.value = leadsFilterProject || projects[0].slug;
+        var mSrc = h('select', null, LEAD_SOURCES.map(function (s) { return h('option', { value: s }, s); }));
+        mSrc.value = 'Звонок';
+        var mName = h('input', { type: 'text' });
+        var mPhone = h('input', { type: 'text', placeholder: '+998 …' });
+        var mEmail = h('input', { type: 'text' });
+        var mMsg = h('textarea', { rows: 3 });
+        var submitBtn = h('button', { type: 'submit', class: 'btn primary' }, 'Добавить');
+
+        var form = h('form', null,
+          h('div', { class: 'field' }, h('label', null, 'Проект'), mProj),
+          row(
+            h('div', { class: 'field' }, h('label', null, 'Имя *'), mName),
+            h('div', { class: 'field' }, h('label', null, 'Телефон *'), mPhone)
+          ),
+          row(
+            h('div', { class: 'field' }, h('label', null, 'Email'), mEmail),
+            h('div', { class: 'field' }, h('label', null, 'Источник'), mSrc)
+          ),
+          h('div', { class: 'field' }, h('label', null, 'Комментарий'), mMsg),
+          submitBtn
+        );
+        form.addEventListener('submit', guard(function (e) {
+          e.preventDefault();
+          var name = mName.value.trim(), phone = mPhone.value.trim();
+          if (!name || !phone) { toast('Заполните имя и телефон', 'error'); return; }
+          submitBtn.disabled = true;
+          return api('/api/leads', {
+            method: 'POST',
+            body: {
+              project: mProj.value, name: name, phone: phone,
+              email: mEmail.value.trim(), message: mMsg.value.trim(), source: mSrc.value
+            }
+          }).then(function () {
+            toast('Лид добавлен');
+            close();
+            return showLeads();
+          }).catch(function (err) { submitBtn.disabled = false; throw err; });
+        }));
+
+        var overlay = h('div', {
+          class: 'modal-overlay',
+          onclick: function (e) { if (e.target === overlay) close(); }
+        },
+          h('div', { class: 'modal modal-narrow' },
+            h('div', { class: 'modal-head' },
+              h('h3', null, 'Новый лид'),
+              h('button', { type: 'button', class: 'modal-close', onclick: function () { close(); } }, '✕')
+            ),
+            form
+          )
+        );
+        document.addEventListener('keydown', onKey);
+        document.body.appendChild(overlay);
+        mName.focus();
+      }
+
+      app.appendChild(header('leads'));
+      app.appendChild(h('main', { class: 'container' },
+        h('h1', { class: 'page-title' }, 'Лиды'),
+        h('div', { class: 'leads-toolbar' },
+          projSel, stSel,
+          h('span', { class: 'toolbar-spacer' }),
+          h('button', { class: 'btn accent', onclick: function () { addLeadDialog(); } }, '＋ Добавить лид'),
+          h('button', { class: 'btn ghost', onclick: guard(showLeads) }, 'Обновить')
+        ),
+        listBox
+      ));
+      setLeadsBadge(countNew());
+      renderList();
+    });
   }
 
   // ---------------------------------------------------------------- boot
