@@ -247,7 +247,7 @@ body.dark .kcol.kover{background:#3a1414}
 .kcard{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:7px;cursor:grab;box-shadow:var(--shadow)}
 .kcard:active{cursor:grabbing}
 body.dark .kcard{background:#262420}
-.quizpop{position:fixed;left:16px;right:auto;bottom:16px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:900;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
+.quizpop{position:fixed;right:16px;bottom:16px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:2000;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
 @keyframes quizIn{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 .quizpop-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--red);color:#fff}
 .quizpop-h b{font-size:12.5px;letter-spacing:.02em}
@@ -265,7 +265,7 @@ body.dark .kcard{background:#262420}
 .quizpop-ok{color:var(--green);font-weight:700}
 .quizpop-bad{color:var(--red-d);font-weight:700}
 .quizpop-why{color:var(--muted);margin-top:4px}
-.quizpop-badge{position:fixed;right:16px;left:auto;bottom:16px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:900}
+.quizpop-badge{position:fixed;left:16px;right:auto;bottom:16px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
 @media (max-width:480px){.quizpop{right:8px;bottom:8px;left:8px;width:auto}.quizpop-badge{left:8px;right:auto;bottom:8px}}
 /* v3.1: тёмный режим для квиз-окна и тестов — все тексты читаемые */
 .quizpop,.quizpop-body,.quizpop-q,.quizpop-fb{color:var(--ink)}
@@ -307,13 +307,13 @@ body.dark .quizpop-ok{color:#7fd089}
   <div class="topbar">
     <button class="burger" aria-label="Открыть меню" onclick="toggleSide()">☰</button>
     <div class="brand" title="Перейти на главный экран"><span><span class="c">CASE</span> OS</span><span class="tag">Company &amp; Real Estate Operating System</span></div>
+    <span class="demo" id="appVer" title="Версия платформы" style="align-self:center">v—</span>
     <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
     <button class="btn ghost sm" id="addObjBtn" style="display:none" onclick="addObjectForm()" title="Добавить новый объект в портфель">+ Объект</button>
     <div class="gsearch"><input id="gq" aria-label="Global search" placeholder="Поиск: помещение, бренд, КП..." oninput="globalSearch(this.value)" onfocus="searchFocus()" onkeydown="if(event.key==='Escape')clearSearch();else if(event.key==='Enter')searchRemember(this.value)"><span id="gclear" class="gclear" title="Очистить" onclick="clearSearch();var g=document.getElementById('gq');if(g)g.focus()">✕</span><div id="gdrop" class="gdrop"></div></div>
     <div class="who" id="profileWrap">
       <button class="profile-btn" id="profileBtn" aria-haspopup="true" aria-expanded="false" title="Профиль и настройки" onclick="toggleProfileMenu(event)"><div class="av" id="avatar">A</div><div class="nm" id="whoName">-<small id="whoRole">-</small></div><span class="prof-caret" aria-hidden="true">▾</span></button>
       <div class="profile-menu" id="profileMenu" role="menu" aria-label="Профиль и настройки">
-        <div class="pm-row"><span>Версия</span><span class="demo" id="appVer" title="Версия платформы">v—</span></div>
         <div class="pm-row"><span>База</span><span class="demo" id="offBadge" title="Статус подключения к базе" style="display:none;background:#fff3e0;color:#9a6b00;border-color:#f0d9a0"></span></div>
         <div class="pm-row"><span>Курс ЦБ РУз</span><span class="rate-cur" id="fxRate" title="Курс ЦБ РУз" style="display:none"></span></div>
         <div class="pm-row"><span>Тема</span><button class="langbtn" id="themeBtn" aria-label="Тёмная / светлая тема" title="Тёмная / светлая тема" onclick="toggleTheme()">🌙</button></div>
@@ -363,7 +363,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.19.2';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.19.3';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
