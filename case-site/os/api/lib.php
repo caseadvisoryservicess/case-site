@@ -1,6 +1,15 @@
 <?php
 // CASE OS — ядро бэкенда (подключение к БД, сессии, права, реестр таблиц).
 declare(strict_types=1);
+// Лимит памяти PHP: сохранение общего состояния с гео-мастербазой (тысячи объектов)
+// требует несколько json_encode/decode подряд и упирается в дефолтные 128 МБ (fatal на
+// geo_state.php:214). .htaccess/.user.ini на части хостингов игнорируются, поэтому
+// поднимаем лимит прямо в рантайме — надёжнее всего. Если хостинг запрещает — тихо игнор.
+@ini_set('memory_limit', '512M');
+// В проде не выводим ошибки PHP в тело ответа (утечка путей вида /home/.../public_html/...
+// и порча JSON), пишем их в лог сервера. API отдаёт понятный JSON, а не HTML-fatal.
+@ini_set('display_errors', '0');
+@ini_set('log_errors', '1');
 if (function_exists('mb_internal_encoding')) mb_internal_encoding('UTF-8');
 if (!function_exists('mb_strtolower')) { function mb_strtolower($s, $encoding=null) { return strtolower((string)$s); } }
 

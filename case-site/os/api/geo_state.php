@@ -211,6 +211,10 @@ if ($m === 'POST') {
       $hist->execute([(int)($row['revision'] ?? 0),$serverGeoRev,$oldJson,hash('sha256',$oldJson),$reason,(string)($u['name'] ?? '-'),$nowDb]);
     }
     $all['GEO_DATA'] = $incoming;
+    // Освобождаем крупные промежуточные копии перед финальным encode (пик памяти на
+    // гео-мастербазе доходил до fatal 128 МБ). $incomingJson ещё нужен для checksum ниже.
+    unset($oldGeo, $oldJson, $row['data']);
+    if (function_exists('gc_collect_cycles')) gc_collect_cycles();
     $allJson = json_encode($all, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
     if ($allJson === false || strlen($allJson) > json_body_limit_bytes()) { $pdo->rollBack(); fail('Общее состояние слишком большое для сохранения', 413); }
     $appRev = (int)($row['revision'] ?? 0) + 1;
