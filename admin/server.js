@@ -114,7 +114,9 @@ function canAccess(user, slug) {
   return user.role === 'admin' || (user.projects || []).includes(slug);
 }
 // CSRF: мутирующие запросы обязаны нести кастомный заголовок
+// (кроме публичного приёма заявок /api/lead/* — он без авторизации, CSRF не применим)
 app.use('/api', (req, res, next) => {
+  if (req.path.startsWith('/lead/')) return next();
   if (['POST', 'PUT', 'DELETE'].includes(req.method) && req.headers['x-api'] !== '1') {
     return res.status(403).json({ error: 'Missing X-Api header' });
   }
@@ -310,6 +312,146 @@ app.get('/api/projects/:slug/export', auth, (req, res) => {
   zip.pipe(res);
   zip.directory(path.join(SITES, slug), slug);
   zip.finalize();
+});
+
+// ─── ЛИДЫ: приём с лендингов, CRM, пересылка на почту ───
+function leadsFile(slug) { return path.join(projectDir(slug), 'leads.json'); }
+function loadLeads(slug) {
+  try { return JSON.parse(fs.readFileSync(leadsFile(slug), 'utf8')); } catch { return []; }
+}
+function saveLeads(slug, leads) { fs.writeFileSync(leadsFile(slug), JSON.stringify(leads, null, 2)); }
+
+const LEAD_STATUSES = ['Новый', 'В работе', 'Встреча/показ', 'Переговоры', 'Договор', 'Отказ'];
+
+// пересылка лида на почту проекта (через FormSubmit) и в Google Таблицу — в фоне
+async function forwardLead(cfg, lead) {
+  const jobs = [];
+  if (cfg.contacts && cfg.contacts.email) {
+    jobs.push(fetch('https://formsubmit.co/ajax/' + cfg.contacts.email, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+      body: JSON.stringify({
+        'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '—',
+        'Интересует': lead.interest || '—', 'Помещение': lead.lot || '—',
+        'Комментарий': lead.message || '—', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
+        '_subject': 'Заявка: ' + (cfg.name || cfg.slug) + ' — ' + lead.name,
+        '_template': 'table', '_captcha': 'false'
+      })
+    }).then((r) => { lead.emailSent = r.ok; }).catch(() => { lead.emailSent = false; }));
+  }
+  if (cfg.contacts && cfg.contacts.sheetsEndpoint) {
+    const fd = new URLSearchParams(); // Apps Script принимает form-encoded в e.parameter
+    for (const k of ['name', 'phone', 'email', 'interest', 'lot', 'message', 'lang']) fd.append(k, lead[k] || '');
+    jobs.push(fetch(cfg.contacts.sheetsEndpoint, { method: 'POST', body: fd, redirect: 'follow' }).catch(() => {}));
+  }
+  await Promise.allSettled(jobs);
+}
+
+// публичный приём заявок с лендинга (без авторизации, с CORS — лендинг может жить на другом домене)
+const leadHits = new Map(); // ip -> {n, since}
+app.options('/api/lead/:slug', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.status(204).end();
+});
+app.post('/api/lead/:slug', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const slug = req.params.slug;
+  if (!SLUG_RE.test(slug) || !fs.existsSync(projectFile(slug))) return res.status(404).json({ error: 'not found' });
+  const ip = req.ip || 'x';
+  const hit = leadHits.get(ip) || { n: 0, since: Date.now() };
+  if (Date.now() - hit.since > 60 * 1000) { hit.n = 0; hit.since = Date.now(); }
+  hit.n += 1; leadHits.set(ip, hit);
+  if (hit.n > 10) return res.status(429).json({ error: 'слишком часто' });
+  const b = req.body || {};
+  if (b._honey) return res.json({ ok: true }); // honeypot: делаем вид, что приняли
+  const name = String(b.name || '').trim().slice(0, 200);
+  const phone = String(b.phone || '').trim().slice(0, 50);
+  if (!name || !phone) return res.status(400).json({ error: 'имя и телефон обязательны' });
+  const lead = {
+    id: crypto.randomBytes(6).toString('hex'),
+    ts: new Date().toISOString(),
+    name, phone,
+    email: String(b.email || '').trim().slice(0, 200),
+    interest: String(b.interest || '').trim().slice(0, 100),
+    lot: String(b.lot || '').trim().slice(0, 200),
+    message: String(b.message || '').trim().slice(0, 2000),
+    lang: String(b.lang || 'ru').slice(0, 5),
+    source: 'Сайт',
+    status: 'Новый',
+    note: '',
+    emailSent: null
+  };
+  const leads = loadLeads(slug);
+  leads.unshift(lead);
+  saveLeads(slug, leads);
+  res.json({ ok: true });
+  // пересылка — после ответа клиенту, результат допишем в файл
+  const cfg = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8'));
+  forwardLead(cfg, lead).then(() => {
+    const cur = loadLeads(slug);
+    const i = cur.findIndex((l) => l.id === lead.id);
+    if (i !== -1) { cur[i].emailSent = lead.emailSent; saveLeads(slug, cur); }
+  });
+});
+
+// CRM: чтение и ведение лидов (по правам доступа)
+app.get('/api/leads', auth, (req, res) => {
+  const out = [];
+  for (const slug of fs.readdirSync(PROJECTS)) {
+    if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) continue;
+    for (const l of loadLeads(slug)) out.push({ ...l, project: slug });
+  }
+  out.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+  res.json({ leads: out, statuses: LEAD_STATUSES });
+});
+app.post('/api/leads', auth, (req, res) => {
+  const b = req.body || {};
+  const slug = String(b.project || '');
+  if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) return res.status(403).json({ error: 'Нет доступа к проекту' });
+  if (!fs.existsSync(projectFile(slug))) return res.status(404).json({ error: 'Проект не найден' });
+  const name = String(b.name || '').trim().slice(0, 200);
+  const phone = String(b.phone || '').trim().slice(0, 50);
+  if (!name || !phone) return res.status(400).json({ error: 'Имя и телефон обязательны' });
+  const lead = {
+    id: crypto.randomBytes(6).toString('hex'),
+    ts: new Date().toISOString(),
+    name, phone,
+    email: String(b.email || '').trim().slice(0, 200),
+    interest: String(b.interest || '').trim().slice(0, 100),
+    lot: String(b.lot || '').trim().slice(0, 200),
+    message: String(b.message || '').trim().slice(0, 2000),
+    lang: 'ru',
+    source: ['Звонок', 'Telegram', 'Рекомендация', 'Другое'].includes(b.source) ? b.source : 'Другое',
+    status: 'Новый', note: '', emailSent: null
+  };
+  const leads = loadLeads(slug);
+  leads.unshift(lead);
+  saveLeads(slug, leads);
+  res.json({ ok: true, id: lead.id });
+});
+app.put('/api/leads/:slug/:id', auth, (req, res) => {
+  const { slug, id } = req.params;
+  if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) return res.status(403).json({ error: 'Нет доступа' });
+  const leads = loadLeads(slug);
+  const lead = leads.find((l) => l.id === id);
+  if (!lead) return res.status(404).json({ error: 'Лид не найден' });
+  const b = req.body || {};
+  if (b.status != null && LEAD_STATUSES.includes(b.status)) lead.status = b.status;
+  if (b.note != null) lead.note = String(b.note).slice(0, 2000);
+  saveLeads(slug, leads);
+  res.json({ ok: true });
+});
+app.delete('/api/leads/:slug/:id', auth, adminOnly, (req, res) => {
+  const { slug, id } = req.params;
+  if (!SLUG_RE.test(slug)) return res.status(400).json({ error: 'Некорректный slug' });
+  const leads = loadLeads(slug);
+  const i = leads.findIndex((l) => l.id === id);
+  if (i === -1) return res.status(404).json({ error: 'Лид не найден' });
+  leads.splice(i, 1);
+  saveLeads(slug, leads);
+  res.json({ ok: true });
 });
 
 // ─── API: пользователи (только админ) ───

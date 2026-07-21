@@ -32,6 +32,14 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
+    # ── приём заявок с лендингов (форма шлёт на /api/lead/<slug> → CRM панели) ──
+    location /api/lead/ {
+        proxy_pass http://127.0.0.1:3000/api/lead/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
     # ── здесь остаётся ваш существующий сайт (корень домена) ──
     # location / { ... }
 }

@@ -21,6 +21,8 @@
     "sheetsEndpoint": ""
   },
   "adminUrl": "/admin/",
+  "leadEndpoint": "",
+  "texts": {},
   "seo": {
     "title": {
       "ru": "Бизнес-центр SFB — аренда и продажа помещений 179 и 430 м² | ул. Тахтапуль 31, Ташкент",

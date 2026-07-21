@@ -3,7 +3,8 @@
  *
  * Принцип многоязычности: русский текст — базовый, зашит в разметку.
  * Узбекский/английский собираются в словарь I18N на странице:
- *   - служебные строки интерфейса (кнопки, форма, подписи) — фиксированные, ниже в UI_I18N;
+ *   - служебные строки интерфейса (кнопки, форма, подписи) — дефолты в UI_DEFAULTS,
+ *     каждую можно переопределить в панели (cfg.texts);
  *   - контентные строки — из конфига, ключи с префиксом "c."; если перевода нет,
  *     на странице остаётся русский (фолбэк на клиенте).
  *
@@ -33,60 +34,59 @@ function Lx(v, lang) { // перевод или null
   return (t && t.trim() && t.trim() !== (v.ru || '').trim()) ? t : null;
 }
 
-// ─── фиксированные строки интерфейса ───
-const UI_I18N = {
-  uz: {
-    'nav.uses': "Yo'nalishlar", 'nav.lots': 'Maydonlar', 'nav.building': 'Bino haqida',
-    'nav.location': 'Manzil', 'nav.faq': 'Savollar', 'nav.cta': 'Ariza qoldirish',
-    'nav.ctaArrow': 'Ariza qoldirish →', 'nav.login': 'Kirish',
-    'hero.btn1': 'Rejalar va narxlarni olish', 'hero.btn2': "Maydonlarni ko'rish",
-    'lots.cta': "Dolzarb shartlarni so'rash", 'lots.hint': 'Kattalashtirish uchun bosing',
-    'lots.tag': 'Sotuvda · Ijara mumkin', 'lots.priceL': 'Sotuv · Ijara',
-    'lots.priceV': "narx va shartlar — so'rov bo'yicha",
-    'lots.btn1': 'Narx va shartlarni bilish', 'lots.btn2': "Qo'ng'iroq qilish",
-    'uses.lbl': 'Erkin maqsad', 'lots.lbl': "Bo'sh lotlar", 'bld.lbl': 'Bino haqida',
-    'inv.lbl': 'Investorlarga', 'inv.cta': 'Shartlarni muhokama qilish',
-    'prog.lbl': 'Qurilish jarayoni', 'loc.lbl': 'Manzil', 'lead.lbl': 'Ariza',
-    'faq.lbl': "Ko'p beriladigan savollar",
-    'lead.c1': "sotuv bo'limi", 'lead.c2': 'Telegram — eng tez javob beramiz',
-    'form.h3': 'Ariza qoldirish',
-    'form.p': "Ish kuni davomida javob beramiz. Hech qanday spam — faqat so'rovingiz bo'yicha.",
-    'form.lName': 'Ismingiz *', 'form.lPhone': 'Telefon *', 'form.lInt': 'Nima qiziqtiradi',
-    'form.lLot': 'Maydon', 'form.lMsg': 'Izoh',
-    'form.o1': 'Sotib olish', 'form.o2': 'Ijara', 'form.o3': 'Investitsiya sifatida xarid',
-    'form.o4': 'Konsultatsiya', 'form.oLall': 'Ikkala lot', 'form.oLnone': 'Hali tanlamadim',
-    'form.send': 'Arizani yuborish', 'form.sending': 'Yuborilmoqda…',
-    'form.note': "«Arizani yuborish» tugmasini bosish orqali shaxsiy ma'lumotlarni qayta ishlashga rozilik bildirasiz.",
-    'form.okH': 'Ariza yuborildi!',
-    'ph.name': 'Sizga qanday murojaat qilaylik', 'ph.email': 'rejalarni yuborish uchun',
-    'ph.msg': 'Izohingiz'
-  },
-  en: {
-    'nav.uses': 'Use cases', 'nav.lots': 'Premises', 'nav.building': 'The building',
-    'nav.location': 'Location', 'nav.faq': 'FAQ', 'nav.cta': 'Request info',
-    'nav.ctaArrow': 'Request info →', 'nav.login': 'Log in',
-    'hero.btn1': 'Get floor plans & pricing', 'hero.btn2': 'View the premises',
-    'lots.cta': 'Request current terms', 'lots.hint': 'Click to enlarge',
-    'lots.tag': 'For sale · Lease available', 'lots.priceL': 'Sale · Lease',
-    'lots.priceV': 'price and terms on request',
-    'lots.btn1': 'Get price & terms', 'lots.btn2': 'Call',
-    'uses.lbl': 'Flexible use', 'lots.lbl': 'Available units', 'bld.lbl': 'The building',
-    'inv.lbl': 'For investors', 'inv.cta': 'Discuss terms',
-    'prog.lbl': 'Construction progress', 'loc.lbl': 'Location', 'lead.lbl': 'Request',
-    'faq.lbl': 'FAQ',
-    'lead.c1': 'sales team', 'lead.c2': 'Telegram — fastest reply',
-    'form.h3': 'Send a request',
-    'form.p': 'We reply within one business day. No spam — only what you asked for.',
-    'form.lName': 'Name *', 'form.lPhone': 'Phone *', 'form.lInt': 'Interested in',
-    'form.lLot': 'Unit', 'form.lMsg': 'Comment',
-    'form.o1': 'Purchase', 'form.o2': 'Lease', 'form.o3': 'Purchase as investment',
-    'form.o4': 'Consultation', 'form.oLall': 'Both units', 'form.oLnone': 'Not decided yet',
-    'form.send': 'Send request', 'form.sending': 'Sending…',
-    'form.note': 'By clicking “Send request” you consent to the processing of your personal data.',
-    'form.okH': 'Request sent!',
-    'ph.name': 'How should we address you', 'ph.email': 'to receive the floor plans',
-    'ph.msg': 'Your comment'
-  }
+// ─── строки интерфейса: дефолты на 3 языках; каждую можно переопределить
+//     в панели (вкладка «Кнопки и тексты» → cfg.texts.<ключ>) ───
+const UI_DEFAULTS = {
+  'nav.uses': { ru: 'Назначение', uz: "Yo'nalishlar", en: 'Use cases' },
+  'nav.lots': { ru: 'Помещения', uz: 'Maydonlar', en: 'Premises' },
+  'nav.building': { ru: 'О здании', uz: 'Bino haqida', en: 'The building' },
+  'nav.location': { ru: 'Локация', uz: 'Manzil', en: 'Location' },
+  'nav.faq': { ru: 'Вопросы', uz: 'Savollar', en: 'FAQ' },
+  'nav.cta': { ru: 'Оставить заявку', uz: 'Ariza qoldirish', en: 'Request info' },
+  'nav.login': { ru: 'Войти', uz: 'Kirish', en: 'Log in' },
+  'hero.btn1': { ru: 'Получить планировки и цены', uz: 'Rejalar va narxlarni olish', en: 'Get floor plans & pricing' },
+  'hero.btn2': { ru: 'Смотреть помещения', uz: "Maydonlarni ko'rish", en: 'View the premises' },
+  'uses.lbl': { ru: 'Свободное назначение', uz: 'Erkin maqsad', en: 'Flexible use' },
+  'lots.lbl': { ru: 'Свободные лоты', uz: "Bo'sh lotlar", en: 'Available units' },
+  'bld.lbl': { ru: 'О здании', uz: 'Bino haqida', en: 'The building' },
+  'inv.lbl': { ru: 'Инвесторам', uz: 'Investorlarga', en: 'For investors' },
+  'prog.lbl': { ru: 'Ход строительства', uz: 'Qurilish jarayoni', en: 'Construction progress' },
+  'loc.lbl': { ru: 'Локация', uz: 'Manzil', en: 'Location' },
+  'lead.lbl': { ru: 'Заявка', uz: 'Ariza', en: 'Request' },
+  'faq.lbl': { ru: 'Частые вопросы', uz: "Ko'p beriladigan savollar", en: 'FAQ' },
+  'faq.h2': { ru: 'Коротко о главном', uz: 'Asosiysi haqida qisqacha', en: 'The essentials, briefly' },
+  'lots.cta': { ru: 'Запросить актуальные условия', uz: "Dolzarb shartlarni so'rash", en: 'Request current terms' },
+  'lots.tag': { ru: 'В продаже · Возможна аренда', uz: 'Sotuvda · Ijara mumkin', en: 'For sale · Lease available' },
+  'lots.hint': { ru: 'Нажмите, чтобы увеличить', uz: 'Kattalashtirish uchun bosing', en: 'Click to enlarge' },
+  'lots.priceL': { ru: 'Продажа · Аренда', uz: 'Sotuv · Ijara', en: 'Sale · Lease' },
+  'lots.priceV': { ru: 'цена и условия — по запросу', uz: "narx va shartlar — so'rov bo'yicha", en: 'price and terms on request' },
+  'lots.btn1': { ru: 'Узнать цену и условия', uz: 'Narx va shartlarni bilish', en: 'Get price & terms' },
+  'lots.btn2': { ru: 'Позвонить', uz: "Qo'ng'iroq qilish", en: 'Call' },
+  'inv.cta': { ru: 'Обсудить условия', uz: 'Shartlarni muhokama qilish', en: 'Discuss terms' },
+  'lead.c1': { ru: 'отдел продаж', uz: "sotuv bo'limi", en: 'sales team' },
+  'lead.c2': { ru: 'Telegram — ответим быстрее всего', uz: 'Telegram — eng tez javob beramiz', en: 'Telegram — fastest reply' },
+  'form.h3': { ru: 'Оставить заявку', uz: 'Ariza qoldirish', en: 'Send a request' },
+  'form.p': { ru: 'Ответим в течение рабочего дня. Никакого спама — только по вашему запросу.', uz: "Ish kuni davomida javob beramiz. Hech qanday spam — faqat so'rovingiz bo'yicha.", en: 'We reply within one business day. No spam — only what you asked for.' },
+  'form.lName': { ru: 'Имя *', uz: 'Ismingiz *', en: 'Name *' },
+  'form.lPhone': { ru: 'Телефон *', uz: 'Telefon *', en: 'Phone *' },
+  'form.lEmail': { ru: 'Email', uz: 'Email', en: 'Email' },
+  'form.lInt': { ru: 'Интересует', uz: 'Nima qiziqtiradi', en: 'Interested in' },
+  'form.lLot': { ru: 'Помещение', uz: 'Maydon', en: 'Unit' },
+  'form.lMsg': { ru: 'Комментарий', uz: 'Izoh', en: 'Comment' },
+  'form.o1': { ru: 'Покупка', uz: 'Sotib olish', en: 'Purchase' },
+  'form.o2': { ru: 'Аренда', uz: 'Ijara', en: 'Lease' },
+  'form.o3': { ru: 'Покупка как инвестиция', uz: 'Investitsiya sifatida xarid', en: 'Purchase as investment' },
+  'form.o4': { ru: 'Консультация', uz: 'Konsultatsiya', en: 'Consultation' },
+  'form.oLall': { ru: 'Оба лота', uz: 'Ikkala lot', en: 'Both units' },
+  'form.oLnone': { ru: 'Ещё не выбрал(а)', uz: 'Hali tanlamadim', en: 'Not decided yet' },
+  'form.send': { ru: 'Отправить заявку', uz: 'Arizani yuborish', en: 'Send request' },
+  'form.sending': { ru: 'Отправляем…', uz: 'Yuborilmoqda…', en: 'Sending…' },
+  'form.note': { ru: 'Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных.', uz: "«Arizani yuborish» tugmasini bosish orqali shaxsiy ma'lumotlarni qayta ishlashga rozilik bildirasiz.", en: 'By clicking “Send request” you consent to the processing of your personal data.' },
+  'form.okH': { ru: 'Заявка отправлена!', uz: 'Ariza yuborildi!', en: 'Request sent!' },
+  'ph.name': { ru: 'Как к вам обращаться', uz: 'Sizga qanday murojaat qilaylik', en: 'How should we address you' },
+  'ph.phone': { ru: '+998 __ ___ __ __', uz: '+998 __ ___ __ __', en: '+998 __ ___ __ __' },
+  'ph.email': { ru: 'для отправки планировок', uz: 'rejalarni yuborish uchun', en: 'to receive the floor plans' },
+  'ph.msg': { ru: 'Ваш комментарий', uz: 'Izohingiz', en: 'Your comment' }
 };
 
 // ─── иконки для карточек/характеристик ───
@@ -123,12 +123,38 @@ function makeT(dict) {
   };
 }
 
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.round(((n >> 16) & 255) * f), g = Math.round(((n >> 8) & 255) * f), b = Math.round((n & 255) * f);
+  return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
+
 function renderLanding(cfg) {
   const images = new Set();
   const img = (name) => { if (name) images.add(name); return 'assets/' + name; };
 
-  const dict = { uz: Object.assign({}, UI_I18N.uz), en: Object.assign({}, UI_I18N.en) };
+  const dict = { uz: {}, en: {} };
   const t = makeT(dict);
+
+  // строка интерфейса: дефолт из UI_DEFAULTS, переопределение из cfg.texts.<ключ>
+  const tget = (obj, keyPath) => keyPath.split('.').reduce((o, k) => (o && typeof o === 'object' ? o[k] : undefined), obj);
+  const uiVal = (key) => {
+    const def = UI_DEFAULTS[key] || { ru: '', uz: '', en: '' };
+    const ov = tget(cfg.texts || {}, key);
+    const pick = (lang) => (ov && typeof ov === 'object' && typeof ov[lang] === 'string' && ov[lang].trim())
+      ? ov[lang].trim() : def[lang];
+    return { ru: pick('ru'), uz: pick('uz'), en: pick('en') };
+  };
+  const U = (key) => {
+    const v = uiVal(key);
+    for (const lang of LANGS) if (v[lang]) dict[lang][key] = esc(v[lang]);
+    return { attr: ` data-i18n="${key}"`, ru: esc(v.ru) };
+  };
+  const UP = (key) => { // плейсхолдеры: на элементе data-i18n-ph="<имя>", ключ ph.<имя>
+    const v = uiVal(key);
+    for (const lang of LANGS) if (v[lang]) dict[lang][key] = v[lang];
+    return escAttr(v.ru);
+  };
 
   const siteBase = String(cfg.seo.domain || '').trim().replace(/\/+$/, '');
   const adminUrl = String(cfg.adminUrl || '').trim();
@@ -138,6 +164,35 @@ function renderLanding(cfg) {
   const email = cfg.contacts.email || '';
   const lots = (cfg.lots.items || []);
   const manyLots = lots.length > 1;
+
+  // интерфейсные строки (редактируются в панели: «Кнопки и тексты»)
+  const uNavUses = U('nav.uses'), uNavLots = U('nav.lots'), uNavBld = U('nav.building'),
+    uNavLoc = U('nav.location'), uNavFaq = U('nav.faq'), uNavCta = U('nav.cta'),
+    uNavLogin = U('nav.login'), uHeroB1 = U('hero.btn1'), uHeroB2 = U('hero.btn2'),
+    uUsesLbl = U('uses.lbl'), uLotsLbl = U('lots.lbl'), uBldLbl = U('bld.lbl'),
+    uInvLbl = U('inv.lbl'), uProgLbl = U('prog.lbl'), uLocLbl = U('loc.lbl'),
+    uLeadLbl = U('lead.lbl'), uFaqLbl = U('faq.lbl'), uFaqH2 = U('faq.h2'),
+    uLotsCta = U('lots.cta'), uLotTag = U('lots.tag'), uLotHint = U('lots.hint'),
+    uPriceL = U('lots.priceL'), uPriceV = U('lots.priceV'), uLotBtn1 = U('lots.btn1'),
+    uLotBtn2 = U('lots.btn2'), uInvCta = U('inv.cta'), uLeadC1 = U('lead.c1'),
+    uLeadC2 = U('lead.c2'), uFormH3 = U('form.h3'), uFormP = U('form.p'),
+    uLName = U('form.lName'), uLPhone = U('form.lPhone'), uLEmail = U('form.lEmail'),
+    uLInt = U('form.lInt'), uLLot = U('form.lLot'), uLMsg = U('form.lMsg'),
+    uO1 = U('form.o1'), uO2 = U('form.o2'), uO3 = U('form.o3'), uO4 = U('form.o4'),
+    uOLall = U('form.oLall'), uOLnone = U('form.oLnone'), uSend = U('form.send'),
+    uNote = U('form.note'), uOkH = U('form.okH');
+  const phName = UP('ph.name'), phPhone = UP('ph.phone'), phEmail = UP('ph.email'), phMsg = UP('ph.msg');
+  const sendingV = uiVal('form.sending');
+  for (const lang of LANGS) if (sendingV[lang]) dict[lang]['form.sending'] = sendingV[lang];
+  const ctaArrowV = uiVal('nav.cta');
+  for (const lang of LANGS) dict[lang]['nav.ctaArrow'] = esc(ctaArrowV[lang]) + ' →';
+
+  // приём заявок: своя панель (CRM + пересылка на почту); относительный путь
+  // работает и на /p/<slug>/, и за прокси /admin/p/<slug>/
+  const leadEndpoint = String(cfg.leadEndpoint || '').trim() || ('../../api/lead/' + (cfg.slug || ''));
+
+  const accent = /^#[0-9a-fA-F]{6}$/.test(String(cfg.brand.accent || '').trim()) ? String(cfg.brand.accent).trim() : '';
+  const accentCss = accent ? `\n:root{--bronze:${accent};--bronze-d:${shade(accent, 0.82)}}` : '';
 
   // мета: title/description по языкам
   for (const lang of LANGS) {
@@ -176,7 +231,7 @@ function renderLanding(cfg) {
     usesHtml = `
 <section class="uses" id="uses">
   <div class="wrap">
-    <div class="lbl r" data-i18n="uses.lbl">Свободное назначение</div>
+    <div class="lbl r"${uUsesLbl.attr}>${uUsesLbl.ru}</div>
     <h2 class="r"${h2.attr}>${h2.ru}</h2>
     <p class="sub r"${sub.attr}>${sub.ru}</p>
     <div class="uses-grid">
@@ -197,23 +252,23 @@ ${cards}
     const plan = lot.plan ? img(lot.plan) : '';
     const planBlock = plan ? `      <div class="lot-plan" data-zoom="${escAttr(plan)}">
         <img src="${escAttr(plan)}" alt="${escAttr(L(lot.title))} — план" loading="lazy">
-        <span class="lot-plan-hint" data-i18n="lots.hint">Нажмите, чтобы увеличить</span>
+        <span class="lot-plan-hint"${uLotHint.attr}>${uLotHint.ru}</span>
       </div>` : '';
     return `    <article class="lot r${plan ? '' : ' lot-noplan'}">
 ${planBlock}
       <div class="lot-info">
-        <span class="lot-tag" data-i18n="lots.tag">В продаже · Возможна аренда</span>
+        <span class="lot-tag"${uLotTag.attr}>${uLotTag.ru}</span>
         <h3${h.attr}>${h.ru}</h3>
         <p class="lot-area"${a.attr}>${a.ru}</p>
         <ul class="lot-feats">
 ${feats}
         </ul>
         <div class="lot-price">
-          <div><div class="lp-l" data-i18n="lots.priceL">Продажа · Аренда</div><div class="lp-v" style="font-size:18px;padding-top:4px" data-i18n="lots.priceV">цена и условия — по запросу</div></div>
+          <div><div class="lp-l"${uPriceL.attr}>${uPriceL.ru}</div><div class="lp-v" style="font-size:18px;padding-top:4px"${uPriceV.attr}>${uPriceV.ru}</div></div>
         </div>
         <div class="lot-btns">
-          <a href="#lead" class="btn btn-bronze" data-lot="${escAttr(L(lot.title))}" data-i18n="lots.btn1">Узнать цену и условия</a>
-          <a href="${tel}" class="btn btn-line" data-i18n="lots.btn2">Позвонить</a>
+          <a href="#lead" class="btn btn-bronze" data-lot="${escAttr(L(lot.title))}"${uLotBtn1.attr}>${uLotBtn1.ru}</a>
+          <a href="${tel}" class="btn btn-line"${uLotBtn2.attr}>${uLotBtn2.ru}</a>
         </div>
       </div>
     </article>`;
@@ -236,7 +291,7 @@ ${feats}
   <div class="wrap">
     <div class="bld-grid">
       <div class="r">
-        <div class="lbl" data-i18n="bld.lbl">О здании</div>
+        <div class="lbl"${uBldLbl.attr}>${uBldLbl.ru}</div>
         <h2${h2.attr}>${h2.ru}</h2>
         <p class="sub"${sub.attr}>${sub.ru}</p>
         <div class="specs">
@@ -261,14 +316,14 @@ ${specs}
     invHtml = `
 <section class="invest" id="invest">
   <div class="wrap">
-    <div class="lbl r" data-i18n="inv.lbl">Инвесторам</div>
+    <div class="lbl r"${uInvLbl.attr}>${uInvLbl.ru}</div>
     <h2 class="r"${h2.attr}>${h2.ru}</h2>
     <div class="inv-grid">
 ${cards}
     </div>
     ${L(cfg.invest.strip) ? `<div class="inv-strip r">
       <p${strip.attr}>${strip.ru}</p>
-      <a href="#lead" class="btn btn-bronze" data-i18n="inv.cta">Обсудить условия</a>
+      <a href="#lead" class="btn btn-bronze"${uInvCta.attr}>${uInvCta.ru}</a>
     </div>` : ''}
   </div>
 </section>`;
@@ -290,7 +345,7 @@ ${cards}
     <div class="prog-grid">
       ${p.image ? `<div class="prog-img r"><img src="${escAttr(img(p.image))}" alt="Ход строительства" loading="lazy"></div>` : ''}
       <div class="r d1">
-        <div class="lbl" data-i18n="prog.lbl">Ход строительства</div>
+        <div class="lbl"${uProgLbl.attr}>${uProgLbl.ru}</div>
         <h2${h2.attr}>${h2.ru}</h2>
         <p class="sub"${sub.attr}>${sub.ru}</p>
         <ul class="tl">
@@ -329,8 +384,8 @@ ${steps}
     const k = t('oL' + i, lot.title);
     return `                <option value="${escAttr(L(lot.title))}"${k.attr}>${k.ru}</option>`;
   }).join('\n') + (manyLots ? `
-                <option value="Оба лота" data-i18n="form.oLall">Оба лота</option>` : '') + `
-                <option value="Ещё не выбрал(а)" data-i18n="form.oLnone">Ещё не выбрал(а)</option>`;
+                <option value="${uOLall.ru}"${uOLall.attr}>${uOLall.ru}</option>` : '') + `
+                <option value="${uOLnone.ru}"${uOLnone.attr}>${uOLnone.ru}</option>`;
 
   // ── faq ──
   const faqItems = (cfg.faq || []).map((f, i) => {
@@ -404,7 +459,7 @@ ${ogImg ? `<meta name="twitter:image" content="${escAttr(ogImg)}">` : ''}
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>
 ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>` : ''}
-<style>${CSS}</style>
+<style>${CSS}${accentCss}</style>
 </head>
 <body>
 
@@ -415,31 +470,31 @@ ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>`
       <span class="brand-t"><span class="brand-n"${brandN.attr}>${brandN.ru}</span><span class="brand-s"${brandS.attr}>${brandS.ru}</span></span>
     </a>
     <ul class="nl">
-      ${usesHtml ? '<li><a href="#uses" data-i18n="nav.uses">Назначение</a></li>' : ''}
-      <li><a href="#lots" data-i18n="nav.lots">Помещения</a></li>
-      ${bldHtml ? '<li><a href="#building" data-i18n="nav.building">О здании</a></li>' : ''}
-      <li><a href="#location" data-i18n="nav.location">Локация</a></li>
-      ${faqItems ? '<li><a href="#faq" data-i18n="nav.faq">Вопросы</a></li>' : ''}
+      ${usesHtml ? `<li><a href="#uses"${uNavUses.attr}>${uNavUses.ru}</a></li>` : ''}
+      <li><a href="#lots"${uNavLots.attr}>${uNavLots.ru}</a></li>
+      ${bldHtml ? `<li><a href="#building"${uNavBld.attr}>${uNavBld.ru}</a></li>` : ''}
+      <li><a href="#location"${uNavLoc.attr}>${uNavLoc.ru}</a></li>
+      ${faqItems ? `<li><a href="#faq"${uNavFaq.attr}>${uNavFaq.ru}</a></li>` : ''}
     </ul>
     <div class="nav-r">
       <div class="lang" id="langSw" role="group" aria-label="Язык / Til / Language">
         <button type="button" data-lang="ru" class="on">RU</button><button type="button" data-lang="uz">UZ</button><button type="button" data-lang="en">EN</button>
       </div>
       <a class="nav-tel" href="${tel}">${esc(phone)}</a>
-      <a href="#lead" class="btn btn-bronze btn-sm" data-i18n="nav.cta">Оставить заявку</a>
-      ${adminUrl ? `<a class="nav-login" href="${escAttr(adminUrl)}" data-i18n="nav.login" title="Вход для сотрудников">Войти</a>` : ''}
+      <a href="#lead" class="btn btn-bronze btn-sm"${uNavCta.attr}>${uNavCta.ru}</a>
+      ${adminUrl ? `<a class="nav-login" href="${escAttr(adminUrl)}"${uNavLogin.attr} title="Вход для сотрудников">${uNavLogin.ru}</a>` : ''}
       <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
     </div>
   </div>
 </nav>
 <div class="mmenu" id="mmenu">
-  ${usesHtml ? '<a href="#uses" data-i18n="nav.uses">Назначение</a>' : ''}
-  <a href="#lots" data-i18n="nav.lots">Помещения</a>
-  ${bldHtml ? '<a href="#building" data-i18n="nav.building">О здании</a>' : ''}
-  <a href="#location" data-i18n="nav.location">Локация</a>
-  ${faqItems ? '<a href="#faq" data-i18n="nav.faq">Вопросы</a>' : ''}
-  <a href="#lead" style="color:var(--bronze-d)" data-i18n="nav.ctaArrow">Оставить заявку →</a>
-  ${adminUrl ? `<a href="${escAttr(adminUrl)}" style="color:var(--muted);font-size:13px" data-i18n="nav.login">Войти</a>` : ''}
+  ${usesHtml ? `<a href="#uses"${uNavUses.attr}>${uNavUses.ru}</a>` : ''}
+  <a href="#lots"${uNavLots.attr}>${uNavLots.ru}</a>
+  ${bldHtml ? `<a href="#building"${uNavBld.attr}>${uNavBld.ru}</a>` : ''}
+  <a href="#location"${uNavLoc.attr}>${uNavLoc.ru}</a>
+  ${faqItems ? `<a href="#faq"${uNavFaq.attr}>${uNavFaq.ru}</a>` : ''}
+  <a href="#lead" style="color:var(--bronze-d)" data-i18n="nav.ctaArrow">${esc(ctaArrowV.ru)} →</a>
+  ${adminUrl ? `<a href="${escAttr(adminUrl)}" style="color:var(--muted);font-size:13px"${uNavLogin.attr}>${uNavLogin.ru}</a>` : ''}
 </div>
 
 <header class="hero">
@@ -452,8 +507,8 @@ ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>`
     <h1${heroT.attr}>${heroT.ru}</h1>
     <p class="hero-sub"${heroS.attr}>${heroS.ru}</p>
     <div class="hero-btns">
-      <a href="#lead" class="btn btn-bronze" data-i18n="hero.btn1">Получить планировки и цены</a>
-      <a href="#lots" class="btn btn-ghost" data-i18n="hero.btn2">Смотреть помещения</a>
+      <a href="#lead" class="btn btn-bronze"${uHeroB1.attr}>${uHeroB1.ru}</a>
+      <a href="#lots" class="btn btn-ghost"${uHeroB2.attr}>${uHeroB2.ru}</a>
     </div>
   </div>
   ${stats ? `<div class="hero-stats">
@@ -468,11 +523,11 @@ ${usesHtml}
   <div class="wrap">
     <div class="lots-head r">
       <div>
-        <div class="lbl" data-i18n="lots.lbl">Свободные лоты</div>
+        <div class="lbl"${uLotsLbl.attr}>${uLotsLbl.ru}</div>
         <h2${lotsH2.attr}>${lotsH2.ru}</h2>
         <p class="sub"${lotsSub.attr}>${lotsSub.ru}</p>
       </div>
-      <a href="#lead" class="btn btn-dark" data-i18n="lots.cta">Запросить актуальные условия</a>
+      <a href="#lead" class="btn btn-dark"${uLotsCta.attr}>${uLotsCta.ru}</a>
     </div>
 
 ${lotCards}
@@ -486,7 +541,7 @@ ${progHtml}
   <div class="wrap">
     <div class="loc-grid">
       <div class="r">
-        <div class="lbl" data-i18n="loc.lbl">Локация</div>
+        <div class="lbl"${uLocLbl.attr}>${uLocLbl.ru}</div>
         <h2${locH2.attr}>${locH2.ru}</h2>
         <p class="sub"${locSub.attr}>${locSub.ru}</p>
         <div class="loc-addr">
@@ -508,53 +563,53 @@ ${pois}
   <div class="wrap">
     <div class="lead-grid">
       <div class="r">
-        <div class="lbl" data-i18n="lead.lbl">Заявка</div>
+        <div class="lbl"${uLeadLbl.attr}>${uLeadLbl.ru}</div>
         <h2${leadH2.attr}>${leadH2.ru}</h2>
         <p class="sub"${leadSub.attr}>${leadSub.ru}</p>
         <div class="lead-contacts">
           <a class="lc" href="${tel}">
             <span class="lc-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round"><path d="M5 4h4l2 5-2.5 1.5a12 12 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z"/></svg></span>
-            <span><b>${esc(phone)}</b><span data-i18n="lead.c1">отдел продаж</span></span>
+            <span><b>${esc(phone)}</b><span${uLeadC1.attr}>${uLeadC1.ru}</span></span>
           </a>
           ${tg ? `<a class="lc" href="https://t.me/${escAttr(tg)}" target="_blank" rel="noopener">
             <span class="lc-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 4L3 11l5.5 2L10 19l3-3.5L18 19l3-15z"/></svg></span>
-            <span><b>@${esc(tg)}</b><span data-i18n="lead.c2">Telegram — ответим быстрее всего</span></span>
+            <span><b>@${esc(tg)}</b><span${uLeadC2.attr}>${uLeadC2.ru}</span></span>
           </a>` : ''}
         </div>
       </div>
       <div class="form-card r d1">
         <form id="leadForm" novalidate>
-          <h3 data-i18n="form.h3">Оставить заявку</h3>
-          <p data-i18n="form.p">Ответим в течение рабочего дня. Никакого спама — только по вашему запросу.</p>
+          <h3${uFormH3.attr}>${uFormH3.ru}</h3>
+          <p${uFormP.attr}>${uFormP.ru}</p>
           <div class="frow">
-            <div class="fg"><label for="f-name" data-i18n="form.lName">Имя *</label><input id="f-name" name="Имя" type="text" required autocomplete="name" placeholder="Как к вам обращаться" data-i18n-ph="name"></div>
-            <div class="fg"><label for="f-phone" data-i18n="form.lPhone">Телефон *</label><input id="f-phone" name="Телефон" type="tel" required autocomplete="tel" placeholder="+998 __ ___ __ __"></div>
+            <div class="fg"><label for="f-name"${uLName.attr}>${uLName.ru}</label><input id="f-name" name="Имя" type="text" required autocomplete="name" placeholder="${phName}" data-i18n-ph="name"></div>
+            <div class="fg"><label for="f-phone"${uLPhone.attr}>${uLPhone.ru}</label><input id="f-phone" name="Телефон" type="tel" required autocomplete="tel" placeholder="${phPhone}" data-i18n-ph="phone"></div>
           </div>
-          <div class="fg"><label for="f-email">Email</label><input id="f-email" name="Email" type="email" autocomplete="email" placeholder="для отправки планировок" data-i18n-ph="email"></div>
+          <div class="fg"><label for="f-email"${uLEmail.attr}>${uLEmail.ru}</label><input id="f-email" name="Email" type="email" autocomplete="email" placeholder="${phEmail}" data-i18n-ph="email"></div>
           <div class="frow">
-            <div class="fg"><label for="f-int" data-i18n="form.lInt">Интересует</label>
+            <div class="fg"><label for="f-int"${uLInt.attr}>${uLInt.ru}</label>
               <select id="f-int" name="Интересует">
-                <option value="Покупка" data-i18n="form.o1">Покупка</option>
-                <option value="Аренда" data-i18n="form.o2">Аренда</option>
-                <option value="Покупка как инвестиция" data-i18n="form.o3">Покупка как инвестиция</option>
-                <option value="Консультация" data-i18n="form.o4">Консультация</option>
+                <option value="${uO1.ru}"${uO1.attr}>${uO1.ru}</option>
+                <option value="${uO2.ru}"${uO2.attr}>${uO2.ru}</option>
+                <option value="${uO3.ru}"${uO3.attr}>${uO3.ru}</option>
+                <option value="${uO4.ru}"${uO4.attr}>${uO4.ru}</option>
               </select>
             </div>
-            <div class="fg"><label for="f-lot" data-i18n="form.lLot">Помещение</label>
+            <div class="fg"><label for="f-lot"${uLLot.attr}>${uLLot.ru}</label>
               <select id="f-lot" name="Помещение">
 ${lotOptions}
               </select>
             </div>
           </div>
-          <div class="fg"><label for="f-msg" data-i18n="form.lMsg">Комментарий</label><textarea id="f-msg" name="Комментарий" placeholder="Ваш комментарий" data-i18n-ph="msg"></textarea></div>
+          <div class="fg"><label for="f-msg"${uLMsg.attr}>${uLMsg.ru}</label><textarea id="f-msg" name="Комментарий" placeholder="${phMsg}" data-i18n-ph="msg"></textarea></div>
           <input type="text" name="_honey" class="hp" tabindex="-1" autocomplete="off">
-          <button type="submit" class="btn btn-bronze form-btn" id="formBtn" data-i18n="form.send">Отправить заявку</button>
+          <button type="submit" class="btn btn-bronze form-btn" id="formBtn"${uSend.attr}>${uSend.ru}</button>
           <div class="form-err" id="formErr"${errT.attr}>${errT.ru}</div>
-          <p class="form-note" data-i18n="form.note">Нажимая «Отправить заявку», вы соглашаетесь на обработку персональных данных.</p>
+          <p class="form-note"${uNote.attr}>${uNote.ru}</p>
         </form>
         <div class="form-ok" id="formOk">
           <div class="form-ok-ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
-          <h4 data-i18n="form.okH">Заявка отправлена!</h4>
+          <h4${uOkH.attr}>${uOkH.ru}</h4>
           <p${okP.attr}>${okP.ru}</p>
         </div>
       </div>
@@ -564,8 +619,8 @@ ${lotOptions}
 
 ${faqItems ? `<section class="faq" id="faq">
   <div class="wrap">
-    <div class="lbl c r" data-i18n="faq.lbl">Частые вопросы</div>
-    <h2 class="r" style="text-align:center" data-i18n="faq.h2">Коротко о главном</h2>
+    <div class="lbl c r"${uFaqLbl.attr}>${uFaqLbl.ru}</div>
+    <h2 class="r" style="text-align:center"${uFaqH2.attr}>${uFaqH2.ru}</h2>
     <div class="faq-list r">
 ${faqItems}
     </div>
@@ -586,15 +641,17 @@ ${faqItems}
 </footer>
 
 <div class="mcta">
-  <a href="${tel}" class="btn btn-line" data-i18n="lots.btn2">Позвонить</a>
-  <a href="#lead" class="btn btn-bronze" data-i18n="nav.cta">Оставить заявку</a>
+  <a href="${tel}" class="btn btn-line"${uLotBtn2.attr}>${uLotBtn2.ru}</a>
+  <a href="#lead" class="btn btn-bronze"${uNavCta.attr}>${uNavCta.ru}</a>
 </div>
 
 <div class="lb" id="lb"><img alt="Планировка крупно" id="lbImg"></div>
 
 <script>
 var I18N = ${JSON.stringify({ uz: dict.uz, en: dict.en })};
+var SENDING_RU = ${JSON.stringify(sendingV.ru)};
 ${RUNTIME_JS}
+var LEAD_ENDPOINT = ${JSON.stringify(leadEndpoint)};
 var LEAD_EMAIL = ${JSON.stringify(email)};
 var SHEETS_ENDPOINT = ${JSON.stringify(cfg.contacts.sheetsEndpoint || '')};
 var LEAD_SUBJECT = ${JSON.stringify('Заявка с лендинга: ' + L(cfg.brand.name))};
@@ -874,7 +931,7 @@ phEls.forEach(function(el){ RU['ph.' + el.dataset.i18nPh] = el.placeholder; });
 RU['meta.title'] = document.title;
 var metaDesc = document.querySelector('meta[name="description"]');
 RU['meta.desc'] = metaDesc ? metaDesc.content : '';
-RU['form.sending'] = 'Отправляем…';
+RU['form.sending'] = (typeof SENDING_RU !== 'undefined' && SENDING_RU) ? SENDING_RU : 'Отправляем…';
 
 function tr(key){ return CUR === 'ru' ? RU[key] : (I18N[CUR][key] || RU[key]); }
 
@@ -945,33 +1002,45 @@ form.addEventListener('submit', function(e){
     message: document.getElementById('f-msg').value.trim(),
     lang: CUR
   };
-  if (SHEETS_ENDPOINT){
-    try {
-      var fd = new FormData();
-      Object.keys(vals).forEach(function(k){ fd.append(k, vals[k]); });
-      fetch(SHEETS_ENDPOINT, {method:'POST', mode:'no-cors', body: fd});
-    } catch(ignored){}
+  function done(){ form.style.display = 'none'; ok.classList.add('show'); }
+  function fail(){ btn.disabled = false; btn.textContent = tr('form.send'); err.classList.add('show'); }
+  // запасной канал: письмо напрямую + Google Таблица (если панель недоступна)
+  function sendDirect(){
+    if (SHEETS_ENDPOINT){
+      try {
+        var fd = new FormData();
+        Object.keys(vals).forEach(function(k){ fd.append(k, vals[k]); });
+        fetch(SHEETS_ENDPOINT, {method:'POST', mode:'no-cors', body: fd});
+      } catch(ignored){}
+    }
+    if (!LEAD_EMAIL) return fail();
+    var data = {
+      'Имя': vals.name, 'Телефон': vals.phone, 'Email': vals.email || '—',
+      'Интересует': vals.interest, 'Помещение': vals.lot, 'Комментарий': vals.message || '—',
+      'Язык сайта': CUR.toUpperCase(),
+      '_subject': LEAD_SUBJECT + ': ' + vals.interest + ', ' + vals.lot,
+      '_template': 'table', '_captcha': 'false'
+    };
+    fetch('https://formsubmit.co/ajax/' + LEAD_EMAIL, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','Accept':'application/json'},
+      body: JSON.stringify(data)
+    }).then(function(r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).then(done).catch(fail);
   }
-  var data = {
-    'Имя': vals.name, 'Телефон': vals.phone, 'Email': vals.email || '—',
-    'Интересует': vals.interest, 'Помещение': vals.lot, 'Комментарий': vals.message || '—',
-    'Язык сайта': CUR.toUpperCase(),
-    '_subject': LEAD_SUBJECT + ': ' + vals.interest + ', ' + vals.lot,
-    '_template': 'table', '_captcha': 'false'
-  };
-  fetch('https://formsubmit.co/ajax/' + LEAD_EMAIL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json','Accept':'application/json'},
-    body: JSON.stringify(data)
-  }).then(function(r){
-    if (!r.ok) throw new Error('http ' + r.status);
-    return r.json();
-  }).then(function(){
-    form.style.display = 'none'; ok.classList.add('show');
-  }).catch(function(){
-    btn.disabled = false; btn.textContent = tr('form.send');
-    err.classList.add('show');
-  });
+  // основной канал: CRM в админ-панели (панель сама пересылает лид на почту)
+  if (LEAD_ENDPOINT){
+    fetch(LEAD_ENDPOINT, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(vals)
+    }).then(function(r){
+      if (!r.ok) throw new Error('http ' + r.status);
+      return r.json();
+    }).then(done).catch(sendDirect);
+  } else sendDirect();
 });
 ['f-name','f-phone','f-email'].forEach(function(id){
   document.getElementById(id).addEventListener('input', function(){ this.style.borderColor=''; });
