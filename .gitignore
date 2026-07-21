@@ -1,0 +1,12 @@
+# Release build artifacts — regenerated per version, delivered directly (not source)
+CASE_OS_*_HOSTING_READY.zip
+CASE_OS_*_HOSTING_READY.zip.sha256
+*.zip
+*.zip.sha256
+
+# Local secrets / databases (never commit)
+case-site/os/api/config.php
+*.sqlite
+*.sqlite3
+*.db
+*.log
