@@ -65,7 +65,7 @@ function projectDetail(p){if(!p)return '<div class="case493-empty-detail"><b>В�
  '<div class="case493-detail-scope"><span>Выполненные услуги</span><div class="case493-chips">'+scopeHTML(p,0)+'</div></div>'+
  '<div class="case493-detail-actions"><button class="btn" onclick="case493OpenGeo(\''+E(p.id)+'\')">Открыть в геоаналитике</button>'+(canEdit()?'<button class="btn ghost" onclick="case493CoordinateEdit(\''+E(p.id)+'\')">Уточнить точку</button>':'')+'</div>';
 }
-function page(title,sub,body,actions){return '<div class="case493-page"><header class="case493-head"><div><span>CASE OS · '+E(lineFor(UI.route))+'</span><h1>'+E(title)+'</h1><p>'+E(sub)+'</p></div><div class="case493-head-actions">'+(actions||'')+'</div></header>'+body+(typeof footNote==='function'?footNote():'')+'</div>';}
+function page(title,sub,body,actions){return '<div class="case493-page"><header class="case493-head"><div><h1>'+E(title)+'</h1><p>'+E(sub)+'</p></div><div class="case493-head-actions">'+(actions||'')+'</div></header>'+body+(typeof footNote==='function'?footNote():'')+'</div>';}
 function opts(values,selected){return values.map(function(v){return '<option value="'+E(v)+'"'+(String(v)===String(selected)?' selected':'')+'>'+E(v)+'</option>';}).join('');}
 function countryChips(all){var counts={};all.forEach(function(p){counts[p.country]=(counts[p.country]||0)+1;});return distinct(all,'country').map(function(c){var on=(UI.countries||[]).indexOf(c)>=0;return '<button class="case493-country-chip'+(on?' on':'')+'" onclick="case493ToggleCountry(\''+E(c).replace(/'/g,"\\'")+'\')"><i style="background:'+E(COUNTRY_COLORS[c]||'#65736D')+'"></i><span>'+E(c)+'</span><b>'+counts[c]+'</b></button>';}).join('');}
 function render(route){
