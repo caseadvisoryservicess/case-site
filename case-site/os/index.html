@@ -368,7 +368,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.21.1';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.22.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -2284,8 +2284,11 @@ function catFromLabel(s){const k=String(s||'').trim().toUpperCase().replace(/[.,
  const words=k.split(/[^A-ZА-ЯЁ0-9]+/).filter(Boolean);
  for(const w of words)if(CODE_CAT_MAP[w])return CODE_CAT_MAP[w];
  return null;}
-function parsePlanLabels(svg){
- const reCode=/^[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*$/;
+function parsePlanLabels(svg,opts){
+ opts=opts||{};const numeric=!!opts.numeric;
+ /* numeric-режим (опционально): планы, где помещения подписаны просто числами (1, 2, 101, 12А).
+    По умолчанию выключен, чтобы размеры/площади на чертеже не принимались за коды. */
+ const reCode=numeric?/^(?:[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*|\d{1,3}[A-Za-zА-Яа-я]?)$/:/^[A-Za-zА-Яа-я]{1,4}[\-_ ]?\d[\w\-]*$/;
  const reInline=/(?:^|[\s(])([A-Za-zА-Яа-я]{1,4}[\-_]\d[\w\-]*)(?=[\s)]|$)/;
  const degroup=s=>String(s).replace(/(\d)[\s ](\d{3}(?:[.,]|\b))/g,'$1$2');
  const combOf=s=>{const m=degroup(s).replace(',','.').match(/(\d+(?:\.\d+)?)\s*(?:м|m)/i);return m?+m[1]:0;};
@@ -2363,7 +2366,14 @@ function parsePlanLabels(svg){
  });
  PLAN_LAST_DUPS=dups;
  return out;}
-function detectUnitsFromSvg(svg){const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);return parsePlanLabels(svg).filter(r=>!have[r.code.toLowerCase()]);}
+function detectUnitsFromSvg(svg,opts){const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);return parsePlanLabels(svg,opts).filter(r=>!have[r.code.toLowerCase()]);}
+function svgHasText(svg){try{return !!(svg&&svg.querySelector('text')&&Array.prototype.some.call(svg.querySelectorAll('text'),function(t){return !(t.closest&&t.closest('[data-caseos-overlay]'))&&String(t.textContent||'').trim();}));}catch(e){return false;}}
+/* Повторное распознавание в числовом режиме (помещения подписаны числами). Вызывается кнопкой из окна проверки. */
+function autoUnitsNumeric(){if(!(R().edit||R().admin||R().plans))return;const host=$('planhost');const svg=host&&host.querySelector('svg');if(!svg){alert('Чертёж этажа не загружен (нужен SVG).');return;}
+ const found=detectUnitsFromSvg(svg,{numeric:true});
+ S._planRows=found.length?found:[{code:'',area:0,cat:'',sub:''}];
+ const dupNote=PLAN_LAST_DUPS.length?('⚠ Дубликаты: '+PLAN_LAST_DUPS.join(', ')+'. '):'';
+ openPlanReview(dupNote+(found.length?('Числовой режим: распознано '+found.length+' помещений. Проверьте (лишние строки — размеры/площади — удалите) и нажмите «Создать».'):'Даже в числовом режиме коды не найдены. Похоже, на чертеже нет текстовых подписей помещений.'));}
 function planDiff(objId,block,floor,labels){const reg=unitsOf(objId).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block));const rc={};reg.forEach(u=>rc[String(u.code).trim().toLowerCase()]=u);const pc={};labels.forEach(l=>pc[l.code.toLowerCase()]=l);
  const onlyOnPlan=labels.filter(l=>!rc[l.code.toLowerCase()]&&!planIsIgnored(objId,l.code));
  const onlyInReg=reg.filter(u=>!pc[String(u.code).trim().toLowerCase()]);
@@ -2375,14 +2385,18 @@ function autoUnitsFromPlan(){if(!(R().edit||R().admin||R().plans)){alert('Нет
  const found=detectUnitsFromSvg(svg);
  S._planRows=found.length?found:[{code:'',area:0,cat:'',sub:''}];
  const dupNote=PLAN_LAST_DUPS.length?('⚠ Дубликат кода на чертеже: '+PLAN_LAST_DUPS.join(', ')+' — встречается больше одного раза, в список попало только одно из этих помещений. Переименуйте лишние на чертеже. '):'';
- openPlanReview(dupNote+(found.length?'':'Коды на чертеже не распознаны автоматически — добавьте помещения вручную или загрузите из Excel/CSV.'));}
+ let emptyNote='';
+ if(!found.length){emptyNote=svgHasText(svg)
+   ?'Коды-подписи (буква+цифра, напр. A-101) не найдены. Если помещения подписаны просто числами (1, 2, 101) — нажмите «⌕ Числа как коды». Иначе добавьте вручную или загрузите из Excel/CSV.'
+   :'На чертеже нет текстовых подписей (возможно это растровая картинка или коды заданы контурами/кривыми). Экспортируйте план как «Plain SVG» с текстовыми подписями помещений, либо добавьте помещения вручную / из Excel/CSV.';}
+ openPlanReview(dupNote+emptyNote);}
 const PLANREV_CATS=CASECATS;
 function openPlanReview(note){const blk=curBlock(),fl=curFloor();const rows=S._planRows||[];const inS='font-family:inherit;font-size:13px;padding:6px 8px;border:1px solid var(--border);border-radius:7px';
  const body=rows.map((r,i)=>`<tr><td><input value="${esc(r.code||'')}" oninput="S._planRows[${i}].code=this.value" style="${inS};width:120px"></td><td><input type="number" step="0.1" min="0" value="${r.area||''}" oninput="S._planRows[${i}].area=+this.value||0" style="${inS};width:88px" placeholder="0"></td><td><select onchange="S._planRows[${i}].cat=this.value" style="${inS};width:150px"><option value=""${r.cat?'':' selected'}>—</option>${(r.cat&&PLANREV_CATS.indexOf(r.cat)<0?`<option value="${esc(r.cat)}" selected>${esc(r.cat)}</option>`:'')}${PLANREV_CATS.map(c=>`<option value="${esc(c)}"${r.cat===c?' selected':''}>${esc(c)}</option>`).join('')}</select></td><td><input value="${esc(r.sub||'')}" oninput="S._planRows[${i}].sub=this.value" style="${inS};width:170px" placeholder="напр. QSR"></td><td><button class="btn ghost sm" title="Удалить строку" onclick="planReviewDel(${i})">✕</button></td></tr>`).join('');
  $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>Помещения из чертежа</h2><div class="s">${blk?'Блок «'+esc(blk)+'» · ':''}Этаж «${esc(fl)}» · ${rows.length} шт. — проверьте и подтвердите</div></div><div class="dbody">
   ${note?`<div class="banner warn" style="margin-bottom:8px">${esc(note)}</div>`:''}
   <p style="font-size:12.5px;color:var(--muted)">Проверьте коды, площади и категории, распознанные с чертежа (категория — по подписи рядом с кодом, например «РБП» → Еда и напитки / QSR). Можно исправить прямо здесь, удалить лишние, добавить строки или загрузить список из Excel/CSV (колонки «Код», «Площадь»). После «Создать» помещения появятся со статусом «Вакант»; ставки уточните в реестре.</p>
-  <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap"><button class="btn ghost sm" onclick="planReviewAdd()">+ строка</button><button class="btn ghost sm" onclick="planReviewImport()">⬆ Загрузить из Excel/CSV</button><button class="btn ghost sm" onclick="planReviewClear()">Очистить</button></div>
+  <div style="display:flex;gap:8px;margin:8px 0;flex-wrap:wrap"><button class="btn ghost sm" onclick="planReviewAdd()">+ строка</button><button class="btn ghost sm" onclick="autoUnitsNumeric()" title="Распознать помещения, подписанные числами (1, 2, 101, 12А). Лишние строки — размеры/площади — удалите.">⌕ Числа как коды</button><button class="btn ghost sm" onclick="planReviewImport()">⬆ Загрузить из Excel/CSV</button><button class="btn ghost sm" onclick="planReviewClear()">Очистить</button></div>
   <div class="tbl-scroll"><table><thead><tr><th>Код помещения</th><th>Площадь, м²</th><th>Категория</th><th>Подкатегория</th><th></th></tr></thead><tbody>${body||'<tr><td colspan="5" style="color:var(--muted)">Список пуст — добавьте строки.</td></tr>'}</tbody></table></div>
   <div style="margin-top:16px;display:flex;gap:8px"><button class="btn" onclick="doCreatePlanUnits()">Создать помещения</button><button class="btn ghost" onclick="closeDrawer()">Отмена</button></div>
  </div>`;
@@ -2496,7 +2510,27 @@ function deleteBench(i){if(!R().edit){alert('Недостаточно прав.'
 /* ===== RETAILERS DATABASE (module) ===== */
 const BRANDST={active:['Активный','st-cd'],contacted:['Был контакт','st-neg'],target:['Потенциальный','st-off'],inactive:['Неактивный','st-vac'],refused:['Отказ','st-vac']};
 function parseCSV(text){text=String(text).replace(/\r\n/g,'\n').replace(/\r/g,'\n');const first=text.split('\n')[0]||'';const delim=(first.split(';').length>first.split(',').length)?';':',';const rows=[];let row=[],cur='',q=false;for(let i=0;i<text.length;i++){const c=text[i];if(q){if(c==='"'){if(text[i+1]==='"'){cur+='"';i++;}else q=false;}else cur+=c;}else{if(c==='"')q=true;else if(c===delim){row.push(cur);cur='';}else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur='';}else cur+=c;}}if(cur!==''||row.length){row.push(cur);rows.push(row);}return rows.filter(r=>r.length&&r.some(x=>String(x).trim()!==''));}
-function importBrandsCSV(){if(!R().edit)return;const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(rows.length<2){alert('CSV пустой или без строк данных.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());const find=(...names)=>{for(const n of names){const i=head.indexOf(n);if(i>=0)return i;}return -1;};const ix={name:find('название бренда','name','бренд','название','brand'),cat:find('cat','категория','category'),sub:find('sub','подкатегория','subcategory'),type:find('тип','type'),alco:find('алкоголь','alcohol'),country:find('страна происхождения','country','страна'),amin:find('amin','площадь min','min'),amax:find('amax','площадь max','max'),typArea:find('типовая площадь (м²)','типовая площадь'),format:find('формат','format'),owner:find('ответственный'),price:find('ценовой уровень (a–d)','ценовой уровень'),tier:find('уровень (a–d)','уровень'),group:find('группа / холдинг','группа','holding'),person:find('контактное лицо','контакт','person'),title:find('должность','title'),phone:find('phone','телефон'),email:find('email','почта'),site:find('site','сайт'),ig:find('ig','instagram','инстаграм'),lastc:find('последний контакт'),status:find('status','статус'),notes:find('notes','заметки','примечание','примечания')};if(ix.name<0){alert('Не найдена колонка с названием бренда (name / Название бренда).');return;}let added=0,dups=0;const seen={};BRANDS.forEach(b=>{if(b.name)seen[b.name.trim().toLowerCase()]=1;});for(let i=1;i<rows.length;i++){const rw=rows[i];const nm=(rw[ix.name]||'').trim();if(!nm)continue;const key=nm.toLowerCase();if(seen[key]){dups++;continue;}seen[key]=1;const g=k=>ix[k]>=0?String(rw[ix[k]]||'').trim():'';const stRaw=g('status').toLowerCase();const status=/был контакт/.test(stRaw)?'contacted':/неактив/.test(stRaw)?'inactive':/отказ|refus/.test(stRaw)?'refused':/акт|active/.test(stRaw)?'active':'target';
+/* Встроенная база брендов CASE (~1091 бренд) — файл data/case_brands_base.xlsx, грузится через штатный импортёр v3518 (те же соответствия колонок, что и при ручной загрузке). */
+async function loadCaseBrandBase(){
+ if(!R().edit){alert('Недостаточно прав.');return;}
+ if(typeof asaas3518ImportFile!=='function'){alert('Импортёр брендов недоступен в этой сборке.');return;}
+ if(!confirm('Загрузить встроенную базу брендов CASE? Недостающие бренды добавятся, существующие (по названию) обновятся. Ваши данные не удаляются.'))return;
+ try{
+  const resp=await fetch('./data/case_brands_base.xlsx',{cache:'no-store'});
+  if(!resp.ok)throw new Error('файл базы не найден (HTTP '+resp.status+')');
+  const buf=await resp.arrayBuffer();
+  const file=new File([buf],'case_brands_base.xlsx',{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+  const before=BRANDS.length;
+  const res=await asaas3518ImportFile(file,{silent:true,throwError:true});
+  try{persist();}catch(e){}
+  try{audit('База брендов CASE загружена','+'+(res.added||0)+' / обновл. '+(res.updated||0));}catch(e){}
+  alert('База брендов CASE загружена. Добавлено: '+(res.added||0)+', обновлено: '+(res.updated||0)+'. Всего брендов: '+BRANDS.length+' (было '+before+').');
+  go('brands');
+ }catch(ex){alert('Не удалось загрузить встроенную базу: '+(ex&&ex.message||ex)+'. Можно загрузить ваш Excel кнопкой «Импорт CSV/Excel».');}
+}
+function importBrandsCSV(){if(!R().edit)return;const inp=document.createElement('input');inp.type='file';inp.accept='.csv,.xlsx,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;
+ if(/\.xlsx$/i.test(f.name||'')){if(typeof asaas3518ImportFile==='function'){asaas3518ImportFile(f,{}).then(()=>{try{persist();}catch(_){}go('brands');});}else{alert('Импорт Excel недоступен в этой сборке. Сохраните файл как CSV UTF-8.');}return;}
+ const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(rows.length<2){alert('CSV пустой или без строк данных.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());const find=(...names)=>{for(const n of names){const i=head.indexOf(n);if(i>=0)return i;}return -1;};const ix={name:find('название бренда','name','бренд','название','brand'),cat:find('cat','категория','category'),sub:find('sub','подкатегория','subcategory'),type:find('тип','type'),alco:find('алкоголь','alcohol'),country:find('страна происхождения','country','страна'),amin:find('amin','площадь min','min'),amax:find('amax','площадь max','max'),typArea:find('типовая площадь (м²)','типовая площадь'),format:find('формат','format'),owner:find('ответственный'),price:find('ценовой уровень (a–d)','ценовой уровень'),tier:find('уровень (a–d)','уровень'),group:find('группа / холдинг','группа','holding'),person:find('контактное лицо','контакт','person'),title:find('должность','title'),phone:find('phone','телефон'),email:find('email','почта'),site:find('site','сайт'),ig:find('ig','instagram','инстаграм'),lastc:find('последний контакт'),status:find('status','статус'),notes:find('notes','заметки','примечание','примечания')};if(ix.name<0){alert('Не найдена колонка с названием бренда (name / Название бренда).');return;}let added=0,dups=0;const seen={};BRANDS.forEach(b=>{if(b.name)seen[b.name.trim().toLowerCase()]=1;});for(let i=1;i<rows.length;i++){const rw=rows[i];const nm=(rw[ix.name]||'').trim();if(!nm)continue;const key=nm.toLowerCase();if(seen[key]){dups++;continue;}seen[key]=1;const g=k=>ix[k]>=0?String(rw[ix[k]]||'').trim():'';const stRaw=g('status').toLowerCase();const status=/был контакт/.test(stRaw)?'contacted':/неактив/.test(stRaw)?'inactive':/отказ|refus/.test(stRaw)?'refused':/акт|active/.test(stRaw)?'active':'target';
 let amin=+g('amin')||0,amax=+g('amax')||0;if(!amin&&!amax&&ix.typArea>=0){const m=g('typArea').match(/(\d+)\s*[–—\-]\s*(\d+)/);if(m){amin=+m[1];amax=+m[2];}}
 let lastc=g('lastc');if(/^\d{4}-\d{2}-\d{2}/.test(lastc))lastc=lastc.slice(0,10);
 const nb=brand({name:nm,cat:g('cat')||'Услуги',sub:g('sub'),type:g('type'),country:g('country'),amin,amax,format:g('format'),owner:g('owner'),price:(g('price')||'').toUpperCase().slice(0,1),tier:(g('tier')||'').toUpperCase().slice(0,1),group:g('group'),phone:g('phone'),email:g('email'),site:g('site'),ig:g('ig'),lastContact:lastc,status,notes:g('notes'),person:g('person')});
@@ -2559,7 +2593,7 @@ function renderBrands(){
  $('main').innerHTML=`<div class="ph"><h1>${t('brands')}</h1><span class="pill">${BRANDS.length}</span></div>
   <p class="sub">Единая база ритейлеров · price level, brand level, min/max площадь вынесены отдельными колонками для точной фильтрации. Профиль PPTX, правки с историей.</p>
   ${pptxReady()?'':'<div class="banner warn">Библиотека PPTX не загрузилась в этом браузере. Для production лучше подключить PptxGenJS локально или разрешить CDN. Контактные данные по-прежнему не включаются в профиль ритейлера.</div>'}
-  <div class="card"><div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${canEdit?'<button class="btn sm" onclick="brandEdit()">+ '+t('add')+'</button><button class="btn ghost sm" onclick="importBrandsCSV()">⬆ Импорт CSV</button><button class="btn ghost sm" onclick="brandDupScan()" title="Найти бренды с одинаковыми названиями и предложить объединение">⧉ Дубликаты</button>':''}<button class="btn ghost sm" onclick="exportBrandsCSV()">⬇ Экспорт CSV</button>${S.brandSel.length?`<button class="btn sm" onclick="attachBrandsFlow()">📌 Прикрепить к проекту (${S.brandSel.length})</button><button class="btn ghost sm" onclick="S.brandSel=[];renderBrands()">снять выделение</button>`:''}<label class="brand-fit-filter" style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)">Подходит под м² <input value="${esc(S.brandFitArea||'')}" oninput="S.brandFitArea=this.value;renderBrands()" placeholder="например 120" style="width:112px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink)"></label>${S.brandFitArea?'<button class="btn ghost sm" onclick="S.brandFitArea=null;renderBrands()">сброс м²</button>':''}</div>${buildTable('brands',cols,BRANDS.filter(b=>brandFitsArea(b,S.brandFitArea)),{rowClick:b=>`openBrand('${b.id}')`,rowStyle:b=>`background:${catHex(b.cat)}1f`} /* 12% тона категории: подстраивается и под светлую, и под тёмную тему */)}</div>
+  <div class="card"><div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">${canEdit?'<button class="btn sm" onclick="brandEdit()">+ '+t('add')+'</button><button class="btn ghost sm" onclick="importBrandsCSV()">⬆ Импорт CSV/Excel</button><button class="btn ghost sm" onclick="loadCaseBrandBase()" title="Загрузить встроенную базу брендов CASE (~1091 бренд) — добавит недостающие и обновит существующие">⬇ База брендов CASE</button><button class="btn ghost sm" onclick="brandDupScan()" title="Найти бренды с одинаковыми названиями и предложить объединение">⧉ Дубликаты</button>':''}<button class="btn ghost sm" onclick="exportBrandsCSV()">⬇ Экспорт CSV</button>${S.brandSel.length?`<button class="btn sm" onclick="attachBrandsFlow()">📌 Прикрепить к проекту (${S.brandSel.length})</button><button class="btn ghost sm" onclick="S.brandSel=[];renderBrands()">снять выделение</button>`:''}<label class="brand-fit-filter" style="margin-left:auto;display:flex;gap:6px;align-items:center;font-size:11px;color:var(--muted)">Подходит под м² <input value="${esc(S.brandFitArea||'')}" oninput="S.brandFitArea=this.value;renderBrands()" placeholder="например 120" style="width:112px;font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink)"></label>${S.brandFitArea?'<button class="btn ghost sm" onclick="S.brandFitArea=null;renderBrands()">сброс м²</button>':''}</div>${buildTable('brands',cols,BRANDS.filter(b=>brandFitsArea(b,S.brandFitArea)),{rowClick:b=>`openBrand('${b.id}')`,rowStyle:b=>`background:${catHex(b.cat)}1f`} /* 12% тона категории: подстраивается и под светлую, и под тёмную тему */)}</div>
   <div style="font-size:11px;color:var(--muted);margin-top:10px">Клик по строке - карточка. Доступ к базе - все роли отдела; правки - с правом редактирования (история сохраняется). Логотипы/витрины - загрузка в карточке.</div>
  ${footNote()}`;
 }
