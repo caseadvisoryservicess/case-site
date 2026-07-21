@@ -247,7 +247,7 @@ body.dark .kcol.kover{background:#3a1414}
 .kcard{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:7px;cursor:grab;box-shadow:var(--shadow)}
 .kcard:active{cursor:grabbing}
 body.dark .kcard{background:#262420}
-.quizpop{position:fixed;right:16px;bottom:16px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:2000;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
+.quizpop{position:fixed;left:16px;right:auto;bottom:16px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:900;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
 @keyframes quizIn{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 .quizpop-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--red);color:#fff}
 .quizpop-h b{font-size:12.5px;letter-spacing:.02em}
@@ -265,7 +265,7 @@ body.dark .kcard{background:#262420}
 .quizpop-ok{color:var(--green);font-weight:700}
 .quizpop-bad{color:var(--red-d);font-weight:700}
 .quizpop-why{color:var(--muted);margin-top:4px}
-.quizpop-badge{position:fixed;left:16px;right:auto;bottom:16px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
+.quizpop-badge{position:fixed;right:16px;left:auto;bottom:16px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:900}
 @media (max-width:480px){.quizpop{right:8px;bottom:8px;left:8px;width:auto}.quizpop-badge{left:8px;right:auto;bottom:8px}}
 /* v3.1: тёмный режим для квиз-окна и тестов — все тексты читаемые */
 .quizpop,.quizpop-body,.quizpop-q,.quizpop-fb{color:var(--ink)}
