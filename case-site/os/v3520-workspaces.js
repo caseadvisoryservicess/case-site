@@ -8,6 +8,8 @@
 
   var MODULES=[
     {v:'dash',g:'mywork',icon:'▦',ru:'Главный экран',uz:'Bosh ekran',en:'Home',nav:true},
+    {v:'crm_clients',g:'mywork',icon:'◉',ru:'Клиенты',uz:'Mijozlar',en:'Clients',nav:true},
+    {v:'case_projects',g:'mywork',icon:'◆',ru:'Все проекты',uz:'Barcha loyihalar',en:'All projects',nav:true},
     {v:'v32_action',g:'mywork',icon:'◎',ru:'Центр действий',uz:'Harakatlar markazi',en:'Action center',nav:true},
     {v:'dates',g:'mywork',icon:'⏰',ru:'Критические даты',uz:'Muhim sanalar',en:'Critical dates',nav:true},
     {v:'work_tasks',g:'mywork',icon:'✓',ru:'Мои задачи',uz:'Mening vazifalarim',en:'My tasks',nav:true},
@@ -15,20 +17,18 @@
     {v:'workload',g:'mywork',icon:'◫',ru:'Загрузка команды',uz:'Jamoa yuklamasi',en:'Team workload',nav:true},
     {v:'work_approvals',g:'mywork',icon:'◎',ru:'Мои согласования',uz:'Mening tasdiqlarim',en:'My approvals',nav:true},
 
-    {v:'crm_clients',g:'projects',icon:'◉',ru:'Клиенты',uz:'Mijozlar',en:'Clients',nav:true},
-    {v:'case_projects',g:'projects',icon:'◆',ru:'Все проекты',uz:'Barcha loyihalar',en:'All projects',nav:true},
-    {v:'project_workspace',g:'projects',icon:'▦',ru:'Рабочий стол проекта',uz:'Loyiha ish stoli',en:'Project workspace',nav:true},
-    {v:'project_layouts',g:'projects',icon:'▭',ru:'Планировки и версии',uz:'Planirovkalar va versiyalar',en:'Layouts and versions',nav:true},
+    {v:'project_workspace',g:'projects',icon:'▦',ru:'Рабочий стол проекта',uz:'Loyiha ish stoli',en:'Project workspace',nav:false},
+    {v:'project_layouts',g:'projects',icon:'▭',ru:'Планировки и версии',uz:'Planirovkalar va versiyalar',en:'Layouts and versions',nav:false},
     {v:'project_handover',g:'projects',icon:'⇄',ru:'Передача между отделами',uz:'Bo‘limlararo topshirish',en:'Department handover',nav:true,future:true},
     {v:'project_contracts',g:'projects',icon:'▣',ru:'Договоры проектов',uz:'Loyiha shartnomalari',en:'Project contracts',nav:true,future:true},
-    {v:'docs',g:'projects',icon:'▤',ru:'Документы',uz:'Hujjatlar',en:'Documents',nav:true},
+    {v:'docs',g:'projects',icon:'▤',ru:'Документы',uz:'Hujjatlar',en:'Documents',nav:false},
 
     {v:'advisory_pipeline',g:'advisory',icon:'⇢',ru:'Воронка Advisory',uz:'Advisory voronkasi',en:'Advisory pipeline',nav:true},
     {v:'advisory_proposal_builder',g:'advisory',icon:'✎',ru:'Конструктор КП',uz:'TK konstruktori',en:'Proposal builder',nav:true},
     {v:'advisory_proposals',g:'advisory',icon:'▧',ru:'Коммерческие предложения',uz:'Tijorat takliflari',en:'Commercial proposals',nav:true},
     {v:'advisory_portfolio_map',g:'advisory',icon:'⌖',ru:'Карта проектов Advisory',uz:'Advisory loyihalari xaritasi',en:'Advisory project map',nav:true},
     {v:'advisory_contracts',g:'advisory',icon:'▣',ru:'Договоры Advisory',uz:'Advisory shartnomalari',en:'Advisory contracts',nav:true},
-    {v:'advisory_scope',g:'advisory',icon:'☷',ru:'Scope of Work',uz:'Scope of Work',en:'Scope of Work',nav:true},
+    {v:'advisory_scope',g:'advisory',icon:'☷',ru:'Объём работ (Scope)',uz:'Ish hajmi (Scope)',en:'Scope of Work',nav:true},
     {v:'advisory_delivery',g:'advisory',icon:'✓',ru:'Выполнение проектов',uz:'Loyihalarni bajarish',en:'Project delivery',nav:true},
     {v:'advisory_reports',g:'advisory',icon:'▤',ru:'Черновые и финальные отчёты',uz:'Qoralama va yakuniy hisobotlar',en:'Draft and final reports',nav:true},
     {v:'advisory_cross_sell',g:'advisory',icon:'↗',ru:'Следующие услуги',uz:'Keyingi xizmatlar',en:'Next services',nav:true},
@@ -42,23 +42,23 @@
     {v:'lift',g:'advisory',icon:'⇅',ru:'Расчёт лифтов',uz:'Lift hisobi',en:'Lift calculation',nav:true},
 
     {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта проектов',uz:'Loyihalar xaritasi',en:'Project map',nav:true},
-    {v:'registry',g:'leasing',icon:'▤',ru:'LCR / реестр помещений',uz:'LCR / joylar reyestri',en:'LCR / unit registry',nav:true},
+    {v:'registry',g:'leasing',icon:'▤',ru:'Контроль аренды (LCR)',uz:'Ijara nazorati (LCR)',en:'Lease control (LCR)',nav:true},
     {v:'brands',g:'leasing',icon:'✦',ru:'База брендов',uz:'Brendlar bazasi',en:'Brand database',nav:true},
     {v:'v32_requests',g:'leasing',icon:'✉',ru:'Запросы брендов',uz:'Brend so‘rovlari',en:'Brand requests',nav:true},
     {v:'v32_sales',g:'leasing',icon:'◆',ru:'Продажи объектов',uz:'Obyektlar savdosi',en:'Property sales',nav:true},
     {v:'v32_investors',g:'leasing',icon:'◈',ru:'Инвесторы',uz:'Investorlar',en:'Investors',nav:true},
     {v:'v32_partners',g:'leasing',icon:'◇',ru:'Партнёры',uz:'Hamkorlar',en:'Partners',nav:true},
-    {v:'v326_lease',g:'leasing',icon:'%',ru:'Комиссии аренды',uz:'Ijara komissiyalari',en:'Lease commissions',nav:true},
-    {v:'leasing_layouts',g:'leasing',icon:'▭',ru:'Планировки и версии',uz:'Planirovkalar va versiyalar',en:'Layouts and versions',nav:true},
     {v:'plan_master',g:'leasing',icon:'▤',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:true},
-    {v:'leasing_opening',g:'leasing',icon:'✓',ru:'Opening tracker',uz:'Ochilish nazorati',en:'Opening tracker',nav:true,future:true},
+    {v:'leasing_layouts',g:'leasing',icon:'▭',ru:'Планировки и версии',uz:'Planirovkalar va versiyalar',en:'Layouts and versions',nav:false},
+    {v:'leasing_opening',g:'leasing',icon:'✓',ru:'Контроль открытий',uz:'Ochilish nazorati',en:'Opening tracker',nav:true,future:true},
+    {v:'v326_lease',g:'leasing',icon:'%',ru:'Комиссии аренды',uz:'Ijara komissiyalari',en:'Lease commissions',nav:true},
 
     {v:'manage_portfolio',g:'property',icon:'▦',ru:'Портфель объектов',uz:'Obyektlar portfeli',en:'Managed portfolio',nav:true,future:true},
-    {v:'facility_management',g:'property',icon:'⚙',ru:'Facility Management',uz:'Facility Management',en:'Facility Management',nav:true,future:true},
+    {v:'facility_management',g:'property',icon:'⚙',ru:'Эксплуатация (Facility Management)',uz:'Ekspluatatsiya (Facility Management)',en:'Facility Management',nav:true,future:true},
     {v:'equipment_registry',g:'property',icon:'⌘',ru:'Оборудование и MEP',uz:'Uskunalar va MEP',en:'Equipment and MEP',nav:true,future:true},
     {v:'maintenance',g:'property',icon:'🛠',ru:'Заявки и обслуживание',uz:'Arizalar va xizmat',en:'Maintenance and work orders',nav:true,future:true},
     {v:'tenant_contracts',g:'property',icon:'▣',ru:'Арендаторы и договоры',uz:'Ijarachilar va shartnomalar',en:'Tenants and contracts',nav:true,future:true},
-    {v:'asset_management',g:'property',icon:'♜',ru:'Asset Management',uz:'Asset Management',en:'Asset Management',nav:true,future:true},
+    {v:'asset_management',g:'property',icon:'♜',ru:'Управление активами (Asset Management)',uz:'Aktivlarni boshqarish (Asset Management)',en:'Asset Management',nav:true,future:true},
     {v:'property_budget',g:'property',icon:'₿',ru:'Бюджет объекта',uz:'Obyekt byudjeti',en:'Property budget',nav:true,future:true},
     {v:'noi_performance',g:'property',icon:'↗',ru:'NOI и эффективность',uz:'NOI va samaradorlik',en:'NOI and performance',nav:true,future:true},
     {v:'capex_management',g:'property',icon:'▰',ru:'CAPEX',uz:'CAPEX',en:'CAPEX',nav:true,future:true},
@@ -71,15 +71,15 @@
     {v:'finance_invoices',g:'finance',icon:'▧',ru:'Счета и платежи',uz:'Hisoblar va to‘lovlar',en:'Invoices and payments',nav:true,future:true},
     {v:'finance_receivables',g:'finance',icon:'↘',ru:'Дебиторская задолженность',uz:'Debitor qarzdorlik',en:'Receivables',nav:true,future:true},
     {v:'finance_payables',g:'finance',icon:'↗',ru:'Кредиторская задолженность',uz:'Kreditor qarzdorlik',en:'Payables',nav:true,future:true},
-    {v:'finance_treasury',g:'finance',icon:'◉',ru:'Казначейство и cash flow',uz:'G‘aznachilik va cash flow',en:'Treasury and cash flow',nav:true,future:true},
+    {v:'finance_treasury',g:'finance',icon:'◉',ru:'Казначейство и денежный поток',uz:'G‘aznachilik va pul oqimi',en:'Treasury and cash flow',nav:true,future:true},
     {v:'finance_payroll',g:'finance',icon:'%',ru:'Зарплаты, бонусы и комиссии',uz:'Maosh, bonus va komissiyalar',en:'Payroll, bonuses and commissions',nav:true,future:true},
     {v:'finance_project_pnl',g:'finance',icon:'∑',ru:'Прибыльность проектов',uz:'Loyihalar rentabelligi',en:'Project profitability',nav:true,future:true},
     {v:'finance_department_pnl',g:'finance',icon:'▥',ru:'P&L бизнес-направлений',uz:'Biznes yo‘nalishlari P&L',en:'Business-line P&L',nav:true,future:true},
     {v:'finance_budget',g:'finance',icon:'▤',ru:'Бюджет и план-факт',uz:'Byudjet va reja-fakt',en:'Budget and plan vs actual',nav:true,future:true},
 
-    {v:'analytics_hub',g:'data',icon:'◎',ru:'Центр аналитики',uz:'Tahlil markazi',en:'Analytics hub',nav:false},
-    {v:'map',g:'data',icon:'⌖',ru:'Карта / GIS',uz:'Xarita / GIS',en:'Map / GIS',nav:false},
-    {v:'geoanalytics',g:'data',icon:'◉',ru:'Геоаналитика',uz:'Geoanalitika',en:'Geoanalytics',nav:true},
+    {v:'map',g:'data',icon:'⌖',ru:'Геоаналитика — наши проекты',uz:'Geoanalitika — bizning loyihalar',en:'Geoanalytics — our projects',nav:true},
+    {v:'analytics_hub',g:'data',icon:'◎',ru:'Геоаналитика — рынок и POI',uz:'Geoanalitika — bozor va POI',en:'Geoanalytics — market & POI',nav:true},
+    {v:'geoanalytics',g:'data',icon:'◉',ru:'Геоаналитика',uz:'Geoanalitika',en:'Geoanalytics',nav:false},
     {v:'market_data',g:'data',icon:'▥',ru:'Рыночные данные',uz:'Bozor ma’lumotlari',en:'Market data',nav:true,future:true},
     {v:'macro_data',g:'data',icon:'◫',ru:'Макроэкономика',uz:'Makroiqtisodiyot',en:'Macroeconomics',nav:true,future:true},
     {v:'bench',g:'data',icon:'◈',ru:'Бенчмаркинг',uz:'Benchmarking',en:'Benchmarking',nav:true},
@@ -99,19 +99,19 @@
 
     {v:'users',g:'admin',icon:'◍',ru:'Пользователи и доступы',uz:'Foydalanuvchilar va ruxsatlar',en:'Users and access',nav:true},
     {v:'document_templates',g:'admin',icon:'▧',ru:'Шаблоны КП и договоров',uz:'TK va shartnoma shablonlari',en:'Proposal and contract templates',nav:true},
-    {v:'admin_workflows',g:'admin',icon:'⇄',ru:'Workflow и согласования',uz:'Workflow va tasdiqlash',en:'Workflows and approvals',nav:true,future:true},
+    {v:'admin_workflows',g:'admin',icon:'⇄',ru:'Процессы и согласования',uz:'Jarayonlar va tasdiqlash',en:'Workflows and approvals',nav:true,future:true},
     {v:'admin_directories',g:'admin',icon:'▤',ru:'Справочники и категории',uz:'Ma’lumotnomalar va toifalar',en:'Directories and categories',nav:true,future:true},
     {v:'admin_integrations',g:'admin',icon:'⌁',ru:'Интеграции',uz:'Integratsiyalar',en:'Integrations',nav:true,future:true}
   ];
 
   var GROUPS={
-    mywork:{ru:'Моя работа',uz:'Mening ishim',en:'My work'},
+    mywork:{ru:'Работа и проекты',uz:'Ish va loyihalar',en:'Work & projects'},
     projects:{ru:'Клиенты и проекты',uz:'Mijozlar va loyihalar',en:'Clients and projects'},
-    advisory:{ru:'Advisory',uz:'Advisory',en:'Advisory'},
-    leasing:{ru:'Leasing & Sales',uz:'Leasing & Sales',en:'Leasing & Sales'},
+    advisory:{ru:'Консалтинг (Advisory)',uz:'Konsalting (Advisory)',en:'Advisory'},
+    leasing:{ru:'Аренда и продажи (Leasing & Sales)',uz:'Ijara va sotuv (Leasing & Sales)',en:'Leasing & Sales'},
     property:{ru:'Управление объектами',uz:'Obyektlarni boshqarish',en:'Property & Asset Management'},
     finance:{ru:'Финансы CASE',uz:'CASE moliyasi',en:'CASE finance'},
-    data:{ru:'Data & Analytics',uz:'Data & Analytics',en:'Data & Analytics'},
+    data:{ru:'Данные и аналитика',uz:'Ma’lumot va tahlil',en:'Data & Analytics'},
     products:{ru:'Цифровые продукты',uz:'Raqamli mahsulotlar',en:'Digital products'},
     team:{ru:'Команда',uz:'Jamoa',en:'Team'},
     admin:{ru:'Администрирование',uz:'Boshqaruv',en:'Administration'}
@@ -120,16 +120,16 @@
   var ALL=MODULES.map(function(m){return m.v;});
   var NAV_ORDER=MODULES.filter(function(m){return m.nav;}).map(function(m){return m.v;});
 
-  var CURRENT_CORE=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','plans','feasibility','mep','lift','geoanalytics','bench','kpi','org','study','rating','users'];
+  var CURRENT_CORE=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','plans','feasibility','mep','lift','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating','users'];
   var DEFAULTS={
     ASH:ALL.slice(), CFO:ALL.slice(), ADM:ALL.slice(),
-    BA:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','geoanalytics','bench','kpi','org','study','rating'],
-    AG:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','geoanalytics','kpi','org','study','rating'],
+    BA:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating'],
+    AG:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','analytics_hub','geoanalytics','kpi','org','study','rating'],
     AGX:['dash','v32_action','dates','work_tasks','work_kanban','leasing_portfolio_map','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v326_lease'],
     HO:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
-    BSH:['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','geoanalytics','org','study'],
-    HM:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
-    BRJ:['dash','work_tasks','work_kanban','case_projects','registry','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export']
+    BSH:['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','analytics_hub','geoanalytics','org','study'],
+    HM:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','analytics_hub','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
+    BRJ:['dash','work_tasks','work_kanban','case_projects','registry','brands','analytics_hub','geoanalytics','market_data','macro_data','data_quality','data_import_export']
   };
   var UI={role:'BA',user:''};
 

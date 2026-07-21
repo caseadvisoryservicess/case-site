@@ -57,12 +57,12 @@
     else if(G.tab!=='ours'&&G.tab!=='market'){G.tab='ours';}
     if(G.tab==='ours'){
       main.classList.remove('geo-workspace');
-      main.innerHTML='<div class="ph"><h1>'+h(tr('Геоаналитика','Geoanalitika','Geoanalytics'))+'</h1></div>'+tabBar(showOurs,'ours')+'<div id="geoOursHost"></div>';
+      main.innerHTML='<div class="ph"><h1>'+h(tr('Геоаналитика — наши проекты','Geoanalitika — bizning loyihalar','Geoanalytics — our projects'))+'</h1></div>'+'<div id="geoOursHost"></div>';
       try{if(typeof window.renderMap==='function')window.renderMap(document.getElementById('geoOursHost'),true);}catch(e){}
       return;
     }
     main.classList.add('geo-workspace');
-    main.innerHTML=tabBar(showOurs,'market')
+    main.innerHTML='<div class="ph"><h1>'+h(tr('Геоаналитика — рынок и POI','Geoanalitika — bozor va POI','Geoanalytics — market & POI'))+'</h1></div>'
       +'<section class="geo-v42">'
       +'<div class="geo-v42-toolbar"><select id="geoProject" aria-label="'+h(tr('Проект','Loyiha','Project'))+'" onchange="geoV42Project(this.value)">'+projectOptions()+'</select>'
       +'<button class="geo-v42-recover" id="geoRecoverBtn" style="display:none" onclick="geoV42Recover()">'+h(tr('Восстановить локальную копию','Lokal nusxani tiklash','Restore local copy'))+'</button>'
@@ -136,7 +136,8 @@
           else if(v==='analytics_hub'&&(G.tab!=='ours'&&G.tab!=='market')){G.tab='market';}
           if(!canView()){try{if(typeof toast==='function')toast(tr('Этот раздел не входит в вашу рабочую область.','Bu bo‘lim sizning ishchi sohangizga kirmaydi.','This module is outside your workspace.'));}catch(e){}return oldGo.call(this,(window.asaasWorkspaceFirst&&window.asaasWorkspaceFirst())||'dash');}
           try{S.view='geoanalytics';}catch(e){}
-          document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('active',a.dataset.v==='geoanalytics');});
+          var navV=(G.tab==='ours')?'map':'analytics_hub';
+          document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('active',a.dataset.v===navV);});
           try{if(typeof window.asaasNavClose==='function')window.asaasNavClose();}catch(e){}
           var side=document.getElementById('side'),scrim=document.getElementById('scrim');if(side)side.classList.remove('open');if(scrim)scrim.classList.remove('open');
           render();try{if(typeof saveUiPrefs==='function')saveUiPrefs();}catch(e){}return;
