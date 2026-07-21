@@ -62,6 +62,9 @@
       return;
     }
     main.classList.add('geo-workspace');
+    /* #92: не пересобирать iframe, если он уже построен — иначе повторный render() (автосейв,
+       квиз, переключения) перезагружает студию и стирает открытую панель «Отчёт по точке». */
+    if(document.getElementById('geoFrame')){G.ready=true;try{requestAnimationFrame(fitFrame);}catch(e){}return;}
     main.innerHTML='<div class="ph"><h1>'+h(tr('Геоаналитика — рынок и POI','Geoanalitika — bozor va POI','Geoanalytics — market & POI'))+'</h1></div>'
       +'<section class="geo-v42">'
       +'<div class="geo-v42-toolbar"><select id="geoProject" aria-label="'+h(tr('Проект','Loyiha','Project'))+'" onchange="geoV42Project(this.value)">'+projectOptions()+'</select>'

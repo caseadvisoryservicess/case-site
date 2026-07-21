@@ -1822,9 +1822,18 @@ async function probeAt(la,ln){
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
  LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed};
- h+=`</div><div class="cbtns"><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
+ h+=`</div><div class="cbtns"><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
+ try{renderSavedProbes();}catch(e){}
 }
+/* #92: сохранённые точки на карте — список, вкл/выкл, удаление; хранятся локально в студии */
+function loadSavedProbes(){try{window.SAVED_PROBES=JSON.parse(localStorage.getItem('asaas_saved_probes')||'[]');}catch(e){window.SAVED_PROBES=[];}if(!Array.isArray(window.SAVED_PROBES))window.SAVED_PROBES=[];return window.SAVED_PROBES;}
+function persistSavedProbes(){try{localStorage.setItem('asaas_saved_probes',JSON.stringify(window.SAVED_PROBES||[]));}catch(e){}}
+var gSaved=null,SAVED_ON=true;
+function renderSavedProbes(){if(!map||!window.L)return;loadSavedProbes();if(!gSaved)gSaved=L.layerGroup();if(SAVED_ON&&!map.hasLayer(gSaved))map.addLayer(gSaved);gSaved.clearLayers();(window.SAVED_PROBES||[]).forEach(function(sp,i){if(sp.la==null||sp.ln==null)return;var m=L.circleMarker([sp.la,sp.ln],{radius:7,color:'#1a7f37',weight:3,fillColor:'#fff',fillOpacity:1});m.bindPopup('<b>'+esc(sp.name||('Точка '+(i+1)))+'</b><br>'+(+sp.la).toFixed(5)+', '+(+sp.ln).toFixed(5)+(sp.d?'<br>район '+esc(sp.d):'')+'<br><button type="button" onclick="delSavedProbe('+i+')">Удалить</button>');m.addTo(gSaved);});}
+window.saveProbePoint=function(){if(!LASTPROBE){alert('Сначала кликните по карте — появится отчёт по точке.');return;}loadSavedProbes();var def=(LASTPROBE.d?LASTPROBE.d+' · ':'')+(+LASTPROBE.la).toFixed(4)+','+(+LASTPROBE.ln).toFixed(4);var name=prompt('Название сохранённой точки:',def);if(name===null)return;window.SAVED_PROBES.push(Object.assign({},LASTPROBE,{name:name||def,savedAt:new Date().toISOString()}));persistSavedProbes();SAVED_ON=true;renderSavedProbes();};
+window.delSavedProbe=function(i){loadSavedProbes();if(i>=0&&i<window.SAVED_PROBES.length){window.SAVED_PROBES.splice(i,1);persistSavedProbes();renderSavedProbes();}};
+window.toggleSavedProbes=function(){SAVED_ON=!SAVED_ON;if(gSaved){if(SAVED_ON){map.addLayer(gSaved);}else{map.removeLayer(gSaved);}}return SAVED_ON;};
 function siteTab(){
  const S=SITE,O=S.our,k=(v,l)=>`<span class="kpi"><b>${v}</b><small>${l}</small></span>`;
  let h=`<div class="insight"><b>Участок: ${esc(S.addr)}</b> · ${S.lat}, ${S.lng}. Это площадка нашего проекта выбранного проекта (совпадение ~25 м). Ниже: внешняя аналитика участка, наша проверка её цифр и слой, которого в ней не было - <b>конкурентное поле БЦ</b>.</div>
