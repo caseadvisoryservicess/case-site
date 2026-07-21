@@ -133,6 +133,8 @@
 
   // ---------------------------------------------------------------- api
   // cfg.loginForm: не показывать экран логина / тосты, ошибку обрабатывает форма.
+  // пути относительные — панель работает и в корне домена, и в подпапке (например /admin/)
+  function rel(path) { return path.charAt(0) === '/' ? '.' + path : path; }
   function api(path, opts, cfg) {
     opts = opts || {}; cfg = cfg || {};
     var method = (opts.method || 'GET').toUpperCase();
@@ -143,7 +145,7 @@
       headers['Content-Type'] = 'application/json';
       body = JSON.stringify(body);
     }
-    return fetch(path, { method: method, headers: headers, body: body }).catch(function () {
+    return fetch(rel(path), { method: method, headers: headers, body: body }).catch(function () {
       if (!cfg.loginForm) toast('Нет связи с сервером', 'error');
       var err = new Error('Нет связи с сервером');
       err.handled = !cfg.loginForm; err.network = true;
@@ -304,7 +306,7 @@
 
   // ---------------------------------------------------------------- image picker
   function uploadsUrl(name) {
-    return '/uploads/' + encodeURIComponent(slug) + '/' + encodeURIComponent(name);
+    return './uploads/' + encodeURIComponent(slug) + '/' + encodeURIComponent(name);
   }
 
   function imagePicker(label, path) {
@@ -525,8 +527,8 @@
   function projectCard(p) {
     var actions = [
       h('button', { class: 'btn primary small', onclick: guard(function () { return openEditor(p.slug); }) }, 'Редактировать'),
-      h('a', { class: 'btn ghost small', href: '/p/' + encodeURIComponent(p.slug) + '/', target: '_blank', rel: 'noopener' }, 'Предпросмотр'),
-      h('a', { class: 'btn ghost small', href: '/api/projects/' + encodeURIComponent(p.slug) + '/export' }, 'Скачать сайт (zip)')
+      h('a', { class: 'btn ghost small', href: './p/' + encodeURIComponent(p.slug) + '/', target: '_blank', rel: 'noopener' }, 'Предпросмотр'),
+      h('a', { class: 'btn ghost small', href: './api/projects/' + encodeURIComponent(p.slug) + '/export' }, 'Скачать сайт (zip)')
     ];
     if (me.role === 'admin') {
       actions.push(h('button', {
@@ -683,7 +685,7 @@
         return api('/api/projects/' + encodeURIComponent(slug) + '/generate', { method: 'POST' });
       })
       .then(function (d) {
-        genUrl = (d && d.url) || ('/p/' + slug + '/');
+        genUrl = './p/' + slug + '/';
         genLinkEl.href = genUrl;
         genLinkEl.textContent = 'Открыть ' + genUrl;
         genLinkEl.hidden = false;
@@ -713,6 +715,9 @@
       fieldText('E-mail', 'contacts.email'),
       fieldText('Google Таблица (URL скрипта)', 'contacts.sheetsEndpoint', {
         hint: 'Адрес веб-приложения Apps Script, куда отправляются заявки. Пусто — заявки идут только в Telegram/почту.'
+      }),
+      fieldText('Кнопка «Войти» на лендинге', 'adminUrl', {
+        hint: 'Адрес входа в эту панель, например /admin/ или https://panel.caseadvisory.uz. Пусто — кнопки не будет.'
       })
     ];
   }

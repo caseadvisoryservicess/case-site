@@ -1,26 +1,50 @@
 # /etc/nginx/sites-available/sfb-panel
-# Панель на panel.вашдомен, лендинг Тахтапула на sfb.вашдомен (отдаётся статикой напрямую).
+#
+# Схема «всё на одном домене» (как caseadvisory.uz):
+#   caseadvisory.uz/taxtapul  → лендинг (статика, отдаёт nginx напрямую)
+#   caseadvisory.uz/admin     → админ-панель (проксируется в Node на :3000)
+#
 # После правки: ln -s в sites-enabled, nginx -t && systemctl reload nginx,
 # затем HTTPS: apt install certbot python3-certbot-nginx && certbot --nginx
 
 server {
     listen 80;
-    server_name panel.example.uz;           # ← домен панели
+    server_name caseadvisory.uz www.caseadvisory.uz;   # ← ваш домен
 
-    client_max_body_size 25m;               # загрузка фото до 20 МБ
+    client_max_body_size 25m;                          # загрузка фото до 20 МБ
 
-    location / {
-        proxy_pass http://127.0.0.1:3000;
+    # ── лендинги: собранная статика из admin/sites/<slug> ──
+    location /taxtapul/ {
+        alias /opt/case-site/admin/sites/takhtapul/;   # ← путь до собранного лендинга
+        index index.html;
+        try_files $uri $uri/ =404;
+    }
+    location = /taxtapul { return 301 /taxtapul/; }
+
+    # новый лендинг = ещё один такой же блок location с другим slug
+
+    # ── админ-панель ──
+    location = /admin { return 301 /admin/; }
+    location /admin/ {
+        proxy_pass http://127.0.0.1:3000/;             # завершающий / срезает префикс /admin
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_set_header X-Real-IP $remote_addr;
     }
+
+    # ── здесь остаётся ваш существующий сайт (корень домена) ──
+    # location / { ... }
 }
 
-server {
-    listen 80;
-    server_name sfb.example.uz;             # ← домен лендинга
-    root /opt/case-site/admin/sites/takhtapul;   # ← путь к собранному лендингу
-    index index.html;
-    location / { try_files $uri $uri/ =404; }
-}
+# Вариант с отдельными доменами (если так удобнее):
+#
+# server {
+#     listen 80;
+#     server_name panel.caseadvisory.uz;
+#     client_max_body_size 25m;
+#     location / {
+#         proxy_pass http://127.0.0.1:3000;
+#         proxy_set_header Host $host;
+#         proxy_set_header X-Forwarded-Proto $scheme;
+#     }
+# }

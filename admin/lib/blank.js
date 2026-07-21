@@ -25,6 +25,7 @@ function newProject(slug, name) {
       email: 'caseadvisoryservicess@gmail.com',
       sheetsEndpoint: ''
     },
+    adminUrl: '',   // адрес входа в панель — если задан, в шапке лендинга появляется кнопка «Войти»
     seo: {
       title: ml('Название проекта — продажа и аренда помещений'),
       description: ml('Краткое описание проекта для поисковиков (1–2 предложения).'),

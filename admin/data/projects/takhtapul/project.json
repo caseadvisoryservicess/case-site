@@ -20,6 +20,7 @@
     "email": "caseadvisoryservicess@gmail.com",
     "sheetsEndpoint": ""
   },
+  "adminUrl": "/admin/",
   "seo": {
     "title": {
       "ru": "Бизнес-центр SFB — аренда и продажа помещений 179 и 430 м² | ул. Тахтапуль 31, Ташкент",
@@ -632,9 +633,9 @@
         "en": "In what condition are the units handed over?"
       },
       "a": {
-        "ru": "В черновой отделке — это позволяет спроектировать пространство под ваш бизнес без демонтажа. Инженерные сети подведены до границ помещения. Границы лота фиксируются в договоре купли-продажи по поэтажному плану.",
-        "uz": "Qora suvoq holatida — bu maydonni demontajsiz biznesingizga moslab loyihalash imkonini beradi. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan. Lot chegaralari qavat rejasi bo'yicha oldi-sotdi shartnomasida belgilanadi.",
-        "en": "Shell and core — so you can design the space for your business without demolition. Utilities are brought to the boundary of the premises. Unit boundaries are fixed in the sale contract per the floor plan."
+        "ru": "В черновой отделке — это позволяет спроектировать пространство под ваш бизнес без демонтажа. Инженерные сети подведены до границ помещения. Границы лота фиксируются в договоре купли-продажи по поэтажному плану. Для арендаторов по договорённости возможна подготовка помещения под въезд (ремонт под арендатора).",
+        "uz": "Qora suvoq holatida — bu maydonni demontajsiz biznesingizga moslab loyihalash imkonini beradi. Muhandislik tarmoqlari maydon chegarasigacha yetkazilgan. Lot chegaralari qavat rejasi bo'yicha oldi-sotdi shartnomasida belgilanadi. Ijarachilar uchun kelishuv asosida xonani kirishga tayyorlab berish mumkin.",
+        "en": "Shell and core — so you can design the space for your business without demolition. Utilities are brought to the boundary of the premises. Unit boundaries are fixed in the sale contract per the floor plan. For tenants, a fit-out for move-in can be arranged by agreement."
       }
     },
     {

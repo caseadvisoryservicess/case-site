@@ -38,7 +38,7 @@ const UI_I18N = {
   uz: {
     'nav.uses': "Yo'nalishlar", 'nav.lots': 'Maydonlar', 'nav.building': 'Bino haqida',
     'nav.location': 'Manzil', 'nav.faq': 'Savollar', 'nav.cta': 'Ariza qoldirish',
-    'nav.ctaArrow': 'Ariza qoldirish →',
+    'nav.ctaArrow': 'Ariza qoldirish →', 'nav.login': 'Kirish',
     'hero.btn1': 'Rejalar va narxlarni olish', 'hero.btn2': "Maydonlarni ko'rish",
     'lots.cta': "Dolzarb shartlarni so'rash", 'lots.hint': 'Kattalashtirish uchun bosing',
     'lots.tag': 'Sotuvda · Ijara mumkin', 'lots.priceL': 'Sotuv · Ijara',
@@ -64,7 +64,7 @@ const UI_I18N = {
   en: {
     'nav.uses': 'Use cases', 'nav.lots': 'Premises', 'nav.building': 'The building',
     'nav.location': 'Location', 'nav.faq': 'FAQ', 'nav.cta': 'Request info',
-    'nav.ctaArrow': 'Request info →',
+    'nav.ctaArrow': 'Request info →', 'nav.login': 'Log in',
     'hero.btn1': 'Get floor plans & pricing', 'hero.btn2': 'View the premises',
     'lots.cta': 'Request current terms', 'lots.hint': 'Click to enlarge',
     'lots.tag': 'For sale · Lease available', 'lots.priceL': 'Sale · Lease',
@@ -131,6 +131,7 @@ function renderLanding(cfg) {
   const t = makeT(dict);
 
   const siteBase = String(cfg.seo.domain || '').trim().replace(/\/+$/, '');
+  const adminUrl = String(cfg.adminUrl || '').trim();
   const phone = cfg.contacts.phone || '';
   const tel = telHref(phone);
   const tg = (cfg.contacts.telegram || '').replace(/^@/, '');
@@ -426,6 +427,7 @@ ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>`
       </div>
       <a class="nav-tel" href="${tel}">${esc(phone)}</a>
       <a href="#lead" class="btn btn-bronze btn-sm" data-i18n="nav.cta">Оставить заявку</a>
+      ${adminUrl ? `<a class="nav-login" href="${escAttr(adminUrl)}" data-i18n="nav.login" title="Вход для сотрудников">Войти</a>` : ''}
       <button class="burger" id="burger" aria-label="Меню"><span></span><span></span><span></span></button>
     </div>
   </div>
@@ -437,6 +439,7 @@ ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>`
   <a href="#location" data-i18n="nav.location">Локация</a>
   ${faqItems ? '<a href="#faq" data-i18n="nav.faq">Вопросы</a>' : ''}
   <a href="#lead" style="color:var(--bronze-d)" data-i18n="nav.ctaArrow">Оставить заявку →</a>
+  ${adminUrl ? `<a href="${escAttr(adminUrl)}" style="color:var(--muted);font-size:13px" data-i18n="nav.login">Войти</a>` : ''}
 </div>
 
 <header class="hero">
@@ -642,6 +645,11 @@ nav.s .nl a:hover{color:var(--ink)}
 .nav-r{display:flex;align-items:center;gap:14px}
 .nav-tel{font-size:13.5px;font-weight:600;color:#fff;text-decoration:none;white-space:nowrap;transition:color .3s}
 nav.s .nav-tel{color:var(--ink)}
+.nav-login{font-size:12px;font-weight:600;color:rgba(255,255,255,.5);text-decoration:none;white-space:nowrap;transition:color .3s}
+.nav-login:hover{color:#fff}
+nav.s .nav-login{color:var(--muted)}
+nav.s .nav-login:hover{color:var(--ink)}
+@media(max-width:1060px){.nav-login{display:none}}
 .lang{display:flex;gap:2px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28);border-radius:100px;padding:3px;backdrop-filter:blur(6px)}
 .lang button{border:none;background:transparent;color:rgba(255,255,255,.72);font-family:var(--h);font-size:11px;font-weight:700;letter-spacing:.8px;padding:5px 9px;border-radius:100px;cursor:pointer;transition:background .2s,color .2s}
 .lang button.on{background:#fff;color:var(--ink)}
