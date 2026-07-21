@@ -90,7 +90,7 @@
   }
   function injectCard(){
     clearTimeout(injectTimer);injectTimer=null;
-    try{if(!isAdmin()||!S||S.view!=='users')return;}catch(e){return;}
+    try{if(!isAdmin()||!S||S.view!=='admin_modules')return;}catch(e){return;}
     var main=document.getElementById('main');if(!main)return;var card=document.getElementById('caseFeatureAdminCard');
     if(!card){card=document.createElement('div');card.id='caseFeatureAdminCard';card.className='card ff-admin';var ref=document.getElementById('wsAdminCard')||main.querySelector('.card');if(ref)main.insertBefore(card,ref);else main.appendChild(card);}
     renderCard();pruneWorkspaceMatrix();

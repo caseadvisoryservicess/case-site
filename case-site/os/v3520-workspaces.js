@@ -97,7 +97,9 @@
     {v:'study',g:'team',icon:'✎',ru:'Обучение',uz:'Ta’lim',en:'Learning',nav:true},
     {v:'rating',g:'team',icon:'♛',ru:'Рейтинг',uz:'Reyting',en:'Rating',nav:true},
 
-    {v:'users',g:'admin',icon:'◍',ru:'Пользователи и доступы',uz:'Foydalanuvchilar va ruxsatlar',en:'Users and access',nav:true},
+    {v:'users',g:'admin',icon:'◍',ru:'Доступ (пользователи и роли)',uz:'Kirish (foydalanuvchilar va rollar)',en:'Access (users & roles)',nav:true},
+    {v:'admin_modules',g:'admin',icon:'✦',ru:'Модули (флаги)',uz:'Modullar (bayroqlar)',en:'Modules (flags)',nav:true},
+    {v:'admin_system',g:'admin',icon:'⚙',ru:'Система (журнал, бэкапы, корзина)',uz:'Tizim (jurnal, bekap, savat)',en:'System (log, backups, trash)',nav:true},
     {v:'document_templates',g:'admin',icon:'▧',ru:'Шаблоны КП и договоров',uz:'TK va shartnoma shablonlari',en:'Proposal and contract templates',nav:true},
     {v:'admin_workflows',g:'admin',icon:'⇄',ru:'Процессы и согласования',uz:'Jarayonlar va tasdiqlash',en:'Workflows and approvals',nav:true,future:true},
     {v:'admin_directories',g:'admin',icon:'▤',ru:'Справочники и категории',uz:'Ma’lumotnomalar va toifalar',en:'Directories and categories',nav:true,future:true},
@@ -120,7 +122,7 @@
   var ALL=MODULES.map(function(m){return m.v;});
   var NAV_ORDER=MODULES.filter(function(m){return m.nav;}).map(function(m){return m.v;});
 
-  var CURRENT_CORE=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','plans','feasibility','mep','lift','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating','users'];
+  var CURRENT_CORE=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','plans','feasibility','mep','lift','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating','users','admin_modules','admin_system'];
   var DEFAULTS={
     ASH:ALL.slice(), CFO:ALL.slice(), ADM:ALL.slice(),
     BA:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating'],

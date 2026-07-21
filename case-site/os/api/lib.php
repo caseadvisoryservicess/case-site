@@ -158,7 +158,7 @@ function asaas_workspace_default_views(): array {
     'finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget',
     'map','analytics_hub','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export',
     'product_intelligence','product_market','product_living','product_manage','product_subscriptions',
-    'kpi','org','study','rating','users','admin_workflows','admin_directories','admin_integrations'];
+    'kpi','org','study','rating','users','admin_modules','admin_system','admin_workflows','admin_directories','admin_integrations'];
   return [
     'ASH'=>$all, 'CFO'=>$all, 'ADM'=>$all,
     'BA'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','analytics_hub','geoanalytics','bench','kpi','org','study','rating'],
