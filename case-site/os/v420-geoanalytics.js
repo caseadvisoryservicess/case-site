@@ -4,6 +4,8 @@
   'use strict';
   if(window.ASAAS_GEO_420)return;
   window.ASAAS_GEO_420=true;
+  /* Версия для cache-busting iframe студии = текущая версия платформы (раньше была зашита 4.17.0). */
+  function geoStudioVer(){try{return (typeof APP_VERSION!=='undefined'&&APP_VERSION)?String(APP_VERSION):'4.17.0';}catch(e){return '4.17.0';}}
 
   var G={ready:false,project:'',saving:false,geoRevision:0,lastLoadedAt:null,recoveryData:null};
   function role(){try{return String(S&&S.role||'');}catch(e){return '';}}
@@ -70,7 +72,7 @@
       +'<div class="geo-v42-toolbar"><select id="geoProject" aria-label="'+h(tr('Проект','Loyiha','Project'))+'" onchange="geoV42Project(this.value)">'+projectOptions()+'</select>'
       +'<button class="geo-v42-recover" id="geoRecoverBtn" style="display:none" onclick="geoV42Recover()">'+h(tr('Восстановить локальную копию','Lokal nusxani tiklash','Restore local copy'))+'</button>'
       +'<button class="geo-v42-reload" aria-label="'+h(tr('Обновить','Yangilash','Reload'))+'" title="'+h(tr('Обновить','Yangilash','Reload'))+'" onclick="geoV42Reload()">↻</button></div>'
-      +'<div class="geo-v42-frame"><div class="geo-v42-loader" id="geoLoader">'+h(tr('Загрузка геоаналитики…','Geoanalitika yuklanmoqda…','Loading geoanalytics…'))+'</div><iframe id="geoFrame" title="CASE Universal Geoanalytics" src="geoanalytics-studio.html?embedded=1&amp;v=4.17.0" loading="eager"></iframe></div>'
+      +'<div class="geo-v42-frame"><div class="geo-v42-loader" id="geoLoader">'+h(tr('Загрузка геоаналитики…','Geoanalitika yuklanmoqda…','Loading geoanalytics…'))+'</div><iframe id="geoFrame" title="CASE Universal Geoanalytics" src="geoanalytics-studio.html?embedded=1&amp;v='+geoStudioVer()+'" loading="eager"></iframe></div>'
       +'</section>';
     G.ready=false;requestAnimationFrame(fitFrame);
   }
@@ -160,6 +162,6 @@
   });
   window.geoV42Project=function(id){G.project=String(id||'');context();};
   window.geoV42Recover=function(){if(!G.recoveryData||G.saving)return;var copy=JSON.parse(JSON.stringify(G.recoveryData));G.recoveryData=null;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='none';saveGeo(copy,'восстановление локальной копии Младшего администратора');};
-  window.geoV42Reload=function(){var fr=frame();if(fr){G.ready=false;var l=document.getElementById('geoLoader');if(l)l.style.display='flex';fr.src='geoanalytics-studio.html?embedded=1&v=4.17.0&t='+Date.now();}};
+  window.geoV42Reload=function(){var fr=frame();if(fr){G.ready=false;var l=document.getElementById('geoLoader');if(l)l.style.display='flex';fr.src='geoanalytics-studio.html?embedded=1&v='+geoStudioVer()+'&t='+Date.now();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
