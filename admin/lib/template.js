@@ -194,6 +194,15 @@ function renderLanding(cfg) {
   const accent = /^#[0-9a-fA-F]{6}$/.test(String(cfg.brand.accent || '').trim()) ? String(cfg.brand.accent).trim() : '';
   const accentCss = accent ? `\n:root{--bronze:${accent};--bronze-d:${shade(accent, 0.82)}}` : '';
 
+  // логотип: загруженная картинка или буквенная метка
+  const logoFile = String(cfg.brand.logo || '').trim();
+  const brandMark = logoFile
+    ? `<span class="brand-mark brand-imgmark"><img src="${escAttr(img(logoFile))}" alt="${escAttr(L(cfg.brand.name))}"></span>`
+    : `<span class="brand-mark">${esc(cfg.brand.mark || 'BC')}</span>`;
+  const favicon = logoFile
+    ? `assets/${escAttr(logoFile)}`
+    : `data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1f21'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='26' font-weight='700' fill='%23fff' text-anchor='middle'%3E${encodeURIComponent(esc(cfg.brand.mark || 'BC').slice(0, 3))}%3C/text%3E%3C/svg%3E`;
+
   // мета: title/description по языкам
   for (const lang of LANGS) {
     const mt = Lx(cfg.seo.title, lang), md = Lx(cfg.seo.description, lang);
@@ -453,7 +462,7 @@ ${ogImg ? `<meta property="og:image" content="${escAttr(ogImg)}">` : ''}
 <meta name="twitter:title" content="${escAttr(L(cfg.seo.title))}">
 <meta name="twitter:description" content="${escAttr(L(cfg.seo.description))}">
 ${ogImg ? `<meta name="twitter:image" content="${escAttr(ogImg)}">` : ''}
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231d1f21'/%3E%3Ctext x='32' y='42' font-family='Arial' font-size='26' font-weight='700' fill='%23fff' text-anchor='middle'%3E${encodeURIComponent(esc(cfg.brand.mark || 'BC').slice(0, 3))}%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="${favicon}">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -466,7 +475,7 @@ ${ldFaq ? `<script type="application/ld+json">${JSON.stringify(ldFaq)}</script>`
 <nav id="nav">
   <div class="nav-in">
     <a href="#" class="brand">
-      <span class="brand-mark">${esc(cfg.brand.mark || 'BC')}</span>
+      ${brandMark}
       <span class="brand-t"><span class="brand-n"${brandN.attr}>${brandN.ru}</span><span class="brand-s"${brandS.attr}>${brandS.ru}</span></span>
     </a>
     <ul class="nl">
@@ -630,7 +639,7 @@ ${faqItems}
 <footer>
   <div class="wrap foot">
     <div class="foot-l brand" style="text-decoration:none">
-      <span class="brand-mark">${esc(cfg.brand.mark || 'BC')}</span>
+      ${brandMark}
       <span class="brand-t"><span class="brand-n"${brandN.attr}>${brandN.ru}</span><span class="brand-s"${footAddr.attr}>${footAddr.ru}</span></span>
     </div>
     <div class="foot-r">
@@ -688,7 +697,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:400;height:66px;display:flex;ali
 nav.s{background:rgba(246,245,242,.96);backdrop-filter:blur(12px);box-shadow:0 1px 0 var(--line)}
 .nav-in{width:100%;max-width:var(--max);margin:0 auto;padding:0 var(--g);display:flex;align-items:center;justify-content:space-between;gap:24px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none}
-.brand-mark{width:38px;height:38px;background:var(--granite);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--h);font-weight:800;font-size:13px;letter-spacing:.5px;border-radius:8px}
+.brand-mark{width:38px;height:38px;background:var(--granite);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--h);font-weight:800;font-size:13px;letter-spacing:.5px;border-radius:8px;flex-shrink:0}
+.brand-imgmark{background:transparent;overflow:hidden}
+.brand-imgmark img{width:100%;height:100%;object-fit:contain;border-radius:8px}
 .brand-t{display:flex;flex-direction:column;line-height:1.15}
 .brand-n{font-family:var(--h);font-weight:800;font-size:16px;letter-spacing:.4px;color:#fff;transition:color .3s;white-space:nowrap}
 .brand-s{font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:rgba(255,255,255,.55);transition:color .3s;white-space:nowrap}

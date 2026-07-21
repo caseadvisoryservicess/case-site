@@ -726,6 +726,7 @@
       }),
       groupTitle('Бренд'),
       fieldText('Метка логотипа (до 3 букв)', 'brand.mark', { placeholder: 'SFB' }),
+      imagePicker('Логотип-картинка (пусто — используется буквенная метка выше)', 'brand.logo'),
       mlField('Название', 'brand.name'),
       mlField('Подпись под названием (адрес · город)', 'brand.tag'),
       fieldText('Акцентный цвет (hex)', 'brand.accent', {
@@ -737,7 +738,9 @@
         fieldText('Телефон', 'contacts.phone', { placeholder: '+998 …' }),
         fieldText('Telegram (имя без @)', 'contacts.telegram')
       ),
-      fieldText('E-mail', 'contacts.email'),
+      fieldText('E-mail для лидов', 'contacts.email', {
+        hint: 'Каждая заявка пересылается сюда письмом. Можно несколько адресов через запятую: taxtapul@caseadvisory.uz, boss@caseadvisory.uz'
+      }),
       fieldText('Google Таблица (URL скрипта)', 'contacts.sheetsEndpoint', {
         hint: 'Адрес веб-приложения Apps Script, куда отправляются заявки. Пусто — заявки идут только в Telegram/почту.'
       }),

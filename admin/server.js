@@ -326,18 +326,24 @@ const LEAD_STATUSES = ['Новый', 'В работе', 'Встреча/пока
 // пересылка лида на почту проекта (через FormSubmit) и в Google Таблицу — в фоне
 async function forwardLead(cfg, lead) {
   const jobs = [];
-  if (cfg.contacts && cfg.contacts.email) {
-    jobs.push(fetch('https://formsubmit.co/ajax/' + cfg.contacts.email, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-      body: JSON.stringify({
-        'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '—',
-        'Интересует': lead.interest || '—', 'Помещение': lead.lot || '—',
-        'Комментарий': lead.message || '—', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
-        '_subject': 'Заявка: ' + (cfg.name || cfg.slug) + ' — ' + lead.name,
-        '_template': 'table', '_captcha': 'false'
-      })
-    }).then((r) => { lead.emailSent = r.ok; }).catch(() => { lead.emailSent = false; }));
+  // адресатов может быть несколько — через запятую (например taxtapul@caseadvisory.uz, boss@…)
+  const emails = String((cfg.contacts && cfg.contacts.email) || '')
+    .split(/[,;\s]+/).map((e) => e.trim()).filter((e) => e.includes('@'));
+  if (emails.length) {
+    lead.emailSent = false;
+    for (const to of emails) {
+      jobs.push(fetch('https://formsubmit.co/ajax/' + to, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({
+          'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '—',
+          'Интересует': lead.interest || '—', 'Помещение': lead.lot || '—',
+          'Комментарий': lead.message || '—', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
+          '_subject': 'Заявка: ' + (cfg.name || cfg.slug) + ' — ' + lead.name,
+          '_template': 'table', '_captcha': 'false'
+        })
+      }).then((r) => { if (r.ok) lead.emailSent = true; }).catch(() => {}));
+    }
   }
   if (cfg.contacts && cfg.contacts.sheetsEndpoint) {
     const fd = new URLSearchParams(); // Apps Script принимает form-encoded в e.parameter

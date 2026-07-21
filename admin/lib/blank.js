@@ -16,6 +16,7 @@ function newProject(slug, name) {
     name: name || slug,
     brand: {
       mark: 'BC',                                  // до 3 букв в логотипе-плашке
+      logo: '',                                    // файл логотипа из uploads; пусто = буквенная метка
       name: ml('Бизнес-центр'),
       tag: ml('Адрес · Город'),
       accent: ''                                   // hex-цвет акцента, пусто = фирменная бронза #a8804c
