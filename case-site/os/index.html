@@ -363,7 +363,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.19.5';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.20.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -2100,12 +2100,12 @@ function bindSvgPlan(host,objId,block,floor){
   const brandLine=offs.length?(offs.map(x=>x.to).join(', ')).slice(0,22):((u.vars[0]||u.sub||'').slice(0,18));
   let deadLine='';if(offs.length){const nearest=offs.reduce((m,x)=>(!m||new Date(x.validUntil)<new Date(m.validUntil))?x:m,null);const dd=Math.ceil((new Date(nearest.validUntil)-TODAY)/86400000);deadLine='ответ до '+dateRU(nearest.validUntil)+(dd<0?' ⚠':' ('+dd+' дн.)');}
   const lines=[u.code,brandLine,fmtA(u.area)+' м²'+(u.rate?' · '+u.rate+'$':'')];if(deadLine)lines.push(deadLine);
-  const maxch=Math.max(...lines.map(s=>String(s).length),stT(u.status).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
+  const maxch=Math.max(...lines.map(s=>String(s).length),planLabel(u).length);const bw=maxch*fs*0.58+pad*2.6,bh=(lines.length+1)*lh+pad*1.2;const bx=c.x-bw/2,by=c.y-bh/2;const g=document.createElementNS(NS,'g');g.setAttribute('data-caseos-overlay','1');g.style.cursor='move';
   const rect=document.createElementNS(NS,'rect');rect.setAttribute('x',bx);rect.setAttribute('y',by);rect.setAttribute('width',bw);rect.setAttribute('height',bh);rect.setAttribute('rx',pad);rect.setAttribute('fill','#ffffff');rect.setAttribute('fill-opacity','0.9');rect.setAttribute('stroke',unitStrokeHex(u));rect.setAttribute('stroke-width',Math.max(1,fs*0.22));g.appendChild(rect);
   const dot=document.createElementNS(NS,'circle');dot.setAttribute('cx',bx+pad+fs*0.4);dot.setAttribute('cy',by+pad+fs*0.55);dot.setAttribute('r',fs*0.42);dot.setAttribute('fill',unitStrokeHex(u));g.appendChild(dot);
   const mk=(s,dy,opt)=>{const tx=document.createElementNS(NS,'text');tx.setAttribute('x',bx+pad+(opt&&opt.code?fs*1.1:0));tx.setAttribute('y',by+pad+dy);tx.setAttribute('font-family','Montserrat,Arial,sans-serif');tx.setAttribute('font-size',opt&&opt.s?opt.s:fs);if(opt&&opt.b)tx.setAttribute('font-weight','800');tx.setAttribute('fill',opt&&opt.c?opt.c:'#222');tx.setAttribute('pointer-events','none');tx.textContent=s;g.appendChild(tx);};
-  mk(u.code,lh*0.85,{b:1,code:1});mk(lines[1],lh*1.95,{});mk(lines[2],lh*3.0,{c:'#555',s:fs*0.92});if(lines[3])mk(lines[3],lh*4.05,{c:'#9E0000',s:fs*0.88});mk(stT(u.status),lh*(lines[3]?5.1:4.05),{b:1,s:fs*0.92,c:unitStrokeHex(u)});
-  const tt=document.createElementNS(NS,'title');tt.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status)+' · перетащите, чтобы сдвинуть';g.appendChild(tt);
+  mk(u.code,lh*0.85,{b:1,code:1});mk(lines[1],lh*1.95,{});mk(lines[2],lh*3.0,{c:'#555',s:fs*0.92});if(lines[3])mk(lines[3],lh*4.05,{c:'#9E0000',s:fs*0.88});mk(planLabel(u),lh*(lines[3]?5.1:4.05),{b:1,s:fs*0.92,c:unitStrokeHex(u)});
+  const tt=document.createElementNS(NS,'title');tt.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+planLabel(u)+' · перетащите, чтобы сдвинуть';g.appendChild(tt);
   const off={dx:(POS[u.code]&&POS[u.code].dx)||0,dy:(POS[u.code]&&POS[u.code].dy)||0};if(off.dx||off.dy)g.setAttribute('transform','translate('+off.dx+','+off.dy+')');
   let drag=null;
   g.addEventListener('pointerdown',ev=>{ev.stopPropagation();const m=svg.getScreenCTM();drag={x:ev.clientX,y:ev.clientY,ox:off.dx,oy:off.dy,sx:(m&&m.a)||1,sy:(m&&m.d)||1,moved:false};try{g.setPointerCapture(ev.pointerId);}catch(e){}});
@@ -2133,9 +2133,10 @@ function bindSvgPlan(host,objId,block,floor){
  }catch(e){}
 }
 function addSvgTitle(el,u){let ttl=el.querySelector('title');if(!ttl){ttl=document.createElementNS('http://www.w3.org/2000/svg','title');el.insertBefore(ttl,el.firstChild);}ttl.textContent=u.code+' · '+(u.vars[0]||u.sub||'')+' · '+stT(u.status);}
-function planLegend(){const m=planMode();const toggle=`<div class="tabs" style="margin:0 0 8px"><button class="${m==='status'?'on':''}" onclick="S.planMode='status';renderPlans()">Раскраска: статус</button><button class="${m==='cat'?'on':''}" onclick="S.planMode='cat';renderPlans()">Раскраска: категория</button></div>`;
+function planLegend(){const m=planMode();const toggle=`<div class="tabs" style="margin:0 0 8px"><button class="${m==='status'?'on':''}" onclick="S.planMode='status';renderPlans()">Раскраска: статус</button><button class="${m==='cat'?'on':''}" onclick="S.planMode='cat';renderPlans()">Раскраска: категория</button><button class="${m==='sale'?'on':''}" onclick="S.planMode='sale';renderPlans()">Раскраска: продажа</button></div>`;
  let leg;
  if(m==='cat'){const cats=[];unitsOf(S.obj).forEach(u=>{if(u.cat&&u.cat!=='-'&&cats.indexOf(u.cat)<0)cats.push(u.cat);});leg=cats.length?cats.map(c=>`<span>${catDot(c)}${esc(c)}</span>`).join(''):'<span style="color:var(--muted)">Нет категорий</span>';}
+ else if(m==='sale'){leg=[['Свободно','#e7f4e8','var(--green)'],['Бронь','#fff3e0','var(--amber)'],['Договор/задаток','#e4eefb','var(--blue)'],['Продано','#fdeaea','var(--red)']].map(x=>`<span><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span> ${x[0]}</span>`).join('');}
  else{leg=[['Подписан','#e7f4e8','var(--green)'],['На подписании','#fff3e0','var(--amber)'],['Предложено','#fdeaea','var(--red)'],['Переговоры','#e4eefb','var(--blue)'],['Вакант','#f0f0f0','#999']].map(x=>`<span><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span> ${x[0]}</span>`).join('');}
  const cats=[];unitsOf(S.obj).forEach(u=>{if(u.cat&&u.cat!=='-'&&cats.indexOf(u.cat)<0)cats.push(u.cat);});
  const ss='font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px';
@@ -2391,15 +2392,24 @@ function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
 function pstr(s){return{vac:'#aaa',neg:'var(--blue)',off:'var(--red)',os:'var(--teal)',cs:'var(--amber)',cd:'var(--green)',res:'var(--purple)'}[s];}
 function pstrHex(s){return{vac:'#999999',neg:'#1565c0',off:'#9E0000',os:'#0e8a8a',cs:'#e08600',cd:'#2e7d32',res:'#6a3fb5'}[s]||'#777777';}
-/* раскраска плана: по статусу или по категории */
+/* Контроль продажи (SCR): статус продажи юнита для раскраски плана «по продаже». Юнит без saleStatus считается свободным. */
+const SALESTAT={savail:'Свободно',sresv:'Бронь',sdeal:'Договор/задаток',ssold:'Продано'};
+function saleOf(u){return (u&&u.saleStatus&&SALESTAT[u.saleStatus])?u.saleStatus:'savail';}
+function ssT(s){return SALESTAT[s]||s;}
+function psf(s){return{savail:'#e7f4e8',sresv:'#fff3e0',sdeal:'#e4eefb',ssold:'#fdeaea'}[s]||'#f0f0f0';}
+function psstr(s){return{savail:'var(--green)',sresv:'var(--amber)',sdeal:'var(--blue)',ssold:'var(--red)'}[s]||'#aaa';}
+function psstrHex(s){return{savail:'#2e7d32',sresv:'#e08600',sdeal:'#1565c0',ssold:'#9E0000'}[s]||'#777777';}
+/* Метка юнита на плане: по режиму раскраски (статус аренды / продажа). */
+function planLabel(u){return planMode()==='sale'?ssT(saleOf(u)):stT(u.status);}
+/* раскраска плана: по статусу, по категории или по статусу продажи */
 function catHex(cat){if(!cat||cat==='-')return '#9aa0a6';if(CATPAL[cat])return CATPAL[cat];for(const k in CATPAL){if(cat.indexOf(k)>=0||k.indexOf(cat)>=0)return CATPAL[k];}return '#9aa0a6';}
 function lighten(hex,amt){hex=String(hex).replace('#','');if(hex.length===3)hex=hex.split('').map(c=>c+c).join('');let r=parseInt(hex.slice(0,2),16),g=parseInt(hex.slice(2,4),16),b=parseInt(hex.slice(4,6),16);r=Math.round(r+(255-r)*amt);g=Math.round(g+(255-g)*amt);b=Math.round(b+(255-b)*amt);return '#'+[r,g,b].map(x=>x.toString(16).padStart(2,'0')).join('');}
 function planMode(){return S.planMode||'status';}
 function planMatch(u){const c=S.planCat,st=S.planStat;return ((!c||c==='Все')||u.cat===c)&&((!st||st==='Все')||u.status===st);}
-function unitFill(u){if(!planMatch(u))return '#efefef';return planMode()==='cat'?lighten(catHex(u.cat),0.72):pf(u.status);}
-function unitStroke(u){if(!planMatch(u))return '#d2d2d2';return planMode()==='cat'?catHex(u.cat):pstr(u.status);}
-function unitStrokeHex(u){if(!planMatch(u))return '#cccccc';return planMode()==='cat'?catHex(u.cat):pstrHex(u.status);}
-function planSVG(id,block,floor){const us=unitsOf(id).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block));let x=18,y=18;const H=104,g=12,W=1000;let r='';us.forEach(u=>{let w=Math.max(120,Math.min(330,Math.round(u.area*0.18)+90));if(x+w>W-18){x=18;y+=H+g;}const nm=(u.vars[0]||u.sub||'').slice(0,18);r+=`<g style="cursor:pointer" onclick="openUnit('${u.id}')"><rect x="${x}" y="${y}" width="${w}" height="${H}" rx="9" fill="${unitFill(u)}" stroke="${unitStroke(u)}" stroke-width="1.6"/><text x="${x+12}" y="${y+24}" font-size="12.5" font-weight="800" fill="#222">${u.code}</text><text x="${x+12}" y="${y+45}" font-size="11.5" fill="#333">${nm}</text><text x="${x+12}" y="${y+64}" font-size="10.5" fill="#666">${fmtA(u.area)} м²${u.rate?' · '+u.rate+'$':''}</text><text x="${x+12}" y="${y+86}" font-size="9.5" font-weight="700" fill="${unitStroke(u)}">${stT(u.status).toUpperCase()}${u.offer?' ⚑':''}</text></g>`;x+=w+g;});return `<svg width="100%" viewBox="0 0 ${W} ${y+H+18}" style="min-width:720px"><rect x="3" y="3" width="${W-6}" height="${y+H+12}" rx="12" fill="none" stroke="#ddd6cc" stroke-width="2" stroke-dasharray="6 6"/>${r}</svg>`;}
+function unitFill(u){if(!planMatch(u))return '#efefef';const m=planMode();return m==='cat'?lighten(catHex(u.cat),0.72):(m==='sale'?psf(saleOf(u)):pf(u.status));}
+function unitStroke(u){if(!planMatch(u))return '#d2d2d2';const m=planMode();return m==='cat'?catHex(u.cat):(m==='sale'?psstr(saleOf(u)):pstr(u.status));}
+function unitStrokeHex(u){if(!planMatch(u))return '#cccccc';const m=planMode();return m==='cat'?catHex(u.cat):(m==='sale'?psstrHex(saleOf(u)):pstrHex(u.status));}
+function planSVG(id,block,floor){const us=unitsOf(id).filter(u=>(!floor||floorLabel(u.floor)===floor)&&(!block||unitBlock(u)===block));let x=18,y=18;const H=104,g=12,W=1000;let r='';us.forEach(u=>{let w=Math.max(120,Math.min(330,Math.round(u.area*0.18)+90));if(x+w>W-18){x=18;y+=H+g;}const nm=(u.vars[0]||u.sub||'').slice(0,18);r+=`<g style="cursor:pointer" onclick="openUnit('${u.id}')"><rect x="${x}" y="${y}" width="${w}" height="${H}" rx="9" fill="${unitFill(u)}" stroke="${unitStroke(u)}" stroke-width="1.6"/><text x="${x+12}" y="${y+24}" font-size="12.5" font-weight="800" fill="#222">${u.code}</text><text x="${x+12}" y="${y+45}" font-size="11.5" fill="#333">${nm}</text><text x="${x+12}" y="${y+64}" font-size="10.5" fill="#666">${fmtA(u.area)} м²${u.rate?' · '+u.rate+'$':''}</text><text x="${x+12}" y="${y+86}" font-size="9.5" font-weight="700" fill="${unitStroke(u)}">${planLabel(u).toUpperCase()}${u.offer?' ⚑':''}</text></g>`;x+=w+g;});return `<svg width="100%" viewBox="0 0 ${W} ${y+H+18}" style="min-width:720px"><rect x="3" y="3" width="${W-6}" height="${y+H+12}" rx="12" fill="none" stroke="#ddd6cc" stroke-width="2" stroke-dasharray="6 6"/>${r}</svg>`;}
 /* Zarafshan - интерактивная планировка 1-го этажа по реальному чертежу */
 const LAYOUT_ZM={
  'L1_19':{x:300,y:60,w:95,h:92},'L1_18':{x:398,y:60,w:60,h:92},'L1_17':{x:461,y:60,w:140,h:80},
@@ -2421,7 +2431,7 @@ function planSVG_zm(){
  const us=unitsOf('zm'),byCode={};us.forEach(u=>byCode[u.code]=u);
  let r='';
  DECOR_ZM.forEach(d=>{let cx,cy;if(d.poly){r+=`<polygon points="${d.poly}" fill="${d.hatch?'url(#hz)':'#f3f1ee'}" stroke="#cfc9c1" stroke-width="1.2"/>`;cx=d.cx;cy=d.cy;}else{r+=`<rect x="${d.x}" y="${d.y}" width="${d.w}" height="${d.h}" rx="6" fill="#f3f1ee" stroke="#cfc9c1" stroke-width="1.2"/>`;cx=d.x+d.w/2;cy=d.y+d.h/2;}r+=`<text x="${cx}" y="${cy}" text-anchor="middle" font-size="10" font-weight="700" fill="#9a948c">${d.label}</text>${d.sub?`<text x="${cx}" y="${cy+13}" text-anchor="middle" font-size="9" fill="#bdb7af">${d.sub}</text>`:''}`;});
- Object.keys(LAYOUT_ZM).forEach(code=>{const u=byCode[code];if(!u)return;const L=LAYOUT_ZM[code],fill=unitFill(u),stroke=unitStroke(u),nm=esc((u.vars[0]||u.sub||'').slice(0,16)),lbl=stT(u.status).toUpperCase()+(u.offer?' ⚑':'');
+ Object.keys(LAYOUT_ZM).forEach(code=>{const u=byCode[code];if(!u)return;const L=LAYOUT_ZM[code],fill=unitFill(u),stroke=unitStroke(u),nm=esc((u.vars[0]||u.sub||'').slice(0,16)),lbl=planLabel(u).toUpperCase()+(u.offer?' ⚑':'');
   if(L.poly){r+=`<g style="cursor:pointer" onclick="openUnit('${u.id}')"><polygon points="${L.poly}" fill="${fill}" stroke="${stroke}" stroke-width="1.8"/><text x="${L.cx}" y="${L.cy-12}" text-anchor="middle" font-size="12" font-weight="800" fill="#222">${u.code}</text><text x="${L.cx}" y="${L.cy+4}" text-anchor="middle" font-size="10" fill="#333">${nm}</text><text x="${L.cx}" y="${L.cy+19}" text-anchor="middle" font-size="9.5" fill="#666">${fmtA(u.area)} м²</text><text x="${L.cx}" y="${L.cy+34}" text-anchor="middle" font-size="9" font-weight="700" fill="${stroke}">${lbl}</text></g>`;}
   else{const small=L.w<60||L.h<46;r+=`<g style="cursor:pointer" onclick="openUnit('${u.id}')"><rect x="${L.x}" y="${L.y}" width="${L.w}" height="${L.h}" rx="6" fill="${fill}" stroke="${stroke}" stroke-width="1.6"/><text x="${L.x+6}" y="${L.y+15}" font-size="${small?8.5:11}" font-weight="800" fill="#222">${u.code}</text>${small?`<text x="${L.x+6}" y="${L.y+L.h-5}" font-size="7.5" font-weight="700" fill="${stroke}">${fmtA(u.area)}м²</text>`:`<text x="${L.x+6}" y="${L.y+30}" font-size="9" fill="#333">${nm}</text><text x="${L.x+6}" y="${L.y+44}" font-size="8.5" fill="#666">${fmtA(u.area)} м²${u.rate?' · '+u.rate+'$':''}</text><text x="${L.x+6}" y="${L.y+L.h-6}" font-size="8" font-weight="700" fill="${stroke}">${lbl}</text>`}</g>`;}
  });
@@ -3291,6 +3301,7 @@ function editUnitArea(id){if(!R().edit){alert('Недостаточно прав
 function unitForm(id){
  const u=U.find(x=>x.id===id);
  const sts=[['vac','Вакант'],['neg','Переговоры'],['off','Предложено'],['os','Предложение подписано'],['cs','Контракт на подписании'],['cd','Контракт подписан'],['res','Резерв']];
+ const saleSts=[['savail','Свободно'],['sresv','Бронь'],['sdeal','Договор/задаток'],['ssold','Продано']];
  const cats=CASECATS.map(c=>[c,c]);if(u.cat&&CASECATS.indexOf(u.cat)<0)cats.unshift([u.cat,u.cat+' (прежняя)']);const _oldcats=[['Еда и напитки','Еда и напитки'],['Мода и стиль','Мода и стиль'],['Торговля','Торговля'],['Продукты','Продукты'],['Услуги','Услуги'],['Офис','Офис'],['Электроника','Электроника'],['Развлечения','Развлечения'],['Co-tenancy','Co-tenancy'],['-','-']];
  const brokers=brokerNames();const brokerOpts=[['','—']].concat(brokers.map(b=>[b,b]));if(u.broker&&brokers.indexOf(u.broker)<0)brokerOpts.push([u.broker,u.broker]);
  $('drawer').innerHTML='<div class="dh"><span class="x" onclick="openUnit(\''+id+'\')">×</span><h2>Редактирование помещения</h2><div class="s">'+esc(u.code)+'</div></div><div class="dbody">'
@@ -3301,7 +3312,8 @@ function unitForm(id){
  +'<div style="display:flex;gap:8px;flex-wrap:wrap"><div style="flex:1;min-width:120px">'+_bFL('Формат','e_format',u.format||'','fmtDL')+'</div><div style="flex:1;min-width:120px">'+_bFL('Концепт','e_concept',u.concept||'','conDL')+'</div><div style="flex:1;min-width:120px">'+_bFL('Зона','e_zone',u.zone||'','zoneDL')+'</div></div>'
  +'<datalist id="fmtDL">'+[...new Set(U.map(x=>x.format).filter(Boolean).concat(BRANDS.map(x=>x.format).filter(Boolean)))].map(v=>'<option value="'+esc(v)+'">').join('')+'</datalist><datalist id="conDL">'+[...new Set(U.map(x=>x.concept).filter(Boolean).concat(BRANDS.map(x=>x.concept).filter(Boolean)))].map(v=>'<option value="'+esc(v)+'">').join('')+'</datalist><datalist id="zoneDL">'+[...new Set(U.map(x=>x.zone).filter(Boolean))].map(v=>'<option value="'+esc(v)+'">').join('')+'</datalist>'
  +'<div class="row2"><div>'+_bF('Площадь, м²','e_area',u.area)+'</div><div>'+_bF('Терраса, м²','e_terr',u.terr)+'</div></div>'
- +'<div class="row2"><div>'+_bF('Ставка, $/м² (факт/предложение)','e_rate',u.rate)+'</div><div>'+_bSel('Статус','e_status',sts,u.status)+'</div></div>'
+ +'<div class="row2"><div>'+_bF('Ставка, $/м² (факт/предложение)','e_rate',u.rate)+'</div><div>'+_bSel('Статус (аренда)','e_status',sts,u.status)+'</div></div>'
+ +'<div class="row2"><div>'+_bSel('Статус продажи (SCR)','e_salestatus',saleSts,saleOf(u))+'</div><div><label style="display:block;font-size:11px;color:var(--muted);margin:6px 0 2px">Показывается на плане «Раскраска: продажа»</label></div></div>'
  +_bF('Бюджетная ставка, $/м² (план для владельца)','e_budget',u.budget!=null?u.budget:u.rate)
  +_bSel('Брокер','e_broker',brokerOpts,u.broker||'')
  +'<div style="font-size:11px;color:var(--muted);margin-top:8px">Аренда/мес пересчитается автоматически (площадь × ставка). Контрольные даты - кнопкой «+ дата» в карточке.</div>'
@@ -3313,7 +3325,7 @@ function unitSave(id){const u=U.find(x=>x.id===id);if(!u)return;const g=i=>{cons
  const newCode=(g('e_code')||u.code).trim(); /* коды уникальны внутри объекта; в разных объектах могут совпадать — это нормально */
  if(newCode.toLowerCase()!==String(u.code).toLowerCase()&&U.some(x=>x.obj===u.obj&&x.id!==u.id&&String(x.code).trim().toLowerCase()===newCode.toLowerCase())){alert('В этом объекте уже есть помещение с кодом «'+newCode+'». Коды внутри объекта должны быть уникальными (в других объектах такой код — не помеха).');return;}
  const _pb=u.broker,_ps=u.status;
- u.code=newCode||u.code;u.floor=g('e_floor');u.block=(g('e_block')||'').trim();u.cat=g('e_cat');u.sub=g('e_sub');u.format=(g('e_format')||'').trim();u.concept=(g('e_concept')||'').trim();u.zone=(g('e_zone')||'').trim();u.area=+g('e_area')||0;u.terr=+g('e_terr')||0;u.rate=+g('e_rate')||0;u.budget=+g('e_budget')||0;u.status=g('e_status');u.broker=g('e_broker');
+ u.code=newCode||u.code;u.floor=g('e_floor');u.block=(g('e_block')||'').trim();u.cat=g('e_cat');u.sub=g('e_sub');u.format=(g('e_format')||'').trim();u.concept=(g('e_concept')||'').trim();u.zone=(g('e_zone')||'').trim();u.area=+g('e_area')||0;u.terr=+g('e_terr')||0;u.rate=+g('e_rate')||0;u.budget=+g('e_budget')||0;u.status=g('e_status');{const _ss=g('e_salestatus');if(_ss&&SALESTAT[_ss])u.saleStatus=_ss;}u.broker=g('e_broker');
  u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);commTrack(u,_pb,_ps);
  planUnignoreCode(u.obj,u.code);u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);audit('Правка помещения',u.code);persist();openUnit(id);}
 function shortlistPick(id){pickerView(id,false);}
