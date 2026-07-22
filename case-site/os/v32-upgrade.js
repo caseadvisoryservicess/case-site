@@ -342,9 +342,9 @@
   }
   /* ── SCR = структура как LCR: поюнитный реестр продаж (те же юниты U) + план продаж + инвест-объекты ── */
   var SCRL={
-   ru:{reg:'Реестр продаж',plan:'Планировка продаж',refus:'Отказы',assets:'Инвест-объекты (целиком)',price:'Цена $/м²',sum:'Сумма продажи',sstatus:'Статус продажи',avg:'Ср. цена $/м²',portfolio:'Портфель продаж, $',units:'Юнитов',code:'Код',block:'Блок',floor:'Этаж',cat:'Категория',area:'Площадь м²',broker:'Брокер',selObj:'Выберите конкретный объект в шапке, чтобы вести поюнитный реестр продаж.',noUnits:'В объекте пока нет помещений. Реестр общий с «Контроль аренды (LCR)» — добавьте помещения там или сгенерируйте с плана.',openPlan:'Открыть план продаж →',assetsHint:'Продажа объектов целиком (инвесторам): NDA, due diligence, оферта, SPA, закрытие.',saleOff:'Для этого объекта продажа не включена. Откройте настройки объекта («✎ Объект» в шапке) и отметьте «Продажа (SCR)» — реестр и планировка продаж появятся автоматически (те же помещения, что и в аренде).',objSettings:'✎ Настройки объекта'},
-   uz:{reg:'Sotuv reestri',plan:'Sotuv planirovkasi',refus:'Rad etishlar',assets:'Invest-obyektlar (butun)',price:'Narx $/m²',sum:'Sotuv summasi',sstatus:'Sotuv holati',avg:'Oʻrt. narx $/m²',portfolio:'Sotuv portfeli, $',units:'Yunitlar',code:'Kod',block:'Blok',floor:'Qavat',cat:'Toifa',area:'Maydon m²',broker:'Broker',selObj:'Poyunit sotuv reestri uchun tepada aniq obyekt tanlang.',noUnits:'Obyektda hozircha xonalar yoʻq. Reestr «Ijara nazorati (LCR)» bilan umumiy.',openPlan:'Sotuv planini ochish →',assetsHint:'Obyektlarni butunligicha sotish (investorlarga): NDA, DD, oferta, SPA.',saleOff:'Bu obyekt uchun sotuv yoqilmagan. Obyekt sozlamalarini oching («✎ Obyekt») va «Sotuv (SCR)» ni belgilang — reestr va sotuv plani avtomatik paydo boʻladi.',objSettings:'✎ Obyekt sozlamalari'},
-   en:{reg:'Sales register',plan:'Sales floor plan',refus:'Refusals',assets:'Investment assets (whole)',price:'Price $/m²',sum:'Sale total',sstatus:'Sale status',avg:'Avg price $/m²',portfolio:'Sales portfolio, $',units:'Units',code:'Code',block:'Block',floor:'Floor',cat:'Category',area:'Area m²',broker:'Broker',selObj:'Pick a specific property in the header to run the per-unit sales register.',noUnits:'No units yet. The register is shared with Lease Control (LCR).',openPlan:'Open sales plan →',assetsHint:'Selling whole assets to investors: NDA, due diligence, offer, SPA, closing.',saleOff:'Sale is not enabled for this property. Open property settings (“✎ Property”) and tick “Sale (SCR)” — the sales register and plan will appear automatically (same units as lease).',objSettings:'✎ Property settings'}
+   ru:{reg:'Реестр продаж',plan:'Планировка продаж',refus:'Отказы',assets:'Инвест-объекты (целиком)',price:'Цена $/м²',sum:'Сумма продажи',sstatus:'Статус продажи',vars:'Варианты (бренды)',avg:'Ср. цена $/м²',portfolio:'Портфель продаж, $',units:'Юнитов',code:'Код',block:'Блок',floor:'Этаж',cat:'Категория',area:'Площадь м²',broker:'Брокер',selObj:'Выберите конкретный объект в шапке, чтобы вести поюнитный реестр продаж.',noUnits:'В объекте пока нет помещений. Реестр общий с «Контроль аренды (LCR)» — добавьте помещения там или сгенерируйте с плана.',openPlan:'Открыть план продаж →',assetsHint:'Продажа объектов целиком (инвесторам): NDA, due diligence, оферта, SPA, закрытие.',saleOff:'Для этого объекта продажа не включена. Откройте настройки объекта («✎ Объект» в шапке) и отметьте «Продажа (SCR)» — реестр и планировка продаж появятся автоматически (те же помещения, что и в аренде).',objSettings:'✎ Настройки объекта'},
+   uz:{reg:'Sotuv reestri',plan:'Sotuv planirovkasi',refus:'Rad etishlar',assets:'Invest-obyektlar (butun)',price:'Narx $/m²',sum:'Sotuv summasi',sstatus:'Sotuv holati',vars:'Variantlar (brendlar)',avg:'Oʻrt. narx $/m²',portfolio:'Sotuv portfeli, $',units:'Yunitlar',code:'Kod',block:'Blok',floor:'Qavat',cat:'Toifa',area:'Maydon m²',broker:'Broker',selObj:'Poyunit sotuv reestri uchun tepada aniq obyekt tanlang.',noUnits:'Obyektda hozircha xonalar yoʻq. Reestr «Ijara nazorati (LCR)» bilan umumiy.',openPlan:'Sotuv planini ochish →',assetsHint:'Obyektlarni butunligicha sotish (investorlarga): NDA, DD, oferta, SPA.',saleOff:'Bu obyekt uchun sotuv yoqilmagan. Obyekt sozlamalarini oching («✎ Obyekt») va «Sotuv (SCR)» ni belgilang — reestr va sotuv plani avtomatik paydo boʻladi.',objSettings:'✎ Obyekt sozlamalari'},
+   en:{reg:'Sales register',plan:'Sales floor plan',refus:'Refusals',assets:'Investment assets (whole)',price:'Price $/m²',sum:'Sale total',sstatus:'Sale status',vars:'Variants (brands)',avg:'Avg price $/m²',portfolio:'Sales portfolio, $',units:'Units',code:'Code',block:'Block',floor:'Floor',cat:'Category',area:'Area m²',broker:'Broker',selObj:'Pick a specific property in the header to run the per-unit sales register.',noUnits:'No units yet. The register is shared with Lease Control (LCR).',openPlan:'Open sales plan →',assetsHint:'Selling whole assets to investors: NDA, due diligence, offer, SPA, closing.',saleOff:'Sale is not enabled for this property. Open property settings (“✎ Property”) and tick “Sale (SCR)” — the sales register and plan will appear automatically (same units as lease).',objSettings:'✎ Property settings'}
   };
   function scrT(k){var L=lang();return (SCRL[L]&&SCRL[L][k])||SCRL.ru[k]||k;}
   function scrCanEdit(){try{var r=rights();return !!(r.edit||r.admin);}catch(e){return false;}}
@@ -394,6 +394,7 @@
       {k:'price',label:scrT('price'),get:function(u){return +u.salePrice||0;},num:true,sortable:true,render:scrPriceCell},
       {k:'sum',label:scrT('sum'),get:function(u){return Math.round((+u.salePrice||0)*(+u.area||0));},num:true,sortable:true,render:function(u){var t=Math.round((+u.salePrice||0)*(+u.area||0));return t?('<b>'+money(t)+'</b>'):'—';}},
       {k:'sstatus',label:scrT('sstatus'),get:function(u){return scrSaleLabel(scrSaleOf(u));},sortable:true,filter:'select',render:scrStatusCell},
+      {k:'vars',label:scrT('vars'),get:function(u){return (u.vars&&u.vars.length)||0;},num:true,sortable:true,render:function(u){return (u.vars&&u.vars.length)?((typeof varBullets==='function')?varBullets(u.vars,''):h(u.vars.join(', '))):'<span class="mut">—</span>';}},
       {k:'broker',label:scrT('broker'),get:function(u){return u.broker||'';},sortable:true,filter:'select'}
     ];
     var tbl=(typeof buildTable==='function')?buildTable('scr_registry',cols,units,{rowClick:function(u){return "openUnit('"+u.id+"')";}}):'';
@@ -410,7 +411,8 @@
     var allObj=(oid==='ALL');
     var list=(typeof refusList==='function')?refusList(oid):[];
     var canEdit=scrCanEdit();
-    var cols=[{k:'brand',label:'Бренд / покупатель',get:function(r){return r.brand||'';},sortable:true,filter:'text',render:function(r){return '<b>'+h(r.brand||'')+'</b>';}}];
+    var cloak=(typeof brandCloak==='function')?brandCloak:function(v){return v;};
+    var cols=[{k:'brand',label:'Бренд / покупатель',get:function(r){return r.brand||'';},sortable:true,filter:'text',render:function(r){return '<b>'+h(cloak(r.brand||''))+'</b>';}}];
     if(allObj)cols.push({k:'obj',label:'Объект',get:function(r){return (typeof objById==='function'?((objById(r.obj)||{}).name||''):'');},sortable:true,filter:'select'});
     cols.push({k:'unitCode',label:'Помещение',get:function(r){return r.unitCode||'';},sortable:true,filter:'text',render:function(r){return r.unitCode?h(r.unitCode):'<span class="mut">-</span>';}});
     cols.push({k:'conditions',label:'Что предлагали / условия',get:function(r){return r.conditions||'';},filter:'text',render:function(r){return r.conditions?h(r.conditions):'<span class="mut">-</span>';}});
@@ -433,10 +435,13 @@
   function renderSales(){
     ensureData();
     var tab=window.SCR_TAB||'reg';
+    /* Отказной лист — внутренняя конкурентная аналитика; внешним агентам (project_scope) не показываем. */
+    var scrExt=(typeof R==='function')?!!R().external:false;
+    if(scrExt&&tab==='refus'){tab='reg';window.SCR_TAB='reg';}
     var tb=function(k,ic,lbl){return '<button class="'+(tab===k?'on':'')+'" onclick="scrTab(\''+k+'\')">'+ic+' '+h(lbl)+'</button>';};
-    var tabbar='<div class="tabs" style="margin-bottom:10px">'+tb('reg','▤',scrT('reg'))+tb('plan','▭',scrT('plan'))+tb('refus','⊘',scrT('refus'))+tb('assets','◆',scrT('assets'))+'</div>';
+    var tabbar='<div class="tabs" style="margin-bottom:10px">'+tb('reg','▤',scrT('reg'))+tb('plan','▭',scrT('plan'))+(scrExt?'':tb('refus','⊘',scrT('refus')))+tb('assets','◆',scrT('assets'))+'</div>';
     var head=pageHead(tr('sales'),tr('salesSub'),'');
-    if(tab==='refus')return head+tabbar+scrRefus()+footSafe();
+    if(tab==='refus'&&!scrExt)return head+tabbar+scrRefus()+footSafe();
     if(tab==='assets')return head+tabbar+renderSaleAssets()+footSafe();
     if(tab==='plan'){var poid=(typeof S==='object'&&S.obj)?S.obj:'ALL';if(poid!=='ALL'&&!scrSaleEnabled(poid))return head+tabbar+scrSaleOffCard(poid)+footSafe();return head+tabbar+'<div class="v32-card"><h3>'+h(scrT('plan'))+'</h3><p class="sub" style="margin:6px 0 12px">Интерактивный план объекта, раскрашенный по статусу продажи юнитов (свободно / бронь / договор / продано). Тот же движок, что в LCR.</p><button class="btn" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">'+h(scrT('openPlan'))+'</button></div>'+footSafe();}
     return head+tabbar+scrRegistry()+footSafe();

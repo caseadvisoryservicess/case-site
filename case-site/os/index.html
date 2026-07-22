@@ -138,6 +138,11 @@ td{padding:9px 9px;border-bottom:1px solid #f0eeec;vertical-align:top}tr.click{c
 .pill{font-size:10px;font-weight:700;padding:2px 9px;border-radius:12px;background:#eef;color:#33c;border:1px solid #dde}
 .legend div{display:flex;align-items:center;gap:8px;margin-bottom:6px;font-size:12px}.dot{width:11px;height:11px;border-radius:3px;display:inline-block;flex-shrink:0}
 .varchips span{display:inline-block;background:#f3eee9;border:1px solid #e6ddd2;border-radius:12px;padding:2px 9px;font-size:11px;margin:0 4px 4px 0}
+.varbul{margin:2px 0 0;padding:0;list-style:none}
+.varbul li{position:relative;padding-left:12px;font-size:11px;line-height:1.45;color:#333;white-space:normal;word-break:break-word}
+.varbul li:before{content:"•";position:absolute;left:1px;top:-.5px;color:var(--red-d,#9E0000);font-weight:700}
+/* Ячейки со списком брендов не сжимаем в одну строку — высота строки растёт по содержимому */
+td .varbul{max-width:220px}
 .miniobj{display:flex;flex-direction:column;gap:7px;border:1px solid var(--border);border-radius:8px;padding:13px;cursor:pointer}.miniobj:hover{border-color:var(--red)}
 .opsgrid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:15px}.opbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:13px;box-shadow:var(--shadow)}.opbox h3{margin:0 0 9px;font-size:13px}.oprow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f2f0ed;font-size:12px}.oprow:last-child{border-bottom:none}.oprow b{font-size:12.5px}.oprow small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}.sev{font-size:10px;font-weight:800;border-radius:10px;padding:2px 7px;white-space:nowrap}.sev.red{background:#fdeaea;color:var(--red-d)}.sev.amber{background:#fff3e0;color:var(--amber)}.sev.green{background:#e7f4e8;color:var(--green)}.sev.gray{background:#f0f0f0;color:#6d6d6d}
 .objgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -368,7 +373,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.29.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.29.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -493,6 +498,9 @@ let CHAT=[];                   /* внутренний чат: удалять н
 let TRASH=[];                  /* корзина удалённого: помещения/бренды/материалы, восстановление админом */
 const esc=v=>(v==null?'':String(v)).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 function hlt(s,q){s=esc(s);if(!q)return s;const eq=esc(String(q));const i=s.toLowerCase().indexOf(eq.toLowerCase());if(i<0)return s;return s.slice(0,i)+'<mark>'+s.slice(i,i+eq.length)+'</mark>'+s.slice(i+eq.length);}
+/* Бренды-варианты в ячейках реестра (аренда/продажа) — вертикальный список буллетами: каждый бренд на своей
+   строке, высота строки таблицы растёт по содержимому. Бренды скрываются для внешних агентов (brandCloak). */
+function varBullets(arr,q){if(!arr||!arr.length)return '';return '<ul class="varbul">'+arr.map(v=>`<li>${hlt(brandCloak(v),q)}</li>`).join('')+'</ul>';}
 function parseDateAny(v){if(!v)return new Date(TODAY.getTime());if(v instanceof Date)return new Date(v.getTime());const s=String(v).trim();let m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=s.match(/^(\d{2})\.(\d{2})\.(\d{4})$/);if(m)return new Date(+m[3],+m[2]-1,+m[1]);const d=new Date(s);return isNaN(d)?new Date(TODAY.getTime()):d;}
 function addDaysISO(v,days){const d=parseDateAny(v);d.setDate(d.getDate()+(+days||0));return iso(d);}
 function daysUntil(v){return Math.round((parseDateAny(v)-TODAY)/86400000);}
@@ -1536,7 +1544,11 @@ function renderRegistry(){
  const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
  /* Симметрия с SCR: объект «только продажа» (аренда выключена) не ведём в LCR — подсказка вместо реестра. */
  if(!allObj&&typeof objLeaseOn==='function'&&!objLeaseOn(S.obj)){$('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><div class="card" style="color:var(--muted)">Для объекта «${esc(curObj().name)}» аренда не включена — это объект «только продажа». Откройте «Контроль продажи (SCR)» или включите «Аренда (LCR)» в настройках объекта.${R().admin?` <span style="display:inline-block;margin-top:8px"><button class="btn sm" onclick="addObjectForm('${S.obj}')">✎ Настройки объекта</button> <button class="btn ghost sm" onclick="go('v32_sales')">Открыть SCR →</button></span>`:''}</div>`;return;}
- const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button><button class="${S.regTab==='refus'?'on':''}" onclick="S.regTab='refus';renderRegistry()">${t('refus')}</button></div>`;
+ /* Отказной лист — внутренняя конкурентная аналитика (какие бренды отказали, на каких условиях, почему).
+    Внешним агентам (project_scope) её не показываем: у них и варианты брендов скрыты (см. «скрыто» в реестре). */
+ const extAgent=R().external;
+ if(extAgent&&S.regTab==='refus')S.regTab='plan';
+ const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button>${extAgent?'':`<button class="${S.regTab==='refus'?'on':''}" onclick="S.regTab='refus';renderRegistry()">${t('refus')}</button>`}</div>`;
  if(S.regTab==='chg'){
   const ch=CHANGES.filter(c=>allObj||c.obj===S.obj);
   const ccols=[{k:'date',label:'Дата',get:c=>c.date,sortable:true}];
@@ -1549,7 +1561,7 @@ function renderRegistry(){
  }
  if(S.regTab==='refus'){
   const list=refusList(S.obj);const canEditR=R().edit;
-  const rcols=[{k:'brand',label:'Бренд',get:r=>r.brand,sortable:true,filter:'text',render:r=>`<b>${esc(r.brand)}</b>`}];
+  const rcols=[{k:'brand',label:'Бренд',get:r=>r.brand,sortable:true,filter:'text',render:r=>`<b>${esc(brandCloak(r.brand))}</b>`}];
   if(allObj)rcols.push({k:'obj',label:'Объект',get:r=>objById(r.obj).name,sortable:true,filter:'select'});
   rcols.push({k:'unitCode',label:'Помещение',get:r=>r.unitCode||'',sortable:true,filter:'text',render:r=>r.unitCode?esc(r.unitCode):'<span class="mut">-</span>'});
   rcols.push({k:'conditions',label:'Что предлагали / условия',get:r=>r.conditions||'',filter:'text',render:r=>r.conditions?esc(r.conditions):'<span class="mut">-</span>'});
@@ -1570,7 +1582,7 @@ function renderRegistry(){
   <td>${hlt(u.cat,hq)}<div style="font-size:10px;color:#6d6d6d">${u.sub}</div></td>
   <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#6d6d6d">+'+fmtA(u.terr)+' терр.</div>':''}</td>
   <td class="num"${canEdit?` title="2× клик — изменить ставку" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','rate',this)"`:''}>${u.rate||'-'}</td><td class="num">${fin?(()=>{const b=uBudget(u);if(!b)return '-';const d=u.rate?Math.round((u.rate/b-1)*100):0;return b+(u.rate&&d!==0?'<div style="font-size:9.5px;color:'+(d>0?'var(--green)':'var(--red-d)')+'">'+(d>0?'+':'')+d+'%</div>':'');})():'•••'}</td><td class="num">${fin?(u.total?fmt(u.total):'-'):'•••'}</td>
-  <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(of.to)}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)).length?`<div style="font-size:10.5px;color:#6d6d6d">${hlt(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)).slice(0,2).join(', '),hq)}</div>`:''):(u.vars.length?`<span class="pill">${u.vars.length}</span> ${hlt(u.vars.slice(0,2).join(', '),hq)}${u.vars.length>2?'…':''}`:'<span style="color:#6d6d6d">-</span>')}</td>
+  <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
   <td${canEdit?` title="2× клик — изменить" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','broker',this)"`:''}>${u.broker||'-'}</td>
   <td onclick="event.stopPropagation()" style="min-width:150px">${(()=>{const lc=(u.comments&&u.comments.length)?u.comments[u.comments.length-1]:null;return `${lc?`<div style="font-size:10.5px;color:#555" title="${esc(lc[1])} · ${esc(lc[0])}">${esc(String(lc[2]).slice(0,48))}${String(lc[2]).length>48?'…':''}</div>`:''}${canEdit?`<input placeholder="+ комментарий…" style="width:100%;font-family:inherit;font-size:10.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;margin-top:2px" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" onblur="if(this.value.trim()){regQuickComment('${u.id}',this.value);this.value='';}">`:''}`;})()}</td>
    <td onclick="event.stopPropagation()">${canEdit?`<select onchange="saveCell('${u.id}','status',this.value)" class="st-sel st-sel-${STCLS[u.status]}" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:7px;max-width:150px">${Object.keys(STAT).map(k=>`<option value="${k}"${u.status===k?' selected':''}>${stT(k)}</option>`).join('')}</select>`:`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`}${reservationBadge(u)}</td></tr>`;}).join('');
