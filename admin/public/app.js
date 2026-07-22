@@ -20,6 +20,7 @@
   var leadsBadgeEl = null;     // бейдж «новых» лидов на кнопке «Лиды»
   var leadsFilterProject = ''; // фильтры раздела «Лиды» (живут между переходами)
   var leadsFilterStatus = '';
+  var leadsAnalyticsOpen = true;
 
   // ---------------------------------------------------------------- helpers
   function esc(s) {
@@ -114,6 +115,10 @@
     return d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short', year: 'numeric' }) +
       ', ' + d.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
   }
+
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  // Ключ дня в локальном времени браузера: yyyy-mm-dd
+  function dayKey(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
 
   // Дата лида: dd.mm hh:mm
   function fmtLeadTs(s) {
@@ -1209,6 +1214,8 @@
     'Новый': 'st-new', 'В работе': 'st-work', 'Встреча/показ': 'st-meet',
     'Переговоры': 'st-neg', 'Договор': 'st-deal', 'Отказ': 'st-lost'
   };
+  // порядок этапов воронки; «Отказ» — потери, показывается отдельно
+  var LEAD_FUNNEL = ['Новый', 'В работе', 'Встреча/показ', 'Переговоры', 'Договор'];
 
   function setLeadsBadge(n) {
     if (!leadsBadgeEl) return;
@@ -1227,6 +1234,166 @@
     return '/api/leads/' + encodeURIComponent(l.project) + '/' + encodeURIComponent(l.id);
   }
 
+  // ---------------------------------------------------------------- аналитика лидов (воронка, источники, динамика)
+  function countBy(list, keyFn) {
+    var m = {}, order = [];
+    list.forEach(function (l) {
+      var k = keyFn(l) || '-';
+      if (!(k in m)) { m[k] = 0; order.push(k); }
+      m[k]++;
+    });
+    return order.map(function (k) { return { label: k, count: m[k] }; })
+      .sort(function (a, b) { return b.count - a.count; });
+  }
+
+  function statTile(value, label) {
+    return h('div', { class: 'stat-tile' },
+      h('div', { class: 'stat-value' }, String(value)),
+      h('div', { class: 'stat-label' }, label)
+    );
+  }
+
+  function analyticsStats(list) {
+    var total = list.length;
+    var byStatus = {};
+    list.forEach(function (l) { byStatus[l.status] = (byStatus[l.status] || 0) + 1; });
+    var won = byStatus['Договор'] || 0;
+    var lost = byStatus['Отказ'] || 0;
+    var fresh = byStatus['Новый'] || 0;
+    var active = total - won - lost - fresh;
+    var conv = total ? Math.round(won / total * 100) : 0;
+    return h('div', { class: 'stat-tiles' },
+      statTile(total, 'Всего лидов'),
+      statTile(fresh, 'Новых'),
+      statTile(active, 'В работе'),
+      statTile(won, 'Договор'),
+      statTile(conv + '%', 'Конверсия'),
+      statTile(lost, 'Отказ')
+    );
+  }
+
+  function analyticsFunnel(list) {
+    var total = list.length;
+    var byStatus = {};
+    list.forEach(function (l) { byStatus[l.status] = (byStatus[l.status] || 0) + 1; });
+    var rows = LEAD_FUNNEL.map(function (st) {
+      var n = byStatus[st] || 0;
+      var pct = total ? Math.round(n / total * 100) : 0;
+      return h('div', { class: 'funnel-row' },
+        h('div', { class: 'funnel-label' }, st),
+        h('div', { class: 'funnel-track' },
+          h('div', {
+            class: 'funnel-fill ' + (LEAD_ST_CLASS[st] || 'st-new'),
+            style: 'width:' + (n ? Math.max(pct, 2) : 0) + '%',
+            title: st + ': ' + n + ' из ' + total + ' (' + pct + '%)'
+          })
+        ),
+        h('div', { class: 'funnel-count' }, n)
+      );
+    });
+    var lostN = byStatus['Отказ'] || 0;
+    var lostPct = total ? Math.round(lostN / total * 100) : 0;
+    return h('div', { class: 'analytics-block' },
+      h('h3', { class: 'analytics-subtitle' }, 'Воронка по этапам'),
+      h('div', { class: 'funnel' }, rows),
+      h('div', { class: 'funnel-lost', title: 'Лиды со статусом «Отказ» не входят в воронку выше' },
+        'Отказ: ' + lostN + ' (' + lostPct + '%)')
+    );
+  }
+
+  function analyticsRankList(title, items) {
+    var maxCount = items.length ? items[0].count : 0;
+    var total = items.reduce(function (s, it) { return s + it.count; }, 0) || 1;
+    return h('div', { class: 'analytics-block' },
+      h('h3', { class: 'analytics-subtitle' }, title),
+      items.length
+        ? items.map(function (it) {
+          var pct = Math.round(it.count / total * 100);
+          var w = maxCount ? Math.round(it.count / maxCount * 100) : 0;
+          return h('div', { class: 'rank-row', title: it.label + ': ' + it.count + ' (' + pct + '%)' },
+            h('div', { class: 'rank-label' }, it.label),
+            h('div', { class: 'rank-track' }, h('div', { class: 'rank-fill', style: 'width:' + Math.max(w, 2) + '%' })),
+            h('div', { class: 'rank-count' }, it.count)
+          );
+        })
+        : h('p', { class: 'muted' }, 'Нет данных')
+    );
+  }
+
+  function analyticsTrend(list) {
+    var DAYS = 14;
+    var byDay = {};
+    list.forEach(function (l) {
+      var d = new Date(l.ts);
+      if (isNaN(d.getTime())) return;
+      var k = dayKey(d);
+      byDay[k] = (byDay[k] || 0) + 1;
+    });
+    var today = new Date();
+    var series = [];
+    var max = 1;
+    for (var i = DAYS - 1; i >= 0; i--) {
+      var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() - i);
+      var n = byDay[dayKey(d)] || 0;
+      max = Math.max(max, n);
+      series.push({ d: d, n: n });
+    }
+    var cols = series.map(function (s) {
+      var pct = Math.round(s.n / max * 100);
+      return h('div', {
+        class: 'trend-col',
+        title: s.d.toLocaleDateString('ru-RU', { day: 'numeric', month: 'short' }) + ': ' + s.n
+      }, h('div', { class: 'trend-bar', style: 'height:' + (s.n ? Math.max(pct, 4) : 1) + '%' }));
+    });
+    return h('div', { class: 'analytics-block' },
+      h('h3', { class: 'analytics-subtitle' }, 'Заявки по дням (последние 14 дней)'),
+      h('div', { class: 'trend-chart' }, cols)
+    );
+  }
+
+  // allLeads — все доступные лиды; names — {slug: имя проекта}; фильтр по проекту берётся из leadsFilterProject
+  function leadAnalyticsBlock(allLeads, names) {
+    var body = h('div', { class: 'analytics-body' });
+    body.hidden = !leadsAnalyticsOpen;
+    var toggleBtn = h('button', {
+      type: 'button', class: 'analytics-toggle',
+      onclick: function () {
+        leadsAnalyticsOpen = !leadsAnalyticsOpen;
+        body.hidden = !leadsAnalyticsOpen;
+        toggleBtn.textContent = leadsAnalyticsOpen ? 'Скрыть' : 'Показать';
+      }
+    }, leadsAnalyticsOpen ? 'Скрыть' : 'Показать');
+
+    function refresh() {
+      body.innerHTML = '';
+      var scoped = leadsFilterProject ? allLeads.filter(function (l) { return l.project === leadsFilterProject; }) : allLeads;
+      if (!scoped.length) {
+        body.appendChild(h('div', { class: 'analytics-block analytics-empty' }, 'Нет данных для аналитики.'));
+        return;
+      }
+      var rankBlocks = [analyticsRankList('По источнику', countBy(scoped, function (l) { return l.source; }))];
+      if (!leadsFilterProject) {
+        rankBlocks.push(analyticsRankList('По проекту', countBy(scoped, function (l) { return names[l.project] || l.project; })));
+      }
+      body.appendChild(analyticsStats(scoped));
+      body.appendChild(analyticsFunnel(scoped));
+      body.appendChild(h('div', { class: 'analytics-rank-row' + (rankBlocks.length === 1 ? ' single' : '') }, rankBlocks));
+      body.appendChild(analyticsTrend(scoped));
+    }
+    refresh();
+
+    return {
+      el: h('div', { class: 'analytics-panel' },
+        h('div', { class: 'analytics-head' },
+          h('h2', { class: 'group-title analytics-title' }, 'Аналитика'),
+          toggleBtn
+        ),
+        body
+      ),
+      refresh: refresh
+    };
+  }
+
   function showLeads() {
     return Promise.all([api('/api/leads'), api('/api/projects')]).then(function (res) {
       var leads = (res[0] && res[0].leads) || [];
@@ -1243,6 +1410,8 @@
         return leads.filter(function (l) { return l.status === 'Новый'; }).length;
       }
 
+      var analytics = leadAnalyticsBlock(leads, names);
+
       // ---- фильтры
       var projSel = h('select', { class: 'leads-filter' },
         h('option', { value: '' }, 'Все проекты'),
@@ -1250,7 +1419,10 @@
       );
       if (leadsFilterProject && names[leadsFilterProject] === undefined) leadsFilterProject = '';
       projSel.value = leadsFilterProject;
-      projSel.addEventListener('change', function () { leadsFilterProject = projSel.value; renderList(); updateExportLink(); });
+      projSel.addEventListener('change', function () {
+        leadsFilterProject = projSel.value;
+        renderList(); updateExportLink(); analytics.refresh();
+      });
 
       var stSel = h('select', { class: 'leads-filter' },
         h('option', { value: '' }, 'Все статусы'),
@@ -1447,6 +1619,7 @@
       app.appendChild(header('leads'));
       app.appendChild(h('main', { class: 'container' },
         h('h1', { class: 'page-title' }, 'Лиды'),
+        analytics.el,
         h('div', { class: 'leads-toolbar' },
           projSel, stSel,
           h('span', { class: 'toolbar-spacer' }),
