@@ -4,3 +4,4 @@ data/users.json
 data/projects/*/project.json.bak
 data/projects/*/leads.json
 sites/
+backups/

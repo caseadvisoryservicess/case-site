@@ -28,7 +28,9 @@ function newProject(slug, name) {
       sheetsEndpoint: '',
       // собственная почта проекта для отправки писем (видно и редактируется только админом);
       // пусто — используется общий SMTP-ящик приложения (переменные окружения SMTP_*)
-      smtpHost: '', smtpPort: '', smtpUser: '', smtpPass: ''
+      smtpHost: '', smtpPort: '', smtpUser: '', smtpPass: '',
+      // Telegram-бот для уведомлений о новых лидах (видно и редактируется только админом)
+      tgBotToken: '', tgChatId: ''
     },
     adminUrl: '',      // адрес входа в панель - если задан, в шапке лендинга появляется кнопка «Войти»
     leadEndpoint: '',  // URL приёма заявок; пусто = ../../api/lead/<slug> (работает на /p/ и за прокси /admin/)

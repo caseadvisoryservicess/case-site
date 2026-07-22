@@ -763,6 +763,15 @@
       row(
         fieldText('Логин (обычно = email)', 'contacts.smtpUser', { placeholder: 'project@caseadvisory.uz', autocomplete: 'off' }),
         fieldText('Пароль', 'contacts.smtpPass', { type: 'password', autocomplete: 'new-password' })
+      ),
+      groupTitle('Telegram-уведомления о лидах (только админ)'),
+      h('p', { class: 'muted', style: 'margin:-6px 0 14px' },
+        'При новой заявке бот пришлёт сообщение в чат. Токен - у @BotFather (команда /newbot). ' +
+        'Chat ID - напишите боту любое сообщение, затем откройте https://api.telegram.org/bot<ТОКЕН>/getUpdates ' +
+        'и возьмите число "chat":{"id":…}. Пусто - уведомления в Telegram не отправляются.'),
+      row(
+        fieldText('Токен бота', 'contacts.tgBotToken', { placeholder: '123456:AA...', autocomplete: 'off' }),
+        fieldText('Chat ID', 'contacts.tgChatId', { placeholder: '123456789' })
       )
     ] : []);
   }
@@ -1075,7 +1084,10 @@
 
       app.appendChild(header('users'));
       app.appendChild(h('main', { class: 'container' },
-        h('h1', { class: 'page-title' }, 'Пользователи'),
+        h('div', { class: 'page-head' },
+          h('h1', { class: 'page-title' }, 'Пользователи'),
+          h('a', { class: 'btn ghost small', href: './api/backup' }, 'Скачать бэкап данных')
+        ),
         h('div', { class: 'card' }, h('div', { class: 'table-wrap' }, table)),
         h('h2', { class: 'group-title users-create-title' }, 'Новый пользователь'),
         h('div', { class: 'card' }, createUserForm(allSlugs))
@@ -1238,7 +1250,7 @@
       );
       if (leadsFilterProject && names[leadsFilterProject] === undefined) leadsFilterProject = '';
       projSel.value = leadsFilterProject;
-      projSel.addEventListener('change', function () { leadsFilterProject = projSel.value; renderList(); });
+      projSel.addEventListener('change', function () { leadsFilterProject = projSel.value; renderList(); updateExportLink(); });
 
       var stSel = h('select', { class: 'leads-filter' },
         h('option', { value: '' }, 'Все статусы'),
@@ -1246,7 +1258,16 @@
       );
       if (leadsFilterStatus && statuses.indexOf(leadsFilterStatus) === -1) leadsFilterStatus = '';
       stSel.value = leadsFilterStatus;
-      stSel.addEventListener('change', function () { leadsFilterStatus = stSel.value; renderList(); });
+      stSel.addEventListener('change', function () { leadsFilterStatus = stSel.value; renderList(); updateExportLink(); });
+
+      var exportLink = h('a', { class: 'btn ghost' }, 'Скачать CSV');
+      function updateExportLink() {
+        var params = [];
+        if (leadsFilterProject) params.push('project=' + encodeURIComponent(leadsFilterProject));
+        if (leadsFilterStatus) params.push('status=' + encodeURIComponent(leadsFilterStatus));
+        exportLink.href = './api/leads/export' + (params.length ? '?' + params.join('&') : '');
+      }
+      updateExportLink();
 
       var listBox = h('div', { class: 'leads-list' });
 
@@ -1430,7 +1451,8 @@
           projSel, stSel,
           h('span', { class: 'toolbar-spacer' }),
           h('button', { class: 'btn accent', onclick: function () { addLeadDialog(); } }, '＋ Добавить лид'),
-          h('button', { class: 'btn ghost', onclick: guard(showLeads) }, 'Обновить')
+          h('button', { class: 'btn ghost', onclick: guard(showLeads) }, 'Обновить'),
+          exportLink
         ),
         listBox
       ));

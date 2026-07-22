@@ -16,8 +16,10 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { ZipArchive } = require('archiver'); // archiver ^8: экспортирует классы, а не фабричную функцию
 const nodemailer = require('nodemailer');
+const { Jimp, JimpMime } = require('jimp'); // чистый JS, без нативных зависимостей
 const { renderLanding } = require('./lib/template');
 const { newProject } = require('./lib/blank');
+const { buildBackupZip } = require('./lib/backup');
 
 const ROOT = __dirname;
 const DATA = path.join(ROOT, 'data');
@@ -200,11 +202,11 @@ function loadProject(req, res) {
   return slug;
 }
 
-// поля с учётными данными почты — видны и редактируются только админом;
+// поля с учётными данными (почта, Telegram-бот) — видны и редактируются только админом;
 // у агентов, даже с полным доступом к редактированию проекта, их нет ни в форме, ни в ответе API
-const SMTP_FIELDS = ['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass'];
+const ADMIN_ONLY_FIELDS = ['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'tgBotToken', 'tgChatId'];
 function redactSmtp(cfg) {
-  if (cfg && cfg.contacts) for (const k of SMTP_FIELDS) delete cfg.contacts[k];
+  if (cfg && cfg.contacts) for (const k of ADMIN_ONLY_FIELDS) delete cfg.contacts[k];
   return cfg;
 }
 
@@ -226,7 +228,7 @@ router.put('/api/projects/:slug', auth, (req, res) => {
     // агент не может ни увидеть, ни изменить SMTP проекта — подставляем то, что уже сохранено
     const prev = JSON.parse(fs.readFileSync(f, 'utf8'));
     if (!cfg.contacts) cfg.contacts = {};
-    for (const k of SMTP_FIELDS) cfg.contacts[k] = (prev.contacts && prev.contacts[k]) || '';
+    for (const k of ADMIN_ONLY_FIELDS) cfg.contacts[k] = (prev.contacts && prev.contacts[k]) || '';
   }
   // резервная копия предыдущей версии
   try { fs.copyFileSync(f, f + '.bak'); } catch {}
@@ -264,12 +266,34 @@ const upload = multer({
     cb(null, true);
   }
 });
+// ужимаем загруженное фото: длинная сторона не больше 1920px, JPEG-качество 82.
+// webp jimp не умеет читать — такие файлы просто оставляем как есть.
+// Любая ошибка тут не должна ронять загрузку — при сбое остаётся оригинал.
+const MAX_IMAGE_DIMENSION = 1920;
+async function compressImage(filePath) {
+  const ext = path.extname(filePath).toLowerCase();
+  if (ext !== '.jpg' && ext !== '.jpeg' && ext !== '.png') return;
+  try {
+    const before = fs.statSync(filePath).size;
+    const img = await Jimp.read(filePath);
+    if (img.bitmap.width > MAX_IMAGE_DIMENSION || img.bitmap.height > MAX_IMAGE_DIMENSION) {
+      img.scaleToFit({ w: MAX_IMAGE_DIMENSION, h: MAX_IMAGE_DIMENSION });
+    }
+    const buf = ext === '.png'
+      ? await img.getBuffer(JimpMime.png)
+      : await img.getBuffer(JimpMime.jpeg, { quality: 82 });
+    if (buf.length < before) fs.writeFileSync(filePath, buf);
+  } catch (e) {
+    console.error('Сжатие изображения пропущено:', e.message);
+  }
+}
 router.post('/api/projects/:slug/upload', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
-  upload.single('file')(req, res, (err) => {
+  upload.single('file')(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message || 'Ошибка загрузки' });
     if (!req.file) return res.status(400).json({ error: 'Файл не получен' });
+    await compressImage(path.join(uploadsDir(slug), req.file.filename));
     res.json({ filename: req.file.filename });
   });
 });
@@ -485,6 +509,22 @@ async function forwardLead(cfg, lead) {
     for (const k of ['name', 'phone', 'email', 'interest', 'lot', 'message', 'lang']) fd.append(k, lead[k] || '');
     jobs.push(fetch(cfg.contacts.sheetsEndpoint, { method: 'POST', body: fd, redirect: 'follow' }).catch(() => {}));
   }
+  if (cfg.contacts && cfg.contacts.tgBotToken && cfg.contacts.tgChatId) {
+    const text = [
+      `🆕 Новая заявка: ${projectName}`,
+      `Имя: ${lead.name}`,
+      `Телефон: ${lead.phone}`,
+      lead.email ? `Email: ${lead.email}` : null,
+      `Интересует: ${lead.interest || '-'}`,
+      `Помещение: ${lead.lot || '-'}`,
+      lead.message ? `Комментарий: ${lead.message}` : null
+    ].filter(Boolean).join('\n');
+    jobs.push(fetch(`https://api.telegram.org/bot${cfg.contacts.tgBotToken}/sendMessage`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: cfg.contacts.tgChatId, text })
+    }).then((r) => { lead.tgSent = r.ok; }).catch((e) => { lead.tgSent = false; console.error('Telegram notify failed:', e.message); }));
+  }
   await Promise.allSettled(jobs);
 }
 
@@ -533,7 +573,7 @@ router.post('/api/lead/:slug', (req, res) => {
   forwardLead(cfg, lead).then(() => {
     const cur = loadLeads(slug);
     const i = cur.findIndex((l) => l.id === lead.id);
-    if (i !== -1) { cur[i].emailSent = lead.emailSent; cur[i].autoReplySent = lead.autoReplySent; saveLeads(slug, cur); }
+    if (i !== -1) { cur[i].emailSent = lead.emailSent; cur[i].autoReplySent = lead.autoReplySent; cur[i].tgSent = lead.tgSent; saveLeads(slug, cur); }
   });
 });
 
@@ -546,6 +586,35 @@ router.get('/api/leads', auth, (req, res) => {
   }
   out.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
   res.json({ leads: out, statuses: LEAD_STATUSES });
+});
+function csvCell(v) {
+  const s = String(v == null ? '' : v).replace(/\r?\n/g, ' ');
+  return /[",;\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+router.get('/api/leads/export', auth, (req, res) => {
+  const names = {};
+  const rows = [];
+  for (const slug of fs.readdirSync(PROJECTS)) {
+    if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) continue;
+    try { names[slug] = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8')).name || slug; } catch { names[slug] = slug; }
+    for (const l of loadLeads(slug)) rows.push({ ...l, project: slug });
+  }
+  rows.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
+  const projectFilter = req.query.project;
+  const statusFilter = req.query.status;
+  const filtered = rows.filter((l) =>
+    (!projectFilter || l.project === projectFilter) && (!statusFilter || l.status === statusFilter));
+  const header = ['Дата', 'Проект', 'Имя', 'Телефон', 'Email', 'Интересует', 'Помещение', 'Комментарий', 'Источник', 'Статус', 'Заметка'];
+  const lines = [header.map(csvCell).join(',')];
+  for (const l of filtered) {
+    lines.push([
+      l.ts, names[l.project] || l.project, l.name, l.phone, l.email, l.interest, l.lot, l.message, l.source, l.status, l.note
+    ].map(csvCell).join(','));
+  }
+  const csv = '﻿' + lines.join('\r\n'); // BOM — чтобы Excel сразу увидел кириллицу
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', `attachment; filename="leads-${new Date().toISOString().slice(0, 10)}.csv"`);
+  res.send(csv);
 });
 router.post('/api/leads', auth, (req, res) => {
   const b = req.body || {};
@@ -640,6 +709,20 @@ router.delete('/api/users/:username', auth, adminOnly, (req, res) => {
   users.splice(idx, 1);
   saveUsers(users);
   res.json({ ok: true });
+});
+
+// ─── бэкап данных (только админ, скачивание по запросу) ───
+router.get('/api/backup', auth, adminOnly, async (req, res) => {
+  try {
+    const buf = await buildBackupZip(DATA);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="backup-${new Date().toISOString().slice(0, 10)}.zip"`);
+    res.setHeader('Content-Length', buf.length);
+    res.send(buf);
+  } catch (e) {
+    console.error('Не удалось собрать бэкап:', e.message);
+    res.status(500).json({ error: 'Не удалось собрать бэкап' });
+  }
 });
 
 // ─── статика: собранные лендинги (публично) и SPA панели ───
