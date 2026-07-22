@@ -15,6 +15,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const archiver = require('archiver');
+const nodemailer = require('nodemailer');
 const { renderLanding } = require('./lib/template');
 const { newProject } = require('./lib/blank');
 
@@ -329,13 +330,88 @@ function saveLeads(slug, leads) { fs.writeFileSync(leadsFile(slug), JSON.stringi
 
 const LEAD_STATUSES = ['Новый', 'В работе', 'Встреча/показ', 'Переговоры', 'Договор', 'Отказ'];
 
-// пересылка лида на почту проекта (через FormSubmit) и в Google Таблицу — в фоне
+// ─── исходящая почта: свой SMTP-ящик хостинга (если настроен), иначе FormSubmit ───
+function escHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+const SMTP_HOST = process.env.SMTP_HOST || '';
+const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
+const SMTP_USER = process.env.SMTP_USER || '';
+const SMTP_PASS = process.env.SMTP_PASS || '';
+const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+const mailer = (SMTP_HOST && SMTP_USER && SMTP_PASS)
+  ? nodemailer.createTransport({
+      host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_PORT === 465,
+      auth: { user: SMTP_USER, pass: SMTP_PASS }
+    })
+  : null;
+if (mailer) console.log(`Почта: исходящие через SMTP ${SMTP_HOST} от имени ${SMTP_FROM}`);
+else console.log('Почта: SMTP не настроен (SMTP_HOST/SMTP_USER/SMTP_PASS) — заявки на почту идут через FormSubmit, автоответ клиенту отправляться не будет.');
+
+// автоответ клиенту — короткое «спасибо» сразу на трёх языках, без определения языка сайта
+function autoReplyHtml(cfg, lead) {
+  const name = escHtml((cfg.brand && cfg.brand.name && cfg.brand.name.ru) || cfg.name || cfg.slug || '');
+  const phone = escHtml((cfg.contacts && cfg.contacts.phone) || '');
+  const tg = String((cfg.contacts && cfg.contacts.telegram) || '').replace(/^@/, '');
+  const contactLineRu = [phone && `по телефону ${phone}`, tg && `в Telegram @${escHtml(tg)}`].filter(Boolean).join(' или ');
+  const contactLineUz = [phone && `${phone} raqamiga`, tg && `Telegram’da @${escHtml(tg)}`].filter(Boolean).join(' yoki ');
+  const contactLineEn = [phone && `at ${phone}`, tg && `on Telegram at @${escHtml(tg)}`].filter(Boolean).join(' or ');
+  return `
+<div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#212326;max-width:560px">
+  <p><b>Здравствуйте${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
+  Спасибо за заявку по проекту «${name}». Мы получили ваше обращение и скоро с вами свяжемся.${contactLineRu ? ` Если хотите быстрее — можно ${contactLineRu}.` : ''}</p>
+  <hr style="border:none;border-top:1px solid #e2dfd8;margin:16px 0">
+  <p><b>Assalomu alaykum${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
+  «${name}» loyihasi bo'yicha arizangiz uchun rahmat. Murojaatingizni oldik, tez orada siz bilan bog'lanamiz.${contactLineUz ? ` Tezroq kerak bo'lsa — ${contactLineUz} murojaat qiling.` : ''}</p>
+  <hr style="border:none;border-top:1px solid #e2dfd8;margin:16px 0">
+  <p><b>Hello${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
+  Thank you for your request regarding "${name}". We've received it and will contact you shortly.${contactLineEn ? ` For a faster reply, reach us ${contactLineEn}.` : ''}</p>
+</div>`;
+}
+
+function leadNotificationHtml(cfg, lead) {
+  const row = (label, val) => `<tr><td style="padding:4px 12px 4px 0;color:#66696e;white-space:nowrap">${escHtml(label)}</td><td style="padding:4px 0"><b>${escHtml(val || '—')}</b></td></tr>`;
+  return `
+<table style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">
+  ${row('Имя', lead.name)}
+  ${row('Телефон', lead.phone)}
+  ${row('Email', lead.email)}
+  ${row('Интересует', lead.interest)}
+  ${row('Помещение', lead.lot)}
+  ${row('Комментарий', lead.message)}
+  ${row('Язык сайта', (lead.lang || 'ru').toUpperCase())}
+</table>`;
+}
+
+// пересылка лида: своей почтой (SMTP) + автоответ клиенту, либо запасной канал FormSubmit
 async function forwardLead(cfg, lead) {
   const jobs = [];
   // адресатов может быть несколько — через запятую (например taxtapul@caseadvisory.uz, boss@…)
   const emails = String((cfg.contacts && cfg.contacts.email) || '')
     .split(/[,;\s]+/).map((e) => e.trim()).filter((e) => e.includes('@'));
-  if (emails.length) {
+  const projectName = cfg.name || (cfg.brand && cfg.brand.name && cfg.brand.name.ru) || cfg.slug;
+
+  if (mailer) {
+    if (emails.length) {
+      lead.emailSent = false;
+      jobs.push(mailer.sendMail({
+        from: `"${projectName}" <${SMTP_FROM}>`,
+        to: emails,
+        subject: 'Заявка с сайта: ' + projectName + ' — ' + lead.name,
+        html: leadNotificationHtml(cfg, lead)
+      }).then(() => { lead.emailSent = true; }).catch((e) => { console.error('SMTP notify failed:', e.message); }));
+    }
+    if (lead.email) {
+      jobs.push(mailer.sendMail({
+        from: `"${projectName}" <${SMTP_FROM}>`,
+        to: lead.email,
+        subject: 'Спасибо за заявку / Arizangiz uchun rahmat / Thank you for your request',
+        html: autoReplyHtml(cfg, lead)
+      }).then(() => { lead.autoReplySent = true; }).catch((e) => { lead.autoReplySent = false; console.error('SMTP autoreply failed:', e.message); }));
+    }
+  } else if (emails.length) {
     lead.emailSent = false;
     for (const to of emails) {
       jobs.push(fetch('https://formsubmit.co/ajax/' + to, {
@@ -345,7 +421,7 @@ async function forwardLead(cfg, lead) {
           'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '—',
           'Интересует': lead.interest || '—', 'Помещение': lead.lot || '—',
           'Комментарий': lead.message || '—', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
-          '_subject': 'Заявка: ' + (cfg.name || cfg.slug) + ' — ' + lead.name,
+          '_subject': 'Заявка: ' + projectName + ' — ' + lead.name,
           '_template': 'table', '_captcha': 'false'
         })
       }).then((r) => { if (r.ok) lead.emailSent = true; }).catch(() => {}));
@@ -404,7 +480,7 @@ router.post('/api/lead/:slug', (req, res) => {
   forwardLead(cfg, lead).then(() => {
     const cur = loadLeads(slug);
     const i = cur.findIndex((l) => l.id === lead.id);
-    if (i !== -1) { cur[i].emailSent = lead.emailSent; saveLeads(slug, cur); }
+    if (i !== -1) { cur[i].emailSent = lead.emailSent; cur[i].autoReplySent = lead.autoReplySent; saveLeads(slug, cur); }
   });
 });
 
