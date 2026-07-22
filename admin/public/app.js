@@ -205,7 +205,7 @@
   function makeInput(opts, value, onInput) {
     var input = opts && opts.textarea
       ? h('textarea', { rows: (opts && opts.rows) || 3 })
-      : h('input', { type: 'text' });
+      : h('input', { type: (opts && opts.type) || 'text' });
     input.value = (value === null || value === undefined) ? '' : value;
     input.addEventListener('input', function () { onInput(input.value); });
     return input;
@@ -220,6 +220,7 @@
       if (opts.onInput) opts.onInput(v);
     });
     if (opts.placeholder) input.placeholder = opts.placeholder;
+    if (opts.autocomplete) input.autocomplete = opts.autocomplete;
     return fieldWrap(label, input, opts.hint);
   }
 
@@ -750,7 +751,20 @@
       fieldText('Приём заявок (URL)', 'leadEndpoint', {
         hint: 'Куда лендинг шлёт заявки. Пусто — в эту панель (работает на /p/ и за /admin/). Для лендинга на другом хостинге: полный адрес, например https://panel.example.com/api/lead/takhtapul'
       })
-    ];
+    ].concat(me.role === 'admin' ? [
+      groupTitle('Своя почта проекта (только админ)'),
+      h('p', { class: 'muted', style: 'margin:-6px 0 14px' },
+        'Через какой ящик уходят письма с заявками и автоответ клиенту. Пусто — используется общий ящик приложения, ' +
+        'настроенный на хостинге (переменные окружения SMTP_*). Агентам эти поля не видны и не редактируются.'),
+      row(
+        fieldText('SMTP-сервер', 'contacts.smtpHost', { placeholder: 'mail.caseadvisory.uz' }),
+        fieldText('Порт', 'contacts.smtpPort', { placeholder: '465' })
+      ),
+      row(
+        fieldText('Логин (обычно = email)', 'contacts.smtpUser', { placeholder: 'project@caseadvisory.uz', autocomplete: 'off' }),
+        fieldText('Пароль', 'contacts.smtpPass', { type: 'password', autocomplete: 'new-password' })
+      )
+    ] : []);
   }
 
   function tabSeo() {

@@ -200,10 +200,19 @@ function loadProject(req, res) {
   return slug;
 }
 
+// поля с учётными данными почты — видны и редактируются только админом;
+// у агентов, даже с полным доступом к редактированию проекта, их нет ни в форме, ни в ответе API
+const SMTP_FIELDS = ['smtpHost', 'smtpPort', 'smtpUser', 'smtpPass'];
+function redactSmtp(cfg) {
+  if (cfg && cfg.contacts) for (const k of SMTP_FIELDS) delete cfg.contacts[k];
+  return cfg;
+}
+
 router.get('/api/projects/:slug', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
-  res.json({ project: JSON.parse(fs.readFileSync(projectFile(slug), 'utf8')) });
+  const cfg = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8'));
+  res.json({ project: req.user.role === 'admin' ? cfg : redactSmtp(cfg) });
 });
 
 router.put('/api/projects/:slug', auth, (req, res) => {
@@ -212,8 +221,14 @@ router.put('/api/projects/:slug', auth, (req, res) => {
   const cfg = req.body && req.body.project;
   if (!cfg || typeof cfg !== 'object') return res.status(400).json({ error: 'Пустой конфиг' });
   cfg.slug = slug; // slug менять нельзя
-  // резервная копия предыдущей версии
   const f = projectFile(slug);
+  if (req.user.role !== 'admin') {
+    // агент не может ни увидеть, ни изменить SMTP проекта — подставляем то, что уже сохранено
+    const prev = JSON.parse(fs.readFileSync(f, 'utf8'));
+    if (!cfg.contacts) cfg.contacts = {};
+    for (const k of SMTP_FIELDS) cfg.contacts[k] = (prev.contacts && prev.contacts[k]) || '';
+  }
+  // резервная копия предыдущей версии
   try { fs.copyFileSync(f, f + '.bak'); } catch {}
   fs.writeFileSync(f, JSON.stringify(cfg, null, 2));
   res.json({ ok: true });
@@ -386,26 +401,50 @@ function leadNotificationHtml(cfg, lead) {
 }
 
 // пересылка лида: своей почтой (SMTP) + автоответ клиенту, либо запасной канал FormSubmit
+// SMTP для отправки: сначала свой ящик проекта (contacts.smtp*), иначе общий ящик
+// приложения (переменные окружения SMTP_*), иначе — нет SMTP, используем FormSubmit
+const projectMailers = new Map(); // slug -> {transport, from} — переиспользуем соединение
+function resolveMailer(cfg) {
+  const c = cfg.contacts || {};
+  if (c.smtpHost && c.smtpUser && c.smtpPass) {
+    let entry = projectMailers.get(cfg.slug);
+    if (!entry || entry.host !== c.smtpHost || entry.user !== c.smtpUser) {
+      const port = Number(c.smtpPort) || 587;
+      entry = {
+        host: c.smtpHost, user: c.smtpUser, from: c.smtpUser,
+        transport: nodemailer.createTransport({
+          host: c.smtpHost, port, secure: port === 465,
+          auth: { user: c.smtpUser, pass: c.smtpPass }
+        })
+      };
+      projectMailers.set(cfg.slug, entry);
+    }
+    return entry;
+  }
+  return mailer ? { transport: mailer, from: SMTP_FROM } : null;
+}
+
 async function forwardLead(cfg, lead) {
   const jobs = [];
   // адресатов может быть несколько — через запятую (например taxtapul@caseadvisory.uz, boss@…)
   const emails = String((cfg.contacts && cfg.contacts.email) || '')
     .split(/[,;\s]+/).map((e) => e.trim()).filter((e) => e.includes('@'));
   const projectName = cfg.name || (cfg.brand && cfg.brand.name && cfg.brand.name.ru) || cfg.slug;
+  const active = resolveMailer(cfg);
 
-  if (mailer) {
+  if (active) {
     if (emails.length) {
       lead.emailSent = false;
-      jobs.push(mailer.sendMail({
-        from: `"${projectName}" <${SMTP_FROM}>`,
+      jobs.push(active.transport.sendMail({
+        from: `"${projectName}" <${active.from}>`,
         to: emails,
         subject: 'Заявка с сайта: ' + projectName + ' — ' + lead.name,
         html: leadNotificationHtml(cfg, lead)
       }).then(() => { lead.emailSent = true; }).catch((e) => { console.error('SMTP notify failed:', e.message); }));
     }
     if (lead.email) {
-      jobs.push(mailer.sendMail({
-        from: `"${projectName}" <${SMTP_FROM}>`,
+      jobs.push(active.transport.sendMail({
+        from: `"${projectName}" <${active.from}>`,
         to: lead.email,
         subject: 'Спасибо за заявку / Arizangiz uchun rahmat / Thank you for your request',
         html: autoReplyHtml(cfg, lead)

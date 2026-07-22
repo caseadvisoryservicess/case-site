@@ -19,7 +19,11 @@
     "phone": "+998 90 922 07 00",
     "telegram": "muhammadaxmadiy",
     "email": "taxtapul@caseadvisory.uz",
-    "sheetsEndpoint": ""
+    "sheetsEndpoint": "",
+    "smtpPass": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtpUser": ""
   },
   "adminUrl": "/admin/",
   "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/takhtapul",

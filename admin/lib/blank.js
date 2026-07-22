@@ -25,7 +25,10 @@ function newProject(slug, name) {
       phone: '+998 90 922 07 00',
       telegram: 'muhammadaxmadiy',
       email: 'caseadvisoryservicess@gmail.com',
-      sheetsEndpoint: ''
+      sheetsEndpoint: '',
+      // собственная почта проекта для отправки писем (видно и редактируется только админом);
+      // пусто — используется общий SMTP-ящик приложения (переменные окружения SMTP_*)
+      smtpHost: '', smtpPort: '', smtpUser: '', smtpPass: ''
     },
     adminUrl: '',      // адрес входа в панель — если задан, в шапке лендинга появляется кнопка «Войти»
     leadEndpoint: '',  // URL приёма заявок; пусто = ../../api/lead/<slug> (работает на /p/ и за прокси /admin/)
