@@ -14,7 +14,7 @@ const crypto = require('crypto');
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const multer = require('multer');
-const archiver = require('archiver');
+const { ZipArchive } = require('archiver'); // archiver ^8: экспортирует классы, а не фабричную функцию
 const nodemailer = require('nodemailer');
 const { renderLanding } = require('./lib/template');
 const { newProject } = require('./lib/blank');
@@ -327,11 +327,22 @@ router.get('/api/projects/:slug/export', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   try { generate(slug); } catch (e) { return res.status(500).json({ error: 'Сборка не удалась: ' + e.message }); }
-  res.setHeader('Content-Type', 'application/zip');
-  res.setHeader('Content-Disposition', `attachment; filename="${slug}.zip"`);
-  const zip = archiver('zip', { zlib: { level: 9 } });
-  zip.on('error', () => res.end());
-  zip.pipe(res);
+  // архив собирается целиком в память перед отправкой (не потоком): на некоторых
+  // хостингах прокси перед Node-приложением ломает потоковые/chunked-ответы
+  const zip = new ZipArchive({ zlib: { level: 9 } });
+  const chunks = [];
+  zip.on('data', (c) => chunks.push(c));
+  zip.on('error', (e) => {
+    console.error('export failed:', e.message);
+    if (!res.headersSent) res.status(500).json({ error: 'Сборка zip не удалась: ' + e.message });
+  });
+  zip.on('end', () => {
+    const buf = Buffer.concat(chunks);
+    res.setHeader('Content-Type', 'application/zip');
+    res.setHeader('Content-Disposition', `attachment; filename="${slug}.zip"`);
+    res.setHeader('Content-Length', buf.length);
+    res.end(buf);
+  });
   zip.directory(path.join(SITES, slug), slug);
   zip.finalize();
 });
