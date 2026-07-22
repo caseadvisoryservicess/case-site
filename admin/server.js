@@ -418,24 +418,22 @@ function leadNotificationHtml(cfg, lead) {
 // пересылка лида: своей почтой (SMTP) + автоответ клиенту, либо запасной канал FormSubmit
 // SMTP для отправки: сначала свой ящик проекта (contacts.smtp*), иначе общий ящик
 // приложения (переменные окружения SMTP_*), иначе — нет SMTP, используем FormSubmit
-const projectMailers = new Map(); // slug -> {transport, from} - переиспользуем соединение
+//
+// транспорт для проекта создаётся заново на каждую отправку (не кэшируется):
+// объём писем тут небольшой, а кэш по прошлому опыту легко протухает молча,
+// если в панели поменяли только пароль — сервер продолжал бы стучаться со старым
 function resolveMailer(cfg) {
   const c = cfg.contacts || {};
   if (c.smtpHost && c.smtpUser && c.smtpPass) {
-    let entry = projectMailers.get(cfg.slug);
-    if (!entry || entry.host !== c.smtpHost || entry.user !== c.smtpUser) {
-      const port = Number(c.smtpPort) || 587;
-      entry = {
-        host: c.smtpHost, user: c.smtpUser, from: c.smtpUser,
-        transport: nodemailer.createTransport({
-          host: c.smtpHost, port, secure: port === 465,
-          auth: { user: c.smtpUser, pass: c.smtpPass },
-          tls: { rejectUnauthorized: false }
-        })
-      };
-      projectMailers.set(cfg.slug, entry);
-    }
-    return entry;
+    const port = Number(c.smtpPort) || 587;
+    return {
+      from: c.smtpUser,
+      transport: nodemailer.createTransport({
+        host: c.smtpHost, port, secure: port === 465,
+        auth: { user: c.smtpUser, pass: c.smtpPass },
+        tls: { rejectUnauthorized: false }
+      })
+    };
   }
   return mailer ? { transport: mailer, from: SMTP_FROM } : null;
 }
