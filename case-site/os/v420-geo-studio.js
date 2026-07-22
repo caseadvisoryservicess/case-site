@@ -736,13 +736,59 @@
       +'.geo-obj-color{width:34px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0;cursor:pointer;background:none}.geo-obj-edit{padding:2px 8px}'
       +'.geo-obj-pop b{font-size:13px}.geo-obj-pop-xy{font-size:11px;color:#666;margin-top:3px}.geo-obj-pop-ver{font-size:11px;margin-top:2px}.geo-obj-pop-act{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}.geo-obj-pop-act .btn{font-size:11px;padding:3px 7px}'
       +'.geo-sw{position:relative;display:inline-block;width:34px;height:18px;cursor:pointer}.geo-sw input{opacity:0;width:0;height:0;position:absolute}.geo-sw span{position:absolute;inset:0;background:#c9ccd1;border-radius:18px;transition:.15s}.geo-sw span:before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.15s}.geo-sw input:checked+span{background:#28945a}.geo-sw-ext input:checked+span{background:#2f6fd6}.geo-sw input:checked+span:before{transform:translateX(16px)}.geo-sw input:disabled+span{opacity:.5;cursor:not-allowed}'
+      +'.geo-obj-tbl .geo-th-sort-ic{color:#b7b1a8;font-size:11px}.geo-obj-tbl .geo-th-sort-ic.on{color:#9E0000}.geo-obj-count{font-size:11px;color:#8a847c;margin:0 0 6px 2px}'
       +'body.dark .geo-obj-tbl,body.dark .geo-obj-tbl th,body.dark .geo-obj-tbl td{background:#202329;color:#eee;border-color:#393d45}body.dark .geo-obj-tbl tr:hover td{background:#2b2f36}';
     document.head.appendChild(s);
   }
+  /* ---- фильтрация + сортировка таблицы «Объекты на карте» (как в LCR / «Управление данными») ---- */
+  var GEO_OBJ_SORT=null,GEO_OBJ_FILTERS={},GEO_OBJ_MENU=null;
+  var GEO_OBJ_COLS=[
+    {k:'name',label:'Название',get:function(p){return p.name||p.id||'';}},
+    {k:'loc',label:'Город / Район',get:function(p){return [p.city,p.district].filter(Boolean).join(' · ');}},
+    {k:'type',label:'Тип',get:function(p){return TYPE_LABELS[p.type]||p.type||'';}},
+    {k:'xy',label:'Координаты',get:function(p){var la=+p.lat,ln=+p.lng;return (Number.isFinite(la)&&Number.isFinite(ln))?(la.toFixed(5)+', '+ln.toFixed(5)):'';},sortval:function(p){return Number.isFinite(+p.lat)?+p.lat:-1e9;}},
+    {k:'ver',label:'Пров.',get:function(p){return p.verification==='verified'?'Подтверждён':'Требует проверки';}},
+    {k:'onmap',label:'На карте',get:function(p){return p.mapHidden?'Нет':'Да';}},
+    {k:'ext',label:'Внешним',get:function(p){return p.extVisible?'Да':'Нет';}}
+  ];
+  function geoObjColByKey(k){for(var i=0;i<GEO_OBJ_COLS.length;i++)if(GEO_OBJ_COLS[i].k===k)return GEO_OBJ_COLS[i];return null;}
+  function geoObjCellText(p,c){var v=c.get(p);return String(v==null?'':v);}
+  function geoObjDistinct(k){var c=geoObjColByKey(k);var set=[],blank=false;Object.keys(PROJECTS).forEach(function(id){var v=geoObjCellText(PROJECTS[id],c);if(v==='')blank=true;else if(set.indexOf(v)<0)set.push(v);});set.sort(function(a,b){return a.localeCompare(b,'ru',{numeric:true});});if(blank)set.push('(Пусто)');return set;}
+  function geoObjFilterOn(k){var f=GEO_OBJ_FILTERS[k];return !!(f&&Array.isArray(f.vals));}
+  function geoObjPass(p){for(var k in GEO_OBJ_FILTERS){var f=GEO_OBJ_FILTERS[k];if(!f||!Array.isArray(f.vals))continue;var c=geoObjColByKey(k);if(!c)continue;var v=geoObjCellText(p,c);if(f.vals.indexOf(v===''?'(Пусто)':v)<0)return false;}return true;}
+  function geoObjSortedIds(){var ids=Object.keys(PROJECTS).filter(function(id){return geoObjPass(PROJECTS[id]);});
+    if(GEO_OBJ_SORT){var c=geoObjColByKey(GEO_OBJ_SORT.key),dir=GEO_OBJ_SORT.dir<0?-1:1;if(c)ids.sort(function(a,b){var pa=PROJECTS[a],pb=PROJECTS[b],va,vb;if(c.sortval){va=c.sortval(pa);vb=c.sortval(pb);}else{va=geoObjCellText(pa,c).toLowerCase();vb=geoObjCellText(pb,c).toLowerCase();}return va<vb?-dir:va>vb?dir:0;});}
+    return ids;}
+  function geoObjMenuClose(){var m=document.getElementById('geoColMenu');if(m&&m.parentNode)m.parentNode.removeChild(m);GEO_OBJ_MENU=null;document.removeEventListener('mousedown',geoObjMenuAway,true);}
+  window.geoObjMenuClose=geoObjMenuClose;
+  function geoObjMenuAway(e){var m=document.getElementById('geoColMenu');if(m&&!m.contains(e.target))geoObjMenuClose();}
+  window.geoObjMenu=function(key,anchor){try{if(typeof geoMenuClose==='function')geoMenuClose();}catch(e){}geoObjMenuClose();
+    var c=geoObjColByKey(key);if(!c)return;try{geoEnsureTblCss();}catch(e){}
+    var distinct=geoObjDistinct(key),cur=GEO_OBJ_FILTERS[key],curVals=(cur&&Array.isArray(cur.vals))?cur.vals.slice():null,checked={};
+    distinct.forEach(function(v){checked[v]=curVals==null?true:curVals.indexOf(v)>=0;});GEO_OBJ_MENU={key:key,distinct:distinct,checked:checked};
+    var valList=distinct.map(function(v){return '<label class="geo-m-v"><input type="checkbox" data-v="'+esc(v)+'"'+(checked[v]?' checked':'')+' onchange="geoObjMenuCheck(this)"><span>'+esc(v)+'</span></label>';}).join('');
+    var html='<div class="geo-m-sort"><button onclick="geoObjMenuSort(1)">▲ Сортировать А→Я</button><button onclick="geoObjMenuSort(-1)">▼ Сортировать Я→А</button></div>'
+      +'<div class="geo-m-sec">Значения</div><input id="geoMSrch" placeholder="Поиск значения…" oninput="geoObjMenuSearch(this.value)">'
+      +'<div class="geo-m-links"><a href="#" onclick="geoObjMenuAll(true);return false">Выбрать все</a> · <a href="#" onclick="geoObjMenuAll(false);return false">Снять все</a></div>'
+      +'<div id="geoMVals" class="geo-m-vals">'+(valList||'<div class="geo-m-empty">нет значений</div>')+'</div>'
+      +'<div class="geo-m-ftr"><button onclick="geoObjMenuReset()">Сбросить</button><span style="flex:1"></span><button onclick="geoObjMenuClose()">Отмена</button><button class="geo-m-ok" onclick="geoObjMenuApply()">Применить</button></div>';
+    var m=document.createElement('div');m.id='geoColMenu';m.innerHTML=html;document.body.appendChild(m);
+    var r=anchor.getBoundingClientRect(),mw=252;m.style.width=mw+'px';m.style.left=Math.max(6,Math.min(r.left,window.innerWidth-mw-8))+'px';var top=r.bottom+4;if(top+m.offsetHeight>window.innerHeight-6)top=Math.max(6,window.innerHeight-m.offsetHeight-6);m.style.top=top+'px';
+    setTimeout(function(){document.addEventListener('mousedown',geoObjMenuAway,true);},0);};
+  window.geoObjMenuCheck=function(el){if(GEO_OBJ_MENU)GEO_OBJ_MENU.checked[el.getAttribute('data-v')]=el.checked;};
+  window.geoObjMenuAll=function(on){if(!GEO_OBJ_MENU)return;var q=(document.getElementById('geoMSrch').value||'').toLowerCase();document.querySelectorAll('#geoMVals input').forEach(function(cb){var v=cb.getAttribute('data-v');if(!q||v.toLowerCase().indexOf(q)>=0){cb.checked=on;GEO_OBJ_MENU.checked[v]=on;}});};
+  window.geoObjMenuSearch=function(q){q=(q||'').toLowerCase();document.querySelectorAll('#geoMVals .geo-m-v').forEach(function(l){var v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'flex':'none';});};
+  window.geoObjMenuSort=function(dir){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();GEO_OBJ_SORT={key:k,dir:dir};geoObjTab();};
+  window.geoObjMenuReset=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();delete GEO_OBJ_FILTERS[k];geoObjTab();};
+  window.geoObjMenuApply=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key,distinct=GEO_OBJ_MENU.distinct,all=true,any=false,sel=[];distinct.forEach(function(v){if(GEO_OBJ_MENU.checked[v]){any=true;sel.push(v);}else all=false;});geoObjMenuClose();if(!all){GEO_OBJ_FILTERS[k]={vals:any?sel:[]};}else{delete GEO_OBJ_FILTERS[k];}geoObjTab();};
+  window.geoObjFilterReset=function(){GEO_OBJ_FILTERS={};GEO_OBJ_SORT=null;geoObjTab();};
+  window.geoObjSortToggle=function(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)GEO_OBJ_SORT={key:k,dir:1};else if(GEO_OBJ_SORT.dir>0)GEO_OBJ_SORT.dir=-1;else GEO_OBJ_SORT=null;geoObjTab();};
+  function geoObjSortIc(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)return ' <span class="geo-th-sort-ic">⇅</span>';return ' <span class="geo-th-sort-ic on">'+(GEO_OBJ_SORT.dir<0?'▼':'▲')+'</span>';}
+  function geoObjTh(c){return '<th onclick="geoObjSortToggle(\''+c.k+'\')" title="Сортировать" style="cursor:pointer"><span class="geo-th-label">'+esc(c.label)+geoObjSortIc(c.k)+' <span class="geo-th-fnl'+(geoObjFilterOn(c.k)?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoObjMenu(\''+c.k+'\',this)">▾</span></span></th>';}
   window.geoObjTab=function(){
     var host=document.getElementById('objT');if(!host)return;
-    try{geoEnsureObjCss();}catch(e){}
-    var canEdit=GEO_CAN_EDIT,ids=Object.keys(PROJECTS);
+    try{geoEnsureObjCss();}catch(e){}try{geoEnsureTblCss();}catch(e){}
+    var canEdit=GEO_CAN_EDIT,ids=geoObjSortedIds(),total=Object.keys(PROJECTS).length;
     var body=ids.map(function(id){
       var p=PROJECTS[id]||{},la=+p.lat,ln=+p.lng,hasxy=Number.isFinite(la)&&Number.isFinite(ln);
       var color=geoObjColorOf(p),loc=[p.city,p.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[p.type]||p.type||'—';
@@ -756,12 +802,14 @@
         +'<td class="geo-obj-c"><input type="color" class="geo-obj-color" value="'+color+'" '+(canEdit?'':'disabled')+' onchange="geoObjColor(\''+esc(id)+'\',this.value)"></td>'
         +'<td class="geo-obj-c">'+(canEdit?'<button class="btn sec geo-obj-edit" onclick="geoObjEdit(\''+esc(id)+'\')" title="Полная карточка">✎</button>':'')+'</td></tr>';
     }).join('');
+    var active=GEO_OBJ_SORT||Object.keys(GEO_OBJ_FILTERS).some(function(k){return geoObjFilterOn(k);});
     host.innerHTML='<div class="geo-obj-wrap"><div class="geo-obj-head"><div><h3>Объекты на карте</h3>'
-      +'<small>Наши проекты и точки, отображаемые на карте. Клик по названию — показать точку на карте. '
-      +(canEdit?'«На карте» — видимость точки; «Внешним» — видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» — цвет метки; ✎ — полная карточка (данные, координаты, тип, файлы).':'Режим просмотра — редактирование недоступно для вашей роли.')+'</small></div>'
-      +(canEdit?'<button class="btn" onclick="geoNewProject()">＋ Добавить объект</button>':'')+'</div>'
-      +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl"><thead><tr><th>Название</th><th>Город / Район</th><th>Тип</th><th>Координаты</th><th>Пров.</th><th>На карте</th><th>Внешним</th><th>Вид</th><th></th></tr></thead>'
-      +'<tbody>'+(body||'<tr><td colspan="9" style="text-align:center;color:#888;padding:16px">Пока нет объектов</td></tr>')+'</tbody></table></div></div>';
+      +'<small>Наши проекты и точки, отображаемые на карте. Клик по названию — показать точку на карте. Воронка ▾ в заголовке — фильтр и сортировка (как в LCR). '
+      +(canEdit?'«На карте» — видимость точки; «Внешним» — видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» — цвет метки; ✎ — полная карточка.':'Режим просмотра — редактирование недоступно для вашей роли.')+'</small></div>'
+      +'<div style="display:flex;gap:8px;align-items:center">'+(active?'<button class="btn sec" onclick="geoObjFilterReset()" title="Сбросить фильтры и сортировку">✕ Сброс</button>':'')+(canEdit?'<button class="btn" onclick="geoNewProject()">＋ Добавить объект</button>':'')+'</div></div>'
+      +(active?'<div class="geo-obj-count">Показано '+ids.length+' из '+total+'</div>':'')
+      +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl"><thead><tr>'+GEO_OBJ_COLS.map(geoObjTh).join('')+'<th>Вид</th><th></th></tr></thead>'
+      +'<tbody>'+(body||'<tr><td colspan="9" style="text-align:center;color:#888;padding:16px">'+(total?'Ничего не найдено по фильтру':'Пока нет объектов')+'</td></tr>')+'</tbody></table></div></div>';
   };
   function geoObjPopup(id){
     var q=PROJECTS[id];if(!q)return '';
