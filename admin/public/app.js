@@ -285,7 +285,7 @@
     });
 
     var ru = langInput('ru');
-    if (opts.placeholder) ru.placeholder = opts.placeholder; // подсказка стандартного текста — только в RU
+    if (opts.placeholder) ru.placeholder = opts.placeholder; // подсказка стандартного текста - только в RU
     return h('div', { class: 'field' },
       h('div', { class: 'label-row' }, h('label', null, label), toggle),
       ru,
@@ -348,7 +348,7 @@
       var f = file.files && file.files[0];
       if (!f) return;
       if (f.size > 20 * 1024 * 1024) {
-        toast('Файл больше 20 МБ — выберите файл поменьше', 'error');
+        toast('Файл больше 20 МБ - выберите файл поменьше', 'error');
         file.value = '';
         return;
       }
@@ -430,7 +430,7 @@
   function renderLogin() {
     dirty = false;
     genUrl = null; project = null; slug = null;
-    document.title = 'Вход — Панель CASE';
+    document.title = 'Вход - Панель CASE';
     app.innerHTML = '';
 
     var errBox = h('div', { class: 'login-error' });
@@ -518,7 +518,7 @@
   function showProjects() {
     return api('/api/projects').then(function (d) {
       var projects = (d && d.projects) || [];
-      document.title = 'Лендинги — Панель CASE';
+      document.title = 'Лендинги - Панель CASE';
       app.innerHTML = '';
 
       var titleRow = h('div', { class: 'page-head' },
@@ -578,7 +578,7 @@
     if (name === null) return;
     name = name.trim();
     if (!name) return;
-    var s = prompt('Адрес (slug) — строчные латинские буквы, цифры и дефис:', translit(name));
+    var s = prompt('Адрес (slug) - строчные латинские буквы, цифры и дефис:', translit(name));
     if (s === null) return;
     s = s.trim().toLowerCase();
     if (!/^[a-z0-9-]{2,40}$/.test(s)) {
@@ -627,7 +627,7 @@
   }
 
   function renderEditor() {
-    document.title = (project.name || slug) + ' — Панель CASE';
+    document.title = (project.name || slug) + ' - Панель CASE';
     app.innerHTML = '';
 
     dotEl = h('span', { class: 'dot', title: 'Есть несохранённые изменения' });
@@ -727,12 +727,12 @@
       }),
       groupTitle('Бренд'),
       fieldText('Метка логотипа (до 3 букв)', 'brand.mark', { placeholder: 'BC' }),
-      imagePicker('Логотип-картинка (пусто — используется буквенная метка выше)', 'brand.logo'),
+      imagePicker('Логотип-картинка (пусто - используется буквенная метка выше)', 'brand.logo'),
       mlField('Название', 'brand.name'),
       mlField('Подпись под названием (адрес · город)', 'brand.tag'),
       fieldText('Акцентный цвет (hex)', 'brand.accent', {
         placeholder: '#a8804c',
-        hint: 'Например #a8804c. Кнопки и акценты лендинга. Пусто — фирменная бронза.'
+        hint: 'Например #a8804c. Кнопки и акценты лендинга. Пусто - фирменная бронза.'
       }),
       groupTitle('Контакты'),
       row(
@@ -743,18 +743,18 @@
         hint: 'Каждая заявка пересылается сюда письмом. Можно несколько адресов через запятую: taxtapul@caseadvisory.uz, boss@caseadvisory.uz'
       }),
       fieldText('Google Таблица (URL скрипта)', 'contacts.sheetsEndpoint', {
-        hint: 'Адрес веб-приложения Apps Script, куда отправляются заявки. Пусто — заявки идут только в Telegram/почту.'
+        hint: 'Адрес веб-приложения Apps Script, куда отправляются заявки. Пусто - заявки идут только в Telegram/почту.'
       }),
       fieldText('Кнопка «Войти» на лендинге', 'adminUrl', {
-        hint: 'Адрес входа в эту панель, например /admin/ или https://panel.caseadvisory.uz. Пусто — кнопки не будет.'
+        hint: 'Адрес входа в эту панель, например /admin/ или https://panel.caseadvisory.uz. Пусто - кнопки не будет.'
       }),
       fieldText('Приём заявок (URL)', 'leadEndpoint', {
-        hint: 'Куда лендинг шлёт заявки. Пусто — в эту панель (работает на /p/ и за /admin/). Для лендинга на другом хостинге: полный адрес, например https://panel.example.com/api/lead/takhtapul'
+        hint: 'Куда лендинг шлёт заявки. Пусто - в эту панель (работает на /p/ и за /admin/). Для лендинга на другом хостинге: полный адрес, например https://panel.example.com/api/lead/takhtapul'
       })
     ].concat(me.role === 'admin' ? [
       groupTitle('Своя почта проекта (только админ)'),
       h('p', { class: 'muted', style: 'margin:-6px 0 14px' },
-        'Через какой ящик уходят письма с заявками и автоответ клиенту. Пусто — используется общий ящик приложения, ' +
+        'Через какой ящик уходят письма с заявками и автоответ клиенту. Пусто - используется общий ящик приложения, ' +
         'настроенный на хостинге (переменные окружения SMTP_*). Агентам эти поля не видны и не редактируются.'),
       row(
         fieldText('SMTP-сервер', 'contacts.smtpHost', { placeholder: 'mail.caseadvisory.uz' }),
@@ -773,7 +773,7 @@
       mlField('Описание (description)', 'seo.description', { textarea: true }),
       fieldText('Ключевые слова (keywords)', 'seo.keywords', { textarea: true, rows: 3, hint: 'Через запятую' }),
       fieldText('Домен лендинга', 'seo.domain', {
-        hint: 'Например https://sfb-takhtapul.uz — по нему соберутся sitemap.xml, robots.txt и canonical. Пусто — эти файлы будут без абсолютных ссылок.'
+        hint: 'Например https://sfb-takhtapul.uz - по нему соберутся sitemap.xml, robots.txt и canonical. Пусто - эти файлы будут без абсолютных ссылок.'
       }),
       fieldText('Подтверждение Google Search Console', 'seo.googleVerification', {
         hint: 'Код из мета-тега google-site-verification (только значение content)'
@@ -845,7 +845,7 @@
         blank: function () { return { title: ml(''), area: ml(''), plan: '', features: [] }; },
         render: function (base) {
           return [
-            mlField('Название (этаж — площадь)', base + '.title'),
+            mlField('Название (этаж - площадь)', base + '.title'),
             mlField('Подпись (тип, формат)', base + '.area'),
             imagePicker('Планировка', base + '.plan'),
             h('div', { class: 'sub-title' }, 'Особенности'),
@@ -997,7 +997,7 @@
     }
     return [
       h('p', { class: 'muted texts-intro' },
-        'Все надписи лендинга. Пустое поле — используется стандартный текст (показан как подсказка).'),
+        'Все надписи лендинга. Пустое поле - используется стандартный текст (показан как подсказка).'),
       groupTitle('Меню и шапка'),
       row(t('Пункт «Назначение»', 'texts.nav.uses', 'Назначение'),
         t('Пункт «Помещения»', 'texts.nav.lots', 'Помещения')),
@@ -1024,7 +1024,7 @@
       row(t('Плашка статуса', 'texts.lots.tag', 'В продаже · Возможна аренда'),
         t('Подсказка на плане', 'texts.lots.hint', 'Нажмите, чтобы увеличить')),
       row(t('Подпись цены', 'texts.lots.priceL', 'Продажа · Аренда'),
-        t('Текст цены', 'texts.lots.priceV', 'цена и условия — по запросу')),
+        t('Текст цены', 'texts.lots.priceV', 'цена и условия - по запросу')),
       row(t('Кнопка лота', 'texts.lots.btn1', 'Узнать цену и условия'),
         t('Кнопка «Позвонить»', 'texts.lots.btn2', 'Позвонить')),
       t('Кнопка «Инвесторам»', 'texts.inv.cta', 'Обсудить условия'),
@@ -1032,7 +1032,7 @@
       t('Заголовок', 'texts.form.h3', 'Оставить заявку'),
       t('Подзаголовок', 'texts.form.p', '', { textarea: true }),
       row(t('Подпись телефона в контактах', 'texts.lead.c1', 'отдел продаж'),
-        t('Подпись Telegram', 'texts.lead.c2', 'Telegram — ответим быстрее всего')),
+        t('Подпись Telegram', 'texts.lead.c2', 'Telegram - ответим быстрее всего')),
       row(t('Поле «Имя»', 'texts.form.lName', 'Имя *'),
         t('Поле «Телефон»', 'texts.form.lPhone', 'Телефон *')),
       row(t('Поле «Email»', 'texts.form.lEmail', 'Email'),
@@ -1062,7 +1062,7 @@
     return Promise.all([api('/api/users'), api('/api/projects')]).then(function (res) {
       var users = (res[0] && res[0].users) || [];
       var allSlugs = ((res[1] && res[1].projects) || []).map(function (p) { return p.slug; });
-      document.title = 'Пользователи — Панель CASE';
+      document.title = 'Пользователи - Панель CASE';
       app.innerHTML = '';
 
       var rows = users.map(function (u) { return userRow(u, allSlugs); });
@@ -1221,7 +1221,7 @@
       var statuses = (res[0] && res[0].statuses) || Object.keys(LEAD_ST_CLASS);
       var projects = (res[1] && res[1].projects) || [];
       var isAdmin = me && me.role === 'admin';
-      document.title = 'Лиды — Панель CASE';
+      document.title = 'Лиды - Панель CASE';
       app.innerHTML = '';
 
       var names = {};
@@ -1290,7 +1290,7 @@
             l.emailSent === false ? h('span', { class: 'lead-warn', title: 'Письмо не отправилось' }, ' ⚠') : null
           ),
           h('td', { class: 'td-client' },
-            h('div', { class: 'lead-name' }, l.name || '—'),
+            h('div', { class: 'lead-name' }, l.name || '-'),
             l.phone ? h('a', { class: 'lead-phone', href: 'tel:' + String(l.phone).replace(/[^+\d]/g, '') }, l.phone) : null,
             l.message ? h('div', { class: 'lead-msg', title: 'Комментарий клиента' }, l.message) : null
           ),
@@ -1298,9 +1298,9 @@
           h('td', { 'data-l': 'Интерес', class: 'td-interest' },
             l.interest ? h('div', null, l.interest) : null,
             l.lot ? h('div', { class: 'muted' }, l.lot) : null,
-            (!l.interest && !l.lot) ? '—' : null
+            (!l.interest && !l.lot) ? '-' : null
           ),
-          h('td', { 'data-l': 'Источник' }, l.source || '—'),
+          h('td', { 'data-l': 'Источник' }, l.source || '-'),
           h('td', { 'data-l': 'Статус', class: 'td-status' }, statusSel),
           h('td', { 'data-l': 'Заметка', class: 'td-note' }, noteBtn)
         ];

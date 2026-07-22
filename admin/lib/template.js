@@ -59,14 +59,14 @@ const UI_DEFAULTS = {
   'lots.tag': { ru: 'В продаже · Возможна аренда', uz: 'Sotuvda · Ijara mumkin', en: 'For sale · Lease available' },
   'lots.hint': { ru: 'Нажмите, чтобы увеличить', uz: 'Kattalashtirish uchun bosing', en: 'Click to enlarge' },
   'lots.priceL': { ru: 'Продажа · Аренда', uz: 'Sotuv · Ijara', en: 'Sale · Lease' },
-  'lots.priceV': { ru: 'цена и условия — по запросу', uz: "narx va shartlar — so'rov bo'yicha", en: 'price and terms on request' },
+  'lots.priceV': { ru: 'цена и условия - по запросу', uz: "narx va shartlar - so'rov bo'yicha", en: 'price and terms on request' },
   'lots.btn1': { ru: 'Узнать цену и условия', uz: 'Narx va shartlarni bilish', en: 'Get price & terms' },
   'lots.btn2': { ru: 'Позвонить', uz: "Qo'ng'iroq qilish", en: 'Call' },
   'inv.cta': { ru: 'Обсудить условия', uz: 'Shartlarni muhokama qilish', en: 'Discuss terms' },
   'lead.c1': { ru: 'отдел продаж', uz: "sotuv bo'limi", en: 'sales team' },
-  'lead.c2': { ru: 'Telegram — ответим быстрее всего', uz: 'Telegram — eng tez javob beramiz', en: 'Telegram — fastest reply' },
+  'lead.c2': { ru: 'Telegram - ответим быстрее всего', uz: 'Telegram - eng tez javob beramiz', en: 'Telegram - fastest reply' },
   'form.h3': { ru: 'Оставить заявку', uz: 'Ariza qoldirish', en: 'Send a request' },
-  'form.p': { ru: 'Ответим в течение рабочего дня. Никакого спама — только по вашему запросу.', uz: "Ish kuni davomida javob beramiz. Hech qanday spam — faqat so'rovingiz bo'yicha.", en: 'We reply within one business day. No spam — only what you asked for.' },
+  'form.p': { ru: 'Ответим в течение рабочего дня. Никакого спама - только по вашему запросу.', uz: "Ish kuni davomida javob beramiz. Hech qanday spam - faqat so'rovingiz bo'yicha.", en: 'We reply within one business day. No spam - only what you asked for.' },
   'form.lName': { ru: 'Имя *', uz: 'Ismingiz *', en: 'Name *' },
   'form.lPhone': { ru: 'Телефон *', uz: 'Telefon *', en: 'Phone *' },
   'form.lEmail': { ru: 'Email', uz: 'Email', en: 'Email' },
@@ -260,7 +260,7 @@ ${cards}
     }).join('\n');
     const plan = lot.plan ? img(lot.plan) : '';
     const planBlock = plan ? `      <div class="lot-plan" data-zoom="${escAttr(plan)}">
-        <img src="${escAttr(plan)}" alt="${escAttr(L(lot.title))} — план" loading="lazy">
+        <img src="${escAttr(plan)}" alt="${escAttr(L(lot.title))} - план" loading="lazy">
         <span class="lot-plan-hint"${uLotHint.attr}>${uLotHint.ru}</span>
       </div>` : '';
     return `    <article class="lot r${plan ? '' : ' lot-noplan'}">
@@ -379,8 +379,8 @@ ${steps}
   // ── lead / form ──
   const leadH2 = t('lead.h2', cfg.lead.h2), leadSub = t('lead.sub', cfg.lead.sub);
   const okP = t('form.okP', {
-    ru: `Мы свяжемся с вами в течение рабочего дня.${tg ? `<br>Хотите быстрее — напишите в <a href="https://t.me/${escAttr(tg)}" target="_blank" rel="noopener"><b>Telegram @${escAttr(tg)}</b></a>.` : ''}`,
-    uz: `Ish kuni davomida siz bilan bog'lanamiz.${tg ? `<br>Tezroq kerak bo'lsa — <a href='https://t.me/${escAttr(tg)}' target='_blank' rel='noopener'><b>Telegram @${escAttr(tg)}</b></a> ga yozing.` : ''}`,
+    ru: `Мы свяжемся с вами в течение рабочего дня.${tg ? `<br>Хотите быстрее - напишите в <a href="https://t.me/${escAttr(tg)}" target="_blank" rel="noopener"><b>Telegram @${escAttr(tg)}</b></a>.` : ''}`,
+    uz: `Ish kuni davomida siz bilan bog'lanamiz.${tg ? `<br>Tezroq kerak bo'lsa - <a href='https://t.me/${escAttr(tg)}' target='_blank' rel='noopener'><b>Telegram @${escAttr(tg)}</b></a> ga yozing.` : ''}`,
     en: `We will contact you within one business day.${tg ? `<br>Need it faster? Message <a href='https://t.me/${escAttr(tg)}' target='_blank' rel='noopener'><b>@${escAttr(tg)} on Telegram</b></a>.` : ''}`
   }, true);
   const errT = t('form.err', {
@@ -1026,8 +1026,8 @@ form.addEventListener('submit', function(e){
     }
     if (!LEAD_EMAIL) return fail();
     var data = {
-      'Имя': vals.name, 'Телефон': vals.phone, 'Email': vals.email || '—',
-      'Интересует': vals.interest, 'Помещение': vals.lot, 'Комментарий': vals.message || '—',
+      'Имя': vals.name, 'Телефон': vals.phone, 'Email': vals.email || '-',
+      'Интересует': vals.interest, 'Помещение': vals.lot, 'Комментарий': vals.message || '-',
       'Язык сайта': CUR.toUpperCase(),
       '_subject': LEAD_SUBJECT + ': ' + vals.interest + ', ' + vals.lot,
       '_template': 'table', '_captcha': 'false'

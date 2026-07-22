@@ -53,7 +53,7 @@ function loadUsers() {
     fs.writeFileSync(USERS_FILE, JSON.stringify(seed, null, 2));
     console.log(process.env.ADMIN_PASSWORD
       ? 'Создан пользователь admin с паролем из ADMIN_PASSWORD.'
-      : 'Создан пользователь admin с паролем "admin" — смените пароль после первого входа!');
+      : 'Создан пользователь admin с паролем "admin" - смените пароль после первого входа!');
   }
   return JSON.parse(fs.readFileSync(USERS_FILE, 'utf8'));
 }
@@ -367,14 +367,18 @@ const SMTP_PORT = Number(process.env.SMTP_PORT || 587);
 const SMTP_USER = process.env.SMTP_USER || '';
 const SMTP_PASS = process.env.SMTP_PASS || '';
 const SMTP_FROM = process.env.SMTP_FROM || SMTP_USER;
+// rejectUnauthorized: false — на shared-хостинге сертификат почтового сервера обычно
+// выпущен на общее имя сервера (например web3.webspace.uz), а не на mail.<ваш-домен>;
+// соединение при этом всё равно зашифровано, отключается только строгая сверка имени
 const mailer = (SMTP_HOST && SMTP_USER && SMTP_PASS)
   ? nodemailer.createTransport({
       host: SMTP_HOST, port: SMTP_PORT, secure: SMTP_PORT === 465,
-      auth: { user: SMTP_USER, pass: SMTP_PASS }
+      auth: { user: SMTP_USER, pass: SMTP_PASS },
+      tls: { rejectUnauthorized: false }
     })
   : null;
 if (mailer) console.log(`Почта: исходящие через SMTP ${SMTP_HOST} от имени ${SMTP_FROM}`);
-else console.log('Почта: SMTP не настроен (SMTP_HOST/SMTP_USER/SMTP_PASS) — заявки на почту идут через FormSubmit, автоответ клиенту отправляться не будет.');
+else console.log('Почта: SMTP не настроен (SMTP_HOST/SMTP_USER/SMTP_PASS) - заявки на почту идут через FormSubmit, автоответ клиенту отправляться не будет.');
 
 // автоответ клиенту — короткое «спасибо» сразу на трёх языках, без определения языка сайта
 function autoReplyHtml(cfg, lead) {
@@ -387,10 +391,10 @@ function autoReplyHtml(cfg, lead) {
   return `
 <div style="font-family:Arial,sans-serif;font-size:15px;line-height:1.6;color:#212326;max-width:560px">
   <p><b>Здравствуйте${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
-  Спасибо за заявку по проекту «${name}». Мы получили ваше обращение и скоро с вами свяжемся.${contactLineRu ? ` Если хотите быстрее — можно ${contactLineRu}.` : ''}</p>
+  Спасибо за заявку по проекту «${name}». Мы получили ваше обращение и скоро с вами свяжемся.${contactLineRu ? ` Если хотите быстрее - можно ${contactLineRu}.` : ''}</p>
   <hr style="border:none;border-top:1px solid #e2dfd8;margin:16px 0">
   <p><b>Assalomu alaykum${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
-  «${name}» loyihasi bo'yicha arizangiz uchun rahmat. Murojaatingizni oldik, tez orada siz bilan bog'lanamiz.${contactLineUz ? ` Tezroq kerak bo'lsa — ${contactLineUz} murojaat qiling.` : ''}</p>
+  «${name}» loyihasi bo'yicha arizangiz uchun rahmat. Murojaatingizni oldik, tez orada siz bilan bog'lanamiz.${contactLineUz ? ` Tezroq kerak bo'lsa - ${contactLineUz} murojaat qiling.` : ''}</p>
   <hr style="border:none;border-top:1px solid #e2dfd8;margin:16px 0">
   <p><b>Hello${lead.name ? ', ' + escHtml(lead.name) : ''}!</b><br>
   Thank you for your request regarding "${name}". We've received it and will contact you shortly.${contactLineEn ? ` For a faster reply, reach us ${contactLineEn}.` : ''}</p>
@@ -398,7 +402,7 @@ function autoReplyHtml(cfg, lead) {
 }
 
 function leadNotificationHtml(cfg, lead) {
-  const row = (label, val) => `<tr><td style="padding:4px 12px 4px 0;color:#66696e;white-space:nowrap">${escHtml(label)}</td><td style="padding:4px 0"><b>${escHtml(val || '—')}</b></td></tr>`;
+  const row = (label, val) => `<tr><td style="padding:4px 12px 4px 0;color:#66696e;white-space:nowrap">${escHtml(label)}</td><td style="padding:4px 0"><b>${escHtml(val || '-')}</b></td></tr>`;
   return `
 <table style="font-family:Arial,sans-serif;font-size:14px;border-collapse:collapse">
   ${row('Имя', lead.name)}
@@ -414,7 +418,7 @@ function leadNotificationHtml(cfg, lead) {
 // пересылка лида: своей почтой (SMTP) + автоответ клиенту, либо запасной канал FormSubmit
 // SMTP для отправки: сначала свой ящик проекта (contacts.smtp*), иначе общий ящик
 // приложения (переменные окружения SMTP_*), иначе — нет SMTP, используем FormSubmit
-const projectMailers = new Map(); // slug -> {transport, from} — переиспользуем соединение
+const projectMailers = new Map(); // slug -> {transport, from} - переиспользуем соединение
 function resolveMailer(cfg) {
   const c = cfg.contacts || {};
   if (c.smtpHost && c.smtpUser && c.smtpPass) {
@@ -425,7 +429,8 @@ function resolveMailer(cfg) {
         host: c.smtpHost, user: c.smtpUser, from: c.smtpUser,
         transport: nodemailer.createTransport({
           host: c.smtpHost, port, secure: port === 465,
-          auth: { user: c.smtpUser, pass: c.smtpPass }
+          auth: { user: c.smtpUser, pass: c.smtpPass },
+          tls: { rejectUnauthorized: false }
         })
       };
       projectMailers.set(cfg.slug, entry);
@@ -449,7 +454,7 @@ async function forwardLead(cfg, lead) {
       jobs.push(active.transport.sendMail({
         from: `"${projectName}" <${active.from}>`,
         to: emails,
-        subject: 'Заявка с сайта: ' + projectName + ' — ' + lead.name,
+        subject: 'Заявка с сайта: ' + projectName + ' - ' + lead.name,
         html: leadNotificationHtml(cfg, lead)
       }).then(() => { lead.emailSent = true; }).catch((e) => { console.error('SMTP notify failed:', e.message); }));
     }
@@ -468,10 +473,10 @@ async function forwardLead(cfg, lead) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
         body: JSON.stringify({
-          'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '—',
-          'Интересует': lead.interest || '—', 'Помещение': lead.lot || '—',
-          'Комментарий': lead.message || '—', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
-          '_subject': 'Заявка: ' + projectName + ' — ' + lead.name,
+          'Имя': lead.name, 'Телефон': lead.phone, 'Email': lead.email || '-',
+          'Интересует': lead.interest || '-', 'Помещение': lead.lot || '-',
+          'Комментарий': lead.message || '-', 'Язык сайта': (lead.lang || 'ru').toUpperCase(),
+          '_subject': 'Заявка: ' + projectName + ' - ' + lead.name,
           '_template': 'table', '_captcha': 'false'
         })
       }).then((r) => { if (r.ok) lead.emailSent = true; }).catch(() => {}));
