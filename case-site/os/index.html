@@ -368,7 +368,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.28.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.29.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1038,6 +1038,13 @@ let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',st
 const UI_KEY=STORAGE_KEY+'-ui';
 function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1}));}catch(e){}}
 function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;}catch(e){}}
+/* ===== Сортировка/фильтрация таблиц — ЛИЧНАЯ настройка каждого пользователя =====
+   Хранится в localStorage под ключом с id пользователя и НИКОГДА не уходит в общий блоб (state.php),
+   поэтому изменение сортировки/фильтра одним сотрудником не меняет вид у других. У каждого — своё. */
+function _tblPrefKey(){const u=S.user;const id=u?(u.login||u.email||u.id||u.u||u.name||'anon'):'anon';return STORAGE_KEY+'-tbl-'+String(id);}
+let _tblPrefT=null;
+function saveTblPrefs(){if(!S.user)return;clearTimeout(_tblPrefT);_tblPrefT=setTimeout(()=>{try{localStorage.setItem(_tblPrefKey(),JSON.stringify({tbl:S.tbl||{},regFilter:S.regFilter||{},regSort:S.regSort||null,regTab:S.regTab||'plan'}));}catch(e){}},350);}
+function loadTblPrefs(){if(!S.user)return;try{const raw=localStorage.getItem(_tblPrefKey());if(!raw)return;const p=JSON.parse(raw);if(p.tbl&&typeof p.tbl==='object')S.tbl=p.tbl;if(p.regFilter&&typeof p.regFilter==='object')S.regFilter=Object.assign({q:'',status:'Все',cat:'Все'},p.regFilter);if(p.regSort&&typeof p.regSort==='object')S.regSort=p.regSort;if(p.regTab)S.regTab=p.regTab;}catch(e){}}
 /* ===== Краткие / полные имена и должности — личная настройка отображения (не меняет данные) ===== */
 const ROLE_SHORT={ASH:'Ген. директор',ADM:'Админ',BA:'Дир. аренды',AG:'Агент',AGX:'Внеш. агент',HO:'Адм. аренды',BSH:'Архитектор',HM:'Консультант',CFO:'Финдиректор'};
 function roleShortLabel(rk){return ROLE_SHORT[rk]||(ROLES[rk]&&ROLES[rk].label)||rk||'';}
@@ -1234,6 +1241,7 @@ if(typeof document!=='undefined'){setTimeout(()=>{if($('toTop'))return;const b=d
  window.addEventListener('scroll',()=>{b.style.display=(window.scrollY>350)?'block':'none';},{passive:true});},0);}
 function boot(){
  if(!BACKEND)loadPersist();
+ loadTblPrefs(); /* личная сортировка/фильтрация таблиц этого пользователя (localStorage, не из общего блоба) */
  $('avatar').textContent=S.user.name[0]||'C';
  $('whoName').firstChild.textContent=nameDisplay(S.user.name);$('whoRole').textContent=roleDisplay(S.role);$('b_out').textContent=t('out');
  $('addObjBtn').style.display=R().admin?'':'none';{const _eb=$('editObjBtn');if(_eb)_eb.style.display=(R().admin&&S.obj&&S.obj!=='ALL')?'':'none';}
@@ -1299,9 +1307,9 @@ function go(v){
  saveUiPrefs();
 }
 /* ===== Сортируемая/фильтруемая таблица (Excel-стиль) ===== */
-function tblS(key,k){S.tbl=S.tbl||{};const s=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};if(!s.sort||s.sort.k!==k)s.sort={k,dir:1};else if(s.sort.dir>0)s.sort.dir=-1;else s.sort=null;S._focus=null;go(S.view);}
-function tblF(key,k,v){S.tbl=S.tbl||{};const s=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};s.filters[k]=v;S._focus='flt_'+key+'_'+k;go(S.view);}
-function tblReset(key){if(S.tbl&&S.tbl[key]){S.tbl[key].filters={};S.tbl[key].sort=null;}S._focus=null;go(S.view);}
+function tblS(key,k){S.tbl=S.tbl||{};const s=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};if(!s.sort||s.sort.k!==k)s.sort={k,dir:1};else if(s.sort.dir>0)s.sort.dir=-1;else s.sort=null;S._focus=null;saveTblPrefs();go(S.view);}
+function tblF(key,k,v){S.tbl=S.tbl||{};const s=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};s.filters[k]=v;S._focus='flt_'+key+'_'+k;saveTblPrefs();go(S.view);}
+function tblReset(key){if(S.tbl&&S.tbl[key]){S.tbl[key].filters={};S.tbl[key].sort=null;}S._focus=null;saveTblPrefs();go(S.view);}
 function tblFilterPass(c,r,fv){
  if(!c.filter)return true;
  if(fv==null||fv===''||fv==='Все')return true;
@@ -1524,6 +1532,7 @@ function regFilterBar(us){const fr=S.regFilter;const cats=['Все'].concat(us.m
  const geoSel=S.obj==='ALL'?`<select onchange="S.regFilter.country=this.value;S.regFilter.city='Все';renderRegistry()" style="${ss}">${[['Все','Все страны']].concat(objCountries().map(c=>[c,c])).map(o=>`<option value="${esc(o[0])}"${fr.country===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select><select onchange="S.regFilter.city=this.value;renderRegistry()" style="${ss}">${[['Все','Все города']].concat(objCities(fr.country).map(c=>[c,c])).map(o=>`<option value="${esc(o[0])}"${fr.city===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:'';
  return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">${geoSel}${(S.obj!=='ALL'&&hasBlocks(S.obj))?`<select onchange="S.regFilter.block=this.value;renderRegistry()" style="${ss}">${[['Все','Все блоки']].concat(blocksOf(S.obj).map(b=>[b,'Блок '+b])).map(o=>`<option value="${esc(o[0])}"${(fr.block||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}${(S.obj!=='ALL'&&new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor))).size>1)?`<select onchange="S.regFilter.floor=this.value;renderRegistry()" style="${ss}">${[['Все','Все этажи']].concat(Array.from(new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor)))).sort(floorCmp).map(f=>[f,f])).map(o=>`<option value="${esc(o[0])}"${(fr.floor||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}<select onchange="S.regFilter.status=this.value;renderRegistry()" style="${ss}">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;renderRegistry()" style="${ss}">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
 function renderRegistry(){
+ saveTblPrefs(); /* сохраняем личный фильтр/сортировку/вкладку реестра этого пользователя (debounced) */
  const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
  /* Симметрия с SCR: объект «только продажа» (аренда выключена) не ведём в LCR — подсказка вместо реестра. */
  if(!allObj&&typeof objLeaseOn==='function'&&!objLeaseOn(S.obj)){$('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><div class="card" style="color:var(--muted)">Для объекта «${esc(curObj().name)}» аренда не включена — это объект «только продажа». Откройте «Контроль продажи (SCR)» или включите «Аренда (LCR)» в настройках объекта.${R().admin?` <span style="display:inline-block;margin-top:8px"><button class="btn sm" onclick="addObjectForm('${S.obj}')">✎ Настройки объекта</button> <button class="btn ghost sm" onclick="go('v32_sales')">Открыть SCR →</button></span>`:''}</div>`;return;}
@@ -1543,8 +1552,10 @@ function renderRegistry(){
   const rcols=[{k:'brand',label:'Бренд',get:r=>r.brand,sortable:true,filter:'text',render:r=>`<b>${esc(r.brand)}</b>`}];
   if(allObj)rcols.push({k:'obj',label:'Объект',get:r=>objById(r.obj).name,sortable:true,filter:'select'});
   rcols.push({k:'unitCode',label:'Помещение',get:r=>r.unitCode||'',sortable:true,filter:'text',render:r=>r.unitCode?esc(r.unitCode):'<span class="mut">-</span>'});
-  rcols.push({k:'reason',label:'Причина',get:r=>r.reason,sortable:true,filter:'text'});
+  rcols.push({k:'conditions',label:'Что предлагали / условия',get:r=>r.conditions||'',filter:'text',render:r=>r.conditions?esc(r.conditions):'<span class="mut">-</span>'});
+  rcols.push({k:'reason',label:'Причина отказа',get:r=>r.reason,sortable:true,filter:'text'});
   rcols.push({k:'date',label:'Дата',get:r=>r.date||'',sortable:true});
+  rcols.push({k:'by',label:'Кто внёс',get:r=>r.by||'',sortable:true,filter:'select',render:r=>r.by?esc(r.by):'<span class="mut">-</span>'});
   if(canEditR)rcols.push({k:'_del',label:'',get:()=>'',render:r=>`<button class="btn ghost sm" title="Удалить" onclick="deleteRefus('${r.obj}',${r._i})">🗑</button>`});
   $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><p class="sub">${allObj?t('allobj'):curObj().name} · журнал отказов с причиной - не предлагать повторно + рыночные сигналы</p>${tabs}<div class="card">${buildTable('refus',rcols,list)}${canEditR?'<div style="margin-top:10px"><button class="btn sm" onclick="addRefus()">+ '+t('add')+' отказ</button></div>':''}</div><div style="font-size:11.5px;color:var(--muted)">Сигнал: спрос на локации у метро/вузов; крупные F&B ждут якорей (KFC/BK).</div>${footNote()}`;
   return;
@@ -1747,7 +1758,7 @@ function regFltRow(us,canEdit,showBlk){
  h+='</tr>';
  return h;
 }
-function regSort(k){const rs=S.regSort;if(rs&&rs.k===k)rs.dir=-rs.dir;else S.regSort={k,dir:1};renderRegistry();}
+function regSort(k){const rs=S.regSort;if(rs&&rs.k===k)rs.dir=-rs.dir;else S.regSort={k,dir:1};saveTblPrefs();renderRegistry();}
 function addChange(){const ty=prompt('Тип (Объединение/Разделение/Скидка/Нарастающая/Тариф):');if(!ty)return;const w=prompt('Описание изменения:')||'';CHANGES.unshift({obj:S.obj==='ALL'?'ca':S.obj,date:iso(TODAY),type:ty,what:w,by:S.user.name});persist();renderRegistry();}
 
 /* ===== PIPELINE ===== */
@@ -2517,6 +2528,8 @@ function addRefus(){
  <select id="rf_unit" style="width:100%;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"></select>
  <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin:10px 0 4px">Бренд, который отказал</label>
  <input id="rf_brand" style="width:100%;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box">
+ <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin:10px 0 4px">Что / на каких условиях предлагали</label>
+ <textarea id="rf_cond" placeholder="Например: площадь 120 м², ставка 45 $/м², 1-й этаж" style="width:100%;min-height:52px;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"></textarea>
  <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin:10px 0 4px">Причина отказа</label>
  <textarea id="rf_reason" style="width:100%;min-height:64px;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"></textarea>
  <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="saveRefus()">Сохранить</button><button class="btn ghost" onclick="document.getElementById('rmodal').remove()">Отмена</button></div>`);
@@ -2531,14 +2544,16 @@ function saveRefus(){
  const oid=$('rf_obj')&&$('rf_obj').value;
  const brand=(($('rf_brand')&&$('rf_brand').value)||'').trim();
  const reason=(($('rf_reason')&&$('rf_reason').value)||'').trim();
+ const conditions=(($('rf_cond')&&$('rf_cond').value)||'').trim();
  const unitId=($('rf_unit')&&$('rf_unit').value)||'';
  if(!oid){alert('Выберите объект.');return;}
  if(!brand){alert('Укажите бренд.');return;}
  const u=unitId?U.find(x=>x.id===unitId):null;
- (REFUSALS[oid]=REFUSALS[oid]||[]).push({brand,reason,date:iso(TODAY),unitId:unitId||'',unitCode:u?u.code:''});
- audit('Добавлен отказ',brand+(u?' · '+u.code:''));persist();const m=$('rmodal');if(m)m.remove();renderRegistry();
+ (REFUSALS[oid]=REFUSALS[oid]||[]).push({brand,reason,conditions,date:iso(TODAY),unitId:unitId||'',unitCode:u?u.code:'',by:S.user.name});
+ audit('Добавлен отказ',brand+(u?' · '+u.code:''));persist();const m=$('rmodal');if(m)m.remove();refusRerender();
 }
-function deleteRefus(oid,i){if(!R().edit){alert('Недостаточно прав.');return;}const arr=REFUSALS[oid];if(!arr||!arr[i])return;const brand=arr[i].brand;if(!confirm('Удалить запись об отказе «'+brand+'»?'))return;arr.splice(i,1);audit('Удалён отказ',brand);persist();renderRegistry();}
+function refusRerender(){try{if(S.view==='v32_sales'&&typeof go==='function'){go('v32_sales');return;}}catch(e){}renderRegistry();}
+function deleteRefus(oid,i){if(!R().edit){alert('Недостаточно прав.');return;}const arr=REFUSALS[oid];if(!arr||!arr[i])return;const brand=arr[i].brand;if(!confirm('Удалить запись об отказе «'+brand+'»?'))return;arr.splice(i,1);audit('Удалён отказ',brand);persist();refusRerender();}
 
 /* ===== BENCHMARKING ===== */
 function renderBench(){
@@ -3293,7 +3308,8 @@ function openUnit(id){
  const offerTermsTxt=t2=>{if(!t2)return '';const p=[];if(t2.fit)p.push('каникулы '+t2.fit+' мес'+(t2.fitp?' ('+t2.fitp+')':''));if(t2.rstep)p.push('нарастающая: '+t2.rstep);else if(t2.rmod&&t2.rmod.indexOf('Фикс')<0)p.push(t2.rmod);return p.length?' · '+p.join(' · '):'';};
  const offer=offList.length?`<div class="banner warn">⚑ <b>Предложено${offList.length>1?' ('+offList.length+' брендам)':''}</b>:${offList.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="margin-top:4px">• <b>${esc(brandCloak(of.to))}</b>${of.rate?' · '+of.rate+' $/м²':''}${of.no&&of.no!=='-'?' · КП '+esc(of.no)+(of.rev>1?' <span class="pill">ред.'+of.rev+'</span>':''):''} · агент ${esc(of.by||of.role||'')}${esc(offerTermsTxt(of.terms))} · <b>ответ до ${dateRU(of.validUntil)}</b> (${d<0?'просрочено':d+' дн.'})${R().edit?` <a href="#" onclick="extendOffer('${u.id}','${esc(of.to)}');return false" title="Продлить срок ответа (арендатор попросил время на решение)" style="color:var(--red-d)">＋срок</a>`:''}</div>`;}).join('')}<div style="margin-top:5px;font-size:11px">Не предлагать другим без подтверждения.</div></div>`:'';
  const merged=u.merged?`<div class="kv"><span>Объединено из</span><b>${esc(u.merged.join(' + '))}</b></div>`:'';
- const vars=u.vars.length?`<div class="varchips">${u.vars.map((v,i)=>`<span>${i+1}. ${esc(brandCloak(v))}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Вариантов нет</div>';
+ const canEditVars=R().edit;
+ const vars=u.vars.length?`<div class="varchips">${u.vars.map((v,i)=>`<span>${i+1}. ${esc(brandCloak(v))}${canEditVars?` <a href="#" title="Перенести в отказной лист (зафиксировать условия и причину)" onclick="varToRefusal('${u.id}',${i});return false" style="color:var(--red-d);text-decoration:none;font-weight:700;font-size:11px">→ отказ</a> <a href="#" title="Удалить вариант" onclick="delVar('${u.id}',${i});return false" style="color:#b00;text-decoration:none;font-weight:700;font-size:12px">✕</a>`:''}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Вариантов нет</div>';
  const dts=u.dates.length?u.dates.map(d=>`<div class="kv"><span>${esc(d[0])}</span><b>${dateRU(d[1])}</b></div>`).join(''):'<div style="color:var(--muted);font-size:12px">Дат нет</div>';
  const hist=u.hist.length?`<div class="tl">${u.hist.slice().reverse().map(h=>`<div class="ev"><div class="dt">${dateRU(h[0])}</div><div class="tx">${esc(h[1])}</div></div>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Пусто</div>';
  $('drawer').innerHTML=`<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>${esc(u.code)}</h2><div class="s">${esc(o.name)} · ${esc(u.floor)} · ${unitCats(u).map(c=>catDot(c)+esc(c)).join(' ')}${u.sub?' / '+esc(u.sub):''}</div><span class="st ${STCLS[u.status]}" style="margin-top:8px;display:inline-block">${stT(u.status)}</span></div><div class="dbody">${R().edit?`<button class="btn" style="width:100%;margin-bottom:10px;background:#f2b90d;border-color:#d9a406;color:#3d2f00;font-size:14px;padding:11px" onclick="unitForm('${u.id}')">✎ Редактировать помещение</button>`:''}${offer}${merged}<div class="kv"><span>Площадь</span><b>${fmtA(u.area)} м²${u.terr?' (+'+fmtA(u.terr)+' терраса)':''}${R().edit?` <a href="#" onclick="editUnitArea('${u.id}');return false" title="Уточнить площадь (после объединения фактическая площадь обычно больше: убраны стены, добавлены коридоры)" style="color:var(--red-d);text-decoration:none">✎</a>`:''}</b></div><div class="kv"><span>Ставка</span><b>${u.rate?u.rate+' $/м²/мес':'-'}</b></div><div class="kv"><span>Аренда/мес</span><b>${fin?(u.total?fmt(u.total):'-'):'•••'}</b></div>${fin?`<div class="kv"><span>Бюджет (план)</span><b>${uBudget(u)} $/м² · ${fmt(uBudgetTotal(u))}/мес</b></div>${budgetBar(u)}`:''}<div class="kv"><span>Потеря (вакант)</span><b>${fin?(u.gap<0?fmt(Math.abs(u.gap)):'-'):'•••'}</b></div><div class="kv"><span>Брокер</span><b>${esc(u.broker||'-')}</b></div><div class="sect">Варианты (неограниченно)</div>${vars}<div class="sect">Контрольные даты</div>${dts}<div class="sect">Шорт-лист (потенциальные арендаторы)</div>${(u.shortlist&&u.shortlist.length)?`<div class="varchips">${u.shortlist.map(s=>`<span>${esc(s)}</span>`).join('')}</div>`:'<div style="color:var(--muted);font-size:12px">Пусто</div>'}<div class="sect">Комментарии</div>${(u.comments&&u.comments.length)?u.comments.map(c=>`<div style="font-size:12px;border-bottom:1px solid #f2f0ed;padding:5px 0"><b>${esc(c[1])}</b> <span style="color:#6d6d6d">${esc(c[0])}</span><br>${esc(c[2])}</div>`).join(''):'<div style="color:var(--muted);font-size:12px">Нет комментариев</div>'}<div class="sect">История</div>${hist}<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="closeDrawer();go('docs');setTimeout(()=>pickT('kp','${u.id}'),60)">Сформировать КП</button><button class="btn ghost sm" onclick="remindFromUnit('${u.id}')">Напоминание</button>${R().edit?`<button class="btn ghost sm" onclick="negotiateUnit('${u.id}')" title="Зафиксировать интерес бренда без цены (до КП): бренды добавятся в варианты, статус станет «Переговоры»">🤝 Переговоры…</button><button class="btn ghost sm" onclick="shortlistPick('${u.id}')">+ Вариант / шорт-лист (подбор из базы)</button><button class="btn ghost sm" onclick="addUnitDate('${u.id}')">+ дата</button><button class="btn ghost sm" onclick="addComment('${u.id}')">+ Комментарий</button><button class="btn ghost sm" onclick="areaTransferForm('${u.id}')">✂ Передать площадь</button><button class="btn ghost sm" onclick="mergeUnitForm('${u.id}')">⊕ Объединить</button><button class="btn ghost sm" onclick="splitUnitForm('${u.id}')">⊘ Разделить</button><button class="btn ghost sm" style="border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="deleteUnit('${u.id}')">🗑 Удалить</button>`:''}</div></div>`;
@@ -3337,6 +3353,23 @@ function doTransferArea(){const f=U.find(x=>x.id===$('at_from').value),t=U.find(
  f.hist.push([iso(TODAY),note]);t.hist.push([iso(TODAY),note]);
  audit('Перераспределение площади',note);persist();closeDrawer();go(S.view);}
 function addVar(id){const u=U.find(x=>x.id===id),v=prompt('Бренд-кандидат:');if(v){u.vars.push(v);u.hist.push([iso(TODAY),'Добавлен вариант: '+v]);persist();openUnit(id);}}
+function delVar(id,i){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];if(!confirm('Удалить вариант «'+v+'» из карточки?\n\nЕсли бренд отказался — лучше «→ отказ», чтобы сохранить причину и условия в отказном листе.'))return;u.vars.splice(i,1);u.hist.push([iso(TODAY),'Удалён вариант: '+v+' ('+S.user.name+')']);audit('Удалён вариант помещения',u.code+' · '+v);persist();openUnit(id);}
+function varToRefusal(id,i){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];
+ const cond='площадь '+fmtA(u.area)+' м²'+(u.rate?', ставка '+u.rate+' $/м²':'')+(u.sub?', '+u.sub:'')+(u.cat?', '+u.cat:'');
+ openModal(`<h3 style="margin:0 0 10px">В отказной лист · ${esc(u.code)}</h3>
+ <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Бренд <b>${esc(brandCloak(v))}</b> переносится из вариантов в журнал отказов. Зафиксируйте, что и на каких условиях предлагали, и причину отказа — чтобы не предлагать повторно и видеть рыночные сигналы.</div>
+ <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin:8px 0 4px">Что / на каких условиях предлагали</label>
+ <textarea id="vr_cond" style="width:100%;min-height:54px;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box">${esc(cond)}</textarea>
+ <label style="display:block;font-size:11px;font-weight:700;color:var(--muted);margin:10px 0 4px">Причина отказа</label>
+ <textarea id="vr_reason" placeholder="Например: высокая ставка · не подошла локация · нет площади нужного метража · ждут якорь" style="width:100%;min-height:62px;font-family:inherit;font-size:13px;padding:8px;border:1px solid var(--border);border-radius:8px;box-sizing:border-box"></textarea>
+ <div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="saveVarRefusal('${id}',${i})">→ В отказной лист</button><button class="btn ghost" onclick="document.getElementById('rmodal').remove()">Отмена</button></div>`);
+}
+function saveVarRefusal(id,i){const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];
+ const conditions=(($('vr_cond')&&$('vr_cond').value)||'').trim();
+ const reason=(($('vr_reason')&&$('vr_reason').value)||'').trim();
+ (REFUSALS[u.obj]=REFUSALS[u.obj]||[]).push({brand:v,reason,conditions,date:iso(TODAY),unitId:u.id,unitCode:u.code,by:S.user.name});
+ u.vars.splice(i,1);u.hist.push([iso(TODAY),'В отказной лист: '+v+(reason?' — '+reason:'')+' ('+S.user.name+')']);
+ audit('Бренд в отказной лист',u.code+' · '+v);persist();const m=$('rmodal');if(m)m.remove();openUnit(id);}
 function addUnitDate(id){
  const u=U.find(x=>x.id===id);if(!u)return;
  const types=['Открытие','Окончание брони','Подписание контракта','Окончание договора','Ревизия ставки','Дедлайн'];

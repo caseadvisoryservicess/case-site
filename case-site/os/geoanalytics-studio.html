@@ -1014,7 +1014,7 @@ function proj(){return PROJECTS[$('proj').value];}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function socialLinks(s){if(!s)return '';return String(s).split(' | ').map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.replace(/https?:\/\/(www\.)?/,'').split('/')[0])}</a>`).join(' · ');}
 function popContent(e,dkm,id){const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google':'',e.inyandex?'Yandex':'',e.ingp?'GP':''].filter(Boolean).join(', ');
- return `<div class="geo-map-popup"><strong>${esc(e.name)}</strong><p>${esc([e.district,e.provider].filter(Boolean).join(' · '))}</p>${e.address?'<p>'+esc(e.address)+'</p>':''}<div class="geo-map-popup-grid">${e['class']?'<div><span>Класс</span><b>'+esc(e['class'])+'</b></div>':''}${e.gla?'<div><span>GLA</span><b>'+esc(e.gla)+' м²</b></div>':''}${e.floors?'<div><span>Этажей</span><b>'+esc(e.floors)+'</b></div>':''}${e.rent?'<div><span>Аренда</span><b>'+esc(e.rent)+' $/м²</b></div>':''}</div><small>${fl?'Есть в: '+fl:'Источник требует проверки'}${dkm!=null?' · '+dkm.toFixed(2)+' км от проекта':''}</small><button type="button" onclick="geoOpenBusinessCard(${id});return false">Открыть карточку</button></div>`;}
+ return `<div class="geo-map-popup"><strong>${esc(e.name)}</strong><p>${esc([e.district,e.provider].filter(Boolean).join(' · '))}</p>${e.address?'<p>'+esc(e.address)+'</p>':''}<div class="geo-map-popup-grid">${e['class']?'<div><span>Класс</span><b>'+esc(e['class'])+'</b></div>':''}${e.gla?'<div><span>GLA</span><b>'+esc(e.gla)+' м²</b></div>':''}${e.floors?'<div><span>Этажей</span><b>'+esc(e.floors)+'</b></div>':''}${e.rent?'<div><span>Аренда</span><b>'+esc(e.rent)+' $/м²</b></div>':''}</div><small>${fl?'Есть в: '+fl:'Источник требует проверки'}${dkm!=null?' · '+dkm.toFixed(2)+' км от проекта':''}</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenBusinessCard(${id});return false">Открыть карточку</button>${(!document.body.classList.contains('geo-readonly')&&typeof window.geoDeleteMapRecord==='function')?'<button type="button" onclick="geoDeleteMapRecord(\'bc\','+id+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот БЦ с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':''}</div></div>`;}
 function vbox(){if(!map)return null;const s=map.getSize();if(!s||s.x<60||s.y<60)return null;const b=map.getBounds();return (b&&b.isValid())?b.pad(0.25):null;}
 function labelFont(){const z=map.getZoom();return Math.max(8,Math.min(15,8+(z-13)*1.4));}
 function renderBC(){if(!map)return;gBC.clearLayers();if(!$('lBC')||!$('lBC').checked)return;
@@ -2066,5 +2066,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.9.3"></script>
-<script src="v420-geo-studio.js?v=4.28.0"></script>
+<script src="v420-geo-studio.js?v=4.29.0"></script>
 </body></html>
