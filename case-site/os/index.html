@@ -154,9 +154,9 @@ thead th{vertical-align:top}
 .th1r{display:flex;align-items:center;gap:2px;white-space:nowrap}
 th.num .th1r{justify-content:flex-end}
 .th1r .th-name{font-weight:700}
-.tblfnl{display:inline-block;margin-left:4px;cursor:pointer;color:#9a948c;font-size:10px;opacity:.8;user-select:none;vertical-align:1px}
+.tblfnl{display:inline-block;margin-left:5px;cursor:pointer;color:#8a847c;font-size:18px;line-height:1;opacity:.85;user-select:none;vertical-align:-1px}
 .tblfnl:hover{opacity:1;color:var(--red-d,#9E0000)}
-.tblfnl.on{color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;opacity:1}
+.tblfnl.on{color:#fff;background:var(--red-d,#9E0000);border-radius:5px;padding:0 4px;opacity:1}
 #tblmenu{position:fixed;z-index:10000;background:#fff;border:1px solid #d9d2c7;border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.24);padding:10px;font-family:inherit;max-height:82vh;overflow:auto}
 #tblmenu .tbm-h{font-weight:800;font-size:13px;margin-bottom:6px}
 #tblmenu .tbm-sort{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}
@@ -398,7 +398,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.29.6';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.29.7';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
