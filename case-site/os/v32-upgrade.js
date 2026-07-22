@@ -374,18 +374,36 @@
       +'<div class="v32-kpi"><small>'+h(scrT('portfolio'))+'</small><b>'+money(Math.round(portfolio))+'</b></div>'
       +'</div></div>';
     if(!units.length)return kpis+'<div class="v32-card"><div class="v32-empty">'+h(scrT('noUnits'))+'</div></div>';
-    var rows=units.map(function(u){
-      var st=scrSaleOf(u),pr=+u.salePrice||0,ar=+u.area||0,total=Math.round(pr*ar);
-      var stCell=canEdit
-        ?'<select onchange="scrSetSaleStatus(\''+u.id+'\',this.value)" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border,#ccc);border-radius:7px">'+SCR_SALE_STS.map(function(o){return '<option value="'+o[0]+'"'+(st===o[0]?' selected':'')+'>'+h(o[1])+'</option>';}).join('')+'</select>'
-        :h(scrSaleLabel(st));
-      var prCell=canEdit
-        ?'<input type="number" min="0" step="1" value="'+(pr||'')+'" onchange="scrSetSalePrice(\''+u.id+'\',this.value)" style="width:92px;font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border,#ccc);border-radius:7px" placeholder="—">'
-        :(pr?money(pr):'—');
-      return '<tr><td><b>'+h(u.code||'')+'</b></td><td>'+h(scrBlock(u)||'-')+'</td><td>'+h(scrFloor(u)||'-')+'</td><td>'+h(u.cat||'-')+'</td><td>'+h(ar||'-')+'</td><td>'+prCell+'</td><td><b>'+(total?money(total):'—')+'</b></td><td>'+stCell+'</td><td>'+h(u.broker||'-')+'</td></tr>';
-    }).join('');
-    return kpis+'<div class="v32-card"><div class="v32-head"><div><div class="v32-eyebrow">SALES REGISTER (SCR)</div><h3>'+h((typeof objById==='function'?((objById(oid)||{}).name||oid):oid))+'</h3></div><div><button class="btn ghost sm" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button></div></div><div class="tbl-scroll"><table class="v32-table"><tr><th>'+h(scrT('code'))+'</th><th>'+h(scrT('block'))+'</th><th>'+h(scrT('floor'))+'</th><th>'+h(scrT('cat'))+'</th><th>'+h(scrT('area'))+'</th><th>'+h(scrT('price'))+'</th><th>'+h(scrT('sum'))+'</th><th>'+h(scrT('sstatus'))+'</th><th>'+h(scrT('broker'))+'</th></tr>'+rows+'</table></div></div>';
+    var objName=(typeof objById==='function'?((objById(oid)||{}).name||oid):oid);
+    /* Тулбар как в LCR: правки inline, экспорт, переход на план продаж. */
+    var toolbar='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px">'
+      +'<b style="font-size:14px">'+h(objName)+'</b>'
+      +'<span class="v32-pill" style="font-size:11px">SCR</span>'
+      +'<div style="flex:1"></div>'
+      +(canEdit?'<span style="font-size:11px;color:var(--muted)">2× клик по цене/статусу — правка</span>':'')
+      +'<button class="btn ghost sm" onclick="scrExportCSV()">⬇ CSV / Excel</button>'
+      +'<button class="btn ghost sm" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button>'
+      +'</div>';
+    /* Таблица через общий движок buildTable — тот же вид, что в LCR/юнитах: сортировка, пофильтровые колонки. */
+    var cols=[
+      {k:'code',label:scrT('code'),get:function(u){return u.code||'';},sortable:true,filter:'text',render:function(u){return '<b>'+h(u.code||'')+'</b>';}},
+      {k:'block',label:scrT('block'),get:function(u){return scrBlock(u)||'';},sortable:true,filter:'select'},
+      {k:'floor',label:scrT('floor'),get:function(u){return scrFloor(u)||'';},sortable:true,filter:'select'},
+      {k:'cat',label:scrT('cat'),get:function(u){return u.cat||'';},sortable:true,filter:'select'},
+      {k:'area',label:'м²',get:function(u){return +u.area||0;},num:true,sortable:true},
+      {k:'price',label:scrT('price'),get:function(u){return +u.salePrice||0;},num:true,sortable:true,render:scrPriceCell},
+      {k:'sum',label:scrT('sum'),get:function(u){return Math.round((+u.salePrice||0)*(+u.area||0));},num:true,sortable:true,render:function(u){var t=Math.round((+u.salePrice||0)*(+u.area||0));return t?('<b>'+money(t)+'</b>'):'—';}},
+      {k:'sstatus',label:scrT('sstatus'),get:function(u){return scrSaleLabel(scrSaleOf(u));},sortable:true,filter:'select',render:scrStatusCell},
+      {k:'broker',label:scrT('broker'),get:function(u){return u.broker||'';},sortable:true,filter:'select'}
+    ];
+    var tbl=(typeof buildTable==='function')?buildTable('scr_registry',cols,units,{rowClick:function(u){return "openUnit('"+u.id+"')";}}):'';
+    return kpis+'<div class="v32-card">'+toolbar+tbl+'</div>';
   }
+  /* Цветные чипы/редакторы статуса продажи — как статусы в LCR. stopPropagation, чтобы клик по контролу не открывал карточку. */
+  var SCR_STCOL={savail:['#e7f4e8','#2e7d32'],sresv:['#fff3e0','#e08600'],sdeal:['#e4eefb','#1565c0'],ssold:['#fdeaea','#9E0000']};
+  function scrStatusCell(u){var st=scrSaleOf(u);if(scrCanEdit())return '<select onclick="event.stopPropagation()" onchange="scrSetSaleStatus(\''+u.id+'\',this.value)" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border,#ccc);border-radius:7px">'+SCR_SALE_STS.map(function(o){return '<option value="'+o[0]+'"'+(st===o[0]?' selected':'')+'>'+h(o[1])+'</option>';}).join('')+'</select>';var c=SCR_STCOL[st]||['#f0f0f0','#999'];return '<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:'+c[0]+';color:'+c[1]+'">'+h(scrSaleLabel(st))+'</span>';}
+  function scrPriceCell(u){var pr=+u.salePrice||0;if(scrCanEdit())return '<input type="number" min="0" step="1" value="'+(pr||'')+'" onclick="event.stopPropagation()" onchange="scrSetSalePrice(\''+u.id+'\',this.value)" style="width:88px;font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border,#ccc);border-radius:7px" placeholder="—">';return pr?money(pr):'—';}
+  window.scrExportCSV=function(){try{var oid=(typeof S==='object'&&S.obj)?S.obj:'ALL';var units=scrUnits();var head=['Код','Блок','Этаж','Категория','Площадь м²','Цена $/м²','Сумма продажи','Статус продажи','Брокер'];var esc2=function(v){v=String(v==null?'':v);return /[";\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};var lines=[head.join(';')];units.forEach(function(u){var pr=+u.salePrice||0,ar=+u.area||0;lines.push([u.code||'',scrBlock(u)||'',scrFloor(u)||'',u.cat||'',ar,pr,Math.round(pr*ar),scrSaleLabel(scrSaleOf(u)),u.broker||''].map(esc2).join(';'));});var blob=new Blob(['﻿'+lines.join('\r\n')],{type:'text/csv;charset=utf-8'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SCR_'+(oid||'obj')+'.csv';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},100);}catch(e){alert('Ошибка экспорта: '+(e&&e.message||e));}};
   function renderSaleAssets(){
     var assets=visibleRows(window.SALES_ASSETS), buyers=visibleRows(window.SALES_BUYERS), bonus=allBonusRows().filter(function(r){return r.kind===tr('sales');});
     var tools='<div class="v32-tools" style="margin:0 0 10px"><div class="mut" style="font-size:12px;color:var(--muted)">'+h(scrT('assetsHint'))+'</div><div><button class="btn" onclick="v32AssetForm()">+ '+h(tr('addAsset'))+'</button> <button class="btn ghost" onclick="v32BuyerForm()">+ '+h(tr('addBuyer'))+'</button> <button class="btn ghost" onclick="go(\'v32_investors\')">'+h(tr('investorLeads'))+'</button></div></div>';
