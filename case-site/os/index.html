@@ -368,7 +368,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.27.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.27.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1324,7 +1324,7 @@ function tblFilterPass(c,r,fv){
 function buildTable(key,cols,rows,opts){opts=opts||{};S.tbl=S.tbl||{};const st=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};
  let data=rows.filter(r=>cols.every(c=>tblFilterPass(c,r,st.filters[c.k])));
  if(st.sort){const c=cols.find(x=>x.k===st.sort.k);if(c)data=data.slice().sort((a,b)=>{let va=c.get(a),vb=c.get(b);if(c.num){return((+va||0)-(+vb||0))*st.sort.dir;}va=(va==null?'':String(va));vb=(vb==null?'':String(vb));return va.localeCompare(vb,'ru',{numeric:true,sensitivity:'base'})*st.sort.dir;});} /* numeric:true — натуральная сортировка: B1_2 раньше B1_10 */
- const arrow=c=>!c.sortable?'':(st.sort&&st.sort.k===c.k?(st.sort.dir>0?' ▲':' ▼'):' <span style="opacity:.28">⇅</span>');
+ const arrow=c=>!c.sortable?'':(st.sort&&st.sort.k===c.k?` <span style="display:inline-block;color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;font-size:10px;font-weight:800;vertical-align:1px">${st.sort.dir>0?'▲':'▼'}</span>`:' <span class="sortbtn" style="display:inline-block;opacity:.5;font-size:10px;vertical-align:1px" title="Сортировать">↕</span>');
  const th=cols.map(c=>`<th${c.num?' class="num"':''}${c.sortable?` style="cursor:pointer;white-space:nowrap" onclick="tblS('${key}','${c.k}')"`:''}>${esc(c.label)}${arrow(c)}</th>`).join('');
  const distinct=c=>{const s=[];rows.forEach(r=>{const v=c.get(r);if(v!=null&&v!==''&&s.indexOf(String(v))<0)s.push(String(v));});return s.sort();};
  const hasF=cols.some(c=>c.filter);
@@ -1347,7 +1347,7 @@ function _tblColW(){try{return JSON.parse(localStorage.getItem('caseos_tbl_colw'
 function _tblColWSave(o){try{localStorage.setItem('caseos_tbl_colw',JSON.stringify(o));}catch(e){}}
 function tblColReset(key){const o=_tblColW();delete o[key];_tblColWSave(o);try{go(S.view);}catch(e){}}
 function initColResize(root){
- if(!document.getElementById('colrzCss')){const st=document.createElement('style');st.id='colrzCss';st.textContent='.colrz{position:absolute;top:0;right:0;width:7px;height:100%;cursor:col-resize;user-select:none;z-index:6}.colrz:hover{background:linear-gradient(to right,transparent,rgba(158,0,0,.25))}table[data-tblkey]{table-layout:auto}table[data-tblkey].colr-fixed{table-layout:fixed}';document.head.appendChild(st);}
+ if(!document.getElementById('colrzCss')){const st=document.createElement('style');st.id='colrzCss';st.textContent='.colrz{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;user-select:none;z-index:6;border-right:2px solid rgba(0,0,0,.16)}.colrz:hover{border-right-color:var(--red-d,#9E0000);background:rgba(158,0,0,.10)}.colrz:active{border-right-color:var(--red-d,#9E0000);background:rgba(158,0,0,.18)}table[data-tblkey]{table-layout:auto}table[data-tblkey].colr-fixed{table-layout:fixed}table[data-tblkey] thead th{position:relative}';document.head.appendChild(st);}
  (root||document).querySelectorAll('table[data-tblkey]:not([data-colr])').forEach(tb=>{
   tb.setAttribute('data-colr','1');const key=tb.getAttribute('data-tblkey');
   const ths=tb.querySelectorAll('thead tr:first-child > th');if(!ths.length)return;
@@ -1708,7 +1708,7 @@ function exportLCRExcel(lang){const us=unitsOf(S.obj);const fin=R().finance;cons
   `<tr><th colspan="2" style="${C}"></th><th colspan="5" style="${C}background:#eaf2ff">${T.orig}</th><th colspan="6" style="${C}background:#eef9ee">${T.bud}</th><th colspan="12" style="${C}background:#fff3e0">${T.fact}</th><th colspan="1" style="${C}background:#fdeaea">${T.pf}</th><th colspan="5" style="${C}">${T.vars}</th><th colspan="8" style="${C}">${T.deal}</th></tr>`+
   `<tr>`+T.cols.map(h=>`<th style="${C}">${String(h).replace('(SC)','('+sc+'%)')}</th>`).join('')+`</tr>`;
  downloadXLS('LCR_'+(allObj?'portfolio':S.obj)+'_'+lang+'_'+iso(TODAY)+'.xls',`<table border="1" cellspacing="0">${head}${body}</table>`);}
-function regTh(k,label,num){const rs=S.regSort;const ar=rs&&rs.k===k?(rs.dir>0?' ▲':' ▼'):' <span style="opacity:.28">⇅</span>';return `<th${num?' class="num"':''} style="cursor:pointer;white-space:nowrap" onclick="regSort('${k}')">${esc(label)}${ar}</th>`;}
+function regTh(k,label,num){const rs=S.regSort;const ar=rs&&rs.k===k?` <span style="display:inline-block;color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;font-size:10px;font-weight:800;vertical-align:1px">${rs.dir>0?'▲':'▼'}</span>`:' <span style="display:inline-block;opacity:.5;font-size:10px;vertical-align:1px" title="Сортировать">↕</span>';return `<th${num?' class="num"':''} style="cursor:pointer;white-space:nowrap" onclick="regSort('${k}')">${esc(label)}${ar}</th>`;}
 /* №6: пофильтровые колонки в Реестре (LCR) — как у брендов. Переиспользуем tblFilterPass (число/текст/select). */
 function _regFCols(){return [
  {k:'code',filter:'text',get:x=>x.code},
