@@ -406,7 +406,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.30.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.30.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1824,16 +1824,15 @@ const LCR_T={
 function exportLCRExcel(lang){const us=unitsOf(S.obj);const fin=R().finance;const allObj=S.obj==='ALL';const o0=allObj?null:objById(S.obj);const sc=(o0&&o0.sc)||10;lang=(lang&&LCR_T[lang])?lang:(LCR_T[LANG]?LANG:'ru');const T=LCR_T[lang]||LCR_T.ru;
  const m=v=>fin?(v?Math.round(v):0):'';const e2=esc;
  const td=(x,n)=>`<td${n?' style="mso-number-format:&#39;0.##&#39;"':''}>${x==null||x===''?'':x}</td>`;
- const body=us.map((u,idx)=>{const bud=uBudget(u),budTot=Math.round((u.area||0)*bud),budServ=+(bud*sc/100).toFixed(2),budIncl=Math.round(bud*(1+sc/100)*(u.area||0));
-  const rate=u.rate||0,factTot=u.total||Math.round((u.area||0)*rate),factServ=+(rate*sc/100).toFixed(2),factIncl=Math.round(rate*(1+sc/100)*(u.area||0));
-  const diff=factTot-budTot,ann=factTot*12,annM2=rate*12;const v=i=>(u.vars&&u.vars[i])?e2(u.vars[i]):'';
+ /* Экспорт использует те же расчётные функции, что и таблица на экране — числа в Excel 1:1 совпадают с реестром. */
+ const body=us.map((u,idx)=>{const v=i=>(u.vars&&u.vars[i])?e2(u.vars[i]):'';
   return '<tr>'+[td(idx+1),td(e2(u.floor||'')),
    td(e2(u.code)),td(u.area||0,1),td(u.terr||0,1),td(e2(u.cat||'')),td(e2(u.sub||'')),
-   td(m(bud),1),td(''),td(m(budTot),1),td(m(budServ),1),td(m(budIncl),1),td(''),
-   td(e2(u.code)),td(u.area||0,1),td(u.terr||0,1),td(e2(u.cat||'')),td(e2(u.sub||'')),td(''),td(''),td(m(rate),1),td(''),td(m(factTot),1),td(m(factServ),1),td(m(factIncl),1),
-   td(m(diff),1),
+   td(m(budBase(u)),1),td(m(budLand(u)),1),td(m(budTot(u)),1),td(m(budSvc(u)),1),td(m(budTotS(u)),1),td(m(uCapex(u)),1),
+   td(e2(u.code)),td(u.area||0,1),td(u.terr||0,1),td(e2(u.cat||'')),td(e2(u.sub||'')),td(''),td(''),td(m(facBase(u)),1),td(m(facLand(u)),1),td(m(facTot(u)),1),td(m(facSvc(u)),1),td(m(facTotS(u)),1),
+   td(m(lcrDiff(u)),1),
    td(v(0)),td(v(1)),td(v(2)),td(v(3)),td(v(4)),
-   td(e2(u.comment||'')),td(e2(stTl(u.status,lang))),td(u.offer&&u.offer.validUntil?dateRU(u.offer.validUntil):''),td(''),td(e2(u.broker||'')),td(m(ann),1),td(m(annM2),1),td('')
+   td(e2(u.comment||'')),td(e2(stTl(u.status,lang))),td(u.offer&&u.offer.validUntil?dateRU(u.offer.validUntil):''),td(''),td(e2(u.broker||'')),td(m(facTot(u)*12),1),td(m(facBase(u)*12),1),td('')
   ].join('')+'</tr>';}).join('');
  const C='text-align:center;border:1px solid #999;font-weight:bold;';
  const head=`<tr><td colspan="39" style="font-size:15px;font-weight:bold">CASE Advisory — LCR — ${e2(allObj?T.port:o0.name)}${allObj?'':' · '+e2(objCountry(o0))+', '+e2(o0.city||'')}</td></tr>`+
