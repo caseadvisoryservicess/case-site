@@ -71,6 +71,7 @@
       +'<section class="geo-v42">'
       +'<div class="geo-v42-toolbar"><select id="geoProject" aria-label="'+h(tr('Проект','Loyiha','Project'))+'" onchange="geoV42Project(this.value)">'+projectOptions()+'</select>'
       +'<button class="geo-v42-recover" id="geoRecoverBtn" style="display:none" onclick="geoV42Recover()">'+h(tr('Восстановить локальную копию','Lokal nusxani tiklash','Restore local copy'))+'</button>'
+      +(canEdit()?'<button class="geo-v42-reload" aria-label="'+h(tr('История и восстановление','Tarix va tiklash','History & restore'))+'" title="'+h(tr('История сохранений и восстановление','Saqlashlar tarixi va tiklash','Save history & restore'))+'" onclick="geoV42History()">🕘</button>':'')
       +'<button class="geo-v42-reload" aria-label="'+h(tr('Обновить','Yangilash','Reload'))+'" title="'+h(tr('Обновить','Yangilash','Reload'))+'" onclick="geoV42Reload()">↻</button></div>'
       +'<div class="geo-v42-frame"><div class="geo-v42-loader" id="geoLoader">'+h(tr('Загрузка геоаналитики…','Geoanalitika yuklanmoqda…','Loading geoanalytics…'))+'</div><iframe id="geoFrame" title="CASE Universal Geoanalytics" src="geoanalytics-studio.html?embedded=1&amp;v='+geoStudioVer()+'" loading="eager"></iframe></div>'
       +'</section>';
@@ -85,6 +86,7 @@
     }},location.origin);
   }
   function notifyFrame(type,payload){var fr=frame();if(fr&&fr.contentWindow)fr.contentWindow.postMessage(Object.assign({source:'asaas-os-v4',type:type},payload||{}),location.origin);}
+  function geoCount(g){try{if(!g||typeof g!=='object')return 0;var n=Array.isArray(g.projects)?g.projects.length:0;var d=g.datasets||{};Object.keys(d).forEach(function(k){if(Array.isArray(d[k]))n+=d[k].length;});return n;}catch(e){return 0;}}
   async function loadGeoFresh(){
     if(!BACKEND||typeof apiGET!=='function')return;
     try{
@@ -93,7 +95,11 @@
       if(j&&j.data&&typeof j.data==='object'){GEO_DATA=j.data;G.geoRevision=+j.geo_revision||0;G.lastLoadedAt=j.updated_at||null;if(typeof _serverRev!=='undefined'&&j.app_revision!=null)_serverRev=+j.app_revision||_serverRev;}
       var serverTime=Date.parse((GEO_DATA&&GEO_DATA.updatedAt)||(GEO_DATA&&GEO_DATA.meta&&GEO_DATA.meta.updatedAt)||j.updated_at||0)||0;
       var localTime=Date.parse((localGeo&&localGeo.updatedAt)||(localGeo&&localGeo.meta&&localGeo.meta.updatedAt)||0)||0;
-      if(canEdit()&&localGeo&&localTime>serverTime+1000){G.recoveryData=localGeo;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='inline-flex';toast(tr('Найдена более новая локальная копия геоданных','Yangiroq lokal geo nusxa topildi','A newer local geo copy was found'));}
+      /* Показываем «Восстановить локальную копию» не только когда она новее по времени, но и когда
+         в локальной копии заметно БОЛЬШЕ данных, чем на сервере — типичный признак потери
+         (данные вводились в офлайн/демо-режиме и не дошли до сервера). */
+      var localHasMore=canEdit()&&localGeo&&(geoCount(localGeo)>geoCount(GEO_DATA)+3);
+      if(canEdit()&&localGeo&&(localTime>serverTime+1000||localHasMore)){G.recoveryData=localGeo;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='inline-flex';toast(tr('Найдена локальная копия геоданных с несохранёнными правками — нажмите «Восстановить локальную копию»','Saqlanmagan geo tahrirли lokal nusxa topildi','A local geo copy with unsaved edits was found — click “Restore local copy”'));}
     }catch(e){console.warn('Geoanalytics: fresh server state was not loaded',e);}
   }
   async function saveGeo(data,reason){
@@ -162,6 +168,35 @@
   });
   window.geoV42Project=function(id){G.project=String(id||'');context();};
   window.geoV42Recover=function(){if(!G.recoveryData||G.saving)return;var copy=JSON.parse(JSON.stringify(G.recoveryData));G.recoveryData=null;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='none';saveGeo(copy,'восстановление локальной копии Младшего администратора');};
+  /* Серверная история геоданных: последние 50 снимков (таблица geo_state_history). Любой
+     редактор может её посмотреть, администратор — откатить к выбранному снимку. Это надёжный
+     способ вернуть данные (в отличие от локальной копии, привязанной к браузеру автора). */
+  function geoIsAdmin(){try{return !!(typeof R==='function'&&R().admin);}catch(e){return false;}}
+  window.geoV42History=async function(){
+    if(!canEdit()||typeof apiGET!=='function'){toast(tr('История недоступна','Tarix mavjud emas','History unavailable'));return;}
+    var j;try{j=await apiGET('geo_state.php?history');}catch(e){toast(tr('Не удалось загрузить историю: ','Tarixni yuklab bo‘lmadi: ','Failed to load history: ')+(e&&e.message||''));return;}
+    var rows=(j&&j.history)||[],admin=geoIsAdmin();
+    var list=rows.length?rows.map(function(r){
+      return '<tr><td style="padding:5px 8px;white-space:nowrap">'+h(r.created_at||'')+'</td><td style="padding:5px 8px">'+h(r.updated_by||'')+'</td><td style="padding:5px 8px">'+h(r.reason||'')+'</td><td style="padding:5px 8px;text-align:center">'+h('rev '+(r.geo_revision||0))+'</td><td style="padding:5px 8px;text-align:right">'+(admin?'<button class="btn" style="padding:3px 10px" onclick="geoV42Restore('+(+r.id)+')">'+h(tr('Восстановить','Tiklash','Restore'))+'</button>':'<span style="color:#999;font-size:11px">'+h(tr('только админ','faqat admin','admin only'))+'</span>')+'</td></tr>';
+    }).join(''):'<tr><td colspan="5" style="text-align:center;color:#888;padding:16px">'+h(tr('Снимков пока нет','Hozircha snapshotlar yo‘q','No snapshots yet'))+'</td></tr>';
+    var ov=document.getElementById('geoHistModal');if(ov)ov.remove();
+    ov=document.createElement('div');ov.id='geoHistModal';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:100000;display:flex;align-items:center;justify-content:center;padding:20px';
+    ov.innerHTML='<div style="background:#fff;border-radius:12px;max-width:860px;width:100%;max-height:82vh;overflow:auto;padding:18px;box-shadow:0 18px 50px rgba(0,0,0,.3)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><h3 style="margin:0;font-size:16px">'+h(tr('История сохранений геоданных','Geo saqlashlar tarixi','Geo save history'))+'</h3><button class="btn sec" style="padding:3px 10px" onclick="var m=document.getElementById(\'geoHistModal\');if(m)m.remove();">✕</button></div>'
+      +'<p style="color:#666;font-size:12px;margin:0 0 10px">'+h(tr('Последние 50 снимков на сервере. Администратор может откатить геоданные к любому из них (текущее состояние тоже сохранится в истории).','Serverdagi oxirgi 50 snapshot. Administrator geo maʼlumotlarni istalganiga qaytarishi mumkin.','Last 50 server snapshots. An admin can roll geo data back to any of them.'))+'</p>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="text-align:left;border-bottom:1px solid #eee;color:#666"><th style="padding:5px 8px">'+h(tr('Дата','Sana','Date'))+'</th><th style="padding:5px 8px">'+h(tr('Кто','Kim','By'))+'</th><th style="padding:5px 8px">'+h(tr('Причина','Sabab','Reason'))+'</th><th style="padding:5px 8px;text-align:center">Rev</th><th style="padding:5px 8px"></th></tr></thead><tbody>'+list+'</tbody></table></div>';
+    ov.addEventListener('click',function(e){if(e.target===ov)ov.remove();});
+    document.body.appendChild(ov);
+  };
+  window.geoV42Restore=async function(id){
+    id=+id;if(!id)return;
+    if(!geoIsAdmin()){toast(tr('Восстановление доступно только администратору','Tiklash faqat administrator uchun','Restore is admin-only'));return;}
+    if(!confirm(tr('Восстановить геоданные из снимка #','#','Restore geo data from snapshot #')+id+tr('? Текущее состояние будет заменено (оно тоже сохранится в истории).','?','? The current state will be replaced.')))return;
+    try{var j=await apiPOST('geo_state.php',{action:'restore',history_id:id,expected_geo_revision:G.geoRevision||0});
+      if(j&&j.ok){GEO_DATA=(j.data&&typeof j.data==='object')?j.data:GEO_DATA;G.geoRevision=+j.geo_revision||G.geoRevision;var m=document.getElementById('geoHistModal');if(m)m.remove();toast(tr('Геоданные восстановлены из снимка #','#','Geo data restored from snapshot #')+id);try{context();}catch(e){}try{geoV42Reload();}catch(e){}}
+      else throw new Error((j&&j.error)||'нет подтверждения');
+    }catch(e){var msg=String(e&&e.message||'');toast(tr('Не удалось восстановить: ','Tiklab bo‘lmadi: ','Restore failed: ')+msg);}
+  };
   window.geoV42Reload=function(){var fr=frame();if(fr){G.ready=false;var l=document.getElementById('geoLoader');if(l)l.style.display='flex';fr.src='geoanalytics-studio.html?embedded=1&v='+geoStudioVer()+'&t='+Date.now();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
