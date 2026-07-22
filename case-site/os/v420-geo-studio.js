@@ -189,8 +189,24 @@
   }
   function collectState(){
     Object.keys(PROJECTS).forEach(function(k){GEO_PROFILES[k]=clone(PROJECTS[k]);});
-    var datasets={bc:BC.map(function(b){return clone(eff(b));}),medicine:clone(MEDPTS),pharmacies:clone(PHARM),population:clone(POP),districts:clone(DIST),region:clone(DISTR),market:clone(MARKET),prices:clone(PRICES),metro:clone(METRO),roads:clone(ROADS)};
-    Object.keys(POI_DEFS).forEach(function(k){datasets[k]=clone(GEO_POI[k]);});
+    /* На сервере храним ТОЛЬКО изменённые наборы (правки/удаления/добавления), а нетронутый
+       встроенный справочник (2GIS-мастербаза ~тысячи объектов) не гоняем при каждом сохранении —
+       иначе общий блоб состояния раздувается и упирается в лимиты памяти/размера PHP.
+       Нетронутый набор при загрузке берётся из встроенной константы (applyState это учитывает). */
+    var mod=(GEO_META&&GEO_META.datasets&&typeof GEO_META.datasets==='object')?GEO_META.datasets:{};
+    var dirty=function(k){return !!mod[k];};
+    var datasets={};
+    if(dirty('bc')||Object.keys(EDITS).length)datasets.bc=BC.map(function(b){return clone(eff(b));});
+    if(dirty('medicine'))datasets.medicine=clone(MEDPTS);
+    if(dirty('pharmacies'))datasets.pharmacies=clone(PHARM);
+    if(dirty('population'))datasets.population=clone(POP);
+    if(dirty('districts'))datasets.districts=clone(DIST);
+    if(dirty('region'))datasets.region=clone(DISTR);
+    if(dirty('market'))datasets.market=clone(MARKET);
+    if(dirty('prices'))datasets.prices=clone(PRICES);
+    if(dirty('metro'))datasets.metro=clone(METRO);
+    if(dirty('roads'))datasets.roads=clone(ROADS);
+    Object.keys(POI_DEFS).forEach(function(k){if(dirty(k))datasets[k]=clone(GEO_POI[k]);});
     return {version:2,status:'manual_review',updatedAt:new Date().toISOString(),updatedBy:(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'',projects:Object.keys(GEO_PROFILES).map(function(k){return clone(GEO_PROFILES[k]);}),datasets:datasets,meta:clone(GEO_META)};
   }
   function applyState(s){
