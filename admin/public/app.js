@@ -1,4 +1,4 @@
-/* Панель SFB — админка лендингов. Vanilla JS, без зависимостей. */
+/* Панель CASE — админка лендингов. Vanilla JS, без зависимостей. */
 'use strict';
 (function () {
 
@@ -429,7 +429,7 @@
   function renderLogin() {
     dirty = false;
     genUrl = null; project = null; slug = null;
-    document.title = 'Вход — Панель SFB';
+    document.title = 'Вход — Панель CASE';
     app.innerHTML = '';
 
     var errBox = h('div', { class: 'login-error' });
@@ -464,7 +464,7 @@
 
     app.appendChild(h('div', { class: 'login-wrap' },
       h('div', { class: 'login-card' },
-        h('div', { class: 'login-logo' }, h('span', { class: 'brand-mark' }, 'SFB'), h('span', { class: 'login-title' }, 'Панель SFB')),
+        h('div', { class: 'login-logo' }, h('span', { class: 'brand-mark' }, 'CASE'), h('span', { class: 'login-title' }, 'Панель CASE')),
         h('p', { class: 'muted login-sub' }, 'Управление лендингами'),
         form
       )
@@ -501,7 +501,7 @@
     }
     return h('header', { class: 'topnav' },
       h('div', { class: 'topnav-in' },
-        h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'SFB'), h('span', { class: 'brand-name' }, 'Панель')),
+        h('div', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'CASE'), h('span', { class: 'brand-name' }, 'Панель')),
         h('nav', { class: 'nav' }, nav),
         h('div', { class: 'user-box' },
           h('span', { class: 'user-name' }, me ? me.username : ''),
@@ -517,7 +517,7 @@
   function showProjects() {
     return api('/api/projects').then(function (d) {
       var projects = (d && d.projects) || [];
-      document.title = 'Лендинги — Панель SFB';
+      document.title = 'Лендинги — Панель CASE';
       app.innerHTML = '';
 
       var titleRow = h('div', { class: 'page-head' },
@@ -626,7 +626,7 @@
   }
 
   function renderEditor() {
-    document.title = (project.name || slug) + ' — Панель SFB';
+    document.title = (project.name || slug) + ' — Панель CASE';
     app.innerHTML = '';
 
     dotEl = h('span', { class: 'dot', title: 'Есть несохранённые изменения' });
@@ -725,7 +725,7 @@
         onInput: function (v) { if (topNameEl) topNameEl.textContent = v || slug; }
       }),
       groupTitle('Бренд'),
-      fieldText('Метка логотипа (до 3 букв)', 'brand.mark', { placeholder: 'SFB' }),
+      fieldText('Метка логотипа (до 3 букв)', 'brand.mark', { placeholder: 'BC' }),
       imagePicker('Логотип-картинка (пусто — используется буквенная метка выше)', 'brand.logo'),
       mlField('Название', 'brand.name'),
       mlField('Подпись под названием (адрес · город)', 'brand.tag'),
@@ -1048,7 +1048,7 @@
     return Promise.all([api('/api/users'), api('/api/projects')]).then(function (res) {
       var users = (res[0] && res[0].users) || [];
       var allSlugs = ((res[1] && res[1].projects) || []).map(function (p) { return p.slug; });
-      document.title = 'Пользователи — Панель SFB';
+      document.title = 'Пользователи — Панель CASE';
       app.innerHTML = '';
 
       var rows = users.map(function (u) { return userRow(u, allSlugs); });
@@ -1207,7 +1207,7 @@
       var statuses = (res[0] && res[0].statuses) || Object.keys(LEAD_ST_CLASS);
       var projects = (res[1] && res[1].projects) || [];
       var isAdmin = me && me.role === 'admin';
-      document.title = 'Лиды — Панель SFB';
+      document.title = 'Лиды — Панель CASE';
       app.innerHTML = '';
 
       var names = {};
