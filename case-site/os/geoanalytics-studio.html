@@ -831,9 +831,9 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
    <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">▱ Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
-   <div class="mini" id="zoneNote">Инфо в зоне: население, БЦ, медицина, аптеки внутри нарисованного полигона.</div>
+   <div class="mini" id="zoneNote"></div>
    <div class="styrow"><label for="isoMin">Изохрона авто</label><select id="isoMin" style="width:auto;font-size:11px"><option>5</option><option selected>10</option><option>15</option><option>20</option></select><button class="btn sec" id="btnIso" style="font-size:11px">▶ От проекта</button></div>
-   <div class="mini" id="isoNote">Реальная изохрона по дорожной сети (OSRM). Требует интернета.</div>
+   <div class="mini" id="isoNote"></div>
    <div class="sect"><h3>Модель зон пригодности</h3>
     <div class="styrow sub"><label for="sZBiz">бизнес</label><select id="sZBiz" style="width:auto;font-size:11px">
       <option value="mall">ТРЦ (региональный)</option>
@@ -862,10 +862,9 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
       <option>0</option><option>3</option><option selected>5</option><option>8</option></select>
       <label>прозрачность</label><input type="range" id="sZO" min="20" max="95" value="72" style="width:70px"></div>
     <div class="styrow"><button class="btn" id="btnZones" style="font-size:11px">◧ Построить карту</button><button class="btn sec" id="btnZonesCsv" style="font-size:11px">⤓ CSV</button><button class="btn sec" id="btnZonesClr" style="font-size:11px">✕</button></div>
-    <div class="mini" id="zonesNote">Спрос (жители в радиусе) × свобода от конкуренции → где формат работает. Все параметры редактируемые.</div>
+    <div class="mini" id="zonesNote"></div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
-   </div>
-   <div class="mini">Население (0.5/1/1.5/2/3 км), БЦ, медицина, метро, район и быстрый скоринг - по клику в любой точке.</div></div>
+   </div></div>
   <div class="sect"><h3>Зона охвата (catchment)</h3><div id="rings"></div>
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
    <div class="mini">1 · 3 · 5 км — каждая своим цветом.</div></div>
@@ -1204,7 +1203,7 @@ function pip(x,y,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i
 
 /* ---- зона (полигон) ---- */
 function zoneClr(){ZPTS=[];ZMODE=false;if(gZone)gZone.clearLayers();$('btnZone').textContent='▱ Зона: рисовать';$('btnZoneDone').disabled=true;
- $('zoneNote').textContent='Инфо в зоне: население, БЦ, медицина, аптеки внутри нарисованного полигона.';}
+ $('zoneNote').textContent='';}
 function zoneDraw(){if(!map)return;if(!gZone)gZone=L.layerGroup().addTo(map);gZone.clearLayers();
  if(ZPTS.length)L.polyline(ZPTS,{color:'#9E0000',weight:2,dashArray:'5'}).addTo(gZone);
  ZPTS.forEach(p=>L.circleMarker(p,{radius:3,color:'#9E0000',fillColor:'#fff',fillOpacity:1,weight:2}).addTo(gZone));}
@@ -1288,7 +1287,7 @@ function zcol(v){
    return 'rgb('+A.map((x,k)=>Math.round(x+(B[k]-x)*t)).join(',')+')';}}
  return '#999';}
 function zonesClr(){if(gZones)gZones.clearLayers();ZGRID=null;setTimeout(updateLegend,30);
- $('zonesNote').textContent='Спрос (жители в радиусе) × свобода от конкуренции → где формат работает.';
+ $('zonesNote').textContent='';
  $('zonesLeg').innerHTML='';}
 function zLegend(){
  const box=$('zonesLeg');
@@ -2061,7 +2060,7 @@ setTimeout(initPop,800);
     fastfood: {r:1000,p0:15000,c0:18,w:55,live:false,note:'Фастфуд · трафик+молодёжь. Конкуренты - прокси; живой слой - конвейер.'},
     park:     {r:2000,p0:80000,c0:4, w:70,live:false,note:'Парк/досуг · lifestyle охват 13-19 км. Конкуренты - прокси; живой слой - конвейер.'},
     hotel:    {r:2000,p0:50000,c0:5, w:50,live:false,note:'Отель · турпоток+деловой. Бенчмарк Iskandarkul: ADR $290, загрузка 53-65%. Конкуренты - БЦ-прокси.'},
-    med:      {r:1000,p0:20000,c0:7, w:45,live:true, note:'Клиника · профильные мед-конкуренты (ЖИВОЙ слой 1530 объектов). Ниша занимается быстро.'},
+    med:      {r:1000,p0:20000,c0:7, w:45,live:true, note:'Клиника · мед-конкуренты (живой слой, 1530).'},
     bc:       {r:1000,p0:15000,c0:6, w:40,live:true, note:'Бизнес-центр · спрос - приезжающие. Ставки OLX/uybor ЖИВЫЕ. Конкуренты - БЦ (150, живой слой).'},
     ret:      {r:1000,p0:15000,c0:10,w:55,live:false,note:'Ритейл (прокси) · магазины в торговых центрах и street locations; коммерческая насыщенность как индикатор.'},
     sp:       {r:1000,p0:8000, c0:4, w:45,live:true, note:'Направление медицины · выберите специальность в слое «Медицина». ЖИВОЙ слой.'}
@@ -2081,5 +2080,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.9.3"></script>
-<script src="v420-geo-studio.js?v=4.31.3"></script>
+<script src="v420-geo-studio.js?v=4.31.6"></script>
 </body></html>
