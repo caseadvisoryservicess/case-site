@@ -92,10 +92,16 @@ function uploadsDir(slug) { return path.join(projectDir(slug), 'uploads'); }
 
 const app = express();
 app.disable('x-powered-by');
-app.set('trust proxy', 1); // за nginx/Render: корректные req.secure и IP
+app.set('trust proxy', 1); // за nginx/Render/cPanel: корректные req.secure и IP
 app.use(express.json({ limit: '3mb' }));
 
-app.get('/api/health', (req, res) => res.json({ ok: true }));
+// панель может открываться не с корня сайта, а из подпапки (например /admin) —
+// путь задаётся переменной окружения BASE_PATH; все маршруты ниже вешаются на router,
+// который потом монтируется на этот префикс
+const BASE_PATH = String(process.env.BASE_PATH || '').replace(/\/+$/, '');
+const router = express.Router();
+
+router.get('/api/health', (req, res) => res.json({ ok: true }));
 
 // ─── auth middleware ───
 function auth(req, res, next) {
@@ -115,7 +121,7 @@ function canAccess(user, slug) {
 }
 // CSRF: мутирующие запросы обязаны нести кастомный заголовок
 // (кроме публичного приёма заявок /api/lead/* — он без авторизации, CSRF не применим)
-app.use('/api', (req, res, next) => {
+router.use('/api', (req, res, next) => {
   if (req.path.startsWith('/lead/')) return next();
   if (['POST', 'PUT', 'DELETE'].includes(req.method) && req.headers['x-api'] !== '1') {
     return res.status(403).json({ error: 'Missing X-Api header' });
@@ -137,7 +143,7 @@ function recordFail(key) {
 }
 
 // ─── API: сессия ───
-app.post('/api/login', (req, res) => {
+router.post('/api/login', (req, res) => {
   const { username, password } = req.body || {};
   const key = String(username || '').toLowerCase();
   if (limited(key)) return res.status(429).json({ error: 'Слишком много попыток. Подождите 15 минут.' });
@@ -152,16 +158,16 @@ app.post('/api/login', (req, res) => {
   res.setHeader('Set-Cookie', `sfb_session=${encodeURIComponent(token)}; HttpOnly; Path=/; SameSite=Lax; Max-Age=${SESSION_TTL / 1000}${secure}`);
   res.json({ ok: true, user: { username: user.username, role: user.role, projects: user.projects || [] } });
 });
-app.post('/api/logout', (req, res) => {
+router.post('/api/logout', (req, res) => {
   res.setHeader('Set-Cookie', 'sfb_session=; HttpOnly; Path=/; SameSite=Lax; Max-Age=0');
   res.json({ ok: true });
 });
-app.get('/api/me', auth, (req, res) => {
+router.get('/api/me', auth, (req, res) => {
   res.json({ user: { username: req.user.username, role: req.user.role, projects: req.user.projects || [] } });
 });
 
 // ─── API: проекты ───
-app.get('/api/projects', auth, (req, res) => {
+router.get('/api/projects', auth, (req, res) => {
   const list = [];
   for (const slug of fs.readdirSync(PROJECTS)) {
     if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) continue;
@@ -175,7 +181,7 @@ app.get('/api/projects', auth, (req, res) => {
   res.json({ projects: list });
 });
 
-app.post('/api/projects', auth, adminOnly, (req, res) => {
+router.post('/api/projects', auth, adminOnly, (req, res) => {
   const { slug, name } = req.body || {};
   if (!SLUG_RE.test(String(slug || ''))) return res.status(400).json({ error: 'Slug: латиница, цифры и дефис, 2–40 символов' });
   if (fs.existsSync(projectDir(slug))) return res.status(409).json({ error: 'Проект с таким slug уже существует' });
@@ -193,13 +199,13 @@ function loadProject(req, res) {
   return slug;
 }
 
-app.get('/api/projects/:slug', auth, (req, res) => {
+router.get('/api/projects/:slug', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   res.json({ project: JSON.parse(fs.readFileSync(projectFile(slug), 'utf8')) });
 });
 
-app.put('/api/projects/:slug', auth, (req, res) => {
+router.put('/api/projects/:slug', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   const cfg = req.body && req.body.project;
@@ -212,7 +218,7 @@ app.put('/api/projects/:slug', auth, (req, res) => {
   res.json({ ok: true });
 });
 
-app.delete('/api/projects/:slug', auth, adminOnly, (req, res) => {
+router.delete('/api/projects/:slug', auth, adminOnly, (req, res) => {
   const slug = req.params.slug;
   if (!SLUG_RE.test(slug)) return res.status(400).json({ error: 'Некорректный slug' });
   if (!fs.existsSync(projectDir(slug))) return res.status(404).json({ error: 'Проект не найден' });
@@ -242,7 +248,7 @@ const upload = multer({
     cb(null, true);
   }
 });
-app.post('/api/projects/:slug/upload', auth, (req, res) => {
+router.post('/api/projects/:slug/upload', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   upload.single('file')(req, res, (err) => {
@@ -251,7 +257,7 @@ app.post('/api/projects/:slug/upload', auth, (req, res) => {
     res.json({ filename: req.file.filename });
   });
 });
-app.get('/api/projects/:slug/images', auth, (req, res) => {
+router.get('/api/projects/:slug/images', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   const dir = uploadsDir(slug);
@@ -261,7 +267,7 @@ app.get('/api/projects/:slug/images', auth, (req, res) => {
   res.json({ images });
 });
 // раздача загруженных картинок (нужна авторизация и доступ к проекту)
-app.get('/uploads/:slug/:file', (req, res) => {
+router.get('/uploads/:slug/:file', (req, res) => {
   const p = verify(getCookie(req, 'sfb_session'));
   const user = p && loadUsers().find((u) => u.username === p.u);
   if (!user) return res.status(401).end();
@@ -290,7 +296,7 @@ function generate(slug) {
   }
   return out;
 }
-app.post('/api/projects/:slug/generate', auth, (req, res) => {
+router.post('/api/projects/:slug/generate', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   try {
@@ -301,7 +307,7 @@ app.post('/api/projects/:slug/generate', auth, (req, res) => {
     res.status(500).json({ error: 'Сборка не удалась: ' + e.message });
   }
 });
-app.get('/api/projects/:slug/export', auth, (req, res) => {
+router.get('/api/projects/:slug/export', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   try { generate(slug); } catch (e) { return res.status(500).json({ error: 'Сборка не удалась: ' + e.message }); }
@@ -355,13 +361,13 @@ async function forwardLead(cfg, lead) {
 
 // публичный приём заявок с лендинга (без авторизации, с CORS — лендинг может жить на другом домене)
 const leadHits = new Map(); // ip -> {n, since}
-app.options('/api/lead/:slug', (req, res) => {
+router.options('/api/lead/:slug', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.status(204).end();
 });
-app.post('/api/lead/:slug', (req, res) => {
+router.post('/api/lead/:slug', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const slug = req.params.slug;
   if (!SLUG_RE.test(slug) || !fs.existsSync(projectFile(slug))) return res.status(404).json({ error: 'not found' });
@@ -403,7 +409,7 @@ app.post('/api/lead/:slug', (req, res) => {
 });
 
 // CRM: чтение и ведение лидов (по правам доступа)
-app.get('/api/leads', auth, (req, res) => {
+router.get('/api/leads', auth, (req, res) => {
   const out = [];
   for (const slug of fs.readdirSync(PROJECTS)) {
     if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) continue;
@@ -412,7 +418,7 @@ app.get('/api/leads', auth, (req, res) => {
   out.sort((a, b) => String(b.ts).localeCompare(String(a.ts)));
   res.json({ leads: out, statuses: LEAD_STATUSES });
 });
-app.post('/api/leads', auth, (req, res) => {
+router.post('/api/leads', auth, (req, res) => {
   const b = req.body || {};
   const slug = String(b.project || '');
   if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) return res.status(403).json({ error: 'Нет доступа к проекту' });
@@ -437,7 +443,7 @@ app.post('/api/leads', auth, (req, res) => {
   saveLeads(slug, leads);
   res.json({ ok: true, id: lead.id });
 });
-app.put('/api/leads/:slug/:id', auth, (req, res) => {
+router.put('/api/leads/:slug/:id', auth, (req, res) => {
   const { slug, id } = req.params;
   if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) return res.status(403).json({ error: 'Нет доступа' });
   const leads = loadLeads(slug);
@@ -449,7 +455,7 @@ app.put('/api/leads/:slug/:id', auth, (req, res) => {
   saveLeads(slug, leads);
   res.json({ ok: true });
 });
-app.delete('/api/leads/:slug/:id', auth, adminOnly, (req, res) => {
+router.delete('/api/leads/:slug/:id', auth, adminOnly, (req, res) => {
   const { slug, id } = req.params;
   if (!SLUG_RE.test(slug)) return res.status(400).json({ error: 'Некорректный slug' });
   const leads = loadLeads(slug);
@@ -462,10 +468,10 @@ app.delete('/api/leads/:slug/:id', auth, adminOnly, (req, res) => {
 
 // ─── API: пользователи (только админ) ───
 const USERNAME_RE = /^[a-zA-Z0-9._-]{2,40}$/;
-app.get('/api/users', auth, adminOnly, (req, res) => {
+router.get('/api/users', auth, adminOnly, (req, res) => {
   res.json({ users: loadUsers().map((u) => ({ username: u.username, role: u.role, projects: u.projects || [] })) });
 });
-app.post('/api/users', auth, adminOnly, (req, res) => {
+router.post('/api/users', auth, adminOnly, (req, res) => {
   const { username, password, role, projects } = req.body || {};
   if (!USERNAME_RE.test(String(username || ''))) return res.status(400).json({ error: 'Логин: латиница/цифры/._-, 2–40 символов' });
   if (String(password || '').length < 8) return res.status(400).json({ error: 'Пароль минимум 8 символов' });
@@ -480,7 +486,7 @@ app.post('/api/users', auth, adminOnly, (req, res) => {
   saveUsers(users);
   res.json({ ok: true });
 });
-app.put('/api/users/:username', auth, adminOnly, (req, res) => {
+router.put('/api/users/:username', auth, adminOnly, (req, res) => {
   const users = loadUsers();
   const u = users.find((x) => x.username === req.params.username);
   if (!u) return res.status(404).json({ error: 'Пользователь не найден' });
@@ -497,7 +503,7 @@ app.put('/api/users/:username', auth, adminOnly, (req, res) => {
   saveUsers(users);
   res.json({ ok: true });
 });
-app.delete('/api/users/:username', auth, adminOnly, (req, res) => {
+router.delete('/api/users/:username', auth, adminOnly, (req, res) => {
   if (req.params.username === req.user.username) return res.status(400).json({ error: 'Нельзя удалить самого себя' });
   const users = loadUsers();
   const idx = users.findIndex((x) => x.username === req.params.username);
@@ -508,8 +514,8 @@ app.delete('/api/users/:username', auth, adminOnly, (req, res) => {
 });
 
 // ─── статика: собранные лендинги (публично) и SPA панели ───
-app.use('/p', express.static(SITES, { fallthrough: false, index: 'index.html' }));
-app.use(express.static(path.join(ROOT, 'public')));
+router.use('/p', express.static(SITES, { fallthrough: false, index: 'index.html' }));
+router.use(express.static(path.join(ROOT, 'public')));
 
 // после рестарта/деплоя пересобрать лендинги, которых нет на диске
 function regenerateMissing() {
@@ -522,9 +528,23 @@ function regenerateMissing() {
   }
 }
 
+// панель на подпапке (BASE_PATH=/admin): адрес без завершающего слэша
+// (например /admin) редиректим на /admin/, иначе относительные ссылки на
+// style.css/app.js в браузере разрешатся неправильно
+if (BASE_PATH) {
+  app.get(BASE_PATH, (req, res, next) => {
+    // без явной проверки этот маршрут в Express совпадает и с "/admin/" —
+    // из-за нестрогого сравнения путей по умолчанию, отсекаем вручную,
+    // иначе получится редирект самого на себя
+    if (req.path === BASE_PATH) return res.redirect(301, BASE_PATH + '/');
+    next();
+  });
+}
+app.use(BASE_PATH || '/', router);
+
 app.listen(PORT, () => {
   loadUsers(); // создаст админа при первом запуске
   regenerateMissing();
-  console.log(`Панель запущена: http://localhost:${PORT}`);
-  console.log(`Собранные лендинги: http://localhost:${PORT}/p/<slug>/`);
+  console.log(`Панель запущена: http://localhost:${PORT}${BASE_PATH || ''}`);
+  console.log(`Собранные лендинги: http://localhost:${PORT}${BASE_PATH}/p/<slug>/`);
 });
