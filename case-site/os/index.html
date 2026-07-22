@@ -368,7 +368,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.26.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.27.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1294,6 +1294,7 @@ function go(v){
  try{updateChatBadge();}catch(e){}
  localize();
  try{syncTblScroll();}catch(e){}
+ try{initColResize();}catch(e){}
  if(S._focus){const e=$(S._focus);if(e&&e.focus){try{e.focus();if(e.setSelectionRange&&typeof e.value==='string')e.setSelectionRange(e.value.length,e.value.length);}catch(_){}}}
  saveUiPrefs();
 }
@@ -1322,7 +1323,7 @@ function tblFilterPass(c,r,fv){
 }
 function buildTable(key,cols,rows,opts){opts=opts||{};S.tbl=S.tbl||{};const st=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};
  let data=rows.filter(r=>cols.every(c=>tblFilterPass(c,r,st.filters[c.k])));
- if(st.sort){const c=cols.find(x=>x.k===st.sort.k);if(c)data=data.slice().sort((a,b)=>{let va=c.get(a),vb=c.get(b);if(c.num){return((+va||0)-(+vb||0))*st.sort.dir;}va=(va==null?'':String(va)).toLowerCase();vb=(vb==null?'':String(vb)).toLowerCase();return va<vb?-st.sort.dir:va>vb?st.sort.dir:0;});}
+ if(st.sort){const c=cols.find(x=>x.k===st.sort.k);if(c)data=data.slice().sort((a,b)=>{let va=c.get(a),vb=c.get(b);if(c.num){return((+va||0)-(+vb||0))*st.sort.dir;}va=(va==null?'':String(va));vb=(vb==null?'':String(vb));return va.localeCompare(vb,'ru',{numeric:true,sensitivity:'base'})*st.sort.dir;});} /* numeric:true — натуральная сортировка: B1_2 раньше B1_10 */
  const arrow=c=>!c.sortable?'':(st.sort&&st.sort.k===c.k?(st.sort.dir>0?' ▲':' ▼'):' <span style="opacity:.28">⇅</span>');
  const th=cols.map(c=>`<th${c.num?' class="num"':''}${c.sortable?` style="cursor:pointer;white-space:nowrap" onclick="tblS('${key}','${c.k}')"`:''}>${esc(c.label)}${arrow(c)}</th>`).join('');
  const distinct=c=>{const s=[];rows.forEach(r=>{const v=c.get(r);if(v!=null&&v!==''&&s.indexOf(String(v))<0)s.push(String(v));});return s.sort();};
@@ -1330,7 +1331,7 @@ function buildTable(key,cols,rows,opts){opts=opts||{};S.tbl=S.tbl||{};const st=S
  const fr=hasF?('<tr class="fltrow">'+cols.map(c=>{if(!c.filter)return '<th></th>';const id='flt_'+key+'_'+c.k,cur=st.filters[c.k]||'';if(c.filter==='select'){return `<th><select id="${id}" onchange="tblF('${key}','${c.k}',this.value)" style="width:100%;font-family:inherit;font-size:11px;padding:4px;border:1px solid var(--border);border-radius:6px;font-weight:400">${['Все'].concat(distinct(c)).map(o=>`<option${cur===o?' selected':''}>${esc(o)}</option>`).join('')}</select></th>`;}const ph=(c.filter==='number'||c.filter==='num'||c.filter==='range')?'≥100 / ≤300 / 70-300':'фильтр…';return `<th><input id="${id}" value="${esc(cur)}" oninput="tblF('${key}','${c.k}',this.value)" placeholder="${ph}" style="width:100%;font-family:inherit;font-size:11px;padding:4px;border:1px solid var(--border);border-radius:6px;font-weight:400;text-transform:none"></th>`;}).join('')+'</tr>'):'';
  const body=data.map(r=>{const cls=[opts.rowClick?'click':'',opts.rowClass?opts.rowClass(r):''].filter(Boolean).join(' ');const clickAttr=opts.rowClick?` onclick="${opts.rowClick(r)}"`:'';const styleAttr=opts.rowStyle?` style="${opts.rowStyle(r)}"`:'';return `<tr${cls?` class="${cls}"`:''}${styleAttr}${clickAttr}>`+cols.map(c=>`<td${c.num?' class="num"':''}>${c.render?c.render(r):esc(c.get(r))}</td>`).join('')+'</tr>';}).join('')||`<tr><td colspan="${cols.length}" style="color:var(--muted)">Ничего не найдено.</td></tr>`;
  const cnt=(data.length!==rows.length)?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${data.length} / ${rows.length}</span>`:'';
- return `<div class="tbl-scroll"><table><thead><tr>${th}</tr>${fr}</thead><tbody>${body}</tbody></table></div>${hasF?`<div style="margin-top:7px"><button class="btn ghost sm" onclick="tblReset('${key}')">Сбросить фильтры и сортировку</button>${cnt}</div>`:''}`;
+ return `<div class="tbl-scroll"><table data-tblkey="${esc(key)}"><thead><tr>${th}</tr>${fr}</thead><tbody>${body}</tbody></table></div>${hasF?`<div style="margin-top:7px"><button class="btn ghost sm" onclick="tblReset('${key}')">Сбросить фильтры и сортировку</button> <button class="btn ghost sm" onclick="tblColReset('${key}')" title="Сбросить ширину столбцов">↔ Ширина столбцов</button>${cnt}</div>`:''}`;
 }
 
 
@@ -1341,6 +1342,41 @@ function syncTblScroll(){document.querySelectorAll('.tbl-scroll').forEach(sc=>{c
   sc.addEventListener('scroll',()=>{if(sc._lk)return;top._lk=1;top.scrollLeft=sc.scrollLeft;top._lk=0;},{passive:true});}
  const need=tb.scrollWidth;top.firstElementChild.style.width=need+'px';top.style.display=need>sc.clientWidth+4?'':'none';});}
 if(typeof window!=='undefined')window.addEventListener('resize',()=>{clearTimeout(window._tssT);window._tssT=setTimeout(()=>{try{syncTblScroll();}catch(e){}},150);});
+/* ===== Изменение ширины столбцов (как в Excel) для таблиц buildTable ===== */
+function _tblColW(){try{return JSON.parse(localStorage.getItem('caseos_tbl_colw')||'{}');}catch(e){return {};}}
+function _tblColWSave(o){try{localStorage.setItem('caseos_tbl_colw',JSON.stringify(o));}catch(e){}}
+function tblColReset(key){const o=_tblColW();delete o[key];_tblColWSave(o);try{go(S.view);}catch(e){}}
+function initColResize(root){
+ if(!document.getElementById('colrzCss')){const st=document.createElement('style');st.id='colrzCss';st.textContent='.colrz{position:absolute;top:0;right:0;width:7px;height:100%;cursor:col-resize;user-select:none;z-index:6}.colrz:hover{background:linear-gradient(to right,transparent,rgba(158,0,0,.25))}table[data-tblkey]{table-layout:auto}table[data-tblkey].colr-fixed{table-layout:fixed}';document.head.appendChild(st);}
+ (root||document).querySelectorAll('table[data-tblkey]:not([data-colr])').forEach(tb=>{
+  tb.setAttribute('data-colr','1');const key=tb.getAttribute('data-tblkey');
+  const ths=tb.querySelectorAll('thead tr:first-child > th');if(!ths.length)return;
+  let cg=tb.querySelector('colgroup');if(!cg){cg=document.createElement('colgroup');ths.forEach(()=>cg.appendChild(document.createElement('col')));tb.insertBefore(cg,tb.firstChild);}
+  const cols=cg.querySelectorAll('col');const saved=_tblColW()[key]||[];let any=false;
+  ths.forEach((th,i)=>{
+   if(cols[i]&&saved[i]){cols[i].style.width=saved[i]+'px';any=true;}
+   const cs=getComputedStyle(th);if(cs.position==='static')th.style.position='relative';
+   if(th.querySelector('.colrz'))return;
+   const hd=document.createElement('div');hd.className='colrz';
+   hd.addEventListener('click',e=>e.stopPropagation());
+   hd.addEventListener('mousedown',ev=>{ev.preventDefault();ev.stopPropagation();
+    tb.classList.add('colr-fixed');
+    const startX=ev.clientX,startW=(cols[i]&&parseInt(cols[i].style.width,10))||th.getBoundingClientRect().width;
+    // зафиксировать текущие ширины всех колонок, чтобы тянулась только эта
+    cols.forEach((c,j)=>{if(!c.style.width)c.style.width=Math.round(ths[j].getBoundingClientRect().width)+'px';});
+    const move=e=>{const w=Math.max(46,Math.round(startW+(e.clientX-startX)));if(cols[i])cols[i].style.width=w+'px';};
+    const up=()=>{document.removeEventListener('mousemove',move);document.removeEventListener('mouseup',up);document.body.style.cursor='';
+     const o=_tblColW();o[key]=Array.from(cols).map(c=>parseInt(c.style.width,10)||0);_tblColWSave(o);try{syncTblScroll();}catch(e){}};
+    document.body.style.cursor='col-resize';document.addEventListener('mousemove',move);document.addEventListener('mouseup',up);
+   });
+   th.appendChild(hd);
+  });
+  if(any)tb.classList.add('colr-fixed');
+ });
+}
+/* авто-инициализация после любого рендера #main (главный экран + модули v32/v417/v493) */
+(function(){function boot(){const m=document.getElementById('main');if(!m||window._colrObs)return;window._colrObs=new MutationObserver(()=>{clearTimeout(window._colrT);window._colrT=setTimeout(()=>{try{initColResize();}catch(e){}},70);});window._colrObs.observe(m,{childList:true,subtree:true});try{initColResize();}catch(e){}}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();})();
 /* ===== DASHBOARD ===== */
 /* 💰 Комиссия компании (от арендодателя) — дашборд CEO/CFO/админа: итоги, статусы, фильтр и сравнение агентов */
 function commStatusBars(by){const ks=Object.keys(by||{}).filter(k=>by[k]>0);if(!ks.length)return '<div style="font-size:12px;color:var(--muted)">Пока нет юнитов с комиссией — проверьте % комиссии в карточке объекта и назначьте брокеров.</div>';const mx=Math.max.apply(null,ks.map(k=>by[k]));return '<div>'+ks.sort((a,b)=>by[b]-by[a]).map(k=>`<div style="margin:6px 0"><div style="display:flex;justify-content:space-between;font-size:11.5px;margin-bottom:3px"><span class="st ${STCLS[k]}">${stT(k)}</span><span>${fmt(by[k])}</span></div><div class="bw"><div class="bar" style="width:${Math.round(by[k]/mx*100)}%;background:${barColor(k)}"></div></div></div>`).join('')+'</div>';}
@@ -1489,6 +1525,8 @@ function regFilterBar(us){const fr=S.regFilter;const cats=['Все'].concat(us.m
  return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">${geoSel}${(S.obj!=='ALL'&&hasBlocks(S.obj))?`<select onchange="S.regFilter.block=this.value;renderRegistry()" style="${ss}">${[['Все','Все блоки']].concat(blocksOf(S.obj).map(b=>[b,'Блок '+b])).map(o=>`<option value="${esc(o[0])}"${(fr.block||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}${(S.obj!=='ALL'&&new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor))).size>1)?`<select onchange="S.regFilter.floor=this.value;renderRegistry()" style="${ss}">${[['Все','Все этажи']].concat(Array.from(new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor)))).sort(floorCmp).map(f=>[f,f])).map(o=>`<option value="${esc(o[0])}"${(fr.floor||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}<select onchange="S.regFilter.status=this.value;renderRegistry()" style="${ss}">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;renderRegistry()" style="${ss}">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
 function renderRegistry(){
  const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
+ /* Симметрия с SCR: объект «только продажа» (аренда выключена) не ведём в LCR — подсказка вместо реестра. */
+ if(!allObj&&typeof objLeaseOn==='function'&&!objLeaseOn(S.obj)){$('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><div class="card" style="color:var(--muted)">Для объекта «${esc(curObj().name)}» аренда не включена — это объект «только продажа». Откройте «Контроль продажи (SCR)» или включите «Аренда (LCR)» в настройках объекта.${R().admin?` <span style="display:inline-block;margin-top:8px"><button class="btn sm" onclick="addObjectForm('${S.obj}')">✎ Настройки объекта</button> <button class="btn ghost sm" onclick="go('v32_sales')">Открыть SCR →</button></span>`:''}</div>`;return;}
  const tabs=`<div class="tabs"><button class="${S.regTab==='plan'?'on':''}" onclick="S.regTab='plan';renderRegistry()">План / бюджет</button><button class="${S.regTab==='chg'?'on':''}" onclick="S.regTab='chg';renderRegistry()">Изменения (в ходе сдачи)</button><button class="${S.regTab==='refus'?'on':''}" onclick="S.regTab='refus';renderRegistry()">${t('refus')}</button></div>`;
  if(S.regTab==='chg'){
   const ch=CHANGES.filter(c=>allObj||c.obj===S.obj);
@@ -1513,7 +1551,7 @@ function renderRegistry(){
  }
  const fr=S.regFilter;fr.country=fr.country||'Все';fr.city=fr.city||'Все';const mine=myBrokerName();const forceMine=!!(R().ownOnly&&mine);const canEdit=R().edit;S.regSel=S.regSel||[];const selSet=S.regSel;const showBlk=(allObj||hasBlocks(S.obj));
  let fus=us.filter(u=>(fr.status==='Все'||u.status===fr.status)&&(fr.cat==='Все'||u.cat===fr.cat)&&((fr.block||'Все')==='Все'||unitBlock(u)===fr.block)&&((fr.floor||'Все')==='Все'||floorLabel(u.floor)===fr.floor)&&((forceMine||S.regMine)?(mine&&u.broker===mine):true)&&(allObj?((fr.country==='Все'||objCountry(objById(u.obj))===fr.country)&&(fr.city==='Все'||objById(u.obj).city===fr.city)):true)&&(!fr.q||(u.code+' '+(u.merged||[]).join(' ')+' '+u.vars.join(' ')+' '+u.sub+' '+(u.format||'')+' '+(u.concept||'')+' '+(u.zone||'')).toLowerCase().indexOf(fr.q.toLowerCase())>=0)&&regColMatch(u));
- const rs=S.regSort;if(rs){const gv={code:u=>u.code,block:u=>unitBlock(u),floor:u=>floorLabel(u.floor),cat:u=>u.cat,area:u=>u.area,rate:u=>u.rate,budget:u=>uBudget(u),total:u=>u.total,vars:u=>u.vars.length,broker:u=>u.broker||'',status:u=>stT(u.status)}[rs.k];const numk=['area','rate','budget','total','vars'].indexOf(rs.k)>=0;if(gv)fus=fus.slice().sort((a,b)=>{let va=gv(a),vb=gv(b);if(numk)return((+va||0)-(+vb||0))*rs.dir;va=(va==null?'':String(va)).toLowerCase();vb=(vb==null?'':String(vb)).toLowerCase();return va<vb?-rs.dir:va>vb?rs.dir:0;});}
+ const rs=S.regSort;if(rs){const gv={code:u=>u.code,block:u=>unitBlock(u),floor:u=>floorLabel(u.floor),cat:u=>u.cat,area:u=>u.area,rate:u=>u.rate,budget:u=>uBudget(u),total:u=>u.total,vars:u=>u.vars.length,broker:u=>u.broker||'',status:u=>stT(u.status)}[rs.k];const numk=['area','rate','budget','total','vars'].indexOf(rs.k)>=0;if(gv)fus=fus.slice().sort((a,b)=>{let va=gv(a),vb=gv(b);if(numk)return((+va||0)-(+vb||0))*rs.dir;va=(va==null?'':String(va));vb=(vb==null?'':String(vb));return va.localeCompare(vb,'ru',{numeric:true,sensitivity:'base'})*rs.dir;});} /* натуральная сортировка кодов (B1_2 < B1_10) */
  const hq=fr.q;
  const rows=fus.map(u=>{const ch=selSet.indexOf(u.id)>=0;if(S.regEdit&&canEdit)return regEditRow(u,showBlk,allObj,ch);return `<tr class="click" onclick="openUnit('${u.id}')">
   ${canEdit?`<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" ${ch?'checked':''} onclick="regToggleSel('${u.id}',this.checked)"></td>`:''}
