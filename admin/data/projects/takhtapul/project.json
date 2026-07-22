@@ -22,7 +22,7 @@
     "sheetsEndpoint": ""
   },
   "adminUrl": "/admin/",
-  "leadEndpoint": "",
+  "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/takhtapul",
   "texts": {},
   "seo": {
     "title": {
