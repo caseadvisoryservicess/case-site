@@ -139,6 +139,10 @@
   window.CASE_OS_MODULES=MODULES;
   window.CASE_OS_GROUPS=GROUPS;
   window.CASE_OS_GROUP_ORDER=GROUP_ORDER;
+  /* Заголовок раздела внутри рабочей области должен совпадать с названием в боковой панели.
+     Возвращаем метку модуля только для реальных пунктов меню (nav:true) — карточки конкретных
+     сущностей (nav:false, напр. рабочий стол проекта) сохраняют свой динамический заголовок. */
+  window.CASE_NAV_TITLE=function(v){for(var i=0;i<MODULES.length;i++){if(MODULES[i].v===v&&MODULES[i].nav)return tx(MODULES[i]);}return '';};
 
   function lang(){try{return typeof LANG==='string'?LANG:'ru';}catch(e){return 'ru';}}
   function h(v){try{return typeof esc==='function'?esc(v):String(v==null?'':v);}catch(e){return String(v==null?'':v);}}
