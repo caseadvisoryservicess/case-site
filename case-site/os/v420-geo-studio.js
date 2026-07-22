@@ -182,12 +182,14 @@
   function recordStatus(r){if(r&&typeof r==='object'&&!Array.isArray(r)){var v=r._verification||r.verification;if(v)return v;if(/reviewed|verified|подтверж/i.test(String(r.status||'')))return'verified';if(/needs|провер/i.test(String(r.status||'')))return'needs_review';}return'online';}
   function quality(){var out={online:0,needs_review:0,verified:0,total:0};['bc','medicine','pharmacies'].concat(Object.keys(POI_DEFS)).forEach(function(k){DATASETS[k].ref().forEach(function(r){var s=recordStatus(r);out[s]=(out[s]||0)+1;out.total++;});});out.total+=POP.length;out.online+=POP.length;return out;}
   function resetIndexes(){try{IXPOP=IXMED=IXBC=IXPH=null;DBB=null;}catch(e){}try{Object.keys(EDITS).forEach(function(k){delete EDITS[k];});}catch(e){}BC.forEach(function(b,i){b.id=i;});}
+  function geoExcluded(){return (GEO_META&&GEO_META.excludedProjects&&typeof GEO_META.excludedProjects==='object')?GEO_META.excludedProjects:{};}
   function syncProjects(rows,selected){
     var saved={};Object.keys(GEO_PROFILES).forEach(function(k){saved[k]=clone(GEO_PROFILES[k]);});
     if(Array.isArray(rows)&&rows.length&&saved.project&&/^Новый (универсальный )?проект$/i.test(String(saved.project.name||'')))delete saved.project;
+    var ex=geoExcluded();
     Object.keys(PROJECTS).forEach(function(k){delete PROJECTS[k];});
-    (Array.isArray(rows)?rows:[]).forEach(function(o){var p=normalizeProject(Object.assign({},o,saved[String(o.id)]||{}));PROJECTS[p.id]=p;GEO_PROFILES[p.id]=clone(p);});
-    Object.keys(saved).forEach(function(k){if(!PROJECTS[k]){PROJECTS[k]=normalizeProject(saved[k]);GEO_PROFILES[k]=clone(PROJECTS[k]);}});
+    (Array.isArray(rows)?rows:[]).forEach(function(o){if(ex[String(o.id)])return;var p=normalizeProject(Object.assign({},o,saved[String(o.id)]||{}));PROJECTS[p.id]=p;GEO_PROFILES[p.id]=clone(p);});
+    Object.keys(saved).forEach(function(k){if(ex[k]){delete GEO_PROFILES[k];return;}if(!PROJECTS[k]){PROJECTS[k]=normalizeProject(saved[k]);GEO_PROFILES[k]=clone(PROJECTS[k]);}});
     if(!Object.keys(PROJECTS).length){var p=normalizeProject({id:'project'});PROJECTS[p.id]=p;GEO_PROFILES[p.id]=clone(p);}
     var s=document.getElementById('proj'),want=String(selected||s&&s.value||Object.keys(PROJECTS)[0]);
     if(s){s.innerHTML=Object.keys(PROJECTS).map(function(k){return '<option value="'+esc(k)+'">'+esc(PROJECTS[k].name||k)+'</option>';}).join('');s.value=PROJECTS[want]?want:Object.keys(PROJECTS)[0];}
@@ -733,7 +735,7 @@
       +'.geo-obj-focus{background:none;border:none;color:#9E0000;font-weight:600;cursor:pointer;padding:0;text-align:left;font-size:12px}.geo-obj-focus:hover{text-decoration:underline}'
       +'.geo-obj-pf{font-size:9px;background:#eef3ff;color:#3157a8;border-radius:4px;padding:1px 4px;vertical-align:middle}'
       +'.geo-obj-warn{color:#c07a00}.geo-obj-nocoord td{background:#fffdf5}.geo-ok{color:#28945a}.geo-warn{color:#e29b19}'
-      +'.geo-obj-color{width:34px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0;cursor:pointer;background:none}.geo-obj-edit{padding:2px 8px}'
+      +'.geo-obj-color{width:34px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0;cursor:pointer;background:none}.geo-obj-edit{padding:2px 8px}.geo-obj-del{padding:2px 8px;border-color:#e0a0a0!important;color:#9E0000!important}.geo-obj-del:hover{background:#fbeaea}'
       +'.geo-obj-pop b{font-size:13px}.geo-obj-pop-xy{font-size:11px;color:#666;margin-top:3px}.geo-obj-pop-ver{font-size:11px;margin-top:2px}.geo-obj-pop-act{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}.geo-obj-pop-act .btn{font-size:11px;padding:3px 7px}'
       +'.geo-sw{position:relative;display:inline-block;width:34px;height:18px;cursor:pointer}.geo-sw input{opacity:0;width:0;height:0;position:absolute}.geo-sw span{position:absolute;inset:0;background:#c9ccd1;border-radius:18px;transition:.15s}.geo-sw span:before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.15s}.geo-sw input:checked+span{background:#28945a}.geo-sw-ext input:checked+span{background:#2f6fd6}.geo-sw input:checked+span:before{transform:translateX(16px)}.geo-sw input:disabled+span{opacity:.5;cursor:not-allowed}'
       +'.geo-obj-tbl .geo-th-sort-ic{color:#b7b1a8;font-size:11px}.geo-obj-tbl .geo-th-sort-ic.on{color:#9E0000}.geo-obj-count{font-size:11px;color:#8a847c;margin:0 0 6px 2px}'
@@ -800,7 +802,7 @@
         +'<td class="geo-obj-c"><label class="geo-sw"><input type="checkbox" '+(!p.mapHidden?'checked':'')+(canEdit?'':' disabled')+' onchange="geoObjToggleMap(\''+esc(id)+'\',this.checked)"><span></span></label></td>'
         +'<td class="geo-obj-c"><label class="geo-sw geo-sw-ext"><input type="checkbox" '+(p.extVisible?'checked':'')+(canEdit?'':' disabled')+' onchange="geoObjToggleExt(\''+esc(id)+'\',this.checked)"><span></span></label></td>'
         +'<td class="geo-obj-c"><input type="color" class="geo-obj-color" value="'+color+'" '+(canEdit?'':'disabled')+' onchange="geoObjColor(\''+esc(id)+'\',this.value)"></td>'
-        +'<td class="geo-obj-c">'+(canEdit?'<button class="btn sec geo-obj-edit" onclick="geoObjEdit(\''+esc(id)+'\')" title="Полная карточка">✎</button>':'')+'</td></tr>';
+        +'<td class="geo-obj-c" style="white-space:nowrap">'+(canEdit?'<button class="btn sec geo-obj-edit" onclick="geoObjEdit(\''+esc(id)+'\')" title="Полная карточка">✎</button> <button class="btn sec geo-obj-del" onclick="geoObjDelete(\''+esc(id)+'\')" title="Удалить объект">🗑</button>':'')+'</td></tr>';
     }).join('');
     var active=GEO_OBJ_SORT||Object.keys(GEO_OBJ_FILTERS).some(function(k){return geoObjFilterOn(k);});
     host.innerHTML='<div class="geo-obj-wrap"><div class="geo-obj-head"><div><h3>Объекты на карте</h3>'
@@ -817,7 +819,7 @@
     var s='<div class="geo-obj-pop"><b>'+esc(q.name||id)+'</b><br><small>'+esc(typ)+' · '+esc(loc)+'</small>'
       +'<div class="geo-obj-pop-xy">'+(Number.isFinite(la)?la.toFixed(5):'—')+', '+(Number.isFinite(ln)?ln.toFixed(5):'—')+'</div>'
       +'<div class="geo-obj-pop-ver">'+(q.verification==='verified'?'✔ подтверждён':'⚠ требует проверки')+(q.extVisible?' · <span style="color:#0a7">виден внешним</span>':'')+'</div>';
-    if(GEO_CAN_EDIT)s+='<div class="geo-obj-pop-act"><button class="btn sec" onclick="geoObjEdit(\''+esc(id)+'\')">✎ Редактировать</button><button class="btn sec" onclick="geoObjToggleMap(\''+esc(id)+'\',false)">🙈 Скрыть с карты</button></div>';
+    if(GEO_CAN_EDIT)s+='<div class="geo-obj-pop-act"><button class="btn sec" onclick="geoObjEdit(\''+esc(id)+'\')">✎ Редактировать</button><button class="btn sec" onclick="geoObjToggleMap(\''+esc(id)+'\',false)">🙈 Скрыть</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoObjDelete(\''+esc(id)+'\')">🗑 Удалить</button></div>';
     return s+'</div>';
   }
   function geoRenderProj(){
@@ -863,6 +865,13 @@
   window.geoObjToggleMap=function(id,on){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;p.mapHidden=!on;GEO_PROFILES[id]=clone(p);commit('видимость на карте: '+(p.name||id));try{renderProj();}catch(e){}try{geoObjTab();}catch(e){}};
   window.geoObjToggleExt=function(id,on){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;p.extVisible=!!on;GEO_PROFILES[id]=clone(p);commit('видимость для внешних агентов: '+(p.name||id));try{renderProj();}catch(e){}};
   window.geoObjColor=function(id,color){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT||!/^#[0-9a-f]{6}$/i.test(color))return;p.markerColor=color;GEO_PROFILES[id]=clone(p);commit('вид метки: '+(p.name||id));try{renderProj();}catch(e){}};
+  window.geoObjDelete=function(id){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;
+    if(!confirm('Удалить объект «'+(p.name||id)+'» из геоаналитики? Он исчезнет с карты и из списка. Действие можно отменить через «🕘 История / восстановление».'))return;
+    GEO_META.excludedProjects=GEO_META.excludedProjects||{};GEO_META.excludedProjects[String(id)]=true;
+    delete PROJECTS[String(id)];delete GEO_PROFILES[String(id)];
+    var s=document.getElementById('proj');if(s&&s.value===String(id))s.value=Object.keys(PROJECTS)[0]||'';
+    syncProjects(GEO_CONTEXT.projects||Object.keys(GEO_PROFILES).map(function(k){return GEO_PROFILES[k];}),s&&s.value);
+    commit('удалён объект: '+(p.name||id));try{renderProj();}catch(e){}try{geoObjTab();}catch(e){}};
   function boot(){
     if(window.ASAAS_GEO_MASTER_META){GEO_META=Object.assign({},GEO_META,{status:'preloaded_master',updatedAt:window.ASAAS_GEO_MASTER_META.generated_at||'',updatedBy:'CASE OS integrated baseline',master:clone(window.ASAAS_GEO_MASTER_META)});}
     baselineCleanup();siteTab=universalProfile;analytics=genericAnalytics;dataTab=dataManager;window.renderProj=geoRenderProj;try{geoApplyRoleUi();}catch(e){}
