@@ -823,7 +823,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
 </style><style id="mcCss">.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow { -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in; -moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in; -o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in; transition: transform 0.3s ease-out, opacity 0.3s ease-in; } .leaflet-cluster-spider-leg { -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in; -moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in; -o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in; transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in; } .marker-cluster-small { background-color: rgba(181, 226, 140, 0.6); } .marker-cluster-small div { background-color: rgba(110, 204, 57, 0.6); } .marker-cluster-medium { background-color: rgba(241, 211, 87, 0.6); } .marker-cluster-medium div { background-color: rgba(240, 194, 12, 0.6); } .marker-cluster-large { background-color: rgba(253, 156, 115, 0.6); } .marker-cluster-large div { background-color: rgba(241, 128, 23, 0.6); } .leaflet-oldie .marker-cluster-small { background-color: rgb(181, 226, 140); } .leaflet-oldie .marker-cluster-small div { background-color: rgb(110, 204, 57); } .leaflet-oldie .marker-cluster-medium { background-color: rgb(241, 211, 87); } .leaflet-oldie .marker-cluster-medium div { background-color: rgb(240, 194, 12); } .leaflet-oldie .marker-cluster-large { background-color: rgb(253, 156, 115); } .leaflet-oldie .marker-cluster-large div { background-color: rgb(241, 128, 23); } .marker-cluster { background-clip: padding-box; border-radius: 20px; } .marker-cluster div { width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px; font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif; } .marker-cluster span { line-height: 30px; } .marker-cluster{background:rgba(158,0,0,.25)}.marker-cluster div{background:rgba(158,0,0,.75);color:#fff;font-weight:700}</style></head><body class="geo-auth-pending">
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Universal Geo Analytics · preliminary online data</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
-<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT">Профиль проекта</button><button data-t="planT">Генплан / нормы</button><button data-t="dataT">Управление данными</button></div>
+<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT">Профиль проекта</button><button data-t="planT">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
   <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div></div>
@@ -928,6 +928,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
 <div class="page hidden" id="siteT"></div>
 <div class="page hidden" id="planT"></div>
 <div class="page hidden" id="dataT"></div>
+<div class="page hidden" id="objT"></div>
 </div>
 <div class="cardbg" id="cardbg" onclick="closeCard()"></div>
 <div class="card" id="card"></div>
@@ -1969,7 +1970,7 @@ if(map)map.on('zoomend',renderBC);
 $('lHeat').onchange=e=>{if(e.target.checked)loadHeat();else renderHeat();};
 ['heatC','heatO','heatR','heatB'].forEach(id=>$(id).addEventListener('input',renderHeat));
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeCard();});
-document.querySelectorAll('.tabs button').forEach(bt=>bt.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));bt.classList.add('active');const t=bt.dataset.t;['mapT','anaT','cmpT','siteT','planT','dataT'].forEach(id=>$(id).classList.toggle('hidden',id!==t));if(t==='mapT'&&map)setTimeout(()=>map.invalidateSize(),50);});
+document.querySelectorAll('.tabs button').forEach(bt=>bt.onclick=()=>{document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('active'));bt.classList.add('active');const t=bt.dataset.t;['mapT','anaT','cmpT','siteT','planT','dataT','objT'].forEach(id=>{const el=$(id);if(el)el.classList.toggle('hidden',id!==t);});if(t==='mapT'&&map)setTimeout(()=>map.invalidateSize(),50);if(t==='objT'&&typeof geoObjTab==='function')geoObjTab();});
 $('hdrCount').textContent=BC.length+' БЦ · 4 карты · ред.';
 
 /* ---- сборка эргономичной панели (без правки разметки) ---- */
@@ -2066,5 +2067,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.9.3"></script>
-<script src="v420-geo-studio.js?v=4.30.2"></script>
+<script src="v420-geo-studio.js?v=4.31.0"></script>
 </body></html>

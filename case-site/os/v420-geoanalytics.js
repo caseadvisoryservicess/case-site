@@ -81,7 +81,7 @@
     var fr=frame();if(!fr||!fr.contentWindow||!G.ready)return;
     fr.contentWindow.postMessage({source:'asaas-os-v4',type:'asaas-geo-context',context:{
       lang:(typeof LANG==='string'?LANG:'ru'),theme:(typeof THEME==='string'?THEME:'light'),role:role(),
-      editable:canEdit(),adminEdit:(function(){try{var r=typeof R==='function'?R():{};return !!(r.geoEdit||r.admin);}catch(e){return false;}})(),user:(S&&S.user)||null,projects:projectRows(),activeProjectId:(activeProject()||{}).id||'',geoData:(typeof GEO_DATA!=='undefined'?GEO_DATA:null),geoRevision:G.geoRevision||0
+      editable:canEdit(),adminEdit:(function(){try{var r=typeof R==='function'?R():{};return !!(r.geoEdit||r.admin);}catch(e){return false;}})(),external:isExternal(),user:(S&&S.user)||null,projects:projectRows(),activeProjectId:(activeProject()||{}).id||'',geoData:(typeof GEO_DATA!=='undefined'?GEO_DATA:null),geoRevision:G.geoRevision||0
     }},location.origin);
   }
   function notifyFrame(type,payload){var fr=frame();if(fr&&fr.contentWindow)fr.contentWindow.postMessage(Object.assign({source:'asaas-os-v4',type:type},payload||{}),location.origin);}

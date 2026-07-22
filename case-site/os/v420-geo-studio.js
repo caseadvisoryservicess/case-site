@@ -2,7 +2,7 @@
 (function(){
   'use strict';
   var PARAMS=new URLSearchParams(location.search),EMBEDDED=PARAMS.get('embedded')==='1';
-  var GEO_CAN_EDIT=!EMBEDDED,GEO_ADMIN_EDIT=!EMBEDDED,GEO_EDIT_MODE=false,GEO_CONTEXT={},GEO_META={status:'online',updatedAt:'',updatedBy:'',datasets:{}},
+  var GEO_CAN_EDIT=!EMBEDDED,GEO_ADMIN_EDIT=!EMBEDDED,GEO_EDIT_MODE=false,GEO_EXTERNAL=false,GEO_CONTEXT={},GEO_META={status:'online',updatedAt:'',updatedBy:'',datasets:{}},
       GEO_PROFILES={},GEO_DATASET='bc',GEO_QUERY='',GEO_PICK_PROJECT=false,GEO_STATE_LOADED=false;
   var GEO_SAVE_STATE='idle',GEO_SAVE_MESSAGE='';
   var CENTER={lat:41.31110,lng:69.27970};
@@ -239,6 +239,7 @@
     try{renderProj();renderBC();renderMed();renderPharm();catchSummary();}catch(e){}
     try{renderPoiLayers();}catch(e){}
     try{analytics();compare();siteTab();dataTab();}catch(e){}
+    try{if(typeof geoObjTab==='function')geoObjTab();}catch(e){}
     try{planningTab();}catch(e){}
     updateBanner();
   }
@@ -296,7 +297,7 @@
   window.geoTypeChange=function(v){var p=captureProfile();p.type=v;GEO_PROFILES[p.id]=clone(p);universalProfile();};
   window.geoSaveProject=function(){var p=captureProfile();if(!Number.isFinite(+p.lat)||!Number.isFinite(+p.lng)){alert('Проверьте широту и долготу.');return;}p.lat=+p.lat;p.lng=+p.lng;p.checkedAt=p.verification==='verified'?(p.checkedAt||new Date().toISOString().slice(0,10)):p.checkedAt;GEO_PROFILES[p.id]=clone(p);syncProjects(Object.keys(GEO_PROFILES).map(function(k){return GEO_PROFILES[k];}),p.id);commit('профиль проекта: '+p.name);refreshAll();};
   window.geoPickPoint=function(){if(!GEO_CAN_EDIT)return;GEO_PICK_PROJECT=true;var p=document.querySelector('[data-t="mapT"]');if(p)p.click();var l=document.getElementById('lProbe');if(l)l.checked=false;alert('Кликните по нужной точке на карте.');};
-  window.geoNewProject=function(){if(!GEO_CAN_EDIT)return;var name=prompt('Название нового проекта','Новый проект');if(!name)return;var p=normalizeProject({id:'geo-'+Date.now(),name:name,type:'mixed'});GEO_PROFILES[p.id]=p;PROJECTS[p.id]=p;syncProjects(Object.keys(GEO_PROFILES).map(function(k){return GEO_PROFILES[k];}),p.id);renderProj();universalProfile();};
+  window.geoNewProject=function(){if(!GEO_CAN_EDIT)return;var name=prompt('Название нового проекта','Новый проект');if(!name)return;var p=normalizeProject({id:'geo-'+Date.now(),name:name,type:'mixed'});GEO_PROFILES[p.id]=p;PROJECTS[p.id]=p;syncProjects(Object.keys(GEO_PROFILES).map(function(k){return GEO_PROFILES[k];}),p.id);renderProj();universalProfile();try{geoObjTab();}catch(e){}};
   window.geoExportProject=function(){downloadJson('CASE_OS_GEO_project_'+activeId()+'.json',active());};
   window.geoRemoveProjectFile=function(i){if(!GEO_CAN_EDIT)return;var p=active();if(!Array.isArray(p.files)||i<0||i>=p.files.length)return;p.files.splice(i,1);GEO_PROFILES[p.id]=clone(p);commit('удалён файл проекта: '+p.name);universalProfile();planningTab();};
   function attachProjectFiles(list){if(!GEO_CAN_EDIT||!list||!list.length)return;var p=active();p.files=Array.isArray(p.files)?p.files:[];var allowed=/\.(pdf|png|jpe?g|webp|csv|xlsx?|docx?)$/i,total=p.files.reduce(function(n,f){return n+(+f.size||0);},0),queue=Array.from(list),added=0;
@@ -693,7 +694,7 @@
   openCard=function(id){var i=BC.findIndex(function(x){return x.id===id;});if(i>=0)return openDatasetRecord('bc',i);oldOpenCard(id);};
   try{CARDG.push(['Ручная проверка',[['Статус проверки','_verification'],['Дата источника','_sourceDate'],['Проверил','_checkedBy'],['Дата проверки','_checkedAt'],['Примечание проверки','_note','ta']]]);}catch(e){}
   saveCard=function(id){if(!GEO_CAN_EDIT){alert('Нет прав на редактирование.');return;}var b=BC.find(function(x){return x.id===id;});if(!b)return;document.querySelectorAll('#card [data-k]').forEach(function(el){var v=el.value.trim();b[el.dataset.k]=v;if(['lat','lng','gla','gba','parking','floors','rent','avail','sale','rating','reviews'].indexOf(el.dataset.k)>=0&&v!==''&&!isNaN(v))b[el.dataset.k]=+v;});if(!b._verification)b._verification='needs_review';b._checkedBy=b._checkedBy||(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'';b._checkedAt=b._verification==='verified'?(b._checkedAt||new Date().toISOString().slice(0,10)):b._checkedAt;b._updatedAt=new Date().toISOString();b._updatedBy=(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'manual';markDataset();commit('карточка БЦ: '+(b.name||id));resetIndexes();closeCard();refreshAll();};
-  function applyContext(c){GEO_CONTEXT=c||{};GEO_CAN_EDIT=!!c.editable;GEO_ADMIN_EDIT=!!c.adminEdit;if(!GEO_ADMIN_EDIT)GEO_EDIT_MODE=false;if(c.geoRevision!=null){GEO_META.serverRevision=+c.geoRevision||0;}document.body.classList.toggle('dark',String(c.theme||'').toLowerCase()==='dark');if(c.geoData)applyState(c.geoData);else{syncProjects(c.projects||[],c.activeProjectId);refreshAll();}updateBanner();}
+  function applyContext(c){GEO_CONTEXT=c||{};GEO_CAN_EDIT=!!c.editable;GEO_ADMIN_EDIT=!!c.adminEdit;GEO_EXTERNAL=!!c.external;if(GEO_EXTERNAL)GEO_CAN_EDIT=false;if(!GEO_ADMIN_EDIT)GEO_EDIT_MODE=false;try{geoApplyRoleUi();}catch(e){}if(c.geoRevision!=null){GEO_META.serverRevision=+c.geoRevision||0;}document.body.classList.toggle('dark',String(c.theme||'').toLowerCase()==='dark');if(c.geoData)applyState(c.geoData);else{syncProjects(c.projects||[],c.activeProjectId);refreshAll();}updateBanner();}
   window.addEventListener('message',function(e){if(e.origin!==location.origin||!e.data||e.data.source!=='asaas-os-v4')return;if(e.data.type==='asaas-geo-context')applyContext(e.data.context||{});else if(e.data.type==='asaas-geo-saving'){GEO_SAVE_STATE='saving';GEO_SAVE_MESSAGE='';updateBanner();}else if(e.data.type==='asaas-geo-saved'){GEO_META.updatedAt=e.data.savedAt||GEO_META.updatedAt;GEO_META.updatedBy=e.data.savedBy||GEO_META.updatedBy;if(e.data.geoRevision!=null)GEO_META.serverRevision=+e.data.geoRevision||0;GEO_SAVE_STATE='saved';GEO_SAVE_MESSAGE='Сохранено на сервере'+(e.data.savedBy?' · '+e.data.savedBy:'');updateBanner();setTimeout(function(){if(GEO_SAVE_STATE==='saved'){GEO_SAVE_STATE='idle';updateBanner();}},3500);}else if(e.data.type==='asaas-geo-save-failed'){GEO_SAVE_STATE='error';GEO_SAVE_MESSAGE=e.data.error||'Неизвестная ошибка';updateBanner();}});
   function loadMasterBaseline(){
     return fetch('api/geo_master.php?file=runtime.json',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('master '+r.status);return r.json();}).then(function(d){
@@ -709,9 +710,114 @@
       fetch('api/workspace_access.php?view=geoanalytics',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('workspace '+r.status);return r.json();})
     ]).then(function(rows){var j=rows[0],a=rows[1];if(!j.auth||!j.user||!a.allowed)throw new Error('denied');if(!EMBEDDED)GEO_CAN_EDIT=!!a.can_edit;document.body.classList.remove('geo-auth-pending');}).catch(function(){document.body.innerHTML='<main class="geo-denied"><h1>CASE Universal Geoanalytics</h1><p>Защищённый модуль открывается только сотрудникам, чья рабочая область включает геоаналитику.</p><a href="index.html">Открыть CASE OS</a></main>';document.body.classList.remove('geo-auth-pending');throw new Error('denied');});
   }
+  /* ---- v4.31.0: подраздел «Объекты на карте» — карточки наших точек, вкл/выкл, вид, видимость для внешних ---- */
+  var GEO_PROJ_MARKERS={},GEO_PROJ_CENTERED=false;
+  window.geoMarkers=function(){return GEO_PROJ_MARKERS;};
+  function geoObjById(id){return PROJECTS[String(id)];}
+  function geoObjColorOf(q){return (/^#[0-9a-f]{6}$/i.test(q&&q.markerColor||''))?q.markerColor:((q&&q.verification==='verified')?'#14675B':'#A8792C');}
+  function geoApplyRoleUi(){
+    var b=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(x){return x.dataset.t==='objT';})[0];
+    if(b)b.style.display=GEO_EXTERNAL?'none':'';
+    // если внешний оказался на скрытой вкладке — вернуть на карту
+    if(GEO_EXTERNAL){var p=document.getElementById('objT');if(p&&!p.classList.contains('hidden')){var mb=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(x){return x.dataset.t==='mapT';})[0];if(mb)mb.click();}}
+  }
+  function geoEnsureObjCss(){
+    if(document.getElementById('geoObjCss'))return;
+    var s=document.createElement('style');s.id='geoObjCss';
+    s.textContent='.geo-obj-wrap{padding:2px}.geo-obj-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}.geo-obj-head h3{margin:0 0 3px}.geo-obj-head small{color:#666;font-size:11px;display:block;max-width:660px;line-height:1.4}'
+      +'.geo-obj-tblwrap{overflow-x:auto;border:1px solid var(--line);border-radius:8px;max-height:70vh;overflow-y:auto}'
+      +'.geo-obj-tbl{border-collapse:collapse;width:100%;font-size:12px;background:#fff}'
+      +'.geo-obj-tbl th{background:#f5f6f7;text-align:left;padding:7px 9px;font-weight:600;border-bottom:1px solid var(--line);white-space:nowrap;position:sticky;top:0;z-index:2}'
+      +'.geo-obj-tbl td{padding:5px 9px;border-bottom:1px solid #eef0f2;vertical-align:middle}'
+      +'.geo-obj-tbl tr:hover td{background:#faf7f5}.geo-obj-c{text-align:center}'
+      +'.geo-obj-focus{background:none;border:none;color:#9E0000;font-weight:600;cursor:pointer;padding:0;text-align:left;font-size:12px}.geo-obj-focus:hover{text-decoration:underline}'
+      +'.geo-obj-pf{font-size:9px;background:#eef3ff;color:#3157a8;border-radius:4px;padding:1px 4px;vertical-align:middle}'
+      +'.geo-obj-warn{color:#c07a00}.geo-obj-nocoord td{background:#fffdf5}.geo-ok{color:#28945a}.geo-warn{color:#e29b19}'
+      +'.geo-obj-color{width:34px;height:22px;border:1px solid var(--line);border-radius:4px;padding:0;cursor:pointer;background:none}.geo-obj-edit{padding:2px 8px}'
+      +'.geo-obj-pop b{font-size:13px}.geo-obj-pop-xy{font-size:11px;color:#666;margin-top:3px}.geo-obj-pop-ver{font-size:11px;margin-top:2px}.geo-obj-pop-act{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}.geo-obj-pop-act .btn{font-size:11px;padding:3px 7px}'
+      +'.geo-sw{position:relative;display:inline-block;width:34px;height:18px;cursor:pointer}.geo-sw input{opacity:0;width:0;height:0;position:absolute}.geo-sw span{position:absolute;inset:0;background:#c9ccd1;border-radius:18px;transition:.15s}.geo-sw span:before{content:"";position:absolute;width:14px;height:14px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.15s}.geo-sw input:checked+span{background:#28945a}.geo-sw-ext input:checked+span{background:#2f6fd6}.geo-sw input:checked+span:before{transform:translateX(16px)}.geo-sw input:disabled+span{opacity:.5;cursor:not-allowed}'
+      +'body.dark .geo-obj-tbl,body.dark .geo-obj-tbl th,body.dark .geo-obj-tbl td{background:#202329;color:#eee;border-color:#393d45}body.dark .geo-obj-tbl tr:hover td{background:#2b2f36}';
+    document.head.appendChild(s);
+  }
+  window.geoObjTab=function(){
+    var host=document.getElementById('objT');if(!host)return;
+    try{geoEnsureObjCss();}catch(e){}
+    var canEdit=GEO_CAN_EDIT,ids=Object.keys(PROJECTS);
+    var body=ids.map(function(id){
+      var p=PROJECTS[id]||{},la=+p.lat,ln=+p.lng,hasxy=Number.isFinite(la)&&Number.isFinite(ln);
+      var color=geoObjColorOf(p),loc=[p.city,p.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[p.type]||p.type||'—';
+      return '<tr class="geo-obj-row'+(hasxy?'':' geo-obj-nocoord')+'" data-id="'+esc(id)+'">'
+        +'<td class="geo-obj-name"><button class="geo-obj-focus" onclick="geoObjFocus(\''+esc(id)+'\')" title="Показать на карте">'+esc(p.name||id)+'</button>'+(p.portfolio?' <span class="geo-obj-pf">портфель</span>':'')+'</td>'
+        +'<td>'+esc(loc)+'</td><td>'+esc(typ)+'</td>'
+        +'<td class="geo-obj-xy">'+(hasxy?(la.toFixed(5)+', '+ln.toFixed(5)):'<span class="geo-obj-warn">нет координат</span>')+'</td>'
+        +'<td class="geo-obj-c">'+(p.verification==='verified'?'<span class="geo-ok" title="Подтверждён">✔</span>':'<span class="geo-warn" title="Требует проверки">⚠</span>')+'</td>'
+        +'<td class="geo-obj-c"><label class="geo-sw"><input type="checkbox" '+(!p.mapHidden?'checked':'')+(canEdit?'':' disabled')+' onchange="geoObjToggleMap(\''+esc(id)+'\',this.checked)"><span></span></label></td>'
+        +'<td class="geo-obj-c"><label class="geo-sw geo-sw-ext"><input type="checkbox" '+(p.extVisible?'checked':'')+(canEdit?'':' disabled')+' onchange="geoObjToggleExt(\''+esc(id)+'\',this.checked)"><span></span></label></td>'
+        +'<td class="geo-obj-c"><input type="color" class="geo-obj-color" value="'+color+'" '+(canEdit?'':'disabled')+' onchange="geoObjColor(\''+esc(id)+'\',this.value)"></td>'
+        +'<td class="geo-obj-c">'+(canEdit?'<button class="btn sec geo-obj-edit" onclick="geoObjEdit(\''+esc(id)+'\')" title="Полная карточка">✎</button>':'')+'</td></tr>';
+    }).join('');
+    host.innerHTML='<div class="geo-obj-wrap"><div class="geo-obj-head"><div><h3>Объекты на карте</h3>'
+      +'<small>Наши проекты и точки, отображаемые на карте. Клик по названию — показать точку на карте. '
+      +(canEdit?'«На карте» — видимость точки; «Внешним» — видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» — цвет метки; ✎ — полная карточка (данные, координаты, тип, файлы).':'Режим просмотра — редактирование недоступно для вашей роли.')+'</small></div>'
+      +(canEdit?'<button class="btn" onclick="geoNewProject()">＋ Добавить объект</button>':'')+'</div>'
+      +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl"><thead><tr><th>Название</th><th>Город / Район</th><th>Тип</th><th>Координаты</th><th>Пров.</th><th>На карте</th><th>Внешним</th><th>Вид</th><th></th></tr></thead>'
+      +'<tbody>'+(body||'<tr><td colspan="9" style="text-align:center;color:#888;padding:16px">Пока нет объектов</td></tr>')+'</tbody></table></div></div>';
+  };
+  function geoObjPopup(id){
+    var q=PROJECTS[id];if(!q)return '';
+    var loc=[q.city,q.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[q.type]||q.type||'—',la=+q.lat,ln=+q.lng;
+    var s='<div class="geo-obj-pop"><b>'+esc(q.name||id)+'</b><br><small>'+esc(typ)+' · '+esc(loc)+'</small>'
+      +'<div class="geo-obj-pop-xy">'+(Number.isFinite(la)?la.toFixed(5):'—')+', '+(Number.isFinite(ln)?ln.toFixed(5):'—')+'</div>'
+      +'<div class="geo-obj-pop-ver">'+(q.verification==='verified'?'✔ подтверждён':'⚠ требует проверки')+(q.extVisible?' · <span style="color:#0a7">виден внешним</span>':'')+'</div>';
+    if(GEO_CAN_EDIT)s+='<div class="geo-obj-pop-act"><button class="btn sec" onclick="geoObjEdit(\''+esc(id)+'\')">✎ Редактировать</button><button class="btn sec" onclick="geoObjToggleMap(\''+esc(id)+'\',false)">🙈 Скрыть с карты</button></div>';
+    return s+'</div>';
+  }
+  function geoRenderProj(){
+    var p=(typeof active==='function')?active():PROJECTS[Object.keys(PROJECTS)[0]];
+    var pi=document.getElementById('projInfo'),plat=+(p&&p.lat),plng=+(p&&p.lng);
+    if(pi&&p)pi.innerHTML=esc(p.name)+'<br>Район: <b>'+esc(p.district||'—')+'</b><br>'+(Number.isFinite(plat)?plat.toFixed(5):'—')+', '+(Number.isFinite(plng)?plng.toFixed(5):'—')+(p.verification!=='verified'?'<br><span style="color:#9b6b00">требуется проверка</span>':'');
+    try{if(typeof renderRings==='function')renderRings();}catch(e){}
+    try{if(typeof catchSummary==='function')catchSummary();}catch(e){}
+    if(!map||!window.L||!gProj)return;
+    gProj.clearLayers();GEO_PROJ_MARKERS={};
+    Object.keys(PROJECTS).forEach(function(id){
+      var q=PROJECTS[id],la=+q.lat,ln=+q.lng;
+      if(!Number.isFinite(la)||!Number.isFinite(ln)||q.mapHidden)return;
+      if(GEO_EXTERNAL&&!q.extVisible)return;
+      var isActive=(p&&String(id)===String(p.id)),color=geoObjColorOf(q),mk;
+      if(isActive){
+        var ic=L.divIcon({className:'',html:'<div style="background:'+color+';width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
+        mk=L.marker([la,ln],{icon:ic}).bindTooltip('★ '+esc(q.name),{permanent:true,direction:'top',className:'dlab'});
+      }else{
+        var rad=Number.isFinite(+q.markerSize)&&+q.markerSize>0?+q.markerSize:6;
+        mk=L.circleMarker([la,ln],{radius:rad,color:'#fff',weight:1.5,fillColor:color,fillOpacity:.85}).bindTooltip(esc(q.name));
+      }
+      mk.bindPopup(geoObjPopup(id),{maxWidth:300});
+      mk.on('click',function(){var s=document.getElementById('proj');if(s&&s.value!==String(id)){s.value=String(id);if(typeof universalProfile==='function')universalProfile();}mk.openPopup();});
+      mk.addTo(gProj);GEO_PROJ_MARKERS[String(id)]=mk;
+    });
+    if(!GEO_PROJ_CENTERED&&Number.isFinite(plat)&&Number.isFinite(plng)){try{map.setView([plat,plng],11);}catch(e){}GEO_PROJ_CENTERED=true;}
+  }
+  window.geoObjFocus=function(id){
+    var p=geoObjById(id);if(!p)return;var s=document.getElementById('proj');if(s)s.value=String(id);
+    var mb=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(b){return b.dataset.t==='mapT';})[0];if(mb)mb.click();
+    if(typeof universalProfile==='function')universalProfile();
+    var la=+p.lat,ln=+p.lng;
+    if(map&&Number.isFinite(la)&&Number.isFinite(ln)){try{map.setView([la,ln],15);}catch(e){}}
+    if(typeof renderProj==='function')renderProj();
+    setTimeout(function(){try{var mk=GEO_PROJ_MARKERS[String(id)];if(mk&&mk.openPopup)mk.openPopup();else if(!Number.isFinite(la))alert('У объекта «'+(p.name||id)+'» нет координат. Откройте ✎ и задайте их.');}catch(e){}},140);
+  };
+  window.geoObjEdit=function(id){
+    var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;var s=document.getElementById('proj');if(s)s.value=String(id);
+    var sb=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(b){return b.dataset.t==='siteT';})[0];if(sb)sb.click();
+    if(typeof universalProfile==='function')universalProfile();
+  };
+  window.geoObjToggleMap=function(id,on){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;p.mapHidden=!on;GEO_PROFILES[id]=clone(p);commit('видимость на карте: '+(p.name||id));try{renderProj();}catch(e){}try{geoObjTab();}catch(e){}};
+  window.geoObjToggleExt=function(id,on){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT)return;p.extVisible=!!on;GEO_PROFILES[id]=clone(p);commit('видимость для внешних агентов: '+(p.name||id));try{renderProj();}catch(e){}};
+  window.geoObjColor=function(id,color){var p=geoObjById(id);if(!p||!GEO_CAN_EDIT||!/^#[0-9a-f]{6}$/i.test(color))return;p.markerColor=color;GEO_PROFILES[id]=clone(p);commit('вид метки: '+(p.name||id));try{renderProj();}catch(e){}};
   function boot(){
     if(window.ASAAS_GEO_MASTER_META){GEO_META=Object.assign({},GEO_META,{status:'preloaded_master',updatedAt:window.ASAAS_GEO_MASTER_META.generated_at||'',updatedBy:'CASE OS integrated baseline',master:clone(window.ASAAS_GEO_MASTER_META)});}
-    baselineCleanup();siteTab=universalProfile;analytics=genericAnalytics;dataTab=dataManager;
+    baselineCleanup();siteTab=universalProfile;analytics=genericAnalytics;dataTab=dataManager;window.renderProj=geoRenderProj;try{geoApplyRoleUi();}catch(e){}
     document.body.classList.toggle('geo-embedded',EMBEDDED);
     var tabs=document.querySelectorAll('.tabs button');tabs.forEach(function(b){if(b.dataset.t==='siteT')b.textContent='Профиль проекта';if(b.dataset.t==='dataT')b.textContent='Управление данными';});
     if(!EMBEDDED){try{var s=JSON.parse(localStorage.getItem('asaas_geo_v1')||'null');if(s)applyState(s);}catch(e){}}
