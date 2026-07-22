@@ -1004,7 +1004,21 @@ CANV=L.canvas({padding:0.25});
  '2GIS':L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1',{maxZoom:19,attribution:'© 2ГИС'}),
  'Яндекс':new YandexTiles('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&scale=1&lang=ru_RU',{maxZoom:19,attribution:'© Яндекс'}),
  'Esri Спутник':L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'})
-};window.BASES['OpenStreetMap'].addTo(map);L.control.layers(window.BASES,null,{position:'topright',collapsed:true}).addTo(map);})();
+};window.BASES['CARTO Светлая'].addTo(map);L.control.layers(window.BASES,null,{position:'topright',collapsed:true}).addTo(map);
+ /* Автозамена подложки, если тайлы провайдера не грузятся (частая проблема в UZ с частью
+    серверов): при 6 ошибках подряд и НИ ОДНОМ загруженном тайле — либо через 6 секунд без
+    единого тайла — переключаемся на следующий провайдер. Если пользователь сам выбрал слой —
+    автозамену прекращаем. */
+ (function(){var order=['CARTO Светлая','OpenStreetMap','Google Карта','2GIS'],idx=0,cur=window.BASES[order[0]],userPicked=false;
+  map.on('baselayerchange',function(){userPicked=true;});
+  function watch(layer){var ok=0,err=0,done=false;
+   function fin(){done=true;layer.off('tileload',onOk);layer.off('tileerror',onErr);}
+   function onOk(){ok++;fin();}
+   function onErr(){err++;if(err>=6&&ok===0&&!done&&!userPicked){fin();next();}}
+   layer.on('tileload',onOk);layer.on('tileerror',onErr);
+   setTimeout(function(){if(!done&&ok===0&&!userPicked){fin();next();}},6000);}
+  function next(){idx++;if(idx>=order.length||userPicked)return;var nl=window.BASES[order[idx]];if(!nl)return next();if(cur){try{map.removeLayer(cur);}catch(e){}}cur=nl;nl.addTo(map);watch(nl);}
+  watch(cur);})();})();
 gBC=L.layerGroup().addTo(map);gRing=L.layerGroup().addTo(map);gProj=(L.markerClusterGroup?L.markerClusterGroup({showCoverageOnHover:false,maxClusterRadius:45,spiderfyOnMaxZoom:true}):L.layerGroup()).addTo(map);gMetro=L.layerGroup();gDist=L.layerGroup();gDens=L.layerGroup();gRoad=L.layerGroup();gMed=L.layerGroup().addTo(map);gPharm=L.layerGroup();
 }else{
 document.getElementById('map').innerHTML='<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#6b7280;font-size:14px;text-align:center;padding:20px">Не удалось загрузить библиотеку карты (CDN недоступен).<br>Вкладки «Аналитика», «Сравнение стран» и «Данные (БЦ)» работают без карты.</div>';
@@ -2067,5 +2081,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.9.3"></script>
-<script src="v420-geo-studio.js?v=4.31.2"></script>
+<script src="v420-geo-studio.js?v=4.31.3"></script>
 </body></html>

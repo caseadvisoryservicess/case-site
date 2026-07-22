@@ -326,10 +326,10 @@ body.dark .quizpop-ok{color:#7fd089}
   <div class="lcard">
     <div class="lg"><span class="c">CASE</span> OS</div>
     <div class="tag">Company &amp; Real Estate Operating System</div>
-    <label id="l_user">Пользователь</label>
-    <select id="luser"></select>
-    <label id="l_email" style="display:none">Email</label>
-    <input id="lemail" type="email" autocomplete="username" style="display:none" placeholder="you@caseadvisory.uz">
+    <label id="l_user" style="display:none">Пользователь</label>
+    <select id="luser" style="display:none"></select>
+    <label id="l_email">Email</label>
+    <input id="lemail" type="email" autocomplete="username" placeholder="you@caseadvisory.uz">
     <label id="l_pass">Пароль</label>
     <div style="position:relative;display:flex;align-items:center">
      <input id="lpass" type="password" autocomplete="current-password" style="width:100%;padding-right:40px">
@@ -406,7 +406,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.2';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.31.3';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1246,13 +1246,17 @@ async function enterWithServerUser(user,rights){applyServerUser(user,rights);con
 /* Матрица прав читается из таблицы roles БД — она первоисточник (сервер проверяет права по ней). */
 async function hydrateRolesFromDB(){if(!BACKEND)return;try{const j=await apiGET('data.php?table=roles');(j.rows||[]).forEach(row=>{const k=row.key;if(!k)return;const t=ROLES[k]=ROLES[k]||{label:row.label||k,rights:[]};t.label=row.label||t.label;t.leasing=!!+row.leasing;t.finance=!!+row.finance;t.edit=!!+row.edit;t.approve=!!+row.approve;t.plans=!!+row.plans;t.admin=!!+row.admin;t.ownOnly=!!+row.own_only;t.projectScoped=!!+row.project_scope;if(t.external===undefined)t.external=!!+row.project_scope;t.rights=serverRightChips({leasing:t.leasing,finance:t.finance,edit:t.edit,approve:t.approve,plans:t.plans,own_only:t.ownOnly,project_scope:t.projectScoped,admin:t.admin});});}catch(e){}}
 async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false).map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');$('lng_ru')&&$('lng_ru').classList.toggle('on',LANG==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',LANG==='uz');$('lng_en')&&$('lng_en').classList.toggle('on',LANG==='en');applyLoginLang();
+ /* Синхронно выставляем нужный вид входа ДО запроса к серверу, чтобы старая панель
+    (выбор роли) не мелькала пару секунд, пока идёт проверка auth.php. */
+ if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked('');}
  try{const j=await apiGET('auth.php');BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
- catch(e){BACKEND=false;if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked();}}}
-function setLoginLocked(){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
+ catch(e){BACKEND=false;if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked('Сервер авторизации недоступен. Обновите страницу и войдите по рабочему email и паролю. Вход по выбору роли отключён в целях безопасности.');}}}
+function setLoginLocked(errMsg){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
  show('l_user',false);show('luser',false);show('l_email',true);show('lemail',true);
  show('l_pass',true);show('lpass',true);show('l_code',false);show('lcode',false);show('l_alt',false);
  const lp=$('lpass');if(lp)lp.value='';const go=$('l_go');if(go)go.textContent=loginT('enter');
- loginErr('Сервер авторизации недоступен. Обновите страницу и войдите по рабочему email и паролю. Вход по выбору роли отключён в целях безопасности.');}
+ const h=$('l_hint');
+ if(errMsg){loginErr(errMsg);}else if(h){delete h.dataset.err;h.style.color='';h.textContent=loginT('hintpass');}}
 window._AUTH_INIT_PROMISE=initAuth();
 async function doLogin(){
  if(window._AUTH_INIT_PROMISE){try{await window._AUTH_INIT_PROMISE;}catch(e){} window._AUTH_INIT_PROMISE=null;}
@@ -4094,7 +4098,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v3518-brands-import.js?v=4.17.0" defer></script>
 <script src="v3520-workspaces.js?v=4.17.0" defer></script>
 <script src="v400-feasibility.js?v=4.17.0" defer></script>
-<script src="v420-geoanalytics.js?v=4.31.2" defer></script>
+<script src="v420-geoanalytics.js?v=4.31.3" defer></script>
 <script src="v440-engineering.js?v=4.17.0" defer></script>
 <script src="v450-guides.js?v=4.17.0" defer></script>
 <script src="v490-caseos.js?v=4.17.0" defer></script>
