@@ -167,6 +167,11 @@
   function normalizePharmacies(rows){return(Array.isArray(rows)?rows:[]).map(normalizePharmacy);}
   function replaceArray(target,value){target.splice(0,target.length);(Array.isArray(value)?value:[]).forEach(function(x){target.push(x);});}
   function replaceObject(target,value){Object.keys(target).forEach(function(k){delete target[k];});if(value&&typeof value==='object'&&!Array.isArray(value))Object.keys(value).forEach(function(k){target[k]=value[k];});}
+  /* Дедуп записей набора: ключ = название + адрес + округл. координаты. Лечит дубли, накопившиеся
+     из-за прежних сломанных сохранений (каждый БЦ по 2 раза). Записи без названия не трогаем. */
+  function _recKey(r){if(!r||typeof r!=='object')return '';var nm=String(r.name||r.n||'').trim().toLowerCase();var ad=String(r.address||r.a||'').trim().toLowerCase();var la=(r.lat!=null?r.lat:r.la),ln=(r.lng!=null?r.lng:r.ln);var lat=(la!=null&&isFinite(+la))?(+la).toFixed(5):'';var lng=(ln!=null&&isFinite(+ln))?(+ln).toFixed(5):'';return nm+'|'+ad+'|'+lat+'|'+lng;}
+  function dedupDataset(arr){if(!Array.isArray(arr)||arr.length<2)return arr;var seen=Object.create(null),out=[];arr.forEach(function(r){var nm=String((r&&(r.name||r.n))||'').trim().toLowerCase();if(!nm){out.push(r);return;}var k=_recKey(r);if(seen[k])return;seen[k]=1;out.push(r);});return out;}
+  function dedupInPlace(arr){var dd=dedupDataset(arr);if(dd.length!==arr.length){replaceArray(arr,dd);return arr.length;}return 0;}
   function typeKey(v){v=String(v||'').toLowerCase();if(/mall|торг|shopping/.test(v))return'mall';if(/office|business|бизнес|офис/.test(v))return'office';if(/hotel|resort|гост|курорт/.test(v))return'hotel';if(/warehouse|logistic|склад|логист/.test(v))return'warehouse';if(/residen|жил/.test(v))return'residential';if(/street|plinth|стрит|встроен/.test(v))return'street';if(/mixed|многофунк/.test(v))return'mixed';return'other';}
   function normalizeProject(o){
     o=o||{};var id=String(o.id||('geo-'+Date.now()));
@@ -218,6 +223,8 @@
     if(Array.isArray(d.medicine))replaceArray(MEDPTS,d.medicine);if(Array.isArray(d.pharmacies))replaceArray(PHARM,normalizePharmacies(d.pharmacies));if(Array.isArray(d.population))replaceArray(POP,d.population);
     if(d.districts)replaceObject(DIST,d.districts);if(d.region)replaceObject(DISTR,d.region);if(d.market)replaceObject(MARKET,d.market);if(d.prices)replaceObject(PRICES,d.prices);if(Array.isArray(d.metro))replaceArray(METRO,d.metro);if(Array.isArray(d.roads))replaceArray(ROADS,d.roads);
     Object.keys(POI_DEFS).forEach(function(k){if(Array.isArray(d[k]))replaceArray(GEO_POI[k],d[k]);});
+    /* Авто-дедуп при загрузке: чиним накопившиеся дубли (каждый БЦ по 2 раза) сразу в памяти. */
+    try{[BC,MEDPTS,PHARM,POP,METRO,ROADS].forEach(function(a){dedupInPlace(a);});Object.keys(POI_DEFS).forEach(function(k){dedupInPlace(GEO_POI[k]);});}catch(e){}
     resetIndexes();syncProjects(GEO_CONTEXT.projects||s.projects,GEO_CONTEXT.activeProjectId);refreshAll();
   }
   function post(type,payload){if(!EMBEDDED||window.parent===window)return;try{window.parent.postMessage(Object.assign({source:'asaas-geo-v42',type:type},payload||{}),location.origin);}catch(e){}}
@@ -326,7 +333,7 @@
       +'<div class="geo-data-tools"><select id="geoDataset" onchange="geoDatasetChange(this.value)">'+datasetOptions()+'</select><input id="geoSearch" value="'+esc(GEO_QUERY)+'" placeholder="Поиск в наборе…" oninput="geoSearch(this.value)">'
       +'<select id="geoSortBy" onchange="geoSortChange(this.value)"><option value=""'+(GEO_SORT===''?' selected':'')+'>Сортировка: по умолчанию</option><option value="updated_desc"'+(GEO_SORT==='updated_desc'?' selected':'')+'>Сначала недавно обновлённые</option><option value="updated_asc"'+(GEO_SORT==='updated_asc'?' selected':'')+'>Сначала неотредактированные</option></select>'
       +'<label class="geo-unedited-toggle"><input type="checkbox" id="geoOnlyUnedited"'+(GEO_ONLY_UNEDITED?' checked':'')+' onchange="geoToggleUnedited(this.checked)"> Только неотредактированные</label>'
-      +(GEO_CAN_EDIT?'<button class="btn" onclick="geoAddRecord()">＋ Добавить</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoDeleteSelected()">🗑 Удалить выбранные</button><button class="btn sec" onclick="geoImportDataset()">⇧ Импорт</button>':'')+'<button class="btn sec" onclick="geoExportTableCSV()">⤓ CSV / Excel</button><button class="btn sec" onclick="geoPrintDataset()">🖨 PDF / печать</button><button class="btn sec" onclick="geoExportDataset()">⤓ JSON</button></div><input type="file" id="geoFile" accept=".json,.csv,application/json,text/csv" hidden onchange="geoFilePicked(this)"><div id="geoRows"></div>';
+      +(GEO_CAN_EDIT?'<button class="btn" onclick="geoAddRecord()">＋ Добавить</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoDeleteSelected()">🗑 Удалить выбранные</button><button class="btn sec" onclick="geoDedupAll()" title="Удалить дубликаты во всех наборах (по названию+адресу+координатам)">🧹 Дубликаты</button><button class="btn sec" onclick="geoImportDataset()">⇧ Импорт</button>':'')+'<button class="btn sec" onclick="geoExportTableCSV()">⤓ CSV / Excel</button><button class="btn sec" onclick="geoPrintDataset()">🖨 PDF / печать</button><button class="btn sec" onclick="geoExportDataset()">⤓ JSON</button></div><input type="file" id="geoFile" accept=".json,.csv,application/json,text/csv" hidden onchange="geoFilePicked(this)"><div id="geoRows"></div>';
     renderDatasetRows();
   }
   var GEO_COLW=(function(){try{return JSON.parse(localStorage.getItem('geo_col_widths')||'{}');}catch(e){return {};}})();
@@ -448,6 +455,14 @@
   window.geoRowClick=function(ev,k,i){if(ev&&ev.target&&(ev.target.tagName==='INPUT'))return;openDatasetRecord(k,i);};
   window.geoToggleSel=function(key,on){if(on)GEO_SEL[key]=1;else delete GEO_SEL[key];var c=document.getElementById('geoSelCount');if(c)c.textContent=Object.keys(GEO_SEL).length;};
   window.geoSelectPage=function(on){document.querySelectorAll('#geoRows input[data-selkey]').forEach(function(cb){cb.checked=on;var key=cb.getAttribute('data-selkey');if(on)GEO_SEL[key]=1;else delete GEO_SEL[key];});var c=document.getElementById('geoSelCount');if(c)c.textContent=Object.keys(GEO_SEL).length;};
+  window.geoDedupAll=function(){if(!GEO_CAN_EDIT){alert('Нет прав на редактирование.');return;}
+    var arrs={bc:BC,medicine:MEDPTS,pharmacies:PHARM,population:POP,metro:METRO,roads:ROADS};try{Object.keys(POI_DEFS).forEach(function(k){arrs[k]=GEO_POI[k];});}catch(e){}
+    var plan=[],total=0;Object.keys(arrs).forEach(function(k){var a=arrs[k];if(!Array.isArray(a))return;var d=a.length-dedupDataset(a).length;if(d>0){plan.push(k);total+=d;}});
+    if(!total){alert('Дубликаты не найдены.');return;}
+    if(!confirm('Найдено дубликатов: '+total+'. Удалить их и сохранить?'))return;
+    plan.forEach(function(k){dedupInPlace(arrs[k]);markDataset(k);});
+    GEO_SEL=Object.create(null);commit('удалено дубликатов: '+total);resetIndexes();refreshAll();
+    setTimeout(function(){alert('Удалено дубликатов: '+total+'.');},50);};
   window.geoDeleteSelected=function(){if(!GEO_CAN_EDIT){alert('Нет прав на редактирование.');return;}var keys=Object.keys(GEO_SEL);if(!keys.length){alert('Отметьте объекты галочками, чтобы удалить.');return;}if(!confirm('Удалить выбранные объекты ('+keys.length+' шт.)? Действие нельзя отменить.'))return;var byK={};keys.forEach(function(key){var p=key.split('::'),k=p[0],i=+p[1];(byK[k]=byK[k]||[]).push(i);});Object.keys(byK).forEach(function(k){var cfg=DATASETS[k];if(!cfg||cfg.kind!=='array')return;var data=cfg.ref();byK[k].sort(function(a,b){return b-a;}).forEach(function(i){if(i>=0&&i<data.length)data.splice(i,1);});markDataset(k);});GEO_SEL=Object.create(null);commit('удалено объектов: '+keys.length);resetIndexes();refreshAll();};
   function csvCell(v){v=(v==null?'':String(v));if(/^[=+\-@]/.test(v))v="'"+v;return '"'+v.replace(/"/g,'""')+'"';}
   // «Обновлено» не значит «проверено» (независимый аудит, P1-08): выгрузка/печать - это уже
