@@ -902,5 +902,9 @@
       }).catch(function(){});
     },250);
   }
-  auth().then(loadMasterBaseline).then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else setTimeout(boot,0);}).catch(function(){});
+  /* Ускорение первой загрузки: НЕ держим готовность на 2.5-МБ мастер-наборе. Сначала грузим
+     оболочку и карту (boot → готовность прячет загрузчик), а тяжёлую мастер-базу (медицина/аптеки)
+     тянем в фоне и до-рисовываем, когда пришла. Так карта появляется за ~1с, а не за 4-5с. */
+  function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
+  auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});
 })();
