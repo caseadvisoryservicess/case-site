@@ -368,7 +368,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.24.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.25.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1047,6 +1047,10 @@ function toggleCompactNames(){S.compactNames=!S.compactNames;saveUiPrefs();if($(
 loadUiPrefs();
 const R=()=>ROLES[S.role];
 const objById=id=>OBJECTS.find(o=>o.id===id);
+/* Модель сделки проекта: аренда (LCR) и/или продажа (SCR). Старые объекты без флагов = только аренда. */
+function objLeaseOn(oid){const o=objById(oid);return o?(o.dealLease!==false):true;}
+function objSaleOn(oid){const o=objById(oid);return !!(o&&o.dealSale);}
+window.objLeaseOn=objLeaseOn;window.objSaleOn=objSaleOn;
 const curObj=()=>S.obj==='ALL'?{id:'ALL',name:t('allobj'),ru:t('allobj'),plan:'Портфель'}:objById(S.obj);
 function canSeeObj(id){return !R().projectScoped||visibleObjects().some(o=>o.id===id);}
 const unitsOf=id=>id==='ALL'?U.filter(u=>canSeeObj(u.obj)):(canSeeObj(id)?U.filter(u=>u.obj===id):[]);
@@ -1539,6 +1543,12 @@ function addObjectForm(id){if(!R().admin)return;const o=(id&&id!=='ALL')?objById
  +_bF('Название (RU)','o_ru',v('ru',''))
  +'<div class="row2"><div>'+_bF('Страна','o_country',v('country','Узбекистан'))+'</div><div>'+_bF('Город','o_city',v('city','Ташкент'))+'</div></div>'
  +_bF('Тип объекта','o_type',v('type','Mixed-use'))
+ +'<div style="margin:6px 0 4px;font-size:12px;font-weight:700">Модель сделки проекта</div>'
+ +'<div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:4px">'
+ +'<label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="o_lease" '+((o?(o.dealLease!==false):true)?'checked':'')+'> Аренда (LCR)</label>'
+ +'<label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="o_sale" '+((o&&o.dealSale)?'checked':'')+'> Продажа (SCR)</label>'
+ +'</div>'
+ +'<div style="font-size:11px;color:var(--muted);margin:0 0 8px">Проект может быть в аренде, в продаже или в обоих сразу. При включении «Продажа» в разделе «Контроль продажи (SCR)» автоматически появляются те же помещения и планировка (в раскраске по статусу продажи).</div>'
  +'<div class="row2"><div>'+_bF('GBA, м²','o_gba',v('gba','0'))+'</div><div>'+_bF('GLA, м²','o_gla',v('gla','0'))+'</div></div>'
  +_bSel('План','o_plan',[['Свой объект','Свой объект'],['Подписка ТЦ','Подписка ТЦ']],v('plan','Свой объект'))
  +'<div class="row2"><div>'+_bF('Сервис-чардж, %','o_sc',v('sc','10'))+'</div><div>'+_bF('Индексация, %','o_inc',v('inc','5'))+'</div></div>'
@@ -1548,9 +1558,9 @@ function addObjectForm(id){if(!R().admin)return;const o=(id&&id!=='ALL')?objById
  +(o?'':'<div style="font-size:11px;color:var(--muted);margin-top:8px">После создания помещения добавляются в «Реестре» кнопкой «+ Помещение», планировку загружает архитектор.</div>')
  +'<div style="margin-top:14px;display:flex;gap:8px;align-items:center"><button class="btn" onclick="saveObject('+(o?("'"+id+"'"):'')+')">'+(o?'Сохранить':'Создать')+'</button><button class="btn ghost" onclick="closeDrawer()">Отмена</button>'+(o?'<button class="btn ghost" style="margin-left:auto;border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="deleteObject(\''+id+'\')">Удалить объект</button>':'')+'</div></div></div>';
  openDrawerUI();localize();}
-function saveObject(id){const g=i=>{const e=$(i);return e?e.value.trim():'';};const name=g('o_name');if(!name){alert('Введите название объекта');return;}const comm=+g('o_comm')||8;const lat=g('o_lat')?+g('o_lat'):null,lng=g('o_lng')?+g('o_lng'):null;
- if(id){const o=objById(id);if(!o)return;o.name=name;o.ru=g('o_ru')||name;o.country=g('o_country')||'Узбекистан';o.city=g('o_city');o.type=g('o_type');o.gba=+g('o_gba')||0;o.gla=+g('o_gla')||0;o.plan=g('o_plan')||'Свой объект';o.sc=+g('o_sc')||10;o.inc=+g('o_inc')||5;o.levels=g('o_levels')||'single';o.lat=lat;o.lng=lng;o.comm={type:(o.comm&&o.comm.type)||'flat',total:comm,note:comm+'% годовой аренды'};audit('Изменён объект',o.name);persist();closeDrawer();rebuildObjSel();go(S.view==='dash'?'dash':'registry');return;}
- let base=(name.toLowerCase().replace(/[^a-z0-9]/g,'')||'obj').slice(0,4);let nid=base,n=1;while(objById(nid))nid=base+(++n);OBJECTS.push({id:nid,name,ru:g('o_ru')||name,country:g('o_country')||'Узбекистан',city:g('o_city'),type:g('o_type'),gba:+g('o_gba')||0,gla:+g('o_gla')||0,plan:g('o_plan')||'Свой объект',sc:+g('o_sc')||10,inc:+g('o_inc')||5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:g('o_levels')||'single',vat:'incl',vatRate:12,lat,lng,comm:{type:'flat',total:comm,note:comm+'% годовой аренды'}});audit('Создан объект',name);persist();closeDrawer();S.obj=nid;rebuildObjSel();go('registry');}
+function saveObject(id){const g=i=>{const e=$(i);return e?e.value.trim():'';};const ck=i=>{const e=$(i);return e?!!e.checked:false;};const name=g('o_name');if(!name){alert('Введите название объекта');return;}const comm=+g('o_comm')||8;const lat=g('o_lat')?+g('o_lat'):null,lng=g('o_lng')?+g('o_lng'):null;let dLease=ck('o_lease'),dSale=ck('o_sale');if(!dLease&&!dSale)dLease=true; /* хотя бы одна модель сделки */
+ if(id){const o=objById(id);if(!o)return;o.name=name;o.ru=g('o_ru')||name;o.country=g('o_country')||'Узбекистан';o.city=g('o_city');o.type=g('o_type');o.gba=+g('o_gba')||0;o.gla=+g('o_gla')||0;o.plan=g('o_plan')||'Свой объект';o.sc=+g('o_sc')||10;o.inc=+g('o_inc')||5;o.levels=g('o_levels')||'single';o.lat=lat;o.lng=lng;o.dealLease=dLease;o.dealSale=dSale;o.comm={type:(o.comm&&o.comm.type)||'flat',total:comm,note:comm+'% годовой аренды'};audit('Изменён объект',o.name);persist();closeDrawer();rebuildObjSel();go(S.view==='dash'?'dash':'registry');return;}
+ let base=(name.toLowerCase().replace(/[^a-z0-9]/g,'')||'obj').slice(0,4);let nid=base,n=1;while(objById(nid))nid=base+(++n);OBJECTS.push({id:nid,name,ru:g('o_ru')||name,country:g('o_country')||'Узбекистан',city:g('o_city'),type:g('o_type'),gba:+g('o_gba')||0,gla:+g('o_gla')||0,plan:g('o_plan')||'Свой объект',sc:+g('o_sc')||10,inc:+g('o_inc')||5,cur:'сумах по курсу ЦБ РУз',cond:'shell & core',levels:g('o_levels')||'single',vat:'incl',vatRate:12,lat,lng,dealLease:dLease,dealSale:dSale,comm:{type:'flat',total:comm,note:comm+'% годовой аренды'}});audit('Создан объект',name);persist();closeDrawer();S.obj=nid;rebuildObjSel();go(dSale&&!dLease?'v32_sales':'registry');}
 function deleteObject(id){if(!R().admin){alert('Только администратор.');return;}const o=objById(id);if(!o)return;if(OBJECTS.length<=1){alert('Нельзя удалить единственный объект. Сначала создайте другой.');return;}const n=U.filter(u=>u.obj===id).length;if(!confirm('Удалить объект «'+o.name+'»'+(n?(' вместе с '+n+' помещениями'):'')+'? Это нельзя отменить.'))return;if(prompt('Для подтверждения введите название объекта:')!==o.name){alert('Название не совпало. Отменено.');return;}
  U.forEach(u=>{if(u.obj===id)commTrack(u,u.broker,u.status,'объект удалён из портфеля');}); /* до удаления объекта — иначе % комиссии уже не посчитать */
  const i=OBJECTS.findIndex(x=>x.id===id);if(i>=0)OBJECTS.splice(i,1);
