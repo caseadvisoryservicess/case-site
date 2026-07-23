@@ -55,6 +55,8 @@ const STR = {
   'units.cta': { ru: 'Запросить условия', uz: 'Shartlarni so‘rash', en: 'Request terms' },
   'units.ceil': { ru: 'потолки', uz: 'shift', en: 'ceiling' },
   'units.download': { ru: 'Скачать планировку', uz: 'Planirovkani yuklab olish', en: 'Download floor plan' },
+  'cta.request': { ru: 'Оставить заявку', uz: 'Ariza qoldirish', en: 'Send an enquiry' },
+  'cta.more': { ru: 'Получить больше информации', uz: 'Ko‘proq ma’lumot olish', en: 'Get more information' },
   'units.cta.buy': { ru: 'Запросить условия покупки', uz: 'Sotib olish shartlarini so‘rash', en: 'Request purchase terms' },
   'units.plan.caption': { ru: 'Схема этажа по рабочим чертежам. Не является точным обмером.', uz: 'Ish chizmalari asosidagi qavat sxemasi. Aniq o‘lchov emas.', en: 'Floor diagram based on working drawings. Not a survey.' },
   'st.available': { ru: 'Свободно', uz: 'Bo‘sh', en: 'Available' },
@@ -116,7 +118,7 @@ function pictureTag(uploadsDir, prefix, file, { cls = '', alt = '', eager = fals
   const jpg = srcset(ext);
   const load = eager ? 'fetchpriority="high"' : 'loading="lazy" decoding="async"';
   return `<picture>${webp ? `<source type="image/webp" srcset="${webp}" sizes="${sizes}">` : ''}
-<img src="${prefix}assets/${esc(file)}"${jpg ? ` srcset="${jpg}" sizes="${sizes}"` : ''} alt="${esc(alt)}" ${load}${cls ? ` class="${cls}"` : ''}>
+<img src="${prefix}assets/${esc(file)}"${jpg ? ` srcset="${jpg}" sizes="${sizes}"` : ''} data-full="${prefix}assets/${esc(file)}" alt="${esc(alt)}" ${load}${cls ? ` class="${cls}"` : ''}>
 </picture>`;
 }
 
@@ -271,6 +273,14 @@ table.drive td:last-child{text-align:right;white-space:nowrap;font-weight:650}
 .enq-side{background:var(--bg);border-radius:var(--r);padding:28px}
 .enq-side .btn.tg{width:100%;margin:16px 0 10px}
 .enq-side .call{display:block;text-align:center;font:750 21px/1.3 system-ui;color:var(--ink);text-decoration:none;margin-top:14px}
+/* лайтбокс планировок и рендеров */
+.plan-card img,.gallery img{cursor:zoom-in}
+#lightbox{position:fixed;inset:0;z-index:90;background:rgba(15,16,18,.88);display:flex;align-items:center;justify-content:center;padding:26px;cursor:zoom-out}
+#lightbox img{max-width:96%;max-height:92%;width:auto;height:auto;border-radius:10px;background:#fff}
+#lightbox .lb-close{position:absolute;top:16px;right:20px;border:0;background:rgba(255,255,255,.14);color:#fff;font:400 26px/1 system-ui;width:44px;height:44px;border-radius:50%;cursor:pointer}
+/* CTA по ходу страницы */
+.sec-cta{margin-top:34px;text-align:center}
+.scen .sec-cta{text-align:left}
 /* sticky CTA */
 .sticky-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:#fff;border-top:1px solid var(--line);display:none;grid-template-columns:1fr 1fr 1.4fr;gap:8px;padding:10px 12px calc(10px + env(safe-area-inset-bottom))}
 .sticky-bar.show{display:grid}
@@ -441,6 +451,19 @@ document.querySelectorAll('.unit-cta').forEach(function(b){
   });
 });
 
+/* ── лайтбокс: увеличение планировок и рендеров ── */
+var lb=document.getElementById('lightbox');
+if(lb){
+  var lbImg=lb.querySelector('img');
+  function lbOpen(src){lbImg.src=src;lb.hidden=false;document.body.style.overflow='hidden'}
+  function lbClose(){lb.hidden=true;lbImg.src='';document.body.style.overflow=''}
+  lb.addEventListener('click',lbClose);
+  document.addEventListener('keydown',function(e){if(e.key==='Escape')lbClose()});
+  document.querySelectorAll('.plan-card img,.gallery img').forEach(function(im){
+    im.addEventListener('click',function(){lbOpen(im.dataset.full||im.currentSrc||im.src)});
+  });
+}
+
 var dlBtn=document.getElementById('plan-dl');
 if(dlBtn)dlBtn.addEventListener('click',function(){ev('plan_download',{unit:dlBtn.dataset.unit||''})});
 
@@ -449,7 +472,17 @@ var mapbox=document.getElementById('mapbox'),mapLoaded=false;
 if(mapbox)mapbox.addEventListener('click',function(){
   if(mapLoaded)return;
   ev('map_open',{});
-  if(!MAPS_KEY){window.open('https://yandex.com/maps/?pt='+LNG+','+LAT+'&z=16','_blank');return}
+  if(!MAPS_KEY){
+    /* без API-ключа: официальный встраиваемый виджет (Яндекс для RU/UZ, Google для EN) */
+    mapLoaded=true;mapbox.style.cursor='default';
+    var f=document.createElement('iframe');
+    f.className='ymap';f.setAttribute('allowfullscreen','');f.setAttribute('frameborder','0');
+    f.src=(LANG==='en')
+      ? 'https://maps.google.com/maps?q='+LAT+','+LNG+'&z=16&hl=en&output=embed'
+      : 'https://yandex.com/map-widget/v1/?ll='+LNG+'%2C'+LAT+'&z=16&pt='+LNG+'%2C'+LAT+'%2Cpm2rdm';
+    mapbox.innerHTML='';mapbox.appendChild(f);
+    return;
+  }
   mapLoaded=true;mapbox.style.cursor='default';
   var s=document.createElement('script');
   s.src='https://api-maps.yandex.ru/2.1/?apikey='+encodeURIComponent(MAPS_KEY)+'&lang='+(LANG==='en'?'en_US':'ru_RU');
@@ -760,7 +793,7 @@ ${counters}
 <!-- экран 2: ключевые параметры -->
 <div class="params">
   <div class="wrap">
-    ${(cfg.params || []).map((p) => `<div>${p.n ? `<b>${esc(p.n)}</b>` : `<b>${t(p.l)}</b>`}<span>${p.n ? t(p.l) : ''}</span></div>`).join('\n')}
+    ${(cfg.params || []).map((p) => `<div>${p.n ? `<b>${esc(pick(p.n, lang))}</b>` : `<b>${t(p.l)}</b>`}<span>${p.n ? t(p.l) : ''}</span></div>`).join('\n')}
   </div>
 </div>
 
@@ -796,6 +829,7 @@ ${counters}
   <div class="wrap">
     <h2 class="h2">${t(cfg.useCases.h2)}</h2>
     <div class="cases">${cases}</div>
+    <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"usecases"}'>${s('cta.more')}</a></div>
   </div>
 </section>
 
@@ -805,6 +839,7 @@ ${counters}
     <h2 class="h2">${t(cfg.scenarios.h2)}</h2>
     <div class="scen-grid">${scenCols}</div>
     <p class="scen-note">${s('scen.note')}</p>
+    <div class="sec-cta"><a class="btn primary" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"scenarios"}'>${s('cta.request')}</a></div>
   </div>
 </section>
 
@@ -824,6 +859,7 @@ ${counters}
         <p class="viz-all">${s('about.vizAll')}</p>
       </div>
     </div>
+    <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"about"}'>${s('cta.more')}</a></div>
   </div>
 </section>
 
@@ -847,6 +883,7 @@ ${counters}
         <table class="drive"><caption style="text-align:left;font:700 11px/1 system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-bottom:10px">${s('loc.drive')}</caption>${driveRows}</table>
         <p class="around">${t(cfg.location.around)}</p>
         <p class="metro-note">${t(cfg.location.metroNote)}</p>
+        <div class="sec-cta" style="text-align:left"><a class="btn primary" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"location"}'>${s('cta.request')}</a></div>
       </div>
     </div>
   </div>
@@ -857,6 +894,7 @@ ${counters}
   <div class="wrap">
     <h2 class="h2">${s('faq.h2')}</h2>
     <div class="faq">${faqItems}</div>
+    <div class="sec-cta"><a class="btn primary" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"faq"}'>${s('cta.request')}</a></div>
   </div>
 </section>
 
@@ -921,6 +959,8 @@ ${counters}
     <span>${s('about.vizAll')}</span>
   </div>
 </footer>
+
+<div id="lightbox" hidden><button type="button" class="lb-close" aria-label="close">×</button><img alt=""></div>
 
 <script>window.__UNITS=${unitsJson};window.__CEIL_LBL=${JSON.stringify(ceilLabel)};</script>
 <script>${pageJs(cfg, lang)}</script>

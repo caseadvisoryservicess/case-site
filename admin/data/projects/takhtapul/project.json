@@ -825,11 +825,15 @@
       }
     },
     {
-      "n": "Open plan",
+      "n": {
+        "ru": "Свободная планировка",
+        "uz": "Erkin planirovka",
+        "en": "Open plan"
+      },
       "l": {
-        "ru": "свободная планировка",
-        "uz": "erkin planirovka",
-        "en": "open floor plates"
+        "ru": "делится под ваш бриф",
+        "uz": "briefingizga moslab bo‘linadi",
+        "en": "flexible floor plates"
       }
     },
     {
@@ -857,7 +861,7 @@
       "en": "Premises"
     },
     "note": {
-      "ru": "Все этажи — open plan: только колонны с сеткой 5 950 × 7 150 мм и лифтовое ядро, без внутренних перегородок. Пространство делится под задачу арендатора.",
+      "ru": "Все этажи со свободной планировкой: только колонны с сеткой 5 950 × 7 150 мм и лифтовое ядро, без внутренних перегородок. Пространство делится под задачу арендатора.",
       "uz": "Barcha qavatlar — open plan: faqat 5 950 × 7 150 mm to'rli kolonnalar va lift yadrosi, ichki to'siqlarsiz. Maydon ijarachining vazifasiga moslab bo'linadi.",
       "en": "All floors are open plan: columns on a 5 950 × 7 150 mm grid and the lift core only, no internal partitions. Each floor plate can be subdivided to the tenant’s brief."
     }
@@ -992,7 +996,7 @@
           "en": "floors 1–3"
         },
         "p": {
-          "ru": "Рядом сложившийся медицинский кластер: Sinomed MD International Hospital, областной онкологический центр и республиканский медколледж в радиусе ~1 км. Open plan позволяет спроектировать кабинеты и диагностику под лицензию.",
+          "ru": "Рядом сложившийся медицинский кластер: Sinomed MD International Hospital, областной онкологический центр и республиканский медколледж в радиусе ~1 км. Свободная планировка позволяет спроектировать кабинеты и диагностику под лицензию.",
           "uz": "Yaqin atrofda shakllangan tibbiyot klasteri: Sinomed MD International Hospital, viloyat onkologiya markazi va respublika tibbiyot kolleji ~1 km radiusda. Open plan litsenziyaga mos kabinetlar va diagnostikani loyihalash imkonini beradi.",
           "en": "An established medical cluster nearby: Sinomed MD International Hospital, the regional oncology center and the republican medical college within ~1 km. Open plan lets you lay out consulting and diagnostic rooms to licensing requirements."
         }
@@ -1137,30 +1141,6 @@
           "ru": "1 882,9 м²",
           "uz": "1 882,9 m²",
           "en": "1,882.9 m²"
-        }
-      },
-      {
-        "b": {
-          "ru": "Пятно этажа",
-          "uz": "Qavat maydoni",
-          "en": "Floor plate"
-        },
-        "s": {
-          "ru": "≈ 19,1 × 20,4 м",
-          "uz": "≈ 19,1 × 20,4 m",
-          "en": "≈ 19.1 × 20.4 m"
-        }
-      },
-      {
-        "b": {
-          "ru": "Сетка колонн",
-          "uz": "Kolonna to’ri",
-          "en": "Column grid"
-        },
-        "s": {
-          "ru": "5 950 / 7 150 / 5 950 мм",
-          "uz": "5 950 / 7 150 / 5 950 mm",
-          "en": "5,950 / 7,150 / 5,950 mm"
         }
       },
       {
