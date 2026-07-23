@@ -8,7 +8,7 @@
   window.CASE_FEATURE_FLAGS_410=true;
 
   var VALID=['active','beta','hidden','disabled','deprecated'];
-  var PROTECTED=['dash','users']; // prevents administrator lockout from Home and module settings
+  var PROTECTED=['dash','users','admin_modules','admin_system']; // prevents administrator lockout from Home, user management and the module/system settings screens themselves
   var UI={q:'',only:'all'};
   var injectTimer=null;
 

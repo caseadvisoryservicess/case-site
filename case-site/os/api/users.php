@@ -101,6 +101,29 @@ if ($a==='delete_user') {
   $st = db()->prepare('SELECT email,name FROM app_users WHERE id=?'); $st->execute([$uid]);
   $u = $st->fetch();
   if (!$u) json_out(['ok'=>true,'already'=>true]);
+  // Серверная проверка связей (deep audit P0-3): полное удаление разрешено ТОЛЬКО для «пустой» учётки.
+  // Ищем ссылки на id пользователя во всех таблицах базы по стандартным колонкам-ссылкам; если есть —
+  // блокируем и возвращаем список, предлагая архив/деактивацию (данные и история сохраняются).
+  if (empty($b['force_orphan'])) {
+    $refCols = ['created_by','by_id','assigned_to','author','user_id','created_by_id','updated_by_id','saved_by_id','owner_id','broker_id'];
+    $blocking = [];
+    try {
+      $ph = implode(',', array_fill(0, count($refCols), '?'));
+      $cs = db()->prepare('SELECT TABLE_NAME, COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA=DATABASE() AND COLUMN_NAME IN ('.$ph.')');
+      $cs->execute($refCols);
+      foreach ($cs->fetchAll() as $c) {
+        $t = $c['TABLE_NAME']; $col = $c['COLUMN_NAME'];
+        if ($t === 'app_users') continue;
+        try {
+          $r = db()->prepare('SELECT COUNT(*) FROM '.q($t).' WHERE '.q($col).'=?');
+          $r->execute([$uid]);
+          $n = (int)$r->fetchColumn();
+          if ($n > 0) $blocking[] = $t.'.'.$col.' ('.$n.')';
+        } catch (Throwable $e) { /* таблица/колонка недоступна — пропускаем */ }
+      }
+    } catch (Throwable $e) { /* нет доступа к information_schema — не блокируем, полагаемся на клиентскую проверку */ }
+    if ($blocking) fail('Нельзя полностью удалить: у пользователя есть связанные записи ('.implode(', ', $blocking).'). Используйте «Архив» или «Деактивацию» — учётная запись скроется, а история и авторство сохранятся.', 409);
+  }
   db()->prepare('DELETE FROM app_users WHERE id=?')->execute([$uid]);
   try { db()->exec('COMMIT'); } catch (Throwable $e) {}
   audit('Удалён пользователь', $uid.' · '.$u['email'].' · '.$u['name']);

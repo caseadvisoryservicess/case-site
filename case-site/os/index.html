@@ -436,7 +436,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.19';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.31.20';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -2554,14 +2554,17 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
  }catch(ex){PLAN_MSG='err|Ошибка при обработке файла: '+(ex&&ex.message||ex);go('plans');}};
  if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
 function tryPersist(){let ok=true;
- try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));_localReduced=false;_localSaveFailed=false;}
+ /* В backend-режиме localStorage — только офлайн-кэш; тяжёлые корпоративные данные (чертежи SVG,
+    гео-набор, презентации) живут на сервере и в него НЕ кладутся (deep audit P1-4: uploadPlan
+    больше не вызывает ложное «хранилище переполнено» после успешного серверного сохранения). */
+ try{let _blob=stateBlob();if(BACKEND){_HEAVY_LOCAL_KEYS.forEach(k=>{try{delete _blob[k];}catch(_){}});}localStorage.setItem(STORAGE_KEY,JSON.stringify(_blob));_localReduced=false;_localSaveFailed=false;}
  catch(e){
   /* localStorage переполнен (тяжёлые справочники — ГЕО ~2.5МБ, база брендов, портфель). Раньше
      ошибка глоталась молча и правки (варианты/ставки/статусы) ПРОПАДАЛИ после перезагрузки в
      офлайн/демо-режиме. Теперь сохраняем УРЕЗАННЫЙ блок без самых больших наборов, чтобы
      операционные данные всё равно сохранились локально; если и это не влезло — громко предупреждаем. */
   try{
-   const b=stateBlob();delete b.GEO_DATA;
+   const b=stateBlob();_HEAVY_LOCAL_KEYS.forEach(k=>{try{delete b[k];}catch(_){}});
    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
    catch(e2){delete b.BENCH;delete b.CASE_PORTFOLIO_PROJECTS;delete b.KB;localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
    _localReduced=true;_localSaveFailed=false;

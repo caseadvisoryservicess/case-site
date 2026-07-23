@@ -183,7 +183,7 @@ function asaas_known_module_ids(): array {
   $defs = asaas_workspace_default_views();
   return array_values(array_unique(array_filter((array)($defs['ASH'] ?? []), 'is_string')));
 }
-function asaas_protected_module_ids(): array { return ['dash','users']; }
+function asaas_protected_module_ids(): array { return ['dash','users','admin_modules','admin_system']; } // admin_modules/admin_system protected too — hiding them would lock an admin out of the settings screens (deep audit P0-2)
 function asaas_workspace_hard_allowed(array $u, string $view): bool {
   // Module visibility is controlled exclusively by ROLE_WORKSPACES / USER_WORKSPACES.
   // Fine-grained actions still require edit/finance/approve/admin rights in each endpoint.
@@ -552,6 +552,9 @@ function delete_row(string $table, $id): void {
   $defs = tables(); if (!isset($defs[$table])) fail('Неизвестная таблица', 400);
   $d = $defs[$table];
   require_login();
+  // Пользователей нельзя удалять через общий data.php — только через api/users.php,
+  // где выполняется проверка связей и по умолчанию применяется деактивация/архив (deep audit P0-3).
+  if ($table==='app_users') fail('Пользователей нельзя удалять через общий API. Откройте раздел «Пользователи»: деактивация или архив; полное удаление — только для пустой ошибочно созданной учётной записи.', 403);
   require_table_allowed($table);
   if (empty($d['write']) || !can($d['write'])) fail('Нет доступа на запись: '.$table, 403);
   $old = fetch_row_for_acl($table, $d, $id);
