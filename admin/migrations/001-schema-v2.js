@@ -67,31 +67,31 @@ function up() {
   };
   cfg.units = [
     {
-      id: 'b', lvlShort: '−1', gla: '337,4', plan: 'plan-b.svg',
+      id: 'b', lvlShort: '−1', ceil: '3,0', gla: '337,4', plan: 'plan-b.svg',
       level: ml('Подвал', 'Podval', 'Basement'),
       uses: ml('сервис, шоурум, вспомогательные функции', "xizmat ko'rsatish, shourum, yordamchi funksiyalar", 'services, showroom, support functions'),
       status: 'available'
     },
     {
-      id: 'f1', lvlShort: '1', gla: '358,7', plan: 'plan-f1.svg',
+      id: 'f1', lvlShort: '1', ceil: '4,0', gla: '358,7', plan: 'plan-f1.svg',
       level: ml('1 этаж', '1-qavat', 'Floor 1'),
       uses: ml('шоурум, сервис, ресепшн клиники', 'shourum, servis, klinika qabulxonasi', 'showroom, services, clinic reception'),
       status: 'available'
     },
     {
-      id: 'f2', lvlShort: '2', gla: '395,6', plan: 'plan-f2.svg',
+      id: 'f2', lvlShort: '2', ceil: '3,6', gla: '395,6', plan: 'plan-f2.svg',
       level: ml('2 этаж', '2-qavat', 'Floor 2'),
       uses: ml('клиника, офис, учебный центр', "klinika, ofis, o'quv markazi", 'clinic, office, training center'),
       status: 'available'
     },
     {
-      id: 'f3', lvlShort: '3', gla: '395,6', plan: 'plan-f3.svg',
+      id: 'f3', lvlShort: '3', ceil: '3,6', gla: '395,6', plan: 'plan-f3.svg',
       level: ml('3 этаж', '3-qavat', 'Floor 3'),
       uses: ml('клиника, офис, учебный центр', "klinika, ofis, o'quv markazi", 'clinic, office, training center'),
       status: 'available'
     },
     {
-      id: 'f4', lvlShort: '4', gla: '395,6', glaNote: '314,2 + 101,8', plan: 'plan-f4.svg',
+      id: 'f4', lvlShort: '4', ceil: '3,0', gla: '395,6', glaNote: '314,2 + 101,8', plan: 'plan-f4.svg',
       level: ml('4 этаж', '4-qavat', 'Floor 4'),
       uses: ml('офис, учебный центр', "ofis, o'quv markazi", 'office, training center'),
       status: 'available'
@@ -201,7 +201,12 @@ function up() {
       { b: ml('GLA', 'GLA', 'GLA'), s: ml('1 882,9 м²', '1 882,9 m²', '1,882.9 m²') },
       { b: ml('Пятно этажа', 'Qavat maydoni', 'Floor plate'), s: ml('≈ 19,1 × 20,4 м', '≈ 19,1 × 20,4 m', '≈ 19.1 × 20.4 m') },
       { b: ml('Сетка колонн', 'Kolonna to’ri', 'Column grid'), s: ml('5 950 / 7 150 / 5 950 мм', '5 950 / 7 150 / 5 950 mm', '5,950 / 7,150 / 5,950 mm') },
-      { b: ml('Высота потолков', 'Shift balandligi', 'Ceiling height'), s: ml('', '', '') },
+      // потолки в свету — по чертежу разреза (верифицировано)
+      { b: ml('Высота потолков', 'Shift balandligi', 'Ceiling height'), s: ml(
+        '3,0–4,0 м: 1-й этаж 4,0 · 2–3-й 3,6 · 4-й и подвал 3,0',
+        '3,0–4,0 m: 1-qavat 4,0 · 2–3-qavatlar 3,6 · 4-qavat va podval 3,0',
+        '3.0–4.0 m: floor 1 — 4.0 · floors 2–3 — 3.6 · floor 4 and basement — 3.0'
+      ) },
       { b: ml('Паркинг', 'Avtoturargoh', 'Parking'), s: ml('12 машиномест: 6 подземных + 6 наземных', '12 joy: 6 yer osti + 6 yer usti', '12 spaces: 6 underground + 6 surface') }
     ],
     images: [

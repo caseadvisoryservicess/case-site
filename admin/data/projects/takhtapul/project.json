@@ -769,7 +769,7 @@
   },
   "schemaVersion": 2,
   "intro": {
-    "image": "facade-evening.jpg",
+    "image": "hero-dusk.jpg",
     "h1": {
       "ru": "Коммерческое здание Тахтапул, 31 — Ташкент",
       "uz": "Taxtapul 31 tijorat binosi — Toshkent",
@@ -878,7 +878,8 @@
         "uz": "xizmat ko'rsatish, shourum, yordamchi funksiyalar",
         "en": "services, showroom, support functions"
       },
-      "status": "available"
+      "status": "available",
+      "ceil": "3,0"
     },
     {
       "id": "f1",
@@ -895,7 +896,8 @@
         "uz": "shourum, servis, klinika qabulxonasi",
         "en": "showroom, services, clinic reception"
       },
-      "status": "available"
+      "status": "available",
+      "ceil": "4,0"
     },
     {
       "id": "f2",
@@ -912,7 +914,8 @@
         "uz": "klinika, ofis, o'quv markazi",
         "en": "clinic, office, training center"
       },
-      "status": "available"
+      "status": "available",
+      "ceil": "3,6"
     },
     {
       "id": "f3",
@@ -929,7 +932,8 @@
         "uz": "klinika, ofis, o'quv markazi",
         "en": "clinic, office, training center"
       },
-      "status": "available"
+      "status": "available",
+      "ceil": "3,6"
     },
     {
       "id": "f4",
@@ -947,7 +951,8 @@
         "uz": "ofis, o'quv markazi",
         "en": "office, training center"
       },
-      "status": "available"
+      "status": "available",
+      "ceil": "3,0"
     },
     {
       "id": "all",
@@ -1165,9 +1170,9 @@
           "en": "Ceiling height"
         },
         "s": {
-          "ru": "",
-          "uz": "",
-          "en": ""
+          "ru": "3,0–4,0 м: 1-й этаж 4,0 · 2–3-й 3,6 · 4-й и подвал 3,0",
+          "uz": "3,0–4,0 m: 1-qavat 4,0 · 2–3-qavatlar 3,6 · 4-qavat va podval 3,0",
+          "en": "3.0–4.0 m: floor 1 — 4.0 · floors 2–3 — 3.6 · floor 4 and basement — 3.0"
         }
       },
       {
@@ -1185,13 +1190,13 @@
     ],
     "images": [
       {
-        "file": "facade-evening.jpg"
+        "file": "aerial-night.jpg"
       },
       {
-        "file": "facade-angle.jpg"
+        "file": "facade-vertical-dusk.jpg"
       },
       {
-        "file": "hero.jpg"
+        "file": "facade-night.jpg"
       }
     ]
   },

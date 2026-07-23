@@ -24,5 +24,6 @@
   <rect x="30" y="2210" width="525" height="140" fill="none" stroke="#a8804c" stroke-width="2" stroke-dasharray="6 4"/>
   <line x1="290" y1="2355" x2="290" y2="2295" stroke="#a8804c" stroke-width="3"/><path d="M282,2309 L290,2295 L298,2309 Z" fill="#a8804c"/>
   </g>
+  <g stroke="#9a9c9f" fill="none" stroke-width="1.5"><circle cx="1889" cy="112" r="15"/><line x1="1889" y1="103" x2="1889" y2="119"/><path d="M1884.5,115 L1889,122 L1893.5,115" fill="#9a9c9f" stroke="none"/></g><text x="1889" y="142" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="12" font-weight="700" fill="#9a9c9f">N</text>
   <text x="14" y="44" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="34" font-weight="700" fill="#2b2d30">−1</text><text x="1915" y="34" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="19" font-weight="650" fill="#a8804c">GLA 337.4 m²</text>
 </svg>

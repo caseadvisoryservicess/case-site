@@ -26,5 +26,6 @@
   <rect x="575" y="580" width="40" height="40" fill="#2b2d30"/>
   <rect x="1290" y="580" width="40" height="40" fill="#2b2d30"/>
   </g>
+  <g stroke="#9a9c9f" fill="none" stroke-width="1.5"><circle cx="1889" cy="112" r="15"/><line x1="1889" y1="103" x2="1889" y2="119"/><path d="M1884.5,115 L1889,122 L1893.5,115" fill="#9a9c9f" stroke="none"/></g><text x="1889" y="142" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="12" font-weight="700" fill="#9a9c9f">N</text>
   <text x="14" y="44" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="34" font-weight="700" fill="#2b2d30">4</text><text x="1915" y="34" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="19" font-weight="650" fill="#a8804c">GLA 395.6 m²</text><text x="1915" y="56" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="13" fill="#66696e">314.2 + 101.8</text>
 </svg>

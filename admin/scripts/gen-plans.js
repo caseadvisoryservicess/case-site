@@ -69,6 +69,17 @@ function entranceArrow(xmm, ymm, H, dir) {
     `<path d="M${x - 8},${tip} L${x},${y2} L${x + 8},${tip} Z" fill="${BRONZE}"/>`;
 }
 
+// стрелка севера: по генплану улица Тахтапул (и входы, ось А чертежа) —
+// с северной стороны здания, поэтому север на планах направлен ВНИЗ
+function northArrow(cx, cy) {
+  return `<g stroke="#9a9c9f" fill="none" stroke-width="1.5">` +
+    `<circle cx="${cx}" cy="${cy}" r="15"/>` +
+    `<line x1="${cx}" y1="${cy - 9}" x2="${cx}" y2="${cy + 7}"/>` +
+    `<path d="M${cx - 4.5},${cy + 3} L${cx},${cy + 10} L${cx + 4.5},${cy + 3}" fill="#9a9c9f" stroke="none"/>` +
+    `</g>` +
+    `<text x="${cx}" y="${cy + 30}" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="12" font-weight="700" fill="#9a9c9f">N</text>`;
+}
+
 function label(levelTag, gla, W, glaNote) {
   return `<text x="14" y="44" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="34" font-weight="700" fill="${INK}">${levelTag}</text>` +
     `<text x="${W - 14}" y="34" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="19" font-weight="650" fill="${BRONZE}">GLA ${gla} m²</text>` +
@@ -105,6 +116,7 @@ function typicalFloor({ tag, gla, glaNote, zones, entrance }) {
   ]));
   if (entrance) g.push(entranceArrow((X[1] + X[2]) / 2, 40, Hmm, 'up'));
   g.push('</g>');
+  g.push(northArrow(Wsvg - 40, off + 42));
   g.push(label(tag, gla, Wsvg, glaNote));
   return svgDoc(Wsvg, Hsvg, g.join('\n  '));
 }
@@ -127,6 +139,7 @@ function basement() {
   g.push(`<rect x="${300 * S}" y="${(Hmm - 1700) * S}" width="${5250 * S}" height="${1400 * S}" fill="none" stroke="${BRONZE}" stroke-width="2" stroke-dasharray="6 4"/>`);
   g.push(entranceArrow(2900, 250, Hmm, 'up'));
   g.push('</g>');
+  g.push(northArrow(Wsvg - 40, off + 42));
   g.push(label('−1', '337.4', Wsvg));
   return svgDoc(Wsvg, Hsvg, g.join('\n  '));
 }
