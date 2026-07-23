@@ -29,7 +29,7 @@ function up() {
 
   // ── экран 1: hero ──
   cfg.intro = {
-    image: 'facade-evening.jpg', // временно; заменить на рендер TAXTAPUL (сумерки) через панель
+    image: 'hero-dusk.jpg', // сумеречный рендер TAXTAPUL (в комплекте деплоя)
     h1: ml(
       'Коммерческое здание Тахтапул, 31 — Ташкент',
       'Taxtapul 31 tijorat binosi — Toshkent',
@@ -210,9 +210,9 @@ function up() {
       { b: ml('Паркинг', 'Avtoturargoh', 'Parking'), s: ml('12 машиномест: 6 подземных + 6 наземных', '12 joy: 6 yer osti + 6 yer usti', '12 spaces: 6 underground + 6 surface') }
     ],
     images: [
-      { file: 'facade-evening.jpg' },
-      { file: 'facade-angle.jpg' },
-      { file: 'hero.jpg' }
+      { file: 'aerial-night.jpg' },
+      { file: 'facade-vertical-dusk.jpg' },
+      { file: 'facade-night.jpg' }
     ]
   };
 

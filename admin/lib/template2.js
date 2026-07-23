@@ -177,20 +177,9 @@ body[data-intent="lease"] .intent button[data-i="lease"],body[data-intent="buy"]
 .lvl-picker button .st-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-left:7px}
 .units-grid{display:grid;grid-template-columns:360px 1fr;gap:26px;align-items:start}
 .plan-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px}
-.plan-row{display:flex;gap:16px;align-items:flex-start}
-.bld-cut{width:118px;flex:0 0 118px}
-.sil-band{cursor:pointer}
-.sb-r{stroke:#2b2d30;stroke-width:1.4;transition:fill .15s}
-.sb-r.st-available{fill:rgba(168,128,76,.30)}
-.sil-band:hover .sb-r.st-available{fill:rgba(168,128,76,.48)}
-.sb-r.st-reserved{fill:rgba(212,166,54,.35)}
-.sil-band:hover .sb-r.st-reserved{fill:rgba(212,166,54,.5)}
-.sb-r.st-leased,.sb-r.st-sold{fill:rgba(27,29,31,.14)}
-.sil-band.on .sb-r{stroke:var(--bronze);stroke-width:2.6}
-.sb-t{font:700 12px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;fill:#2b2d30}
-.plan-imgs{flex:1;min-width:0}
 .plan-card img{width:100%;height:auto}
-.plan-cap{margin:10px 0 0;font-size:12px;color:var(--muted)}
+.plan-meta{margin:12px 0 0;font:650 14.5px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
+.plan-cap{margin:6px 0 0;font-size:12px;color:var(--muted)}
 .units-table-wrap{overflow-x:auto}
 table.units{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 table.units th{font:700 10.5px/1.3 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:13px 10px 9px}
@@ -305,9 +294,6 @@ footer a{color:#fff}
   section{padding:48px 0}
   .top-phone{display:none}
 }
-/* десктоп: уровень выбирается кликом по разрезу; кнопки — мобильный фолбэк */
-@media(min-width:701px){.lvl-picker{display:none}}
-@media(max-width:700px){.bld-cut{display:none}.plan-row{display:block}}
 /* мобильная таблица юнитов -> карточки, CTA всегда на виду */
 .st-m{display:none}
 @media(max-width:700px){
@@ -417,25 +403,24 @@ document.addEventListener('click',function(e){
 
 /* ── юниты: выбор уровня, план, CTA ── */
 var UNITS=window.__UNITS||[];
+var CEIL_LBL=window.__CEIL_LBL||'';
 function selectUnit(id,fire){
   UNITS.forEach(function(u){
-    var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id),
-        img=document.getElementById('plan-'+u.id),sil=document.getElementById('sil-'+u.id);
+    var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id),img=document.getElementById('plan-'+u.id);
     var on=u.id===id;
     if(row)row.classList.toggle('on',on);
     if(btn)btn.classList.toggle('on',on);
-    if(sil)sil.classList.toggle('on',on);
     if(img)img.hidden=!on;
+    if(on){
+      var meta=document.getElementById('plan-meta');
+      if(meta)meta.textContent=u.label+' · GLA '+u.gla+' м²'+(u.ceil?' · '+CEIL_LBL+' '+u.ceil+' м':'');
+    }
   });
   if(fire){ev('unit_click',{unit:id});ev('plan_view',{unit:id})}
 }
 UNITS.forEach(function(u){
-  var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id),sil=document.getElementById('sil-'+u.id);
+  var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id);
   if(btn)btn.addEventListener('click',function(){selectUnit(u.id,true)});
-  if(sil){
-    sil.addEventListener('click',function(){selectUnit(u.id,true)});
-    sil.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();selectUnit(u.id,true)}});
-  }
   if(row)row.addEventListener('click',function(e){if(!e.target.closest('a,button'))selectUnit(u.id,true)});
 });
 if(UNITS.length)selectUnit(UNITS[0].id,false);
@@ -515,54 +500,6 @@ document.querySelectorAll('.faq details').forEach(function(d,i){
   d.addEventListener('toggle',function(){if(d.open)ev('faq_open',{q:i})});
 });
 })();`;
-}
-
-// ── интерактивный вертикальный разрез здания (экран юнитов) ──
-// Пропорции — из чертежа разреза: высоты этажей в свету из units[].ceil.
-// Цвет полосы кодирует статус; клик выбирает уровень (тот же selectUnit).
-function buildingCut(cfg, lang) {
-  const floors = (cfg.units || []).filter((u) => !u.whole);
-  if (!floors.length) return '';
-  const K = 10;            // px на метр
-  const SLAB = 4;          // перекрытие
-  const W = 128, PADX = 10, GX = PADX, GW = W - PADX * 2;
-  const heightOf = (u) => (parseFloat(String(u.ceil || '3,5').replace(',', '.')) || 3.5) * K;
-  // сверху вниз: f4 … b
-  const ordered = [...floors].reverse();
-  const PERGOLA = 18;
-  let y = PERGOLA + 6;
-  const bands = [];
-  let groundY = 0;
-  for (const u of ordered) {
-    const h = heightOf(u);
-    const isBasement = u.id === ordered[ordered.length - 1].id;
-    const isTop = u.id === ordered[0].id;
-    if (isBasement) groundY = y;
-    const bx = isTop ? GX + 26 : GX;      // терраса: верхний этаж с отступом
-    const bw = isTop ? GW - 26 : GW;
-    bands.push(`<g class="sil-band" id="sil-${esc(u.id)}" data-unit="${esc(u.id)}" role="button" tabindex="0" aria-label="${esc(pick(u.level, lang))}">
-      <title>${esc(pick(u.level, lang))} · ${esc(u.gla)} м²</title>
-      <rect class="sb-r st-${esc(u.status || 'available')}" x="${bx}" y="${y}" width="${bw}" height="${h}"${isBasement ? ' stroke-dasharray="5 3"' : ''} rx="2"/>
-      <text class="sb-t" x="${bx + 8}" y="${y + h / 2 + 4}">${esc(u.lvlShort)}</text>
-    </g>`);
-    if (isTop) {
-      // плита террасы + пергола над верхним этажом
-      bands.push(`<line x1="${GX}" y1="${y}" x2="${GX + GW}" y2="${y}" stroke="#2b2d30" stroke-width="3"/>`);
-      const px0 = bx + 4, px1 = bx + bw - 4;
-      bands.push(`<line x1="${px0}" y1="${y - PERGOLA}" x2="${px1}" y2="${y - PERGOLA}" stroke="#9a9c9f" stroke-width="2.5"/>`);
-      for (let i = 0; i <= 3; i++) {
-        const px = px0 + (px1 - px0) * i / 3;
-        bands.push(`<line x1="${px}" y1="${y - PERGOLA}" x2="${px}" y2="${y}" stroke="#9a9c9f" stroke-width="1.6"/>`);
-      }
-    }
-    y += h + SLAB;
-  }
-  const H = y + 8;
-  // линия земли над подвалом
-  const ground = `<line x1="0" y1="${groundY - SLAB / 2}" x2="${W}" y2="${groundY - SLAB / 2}" stroke="#2b2d30" stroke-width="2.5"/>` +
-    [0, 1, 2].map((i) => `<line x1="${i * 6}" y1="${groundY - SLAB / 2 + 6}" x2="${i * 6 + 5}" y2="${groundY - SLAB / 2 + 1}" stroke="#9a9c9f" stroke-width="1.2"/>`).join('') +
-    [0, 1, 2].map((i) => `<line x1="${W - i * 6 - 5}" y1="${groundY - SLAB / 2 + 6}" x2="${W - i * 6}" y2="${groundY - SLAB / 2 + 1}" stroke="#9a9c9f" stroke-width="1.2"/>`).join('');
-  return `<svg class="bld-cut" viewBox="0 0 ${W} ${H}" aria-hidden="false">${bands.join('\n')}${ground}</svg>`;
 }
 
 // ── JSON-LD ──
@@ -687,7 +624,11 @@ function renderPage(cfg, lang, uploadsDir) {
     `<img id="plan-${esc(u.id)}" src="${prefix}assets/${esc(u.plan)}" alt="${t(u.level)} — ${esc(u.gla)} м²" loading="lazy" decoding="async" hidden>`
   ).join('\n');
 
-  const unitsJson = JSON.stringify((cfg.units || []).map((u) => ({ id: u.id, ru: pick(u.level, 'ru') })));
+  const unitsJson = JSON.stringify((cfg.units || []).map((u) => ({
+    id: u.id, ru: pick(u.level, 'ru'),
+    label: pick(u.level, lang), gla: u.gla || '', ceil: u.ceil || ''
+  })));
+  const ceilLabel = s('units.ceil');
 
   // ── экран 4 ──
   const cases = (cfg.useCases.cards || []).map((c) => `
@@ -816,10 +757,8 @@ ${counters}
     <div class="lvl-picker">${lvlButtons}</div>
     <div class="units-grid">
       <div class="plan-card">
-        <div class="plan-row">
-          ${buildingCut(cfg, lang)}
-          <div class="plan-imgs">${planImgs}</div>
-        </div>
+        ${planImgs}
+        <p class="plan-meta" id="plan-meta"></p>
         <p class="plan-cap">${s('units.plan.caption')}</p>
       </div>
       <div class="units-table-wrap">
@@ -967,7 +906,7 @@ ${counters}
   </div>
 </footer>
 
-<script>window.__UNITS=${unitsJson};</script>
+<script>window.__UNITS=${unitsJson};window.__CEIL_LBL=${JSON.stringify(ceilLabel)};</script>
 <script>${pageJs(cfg, lang)}</script>
 </body>
 </html>`;
