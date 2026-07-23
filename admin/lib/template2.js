@@ -142,7 +142,13 @@ section{padding:64px 0}
 .h2{font-size:clamp(26px,4vw,36px);margin-bottom:14px}
 .sub{color:var(--muted);max-width:640px;margin:0 0 34px}
 /* header */
-header.top{position:absolute;inset:0 0 auto;z-index:20}
+header.top{position:fixed;inset:0 0 auto;z-index:50;transition:background .25s,box-shadow .25s}
+header.top.scrolled{background:rgba(15,16,18,.93);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 26px rgba(0,0,0,.3)}
+header.top.scrolled .top-in{padding-top:13px;padding-bottom:13px}
+.top-in{transition:padding .25s}
+.case-link{display:flex;align-items:center}
+.case-link img{height:30px;width:auto;display:block}
+@media(max-width:560px){.case-link{display:none}}
 .top-in{display:flex;align-items:center;gap:26px;padding:22px 24px;max-width:1320px;margin:0 auto}
 .brand{color:#fff;font:800 27px/1 system-ui;letter-spacing:.06em;text-decoration:none}
 .brand small{display:block;font:600 12.5px/1.6 system-ui;letter-spacing:.16em;opacity:.8;text-transform:uppercase;white-space:nowrap}
@@ -408,6 +414,11 @@ window.addEventListener('pagehide',flush);
 ev('page_view',{url:location.pathname+location.search,ref:document.referrer||'',utm:UTM||undefined,
   dev:matchMedia('(max-width:920px)').matches?'mobile':'desktop',sw:screen.width});
 
+/* ── шапка: подложка после начала прокрутки ── */
+var topBar=document.querySelector('header.top');
+function updTop(){if(topBar)topBar.classList.toggle('scrolled',(window.scrollY||0)>24)}
+addEventListener('scroll',updTop,{passive:true});updTop();
+
 /* ── глубина скролла 25/50/75/100 ── */
 var marks=[25,50,75,100],seen={};
 addEventListener('scroll',function(){
@@ -636,6 +647,8 @@ function renderPage(cfg, lang, uploadsDir) {
   const lat = Number(cfg.location.lat) || 41.338889;
   const lng = Number(cfg.location.lng) || 69.263403;
 
+  const caseLogo = ['case-logo.svg', 'case-logo.png', 'case-logo.webp']
+    .find((f) => fs.existsSync(path.join(uploadsDir, f)));
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -784,6 +797,7 @@ ${counters}
     </nav>
     <div class="langs">${langSwitch}</div>
     <a class="top-phone" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"header"}'>${esc(phone)}</a>
+    ${caseLogo ? `<a class="case-link" href="https://caseadvisory.uz" target="_blank" rel="noopener" title="CASE Real Estate Advisory" data-ev="cta_click" data-evx='{"cta":"case_logo"}'><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory"></a>` : ''}
   </div>
 </header>
 
@@ -1019,6 +1033,9 @@ ${alt}
   };
   add(cfg.intro.image);
   add('og-cover.jpg');
+  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp']) {
+    if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
+  }
   for (const g of cfg.about.images || []) add(g.file);
   for (const u of cfg.units || []) if (u.plan) images.add(u.plan);
 
