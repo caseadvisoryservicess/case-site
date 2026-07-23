@@ -140,16 +140,16 @@ section{padding:64px 0}
 .sub{color:var(--muted);max-width:640px;margin:0 0 34px}
 /* header */
 header.top{position:absolute;inset:0 0 auto;z-index:20}
-.top-in{display:flex;align-items:center;gap:22px;padding:18px 20px;max-width:1120px;margin:0 auto}
-.brand{color:#fff;font:800 22px/1 system-ui;letter-spacing:.06em;text-decoration:none}
-.brand small{display:block;font:500 11.5px/1.5 system-ui;letter-spacing:.14em;opacity:.78;text-transform:uppercase}
-.top nav{display:flex;gap:6px;margin-left:auto}
-.top nav a{color:rgba(255,255,255,.88);text-decoration:none;font:650 16px/1 system-ui;padding:11px 15px;border-radius:10px}
+.top-in{display:flex;align-items:center;gap:26px;padding:22px 24px;max-width:1320px;margin:0 auto}
+.brand{color:#fff;font:800 27px/1 system-ui;letter-spacing:.06em;text-decoration:none}
+.brand small{display:block;font:600 12.5px/1.6 system-ui;letter-spacing:.16em;opacity:.8;text-transform:uppercase;white-space:nowrap}
+.top nav{display:flex;gap:8px;margin-left:auto}
+.top nav a{color:rgba(255,255,255,.9);text-decoration:none;font:650 18px/1 system-ui;padding:13px 18px;border-radius:11px;white-space:nowrap}
 .top nav a:hover{background:rgba(255,255,255,.12);color:#fff}
 .langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:10px;padding:3px}
-.langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 13.5px/1 system-ui;padding:9px 11px;border-radius:8px}
+.langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 15px/1 system-ui;padding:10px 13px;border-radius:8px}
 .langs a.on{background:#fff;color:var(--ink)}
-.top-phone{color:#fff;text-decoration:none;font:700 16px/1 system-ui}
+.top-phone{color:#fff;text-decoration:none;font:750 18px/1 system-ui;white-space:nowrap}
 /* hero */
 .hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
 .hero picture,.hero picture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -278,6 +278,7 @@ table.drive td:last-child{text-align:right;white-space:nowrap;font-weight:650}
 footer{background:var(--dark);color:rgba(255,255,255,.7);padding:44px 0;font-size:13.5px}
 footer .wrap{display:grid;gap:8px}
 footer a{color:#fff}
+@media(max-width:1140px){.top-phone{display:none}}
 @media(max-width:920px){
   .top nav{display:none}
   .params .wrap{grid-template-columns:repeat(2,1fr);gap:20px 14px}
@@ -913,7 +914,8 @@ ${counters}
 </body>
 </html>`;
 
-  return html;
+  // типографика проекта: длинные тире заменяются на короткие
+  return html.replace(/\u2014/g, '-');
 }
 
 function renderLanding2(cfg, { uploadsDir }) {
