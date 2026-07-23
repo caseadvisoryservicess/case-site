@@ -54,6 +54,7 @@ const STR = {
   'units.th.status': { ru: 'Статус', uz: 'Holat', en: 'Status' },
   'units.cta': { ru: 'Запросить условия', uz: 'Shartlarni so‘rash', en: 'Request terms' },
   'units.ceil': { ru: 'потолки', uz: 'shift', en: 'ceiling' },
+  'units.download': { ru: 'Скачать планировку', uz: 'Planirovkani yuklab olish', en: 'Download floor plan' },
   'units.cta.buy': { ru: 'Запросить условия покупки', uz: 'Sotib olish shartlarini so‘rash', en: 'Request purchase terms' },
   'units.plan.caption': { ru: 'Схема этажа по рабочим чертежам. Не является точным обмером.', uz: 'Ish chizmalari asosidagi qavat sxemasi. Aniq o‘lchov emas.', en: 'Floor diagram based on working drawings. Not a survey.' },
   'st.available': { ru: 'Свободно', uz: 'Bo‘sh', en: 'Available' },
@@ -179,7 +180,8 @@ body[data-intent="lease"] .intent button[data-i="lease"],body[data-intent="buy"]
 .plan-card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px}
 .plan-card img{width:100%;height:auto}
 .plan-meta{margin:12px 0 0;font:650 14.5px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-.plan-cap{margin:6px 0 0;font-size:12px;color:var(--muted)}
+.plan-dl{margin-top:12px;padding:10px 16px;font-size:13.5px;width:100%}
+.plan-cap{margin:8px 0 0;font-size:12px;color:var(--muted)}
 .units-table-wrap{overflow-x:auto}
 table.units{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 table.units th{font:700 10.5px/1.3 system-ui;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:13px 10px 9px}
@@ -416,6 +418,11 @@ function selectUnit(id,fire){
     if(on){
       var meta=document.getElementById('plan-meta');
       if(meta)meta.textContent=u.label+' · GLA '+u.gla+' м²'+(u.ceil?' · '+CEIL_LBL+' '+u.ceil+' м':'');
+      var dl=document.getElementById('plan-dl');
+      if(dl){
+        if(u.planUrl){dl.hidden=false;dl.href=u.planUrl;dl.setAttribute('download',u.planName||'');dl.dataset.unit=u.id}
+        else dl.hidden=true;
+      }
     }
   });
   if(fire){ev('unit_click',{unit:id});ev('plan_view',{unit:id})}
@@ -433,6 +440,9 @@ document.querySelectorAll('.unit-cta').forEach(function(b){
     ev('unit_request',{unit:id});
   });
 });
+
+var dlBtn=document.getElementById('plan-dl');
+if(dlBtn)dlBtn.addEventListener('click',function(){ev('plan_download',{unit:dlBtn.dataset.unit||''})});
 
 /* ── карта: SDK/ссылка только по клику ── */
 var mapbox=document.getElementById('mapbox'),mapLoaded=false;
@@ -629,7 +639,9 @@ function renderPage(cfg, lang, uploadsDir) {
 
   const unitsJson = JSON.stringify((cfg.units || []).map((u) => ({
     id: u.id, ru: pick(u.level, 'ru'),
-    label: pick(u.level, lang), gla: u.gla || '', ceil: u.ceil || ''
+    label: pick(u.level, lang), gla: u.gla || '', ceil: u.ceil || '',
+    planUrl: u.plan ? prefix + 'assets/' + u.plan : '',
+    planName: u.plan ? 'Taxtapul-' + u.id + u.plan.slice(u.plan.lastIndexOf('.')) : ''
   })));
   const ceilLabel = s('units.ceil');
 
@@ -762,6 +774,7 @@ ${counters}
       <div class="plan-card">
         ${planImgs}
         <p class="plan-meta" id="plan-meta"></p>
+        <a id="plan-dl" class="btn ghost plan-dl" download hidden>${s('units.download')}</a>
         <p class="plan-cap">${s('units.plan.caption')}</p>
       </div>
       <div class="units-table-wrap">
