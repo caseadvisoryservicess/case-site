@@ -650,7 +650,10 @@ function renderPage(cfg, lang, uploadsDir) {
 
   const caseLogo = ['case-logo.svg', 'case-logo.png', 'case-logo.webp']
     .find((f) => fs.existsSync(path.join(uploadsDir, f)));
-  const presFile = fs.existsSync(path.join(uploadsDir, 'presentation.pdf')) ? 'presentation.pdf' : '';
+  // презентация на языке страницы (фолбэк - русская)
+  const presFile = (lang === 'ru' ? ['presentation.pdf'] : ['presentation-' + lang + '.pdf', 'presentation.pdf'])
+    .find((f) => fs.existsSync(path.join(uploadsDir, f))) || '';
+  const presName = 'Taxtapul-31-' + lang.toUpperCase() + '.pdf';
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -818,7 +821,7 @@ ${counters}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <a class="btn primary" href="#units" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
-      ${presFile ? `<a class="btn ghost" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff" href="${prefix}assets/${presFile}" download="Taxtapul-31.pdf" data-ev="pdf_download" data-evx='{"where":"hero"}'>${s('pdf.btn')}</a>` : ''}
+      ${presFile ? `<a class="btn ghost" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff" href="${prefix}assets/${presFile}" download="${presName}" data-ev="pdf_download" data-evx='{"where":"hero"}'>${s('pdf.btn')}</a>` : ''}
     </div>
   </div>
 </div>
@@ -960,7 +963,7 @@ ${counters}
       </div>
       <div class="enq-side">
         <h3>${lang === 'en' ? 'Faster by phone or Telegram' : lang === 'uz' ? 'Telefon yoki Telegram orqali tezroq' : 'Быстрее — по телефону или в Telegram'}</h3>
-        ${presFile ? `<a class="btn ghost" style="width:100%;margin-top:16px" href="${prefix}assets/${presFile}" download="Taxtapul-31.pdf" data-ev="pdf_download" data-evx='{"where":"form"}'>${s('pdf.btn')}</a>` : ''}
+        ${presFile ? `<a class="btn ghost" style="width:100%;margin-top:16px" href="${prefix}assets/${presFile}" download="${presName}" data-ev="pdf_download" data-evx='{"where":"form"}'>${s('pdf.btn')}</a>` : ''}
         ${tgHref ? `<a class="btn tg" href="${tgHref}" target="_blank" rel="noopener" data-ev="telegram_click" data-evx='{"where":"form"}'>${s('form.tg')}</a>` : ''}
         <a class="call" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"form"}'>${esc(phone)}</a>
       </div>
@@ -1039,7 +1042,7 @@ ${alt}
   };
   add(cfg.intro.image);
   add('og-cover.jpg');
-  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp', 'presentation.pdf']) {
+  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp', 'presentation.pdf', 'presentation-uz.pdf', 'presentation-en.pdf']) {
     if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
   }
   for (const g of cfg.about.images || []) add(g.file);
