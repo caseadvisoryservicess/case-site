@@ -418,7 +418,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.14';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.31.15';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -2515,7 +2515,23 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
    go('plans');
  }catch(ex){PLAN_MSG='err|Ошибка при обработке файла: '+(ex&&ex.message||ex);go('plans');}};
  if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
-function tryPersist(){let ok=true;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));}catch(e){ok=false;}try{apiSaveState();}catch(e){}return ok;}
+function tryPersist(){let ok=true;
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));_localReduced=false;_localSaveFailed=false;}
+ catch(e){
+  /* localStorage переполнен (тяжёлые справочники — ГЕО ~2.5МБ, база брендов, портфель). Раньше
+     ошибка глоталась молча и правки (варианты/ставки/статусы) ПРОПАДАЛИ после перезагрузки в
+     офлайн/демо-режиме. Теперь сохраняем УРЕЗАННЫЙ блок без самых больших наборов, чтобы
+     операционные данные всё равно сохранились локально; если и это не влезло — громко предупреждаем. */
+  try{
+   const b=stateBlob();delete b.GEO_DATA;
+   try{localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
+   catch(e2){delete b.BENCH;delete b.CASE_PORTFOLIO_PROJECTS;delete b.KB;localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
+   _localReduced=true;_localSaveFailed=false;
+   if(!BACKEND&&!window._reducedWarned){window._reducedWarned=1;try{toast('⚠ Локальное хранилище почти заполнено — гео-набор не кэшируется локально. Операционные данные сохраняются. Для полного сохранения нужен серверный режим.');}catch(_){}}
+  }catch(e3){ok=false;_localSaveFailed=true;}
+ }
+ if(!ok&&!BACKEND){try{toast('⚠ Данные НЕ сохранены: переполнено хранилище браузера. Нужен серверный режим (config.php) — обратитесь к администратору.');}catch(_){}}
+ try{apiSaveState();}catch(e){}return ok;}
 function clearPlan(){const blk=curBlock(),fl=curFloor();if(!confirm('Удалить загруженный чертёж ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»)?'))return;delete PLANSVG[planKey(S.obj,blk,fl)];delete PLAN_LABELPOS[planKey(S.obj,blk,fl)];delete PLAN_CODES[planKey(S.obj,blk,fl)];persist();go('plans');}
 /* Управление планировками объекта — перенесено в карточку объекта (все этажи/блоки + удаление). */
 function objPlanList(objId){return Object.keys(PLANSVG).filter(k=>k.split('::')[0]===objId).map(k=>{const p=k.split('::');let kb='',kf='';if(p.length>=3){kb=p[1];kf=p.slice(2).join('::');}else{kf=p.slice(1).join('::');}const up=PLANSVG[k]||{};return {key:k,block:kb,floor:kf,by:up.by||'',date:up.date||'',kind:up.kind||''};}).sort((a,b)=>(String(a.block||'').localeCompare(String(b.block||''),'ru',{numeric:true}))||String(a.floor||'').localeCompare(String(b.floor||''),'ru',{numeric:true}));}
