@@ -273,6 +273,12 @@ table.drive td:last-child{text-align:right;white-space:nowrap;font-weight:650}
 .enq-side{background:var(--bg);border-radius:var(--r);padding:28px}
 .enq-side .btn.tg{width:100%;margin:16px 0 10px}
 .enq-side .call{display:block;text-align:center;font:750 21px/1.3 system-ui;color:var(--ink);text-decoration:none;margin-top:14px}
+/* акцентные CTA: мягкая пульсация + пробегающий блик */
+@keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(168,128,76,.45)}55%{box-shadow:0 0 0 11px rgba(168,128,76,0)}}
+@keyframes ctaSheen{0%,55%{transform:translateX(-160%) skewX(-20deg)}90%,100%{transform:translateX(320%) skewX(-20deg)}}
+a.btn.primary[href="#enquiry"]{position:relative;overflow:hidden;animation:ctaPulse 2.8s ease-out infinite}
+a.btn.primary[href="#enquiry"]::after{content:"";position:absolute;left:0;top:0;bottom:0;width:34%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.38),transparent);animation:ctaSheen 4.2s ease-in-out infinite;pointer-events:none}
+@media(prefers-reduced-motion:reduce){a.btn.primary[href="#enquiry"]{animation:none}a.btn.primary[href="#enquiry"]::after{display:none}}
 /* лайтбокс планировок и рендеров */
 .plan-card img,.gallery img{cursor:zoom-in}
 #lightbox{position:fixed;inset:0;z-index:90;background:rgba(15,16,18,.88);display:flex;align-items:center;justify-content:center;padding:26px;cursor:zoom-out}
