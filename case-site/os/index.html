@@ -176,6 +176,13 @@ table.reg-grp thead th.grp-bud{background:#f4f8fe}
 table.reg-grp thead th.grp-fac{background:#f3faf3}
 table.reg-grp td.grp-bud{background:rgba(21,101,192,.035)}
 table.reg-grp td.grp-fac{background:rgba(46,125,50,.035)}
+/* Аккуратная шапка ЛСР: длинные заголовки колонок переносятся внутри своей ячейки и не
+   налезают на соседние (раньше nowrap + overflow:visible при узких столбцах давали кашу). */
+table.reg-grp thead th{overflow:hidden;vertical-align:bottom}
+table.reg-grp thead .th1r{white-space:normal;align-items:flex-end;flex-wrap:nowrap}
+table.reg-grp thead .th1r .th-name{white-space:normal;word-break:break-word;overflow-wrap:anywhere;min-width:0;line-height:1.15}
+table.reg-grp thead .th1r .tblfnl{flex:0 0 auto}
+table.reg-grp thead th.grp-bud,table.reg-grp thead th.grp-fac{min-width:58px}
 .miniobj{display:flex;flex-direction:column;gap:7px;border:1px solid var(--border);border-radius:8px;padding:13px;cursor:pointer}.miniobj:hover{border-color:var(--red)}
 .opsgrid{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:12px;margin-bottom:15px}.opbox{background:#fff;border:1px solid var(--border);border-radius:8px;padding:13px;box-shadow:var(--shadow)}.opbox h3{margin:0 0 9px;font-size:13px}.oprow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid #f2f0ed;font-size:12px}.oprow:last-child{border-bottom:none}.oprow b{font-size:12.5px}.oprow small{display:block;color:var(--muted);font-size:10.5px;margin-top:1px}.sev{font-size:10px;font-weight:800;border-radius:10px;padding:2px 7px;white-space:nowrap}.sev.red{background:#fdeaea;color:var(--red-d)}.sev.amber{background:#fff3e0;color:var(--amber)}.sev.green{background:#e7f4e8;color:var(--green)}.sev.gray{background:#f0f0f0;color:#6d6d6d}
 .objgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
@@ -406,7 +413,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.10';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.31.11';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
