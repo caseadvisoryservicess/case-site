@@ -380,7 +380,6 @@
       +'<b style="font-size:14px">'+h(objName)+'</b>'
       +'<span class="v32-pill" style="font-size:11px">SCR</span>'
       +'<div style="flex:1"></div>'
-      +(canEdit?'<span style="font-size:11px;color:var(--muted)">2× клик по цене/статусу — правка</span>':'')
       +'<button class="btn ghost sm" onclick="scrExportCSV()">⬇ CSV / Excel</button>'
       +'<button class="btn ghost sm" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button>'
       +'</div>';
