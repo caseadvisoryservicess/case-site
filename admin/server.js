@@ -254,7 +254,7 @@ router.delete('/api/projects/:slug', auth, adminOnly, (req, res) => {
 });
 
 // ─── API: загрузка изображений ───
-const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp']);
+const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.svg']);
 const upload = multer({
   storage: multer.diskStorage({
     destination: (req, file, cb) => cb(null, uploadsDir(req.params.slug)),
@@ -266,7 +266,7 @@ const upload = multer({
   limits: { fileSize: 20 * 1024 * 1024, files: 1 },
   fileFilter: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase();
-    if (!ALLOWED_EXT.has(ext)) return cb(new Error('Только JPG, PNG или WebP'));
+    if (!ALLOWED_EXT.has(ext)) return cb(new Error('Только JPG, PNG, WebP или SVG'));
     cb(null, true);
   }
 });

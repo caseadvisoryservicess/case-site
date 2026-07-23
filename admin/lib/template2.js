@@ -141,15 +141,15 @@ section{padding:64px 0}
 /* header */
 header.top{position:absolute;inset:0 0 auto;z-index:20}
 .top-in{display:flex;align-items:center;gap:22px;padding:18px 20px;max-width:1120px;margin:0 auto}
-.brand{color:#fff;font:800 19px/1 system-ui;letter-spacing:.06em;text-decoration:none}
-.brand small{display:block;font:500 10.5px/1.4 system-ui;letter-spacing:.14em;opacity:.75;text-transform:uppercase}
-.top nav{display:flex;gap:4px;margin-left:auto}
-.top nav a{color:rgba(255,255,255,.85);text-decoration:none;font:600 14px/1 system-ui;padding:9px 12px;border-radius:9px}
+.brand{color:#fff;font:800 22px/1 system-ui;letter-spacing:.06em;text-decoration:none}
+.brand small{display:block;font:500 11.5px/1.5 system-ui;letter-spacing:.14em;opacity:.78;text-transform:uppercase}
+.top nav{display:flex;gap:6px;margin-left:auto}
+.top nav a{color:rgba(255,255,255,.88);text-decoration:none;font:650 16px/1 system-ui;padding:11px 15px;border-radius:10px}
 .top nav a:hover{background:rgba(255,255,255,.12);color:#fff}
-.langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:9px;padding:3px}
-.langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 12px/1 system-ui;padding:7px 9px;border-radius:7px}
+.langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:10px;padding:3px}
+.langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 13.5px/1 system-ui;padding:9px 11px;border-radius:8px}
 .langs a.on{background:#fff;color:var(--ink)}
-.top-phone{color:#fff;text-decoration:none;font:650 14px/1 system-ui}
+.top-phone{color:#fff;text-decoration:none;font:700 16px/1 system-ui}
 /* hero */
 .hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
 .hero picture,.hero picture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -281,6 +281,7 @@ footer a{color:#fff}
 @media(max-width:920px){
   .top nav{display:none}
   .params .wrap{grid-template-columns:repeat(2,1fr);gap:20px 14px}
+  .params .wrap div:nth-child(odd):last-child{grid-column:1/-1}
   .units-grid,.about-grid,.loc-grid,.enq-grid{grid-template-columns:1fr}
   .cases{grid-template-columns:1fr 1fr}
   .scen-grid{grid-template-columns:1fr}
@@ -518,7 +519,7 @@ function jsonLd(cfg, lang, canonical, base) {
     addressRegion: 'Shayxontohur',
     addressCountry: 'UZ'
   };
-  const geo = { '@type': 'GeoCoordinates', latitude: 41.338889, longitude: 69.263403 };
+  const geo = { '@type': 'GeoCoordinates', latitude: Number(cfg.location.lat) || 41.338889, longitude: Number(cfg.location.lng) || 69.263403 };
   const org = {
     '@context': 'https://schema.org', '@type': 'Organization',
     name: 'CASE Advisory',
@@ -574,7 +575,8 @@ function renderPage(cfg, lang, uploadsDir) {
   const tg = String(cfg.contacts.telegram || '').replace(/^@/, '');
   const tgHref = tg ? `https://t.me/${tg}` : '';
   const mapsKey = (cfg.settings && cfg.settings.mapsApiKey || '').trim();
-  const lat = 41.338889, lng = 69.263403;
+  const lat = Number(cfg.location.lat) || 41.338889;
+  const lng = Number(cfg.location.lng) || 69.263403;
 
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
@@ -688,8 +690,8 @@ ${(cfg.seo.googleVerification || '').trim() ? `<meta name="google-site-verificat
 ${(cfg.seo.yandexVerification || '').trim() ? `<meta name="yandex-verification" content="${esc(cfg.seo.yandexVerification.trim())}">` : ''}
 <link rel="canonical" href="${canonical}">
 ${hreflangs}
-<meta name="geo.position" content="41.338889;69.263403">
-<meta name="ICBM" content="41.338889, 69.263403">
+<meta name="geo.position" content="${lat};${lng}">
+<meta name="ICBM" content="${lat}, ${lng}">
 <meta name="geo.region" content="UZ-TK">
 <meta name="geo.placename" content="Tashkent">
 <meta property="og:url" content="${canonical}">

@@ -348,7 +348,7 @@
       }
     }
 
-    var file = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp', hidden: true });
+    var file = h('input', { type: 'file', accept: 'image/jpeg,image/png,image/webp,image/svg+xml', hidden: true });
     file.addEventListener('change', guard(function () {
       var f = file.files && file.files[0];
       if (!f) return;
@@ -604,9 +604,10 @@
   };
   var STATE_OPTIONS = { done: 'Завершено', now: 'Идёт сейчас', next: 'Впереди' };
 
-  var TABS = [
+  // v1: старый лендинг; v2 (schemaVersion>=2): только секции, которые
+  // реально читает новый шаблон - мёртвые вкладки не показываем
+  var TABS_V1 = [
     { id: 'main', label: 'Основное', render: tabMain },
-    { id: 'units', label: 'Юниты', render: tabUnits },
     { id: 'seo', label: 'SEO', render: tabSeo },
     { id: 'hero', label: 'Главный экран', render: tabHero },
     { id: 'uses', label: 'Назначение', render: tabUses },
@@ -620,6 +621,20 @@
     { id: 'texts', label: 'Кнопки и тексты', render: tabTexts },
     { id: 'footer', label: 'Футер', render: tabFooter }
   ];
+  var TABS_V2 = [
+    { id: 'main', label: 'Основное', render: tabMain },
+    { id: 'intro', label: 'Главный экран', render: tabIntro },
+    { id: 'units', label: 'Юниты', render: tabUnits },
+    { id: 'usecases', label: 'Кому подходит', render: tabUseCases2 },
+    { id: 'scenarios', label: 'Форматы сделки', render: tabScenarios2 },
+    { id: 'about2', label: 'О здании', render: tabAbout2 },
+    { id: 'location2', label: 'Локация', render: tabLocation2 },
+    { id: 'lead', label: 'Заявка', render: tabLead },
+    { id: 'faq', label: 'FAQ', render: tabFaq },
+    { id: 'seo', label: 'SEO', render: tabSeo },
+    { id: 'footer', label: 'Футер', render: tabFooter }
+  ];
+  function TABS() { return (project && project.schemaVersion >= 2) ? TABS_V2 : TABS_V1; }
 
   function openEditor(s) {
     return api('/api/projects/' + encodeURIComponent(s)).then(function (d) {
@@ -656,7 +671,7 @@
       )
     );
 
-    tabsNavEl = h('nav', { class: 'tabs' }, TABS.map(function (t) {
+    tabsNavEl = h('nav', { class: 'tabs' }, TABS().map(function (t) {
       return h('button', {
         class: 'tab-btn' + (t.id === activeTabId ? ' active' : ''),
         'data-id': t.id,
@@ -683,8 +698,9 @@
 
   function renderTab() {
     var tab = null;
-    for (var i = 0; i < TABS.length; i++) if (TABS[i].id === activeTabId) tab = TABS[i];
-    if (!tab) tab = TABS[0];
+    var tabs = TABS();
+    for (var i = 0; i < tabs.length; i++) if (tabs[i].id === activeTabId) tab = tabs[i];
+    if (!tab) tab = tabs[0];
     tabContentEl.innerHTML = '';
     appendChild(tabContentEl, h('h2', { class: 'tab-title' }, tab.label));
     appendChild(tabContentEl, tab.render());
@@ -806,10 +822,133 @@
           fieldSelect('Статус', 'units.' + i + '.status', UNIT_STATUS_OPTIONS),
           h('div')
         ),
-        mlField('Возможное использование (строка в таблице)', 'units.' + i + '.uses')
+        mlField('Возможное использование (строка в таблице)', 'units.' + i + '.uses'),
+        u.whole ? null : imagePicker('Планировка уровня (SVG, JPG или PNG)', 'units.' + i + '.plan')
       ));
     });
     return out;
+  }
+
+  // ─── редакторы секций лендинга v2 ───
+  function tabIntro() {
+    return [
+      imagePicker('Фон главного экрана (рендер, сумерки)', 'intro.image'),
+      mlField('Заголовок (H1)', 'intro.h1', { textarea: true }),
+      mlField('Подзаголовок (форматы сделки одной строкой)', 'intro.sub'),
+      groupTitle('Три факта под заголовком'),
+      listEditor({
+        path: 'intro.facts',
+        addLabel: 'Добавить факт',
+        blank: function () { return { n: '', l: ml('') }; },
+        render: function (base) {
+          return [
+            fieldText('Число/значение (пусто - выводится только подпись)', base + '.n'),
+            mlField('Подпись', base + '.l')
+          ];
+        }
+      }),
+      groupTitle('Лента ключевых параметров (тёмная полоса под hero)'),
+      listEditor({
+        path: 'params',
+        addLabel: 'Добавить параметр',
+        blank: function () { return { n: '', l: ml('') }; },
+        render: function (base) {
+          return [
+            fieldText('Число/значение', base + '.n'),
+            mlField('Подпись', base + '.l')
+          ];
+        }
+      })
+    ];
+  }
+
+  var USECASE_ICONS = { clinic: 'Клиника', education: 'Образование', office: 'Офис', service: 'Сервис' };
+  function tabUseCases2() {
+    return [
+      mlField('Заголовок секции', 'useCases.h2'),
+      listEditor({
+        path: 'useCases.cards',
+        addLabel: 'Добавить карточку',
+        blank: function () { return { icon: 'office', h: ml(''), levels: ml(''), p: ml('') }; },
+        render: function (base) {
+          return [
+            fieldSelect('Иконка', base + '.icon', USECASE_ICONS),
+            mlField('Название', base + '.h'),
+            mlField('Подходящие уровни (строка под названием)', base + '.levels'),
+            mlField('Описание', base + '.p', { textarea: true })
+          ];
+        }
+      })
+    ];
+  }
+
+  function tabScenarios2() {
+    return [
+      mlField('Заголовок секции', 'scenarios.h2'),
+      listEditor({
+        path: 'scenarios.cols',
+        addLabel: 'Добавить колонку',
+        blank: function () { return { h: ml(''), p: ml('') }; },
+        render: function (base) {
+          return [
+            mlField('Заголовок', base + '.h'),
+            mlField('Текст', base + '.p', { textarea: true })
+          ];
+        }
+      })
+    ];
+  }
+
+  function tabAbout2() {
+    return [
+      mlField('Заголовок секции', 'about.h2'),
+      groupTitle('Характеристики'),
+      listEditor({
+        path: 'about.specs',
+        addLabel: 'Добавить строку',
+        blank: function () { return { b: ml(''), s: ml('') }; },
+        render: function (base) {
+          return [
+            mlField('Параметр', base + '.b'),
+            mlField('Значение (пусто - строка не показывается)', base + '.s')
+          ];
+        }
+      }),
+      mlField('Статус объекта (плашка под таблицей)', 'about.status', { textarea: true }),
+      mlField('Примечание (единственное упоминание SFB)', 'about.sfbNote'),
+      groupTitle('Галерея рендеров (подпись «визуализация» ставится автоматически)'),
+      listEditor({
+        path: 'about.images',
+        addLabel: 'Добавить изображение',
+        blank: function () { return { file: '' }; },
+        render: function (base) { return [imagePicker('Изображение', base + '.file')]; }
+      })
+    ];
+  }
+
+  function tabLocation2() {
+    return [
+      mlField('Заголовок секции', 'location.h2'),
+      mlField('Адрес', 'location.address'),
+      row(
+        fieldText('Широта', 'location.lat'),
+        fieldText('Долгота', 'location.lng')
+      ),
+      groupTitle('Время в пути на автомобиле'),
+      listEditor({
+        path: 'location.drive',
+        addLabel: 'Добавить строку',
+        blank: function () { return { to: ml(''), time: ml('') }; },
+        render: function (base) {
+          return [
+            mlField('Куда', base + '.to'),
+            mlField('Время · расстояние', base + '.time')
+          ];
+        }
+      }),
+      mlField('Окружение (абзац под таблицей)', 'location.around', { textarea: true }),
+      mlField('Справочная строка про метро (в самом низу)', 'location.metroNote')
+    ];
   }
 
   function tabSeo() {
@@ -817,8 +956,11 @@
       mlField('Заголовок страницы (title)', 'seo.title'),
       mlField('Описание (description)', 'seo.description', { textarea: true }),
       fieldText('Ключевые слова (keywords)', 'seo.keywords', { textarea: true, rows: 3, hint: 'Через запятую' }),
-      fieldText('Домен лендинга', 'seo.domain', {
-        hint: 'Например https://sfb-takhtapul.uz - по нему соберутся sitemap.xml, robots.txt и canonical. Пусто - эти файлы будут без абсолютных ссылок.'
+      fieldText('Публичный URL лендинга (обязательно для схемы v2)', 'seo.publicUrl', {
+        hint: 'Полный адрес, по которому живёт лендинг, например https://caseadvisory.uz/taxtapul. От него строятся canonical, hreflang, og:url и sitemap.xml.'
+      }),
+      fieldText('Домен лендинга (для старой схемы)', 'seo.domain', {
+        hint: 'Используется только лендингами старой схемы. Для новой схемы заполняйте «Публичный URL» выше.'
       }),
       fieldText('Подтверждение Google Search Console', 'seo.googleVerification', {
         hint: 'Код из мета-тега google-site-verification (только значение content)'

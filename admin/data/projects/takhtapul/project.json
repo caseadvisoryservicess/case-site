@@ -664,9 +664,9 @@
       "en": "Get floor plans, pricing and deal terms"
     },
     "sub": {
-      "ru": "Оставьте контакты - вышлем поэтажные планы, актуальный прайс и график стройки, ответим на вопросы по аренде и покупке.",
-      "uz": "Kontaktlaringizni qoldiring - qavat rejalari, dolzarb narxlar va qurilish grafigini yuboramiz, ijara va xarid bo'yicha savollarga javob beramiz.",
-      "en": "Leave your contacts - we will send floor plans, current pricing and the construction schedule, and answer your questions about lease and purchase."
+      "ru": "Оставьте контакты — вышлем планировки этажей и условия, ответим на вопросы по аренде и покупке.",
+      "uz": "Kontaktlaringizni qoldiring — qavat rejalari va shartlarni yuboramiz, ijara va sotib olish bo'yicha savollarga javob beramiz.",
+      "en": "Leave your contacts — we will send floor plans and terms, and answer your questions on leasing and purchase."
     }
   },
   "faq": [
