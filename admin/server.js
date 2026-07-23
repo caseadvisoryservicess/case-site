@@ -772,6 +772,119 @@ router.delete('/api/users/:username', auth, adminOnly, (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── аналитика лендинга: агрегация NDJSON-событий для дашборда ───
+function refDomain(ref) {
+  if (!ref) return 'Прямые заходы';
+  try {
+    const h = new URL(ref).hostname.replace(/^www\./, '');
+    if (/caseadvisory/.test(h)) return 'Прямые заходы';
+    if (/t\.me|telegram/.test(h)) return 'Telegram';
+    if (/instagram/.test(h)) return 'Instagram';
+    if (/facebook|fb\.com/.test(h)) return 'Facebook';
+    if (/google\./.test(h)) return 'Google';
+    if (/yandex\./.test(h)) return 'Яндекс';
+    return h;
+  } catch { return 'Прямые заходы'; }
+}
+router.get('/api/analytics/:slug', auth, (req, res) => {
+  const slug = req.params.slug;
+  // slug 'all' — сводно по всем доступным пользователю лендингам
+  let slugs;
+  if (slug === 'all') {
+    slugs = fs.readdirSync(PROJECTS).filter((s) => SLUG_RE.test(s) && canAccess(req.user, s));
+  } else {
+    if (!SLUG_RE.test(slug) || !canAccess(req.user, slug)) return res.status(403).json({ error: 'Нет доступа' });
+    slugs = [slug];
+  }
+  const days = Math.max(0, parseInt(req.query.days, 10) || 30); // 0 = за всё время
+  const since = days ? Date.now() - days * 24 * 3600 * 1000 : 0;
+
+  const inc = (m, k, n) => { if (k) m[k] = (m[k] || 0) + (n || 1); };
+  const out = {
+    visits: 0, uniques: 0, byDay: {}, sources: {}, utm: {}, devices: {}, langs: {}, intents: {},
+    clicks: {}, ctas: {}, units: {}, routes: {}, pdf: 0, mapOpens: 0, faqOpens: 0,
+    funnel: { all: {}, lease: {}, buy: {} }
+  };
+  const vids = new Set();
+  const sess = new Map(); // sid -> {steps:Set, intents:Set}
+
+  for (const oneSlug of slugs) {
+    const dir = path.join(DATA, 'analytics', oneSlug);
+    if (!fs.existsSync(dir)) continue;
+    for (const f of fs.readdirSync(dir).sort()) {
+      const m = f.match(/^events-(\d{4}-\d{2}-\d{2})\.ndjson$/);
+      if (!m) continue;
+      if (since && new Date(m[1] + 'T23:59:59Z').getTime() < since) continue;
+      let lines;
+      try { lines = fs.readFileSync(path.join(dir, f), 'utf8').split('\n'); } catch { continue; }
+      for (const line of lines) {
+        if (!line) continue;
+        let e; try { e = JSON.parse(line); } catch { continue; }
+        if (since && e.ts && e.ts < since) continue;
+        const d = e.d || {};
+        const day = m[1];
+        let s = sess.get(e.sid);
+        if (!s) { s = { steps: new Set(), intents: new Set() }; sess.set(e.sid, s); }
+        if (e.intent) s.intents.add(e.intent);
+
+        switch (e.t) {
+          case 'page_view':
+            out.visits++; vids.add(e.vid);
+            if (!out.byDay[day]) out.byDay[day] = { views: 0, vids: new Set() };
+            out.byDay[day].views++; out.byDay[day].vids.add(e.vid);
+            inc(out.devices, d.dev === 'mobile' ? 'Телефон' : 'Компьютер');
+            inc(out.langs, (e.lang || 'ru').toUpperCase());
+            if (d.utm && d.utm.utm_source) inc(out.utm, d.utm.utm_source + (d.utm.utm_campaign ? ' / ' + d.utm.utm_campaign : ''));
+            else inc(out.sources, refDomain(d.ref));
+            s.steps.add('visit');
+            break;
+          case 'scroll_depth': if (Number(d.depth) >= 50) s.steps.add('scroll50'); break;
+          case 'unit_click': inc(out.units, d.unit + '|clicks'); s.steps.add('units'); break;
+          case 'plan_view': inc(out.units, d.unit + '|plans'); break;
+          case 'plan_download': inc(out.units, d.unit + '|downloads'); inc(out.clicks, 'Скачивание планировки'); break;
+          case 'unit_request': inc(out.units, d.unit + '|requests'); s.steps.add('cta'); break;
+          case 'cta_click': inc(out.ctas, d.cta); s.steps.add('cta'); break;
+          case 'phone_click': inc(out.clicks, 'Телефон'); s.steps.add('cta'); break;
+          case 'telegram_click': inc(out.clicks, 'Telegram'); s.steps.add('cta'); break;
+          case 'pdf_download': out.pdf++; inc(out.clicks, 'Презентация (PDF)'); break;
+          case 'map_open': out.mapOpens++; break;
+          case 'route_click': inc(out.routes, d.svc === 'google' ? 'Google Maps' : 'Яндекс Карты'); break;
+          case 'faq_open': out.faqOpens++; break;
+          case 'intent_switch': inc(out.intents, e.intent === 'buy' ? 'Покупка' : 'Аренда'); break;
+          case 'form_start': s.steps.add('form_start'); break;
+          case 'form_submit': s.steps.add('form_submit'); break;
+          case 'form_success': s.steps.add('form_success'); break;
+        }
+      }
+    }
+  }
+  out.uniques = vids.size;
+  for (const day of Object.keys(out.byDay)) {
+    out.byDay[day] = { views: out.byDay[day].views, uniques: out.byDay[day].vids.size };
+  }
+  // воронка: шаги по сессиям (все / только аренда / только покупка)
+  const STEPS = ['visit', 'scroll50', 'units', 'cta', 'form_start', 'form_submit', 'form_success'];
+  for (const key of ['all', 'lease', 'buy']) {
+    const f = {};
+    for (const st of STEPS) f[st] = 0;
+    for (const s of sess.values()) {
+      if (key !== 'all' && !s.intents.has(key)) continue;
+      for (const st of STEPS) if (s.steps.has(st)) f[st]++;
+    }
+    out.funnel[key] = f;
+  }
+  // лиды за период — из CRM (по тем же лендингам)
+  let leads = 0;
+  for (const oneSlug of slugs) {
+    for (const l of loadLeads(oneSlug)) {
+      const t = new Date(l.ts).getTime();
+      if (!since || t >= since) leads++;
+    }
+  }
+  out.leads = leads;
+  res.json(out);
+});
+
 // ─── бэкап данных (только админ, скачивание по запросу) ───
 router.get('/api/backup', auth, adminOnly, async (req, res) => {
   try {

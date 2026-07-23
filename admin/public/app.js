@@ -21,6 +21,8 @@
   var leadsFilterProject = ''; // фильтры раздела «Лиды» (живут между переходами)
   var leadsFilterStatus = '';
   var leadsAnalyticsOpen = true;
+  var statsProject = 'all';    // раздел «Аналитика»: выбранный лендинг ('all' - сводно)
+  var statsDays = 30;          // период в днях (0 - за всё время)
 
   // ---------------------------------------------------------------- helpers
   function esc(s) {
@@ -497,7 +499,11 @@
       h('button', {
         class: 'nav-btn' + (active === 'leads' ? ' active' : ''),
         onclick: guard(showLeads)
-      }, 'Лиды', leadsBadgeEl)
+      }, 'Лиды', leadsBadgeEl),
+      h('button', {
+        class: 'nav-btn' + (active === 'stats' ? ' active' : ''),
+        onclick: guard(showStats)
+      }, 'Аналитика')
     ];
     if (me && me.role === 'admin') {
       nav.push(h('button', {
@@ -1379,6 +1385,182 @@
       });
     }));
     return form;
+  }
+
+  // ---------------------------------------------------------------- «Аналитика»: дашборд лендингов
+  var UNIT_LABELS = { b: 'Подвал', f1: '1 этаж', f2: '2 этаж', f3: '3 этаж', f4: '4 этаж', all: 'Здание целиком' };
+  var CTA_LABELS = {
+    hero: 'Кнопка в hero', usecases: 'После «Кому подходит»', scenarios: '«Форматы сделки»',
+    about: 'После «О здании»', location: '«Локация»', faq: 'После FAQ', sticky: 'Липкая панель', case_logo: 'Логотип CASE'
+  };
+  var FUNNEL_STEPS = [
+    ['visit', 'Зашли на сайт'], ['scroll50', 'Проскроллили 50%+'], ['units', 'Смотрели помещения'],
+    ['cta', 'Кликнули CTA/контакты'], ['form_start', 'Начали форму'], ['form_submit', 'Отправили'], ['form_success', 'Заявка принята']
+  ];
+
+  function statRank(title, obj, labelMap) {
+    var items = Object.keys(obj || {}).map(function (k) {
+      return { label: (labelMap && labelMap[k]) || k, count: obj[k] };
+    }).sort(function (a, b) { return b.count - a.count; }).slice(0, 12);
+    return analyticsRankList(title, items);
+  }
+
+  function statsFunnelCol(title, f, visits) {
+    var base = f.visit || 0;
+    return h('div', { class: 'analytics-block' },
+      h('h3', { class: 'analytics-subtitle' }, title),
+      FUNNEL_STEPS.map(function (st) {
+        var n = f[st[0]] || 0;
+        var pct = base ? Math.round(n / base * 100) : 0;
+        return h('div', { class: 'funnel-row' },
+          h('div', { class: 'funnel-label', style: 'width:150px;font-size:12px' }, st[1]),
+          h('div', { class: 'funnel-track' },
+            h('div', { class: 'funnel-fill st-new', style: 'width:' + (n ? Math.max(pct, 2) : 0) + '%', title: n + ' (' + pct + '%)' })),
+          h('div', { class: 'funnel-count' }, n)
+        );
+      })
+    );
+  }
+
+  function showStats() {
+    return api('/api/projects').then(function (d) {
+      var projects = (d && d.projects) || [];
+      document.title = 'Аналитика - Панель CASE';
+      app.innerHTML = '';
+
+      var projSel = h('select', { class: 'leads-filter' },
+        h('option', { value: 'all' }, 'Все лендинги'),
+        projects.map(function (p) { return h('option', { value: p.slug }, p.name || p.slug); })
+      );
+      projSel.value = statsProject;
+      projSel.addEventListener('change', function () { statsProject = projSel.value; guard(showStats)(); });
+
+      var periods = [[7, '7 дней'], [30, '30 дней'], [90, '90 дней'], [0, 'Всё время']];
+      var periodBtns = h('div', { class: 'period-btns' }, periods.map(function (p) {
+        return h('button', {
+          class: 'period-btn' + (statsDays === p[0] ? ' on' : ''),
+          onclick: function () { statsDays = p[0]; guard(showStats)(); }
+        }, p[1]);
+      }));
+
+      var body = h('div', { class: 'analytics-body' }, h('p', { class: 'muted' }, 'Загрузка…'));
+
+      var projName = statsProject === 'all' ? 'Все лендинги'
+        : (projects.filter(function (p) { return p.slug === statsProject; })[0] || {}).name || statsProject;
+      var periodName = statsDays ? 'последние ' + statsDays + ' дней' : 'за всё время';
+
+      app.appendChild(header('stats'));
+      app.appendChild(h('main', { class: 'container' },
+        h('div', { class: 'page-head' },
+          h('h1', { class: 'page-title' }, 'Аналитика'),
+          h('button', { class: 'btn ghost small', onclick: function () { window.print(); } }, 'Скачать PDF-отчёт')
+        ),
+        h('div', { class: 'leads-toolbar stats-toolbar' }, projSel, periodBtns),
+        h('div', { class: 'print-head' },
+          h('b', null, 'TAXTAPUL · Отчёт по лендингу'),
+          h('span', null, projName + ' · ' + periodName + ' · сформирован ' + new Date().toLocaleDateString('ru-RU')),
+          h('span', { class: 'muted' }, 'CASE Real Estate Advisory · caseadvisory.uz')
+        ),
+        body
+      ));
+
+      return api('/api/analytics/' + encodeURIComponent(statsProject) + '?days=' + statsDays).then(function (a) {
+        body.innerHTML = '';
+        if (!a.visits) {
+          body.appendChild(h('div', { class: 'analytics-block analytics-empty' },
+            'Пока нет данных за выбранный период. Аналитика копится с момента публикации нового лендинга.'));
+          return;
+        }
+        var conv = a.uniques ? Math.round(a.leads / a.uniques * 100) : 0;
+
+        body.appendChild(h('div', { class: 'stat-tiles' },
+          statTile(a.visits, 'Визиты'),
+          statTile(a.uniques, 'Уникальные'),
+          statTile(a.leads, 'Лиды'),
+          statTile(conv + '%', 'Конверсия в лид'),
+          statTile(a.pdf, 'Скачали PDF'),
+          statTile(a.mapOpens, 'Открыли карту')
+        ));
+
+        // воронка: все / аренда / покупка
+        body.appendChild(h('div', { class: 'funnel-3' },
+          statsFunnelCol('Воронка - все', a.funnel.all, a.visits),
+          statsFunnelCol('Только аренда', a.funnel.lease, a.visits),
+          statsFunnelCol('Только покупка', a.funnel.buy, a.visits)
+        ));
+
+        // визиты по дням
+        var days = Object.keys(a.byDay).sort();
+        if (days.length) {
+          var max = 1;
+          days.forEach(function (d2) { max = Math.max(max, a.byDay[d2].views); });
+          body.appendChild(h('div', { class: 'analytics-block' },
+            h('h3', { class: 'analytics-subtitle' }, 'Визиты по дням'),
+            h('div', { class: 'trend-chart' }, days.slice(-30).map(function (d2) {
+              var n = a.byDay[d2].views;
+              return h('div', { class: 'trend-col', title: d2 + ': ' + n + ' визитов, ' + a.byDay[d2].uniques + ' уник.' },
+                h('div', { class: 'trend-bar', style: 'height:' + (n ? Math.max(Math.round(n / max * 100), 4) : 1) + '%' }));
+            }))
+          ));
+        }
+
+        // источники: рефереры + UTM-метки
+        var sources = {};
+        Object.keys(a.sources || {}).forEach(function (k) { sources[k] = a.sources[k]; });
+        Object.keys(a.utm || {}).forEach(function (k) { sources['UTM: ' + k] = a.utm[k]; });
+
+        body.appendChild(h('div', { class: 'analytics-rank-row' },
+          statRank('Откуда приходят', sources),
+          statRank('Топ кликов', Object.assign({}, a.clicks,
+            (function () { var o = {}; Object.keys(a.ctas || {}).forEach(function (k) { o[CTA_LABELS[k] || k] = a.ctas[k]; }); return o; })()))
+        ));
+        body.appendChild(h('div', { class: 'analytics-rank-row' },
+          statRank('Устройства', a.devices),
+          statRank('Языки версии', a.langs)
+        ));
+
+        // интерес к этажам
+        var unitRows = {};
+        Object.keys(a.units || {}).forEach(function (k) {
+          var p = k.split('|');
+          if (!unitRows[p[0]]) unitRows[p[0]] = { clicks: 0, plans: 0, downloads: 0, requests: 0 };
+          unitRows[p[0]][p[1]] = a.units[k];
+        });
+        var uKeys = Object.keys(unitRows);
+        if (uKeys.length) {
+          var table = h('table', { class: 'users-table' },
+            h('thead', null, h('tr', null,
+              h('th', null, 'Уровень'), h('th', null, 'Клики'), h('th', null, 'Просмотры плана'),
+              h('th', null, 'Скачивания плана'), h('th', null, 'Запросы условий')
+            )),
+            h('tbody', null, ['b', 'f1', 'f2', 'f3', 'f4', 'all'].filter(function (k) { return unitRows[k]; }).map(function (k) {
+              var r = unitRows[k];
+              return h('tr', null,
+                h('td', null, h('b', null, UNIT_LABELS[k] || k)),
+                h('td', null, String(r.clicks || 0)),
+                h('td', null, String(r.plans || 0)),
+                h('td', null, String(r.downloads || 0)),
+                h('td', null, String(r.requests || 0))
+              );
+            }))
+          );
+          body.appendChild(h('div', { class: 'analytics-block' },
+            h('h3', { class: 'analytics-subtitle' }, 'Интерес к этажам'),
+            h('div', { class: 'table-wrap' }, table)
+          ));
+        }
+
+        // маршруты и прочее
+        body.appendChild(h('div', { class: 'analytics-rank-row' },
+          statRank('Маршруты к объекту', a.routes),
+          analyticsRankList('Прочее', [
+            { label: 'Открытий FAQ', count: a.faqOpens || 0 },
+            { label: 'Открытий карты', count: a.mapOpens || 0 },
+            { label: 'Скачиваний презентации', count: a.pdf || 0 }
+          ].filter(function (x) { return x.count; }))
+        ));
+      });
+    });
   }
 
   // ---------------------------------------------------------------- CRM «Лиды»

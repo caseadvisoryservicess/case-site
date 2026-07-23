@@ -57,6 +57,7 @@ const STR = {
   'units.download': { ru: 'Скачать планировку', uz: 'Planirovkani yuklab olish', en: 'Download floor plan' },
   'cta.request': { ru: 'Оставить заявку', uz: 'Ariza qoldirish', en: 'Send an enquiry' },
   'cta.more': { ru: 'Получить больше информации', uz: 'Ko‘proq ma’lumot olish', en: 'Get more information' },
+  'pdf.btn': { ru: 'Скачать презентацию (PDF)', uz: 'Taqdimotni yuklab olish (PDF)', en: 'Download the presentation (PDF)' },
   'units.cta.buy': { ru: 'Запросить условия покупки', uz: 'Sotib olish shartlarini so‘rash', en: 'Request purchase terms' },
   'units.plan.caption': { ru: 'Схема этажа по рабочим чертежам. Не является точным обмером.', uz: 'Ish chizmalari asosidagi qavat sxemasi. Aniq o‘lchov emas.', en: 'Floor diagram based on working drawings. Not a survey.' },
   'st.available': { ru: 'Свободно', uz: 'Bo‘sh', en: 'Available' },
@@ -649,6 +650,7 @@ function renderPage(cfg, lang, uploadsDir) {
 
   const caseLogo = ['case-logo.svg', 'case-logo.png', 'case-logo.webp']
     .find((f) => fs.existsSync(path.join(uploadsDir, f)));
+  const presFile = fs.existsSync(path.join(uploadsDir, 'presentation.pdf')) ? 'presentation.pdf' : '';
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -814,7 +816,10 @@ ${counters}
     <div class="facts">
       ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(f.n)}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}
     </div>
-    <a class="btn primary" href="#units" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
+    <div style="display:flex;gap:12px;flex-wrap:wrap">
+      <a class="btn primary" href="#units" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
+      ${presFile ? `<a class="btn ghost" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff" href="${prefix}assets/${presFile}" download="Taxtapul-31.pdf" data-ev="pdf_download" data-evx='{"where":"hero"}'>${s('pdf.btn')}</a>` : ''}
+    </div>
   </div>
 </div>
 
@@ -955,6 +960,7 @@ ${counters}
       </div>
       <div class="enq-side">
         <h3>${lang === 'en' ? 'Faster by phone or Telegram' : lang === 'uz' ? 'Telefon yoki Telegram orqali tezroq' : 'Быстрее — по телефону или в Telegram'}</h3>
+        ${presFile ? `<a class="btn ghost" style="width:100%;margin-top:16px" href="${prefix}assets/${presFile}" download="Taxtapul-31.pdf" data-ev="pdf_download" data-evx='{"where":"form"}'>${s('pdf.btn')}</a>` : ''}
         ${tgHref ? `<a class="btn tg" href="${tgHref}" target="_blank" rel="noopener" data-ev="telegram_click" data-evx='{"where":"form"}'>${s('form.tg')}</a>` : ''}
         <a class="call" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"form"}'>${esc(phone)}</a>
       </div>
@@ -1033,7 +1039,7 @@ ${alt}
   };
   add(cfg.intro.image);
   add('og-cover.jpg');
-  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp']) {
+  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp', 'presentation.pdf']) {
     if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
   }
   for (const g of cfg.about.images || []) add(g.file);
