@@ -5,3 +5,5 @@ data/projects/*/project.json.bak
 data/projects/*/leads.json
 sites/
 backups/
+data/analytics/
+data/projects/*/project.pre-v2.bak

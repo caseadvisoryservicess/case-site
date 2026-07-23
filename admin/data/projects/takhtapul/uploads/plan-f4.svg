@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1929 2126" role="img">
+  <rect x="12" y="70" width="1905" height="1320" fill="rgba(168,128,76,.16)"/>
+  <text x="964.5" y="736" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="17" font-weight="650" fill="#a8804c">314.2 m²</text>
+  <rect x="607" y="1390" width="1310" height="510" fill="rgba(168,128,76,.16)"/>
+  <rect x="12" y="1390" width="595" height="720" fill="rgba(168,128,76,.34)"/>
+  <text x="309.5" y="1756" text-anchor="middle" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="17" font-weight="650" fill="#a8804c">101.8 m²</text>
+  <rect x="607" y="1900" width="1310" height="210" fill="rgba(168,128,76,.34)"/>
+  <rect x="12" y="70" width="1905" height="2040" fill="none" stroke="#2b2d30" stroke-width="4"/>
+  <g transform="translate(12,70)">
+  <rect x="735" y="1320" width="490" height="550" fill="#eceae6" stroke="#2b2d30" stroke-width="2"/>
+  <rect x="885" y="1440" width="200" height="220" fill="#fff" stroke="#2b2d30" stroke-width="2"/>
+  <line x1="885" y1="1440" x2="1085" y2="1660" stroke="#2b2d30" stroke-width="1"/>
+  <line x1="1085" y1="1440" x2="885" y2="1660" stroke="#2b2d30" stroke-width="1"/>
+  <line x1="1135" y1="1380" x2="1215" y2="1380" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1430" x2="1215" y2="1430" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1480" x2="1215" y2="1480" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1530" x2="1215" y2="1530" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1580" x2="1215" y2="1580" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1630" x2="1215" y2="1630" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1680" x2="1215" y2="1680" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1326" x2="1135" y2="1680" stroke="#2b2d30" stroke-width="1"/>
+  <rect x="575" y="1810" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="1810" width="40" height="40" fill="#2b2d30"/>
+  <rect x="575" y="1300" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="1300" width="40" height="40" fill="#2b2d30"/>
+  <rect x="575" y="580" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="580" width="40" height="40" fill="#2b2d30"/>
+  </g>
+  <text x="14" y="44" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="34" font-weight="700" fill="#2b2d30">4</text><text x="1915" y="34" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="19" font-weight="650" fill="#a8804c">GLA 395.6 m²</text><text x="1915" y="56" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="13" fill="#66696e">314.2 + 101.8</text>
+</svg>

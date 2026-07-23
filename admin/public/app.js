@@ -606,6 +606,7 @@
 
   var TABS = [
     { id: 'main', label: 'Основное', render: tabMain },
+    { id: 'units', label: 'Юниты', render: tabUnits },
     { id: 'seo', label: 'SEO', render: tabSeo },
     { id: 'hero', label: 'Главный экран', render: tabHero },
     { id: 'uses', label: 'Назначение', render: tabUses },
@@ -779,6 +780,36 @@
         fieldText('Chat ID', 'contacts.tgChatId', { placeholder: '123456789' })
       )
     ] : []);
+  }
+
+  // Юниты (схема v2): статусы уровней и подсказки по использованию.
+  // GLA намеренно только для чтения в этой вкладке - площади верифицированы
+  // по обмерам, менять их с клавиатуры слишком легко и слишком дорого.
+  var UNIT_STATUS_OPTIONS = {
+    available: 'Свободно', reserved: 'Резерв', leased: 'Сдано', sold: 'Продано'
+  };
+  function tabUnits() {
+    if (!project.units || !project.units.length) {
+      return [h('p', { class: 'muted' },
+        'Проект использует старую схему лендинга - вкладка «Юниты» появится после миграции на схему v2.')];
+    }
+    var out = [groupTitle('Статусы уровней'),
+      h('p', { class: 'muted', style: 'margin:-6px 0 14px' },
+        'Статус показывается в таблице помещений на лендинге. Занятые уровни не скрываются - видимый спрос работает на доверие. После смены статусов нажмите «Опубликовать».')];
+    project.units.forEach(function (u, i) {
+      out.push(h('div', { class: 'card', style: 'margin-bottom:12px' },
+        h('div', { style: 'display:flex;align-items:baseline;gap:12px;margin-bottom:10px' },
+          h('b', null, (u.level && u.level.ru) || u.id),
+          h('span', { class: 'muted' }, 'GLA ' + (u.gla || '?') + ' м²' + (u.glaNote ? ' (' + u.glaNote + ')' : ''))
+        ),
+        row(
+          fieldSelect('Статус', 'units.' + i + '.status', UNIT_STATUS_OPTIONS),
+          h('div')
+        ),
+        mlField('Возможное использование (строка в таблице)', 'units.' + i + '.uses')
+      ));
+    });
+    return out;
   }
 
   function tabSeo() {

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1929 2466" role="img">
+  <polygon points="12.0,2450.0 12.0,410.0 1362.0,410.0 1362.0,70.0 1917.0,70.0 1917.0,2450.0" fill="rgba(168,128,76,.16)" stroke="#2b2d30" stroke-width="4"/>
+  <g transform="translate(12,70)">
+  <rect x="735" y="1660" width="490" height="550" fill="#eceae6" stroke="#2b2d30" stroke-width="2"/>
+  <rect x="885" y="1780" width="200" height="220" fill="#fff" stroke="#2b2d30" stroke-width="2"/>
+  <line x1="885" y1="1780" x2="1085" y2="2000" stroke="#2b2d30" stroke-width="1"/>
+  <line x1="1085" y1="1780" x2="885" y2="2000" stroke="#2b2d30" stroke-width="1"/>
+  <line x1="1135" y1="1720" x2="1215" y2="1720" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1770" x2="1215" y2="1770" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1820" x2="1215" y2="1820" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1870" x2="1215" y2="1870" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1920" x2="1215" y2="1920" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1970" x2="1215" y2="1970" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="2020" x2="1215" y2="2020" stroke="#2b2d30" stroke-width="1.2"/>
+  <line x1="1135" y1="1666" x2="1135" y2="2020" stroke="#2b2d30" stroke-width="1"/>
+  <rect x="575" y="2150" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="2150" width="40" height="40" fill="#2b2d30"/>
+  <rect x="575" y="1640" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="1640" width="40" height="40" fill="#2b2d30"/>
+  <rect x="575" y="920" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="920" width="40" height="40" fill="#2b2d30"/>
+  <rect x="575" y="320" width="40" height="40" fill="#2b2d30"/>
+  <rect x="1290" y="320" width="40" height="40" fill="#2b2d30"/>
+  <rect x="30" y="2210" width="525" height="140" fill="none" stroke="#a8804c" stroke-width="2" stroke-dasharray="6 4"/>
+  <line x1="290" y1="2355" x2="290" y2="2295" stroke="#a8804c" stroke-width="3"/><path d="M282,2309 L290,2295 L298,2309 Z" fill="#a8804c"/>
+  </g>
+  <text x="14" y="44" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="34" font-weight="700" fill="#2b2d30">−1</text><text x="1915" y="34" text-anchor="end" font-family="system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif" font-size="19" font-weight="650" fill="#a8804c">GLA 337.4 m²</text>
+</svg>

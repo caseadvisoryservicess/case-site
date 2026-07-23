@@ -16,10 +16,12 @@ const bcrypt = require('bcryptjs');
 const multer = require('multer');
 const { ZipArchive } = require('archiver'); // archiver ^8: экспортирует классы, а не фабричную функцию
 const nodemailer = require('nodemailer');
-const { Jimp, JimpMime } = require('jimp'); // чистый JS, без нативных зависимостей
+// обработка изображений вынесена в lib/images.js (jimp + WASM-WebP)
 const { renderLanding } = require('./lib/template');
+const { renderLanding2 } = require('./lib/template2');
 const { newProject } = require('./lib/blank');
 const { buildBackupZip } = require('./lib/backup');
+const { makeVariants } = require('./lib/images');
 
 const ROOT = __dirname;
 const DATA = path.join(ROOT, 'data');
@@ -123,9 +125,11 @@ function canAccess(user, slug) {
   return user.role === 'admin' || (user.projects || []).includes(slug);
 }
 // CSRF: мутирующие запросы обязаны нести кастомный заголовок
-// (кроме публичного приёма заявок /api/lead/* — он без авторизации, CSRF не применим)
+// (кроме публичных эндпоинтов лендинга: приём заявок /api/lead/* и событий
+// аналитики /api/e/* — они без авторизации, CSRF не применим, а sendBeacon
+// не умеет ставить кастомные заголовки)
 router.use('/api', (req, res, next) => {
-  if (req.path.startsWith('/lead/')) return next();
+  if (req.path.startsWith('/lead/') || req.path.startsWith('/e/')) return next();
   if (['POST', 'PUT', 'DELETE'].includes(req.method) && req.headers['x-api'] !== '1') {
     return res.status(403).json({ error: 'Missing X-Api header' });
   }
@@ -266,34 +270,16 @@ const upload = multer({
     cb(null, true);
   }
 });
-// ужимаем загруженное фото: длинная сторона не больше 1920px, JPEG-качество 82.
-// webp jimp не умеет читать — такие файлы просто оставляем как есть.
-// Любая ошибка тут не должна ронять загрузку — при сбое остаётся оригинал.
-const MAX_IMAGE_DIMENSION = 1920;
-async function compressImage(filePath) {
-  const ext = path.extname(filePath).toLowerCase();
-  if (ext !== '.jpg' && ext !== '.jpeg' && ext !== '.png') return;
-  try {
-    const before = fs.statSync(filePath).size;
-    const img = await Jimp.read(filePath);
-    if (img.bitmap.width > MAX_IMAGE_DIMENSION || img.bitmap.height > MAX_IMAGE_DIMENSION) {
-      img.scaleToFit({ w: MAX_IMAGE_DIMENSION, h: MAX_IMAGE_DIMENSION });
-    }
-    const buf = ext === '.png'
-      ? await img.getBuffer(JimpMime.png)
-      : await img.getBuffer(JimpMime.jpeg, { quality: 82 });
-    if (buf.length < before) fs.writeFileSync(filePath, buf);
-  } catch (e) {
-    console.error('Сжатие изображения пропущено:', e.message);
-  }
-}
+// загруженное фото ужимается (до 1920px, JPEG 80) и получает адаптивные
+// варианты + WebP (lib/images.js). Ошибка пайплайна не роняет загрузку —
+// страница в этом случае просто отдаёт оригинал без <picture>.
 router.post('/api/projects/:slug/upload', auth, (req, res) => {
   const slug = loadProject(req, res);
   if (!slug) return;
   upload.single('file')(req, res, async (err) => {
     if (err) return res.status(400).json({ error: err.message || 'Ошибка загрузки' });
     if (!req.file) return res.status(400).json({ error: 'Файл не получен' });
-    await compressImage(path.join(uploadsDir(slug), req.file.filename));
+    await makeVariants(path.join(uploadsDir(slug), req.file.filename));
     res.json({ filename: req.file.filename });
   });
 });
@@ -322,11 +308,29 @@ router.get('/uploads/:slug/:file', (req, res) => {
 // ─── API: сборка лендинга ───
 function generate(slug) {
   const cfg = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8'));
-  const { html, images, robots, sitemap } = renderLanding(cfg);
   const out = path.join(SITES, slug);
   const assets = path.join(out, 'assets');
   fs.rmSync(out, { recursive: true, force: true });
   fs.mkdirSync(assets, { recursive: true });
+
+  if (cfg.schemaVersion >= 2) {
+    // v2: три языковые версии + sitemap; robots.txt не пишем — на подпапке
+    // сайта он игнорируется, правила живут в корневом robots.txt домена
+    const { pages, images, sitemap } = renderLanding2(cfg, { uploadsDir: uploadsDir(slug) });
+    for (const [rel, html] of Object.entries(pages)) {
+      const f = path.join(out, rel);
+      fs.mkdirSync(path.dirname(f), { recursive: true });
+      fs.writeFileSync(f, html);
+    }
+    if (sitemap) fs.writeFileSync(path.join(out, 'sitemap.xml'), sitemap);
+    for (const img of images) {
+      const src = path.join(uploadsDir(slug), path.basename(img));
+      if (fs.existsSync(src)) fs.copyFileSync(src, path.join(assets, path.basename(img)));
+    }
+    return out;
+  }
+
+  const { html, images, robots, sitemap } = renderLanding(cfg);
   fs.writeFileSync(path.join(out, 'index.html'), html);
   fs.writeFileSync(path.join(out, 'robots.txt'), robots);
   if (sitemap) fs.writeFileSync(path.join(out, 'sitemap.xml'), sitemap);
@@ -536,6 +540,54 @@ router.options('/api/lead/:slug', (req, res) => {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.status(204).end();
 });
+// ─── приём событий аналитики лендинга (фундамент дашборда, Блок C) ───
+// Публичный эндпоинт: лендинг шлёт батчи через sendBeacon. Хранение —
+// append-only NDJSON по дням: переживает частые рестарты Passenger.
+// IP не сохраняется — только суточный HMAC-хэш для подсчёта уникальных.
+const BOT_UA_RE = /bot|crawl|spider|slurp|preview|fetch|monitor|curl|wget|headless/i;
+router.post('/api/e/:slug', (req, res) => {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  const slug = req.params.slug;
+  if (!SLUG_RE.test(slug) || !fs.existsSync(projectFile(slug))) return res.status(404).end();
+  res.status(204).end(); // отвечаем сразу, запись — после
+  try {
+    const ua = String(req.headers['user-agent'] || '');
+    if (!ua || BOT_UA_RE.test(ua)) return; // бот-фильтр на входе
+    const b = req.body || {};
+    const events = Array.isArray(b.events) ? b.events.slice(0, 50) : [];
+    if (!events.length) return;
+    const day = new Date().toISOString().slice(0, 10);
+    const vid = crypto.createHmac('sha256', SECRET + day)
+      .update(String(req.ip || '') + '|' + ua).digest('hex').slice(0, 16);
+    const dir = path.join(DATA, 'analytics', slug);
+    fs.mkdirSync(dir, { recursive: true });
+    const lines = events.map((e) => JSON.stringify({
+      t: String(e.t || '').slice(0, 40),
+      ts: Number(e.ts) || Date.now(),
+      sid: String(b.sid || '').slice(0, 40),
+      vid,
+      lang: String(b.lang || '').slice(0, 5),
+      intent: e.intent === 'buy' ? 'buy' : 'lease',
+      d: (() => { // компактные полезные поля события, без свободного текста
+        const out = {};
+        for (const k of ['url', 'ref', 'dev', 'sw', 'depth', 'unit', 'cta', 'q', 'svc', 'where', 'to']) {
+          if (e[k] !== undefined) out[k] = String(e[k]).slice(0, 300);
+        }
+        if (e.utm && typeof e.utm === 'object') {
+          out.utm = {};
+          for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+            if (e.utm[k]) out.utm[k] = String(e.utm[k]).slice(0, 200);
+          }
+        }
+        return out;
+      })()
+    })).join('\n') + '\n';
+    fs.appendFileSync(path.join(dir, `events-${day}.ndjson`), lines);
+  } catch (e) {
+    console.error('Событие аналитики не записано:', e.message);
+  }
+});
+
 router.post('/api/lead/:slug', (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const slug = req.params.slug;
@@ -546,7 +598,7 @@ router.post('/api/lead/:slug', (req, res) => {
   hit.n += 1; leadHits.set(ip, hit);
   if (hit.n > 10) return res.status(429).json({ error: 'слишком часто' });
   const b = req.body || {};
-  if (b._honey) return res.json({ ok: true }); // honeypot: делаем вид, что приняли
+  if (b._honey || b.company) return res.json({ ok: true }); // honeypot (v1: _honey, v2: company) — делаем вид, что приняли
   const name = String(b.name || '').trim().slice(0, 200);
   const phone = String(b.phone || '').trim().slice(0, 50);
   if (!name || !phone) return res.status(400).json({ error: 'имя и телефон обязательны' });
@@ -564,6 +616,15 @@ router.post('/api/lead/:slug', (req, res) => {
     note: '',
     emailSent: null
   };
+  // лендинг v2: намерение (аренда/покупка), выбранный юнит и UTM первого касания
+  if (b.intent) lead.intent = String(b.intent).slice(0, 20);
+  if (b.unit) lead.unit = String(b.unit).slice(0, 20);
+  if (b.utm && typeof b.utm === 'object') {
+    lead.utm = {};
+    for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+      if (b.utm[k]) lead.utm[k] = String(b.utm[k]).slice(0, 200);
+    }
+  }
   const leads = loadLeads(slug);
   leads.unshift(lead);
   saveLeads(slug, leads);

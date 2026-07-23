@@ -30,19 +30,20 @@
   "texts": {},
   "seo": {
     "title": {
-      "ru": "Бизнес-центр SFB - аренда и продажа помещений 179 и 430 м² | ул. Тахтапуль 31, Ташкент",
-      "uz": "SFB biznes markazi - 179 va 430 m² maydonlar ijarasi va sotuvi | Taxtapul 31, Toshkent",
-      "en": "SFB Business Center - 179 & 430 m² premises for sale and lease | 31 Takhtapul st., Tashkent"
+      "ru": "Коммерческое здание Тахтапул, 31, Ташкент — аренда и продажа помещений",
+      "uz": "Taxtapul 31 tijorat binosi, Toshkent — maydonlar ijarasi va sotuvi",
+      "en": "Commercial building at 31 Taxtapul St, Tashkent — offices for lease and sale"
     },
     "description": {
-      "ru": "Аренда и продажа помещений свободного назначения 179 м² и 430,4 м² в бизнес-центре SFB на ул. Тахтапуль, 31 (Шайхантахурский район, Ташкент). Под офис, клинику, сервис или учебный центр. Лифт, подземный паркинг, потолки 3,4 м. Ввод - сентябрь 2026. Цена - по запросу.",
-      "uz": "Toshkent, Taxtapul ko'chasi 31-uydagi SFB biznes markazida 179 va 430,4 m² erkin maqsadli maydonlar ijarasi va sotuvi. Ofis, klinika, servis yoki o'quv markazi uchun. Lift, yerosti avtoturargohi, shiftlar 3,4 m. Topshirish - 2026-yil sentyabr. Narx - so'rov bo'yicha.",
-      "en": "Flexible-use commercial premises of 179 and 430.4 m² for sale and lease in the SFB business center at 31 Takhtapul street, Tashkent. For an office, clinic, services or education center. Elevator, underground parking, 3.4 m ceilings. Completion - September 2026. Price on request."
+      "ru": "Отдельное коммерческое здание 1 882,9 м² GLA: 5 уровней open plan, лифт, паркинг 12 мест. Аренда, покупка или аренда с выкупом. Этажи 337–396 м². Условия — по запросу.",
+      "uz": "Alohida tijorat binosi, 1 882,9 m² GLA: 5 daraja open plan, lift, 12 o'rinli avtoturargoh. Ijara, sotib olish yoki keyinchalik sotib olish bilan ijara. Qavatlar 337–396 m². Shartlar — so'rov bo'yicha.",
+      "en": "A standalone commercial building with 1,882.9 m² GLA: 5 open-plan levels, lift, 12 parking spaces. Lease, purchase or lease-to-own. Floor plates 337–396 m². Terms on request."
     },
     "keywords": "аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, бизнес-центр SFB, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения, ofis ijarasi Toshkent, tijorat ko'chmas mulki",
     "domain": "",
     "googleVerification": "",
-    "yandexVerification": ""
+    "yandexVerification": "",
+    "publicUrl": "https://caseadvisory.uz/taxtapul"
   },
   "hero": {
     "image": "hero.jpg",
@@ -533,9 +534,9 @@
       "en": "Shaykhantakhur district - dense business and residential fabric, steady daytime traffic and quick access to central Tashkent."
     },
     "address": {
-      "ru": "г. Ташкент, ул. Тахтапуль, 31",
-      "uz": "Toshkent sh., Taxtapul ko'chasi, 31",
-      "en": "31 Takhtapul street, Tashkent"
+      "ru": "ул. Тахтапул, 31, Шайхантахурский район, Ташкент",
+      "uz": "Taxtapul ko'chasi 31, Shayxontohur tumani, Toshkent",
+      "en": "31 Taxtapul Street, Shaykhantahur district, Tashkent"
     },
     "addressNote": {
       "ru": "Шайхантахурский район · 41.33894, 69.26335",
@@ -543,8 +544,8 @@
       "en": "Shaykhantakhur district · 41.33894, 69.26335"
     },
     "city": "Ташкент",
-    "lat": 41.33894,
-    "lng": 69.26335,
+    "lat": 41.338889,
+    "lng": 69.263403,
     "pois": [
       {
         "name": {
@@ -594,7 +595,67 @@
           "en": "≈ 10 km"
         }
       }
-    ]
+    ],
+    "drive": [
+      {
+        "to": {
+          "ru": "Tashkent City",
+          "uz": "Tashkent City",
+          "en": "Tashkent City"
+        },
+        "time": {
+          "ru": "~12 мин · 4,5 км",
+          "uz": "~12 daqiqa · 4,5 km",
+          "en": "~12 min · 4.5 km"
+        }
+      },
+      {
+        "to": {
+          "ru": "Центр (сквер Амира Темура)",
+          "uz": "Markaz (Amir Temur xiyoboni)",
+          "en": "City center (Amir Temur square)"
+        },
+        "time": {
+          "ru": "~13 мин · 5,2 км",
+          "uz": "~13 daqiqa · 5,2 km",
+          "en": "~13 min · 5.2 km"
+        }
+      },
+      {
+        "to": {
+          "ru": "Аэропорт им. Ислама Каримова",
+          "uz": "Islom Karimov nomidagi aeroport",
+          "en": "Islam Karimov International Airport"
+        },
+        "time": {
+          "ru": "~31 мин · 14,9 км",
+          "uz": "~31 daqiqa · 14,9 km",
+          "en": "~31 min · 14.9 km"
+        }
+      },
+      {
+        "to": {
+          "ru": "Выезд на Малую кольцевую",
+          "uz": "Kichik halqa yo’liga chiqish",
+          "en": "Small Ring Road access"
+        },
+        "time": {
+          "ru": "рядом",
+          "uz": "yonida",
+          "en": "adjacent"
+        }
+      }
+    ],
+    "metroNote": {
+      "ru": "Для справки: метро «Гафур Гулям» — 25 мин пешком (1,8 км).",
+      "uz": "Ma'lumot uchun: «G'afur G'ulom» metro bekati — piyoda 25 daqiqa (1,8 km).",
+      "en": "For reference: Gafur Gulom metro station — a 25-minute walk (1.8 km)."
+    },
+    "around": {
+      "ru": "Рядом — сложившийся медицинский кластер: Sinomed MD International Hospital, областной онкологический центр и республиканский медколледж (~1 км). В радиусе 1–2,5 км — мечеть Минор, парк Навруз, отели Crowne Plaza, AZIMUT и Radisson Blu.",
+      "uz": "Yaqin atrofda shakllangan tibbiyot klasteri: Sinomed MD International Hospital, viloyat onkologiya markazi va respublika tibbiyot kolleji (~1 km). 1–2,5 km radiusda — Minor masjidi, Navro'z bog'i, Crowne Plaza, AZIMUT va Radisson Blu mehmonxonalari.",
+      "en": "Nearby is an established medical cluster: Sinomed MD International Hospital, the regional oncology center and the republican medical college (~1 km). Within 1–2.5 km — the Minor Mosque, Navruz Park, and the Crowne Plaza, AZIMUT and Radisson Blu hotels."
+    }
   },
   "lead": {
     "h2": {
@@ -647,42 +708,6 @@
     },
     {
       "q": {
-        "ru": "Когда здание будет сдано?",
-        "uz": "Bino qachon topshiriladi?",
-        "en": "When will the building be completed?"
-      },
-      "a": {
-        "ru": "Монолитный каркас завершён, сейчас идут фасадные работы. Ввод в эксплуатацию и постановка на кадастр - сентябрь 2026 года.",
-        "uz": "Monolit karkas yakunlangan, hozir fasad ishlari ketmoqda. Foydalanishga topshirish va kadastrga qo'yish - 2026-yil sentyabr.",
-        "en": "The monolithic frame is complete and facade works are underway. Completion and cadastre registration - September 2026."
-      }
-    },
-    {
-      "q": {
-        "ru": "Можно ли арендовать, а не покупать?",
-        "uz": "Sotib olmasdan ijaraga olsa bo'ladimi?",
-        "en": "Can I lease instead of buying?"
-      },
-      "a": {
-        "ru": "Да. Оба лота доступны как к покупке, так и в долгосрочную аренду - ставка и условия обсуждаются индивидуально. Для инвесторов возможна покупка помещения с уже подписанным договором аренды.",
-        "uz": "Ha. Ikkala lot ham sotib olish, ham uzoq muddatli ijara uchun ochiq - stavka va shartlar alohida kelishiladi. Investorlar uchun imzolangan ijara shartnomasi bilan maydon sotib olish mumkin.",
-        "en": "Yes. Both units are available for purchase or long-term lease - the rate and terms are discussed individually. Investors can buy a unit with a signed lease in place."
-      }
-    },
-    {
-      "q": {
-        "ru": "Кто соседи по зданию?",
-        "uz": "Binoda qo'shnilar kim?",
-        "en": "Who are the neighbors?"
-      },
-      "a": {
-        "ru": "75% здания продано: на первом этаже - коммерция (торговая галерея), на половине второго этажа - стоматологическая клиника, четвёртый этаж занят офисом. Свободны помещение 179 м² на втором этаже и весь третий этаж - 430,4 м².",
-        "uz": "Binoning 75% sotilgan: birinchi qavatda - tijorat (savdo galereyasi), ikkinchi qavatning yarmida - stomatologiya klinikasi, to'rtinchi qavatni ofis egallagan. 2-qavatdagi 179 m² maydon va butun 3-qavat (430,4 m²) bo'sh.",
-        "en": "75% of the building is sold: retail on the ground floor, a dental clinic on half of the second floor, and an office on the fourth. The 179 m² unit on the second floor and the entire third floor (430.4 m²) remain available."
-      }
-    },
-    {
-      "q": {
         "ru": "Есть ли парковка?",
         "uz": "Avtoturargoh bormi?",
         "en": "Is there parking?"
@@ -691,6 +716,42 @@
         "ru": "Да, в здании подземный паркинг на 12 машиномест (347 м²) с въездом с улицы Тахтапуль, плюс гостевые места перед входом.",
         "uz": "Ha, binoda Taxtapul ko'chasidan kiriladigan 12 o'rinli (347 m²) yerosti avtoturargohi hamda kirish oldida mehmonlar uchun joylar bor.",
         "en": "Yes - an underground garage for 12 cars (347 m²) with entry from Takhtapul street, plus guest spaces by the entrance."
+      }
+    },
+    {
+      "q": {
+        "ru": "В какой стадии объект?",
+        "uz": "Obyekt qanday bosqichda?",
+        "en": "What stage is the building at?"
+      },
+      "a": {
+        "ru": "Объект на финальной стадии — идут фасадные и отделочные работы. Осмотр возможен по договорённости.",
+        "uz": "Obyekt yakuniy bosqichda — fasad va pardozlash ishlari olib borilmoqda. Ko'rikni kelishuv asosida tashkil etamiz.",
+        "en": "The building is in its final stage — facade and interior finishing works are underway. Site visits by arrangement."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли арендовать, а не покупать?",
+        "uz": "Sotib olmasdan ijaraga olish mumkinmi?",
+        "en": "Can I lease instead of buying?"
+      },
+      "a": {
+        "ru": "Да. Помещения доступны в аренду, к покупке (отдельный этаж или здание целиком) и по комбинированной схеме — заходите как арендатор, решение о покупке принимаете позже.",
+        "uz": "Ha. Maydonlar ijaraga, sotib olishga (alohida qavat yoki butun bino) va kombinatsiyalangan sxema bo'yicha taklif etiladi — avval ijarachi sifatida kirasiz, sotib olish qarorini keyinroq qabul qilasiz.",
+        "en": "Yes. The premises are available for lease, for purchase (an individual floor or the whole building) and on a combined basis — enter as a tenant and decide on purchase later."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли разделить этаж под свою планировку?",
+        "uz": "Qavatni o'z planirovkangizga bo'lish mumkinmi?",
+        "en": "Can a floor be subdivided to my layout?"
+      },
+      "a": {
+        "ru": "Да. Этажи открытой планировки: только колонны с сеткой 5 950 × 7 150 мм и лифтовое ядро. Перегородки проектируются под задачу арендатора.",
+        "uz": "Ha. Qavatlar ochiq planirovkali: faqat 5 950 × 7 150 mm to'rli kolonnalar va lift yadrosi. To'siqlar ijarachining vazifasiga moslab loyihalanadi.",
+        "en": "Yes. The floors are open plan: columns on a 5,950 × 7,150 mm grid and the lift core only. Partitions are designed to the tenant’s brief."
       }
     }
   ],
@@ -701,9 +762,450 @@
       "en": "31 Takhtapul st., Tashkent"
     },
     "legal": {
-      "ru": "Информация на сайте носит справочный характер и не является публичной офертой. Визуализации - иллюстративные. © 2026 SFB",
-      "uz": "Saytdagi ma'lumotlar ma'lumot uchun bo'lib, ommaviy oferta hisoblanmaydi. Vizualizatsiyalar illyustrativ. © 2026 SFB",
-      "en": "Information on this site is for reference only and does not constitute a public offer. Visualizations are illustrative. © 2026 SFB"
+      "ru": "Информация на сайте носит справочный характер и не является публичной офертой. Визуализации — иллюстративные. © 2026 CASE Advisory",
+      "uz": "Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. Vizualizatsiyalar — illyustrativ. © 2026 CASE Advisory",
+      "en": "Information on this site is for reference and does not constitute a public offer. Visualisations are illustrative. © 2026 CASE Advisory"
     }
+  },
+  "schemaVersion": 2,
+  "intro": {
+    "image": "facade-evening.jpg",
+    "h1": {
+      "ru": "Коммерческое здание Тахтапул, 31 — Ташкент",
+      "uz": "Taxtapul 31 tijorat binosi — Toshkent",
+      "en": "Commercial building at 31 Taxtapul Street, Tashkent"
+    },
+    "sub": {
+      "ru": "Аренда · Покупка · Аренда с последующим выкупом",
+      "uz": "Ijara · Sotib olish · Keyinchalik sotib olish sharti bilan ijara",
+      "en": "Lease · Purchase · Lease with option to buy"
+    },
+    "facts": [
+      {
+        "n": "5",
+        "l": {
+          "ru": "уровней",
+          "uz": "daraja",
+          "en": "levels"
+        }
+      },
+      {
+        "n": "337–396",
+        "l": {
+          "ru": "м² GLA на этаж",
+          "uz": "m² GLA har qavatda",
+          "en": "m² GLA per floor"
+        }
+      },
+      {
+        "n": "",
+        "l": {
+          "ru": "Шайхантахурский район",
+          "uz": "Shayxontohur tumani",
+          "en": "Shaykhantahur district"
+        }
+      }
+    ]
+  },
+  "params": [
+    {
+      "n": "1 882,9",
+      "l": {
+        "ru": "м² GLA всего",
+        "uz": "m² umumiy GLA",
+        "en": "m² total GLA"
+      }
+    },
+    {
+      "n": "5",
+      "l": {
+        "ru": "уровней",
+        "uz": "daraja",
+        "en": "levels"
+      }
+    },
+    {
+      "n": "Open plan",
+      "l": {
+        "ru": "свободная планировка",
+        "uz": "erkin planirovka",
+        "en": "open floor plates"
+      }
+    },
+    {
+      "n": "12",
+      "l": {
+        "ru": "машиномест",
+        "uz": "avtoturargoh joyi",
+        "en": "parking spaces"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Лифт",
+        "uz": "Lift",
+        "en": "Lift"
+      },
+      "icon": "lift"
+    }
+  ],
+  "unitsSection": {
+    "h2": {
+      "ru": "Помещения",
+      "uz": "Maydonlar",
+      "en": "Premises"
+    },
+    "note": {
+      "ru": "Все этажи — open plan: только колонны с сеткой 5 950 × 7 150 мм и лифтовое ядро, без внутренних перегородок. Пространство делится под задачу арендатора.",
+      "uz": "Barcha qavatlar — open plan: faqat 5 950 × 7 150 mm to'rli kolonnalar va lift yadrosi, ichki to'siqlarsiz. Maydon ijarachining vazifasiga moslab bo'linadi.",
+      "en": "All floors are open plan: columns on a 5 950 × 7 150 mm grid and the lift core only, no internal partitions. Each floor plate can be subdivided to the tenant’s brief."
+    }
+  },
+  "units": [
+    {
+      "id": "b",
+      "lvlShort": "−1",
+      "gla": "337,4",
+      "plan": "plan-b.svg",
+      "level": {
+        "ru": "Подвал",
+        "uz": "Podval",
+        "en": "Basement"
+      },
+      "uses": {
+        "ru": "сервис, шоурум, вспомогательные функции",
+        "uz": "xizmat ko'rsatish, shourum, yordamchi funksiyalar",
+        "en": "services, showroom, support functions"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f1",
+      "lvlShort": "1",
+      "gla": "358,7",
+      "plan": "plan-f1.svg",
+      "level": {
+        "ru": "1 этаж",
+        "uz": "1-qavat",
+        "en": "Floor 1"
+      },
+      "uses": {
+        "ru": "шоурум, сервис, ресепшн клиники",
+        "uz": "shourum, servis, klinika qabulxonasi",
+        "en": "showroom, services, clinic reception"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f2",
+      "lvlShort": "2",
+      "gla": "395,6",
+      "plan": "plan-f2.svg",
+      "level": {
+        "ru": "2 этаж",
+        "uz": "2-qavat",
+        "en": "Floor 2"
+      },
+      "uses": {
+        "ru": "клиника, офис, учебный центр",
+        "uz": "klinika, ofis, o'quv markazi",
+        "en": "clinic, office, training center"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f3",
+      "lvlShort": "3",
+      "gla": "395,6",
+      "plan": "plan-f3.svg",
+      "level": {
+        "ru": "3 этаж",
+        "uz": "3-qavat",
+        "en": "Floor 3"
+      },
+      "uses": {
+        "ru": "клиника, офис, учебный центр",
+        "uz": "klinika, ofis, o'quv markazi",
+        "en": "clinic, office, training center"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f4",
+      "lvlShort": "4",
+      "gla": "395,6",
+      "glaNote": "314,2 + 101,8",
+      "plan": "plan-f4.svg",
+      "level": {
+        "ru": "4 этаж",
+        "uz": "4-qavat",
+        "en": "Floor 4"
+      },
+      "uses": {
+        "ru": "офис, учебный центр",
+        "uz": "ofis, o'quv markazi",
+        "en": "office, training center"
+      },
+      "status": "available"
+    },
+    {
+      "id": "all",
+      "lvlShort": "1–4",
+      "gla": "1 882,9",
+      "whole": true,
+      "level": {
+        "ru": "Здание целиком",
+        "uz": "Butun bino",
+        "en": "Whole building"
+      },
+      "uses": {
+        "ru": "клиника, учебный центр, штаб-квартира — здание под один бренд",
+        "uz": "klinika, o'quv markazi, bosh ofis — bino bitta brend uchun",
+        "en": "clinic, training center, headquarters — the building under one brand"
+      },
+      "status": "available"
+    }
+  ],
+  "useCases": {
+    "h2": {
+      "ru": "Кому подходит",
+      "uz": "Kimga mos keladi",
+      "en": "Use cases"
+    },
+    "cards": [
+      {
+        "icon": "clinic",
+        "h": {
+          "ru": "Клиника",
+          "uz": "Klinika",
+          "en": "Clinic"
+        },
+        "levels": {
+          "ru": "этажи 1–3",
+          "uz": "1–3-qavatlar",
+          "en": "floors 1–3"
+        },
+        "p": {
+          "ru": "Рядом сложившийся медицинский кластер: Sinomed MD International Hospital, областной онкологический центр и республиканский медколледж в радиусе ~1 км. Open plan позволяет спроектировать кабинеты и диагностику под лицензию.",
+          "uz": "Yaqin atrofda shakllangan tibbiyot klasteri: Sinomed MD International Hospital, viloyat onkologiya markazi va respublika tibbiyot kolleji ~1 km radiusda. Open plan litsenziyaga mos kabinetlar va diagnostikani loyihalash imkonini beradi.",
+          "en": "An established medical cluster nearby: Sinomed MD International Hospital, the regional oncology center and the republican medical college within ~1 km. Open plan lets you lay out consulting and diagnostic rooms to licensing requirements."
+        }
+      },
+      {
+        "icon": "education",
+        "h": {
+          "ru": "Учебный центр",
+          "uz": "O'quv markazi",
+          "en": "Training center"
+        },
+        "levels": {
+          "ru": "этажи 2–4",
+          "uz": "2–4-qavatlar",
+          "en": "floors 2–4"
+        },
+        "p": {
+          "ru": "Этаж 395,6 м² без перегородок делится на аудитории любого размера. Паркинг для преподавателей и удобный подъезд для слушателей.",
+          "uz": "To'siqlarsiz 395,6 m² qavat istalgan o'lchamdagi auditoriyalarga bo'linadi. O'qituvchilar uchun avtoturargoh va tinglovchilar uchun qulay kirish yo'li.",
+          "en": "A 395.6 m² floor plate with no partitions divides into classrooms of any size. Parking for staff and easy drive-in access for students."
+        }
+      },
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Офис",
+          "uz": "Ofis",
+          "en": "Office"
+        },
+        "levels": {
+          "ru": "этажи 2–4 или здание целиком",
+          "uz": "2–4-qavatlar yoki butun bino",
+          "en": "floors 2–4 or the whole building"
+        },
+        "p": {
+          "ru": "Штаб-квартира с собственной вывеской на фасаде. Один этаж — одна компания, без соседей по коридору.",
+          "uz": "Fasadda o'z peshlavhangiz bilan bosh ofis. Bir qavat — bitta kompaniya, yo'lakda qo'shnilarsiz.",
+          "en": "A headquarters with your own signage on the facade. One floor — one company, no corridor neighbours."
+        }
+      },
+      {
+        "icon": "service",
+        "h": {
+          "ru": "Сервис / шоурум",
+          "uz": "Servis / shourum",
+          "en": "Service / showroom"
+        },
+        "levels": {
+          "ru": "1 этаж и подвал",
+          "uz": "1-qavat va podval",
+          "en": "floor 1 and basement"
+        },
+        "p": {
+          "ru": "Первая линия, витражное остекление первого этажа и парковка у входа — формат для шоурума или сервиса с клиентским потоком на автомобиле.",
+          "uz": "Birinchi qator, birinchi qavatning vitrina oynalari va kiraverishdagi avtoturargoh — avtomobildagi mijozlar oqimiga ega shourum yoki servis uchun format.",
+          "en": "First line, floor-to-ceiling glazing on the ground floor and parking at the door — a format for a showroom or service business whose clients arrive by car."
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "h2": {
+      "ru": "Форматы сделки",
+      "uz": "Bitim formatlari",
+      "en": "Deal scenarios"
+    },
+    "cols": [
+      {
+        "h": {
+          "ru": "Аренда",
+          "uz": "Ijara",
+          "en": "Lease"
+        },
+        "p": {
+          "ru": "Помещения свободного назначения под офис, клинику, учебный центр или сервис. Условия обсуждаются по каждому лоту отдельно — площадь, срок, порядок входа.",
+          "uz": "Ofis, klinika, o'quv markazi yoki xizmat ko'rsatish uchun erkin maqsadli maydonlar. Shartlar har bir lot bo'yicha alohida muhokama qilinadi — maydon, muddat, kirish tartibi.",
+          "en": "Flexible-use premises for offices, clinics, training centers or services. Terms are discussed per unit — area, duration, entry conditions."
+        }
+      },
+      {
+        "h": {
+          "ru": "Покупка",
+          "uz": "Sotib olish",
+          "en": "Purchase"
+        },
+        "p": {
+          "ru": "Возможна покупка отдельного этажа или здания целиком.",
+          "uz": "Alohida qavat yoki butun binoni sotib olish mumkin.",
+          "en": "Individual floors or the entire building are available for purchase."
+        }
+      },
+      {
+        "h": {
+          "ru": "Аренда с последующим выкупом",
+          "uz": "Ijara va keyinchalik sotib olish",
+          "en": "Lease with option to buy"
+        },
+        "p": {
+          "ru": "Работаем и по комбинированной схеме: заходите как арендатор, решение о покупке принимаете позже. Условия структурируем под конкретную ситуацию — обсуждаем при встрече.",
+          "uz": "Kombinatsiyalangan sxema bo'yicha ham ishlaymiz: avval ijarachi sifatida kirasiz, sotib olish qarorini keyinroq qabul qilasiz. Shartlarni aniq vaziyatga moslab tuzamiz.",
+          "en": "We also work on a combined basis: enter as a tenant, decide on purchase later. Terms are structured around your specific situation."
+        }
+      }
+    ]
+  },
+  "about": {
+    "h2": {
+      "ru": "О здании",
+      "uz": "Bino haqida",
+      "en": "The building"
+    },
+    "sfbNote": {
+      "ru": "Здание также известно как бизнес-центр SFB.",
+      "uz": "Bino SFB biznes markazi nomi bilan ham tanilgan.",
+      "en": "The building is also known as the SFB business center."
+    },
+    "status": {
+      "ru": "Объект на финальной стадии — идут фасадные и отделочные работы. Осмотр возможен по договорённости.",
+      "uz": "Obyekt yakuniy bosqichda — fasad va pardozlash ishlari olib borilmoqda. Ko'rikni kelishuv asosida tashkil etamiz.",
+      "en": "The building is in its final stage — facade and interior finishing works are underway. Site visits by arrangement."
+    },
+    "specs": [
+      {
+        "b": {
+          "ru": "Уровни",
+          "uz": "Darajalar",
+          "en": "Levels"
+        },
+        "s": {
+          "ru": "подвал + 4 этажа, лифт",
+          "uz": "podval + 4 qavat, lift",
+          "en": "basement + 4 floors, lift"
+        }
+      },
+      {
+        "b": {
+          "ru": "GLA",
+          "uz": "GLA",
+          "en": "GLA"
+        },
+        "s": {
+          "ru": "1 882,9 м²",
+          "uz": "1 882,9 m²",
+          "en": "1,882.9 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Пятно этажа",
+          "uz": "Qavat maydoni",
+          "en": "Floor plate"
+        },
+        "s": {
+          "ru": "≈ 19,1 × 20,4 м",
+          "uz": "≈ 19,1 × 20,4 m",
+          "en": "≈ 19.1 × 20.4 m"
+        }
+      },
+      {
+        "b": {
+          "ru": "Сетка колонн",
+          "uz": "Kolonna to’ri",
+          "en": "Column grid"
+        },
+        "s": {
+          "ru": "5 950 / 7 150 / 5 950 мм",
+          "uz": "5 950 / 7 150 / 5 950 mm",
+          "en": "5,950 / 7,150 / 5,950 mm"
+        }
+      },
+      {
+        "b": {
+          "ru": "Высота потолков",
+          "uz": "Shift balandligi",
+          "en": "Ceiling height"
+        },
+        "s": {
+          "ru": "",
+          "uz": "",
+          "en": ""
+        }
+      },
+      {
+        "b": {
+          "ru": "Паркинг",
+          "uz": "Avtoturargoh",
+          "en": "Parking"
+        },
+        "s": {
+          "ru": "12 машиномест: 6 подземных + 6 наземных",
+          "uz": "12 joy: 6 yer osti + 6 yer usti",
+          "en": "12 spaces: 6 underground + 6 surface"
+        }
+      }
+    ],
+    "images": [
+      {
+        "file": "facade-evening.jpg"
+      },
+      {
+        "file": "facade-angle.jpg"
+      },
+      {
+        "file": "hero.jpg"
+      }
+    ]
+  },
+  "enquiry": {
+    "note": {
+      "ru": "Ответим в течение дня",
+      "uz": "Kun davomida javob beramiz",
+      "en": "We reply within the day"
+    }
+  },
+  "settings": {
+    "mapsApiKey": "",
+    "metricaId": "",
+    "ga4Id": "",
+    "gtmId": ""
   }
 }

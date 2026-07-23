@@ -27,6 +27,8 @@ function buildBackupZip(dataDir) {
     zip.on('end', () => resolve(Buffer.concat(chunks)));
     for (const f of walkFiles(dataDir)) {
       if (f.rel === '.secret') continue;
+      // телеметрия аналитики объёмная и не критичная — в бэкап не включается
+      if (f.rel.startsWith('analytics' + path.sep)) continue;
       zip.file(f.full, { name: 'data/' + f.rel.split(path.sep).join('/') });
     }
     zip.finalize();
