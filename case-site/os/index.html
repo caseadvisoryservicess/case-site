@@ -436,7 +436,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.18';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.31.19';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1107,12 +1107,12 @@ function localize(){try{if(!document.createTreeWalker)return;
  });}catch(e){}}
 
 /* ===== STATE ===== */
-let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',status:'Все',cat:'Все'}};
+let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',status:'Все',cat:'Все'},regColBud:true,regColFac:true};/* ЛСР по умолчанию компактный: группы Бюджет/Факт свёрнуты (как чистая шапка Базы брендов), разворачиваются кнопкой */
 /* Личные настройки экрана (язык, тема, текущий объект/раздел) — хранятся ТОЛЬКО в этом браузере,
    отдельно от общих данных компании, чтобы смена языка/раздела одним сотрудником не влияла на других. */
 const UI_KEY=STORAGE_KEY+'-ui';
 function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1,regColBud:!!S.regColBud,regColFac:!!S.regColFac}));}catch(e){}}
-function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if(p.regColBud)S.regColBud=true;if(p.regColFac)S.regColFac=true;}catch(e){}}
+function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if('regColBud' in p)S.regColBud=!!p.regColBud;if('regColFac' in p)S.regColFac=!!p.regColFac;}catch(e){}}
 /* ===== Сортировка/фильтрация таблиц — ЛИЧНАЯ настройка каждого пользователя =====
    Хранится в localStorage под ключом с id пользователя и НИКОГДА не уходит в общий блоб (state.php),
    поэтому изменение сортировки/фильтра одним сотрудником не меняет вид у других. У каждого — своё. */
@@ -1760,7 +1760,7 @@ function renderRegistry(){
   `<button class="btn ghost sm" onclick="tblColReset('reg_units')" title="Сбросить ширину столбцов к авто (ширину можно тянуть за границу заголовка)">↔ Сбросить ширину</button>`
  ].filter(Boolean).join('');
  const more=moreItems?`<details class="moremenu"><summary class="btn ghost sm">⋯ Ещё</summary><div class="moremenu-pop">${moreItems}</div></details>`:'';
- const toolbar=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${canEdit?`<button class="btn sm" onclick="addUnit()">+ Помещение</button>`:''}${canEdit?`<button class="thbtn${S.regEdit?' on':''}" onclick="toggleRegEdit()" title="Включить правку прямо в таблице">✎ Правка${S.regEdit?': ВКЛ':''}</button>`:''}<button class="thbtn${(S.regColBud&&S.regColFac)?' on':''}" onclick="regToggleFin()" title="Свернуть/развернуть группы столбцов «Бюджет» и «Факт» (как группировка колонок в Excel)">${(S.regColBud&&S.regColFac)?'▸ Бюджет/Факт':'▾ Бюджет/Факт'}</button>${forceMine?`<span class="thbtn on" title="Ограничение роли: видны только ваши сделки">Только свои</span>`:(mine?`<button class="thbtn${S.regMine?' on':''}" onclick="S.regMine=!S.regMine;renderRegistry()">Мои сделки</button>`:'')}${more}</div>`;
+ const toolbar=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${canEdit?`<button class="btn sm" onclick="addUnit()">+ Помещение</button>`:''}${canEdit?`<button class="thbtn${S.regEdit?' on':''}" onclick="toggleRegEdit()" title="Включить правку прямо в таблице">✎ Правка${S.regEdit?': ВКЛ':''}</button>`:''}<button class="thbtn${(S.regColBud&&S.regColFac)?'':' on'}" onclick="regToggleFin()" title="Показать/скрыть все денежные столбцы «Бюджет» и «Факт» (по умолчанию скрыты для компактного вида)">${(S.regColBud&&S.regColFac)?'▸ Бюджет/Факт детально':'▾ Свернуть Бюджет/Факт'}</button>${forceMine?`<span class="thbtn on" title="Ограничение роли: видны только ваши сделки">Только свои</span>`:(mine?`<button class="thbtn${S.regMine?' on':''}" onclick="S.regMine=!S.regMine;renderRegistry()">Мои сделки</button>`:'')}${more}</div>`;
  $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1><span class="pill">${Math.round(occPct(S.obj)*100)}% занято</span></div><p class="sub">${allObj?t('allobj'):curObj().name} · ${fus.length} / ${us.length} помещений</p>${regPlanTabs('table')}${tabs}${toolbar}${regFilterBar(us)}${regColActive()?`<div style="margin:0 0 6px"><button class="btn ghost sm" onclick="regColReset()">✕ Сбросить фильтры колонок</button></div>`:''}${regPlanMismatchBanner()}${S.regEdit&&canEdit?`<div class="banner warn">✎ Режим правки включён — изменения сохраняются сразу. Будьте внимательны. <button class="btn ghost sm" style="margin-left:8px" onclick="toggleRegEdit()">Выключить</button></div>`:''}<div class="card" style="padding:6px"><div class="tbl-scroll">${(function(){const nc=8+(showBlk?1:0)+(canEdit?1:0)+lcrBudVis().length+lcrFacVis().length;const _cg=_tblColgroup('reg_units',nc);return '<table data-tblkey="reg_units" class="reg-grp'+(_cg.cls?' '+_cg.cls.trim():'')+'">'+_cg.cg;})()}<thead>${regHeadRow(us,canEdit,showBlk,allSel)}</thead><tbody>${rows}</tbody></table></div></div>${selbar}${footNote()}`;
 }
 function myBrokerName(){if(S.user&&S.user.broker)return S.user.broker;for(const k in brokerUser){if(brokerUser[k]===(S.user&&S.user.u))return k;}return null;}
@@ -1981,7 +1981,7 @@ function _lcrFacColsAll(){return [
  {k:'f_diff',lbl:'Разница, $/мес',get:lcrDiff,money:1,diff:1}
 ];}
 function lcrBudVis(){const cs=_lcrBudColsAll();return S.regColBud?cs.filter(c=>c.sum):cs;}
-function lcrFacVis(){const cs=_lcrFacColsAll();return S.regColFac?cs.filter(c=>c.sum):cs;}
+function lcrFacVis(){const cs=_lcrFacColsAll();return S.regColFac?cs.filter(c=>c.sum||c.diff):cs;}
 function lcrColByKey(k){return _lcrBudColsAll().concat(_lcrFacColsAll()).find(c=>c.k===k);}
 function lcrCellVal(u,c,fin){if(fin===false)return '•••';const v=c.get(u);if(!v&&v!==0)return '-';if(v===0)return c.diff?'0':'-';if(c.money)return (c.diff&&v<0?'<span style="color:var(--red-d,#9E0000)">'+fmt(v)+'</span>':(c.diff&&v>0?'<span style="color:var(--green,#2e7d32)">+'+fmt(v)+'</span>':fmt(v)));return String(Math.round(v*100)/100);}
 function regArrow(k){const rs=S.regSort;return rs&&rs.k===k?` <span style="display:inline-block;color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;font-size:10px;font-weight:800;vertical-align:1px">${rs.dir>0?'▲':'▼'}</span>`:' <span style="display:inline-block;opacity:.5;font-size:10px;vertical-align:1px" title="Сортировать">↕</span>';}
@@ -1993,12 +1993,20 @@ function regHeadRow(us,canEdit,showBlk,allSel){
  const nmH=(k,label,sortable)=>`<span class="th-name"${sortable!==false?` style="cursor:pointer" onclick="regSort('${k}')"`:''}>${esc(label)}${sortable!==false?regArrow(k):''}</span>`;
  const cell=(k,label,num,filt,sortable,cls)=>{const cc=[num?'num':'',cls||''].filter(Boolean).join(' ');return `<th${cc?` class="${cc}"`:''}><div class="th1r">${nmH(k,label,sortable)}${fn(k,filt)}</div></th>`;};
  const bud=lcrBudVis(),fac=lcrFacVis();const sp='<th class="grp-sp"></th>';
- /* Ряд 1 — заголовки групп «Бюджет» и «Факт» (сворачиваются); над остальными столбцами — пустые ячейки. */
- let r1='<tr class="grprow">';
- if(canEdit)r1+=sp;r1+=sp;if(showBlk)r1+=sp;r1+=sp+sp+sp;
- r1+=`<th class="grp-hd grp-bud" colspan="${bud.length}"><span onclick="regToggleGrp('bud')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Бюджет»">${S.regColBud?'▸':'▾'} Бюджет</span></th>`;
- r1+=`<th class="grp-hd grp-fac" colspan="${fac.length}"><span onclick="regToggleGrp('fac')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Факт»">${S.regColFac?'▸':'▾'} Факт</span></th>`;
- r1+=sp+sp+sp+sp;r1+='</tr>';
+ const bothCollapsed=S.regColBud&&S.regColFac;
+ /* Подписи свёрнутых итогов — коротко и понятно (как одна чистая строка заголовков в Базе брендов). */
+ const budLbl=c=>(S.regColBud&&c.k==='b_tots')?'Бюджет, $/мес':c.lbl;
+ const facLbl=c=>(S.regColFac&&c.k==='f_tots')?'Факт, $/мес':c.lbl;
+ /* Ряд 1 — цветные заголовки групп «Бюджет»/«Факт». Показываем ТОЛЬКО когда группы развёрнуты;
+    в компактном (свёрнутом) виде — одна чистая строка заголовков, без большой двухуровневой шапки. */
+ let r1='';
+ if(!bothCollapsed){
+  r1='<tr class="grprow">';
+  if(canEdit)r1+=sp;r1+=sp;if(showBlk)r1+=sp;r1+=sp+sp+sp;
+  r1+=`<th class="grp-hd grp-bud" colspan="${bud.length}"><span onclick="regToggleGrp('bud')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Бюджет»">${S.regColBud?'▸':'▾'} Бюджет</span></th>`;
+  r1+=`<th class="grp-hd grp-fac" colspan="${fac.length}"><span onclick="regToggleGrp('fac')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Факт»">${S.regColFac?'▸':'▾'} Факт</span></th>`;
+  r1+=sp+sp+sp+sp;r1+='</tr>';
+ }
  /* Ряд 2 — все листовые столбцы (имя + сортировка + фильтр-воронка). */
  let r2='<tr>';
  if(canEdit)r2+=`<th class="selcol"><input type="checkbox" ${allSel?'checked':''} onclick="regSelAll(this.checked)" title="Выбрать всё"></th>`;
@@ -2007,8 +2015,8 @@ function regHeadRow(us,canEdit,showBlk,allSel){
  r2+=cell('floor','Этаж',0,true);
  r2+=cell('cat','Категория',0,true);
  r2+=cell('area','м²',1,true);
- bud.forEach(c=>{r2+=cell(c.k,c.lbl,1,true,true,'grp-bud');});
- fac.forEach(c=>{r2+=cell(c.k,c.lbl,1,true,true,'grp-fac');});
+ bud.forEach(c=>{r2+=cell(c.k,budLbl(c),1,true,true,'grp-bud');});
+ fac.forEach(c=>{r2+=cell(c.k,facLbl(c),1,true,true,'grp-fac');});
  r2+=cell('vars','Варианты',0,true);
  r2+=cell('broker','Брокер',0,true);
  r2+=`<th><div class="th1r"><span class="th-name">Комментарий</span></div></th>`;
