@@ -1000,8 +1000,8 @@ ${counters}
 </body>
 </html>`;
 
-  // типографика проекта: длинные тире заменяются на короткие
-  return html.replace(/\u2014/g, '-');
+  // типографика проекта: никаких длинных/средних тире
+  return html.replace(/[\u2014\u2013]/g, '-');
 }
 
 function renderLanding2(cfg, { uploadsDir }) {

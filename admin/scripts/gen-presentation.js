@@ -23,6 +23,12 @@ const ru = (v) => String(typeof v === 'string' ? v : (v && v.ru) || '').replace(
 
 // GBA по уровням — из рабочей документации (в конфиге лендинга не хранится)
 const GBA = { b: '375,9', f1: '412,9', f2: '453,0', f3: '453,0', f4: '457,6' };
+// цветные CAD-листы для страниц планировок (fallback - units[].plan)
+const PLAN_CAD = { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2: 'plan-cad-f23.jpg', f3: 'plan-cad-f23.jpg', f4: 'plan-cad-f4.jpg' };
+const planImg = (u) => {
+  const cad = PLAN_CAD[u.id];
+  return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
+};
 const ELEV = { b: '—', f1: '±0.000', f2: '+4.300', f3: '+8.200', f4: '+12.100' };
 
 const img64 = (name) => {
@@ -82,7 +88,7 @@ async function main() {
     <h2>${esc(extraTitle || ru(u.level))}</h2>
     <div style="display:flex;gap:12mm;flex:1;min-height:0">
       <div style="flex:1.15;background:#fff;border-radius:5mm;padding:8mm;display:flex;align-items:center;justify-content:center">
-        <img src="${img64(u.plan)}" style="max-width:100%;max-height:138mm">
+        <img src="${img64(planImg(u))}" style="max-width:100%;max-height:138mm">
       </div>
       <div style="flex:.85;display:flex;flex-direction:column;gap:4mm;justify-content:center">
         ${[['GBA', (GBA[u.id] || '') + ' м²'], ['GLA', u.gla + ' м²' + (u.glaNote ? ' (' + u.glaNote + ')' : '')], ['Потолки (в свету)', u.ceil + ' м'], ['Отметка', ELEV[u.id] || '—'], ['Использование', ru(u.uses)]]
@@ -244,7 +250,8 @@ async function main() {
   </body></html>`;
 
   const htmlPath = path.join(__dirname, '..', 'tmp-presentation.html');
-  fs.writeFileSync(htmlPath, html);
+  // типографика: никаких длинных/средних тире нигде
+  fs.writeFileSync(htmlPath, html.replace(/[\u2014\u2013]/g, '-'));
 
   let chromium;
   try { ({ chromium } = require('playwright')); }
