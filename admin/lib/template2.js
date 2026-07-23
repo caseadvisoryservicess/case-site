@@ -467,10 +467,10 @@ if(lb){
 var dlBtn=document.getElementById('plan-dl');
 if(dlBtn)dlBtn.addEventListener('click',function(){ev('plan_download',{unit:dlBtn.dataset.unit||''})});
 
-/* ── карта: SDK/ссылка только по клику ── */
+/* ── карта: подгружается сама при приближении к блоку (LCP не страдает) ── */
 var mapbox=document.getElementById('mapbox'),mapLoaded=false;
-if(mapbox)mapbox.addEventListener('click',function(){
-  if(mapLoaded)return;
+function loadMap(){
+  if(mapLoaded||!mapbox)return;
   ev('map_open',{});
   if(!MAPS_KEY){
     /* без API-ключа: официальный встраиваемый виджет (Яндекс для RU/UZ, Google для EN) */
@@ -497,7 +497,15 @@ if(mapbox)mapbox.addEventListener('click',function(){
     });
   };
   document.head.appendChild(s);
-});
+}
+if(mapbox){
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(en,obs){
+      if(en[0].isIntersecting){obs.disconnect();loadMap()}
+    },{rootMargin:'600px'}).observe(mapbox);
+  }
+  mapbox.addEventListener('click',loadMap);
+}
 
 /* ── форма ── */
 var form=document.getElementById('enq-form');
@@ -872,7 +880,6 @@ ${counters}
       <div id="mapbox" class="mapbox" data-addr="${t(cfg.location.address)}" data-route="${s('loc.route.ya')}">
         <div class="map-grid-bg"></div>
         <svg class="pin" viewBox="0 0 44 56" fill="none"><path d="M22 0C9.85 0 0 9.85 0 22c0 15.4 22 34 22 34s22-18.6 22-34C44 9.85 34.15 0 22 0z" fill="#a8804c"/><circle cx="22" cy="21" r="8.5" fill="#fff"/></svg>
-        <div class="map-hint">${s('loc.open')}</div>
       </div>
       <div>
         <p class="loc-addr">${t(cfg.location.address)}</p>
