@@ -1,0 +1,63 @@
+# Автодеплой платформы CASE OS на хостинг (DirectAdmin, caseadvisory.uz) по FTP.
+#
+# Заливает ТОЛЬКО папку os/ в public_html/os/ — лендинг, admin и config.php не трогает.
+# Файлы с секретами/данными исключены (см. exclude ниже + .ftp-deploy-sync-state.json).
+#
+# ── Что нужно один раз добавить в GitHub ─────────────────────────────────────
+# Репозиторий → Settings → Secrets and variables → Actions → New repository secret:
+#   FTP_SERVER    — хост FTP, напр. ftp.caseadvisory.uz  (или IP 95.46.96.13)
+#   FTP_USERNAME  — логин FTP (напр. wwwcasea или отдельный FTP-аккаунт)
+#   FTP_PASSWORD  — пароль этого FTP-аккаунта
+# И одну переменную (Variables, не Secret) — путь на сервере до папки os/:
+#   FTP_SERVER_DIR — напр. /domains/caseadvisory.uz/public_html/os/
+#                    (если FTP уже открывается внутри public_html — то /os/)
+#
+# Запуск: вручную (вкладка Actions → Deploy CASE OS → Run workflow) ИЛИ
+# автоматически при пуше изменений в os/** в ветку main.
+
+name: Deploy CASE OS
+
+on:
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths: ['os/**']
+
+concurrency:
+  group: deploy-os
+  cancel-in-progress: true
+
+jobs:
+  ftp-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Guard — секреты заданы?
+        run: |
+          if [ -z "${{ secrets.FTP_SERVER }}" ] || [ -z "${{ secrets.FTP_USERNAME }}" ] || [ -z "${{ secrets.FTP_PASSWORD }}" ]; then
+            echo "::error::Не заданы FTP-секреты (FTP_SERVER / FTP_USERNAME / FTP_PASSWORD). Добавьте их в Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: FTP deploy os/ → public_html/os/
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          # Заливаем содержимое локальной папки os/ ...
+          local-dir: ./os/
+          # ... в папку os/ на сервере. Если пусто — задайте переменную FTP_SERVER_DIR.
+          server-dir: ${{ vars.FTP_SERVER_DIR || '/domains/caseadvisory.uz/public_html/os/' }}
+          # НИКОГДА не трогаем конфиг БД и данные/бэкапы на сервере:
+          exclude: |
+            **/config.php
+            **/*.sqlite
+            **/*.sqlite3
+            **/*_brands_test.xlsx
+            sql/backups/**
+            **/.git*
+            **/node_modules/**
