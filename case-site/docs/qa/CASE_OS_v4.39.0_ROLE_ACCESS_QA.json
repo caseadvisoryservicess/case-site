@@ -1,0 +1,256 @@
+{
+  "suite": "CASE OS role access QA (browser, все роли)",
+  "date": "2026-07-24",
+  "total": 54,
+  "pass": 54,
+  "fail": 0,
+  "results": [
+    {
+      "test": "демо: список ролей получен",
+      "status": "PASS",
+      "info": "ASH,ADM,BA,AG,AGX,HO,BSH,HM,CFO,BRJ"
+    },
+    {
+      "test": "роль ASH: вход выполнен, меню 41 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль ASH: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль ASH: «users» доступен админу",
+      "status": "PASS",
+      "info": "landed=users"
+    },
+    {
+      "test": "роль ASH: «admin_modules» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_modules"
+    },
+    {
+      "test": "роль ASH: «admin_system» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_system"
+    },
+    {
+      "test": "роль ADM: вход выполнен, меню 41 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль ADM: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль ADM: «users» доступен админу",
+      "status": "PASS",
+      "info": "landed=users"
+    },
+    {
+      "test": "роль ADM: «admin_modules» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_modules"
+    },
+    {
+      "test": "роль ADM: «admin_system» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_system"
+    },
+    {
+      "test": "роль BA: вход выполнен, меню 26 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BA: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BA: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BA: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BA: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AG: вход выполнен, меню 22 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль AG: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль AG: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AG: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AG: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AGX: вход выполнен, меню 4 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль AGX: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль AGX: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AGX: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AGX: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль AGX (внешний агент): map/bench скрыты",
+      "status": "PASS"
+    },
+    {
+      "test": "роль HO: вход выполнен, меню 18 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль HO: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль HO: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль HO: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль HO: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BSH: вход выполнен, меню 24 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BSH: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BSH: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BSH: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BSH: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль HM: вход выполнен, меню 29 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль HM: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль HM: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль HM: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль HM: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль CFO: вход выполнен, меню 41 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль CFO: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль CFO: «users» доступен админу",
+      "status": "PASS",
+      "info": "landed=users"
+    },
+    {
+      "test": "роль CFO: «admin_modules» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_modules"
+    },
+    {
+      "test": "роль CFO: «admin_system» доступен админу",
+      "status": "PASS",
+      "info": "landed=admin_system"
+    },
+    {
+      "test": "роль BRJ: вход выполнен, меню 1 пунктов",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BRJ: все пункты меню разрешены её workspace",
+      "status": "PASS"
+    },
+    {
+      "test": "роль BRJ: «users» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BRJ: «admin_modules» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BRJ: «admin_system» закрыт",
+      "status": "PASS",
+      "info": "landed=dash"
+    },
+    {
+      "test": "роль BRJ (только бренды): в меню только «brands»",
+      "status": "PASS"
+    },
+    {
+      "test": "console: нет ошибок страницы за весь прогон",
+      "status": "PASS"
+    }
+  ]
+}

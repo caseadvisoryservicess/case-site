@@ -194,7 +194,7 @@
     var nav=document.getElementById('nav');if(!nav)return;
     var allowed=effectiveViews(),out='';
     GROUP_ORDER.forEach(function(g){
-      var items=MODULES.filter(function(m){return m.nav&&m.g===g&&allowed.indexOf(m.v)>=0;});
+      var items=MODULES.filter(function(m){return m.nav&&!m.future&&m.g===g&&allowed.indexOf(m.v)>=0;}); /* v4.39: модули-заглушки (future) убраны из меню — они дорожная карта, а не рабочие разделы; управлять ими можно в админке рабочих пространств */
       try{if(typeof R==='function'&&R().brandsOnly)items=items.filter(function(m){return m.v==='brands';});}catch(e){} /* v4.35 (роли): «только бренды» — правило ядра, потерянное при переходе на групповое меню */
       if(!items.length)return;
       var active=items.some(function(m){return S&&S.view===m.v;});

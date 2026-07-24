@@ -84,7 +84,7 @@
       ['data_quality','✓','Качество данных','Проверка, источники, дубли, confidence и дата обновления.','План']
     ];
     var html=cards.filter(function(c){return !window.caseFeatureEnabled||window.caseFeatureEnabled(c[0]);}).map(function(c){var state=window.caseFeatureStatus?window.caseFeatureStatus(c[0]):'active',tag=state==='beta'?'BETA':c[4];return '<button class="case-hub-card" onclick="go(\''+c[0]+'\')"><span class="case-hub-icon">'+c[1]+'</span><span><b>'+h(c[2])+'</b><small>'+h(c[3])+'</small></span><em class="'+(tag==='Доступно'?'live':'')+'">'+tag+'</em></button>';}).join('');
-    return pageShell('Центр аналитики','Единая аналитика для Advisory, Leasing, Management и будущих подписчиков CASE Intelligence.','<div class="case-hub-grid">'+html+'</div><div class="card"><h3>Принцип новой аналитики</h3><p style="margin:0;color:var(--muted);font-size:12px">Сравнение стран больше не является отдельным разовым разделом. Оно войдёт в редактируемую макроэкономику. Аналитика будет работать по всем категориям недвижимости и бизнеса, а каждый показатель получит источник, период, дату обновления и статус проверки.</p></div>');
+    return pageShell('Центр аналитики','Единая аналитика для Advisory, Leasing, Management и будущих подписчиков CASE Intelligence.','<div class="case-hub-grid">'+html+'</div><div class="card"><h3>Принцип новой аналитики</h3><p style="margin:0;color:var(--muted);font-size:12px">Макроэкономика и сравнение рынков — внутри геоаналитики.</p></div>');
   }
 
   function renderRoute(v){if(v==='case_projects')return renderProjects();if(v==='analytics_hub')return analyticsHub();return plannedPage(v);}

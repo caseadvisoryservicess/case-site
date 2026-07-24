@@ -1,0 +1,1144 @@
+{
+ "total": 89,
+ "flagged": 44,
+ "flaggedList": [
+  {
+   "view": "project_handover",
+   "ru": "Передача между отделами",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "project_contracts",
+   "ru": "Договоры проектов",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "advisory_research",
+   "ru": "Исследование рынка",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "advisory_concept",
+   "ru": "Концепция",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "advisory_area",
+   "ru": "Программа площадей",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "advisory_business_plan",
+   "ru": "Бизнес-план",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "mep",
+   "ru": "MEP / техзадание",
+   "future": false,
+   "landed": "mep",
+   "chars": 53,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "lift",
+   "ru": "Расчёт лифтов",
+   "future": false,
+   "landed": "lift",
+   "chars": 47,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "leasing_opening",
+   "ru": "Контроль открытий",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "manage_portfolio",
+   "ru": "Портфель объектов",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "facility_management",
+   "ru": "Эксплуатация (Facility Management)",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "equipment_registry",
+   "ru": "Оборудование и MEP",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "maintenance",
+   "ru": "Заявки и обслуживание",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "tenant_contracts",
+   "ru": "Арендаторы и договоры",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "asset_management",
+   "ru": "Управление активами (Asset Management)",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "property_budget",
+   "ru": "Бюджет объекта",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "noi_performance",
+   "ru": "NOI и эффективность",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "capex_management",
+   "ru": "CAPEX",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "owner_reports",
+   "ru": "Отчёты собственнику",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_dashboard",
+   "ru": "Финансовый дашборд CASE",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_income",
+   "ru": "Доходы компании",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_expenses",
+   "ru": "Расходы компании",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_invoices",
+   "ru": "Счета и платежи",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_receivables",
+   "ru": "Дебиторская задолженность",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_payables",
+   "ru": "Кредиторская задолженность",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_treasury",
+   "ru": "Казначейство и денежный поток",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_payroll",
+   "ru": "Зарплаты, бонусы и комиссии",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_project_pnl",
+   "ru": "Прибыльность проектов",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_department_pnl",
+   "ru": "P&L бизнес-направлений",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "finance_budget",
+   "ru": "Бюджет и план-факт",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "map",
+   "ru": "Гео: наши проекты",
+   "future": false,
+   "landed": "geoanalytics",
+   "chars": 1150,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Heat map\nMarket data",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "market_data",
+   "ru": "Рыночные данные",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "macro_data",
+   "ru": "Макроэкономика",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "data_quality",
+   "ru": "Качество и источники данных",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "data_import_export",
+   "ru": "Импорт и экспорт данных",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "product_intelligence",
+   "ru": "CASE Intelligence",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "product_market",
+   "ru": "CASE Market",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "product_living",
+   "ru": "CASE Living",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "product_manage",
+   "ru": "CASE Manage",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "product_subscriptions",
+   "ru": "Подписки и биллинг",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "admin_system",
+   "ru": "Система (журнал, бэкапы, корзина)",
+   "future": false,
+   "landed": "admin_system",
+   "chars": 1284,
+   "longParagraphs": 1,
+   "longSample": "Частичный сброс — удаляет объекты, помещения, планировки, документы, журналы, но сохраняет базу брендов и бенч",
+   "latinRuns": [],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "admin_workflows",
+   "ru": "Процессы и согласования",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "admin_directories",
+   "ru": "Справочники и категории",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  },
+  {
+   "view": "admin_integrations",
+   "ru": "Интеграции",
+   "future": true,
+   "landed": "dash",
+   "chars": 5355,
+   "longParagraphs": 0,
+   "longSample": "",
+   "latinRuns": [
+    "Zarafshan Mall\nSaaS",
+    "Mega House Giotto",
+    "Mega House Giotto"
+   ],
+   "placeholder": false,
+   "jsErrors": []
+  }
+ ],
+ "all": [
+  {
+   "v": "dash",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "crm_clients",
+   "chars": 287,
+   "lp": 0
+  },
+  {
+   "v": "case_projects",
+   "chars": 865,
+   "lp": 0
+  },
+  {
+   "v": "v32_action",
+   "chars": 1110,
+   "lp": 0
+  },
+  {
+   "v": "dates",
+   "chars": 1112,
+   "lp": 0
+  },
+  {
+   "v": "work_tasks",
+   "chars": 608,
+   "lp": 0
+  },
+  {
+   "v": "work_kanban",
+   "chars": 608,
+   "lp": 0
+  },
+  {
+   "v": "workload",
+   "chars": 3049,
+   "lp": 0
+  },
+  {
+   "v": "work_approvals",
+   "chars": 133,
+   "lp": 0
+  },
+  {
+   "v": "project_workspace",
+   "chars": 717,
+   "lp": 0
+  },
+  {
+   "v": "project_layouts",
+   "chars": 487,
+   "lp": 0
+  },
+  {
+   "v": "project_handover",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "project_contracts",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "docs",
+   "chars": 4654,
+   "lp": 0
+  },
+  {
+   "v": "advisory_pipeline",
+   "chars": 361,
+   "lp": 0
+  },
+  {
+   "v": "advisory_proposal_builder",
+   "chars": 4385,
+   "lp": 0
+  },
+  {
+   "v": "advisory_proposals",
+   "chars": 366,
+   "lp": 0
+  },
+  {
+   "v": "advisory_portfolio_map",
+   "chars": 8655,
+   "lp": 0
+  },
+  {
+   "v": "advisory_contracts",
+   "chars": 306,
+   "lp": 0
+  },
+  {
+   "v": "advisory_scope",
+   "chars": 543,
+   "lp": 0
+  },
+  {
+   "v": "advisory_delivery",
+   "chars": 717,
+   "lp": 0
+  },
+  {
+   "v": "advisory_reports",
+   "chars": 361,
+   "lp": 0
+  },
+  {
+   "v": "advisory_cross_sell",
+   "chars": 230,
+   "lp": 0
+  },
+  {
+   "v": "advisory_research",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "advisory_concept",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "advisory_area",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "feasibility",
+   "chars": 424,
+   "lp": 0
+  },
+  {
+   "v": "advisory_business_plan",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "mep",
+   "chars": 53,
+   "lp": 0
+  },
+  {
+   "v": "lift",
+   "chars": 47,
+   "lp": 0
+  },
+  {
+   "v": "leasing_portfolio_map",
+   "chars": 4463,
+   "lp": 0
+  },
+  {
+   "v": "plans",
+   "chars": 1009,
+   "lp": 0
+  },
+  {
+   "v": "plan_master",
+   "chars": 446,
+   "lp": 0
+  },
+  {
+   "v": "registry",
+   "chars": 4357,
+   "lp": 0
+  },
+  {
+   "v": "v32_sales",
+   "chars": 384,
+   "lp": 0
+  },
+  {
+   "v": "brands",
+   "chars": 1731,
+   "lp": 0
+  },
+  {
+   "v": "v32_demand",
+   "chars": 1113,
+   "lp": 0
+  },
+  {
+   "v": "v32_partners",
+   "chars": 510,
+   "lp": 0
+  },
+  {
+   "v": "v326_lease",
+   "chars": 610,
+   "lp": 0
+  },
+  {
+   "v": "leasing_opening",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "v32_requests",
+   "chars": 657,
+   "lp": 0
+  },
+  {
+   "v": "v32_investors",
+   "chars": 1068,
+   "lp": 0
+  },
+  {
+   "v": "leasing_layouts",
+   "chars": 487,
+   "lp": 0
+  },
+  {
+   "v": "manage_portfolio",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "facility_management",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "equipment_registry",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "maintenance",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "tenant_contracts",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "asset_management",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "property_budget",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "noi_performance",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "capex_management",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "owner_reports",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "v326_suppliers",
+   "chars": 942,
+   "lp": 0
+  },
+  {
+   "v": "finance_dashboard",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_income",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_expenses",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_invoices",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_receivables",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_payables",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_treasury",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_payroll",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_project_pnl",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_department_pnl",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "finance_budget",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "map",
+   "chars": 1150,
+   "lp": 0
+  },
+  {
+   "v": "geoanalytics",
+   "chars": 1836,
+   "lp": 0
+  },
+  {
+   "v": "analytics_hub",
+   "chars": 424,
+   "lp": 0
+  },
+  {
+   "v": "market_data",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "macro_data",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "bench",
+   "chars": 863,
+   "lp": 0
+  },
+  {
+   "v": "data_quality",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "data_import_export",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "product_intelligence",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "product_market",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "product_living",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "product_manage",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "product_subscriptions",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "kpi",
+   "chars": 2046,
+   "lp": 0
+  },
+  {
+   "v": "org",
+   "chars": 481,
+   "lp": 0
+  },
+  {
+   "v": "study",
+   "chars": 597,
+   "lp": 0
+  },
+  {
+   "v": "rating",
+   "chars": 938,
+   "lp": 0
+  },
+  {
+   "v": "users",
+   "chars": 9750,
+   "lp": 0
+  },
+  {
+   "v": "admin_modules",
+   "chars": 7390,
+   "lp": 0
+  },
+  {
+   "v": "admin_system",
+   "chars": 1284,
+   "lp": 1
+  },
+  {
+   "v": "document_templates",
+   "chars": 353,
+   "lp": 0
+  },
+  {
+   "v": "admin_workflows",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "admin_directories",
+   "chars": 5355,
+   "lp": 0
+  },
+  {
+   "v": "admin_integrations",
+   "chars": 5355,
+   "lp": 0
+  }
+ ]
+}

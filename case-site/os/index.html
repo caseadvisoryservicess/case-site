@@ -469,7 +469,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.38.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.39.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -954,8 +954,7 @@ Object.assign(ENMAP,{
  "Менеджер по консалтингу":"Advisory Manager","Финансовый директор":"CFO",
  "Ген. директор":"CEO","Дир. аренды":"Leasing Dir.","Адм. аренды":"Lease Adm.","Консультант":"Advisor","Финдиректор":"CFO","Админ":"Admin",
  "+ Добавить сотрудника":"+ Add employee",
- "Обновление базы данных":"Database update","После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.":"After updating the platform files (new version), click this button once — it applies only new database structure/data changes. Already-applied ones are skipped, no data is lost.",
- "⇪ Применить миграции":"⇪ Apply migrations","Применяю…":"Applying…","Новых миграций нет — база уже актуальна.":"No new migrations — the database is already up to date.","Применено: ":"Applied: ","миграции":"migrations"
+ "Обновление базы данных":"Database update","После обновления версии платформы нажмите один раз — применятся только новые миграции базы.":"After a platform update click once — only new database migrations are applied.","Новых миграций нет — база уже актуальна.":"No new migrations — the database is already up to date.","Применено: ":"Applied: ","миграции":"migrations"
 });
 
 const UZMAP={'Чат компании':'Kompaniya chati','Личные сообщения':'Shaxsiy xabarlar','Общий чат':'Umumiy chat','Сообщений пока нет — напишите первым!':'Hozircha xabar yoʻq — birinchi boʻlib yozing!','Начните личную переписку.':'Shaxsiy yozishmani boshlang.','сообщения не удаляются · правка своих 5 мин':'xabarlar oʻchirilmaydi · oʻzingiznikini 5 daqiqa ichida tahrirlash','Прикрепить файл (до 10 МБ)':'Fayl biriktirish (10 MB gacha)','Свернуть':'Yigʻish','изменить (5 мин)':'tahrirlash (5 daq)','Сотрудник':'Xodim','Стаж, дн.':'Staj, kun','Сделки':'Bitimlar','ИТОГО':'JAMI','Квиз':'Kviz','Логика':'Mantiq','Поиск по материалам…':'Materiallar boʻyicha qidiruv…','Все статусы':'Barcha statuslar','Сначала новые':'Avval yangilari','По названию':'Nomi boʻyicha','Сбросить':'Tozalash','Ответственный':'Masʼul','Посл. контакт':'Oxirgi aloqa','Дубликаты':'Dublikatlar','Прикрепить к проекту':'Loyihaga biriktirish','снять выделение':'belgilashni olib tashlash','Скачать карточку (PDF)':'Kartochkani yuklab olish (PDF)','Уровень (цена / бренд)':'Daraja (narx / brend)','Группа / холдинг':'Guruh / xolding','Последний контакт':'Oxirgi aloqa','контакт сегодня':'bugun aloqa','Подбор арендаторов':'Ijarachilarni tanlash','В шорт-лист':'Short-listga','В варианты':'Variantlarga','Показать все':'Hammasini koʻrsatish','Только по категориям':'Faqat kategoriyalar boʻyicha','Редактировать помещение':'Xonani tahrirlash','Таблица':'Jadval','Канбан':'Kanban','Цели KPI по должностям':'Lavozimlar boʻyicha KPI maqsadlari','строка агента':'agent qatori','Касания':'Aloqalar','Встречи':'Uchrashuvlar','Показы':'Koʻrsatuvlar','Подписано':'Imzolangan','Наверх':'Yuqoriga',
@@ -1071,7 +1070,7 @@ Object.assign(UZMAP,{
  'Менеджер по консалтингу':'Konsalting menejeri','Финансовый директор':'Moliya direktori',
  'Ген. директор':'Bosh dir.','Дир. аренды':'Ijara dir.','Адм. аренды':'Ijara adm.','Консультант':'Konsultant','Финдиректор':'Moliya dir.','Админ':'Administrator',
  '+ Добавить сотрудника':'+ Xodim qoʻshish',
- 'Обновление базы данных':'Bazani yangilash','После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.':'Platforma fayllari yangilangandan soʻng (yangi versiya) bu tugmani bir marta bosing — faqat yangi baza oʻzgarishlari qoʻllaniladi. Allaqachon qoʻllanilganlari oʻtkazib yuboriladi, maʼlumotlar yoʻqolmaydi.',
+ 'Обновление базы данных':'Bazani yangilash','После обновления версии платформы нажмите один раз — применятся только новые миграции базы.':'Platforma fayllari yangilangandan soʻng (yangi versiya) bu tugmani bir marta bosing — faqat yangi baza oʻzgarishlari qoʻllaniladi. Allaqachon qoʻllanilganlari oʻtkazib yuboriladi, maʼlumotlar yoʻqolmaydi.',
  '⇪ Применить миграции':'⇪ Migratsiyalarni qoʻllash','Применяю…':'Qoʻllanmoqda…','Новых миграций нет — база уже актуальна.':'Yangi migratsiya yoʻq — baza allaqachon dolzarb.','Применено: ':'Qoʻllandi: ','миграции':'migratsiyalar'
 });
 /* доперевод: строки, найденные автопроверкой локализации (v2.20) */
@@ -3486,7 +3485,7 @@ function renderRating(){
   {k:'total',label:'ИТОГО',get:r=>r.total,num:true,sortable:true,render:r=>`<b>${r.total}</b>`}
  ];
  const tbl=rows.length?buildTable('rating_tbl',cols,rows,{rowClick:r=>`openRatingCard('${esc(r.uk)}')`}):'<div style="color:var(--muted)">Пока нет данных — рейтинг наполняется из квиз-тестов, курсов и профилей.</div>';
- $('main').innerHTML=`<div class="ph"><h1>${t('rating')} сотрудников</h1></div><p class="sub">Баллы: квиз (точность+объём, до 100) · логика (до 20) · курсы базы знаний (15 за сертификат, до 150) · языки (5×уровень, до 60) · навыки (2×уровень, до 60) · выслуга (10 за год, по дням, до 100) · сделки (до 100). Клик по строке — карточка, клик по заголовку — сортировка.</p><div class="card"><h3>Таблица лидеров ${canEdit?'<span class="mut">языки, навыки и дату приёма заполняет администратор в карточке</span>':''}</h3>${tbl}</div>${footNote()}`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('rating')} сотрудников</h1></div><p class="sub">Баллы: квиз · логика · курсы · языки · навыки · выслуга · активность (детали — по наведению на колонку)</p><div class="card"><h3>Таблица лидеров ${canEdit?'<span class="mut">языки, навыки и дату приёма заполняет администратор в карточке</span>':''}</h3>${tbl}</div>${footNote()}`;
 }
 function openRatingCard(uk){const rows=ratingRows();const r=rows.find(x=>x.uk===uk);if(!r)return;const canEdit=R().admin;
  const hp=hrOf(uk,r.name);
@@ -3566,7 +3565,7 @@ function renderUsersBackend(){
  if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
 function backupCard(){if(!R().admin)return '';return `<div class="card" id="backupCard"><h3>Резервные копии базы <span class="mut">ежедневный автоматический бэкап</span></h3>
- <p style="font-size:12.5px;color:#555;margin:4px 0 10px">Бэкап сохраняет ВСЮ базу (структуру + данные) в защищённую папку на сервере, скачать может только администратор. Для автоматического ежедневного запуска настройте один раз <b>Cron Job</b> в панели хостинга (см. кнопку «Как настроить ежедневный запуск» ниже).</p>
+ <p style="font-size:12.5px;color:#555;margin:4px 0 10px">Бэкап — полная копия базы в защищённой папке на сервере; скачивание и восстановление — только администратор.</p>
  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sm" onclick="runBackupNow()">💾 Создать бэкап сейчас</button><button class="btn ghost sm" onclick="showCronHelp()">⏱ Как настроить ежедневный запуск</button></div>
  <div id="backupList" style="font-size:12.5px;color:var(--muted)">Загрузка списка…</div>
  </div>`;}
@@ -3577,7 +3576,7 @@ function renderBackupList(list){const el=$('backupList');if(!el)return;if(!list.
 async function restoreBackup(name){if(!R().admin)return;if(!confirm('ВОССТАНОВИТЬ базу из «'+name+'»?\n\nВся текущая база (пользователи, помещения, документы, настройки) будет ЗАМЕНЕНА содержимым этой копии. Перед заменой сервер автоматически сохранит снимок текущей базы для отката.\n\nПродолжить?'))return;if(!confirm('Подтвердите ещё раз: восстановить базу из «'+name+'»? Действие необратимо без снимка отката.'))return;try{const j=await apiPOST0('backup.php?action=restore',{name:name});alert('База восстановлена из «'+name+'».\nСнимок отката сохранён: '+(j.snapshot||'—')+'\n\nСтраница будет перезагружена.');location.reload();}catch(e){alert('Ошибка восстановления: '+(e&&e.message||e));}}
 async function runBackupNow(){const btn=event&&event.target;if(btn)btn.disabled=true;try{const j=await apiPOST0('backup.php');renderBackupList(j.backups||[]);alert('Бэкап создан: '+j.file);}catch(e){alert('Ошибка бэкапа: '+(e&&e.message||e));}finally{if(btn)btn.disabled=false;}}
 function migrationsCard(){if(!R().admin)return '';return `<div class="card"><h3>Обновление базы данных <span class="mut">миграции</span></h3>
- <p style="font-size:12.5px;color:#555;margin:4px 0 10px">После обновления файлов платформы (новая версия) нажмите эту кнопку один раз — применит только новые изменения структуры/данных базы. Уже применённые пропускаются, данные не теряются.</p>
+ <p style="font-size:12.5px;color:#555;margin:4px 0 10px">После обновления версии платформы нажмите один раз — применятся только новые миграции базы.</p>
  <button class="btn sm" onclick="runMigrations()">⇪ Применить миграции</button>
  <button class="btn ghost sm" style="margin-left:6px" onclick="runDbDiag()">🩺 Диагностика базы</button>
  <div id="migResult" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
@@ -4288,12 +4287,12 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
-<script src="v3520-workspaces.js?v=4.37.0" defer></script>
+<script src="v3520-workspaces.js?v=4.39.0" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
 <script src="v420-geoanalytics.js?v=4.32.7" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
 <script src="v450-guides.js?v=4.32.7" defer></script>
-<script src="v490-caseos.js?v=4.32.7" defer></script>
+<script src="v490-caseos.js?v=4.39.0" defer></script>
 <script src="v490-workflow.js?v=4.32.7" defer></script>
 <script src="v492-portfolio-proposals.js?v=4.32.7" defer></script>
 <script src="data/case_portfolio.seed.js?v=4.32.7" defer></script>
