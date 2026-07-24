@@ -792,24 +792,24 @@
       {
         "n": "1 882,9",
         "l": {
-          "ru": "м² GLA всего",
-          "uz": "m² umumiy GLA",
+          "ru": "м² арендопригодной площади (GLA)",
+          "uz": "m² ijaraga yaroqli maydon (GLA)",
           "en": "m² total GLA"
         }
       },
       {
         "n": "2 152,4",
         "l": {
-          "ru": "м² GBA всего",
-          "uz": "m² umumiy GBA",
+          "ru": "м² общей площади (GBA)",
+          "uz": "m² umumiy maydon (GBA)",
           "en": "m² total GBA"
         }
       },
       {
         "n": "337–396",
         "l": {
-          "ru": "м² GLA на этаж",
-          "uz": "m² GLA har qavatda",
+          "ru": "м² на этаж (GLA)",
+          "uz": "m² har qavatda (GLA)",
           "en": "m² GLA per floor"
         }
       },
@@ -827,8 +827,8 @@
     {
       "n": "1 882,9",
       "l": {
-        "ru": "м² GLA всего",
-        "uz": "m² umumiy GLA",
+        "ru": "м² арендопригодной площади (GLA)",
+        "uz": "m² ijaraga yaroqli maydon (GLA)",
         "en": "m² total GLA"
       }
     },
@@ -887,7 +887,7 @@
       "id": "b",
       "lvlShort": "−1",
       "gla": "337,4",
-      "plan": "plan-b.svg",
+      "plan": "plan-cad-b.jpg",
       "level": {
         "ru": "Подвал",
         "uz": "Podval",
@@ -899,13 +899,14 @@
         "en": "services, showroom, support functions"
       },
       "status": "available",
-      "ceil": "3,0"
+      "ceil": "3,0",
+      "gba": "375,9"
     },
     {
       "id": "f1",
       "lvlShort": "1",
       "gla": "358,7",
-      "plan": "plan-f1.svg",
+      "plan": "plan-cad-f1.jpg",
       "level": {
         "ru": "1 этаж",
         "uz": "1-qavat",
@@ -917,13 +918,14 @@
         "en": "showroom, services, clinic reception"
       },
       "status": "available",
-      "ceil": "4,0"
+      "ceil": "4,0",
+      "gba": "412,9"
     },
     {
       "id": "f2",
       "lvlShort": "2",
       "gla": "395,6",
-      "plan": "plan-f2.svg",
+      "plan": "plan-cad-f23.jpg",
       "level": {
         "ru": "2 этаж",
         "uz": "2-qavat",
@@ -935,13 +937,14 @@
         "en": "clinic, office, training center"
       },
       "status": "available",
-      "ceil": "3,6"
+      "ceil": "3,6",
+      "gba": "453,0"
     },
     {
       "id": "f3",
       "lvlShort": "3",
       "gla": "395,6",
-      "plan": "plan-f3.svg",
+      "plan": "plan-cad-f23.jpg",
       "level": {
         "ru": "3 этаж",
         "uz": "3-qavat",
@@ -953,14 +956,15 @@
         "en": "clinic, office, training center"
       },
       "status": "available",
-      "ceil": "3,6"
+      "ceil": "3,6",
+      "gba": "453,0"
     },
     {
       "id": "f4",
       "lvlShort": "4",
       "gla": "395,6",
       "glaNote": "314,2 + 101,8",
-      "plan": "plan-f4.svg",
+      "plan": "plan-cad-f4.jpg",
       "level": {
         "ru": "4 этаж",
         "uz": "4-qavat",
@@ -972,7 +976,8 @@
         "en": "office, training center"
       },
       "status": "available",
-      "ceil": "3,0"
+      "ceil": "3,0",
+      "gba": "457,6"
     },
     {
       "id": "all",
@@ -989,7 +994,8 @@
         "uz": "klinika, o'quv markazi, bosh ofis — bino bitta brend uchun",
         "en": "clinic, training center, headquarters — the building under one brand"
       },
-      "status": "available"
+      "status": "available",
+      "gba": "2 152,4"
     }
   ],
   "useCases": {
@@ -1149,14 +1155,26 @@
       },
       {
         "b": {
-          "ru": "GLA",
-          "uz": "GLA",
+          "ru": "Арендопригодная площадь (GLA)",
+          "uz": "Ijaraga yaroqli maydon (GLA)",
           "en": "GLA"
         },
         "s": {
           "ru": "1 882,9 м²",
           "uz": "1 882,9 m²",
           "en": "1,882.9 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Общая площадь (GBA)",
+          "uz": "Umumiy maydon (GBA)",
+          "en": "GBA"
+        },
+        "s": {
+          "ru": "2 152,4 м²",
+          "uz": "2 152,4 m²",
+          "en": "2,152.4 m²"
         }
       },
       {

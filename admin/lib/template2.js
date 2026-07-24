@@ -49,7 +49,13 @@ const STR = {
   'intent.buy': { ru: 'Покупка', uz: 'Sotib olish', en: 'Purchase' },
   'hero.cta': { ru: 'Подобрать помещение', uz: 'Maydon tanlash', en: 'Find your space' },
   'units.th.level': { ru: 'Уровень', uz: 'Daraja', en: 'Level' },
-  'units.th.gla': { ru: 'GLA', uz: 'GLA', en: 'GLA' },
+  'units.th.gla': { ru: 'Арендная площадь (GLA)', uz: 'Ijara maydoni (GLA)', en: 'GLA' },
+  'units.gba': { ru: 'общая площадь (GBA)', uz: 'umumiy maydon (GBA)', en: 'GBA' },
+  'legal.area': {
+    ru: 'Арендопригодная (GLA) и общая (GBA) площади указаны по рабочей документации и подлежат уточнению по фактическим обмерам при сдаче здания и помещений. Информация на странице носит справочный характер и не является публичной офертой.',
+    uz: 'Ijaraga yaroqli (GLA) va umumiy (GBA) maydonlar ish hujjatlari asosida ko‘rsatilgan bo‘lib, bino va maydonlar topshirilganda amaldagi o‘lchovlar asosida aniqlashtiriladi. Sahifadagi ma’lumotlar tavsiya xarakteriga ega va ommaviy oferta hisoblanmaydi.',
+    en: 'Leasable (GLA) and gross (GBA) areas are based on working documentation and are subject to final on-site remeasurement upon handover of the building or premises. The information on this page is for reference only and does not constitute a public offer.'
+  },
   'units.th.uses': { ru: 'Возможное использование', uz: 'Mumkin bo‘lgan foydalanish', en: 'Suggested use' },
   'units.th.status': { ru: 'Статус', uz: 'Holat', en: 'Status' },
   'units.cta': { ru: 'Запросить условия', uz: 'Shartlarni so‘rash', en: 'Request terms' },
@@ -144,10 +150,10 @@ function sectionCut(cfg, lang) {
   const band = (u) => {
     const h = Math.max(30, Math.round(ceilM(u) * PXM + 12));
     const cy = y + (h - 3) / 2 + 4;
-    bands.push(`<g class="cut-f${isBelow(u) ? ' cut-below' : ''}" id="sec-${esc(u.id)}" data-unit="${esc(u.id)}" tabindex="0" role="button" aria-label="${esc(pick(u.level, lang))} · GLA ${esc(u.gla)} м²">
+    bands.push(`<g class="cut-f${isBelow(u) ? ' cut-below' : ''}" id="sec-${esc(u.id)}" data-unit="${esc(u.id)}" tabindex="0" role="button" aria-label="${esc(pick(u.level, lang))} · GLA ${esc(u.gla)} м²${u.gba ? ` · GBA ${esc(u.gba)} м²` : ''}">
 <rect x="${INX}" y="${y}" width="${BW}" height="${h - 3}" rx="2"/>
 <text class="cut-lvl" x="${INX + 15}" y="${cy}">${esc(u.lvlShort)}</text>
-<text class="cut-gla" x="${INX + BW - 15}" y="${cy}" text-anchor="end">${esc(u.gla)} м²</text>
+<text class="cut-gla" x="${INX + BW - 15}" y="${cy}" text-anchor="end">GLA ${esc(u.gla)} м²</text>
 </g>`);
     y += h;
   };
@@ -220,6 +226,7 @@ body[data-intent="lease"] .intent button[data-i="lease"],body[data-intent="buy"]
 .params span{font:500 12.5px/1.4 system-ui;opacity:.72}
 /* units */
 .units-note{color:var(--muted);font-size:14.5px;max-width:720px;margin:26px 0 0}
+.fineprint{margin:14px 0 0;font-size:12px;color:var(--muted);max-width:760px;opacity:.9}
 .lvl-picker{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 22px}
 .lvl-picker button{min-width:52px;padding:12px 16px;border:1.5px solid var(--line);background:#fff;border-radius:12px;font:750 16px/1 system-ui;color:var(--ink);cursor:pointer}
 .lvl-picker button.on{border-color:var(--bronze);background:var(--bronze);color:#fff}
@@ -519,7 +526,7 @@ function selectUnit(id,fire){
     if(img)img.hidden=!on;
     if(on){
       var meta=document.getElementById('plan-meta');
-      if(meta)meta.textContent=u.label+' · GLA '+u.gla+' м²'+(u.ceil?' · '+CEIL_LBL+' '+u.ceil+' м':'');
+      if(meta)meta.textContent=u.label+' · GLA '+u.gla+' м²'+(u.gba?' · GBA '+u.gba+' м²':'')+(u.ceil?' · '+CEIL_LBL+' '+u.ceil+' м':'');
       var dl=document.getElementById('plan-dl');
       if(dl){
         if(u.planUrl){dl.hidden=false;dl.href=u.planUrl;dl.setAttribute('download',u.planName||'');dl.dataset.unit=u.id}
@@ -886,7 +893,7 @@ function renderPage(cfg, lang, uploadsDir) {
       : '<span class="muted">—</span>';
     return `<tr id="row-${esc(u.id)}"${u.whole ? ' class="row-whole"' : ''}>
       <td class="td-lvl"><b>${t(u.level)}</b><span class="st-m st ${esc(u.status || 'available')}">${stLabel(u.status)}</span></td>
-      <td class="td-gla"><b class="gla">${esc(u.gla)} м²</b>${u.glaNote ? `<span class="gla-note">${esc(u.glaNote)}</span>` : ''}${u.ceil ? `<span class="gla-note">${s('units.ceil')} ${esc(u.ceil)} м</span>` : ''}</td>
+      <td class="td-gla"><b class="gla">${esc(u.gla)} м²</b>${u.glaNote ? `<span class="gla-note">${esc(u.glaNote)}</span>` : ''}${u.gba ? `<span class="gla-note">${s('units.gba')} ${esc(u.gba)} м²</span>` : ''}${u.ceil ? `<span class="gla-note">${s('units.ceil')} ${esc(u.ceil)} м</span>` : ''}</td>
       <td class="uses-cell">${t(u.uses)}</td>
       <td class="td-st"><span class="st ${esc(u.status || 'available')}">${stLabel(u.status)}</span></td>
       <td class="td-cta">${cta}</td>
@@ -905,7 +912,7 @@ function renderPage(cfg, lang, uploadsDir) {
 
   const unitsJson = JSON.stringify((cfg.units || []).map((u) => ({
     id: u.id, ru: pick(u.level, 'ru'),
-    label: pick(u.level, lang), gla: u.gla || '', ceil: u.ceil || '',
+    label: pick(u.level, lang), gla: u.gla || '', gba: u.gba || '', ceil: u.ceil || '',
     planUrl: u.plan ? prefix + 'assets/' + u.plan : '',
     planName: u.plan ? 'Taxtapul-' + u.id + u.plan.slice(u.plan.lastIndexOf('.')) : ''
   })));
@@ -1061,6 +1068,7 @@ ${counters}
       </div>
     </div>
     <p class="units-note">${t(cfg.unitsSection.note)}</p>
+    <p class="fineprint">${s('legal.area')}</p>
   </div>
 </section>
 
@@ -1093,6 +1101,7 @@ ${counters}
         <table class="specs">${specRows}</table>
         <div class="about-status">${t(cfg.about.status)}</div>
         <p class="sfb-note">${t(cfg.about.sfbNote)}</p>
+        <p class="fineprint">${s('legal.area')}</p>
       </div>
       <div>
         <div class="gallery">${gallery}</div>
@@ -1196,6 +1205,7 @@ ${counters}
     </span>
     <a href="${telHref(phone)}" itemprop="telephone" data-ev="phone_click" data-evx='{"where":"footer"}'>${esc(phone)}</a>
     <span>${t(cfg.footer.legal)}</span>
+    <span>${s('legal.area')}</span>
     <span>${s('about.vizAll')}</span>
   </div>
 </footer>
