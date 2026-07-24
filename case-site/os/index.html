@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.43.2';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.43.3';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1911,7 +1911,15 @@ function rateEditGuard(u,newRate){if(!u||!u.offer)return true;const st=offerStat
 function saveCell(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _pb=u.broker,_ps=u.status;if(field==='rate'){if(!rateEditGuard(u,+v||0)){renderRegistry();return;}u.rate=+v||0;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}else if(field==='status'){u.status=v;u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}else u[field]=v;if(field==='broker'||field==='status')commTrack(u,_pb,_ps);u.hist.push([iso(TODAY),'Быстрая правка ('+field+') в реестре ('+S.user.name+')']);audit('Быстрая правка',u.code+' · '+field+'='+v);persist();renderRegistry();}
 function toggleRegEdit(){if(!R().edit){alert('Нет прав на правки реестра.');return;}S.regEdit=!S.regEdit;audit('Режим правки таблицы',S.regEdit?'включён':'выключен');renderRegistry();}
 function regPlanMismatchBanner(){if(S.obj==='ALL')return '';let onP=0,inR=0,aD=0;Object.keys(PLAN_CODES).forEach(k=>{const p=k.split('::');if(p[0]!==S.obj)return;let block='',floor='';if(p.length>=3){block=p[1];floor=p.slice(2).join('::');}else{floor=p.slice(1).join('::');}const d=planDiff(S.obj,block,floor,PLAN_CODES[k]||[]);onP+=d.onlyOnPlan.length;inR+=d.onlyInReg.length;aD+=d.areaDiff.length;});if(!(onP||inR||aD))return '';return `<div class="banner warn" style="margin:0 0 10px">⚠ Планировки и реестр расходятся: ${onP?'<b>'+onP+'</b> нов. на чертеже · ':''}${inR?'<b>'+inR+'</b> нет на чертеже · ':''}${aD?'<b>'+aD+'</b> с разной площадью':''} <button class="btn ghost sm" style="margin-left:6px" onclick="go('plans')">Открыть планировки</button></div>`;}
-function saveCellLive(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _pb=u.broker,_ps=u.status;if(field==='area')u.area=+v||0;else if(field==='rate')u.rate=+v||0;else if(field==='budget')u.budget=+v||0;else if(field==='budLand'||field==='factLand'||field==='capex')u[field]=+v||0;else if(field==='block')u.block=(v||'').trim();else if(field==='code')u.code=(v||'').trim()||u.code;else u[field]=v;if(field==='area'||field==='rate'||field==='status'){u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}if(field==='broker'||field==='status')commTrack(u,_pb,_ps);tryPersist();}
+function saveCellLive(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _pb=u.broker,_ps=u.status;if(field==='area')u.area=+v||0;else if(field==='rate')u.rate=+v||0;else if(field==='budget')u.budget=+v||0;else if(field==='budLand'||field==='factLand'||field==='capex')u[field]=+v||0;else if(field==='block')u.block=(v||'').trim();else if(field==='code')u.code=(v||'').trim()||u.code;else u[field]=v;if(field==='area'||field==='rate'||field==='status'){u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}if(field==='broker'||field==='status')commTrack(u,_pb,_ps);tryPersist();regLiveRefresh(u,field);}
+function regLiveRefresh(u,field){/* v4.43.3: правка в строке сразу пересчитывает «Итого/Обслуживание/Разницу» и «% занято» — раньше они обновлялись только после перезагрузки страницы */
+ try{
+  const tr=document.querySelector('#main tr[data-uid="'+u.id+'"]');
+  if(tr){const fin=R().finance;
+   lcrBudVis().concat(lcrFacVis()).forEach(col=>{if(col.edit)return;const td=tr.querySelector('td[data-colkey="'+col.k+'"]');if(td)td.innerHTML=lcrCellVal(u,col,fin);});
+  }
+  if(field==='status'||field==='area'||field==='rate'){const pill=document.querySelector('#main .ph .pill');if(pill&&/занято/.test(pill.textContent||''))pill.textContent=Math.round(occPct(S.obj)*100)+'% занято';}
+ }catch(e){}}
 /* Правка вариантов-брендов прямо в таблице (режим «Правка в таблице»): несколько брендов через запятую. */
 function saveVarsLive(id,val){const u=U.find(x=>x.id===id);if(!u||!R().edit)return;const arr=String(val||'').split(',').map(s=>s.trim()).filter(Boolean);const before=(u.vars||[]).join('|');if(arr.join('|')===before)return;u.vars=arr;u.hist=u.hist||[];u.hist.push([iso(TODAY),'Варианты (реестр): '+(arr.length?arr.join(', '):'очищено')+' ('+S.user.name+')']);audit('Изменены варианты (реестр)',u.code);tryPersist();}
 /* Выпадающий список брендов из базы для правки вариантов прямо в таблице (datalist, ленивое создание при фокусе). */
@@ -1920,7 +1928,7 @@ function ensureBrandsDL(){try{const sig=BRANDS.length+':'+(BRANDS[0]&&BRANDS[0].
 function regEditRow(u,showBlk,allObj,ch){const inS='font-family:inherit;font-size:12px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;width:100%;box-sizing:border-box';const stp='onclick="event.stopPropagation()"';const fin=R().finance;
  const inp=(field,val,num)=>`<input ${num?'type="number" step="0.1" min="0"':''} value="${esc(val==null?'':val)}" onchange="saveCellLive('${u.id}','${field}',this.value)" style="${inS}${num?';text-align:right':''}">`;
  const statusSel=`<select onchange="saveCellLive('${u.id}','status',this.value)" style="${inS}">${Object.keys(STAT).map(k=>`<option value="${k}"${u.status===k?' selected':''}>${stT(k)}</option>`).join('')}</select>`;
- let c='<tr>';
+ let c=`<tr data-uid="${u.id}">`;
  c+=`<td class="selcol" ${stp}><input type="checkbox" ${ch?'checked':''} onclick="regToggleSel('${u.id}',this.checked)"></td>`;
  c+=`<td ${stp}>${inp('code',u.code)}${allObj?`<div style="font-size:10px;color:#6d6d6d">${esc(objById(u.obj).name)}</div>`:''}</td>`;
  if(showBlk)c+=`<td ${stp}>${inp('block',unitBlock(u))}</td>`;
