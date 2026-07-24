@@ -60,6 +60,7 @@ const STR = {
   'pdf.btn': { ru: 'Скачать презентацию (PDF)', uz: 'Taqdimotni yuklab olish (PDF)', en: 'Download the presentation (PDF)' },
   'units.cta.buy': { ru: 'Запросить условия покупки', uz: 'Sotib olish shartlarini so‘rash', en: 'Request purchase terms' },
   'units.plan.caption': { ru: 'Схема этажа по рабочим чертежам. Не является точным обмером.', uz: 'Ish chizmalari asosidagi qavat sxemasi. Aniq o‘lchov emas.', en: 'Floor diagram based on working drawings. Not a survey.' },
+  'units.cut': { ru: 'Разрез здания', uz: 'Bino kesimi', en: 'Building section' },
   'st.available': { ru: 'Свободно', uz: 'Bo‘sh', en: 'Available' },
   'st.reserved': { ru: 'Резерв', uz: 'Band qilingan', en: 'Reserved' },
   'st.leased': { ru: 'Сдано', uz: 'Ijaraga berilgan', en: 'Leased' },
@@ -121,6 +122,44 @@ function pictureTag(uploadsDir, prefix, file, { cls = '', alt = '', eager = fals
   return `<picture>${webp ? `<source type="image/webp" srcset="${webp}" sizes="${sizes}">` : ''}
 <img src="${prefix}assets/${esc(file)}"${jpg ? ` srcset="${jpg}" sizes="${sizes}"` : ''} data-full="${prefix}assets/${esc(file)}" alt="${esc(alt)}" ${load}${cls ? ` class="${cls}"` : ''}>
 </picture>`;
+}
+
+// ── интерактивный вертикальный разрез здания (SVG) ──
+// Этажи кликабельны и синхронизированы с кнопками уровней (selectUnit в клиентском JS).
+// Высоты полос пропорциональны потолкам, подвал рисуется под линией земли.
+function sectionCut(cfg, lang) {
+  const floors = (cfg.units || []).filter((u) => !u.whole && u.lvlShort);
+  if (floors.length < 2) return '';
+  const isBelow = (u) => /^[\u2212\u2013-]/.test(String(u.lvlShort || '').trim()); // минус, дефис и их аналоги
+  const ceilM = (u) => {
+    const v = parseFloat(String(u.ceil || '').replace(',', '.'));
+    return Number.isFinite(v) && v > 0 ? v : 3.4;
+  };
+  const above = floors.filter((u) => !isBelow(u)).reverse(); // сверху вниз
+  const under = floors.filter(isBelow).reverse();
+  const PXM = 11; // пикселей на метр высоты этажа
+  const W = 324, INX = 30, BW = W - INX * 2;
+  let y = 13;
+  const bands = [];
+  const band = (u) => {
+    const h = Math.max(30, Math.round(ceilM(u) * PXM + 12));
+    const cy = y + (h - 3) / 2 + 4;
+    bands.push(`<g class="cut-f${isBelow(u) ? ' cut-below' : ''}" id="sec-${esc(u.id)}" data-unit="${esc(u.id)}" tabindex="0" role="button" aria-label="${esc(pick(u.level, lang))} · GLA ${esc(u.gla)} м²">
+<rect x="${INX}" y="${y}" width="${BW}" height="${h - 3}" rx="2"/>
+<text class="cut-lvl" x="${INX + 15}" y="${cy}">${esc(u.lvlShort)}</text>
+<text class="cut-gla" x="${INX + BW - 15}" y="${cy}" text-anchor="end">${esc(u.gla)} м²</text>
+</g>`);
+    y += h;
+  };
+  above.forEach(band);
+  const groundY = y - 1.5;
+  under.forEach(band);
+  const H = y + 8;
+  return `<svg viewBox="0 0 ${W} ${H}" role="group" aria-label="${esc(STR['units.cut'][lang])}">
+<rect class="cut-roof" x="${INX - 6}" y="6" width="${BW + 12}" height="6" rx="3"/>
+${bands.join('\n')}
+<line class="cut-ground" x1="6" y1="${groundY}" x2="${W - 6}" y2="${groundY}"/>
+</svg>`;
 }
 
 // ── CSS (инлайн, system-ui — ноль внешних запросов за шрифтами) ──
@@ -343,6 +382,39 @@ footer a{color:#fff}
   body[data-intent="buy"] tr.row-whole{border-color:var(--bronze)}
 }
 @media(min-width:921px){.sticky-bar{display:none!important}}
+/* ── премиальная глубина: появления, Ken Burns, наклон, счётчики, разрез, прогресс ──
+   класс html.anim ставится инлайн-скриптом в <head> только когда нет prefers-reduced-motion */
+html.anim .tilt{transition:transform .5s cubic-bezier(.22,.61,.36,1);will-change:transform}
+html.anim .rv{opacity:0;transform:translateY(22px);transition:opacity .65s cubic-bezier(.22,.61,.36,1),transform .65s cubic-bezier(.22,.61,.36,1)}
+html.anim .rv.in{opacity:1;transform:none}
+html.anim .tilt.tilting{transition:none}
+@keyframes kbZoom{from{transform:scale(1.12)}to{transform:scale(1.035)}}
+html.anim .hero picture img{animation:kbZoom 6.5s cubic-bezier(.25,.6,.35,1) both}
+.sprog{position:absolute;left:0;right:0;bottom:0;height:2px;pointer-events:none}
+.sprog i{display:block;height:100%;background:linear-gradient(90deg,var(--bronze),var(--bronze-d));transform:scaleX(0);transform-origin:0 50%}
+.facts b,.params b{font-variant-numeric:tabular-nums}
+/* интерактивный разрез здания */
+.cut{margin:0 0 16px}
+.cut-t{margin:0 0 8px;font:700 10.5px/1.3 system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+.cut svg{display:block;width:100%;height:auto}
+.cut-roof{fill:var(--ink);opacity:.85}
+.cut-ground{stroke:var(--ink);stroke-width:2.5;stroke-linecap:round;opacity:.75}
+.cut-f{cursor:pointer;outline:none}
+.cut-f rect{fill:#fbfaf7;stroke:var(--line);transition:fill .18s,stroke .18s}
+.cut-f.cut-below rect{fill:#efede7}
+.cut-f:hover rect{fill:rgba(168,128,76,.16);stroke:var(--bronze)}
+.cut-f:focus-visible rect{stroke:var(--bronze);stroke-width:2}
+.cut-f.on rect{fill:var(--bronze);stroke:var(--bronze-d)}
+.cut-lvl{font:750 13px system-ui;fill:var(--ink)}
+.cut-gla{font:600 11px system-ui;fill:var(--muted)}
+.cut-f.on .cut-lvl{fill:#fff}
+.cut-f.on .cut-gla{fill:rgba(255,255,255,.9)}
+@media(prefers-reduced-motion:reduce){
+  html.anim .rv{opacity:1;transform:none;transition:none}
+  html.anim .hero picture img{animation:none}
+  html.anim .tilt{transition:none}
+  .sprog{display:none}
+}
 `;
 
 // ── клиентский JS ──
@@ -442,6 +514,8 @@ function selectUnit(id,fire){
     var on=u.id===id;
     if(row)row.classList.toggle('on',on);
     if(btn)btn.classList.toggle('on',on);
+    var sec=document.getElementById('sec-'+u.id);
+    if(sec)sec.classList.toggle('on',on);
     if(img)img.hidden=!on;
     if(on){
       var meta=document.getElementById('plan-meta');
@@ -456,9 +530,13 @@ function selectUnit(id,fire){
   if(fire){ev('unit_click',{unit:id});ev('plan_view',{unit:id})}
 }
 UNITS.forEach(function(u){
-  var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id);
+  var row=document.getElementById('row-'+u.id),btn=document.getElementById('lvl-'+u.id),sec=document.getElementById('sec-'+u.id);
   if(btn)btn.addEventListener('click',function(){selectUnit(u.id,true)});
   if(row)row.addEventListener('click',function(e){if(!e.target.closest('a,button'))selectUnit(u.id,true)});
+  if(sec){
+    sec.addEventListener('click',function(){selectUnit(u.id,true)});
+    sec.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();selectUnit(u.id,true)}});
+  }
 });
 if(UNITS.length)selectUnit(UNITS[0].id,false);
 document.querySelectorAll('.unit-cta').forEach(function(b){
@@ -570,6 +648,127 @@ if(hero&&'IntersectionObserver' in window){
 document.querySelectorAll('.faq details').forEach(function(d,i){
   d.addEventListener('toggle',function(){if(d.open)ev('faq_open',{q:i})});
 });
+
+/* ── премиальная глубина: появления, параллакс, счётчики, наклон, прогресс ──
+   всё уважает prefers-reduced-motion; скролл-обработчики троттлятся через rAF */
+var RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+var FINE=matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+/* тонкая полоса прогресса скролла под шапкой */
+var spEl=document.getElementById('sprog-i');
+if(spEl&&!RM){
+  var spPend=false;
+  var spUpd=function(){
+    spPend=false;
+    var h=document.documentElement,m=h.scrollHeight-innerHeight;
+    spEl.style.transform='scaleX('+(m>0?Math.min(1,(window.scrollY||h.scrollTop||0)/m):0).toFixed(4)+')';
+  };
+  addEventListener('scroll',function(){if(!spPend){spPend=true;requestAnimationFrame(spUpd)}},{passive:true});
+  spUpd();
+}
+
+/* параллакс фона героя: картинка движется медленнее контента (только фон, не текст) */
+var hPic=document.querySelector('.hero picture');
+if(hPic&&hero&&!RM){
+  var ppPend=false,heroH=innerHeight;
+  var ppUpd=function(){
+    ppPend=false;
+    var y=window.scrollY||document.documentElement.scrollTop||0;
+    if(y<=heroH+60)hPic.style.transform='translate3d(0,'+(y*0.18).toFixed(1)+'px,0)';
+  };
+  heroH=hero.offsetHeight||innerHeight;
+  addEventListener('resize',function(){heroH=hero.offsetHeight||innerHeight},{passive:true});
+  addEventListener('scroll',function(){if(!ppPend){ppPend=true;requestAnimationFrame(ppUpd)}},{passive:true});
+}
+
+/* появление блоков при скролле: однократно, со стаггером внутри групп;
+   видимое при загрузке не прячем (ноль CLS и мигания) */
+if(!RM&&'IntersectionObserver' in window){
+  var rvCand=[];
+  var rvAdd=function(el,delay){rvCand.push([el,delay,el.getBoundingClientRect().top])};
+  ['.lbl','.h2','.sub','.sec-cta','.units-note','.scen-note','.plan-card','.units-table-wrap','.about-status','.sfb-note','.viz-all','.loc-addr','.routes','table.drive','.around','.metro-note','#enq-form','.enq-side'].forEach(function(q){
+    document.querySelectorAll(q).forEach(function(el){rvAdd(el,0)});
+  });
+  ['.params .wrap>div','.lvl-picker button','.cases .case','.scen-grid .scen-col','.gallery figure','.faq details'].forEach(function(q){
+    var i=0;
+    document.querySelectorAll(q).forEach(function(el){rvAdd(el,Math.min(i*70,350));i++});
+  });
+  var rvEls=[];
+  rvCand.forEach(function(c){
+    if(c[2]<innerHeight*0.92)return;
+    c[0].classList.add('rv');
+    if(c[1])c[0].style.transitionDelay=c[1]+'ms';
+    rvEls.push(c[0]);
+  });
+  if(rvEls.length){
+    var rvIO=new IntersectionObserver(function(en){
+      en.forEach(function(x){
+        if(!x.isIntersecting)return;
+        var el=x.target;
+        el.classList.add('in');
+        rvIO.unobserve(el);
+        if(el.style.transitionDelay)el.addEventListener('transitionend',function h(){el.style.transitionDelay='';el.removeEventListener('transitionend',h)});
+      });
+    },{threshold:0,rootMargin:'0px 0px -8% 0px'});
+    rvEls.forEach(function(el){rvIO.observe(el)});
+  }
+}
+
+/* анимированные счётчики цифр: факты героя и лента параметров */
+function cFmt(v,dec,grp){
+  var s=v.toFixed(dec),dot=s.indexOf('.'),i=dot>-1?s.slice(0,dot):s,d=dot>-1?s.slice(dot+1):'';
+  if(grp)i=i.replace(/\\B(?=(\\d{3})+(?!\\d))/g,' ');
+  return d?i+','+d:i;
+}
+function cRun(el){
+  var full=el.textContent,re=/\\d(?:[\\d ]*\\d)?(?:,\\d+)?/g,parts=[],last=0,m;
+  while((m=re.exec(full))){
+    if(m.index>last)parts.push({s:full.slice(last,m.index)});
+    var raw=m[0];
+    parts.push({v:parseFloat(raw.replace(/ /g,'').replace(',','.')),dec:(raw.split(',')[1]||'').length,grp:/\\d \\d/.test(raw)});
+    last=m.index+raw.length;
+  }
+  if(last<full.length)parts.push({s:full.slice(last)});
+  el.style.minWidth=el.offsetWidth+'px'; /* ширина не прыгает во время счёта */
+  var t0=performance.now(),T=1300;
+  var step=function(now){
+    var p=Math.min(1,(now-t0)/T),e=1-Math.pow(1-p,3),out='';
+    parts.forEach(function(x){out+=x.s!=null?x.s:cFmt(x.v*e,x.dec,x.grp)});
+    el.textContent=out;
+    if(p<1)requestAnimationFrame(step);else el.style.minWidth='';
+  };
+  requestAnimationFrame(step);
+}
+if(!RM&&'IntersectionObserver' in window){
+  var cEls=[];
+  document.querySelectorAll('.facts b,.params b').forEach(function(b){if(/\\d/.test(b.textContent))cEls.push(b)});
+  if(cEls.length){
+    var cIO=new IntersectionObserver(function(en){
+      en.forEach(function(x){if(x.isIntersecting){cIO.unobserve(x.target);cRun(x.target)}});
+    },{threshold:.5});
+    cEls.forEach(function(b){cIO.observe(b)});
+  }
+}
+
+/* 3D-наклон карточек рендеров и планировки за курсором (только desktop, fine pointer) */
+if(!RM&&FINE){
+  document.querySelectorAll('.gallery figure,.plan-card').forEach(function(card){
+    card.classList.add('tilt');
+    var rect=null,pend=false,rx=0,ry=0;
+    var apply=function(){
+      pend=false;
+      card.style.transform='perspective(900px) rotateX('+rx.toFixed(2)+'deg) rotateY('+ry.toFixed(2)+'deg)';
+    };
+    card.addEventListener('mouseenter',function(){rect=card.getBoundingClientRect();card.classList.add('tilting')});
+    card.addEventListener('mousemove',function(e){
+      if(!rect)rect=card.getBoundingClientRect();
+      ry=((e.clientX-rect.left)/rect.width-.5)*7;
+      rx=(.5-(e.clientY-rect.top)/rect.height)*6;
+      if(!pend){pend=true;requestAnimationFrame(apply)}
+    });
+    card.addEventListener('mouseleave',function(){rect=null;card.classList.remove('tilting');card.style.transform=''});
+  });
+}
 })();`;
 }
 
@@ -702,6 +901,8 @@ function renderPage(cfg, lang, uploadsDir) {
     `<img id="plan-${esc(u.id)}" src="${prefix}assets/${esc(u.plan)}" alt="${t(u.level)} — ${esc(u.gla)} м²" loading="lazy" decoding="async" hidden>`
   ).join('\n');
 
+  const cutSvg = sectionCut(cfg, lang);
+
   const unitsJson = JSON.stringify((cfg.units || []).map((u) => ({
     id: u.id, ru: pick(u.level, 'ru'),
     label: pick(u.level, lang), gla: u.gla || '', ceil: u.ceil || '',
@@ -788,6 +989,7 @@ ${heroPreload}
 ${jsonLd(cfg, lang, canonical, base)}
 ${counters}
 <style>${CSS}</style>
+<script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim")}catch(e){}</script>
 </head>
 <body data-intent="lease">
 
@@ -804,6 +1006,7 @@ ${counters}
     <a class="top-phone" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"header"}'>${esc(phone)}</a>
     ${caseLogo ? `<a class="case-link" href="https://caseadvisory.uz" target="_blank" rel="noopener" title="CASE Real Estate Advisory" data-ev="cta_click" data-evx='{"cta":"case_logo"}'><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory"></a>` : ''}
   </div>
+  <div class="sprog" aria-hidden="true"><i id="sprog-i"></i></div>
 </header>
 
 <!-- экран 1: hero -->
@@ -841,6 +1044,7 @@ ${counters}
     <div class="lvl-picker">${lvlButtons}</div>
     <div class="units-grid">
       <div class="plan-card">
+        ${cutSvg ? `<div class="cut"><p class="cut-t">${s('units.cut')}</p>${cutSvg}</div>` : ''}
         ${planImgs}
         <p class="plan-meta" id="plan-meta"></p>
         <a id="plan-dl" class="btn ghost plan-dl" download hidden>${s('units.download')}</a>
