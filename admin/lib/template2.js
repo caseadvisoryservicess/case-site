@@ -1114,7 +1114,7 @@ ${counters}
       <div>
         <table class="specs">${specRows}</table>
         <div class="about-status">${t(cfg.about.status)}</div>
-        <p class="sfb-note">${t(cfg.about.sfbNote)}</p>
+        ${t(cfg.about.sfbNote) ? `<p class="sfb-note">${t(cfg.about.sfbNote)}</p>` : ''}
         <p class="fineprint">${s('legal.area')}</p>
       </div>
       <div>
