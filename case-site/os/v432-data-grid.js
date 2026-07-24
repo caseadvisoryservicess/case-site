@@ -11,7 +11,30 @@
   function userToken(){try{var u=(typeof S!=='undefined'&&S&&S.user)||{};return String(u.id||u.email||u.name||'guest').toLowerCase().replace(/[^a-z0-9_-]+/gi,'_').slice(0,80)||'guest';}catch(_){return 'guest';}}
   function storeKey(){return 'caseos_grid_prefs_v4322::'+userToken();}
   function loadPrefs(){try{var raw=localStorage.getItem(storeKey()),dirty=false;if(!raw){var legacy=localStorage.getItem('caseos_grid_prefs_v4321::'+userToken());if(legacy){raw=legacy;dirty=true;}}var x=JSON.parse(raw||'{}');if(!x||typeof x!=='object')x={};['reg_units','scr_registry'].forEach(function(k){if(x[k]&&x[k]._layoutModel!=='4322'){x[k].pin=0;x[k].widths={};delete x[k].order;x[k]._pinModel='4322';x[k]._layoutModel='4322';dirty=true;}});if(dirty)localStorage.setItem(storeKey(),JSON.stringify(x));return x;}catch(_){return {};}}
-  function savePrefs(p){try{localStorage.setItem(storeKey(),JSON.stringify(p||{}));}catch(_){}}
+  function savePrefs(p){try{localStorage.setItem(storeKey(),JSON.stringify(p||{}));}catch(_){}SRV.dirty=true;pushServerPrefs();}
+  /* v4.43: личные настройки таблиц хранятся на сервере (api/user_prefs.php) отдельно для
+     каждого пользователя — localStorage лишь кэш этого браузера. Иначе ширины/столбцы
+     «сбрасывались» при входе с другого устройства или после чистки браузера. */
+  var SRV={pulled:false,dirty:false,t:0,last:''};
+  function backendOn(){try{return typeof BACKEND!=='undefined'&&BACKEND&&typeof apiGET==='function'&&typeof apiPOST==='function'&&typeof S!=='undefined'&&S&&S.user;}catch(_){return false;}}
+  function pushServerPrefs(){if(!backendOn())return;clearTimeout(SRV.t);SRV.t=setTimeout(function(){try{
+    var raw=localStorage.getItem(storeKey())||'{}';
+    if(raw===SRV.last)return;SRV.last=raw;
+    apiPOST('user_prefs.php',{data:JSON.parse(raw)}).catch(function(){SRV.last='';});
+  }catch(_){}},800);}
+  function maybePullServerPrefs(){if(SRV.pulled||!backendOn())return;SRV.pulled=true;
+    try{apiGET('user_prefs.php').then(function(j){
+      var d=j&&j.data;if(!d||typeof d!=='object')return;
+      var srvRaw=JSON.stringify(d);if(srvRaw==='{}')return;
+      var localRaw=localStorage.getItem(storeKey())||'';
+      if(localRaw===srvRaw){SRV.last=srvRaw;return;}
+      if(!SRV.dirty){ /* локальных правок в этой сессии нет — серверная копия главнее */
+        SRV.last=srvRaw;localStorage.setItem(storeKey(),srvRaw);setTimeout(enhanceAll,0);
+      }else{ /* пользователь уже что-то поменял здесь — локальные правки поверх серверных */
+        try{var merged=Object.assign({},d,JSON.parse(localRaw||'{}'));localStorage.setItem(storeKey(),JSON.stringify(merged));pushServerPrefs();}catch(_){}
+      }
+    }).catch(function(){SRV.pulled=false;});}catch(_){SRV.pulled=false;}
+  }
   function tablePref(key){var p=loadPrefs();p[key]=p[key]||{};return {all:p,one:p[key]};}
   function mutatePref(key,fn){var p=loadPrefs();p[key]=p[key]||{};if((key==='reg_units'||key==='scr_registry')&&p[key]._layoutModel!=='4322'){p[key]._layoutModel='4322';p[key]._pinModel='4322';}fn(p[key]);savePrefs(p);}
   function currentView(){try{return (typeof S!=='undefined'&&S&&S.view)||'page';}catch(_){return 'page';}}
@@ -156,7 +179,7 @@
   function refresh(){closeMenu();closePanel();try{if(typeof go==='function'&&typeof S!=='undefined'&&S&&S.view){go(S.view);return;}}catch(_){}enhanceAll();}
   function toolbar(tb,key,idx){if(!isMainGrid(tb))return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap')||tb.parentElement;if(!wrap)return;var shell=wrap.parentElement;if(!shell)return;var old=shell.querySelector(':scope > .case-grid-toolbar[data-for="'+cssEsc(key)+'"]');if(old)return;var bar=document.createElement('div');bar.className='case-grid-toolbar';bar.dataset.for=key;var p=tablePref(key).one,hiddenN=Object.keys(p.hidden||{}).filter(function(id){return p.hidden[id];}).length;bar.innerHTML='<span class="cg-caption">Таблица · '+headers(tb).length+' столбцов</span><span class="cg-spacer"></span><button data-columns title="Скрыть или вернуть столбцы">☷ Столбцы'+(hiddenN?' · '+hiddenN:'')+'</button><button data-view title="Ширина, плотность и закрепление">⚙ Вид</button>';shell.insertBefore(bar,wrap);var bc=bar.querySelector('[data-columns]'),bv=bar.querySelector('[data-view]');bc.onclick=function(){openColumns(key,bc);};bv.onclick=function(){openViewPanel(key,bv,true);};}
   function enhanceTable(tb,idx){if(!tb||!tb.tHead||!tb.tBodies||!tb.tBodies.length||tb.dataset.cgResizing==='1')return;var key=tableKey(tb,idx);tb.dataset.caseGridKey=key;tb.classList.add('case-grid');tb.setAttribute('data-colr','case-grid');tb.querySelectorAll('.colrz,.geo-col-resizer').forEach(function(x){x.remove();});colIds(tb);applyOrder(tb,key);colIds(tb);headers(tb).forEach(normalizeHeader);applyDensity(tb,key);applyStoredWidths(tb,key);applyVisibility(tb,key);prepareGeneric(tb,key);addGenericResizers(tb,key);toolbar(tb,key,idx);requestAnimationFrame(function(){applyPins(tb,key);adjustGroupedHeader(tb,key,effectiveHidden(tb,key));try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}});}
-  function enhanceAll(){injectCss();var view=currentView();document.querySelectorAll('.case-grid-menu[data-case-grid-owner]').forEach(function(m){if(m.dataset.caseGridOwner!==view)m.remove();});var root=document.getElementById('main')||document;var tables=root.querySelectorAll('table');tables.forEach(function(tb,i){try{enhanceTable(tb,i);}catch(err){try{console.warn('CASE Grid:',err);}catch(_){}}});try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}try{if(typeof window.CASE_SYNC_STICKY==='function')window.CASE_SYNC_STICKY();}catch(_){}}
+  function enhanceAll(){injectCss();maybePullServerPrefs();var view=currentView();document.querySelectorAll('.case-grid-menu[data-case-grid-owner]').forEach(function(m){if(m.dataset.caseGridOwner!==view)m.remove();});var root=document.getElementById('main')||document;var tables=root.querySelectorAll('table');tables.forEach(function(tb,i){try{enhanceTable(tb,i);}catch(err){try{console.warn('CASE Grid:',err);}catch(_){}}});try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}try{if(typeof window.CASE_SYNC_STICKY==='function')window.CASE_SYNC_STICKY();}catch(_){}}
   function schedule(){if(document.querySelector('table.case-grid[data-cg-resizing="1"]'))return;clearTimeout(TIMER);TIMER=setTimeout(enhanceAll,90);}
   function boot(){injectCss();enhanceAll();var root=document.getElementById('main')||document.body;if(root&&!OBS){OBS=new MutationObserver(schedule);OBS.observe(root,{childList:true,subtree:true});}try{if(typeof window.go==='function'&&!window.go._caseGridWrapped){var originalGo=window.go;var wrapped=function(){var r=originalGo.apply(this,arguments);schedule();setTimeout(enhanceAll,120);return r;};wrapped._caseGridWrapped=true;wrapped._caseGridOriginal=originalGo;window.go=wrapped;}}catch(_){}window.addEventListener('resize',function(){clearTimeout(TIMER);TIMER=setTimeout(function(){document.querySelectorAll('table.case-grid').forEach(function(tb){applyPins(tb,tb.dataset.caseGridKey);});},120);},{passive:true});document.addEventListener('mouseup',function(){var list=document.querySelectorAll('table.case-grid[data-cg-capture="1"]');if(!list.length)return;list.forEach(function(tb){captureWidths(tb,tb.dataset.caseGridKey);});clearTimeout(TIMER);TIMER=setTimeout(enhanceAll,80);},true);}
 
