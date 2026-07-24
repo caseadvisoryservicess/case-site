@@ -1,6 +1,10 @@
-/* CASE OS v4.32.6 — Мастер-модуль «Планировки и LCR» (#64, ядро аудита).
+/* CASE OS v4.33.0 — Мастер-модуль «Планировки и LCR» (#64, ядро аудита).
    Единая точка на уровне проекта: версии ↔ юниты, генерация/обновление LCR с превью и защитой
    коммерческих записей, передача Advisory→Leasing (handover), валидация и история.
+   P0-1: каждая версия несёт НЕИЗМЕНЯЕМЫЙ снапшот чертежа (PLAN_CODES + блоки/этажи + SVG-хеши +
+   контрольная сумма + автор/дата); генерация LCR читает строго из снапшота выбранной версии,
+   а не из глобального PLAN_CODES. Снапшот фиксируется при handover или первой генерации;
+   изменившийся чертёж = новая версия, старые снапшоты не переписываются.
    Тяжёлые полноэкранные модули (интерактивный план, реестр помещений, реестр версий) открываются
    по кнопке — они используют ТЕ ЖЕ данные (объект/проект), это не вторая база. */
 (function(){
@@ -9,6 +13,7 @@
   window.CASE_MASTER_PLAN_417=true;
   var VIEW='plan_master';
   var TAB='overview'; // overview|versions|blocks|units|validate|lcr|history|handover
+  var LCR_VER=''; // P0-1: id версии-источника для валидации/генерации LCR ('' = активная версия проекта)
 
   function h(v){try{return typeof esc==='function'?esc(v):String(v==null?'':v);}catch(e){return String(v==null?'':v);}}
   function tr(ru,uz,en){try{return LANG==='uz'?(uz||ru):(LANG==='en'?(en||ru):ru);}catch(e){return ru;}}
@@ -23,6 +28,30 @@
   /* ---- версии проекта (CASE_LAYOUT_VERSIONS) ---- */
   function versionsOf(pid){try{return (Array.isArray(CASE_LAYOUT_VERSIONS)?CASE_LAYOUT_VERSIONS:[]).filter(function(v){return v.projectId===pid&&!v.archived;});}catch(e){return [];}}
   function activeVersion(pid){var vs=versionsOf(pid);return vs.find(function(v){return v.active;})||vs[0]||null;}
+  function selectedVersion(pid){var vs=versionsOf(pid);return vs.find(function(v){return v.id===LCR_VER;})||activeVersion(pid);}
+  /* ---- P0-1: снапшоты ---- */
+  function snapOf(v){return (v&&v.snapshot&&typeof v.snapshot==='object')?v.snapshot:null;}
+  function curFp(pid){try{return (typeof planCurrentChecksum==='function')?planCurrentChecksum(pid):'';}catch(e){return '';}}
+  function freezeSnapshot(pid,v){ /* фиксирует снапшот ТЕКУЩЕГО чертежа в версию БЕЗ снапшота; существующий снапшот неизменяем */
+    if(!v||snapOf(v))return v;
+    if(typeof planSnapshotBuild!=='function')return v;
+    v.snapshot=planSnapshotBuild(pid);v.snapshotAt=v.snapshot.frozenAt;
+    A_audit('Планировки: зафиксирован снапшот версии',((objById(pid)||{}).name||pid)+' · '+(v.version||v.id)+' · #'+v.snapshot.checksum+' · '+v.snapshot.codes+' кодов');
+    return v;
+  }
+  function fmtSnap(v){var sn=snapOf(v);if(!sn)return '';return '#'+String(sn.checksum||'')+' · '+String(sn.codes||0)+' кодов · '+String(sn.frozenAt||'')+(sn.frozenBy?(' · '+sn.frozenBy):'');}
+  window.masterSnapshotFreeze=function(pid,vid){
+    if(!canEdit()){alert('Недостаточно прав.');return;}
+    var v=(CASE_LAYOUT_VERSIONS||[]).find(function(x){return x.id===vid;});if(!v)return;
+    if(snapOf(v)){alert('Снапшот уже зафиксирован — версии неизменяемы. Для нового чертежа создайте новую версию.');return;}
+    freezeSnapshot(pid,v);save('Снапшот версии зафиксирован');render();
+  };
+  window.masterVersionFromCurrent=function(pid){
+    if(!canEdit()){alert('Недостаточно прав.');return;}
+    if(typeof planVersionForCurrent!=='function'){alert('Ядро снапшотов недоступно (обновите страницу).');return;}
+    var v=planVersionForCurrent(pid);LCR_VER=v.id;
+    save('Версия «'+(v.version||v.id)+'» с зафиксированным чертежом');render();
+  };
   /* синтетическая «версия», если реестр версий пуст — чтобы юниты всё равно получили ссылку на источник */
   function ensureVersion(pid){
     var v=activeVersion(pid);
@@ -54,14 +83,18 @@
     return t.join(', ')||'связанные данные';
   }
 
-  /* ---- сканирование расхождений план↔LCR (для превью генерации) ---- */
-  function lcrScan(pid){
-    var res={news:[],removed:[],changed:[],plans:0};
+  /* ---- сканирование расхождений план↔LCR (для превью генерации).
+     P0-1: если передана версия со снапшотом — источником служит ЕЁ снапшот, а не глобальный PLAN_CODES.
+     Без версии (ver==null) — живой чертёж, это используется только для информационных баннеров. ---- */
+  function lcrScan(pid,ver){
+    var sn=snapOf(ver);
+    var src=sn?(sn.planCodes||{}):PLAN_CODES;
+    var res={news:[],removed:[],changed:[],plans:0,fromSnapshot:!!sn,checksum:sn?sn.checksum:''};
     try{
-      Object.keys(PLAN_CODES).forEach(function(k){
+      Object.keys(src).forEach(function(k){
         var p=k.split('::');if(p[0]!==pid)return;
         var block='',floor='';if(p.length>=3){block=p[1];floor=p.slice(2).join('::');}else{floor=p.slice(1).join('::');}
-        var labels=PLAN_CODES[k]||[];if(!labels.length)return;
+        var labels=src[k]||[];if(!labels.length)return;
         res.plans++;
         var d=planDiff(pid,block,floor,labels);
         d.onlyOnPlan.forEach(function(l){res.news.push({code:l.code,area:+l.area||0,block:block,floor:floor});});
@@ -72,12 +105,18 @@
     return res;
   }
 
-  /* ---- применение генерации LCR (с защитой и привязкой к версии) ---- */
+  /* ---- применение генерации LCR (P0-1: строго из снапшота выбранной версии, с защитой) ---- */
   window.masterLcrApply=function(pid,opts){
     if(!canEdit()){alert('Недостаточно прав.');return;}
     opts=opts||{};
-    var scan=lcrScan(pid);
-    var ver=ensureVersion(pid);
+    var ver=opts.versionId?(CASE_LAYOUT_VERSIONS||[]).find(function(x){return x.id===opts.versionId;}):selectedVersion(pid);
+    if(!ver)ver=ensureVersion(pid);
+    /* версия без снапшота (legacy или свежесозданная рабочая) — фиксируем текущий чертёж КАК её снапшот;
+       дальше генерация и повторные генерации из этой версии читают только его */
+    if(!snapOf(ver))freezeSnapshot(pid,ver);
+    var sn=snapOf(ver);
+    if(!sn||!sn.plans){alert('У версии нет данных чертежа (снапшот пуст). Загрузите планировку и создайте версию заново.');return;}
+    var scan=lcrScan(pid,ver);
     var created=0,updated=0,orphaned=0,skipped=0;
     // 1) новые юниты
     if(opts.createNew!==false){
@@ -86,8 +125,8 @@
           var nu=unit(pid,n.code,n.floor||'1 этаж',+n.area||0,0,'','',0,0,0,'vac','',[],[],'');
           if(n.block)nu.block=n.block;
           nu.total=Math.round((nu.area||0)*(nu.rate||0));
-          nu.layoutVersionId=ver.id;nu.sourceRoomCode=n.code;nu.sourceArea=+n.area||0;nu.genStatus='generated';nu.genAt=nowISO();nu.manualAfterGen=false;
-          nu.hist.push([nowISO(),'Создано генерацией LCR из версии '+(ver.version||ver.id)+' ('+((S.user&&S.user.name)||'')+')']);
+          nu.layoutVersionId=ver.id;nu.snapshotChecksum=sn.checksum;nu.sourceRoomCode=n.code;nu.sourceArea=+n.area||0;nu.genStatus='generated';nu.genAt=nowISO();nu.manualAfterGen=false;
+          nu.hist.push([nowISO(),'Создано генерацией LCR из версии '+(ver.version||ver.id)+' (снапшот #'+sn.checksum+') ('+((S.user&&S.user.name)||'')+')']);
           U.push(nu);created++;
         }catch(e){}
       });
@@ -98,8 +137,8 @@
         var u=U.find(function(x){return x.id===c.id;});if(!u)return;
         if(c.protected&&!opts.overrideProtected){skipped++;return;}
         u.area=+c.plan||u.area;u.total=Math.round((u.area||0)*(u.rate||0));
-        u.layoutVersionId=ver.id;u.sourceArea=+c.plan||0;u.genStatus=u.genStatus||'generated';
-        u.hist.push([nowISO(),'Площадь обновлена генерацией LCR: '+A(c.reg)+' → '+A(c.plan)+' ('+((S.user&&S.user.name)||'')+')']);
+        u.layoutVersionId=ver.id;u.snapshotChecksum=sn.checksum;u.sourceArea=+c.plan||0;u.genStatus=u.genStatus||'generated';
+        u.hist.push([nowISO(),'Площадь обновлена генерацией LCR: '+A(c.reg)+' → '+A(c.plan)+' (версия '+(ver.version||ver.id)+' #'+sn.checksum+') ('+((S.user&&S.user.name)||'')+')']);
         updated++;
       });
     }
@@ -112,8 +151,8 @@
       });
     }
     ver.lcrGenAt=nowISO();ver.lcrGenBy=(S.user&&S.user.name)||'';ver.lcrGenStatus='generated';
-    A_audit('LCR: генерация/обновление',(objById(pid)||{}).name+' · создано '+created+', обновлено '+updated+', на ревью '+orphaned+', пропущено защищённых '+skipped);
-    save('LCR обновлён: +'+created+' / изм. '+updated+(skipped?' / защищено '+skipped:''));
+    A_audit('LCR: генерация/обновление',(objById(pid)||{}).name+' · версия '+(ver.version||ver.id)+' · снапшот #'+sn.checksum+' · создано '+created+', обновлено '+updated+', на ревью '+orphaned+', пропущено защищённых '+skipped);
+    save('LCR обновлён из версии '+(ver.version||ver.id)+': +'+created+' / изм. '+updated+(skipped?' / защищено '+skipped:''));
     TAB='units';render();
   };
 
@@ -121,6 +160,7 @@
   window.masterHandoverMark=function(pid,vid){
     if(!canEdit()){alert('Недостаточно прав.');return;}
     var v=(CASE_LAYOUT_VERSIONS||[]).find(function(x){return x.id===vid;})||ensureVersion(pid);
+    freezeSnapshot(pid,v); /* P0-1: Advisory передаёт зафиксированный чертёж, а не «то, что будет на плане потом» */
     v.handoverStatus='ready_for_leasing';v.handoverMarkedAt=nowISO();v.handoverMarkedBy=(S.user&&S.user.name)||'';
     A_audit('Планировки: версия готова для аренды',(objById(pid)||{}).name+' · '+(v.version||v.id));
     save('Версия помечена «Готова для аренды»');render();
@@ -150,20 +190,24 @@
     var units=unitsOf(pid),blocks=(typeof blocksOf==='function'?blocksOf(pid):[]);
     var floors=0;try{blocks.forEach(function(b){floors+=floorsOf(pid,b).length;});if(!blocks.length)floors=floorsOf(pid,'').length;}catch(e){}
     var mismatch=scan.news.length+scan.removed.length+scan.changed.length;
-    var kpis=[['Версий',vs.length],['Активная',av?(h(av.version||av.id)):'—'],['Блоков',blocks.length||'—'],['Юнитов',units.length],['Расхождений с планом',mismatch]];
+    var kpis=[['Версий',vs.length],['Активная',av?(h(av.version||av.id)+(snapOf(av)?' 🔒':'')):'—'],['Блоков',blocks.length||'—'],['Юнитов',units.length],['Расхождений с планом',mismatch]];
     return card('<h3 style="margin:0 0 6px">'+h(o.name||pid)+' — Планировки</h3><p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Рабочий план отдела аренды: интерактивный план → блоки/этажи → юниты → валидация → генерация LCR. Оригинальная планировка (из Advisory или загруженная в аренду) доступна отдельной кнопкой и не перезаписывается.</p><div style="display:flex;gap:14px;flex-wrap:wrap">'+kpis.map(function(k){return '<div style="min-width:110px"><div style="font-size:22px;font-weight:700">'+h(k[1])+'</div><div style="font-size:11px;color:var(--muted)">'+h(k[0])+'</div></div>';}).join('')+'</div>')
       +card('<b>Быстрые действия</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+link('plans','Рабочий интерактивный план')+'<button class="btn ghost sm" onclick="case49OpenOriginal()">Оригинальная планировка</button>'+link('registry','Реестр помещений (LCR)')+link('leasing_layouts','Реестр версий (файлы)')+'<button class="btn sm" onclick="masterTab(\'lcr\')">Генерация LCR</button></div>')
       +(mismatch?('<div class="banner warn" style="margin:0">⚠ План и реестр расходятся: <b>'+scan.news.length+'</b> новых · <b>'+scan.removed.length+'</b> нет на плане · <b>'+scan.changed.length+'</b> с др. площадью. <button class="btn ghost sm" onclick="masterTab(\'lcr\')">Открыть генерацию</button></div>'):'<div class="banner ok" style="margin:0;background:#eef8f0;color:#256433;border-color:#b8d8bf">✓ План и реестр согласованы</div>');
   }
 
   function renderVersions(pid){
-    var vs=versionsOf(pid);
+    var vs=versionsOf(pid),fp=curFp(pid);
     var rows=vs.map(function(v){
       var hs=v.handoverStatus||'draft';
       var hlbl=hs==='accepted'?'✓ Принята арендой':hs==='ready_for_leasing'?'→ Готова для аренды':'черновик';
-      return '<tr><td><b>'+h(v.version||v.id)+'</b>'+(v.active?' <span class="pill">активная</span>':'')+'</td><td>'+h(v.type||'')+'</td><td>'+h(v.source||v.createdBy||'')+'</td><td>'+h(hlbl)+'</td><td>'+(canEdit()&&hs==='draft'?'<button class="btn ghost sm" onclick="masterHandoverMark(\''+pid+'\',\''+v.id+'\')">Готово для аренды</button>':'')+(hs==='ready_for_leasing'?'<button class="btn sm" onclick="masterHandoverAccept(\''+pid+'\',\''+v.id+'\')">Принять</button>':'')+'</td></tr>';
+      var sn=snapOf(v);
+      var scell=sn?('<span title="Снапшот неизменяем: чертёж, коды и структура зафиксированы">🔒 '+h(fmtSnap(v))+(fp&&sn.checksum===fp?' <span class="pill">= текущий чертёж</span>':'')+'</span>')
+        :('<span style="color:var(--muted)">не зафиксирован</span>'+(canEdit()?' <button class="btn ghost sm" onclick="masterSnapshotFreeze(\''+pid+'\',\''+v.id+'\')" title="Заморозить текущий чертёж (PLAN_CODES, блоки/этажи, SVG) как неизменяемый снапшот этой версии">📸 Зафиксировать</button>':''));
+      return '<tr><td><b>'+h(v.version||v.id)+'</b>'+(v.active?' <span class="pill">активная</span>':'')+'</td><td>'+h(v.type||'')+'</td><td>'+h(v.source||v.createdBy||'')+'</td><td>'+scell+'</td><td>'+h(hlbl)+'</td><td>'+(canEdit()&&hs==='draft'?'<button class="btn ghost sm" onclick="masterHandoverMark(\''+pid+'\',\''+v.id+'\')">Готово для аренды</button>':'')+(hs==='ready_for_leasing'?'<button class="btn sm" onclick="masterHandoverAccept(\''+pid+'\',\''+v.id+'\')">Принять</button>':'')+'</td></tr>';
     }).join('');
-    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Версии планировок проекта</b>'+link('leasing_layouts','Полный реестр версий / загрузка файла')+'</div>'+(vs.length?('<div class="tbl-scroll"><table><thead><tr><th>Версия</th><th>Тип</th><th>Источник</th><th>Передача</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'):'<p style="color:var(--muted);font-size:12.5px">Версий пока нет. Загрузите первую в реестре версий, либо генерация LCR создаст рабочую версию «Интерактивный план» автоматически.</p>'));
+    var newBtn=canEdit()?'<button class="btn ghost sm" onclick="masterVersionFromCurrent(\''+pid+'\')" title="Создать версию с зафиксированным снапшотом текущего чертежа (или переключиться на уже существующую с тем же чертежом)">＋ Версия из текущего чертежа</button>':'';
+    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><b>Версии планировок проекта</b><span style="display:flex;gap:6px">'+newBtn+link('leasing_layouts','Полный реестр версий / загрузка файла')+'</span></div>'+(vs.length?('<div class="tbl-scroll"><table><thead><tr><th>Версия</th><th>Тип</th><th>Источник</th><th>Снапшот чертежа</th><th>Передача</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'):'<p style="color:var(--muted);font-size:12.5px">Версий пока нет. Загрузите первую в реестре версий, либо генерация LCR создаст рабочую версию с зафиксированным чертежом автоматически.</p>')+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">🔒 Снапшот — неизменяемая копия чертежа (коды+площади, блоки/этажи, SVG, контрольная сумма, автор/дата). Генерация LCR всегда идёт из снапшота выбранной версии; новый чертёж = новая версия.</p>');
   }
 
   function renderBlocks(pid){
@@ -179,7 +223,7 @@
       {k:'block',label:'Блок',get:function(u){return (typeof unitBlock==='function'?unitBlock(u):u.block)||'';},sortable:true,filter:'select'},
       {k:'floor',label:'Этаж',get:function(u){return (typeof floorLabel==='function'?floorLabel(u.floor):u.floor)||'';},sortable:true,filter:'select'},
       {k:'area',label:'м²',get:function(u){return +u.area||0;},num:true,sortable:true,render:function(u){return A(u.area);}},
-      {k:'ver',label:'Версия',get:function(u){return u.layoutVersionId||'—';},sortable:true,filter:'select'},
+      {k:'ver',label:'Версия',get:function(u){return u.layoutVersionId||'—';},sortable:true,filter:'select',render:function(u){if(!u.layoutVersionId)return '—';var v=(Array.isArray(CASE_LAYOUT_VERSIONS)?CASE_LAYOUT_VERSIONS:[]).find(function(x){return x.id===u.layoutVersionId;});return h(v?(v.version||v.id):u.layoutVersionId)+(u.snapshotChecksum?' <span style="color:var(--muted);font-size:10.5px">#'+h(u.snapshotChecksum)+'</span>':'');}},
       {k:'gen',label:'Источник',get:function(u){return u.genOrphan?'нет на плане':(u.genStatus==='generated'?'из плана':'вручную');},sortable:true,filter:'select',render:function(u){return u.genOrphan?'<span class="pill" style="background:#fdecea;color:#a30000">нет на плане</span>':(u.genStatus==='generated'?'<span class="pill">из плана</span>':'вручную');}}
     ];
     var tbl=(typeof buildTable==='function')?buildTable('master_units',cols,units,{rowClick:function(u){return "openUnit('"+u.id+"')";}}):'';
@@ -187,30 +231,39 @@
   }
 
   function renderValidate(pid){
-    var scan=lcrScan(pid);
+    var ver=selectedVersion(pid);
+    var scan=lcrScan(pid,snapOf(ver)?ver:null);
     if(!scan.plans)return card('<b>Валидация</b><p style="color:var(--muted);font-size:12.5px">Для проекта нет распознанных чертежей. Загрузите SVG во вкладке «Планировки» — коды и площади распознаются автоматически.</p>');
+    var src=scan.fromSnapshot?('<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Источник: снапшот версии <b>'+h(ver.version||ver.id)+'</b> #'+h(scan.checksum)+'</div>'):'<div style="font-size:12px;color:var(--muted);margin-bottom:6px">Источник: текущий чертёж (версия без снапшота — зафиксируется при генерации)</div>';
     function tbl(title,arr,cols){if(!arr.length)return '<div style="margin-bottom:8px;color:#256433">✓ '+title+': нет</div>';return '<div style="margin-bottom:10px"><b>'+title+' ('+arr.length+')</b><div class="tbl-scroll"><table><thead><tr>'+cols.map(function(c){return '<th>'+h(c[0])+'</th>';}).join('')+'</tr></thead><tbody>'+arr.map(function(x){return '<tr>'+cols.map(function(c){return '<td>'+h(c[1](x))+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table></div></div>';}
-    return card('<b>Валидация: план ↔ реестр</b><div style="margin-top:8px">'
+    return card('<b>Валидация: план ↔ реестр</b>'+src+'<div style="margin-top:8px">'
       +tbl('Новые на плане (нет в реестре)',scan.news,[['Код',function(x){return x.code;}],['Блок',function(x){return x.block;}],['Этаж',function(x){return x.floor;}],['Площадь',function(x){return A(x.area);}]])
       +tbl('В реестре, но нет на плане',scan.removed,[['Код',function(x){return x.code;}],['Блок',function(x){return x.block;}],['Этаж',function(x){return x.floor;}],['Защита',function(x){return x.protected?('🔒 '+x.why):'—';}]])
       +tbl('Расходится площадь',scan.changed,[['Код',function(x){return x.code;}],['План',function(x){return A(x.plan);}],['Реестр',function(x){return A(x.reg);}],['Защита',function(x){return x.protected?('🔒 '+x.why):'—';}]])
       +'</div><button class="btn" onclick="masterTab(\'lcr\')">Перейти к генерации LCR</button>');
   }
 
+  window.masterLcrSelectVer=function(vid){LCR_VER=vid||'';render();};
   function renderLcr(pid){
-    var scan=lcrScan(pid),av=activeVersion(pid);
+    var vs=versionsOf(pid),ver=selectedVersion(pid),sn=snapOf(ver),fp=curFp(pid);
+    var scan=lcrScan(pid,sn?ver:null); /* превью: снапшот выбранной версии; без снапшота — текущий чертёж (зафиксируется при применении) */
     var prot=scan.removed.filter(function(x){return x.protected;}).length+scan.changed.filter(function(x){return x.protected;}).length;
-    if(!scan.plans)return card('<b>Генерация LCR</b><p style="color:var(--muted);font-size:12.5px">Нет распознанных чертежей для проекта. Сначала загрузите планировки (SVG) во вкладке «Планировки».</p>');
-    var head='<b>Генерация / обновление LCR</b><p style="font-size:12.5px;color:var(--muted);margin:6px 0">Предпросмотр изменений перед применением. Юниты со связанными коммерческими данными (КП, сделки, шортлист) <b>защищены</b> — их площадь не меняется, из реестра они не убираются.</p>';
+    if(!scan.plans)return card('<b>Генерация LCR</b><p style="color:var(--muted);font-size:12.5px">'+(sn?'Снапшот выбранной версии пуст (в нём нет распознанных чертежей). Выберите другую версию или создайте новую из текущего чертежа.':'Нет распознанных чертежей для проекта. Сначала загрузите планировки (SVG) во вкладке «Планировки».')+'</p>');
+    var head='<b>Генерация / обновление LCR</b><p style="font-size:12.5px;color:var(--muted);margin:6px 0">Предпросмотр изменений перед применением. LCR генерируется <b>строго из зафиксированного снапшота</b> версии-источника. Юниты со связанными коммерческими данными (КП, сделки, шортлист) <b>защищены</b> — их площадь не меняется, из реестра они не убираются.</p>';
+    var opts=vs.map(function(v){var s=snapOf(v);return '<option value="'+h(v.id)+'"'+(ver&&v.id===ver.id?' selected':'')+'>'+h(v.version||v.id)+(v.active?' · активная':'')+(s?(' · 🔒 #'+s.checksum):' · без снапшота')+'</option>';}).join('');
+    var target='<div style="font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="color:var(--muted)">Версия-источник:</span>'
+      +(vs.length?('<select onchange="masterLcrSelectVer(this.value)" style="font-family:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--border);border-radius:7px">'+opts+'</select>'):'<b>будет создана рабочая версия с зафиксированным чертежом</b>')
+      +(sn?('<span style="color:var(--muted)">снапшот: '+h(fmtSnap(ver))+'</span>'):(ver?'<span class="pill" title="Снапшот текущего чертежа будет зафиксирован в эту версию при применении">снапшот зафиксируется при генерации</span>':''))
+      +(ver&&ver.handoverStatus&&ver.handoverStatus!=='accepted'&&ver.handoverStatus!=='draft'?'<span style="color:var(--muted)">· передача: '+h(ver.handoverStatus)+'</span>':'')+'</div>';
+    var drift=(sn&&fp&&sn.checksum!==fp)?('<div class="banner warn" style="margin:0 0 8px">⚠ Текущий чертёж во вкладке «Планировки» <b>отличается</b> от снапшота выбранной версии (#'+h(sn.checksum)+' ≠ #'+h(fp)+'). Генерация пойдёт строго по снапшоту. Чтобы применить новый чертёж — создайте новую версию.'+(canEdit()?' <button class="btn ghost sm" onclick="masterVersionFromCurrent(\''+pid+'\')">＋ Версия из текущего чертежа</button>':'')+'</div>'):'';
     var summary='<div style="display:flex;gap:14px;flex-wrap:wrap;margin:8px 0">'
       +'<div><div style="font-size:22px;font-weight:700;color:#256433">+'+scan.news.length+'</div><div style="font-size:11px;color:var(--muted)">создать</div></div>'
       +'<div><div style="font-size:22px;font-weight:700;color:#9a6b00">'+scan.changed.length+'</div><div style="font-size:11px;color:var(--muted)">изменить площадь</div></div>'
       +'<div><div style="font-size:22px;font-weight:700;color:#a30000">'+scan.removed.length+'</div><div style="font-size:11px;color:var(--muted)">нет на плане</div></div>'
       +'<div><div style="font-size:22px;font-weight:700">🔒 '+prot+'</div><div style="font-size:11px;color:var(--muted)">защищено</div></div>'
       +'</div>';
-    var target='<div style="font-size:12px;color:var(--muted);margin-bottom:8px">Версия-источник: <b>'+h(av?(av.version||av.id):'будет создана «Интерактивный план»')+'</b>'+(av&&av.handoverStatus&&av.handoverStatus!=='accepted'&&av.handoverStatus!=='draft'?' · передача: '+h(av.handoverStatus):'')+'</div>';
-    var actions=canEdit()?('<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><label style="font-size:12px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="lcrOverride"> менять и защищённые площади</label><button class="btn" onclick="masterLcrApply(\''+pid+'\',{overrideProtected:document.getElementById(\'lcrOverride\').checked})">Применить генерацию LCR</button><button class="btn ghost" onclick="masterTab(\'validate\')">Сначала посмотреть детали</button></div>'):'<p style="color:var(--muted);font-size:12px">Только просмотр (нет прав на правку).</p>';
-    return card(head+target+summary+actions);
+    var actions=canEdit()?('<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><label style="font-size:12px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="lcrOverride"> менять и защищённые площади</label><button class="btn" onclick="masterLcrApply(\''+pid+'\',{versionId:'+(ver?('\''+ver.id+'\''):'null')+',overrideProtected:document.getElementById(\'lcrOverride\').checked})">Применить генерацию LCR</button><button class="btn ghost" onclick="masterTab(\'validate\')">Сначала посмотреть детали</button></div>'):'<p style="color:var(--muted);font-size:12px">Только просмотр (нет прав на правку).</p>';
+    return card(head+target+drift+summary+actions);
   }
 
   function renderHistory(pid){
@@ -218,6 +271,7 @@
     var rows=[];
     vs.forEach(function(v){
       if(v.createdAt)rows.push([v.createdAt,'Версия '+(v.version||v.id)+' создана',v.createdBy||'']);
+      if(v.snapshotAt)rows.push([v.snapshotAt,'Снапшот версии '+(v.version||v.id)+' зафиксирован #'+((v.snapshot&&v.snapshot.checksum)||''),(v.snapshot&&v.snapshot.frozenBy)||'']);
       if(v.handoverMarkedAt)rows.push([v.handoverMarkedAt,'Версия '+(v.version||v.id)+' → готова для аренды',v.handoverMarkedBy||'']);
       if(v.handoverAcceptedAt)rows.push([v.handoverAcceptedAt,'Версия '+(v.version||v.id)+' принята арендой',v.handoverAcceptedBy||'']);
       if(v.lcrGenAt)rows.push([v.lcrGenAt,'LCR сгенерирован из версии '+(v.version||v.id),v.lcrGenBy||'']);

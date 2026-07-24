@@ -330,7 +330,8 @@
     injectCss();installAtomicWrappers();installBrokerBehavior();installExternalNavigation();postRender();
     var root=q('main')||document.body;observer=new MutationObserver(function(){clearTimeout(window._case4322PostT);window._case4322PostT=setTimeout(postRender,40);});observer.observe(root,{childList:true,subtree:true});
     setInterval(enforceExternalRole,1500);
-    try{var av=q('appVer');if(av)av.textContent=(typeof BACKEND!=='undefined'&&BACKEND?'':'')+'v'+PATCH_VERSION;}catch(_){}
+    /* метку версии в шапке задаёт index.html (APP_VERSION); PATCH_VERSION — только запасной вариант, чтобы патч не откатывал номер платформы */
+    try{var av=q('appVer');if(av){var pv=(typeof APP_VERSION!=='undefined'&&APP_VERSION)?APP_VERSION:PATCH_VERSION;var demo=(typeof BACKEND!=='undefined'&&BACKEND)?'':((typeof DEMO_ALLOWED!=='undefined'&&DEMO_ALLOWED)?'DEMO · ':'');av.textContent=demo+'v'+pv;}}catch(_){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   window.CASE_PATCH_4322={version:PATCH_VERSION,flush:function(){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();},busy:queueBusy,adaptive:installAdaptiveActions};

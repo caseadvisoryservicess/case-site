@@ -438,7 +438,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.32.7';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.33.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -492,7 +492,7 @@ async function apiPOST(p,data){
  if(p==='state.php'&&j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;
  return j;
 }
-function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
+function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
 let _lastServerUpdate=null,_serverRev=0;
 async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;return (j&&j.data)||null;}catch(e){return null;}}
 /* ===== Автообновление: подтягиваем общие данные без ручного F5, аккуратно (не мешая активной работе) ===== */
@@ -1143,7 +1143,7 @@ const glaOf=id=>id==='ALL'?visibleObjects().reduce((s,o)=>s+o.gla,0):(canSeeObj(
 const occPct=id=>{const g=glaOf(id);return g?occArea(id)/g:0;};
 const monthRent=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u)=>s+u.total,0);
 const noi=id=>monthRent(id)*0.78;
-const _HEAVY_LOCAL_KEYS=['PLANSVG','PLANUP','PLAN_LABELPOS','GEO_DATA','PROJECT_PPT']; /* крупные base64/чертежи/гео — под нехватку места не кладём в localStorage (они на сервере) */
+const _HEAVY_LOCAL_KEYS=['PLANSVG','PLANUP','PLAN_LABELPOS','PLAN_SNAPSHOT_SVGS','GEO_DATA','PROJECT_PPT']; /* крупные base64/чертежи/гео — под нехватку места не кладём в localStorage (они на сервере) */
 function persist(){
  let ok=false,_perr=null;
  // Аудит топбара #2: при работающем сервере крупные данные (чертежи/гео/картинки) НЕ дублируем в localStorage —
@@ -1165,7 +1165,7 @@ function persist(){
  try{apiSaveState();}catch(e){}
 }
 function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;applyState(JSON.parse(raw));}catch(e){console.warn('Autosave skipped',e);}}
-function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(d.PLAN_IGNORED_CODES&&typeof d.PLAN_IGNORED_CODES==='object'&&!Array.isArray(d.PLAN_IGNORED_CODES))Object.keys(d.PLAN_IGNORED_CODES).forEach(k=>{const v=d.PLAN_IGNORED_CODES[k];if(v&&typeof v==='object'&&!Array.isArray(v))PLAN_IGNORED_CODES[k]=Object.assign(PLAN_IGNORED_CODES[k]||{},v);});if(d.PLAN_STRUCT&&typeof d.PLAN_STRUCT==='object')Object.keys(d.PLAN_STRUCT).forEach(k=>{const v=d.PLAN_STRUCT[k];if(v&&typeof v==='object')PLAN_STRUCT[k]={blocks:Array.isArray(v.blocks)?v.blocks.slice():[],floors:(v.floors&&typeof v.floors==='object')?JSON.parse(JSON.stringify(v.floors)):{}};});if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.MAPCFG&&typeof d.MAPCFG==='object'&&!Array.isArray(d.MAPCFG)){const _hadKey=MAPCFG.apikey;Object.assign(MAPCFG,d.MAPCFG);if(_hadKey&&!MAPCFG.apikey){MAPCFG.apikey=_hadKey;window._mapkeyGuard=1;}} /* пустой входящий ключ карт не затирает сохранённый (защита от старых вкладок) */if(d.PROJECT_PPT&&typeof d.PROJECT_PPT==='object')Object.assign(PROJECT_PPT,d.PROJECT_PPT);if(Array.isArray(d.QUIZLOG))QUIZLOG=d.QUIZLOG;
+function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(d.PLAN_SNAPSHOT_SVGS&&typeof d.PLAN_SNAPSHOT_SVGS==='object')Object.assign(PLAN_SNAPSHOT_SVGS,d.PLAN_SNAPSHOT_SVGS);if(d.PLAN_IGNORED_CODES&&typeof d.PLAN_IGNORED_CODES==='object'&&!Array.isArray(d.PLAN_IGNORED_CODES))Object.keys(d.PLAN_IGNORED_CODES).forEach(k=>{const v=d.PLAN_IGNORED_CODES[k];if(v&&typeof v==='object'&&!Array.isArray(v))PLAN_IGNORED_CODES[k]=Object.assign(PLAN_IGNORED_CODES[k]||{},v);});if(d.PLAN_STRUCT&&typeof d.PLAN_STRUCT==='object')Object.keys(d.PLAN_STRUCT).forEach(k=>{const v=d.PLAN_STRUCT[k];if(v&&typeof v==='object')PLAN_STRUCT[k]={blocks:Array.isArray(v.blocks)?v.blocks.slice():[],floors:(v.floors&&typeof v.floors==='object')?JSON.parse(JSON.stringify(v.floors)):{}};});if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.MAPCFG&&typeof d.MAPCFG==='object'&&!Array.isArray(d.MAPCFG)){const _hadKey=MAPCFG.apikey;Object.assign(MAPCFG,d.MAPCFG);if(_hadKey&&!MAPCFG.apikey){MAPCFG.apikey=_hadKey;window._mapkeyGuard=1;}} /* пустой входящий ключ карт не затирает сохранённый (защита от старых вкладок) */if(d.PROJECT_PPT&&typeof d.PROJECT_PPT==='object')Object.assign(PROJECT_PPT,d.PROJECT_PPT);if(Array.isArray(d.QUIZLOG))QUIZLOG=d.QUIZLOG;
 /* PHP превращает пустой объект {} в массив [] при пересохранении: словарные поля принудительно приводим к объекту, иначе строковые ключи молча теряются при JSON.stringify */
 const _asMap=x=>(x&&typeof x==='object'&&!Array.isArray(x))?x:(Array.isArray(x)&&x.length===0?{}:(x&&typeof x==='object'?Object.assign({},x):{}));
 if(d.QUIZSTATS!=null)QUIZSTATS=_asMap(d.QUIZSTATS);if(Array.isArray(d.KB))KB.splice(0,KB.length,...d.KB);if(d.KBPROG!=null)KBPROG=_asMap(d.KBPROG);if(d.HRPROF!=null)HRPROF=_asMap(d.HRPROF);if(d.KPSEQ!=null&&Array.isArray(d.KPSEQ))KPSEQ={};if(Array.isArray(d.CHAT))CHAT=d.CHAT;if(d.KPI_TARGETS!=null)KPI_TARGETS=_asMap(d.KPI_TARGETS);if(d.ROLE_WORKSPACES!=null)ROLE_WORKSPACES=_asMap(d.ROLE_WORKSPACES);if(d.USER_WORKSPACES!=null)USER_WORKSPACES=_asMap(d.USER_WORKSPACES);if(d.MODULE_FLAGS!=null)MODULE_FLAGS=_asMap(d.MODULE_FLAGS);if(d.GEO_DATA&&typeof d.GEO_DATA==='object'&&!Array.isArray(d.GEO_DATA))GEO_DATA=d.GEO_DATA;if(Array.isArray(d.TRASH))TRASH=d.TRASH;if(d.COMMCFG!=null){COMMCFG=_asMap(d.COMMCFG);if(COMMCFG.agentPct==null)COMMCFG.agentPct=30;}if(Array.isArray(d.COMMLOST))COMMLOST=d.COMMLOST;
@@ -1179,7 +1179,7 @@ if(Array.isArray(d.CASE_SCOPE_ITEMS))CASE_SCOPE_ITEMS=d.CASE_SCOPE_ITEMS;
 if(Array.isArray(d.CASE_SCOPE_CHANGES))CASE_SCOPE_CHANGES=d.CASE_SCOPE_CHANGES;
 if(Array.isArray(d.CASE_TASKS))CASE_TASKS=d.CASE_TASKS;
 if(Array.isArray(d.CASE_DELIVERABLES))CASE_DELIVERABLES=d.CASE_DELIVERABLES;
-if(Array.isArray(d.CASE_LAYOUT_VERSIONS))CASE_LAYOUT_VERSIONS=d.CASE_LAYOUT_VERSIONS;
+if(Array.isArray(d.CASE_LAYOUT_VERSIONS)){CASE_LAYOUT_VERSIONS=d.CASE_LAYOUT_VERSIONS;try{CASE_LAYOUT_VERSIONS.forEach(v=>{if(v&&v.snapshot)planSnapshotDeepFreeze(v.snapshot);});}catch(e){}}
 if(Array.isArray(d.CASE_DECISIONS))CASE_DECISIONS=d.CASE_DECISIONS;
 if(Array.isArray(d.CASE_DOCUMENT_TEMPLATES))CASE_DOCUMENT_TEMPLATES=d.CASE_DOCUMENT_TEMPLATES;
 if(d.CASE_WORKFLOW_SETTINGS!=null)CASE_WORKFLOW_SETTINGS=_asMap(d.CASE_WORKFLOW_SETTINGS);
@@ -2269,6 +2269,7 @@ let MAPCFG={apikey:''}; /* общий на всю компанию ключ Ян
 const PLAN_STRUCT={}; /* #4: персистентная иерархия планировок { [objId]:{blocks:[name...],floors:{[block||'']:[name...]}} } - блоки/этажи как отдельные записи, новый блок не затирает предыдущий */
 function planStruct(objId){if(!PLAN_STRUCT[objId])PLAN_STRUCT[objId]={blocks:[],floors:{}};const s=PLAN_STRUCT[objId];if(!Array.isArray(s.blocks))s.blocks=[];if(!s.floors||typeof s.floors!=='object')s.floors={};return s;}
 const PLAN_CODES={}; /* ключ objId::блок::этаж -> [{code,area}] коды с последнего чертежа (для сверки с реестром) */
+const PLAN_SNAPSHOT_SVGS={}; /* P0-1: дедуп-хранилище чертежей для снапшотов версий { hash -> svgText }. Снапшот версии ссылается на хеш; одинаковые SVG не дублируются, удаление рабочего чертежа снапшот не ломает */
 const PLAN_IGNORED_CODES={}; /* objId -> {codeLower:true}: коды, удалённые из реестра вручную. Валидация НЕ предлагает создавать их заново с чертежа, пока код снова не добавят в реестр. */
 function planIgnoreCode(objId,code){if(!objId||code==null||code==='')return;(PLAN_IGNORED_CODES[objId]||(PLAN_IGNORED_CODES[objId]={}))[String(code).trim().toLowerCase()]=true;}
 function planUnignoreCode(objId,code){try{if(PLAN_IGNORED_CODES[objId])delete PLAN_IGNORED_CODES[objId][String(code).trim().toLowerCase()];}catch(e){}}
@@ -2309,6 +2310,46 @@ function floorsOf(objId,block,raw){
 }
 function curFloor(){const fs=floorsOf(S.obj,curBlock());if(!S.planFloor||fs.indexOf(S.planFloor)<0)S.planFloor=fs[0];return S.planFloor;}
 function planKey(objId,block,floor){return block?(objId+'::'+block+'::'+floor):(objId+'::'+floor);}
+/* ===== P0-1: неизменяемый снапшот планировки для версии (чертёж + PLAN_CODES + блоки/этажи + контрольная сумма + автор/дата).
+   Версия планировки больше не «метка»: при фиксации она получает замороженную копию данных чертежа,
+   и генерация LCR читает СТРОГО из снапшота выбранной версии, а не из глобального PLAN_CODES. ===== */
+function planHash(s){let h=0x811c9dc5;s=String(s==null?'':s);for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return ('0000000'+h.toString(16)).slice(-8);}
+function _planProjectKeys2(objId){return Object.keys(PLAN_CODES).filter(k=>k===objId||k.indexOf(objId+'::')===0).sort();}
+function planCurrentFingerprint(objId){ /* канонический JSON текущего плана проекта — для checksum и сравнения со снапшотом */
+ const codes={};_planProjectKeys2(objId).forEach(k=>{codes[k]=(PLAN_CODES[k]||[]).map(l=>({code:String(l.code||''),area:+l.area||0}));});
+ const st=PLAN_STRUCT[objId];
+ return JSON.stringify({codes,struct:st?{blocks:(st.blocks||[]).slice(),floors:st.floors||{}}:null});
+}
+function planCurrentChecksum(objId){return planHash(planCurrentFingerprint(objId));}
+function planSnapshotDeepFreeze(sn){try{if(!sn||typeof sn!=='object'||Object.isFrozen(sn))return sn;Object.freeze(sn);Object.keys(sn).forEach(k=>{const v=sn[k];if(v&&typeof v==='object')planSnapshotDeepFreeze(v);});}catch(e){}return sn;}
+function planSnapshotBuild(objId,by){ /* строит неизменяемый снапшот ТЕКУЩЕГО плана проекта; SVG кладёт в PLAN_SNAPSHOT_SVGS по хешу */
+ const codes={},svgs={};let n=0;
+ _planProjectKeys2(objId).forEach(k=>{codes[k]=(PLAN_CODES[k]||[]).map(l=>({code:String(l.code||''),area:+l.area||0}));n+=codes[k].length;
+  const svg=PLANSVG[k];if(typeof svg==='string'&&svg){const hh=planHash(svg)+planHash(svg.length+':'+svg.slice(0,200));if(PLAN_SNAPSHOT_SVGS[hh]==null)PLAN_SNAPSHOT_SVGS[hh]=svg;svgs[k]=hh;}});
+ const st=PLAN_STRUCT[objId];
+ const sn={planCodes:codes,struct:st?JSON.parse(JSON.stringify({blocks:st.blocks||[],floors:st.floors||{}})):null,svgRefs:svgs,
+  checksum:planCurrentChecksum(objId),plans:Object.keys(codes).length,codes:n,
+  frozenAt:(function(){try{return iso(TODAY);}catch(e){return new Date().toISOString().slice(0,10);}})(),
+  frozenBy:by||((typeof S!=='undefined'&&S.user&&S.user.name)||'')};
+ return planSnapshotDeepFreeze(sn);
+}
+function planSnapshotSvg(sn,key){try{const hh=sn&&sn.svgRefs&&sn.svgRefs[key];return hh?(PLAN_SNAPSHOT_SVGS[hh]||''):'';}catch(e){return '';}}
+function planVersionForCurrent(objId){ /* версия, чей снапшот соответствует ТЕКУЩЕМУ чертежу; иначе фиксирует снапшот в активную версию без снапшота или создаёт новую (авто) */
+ if(!Array.isArray(window.CASE_LAYOUT_VERSIONS))window.CASE_LAYOUT_VERSIONS=[];
+ const fp=planCurrentChecksum(objId);
+ const list=CASE_LAYOUT_VERSIONS.filter(v=>v&&v.projectId===objId&&!v.archived);
+ let v=list.find(x=>x.active&&x.snapshot&&x.snapshot.checksum===fp)||list.find(x=>x.snapshot&&x.snapshot.checksum===fp);
+ if(v)return v;
+ const av=list.find(x=>x.active);
+ if(av&&!av.snapshot){av.snapshot=planSnapshotBuild(objId);av.snapshotAt=av.snapshot.frozenAt;try{audit('Планировки: зафиксирован снапшот версии',((objById(objId)||{}).name||objId)+' · '+(av.version||av.id)+' · #'+av.snapshot.checksum);}catch(e){}return av;}
+ v={id:'lv_'+objId+'_'+Date.now().toString(36)+'_'+(CASE_LAYOUT_VERSIONS.length+1),projectId:objId,version:'план-'+(list.length+1),type:'leasing',status:'working',source:'Текущий чертёж (авто)',createdAt:(function(){try{return iso(TODAY);}catch(e){return '';}})(),createdBy:(typeof S!=='undefined'&&S.user&&S.user.name)||'',handoverStatus:'draft'};
+ v.snapshot=planSnapshotBuild(objId);v.snapshotAt=v.snapshot.frozenAt;
+ list.forEach(x=>{x.active=false;});v.active=true; /* новая авто-версия отражает применяемый чертёж */
+ CASE_LAYOUT_VERSIONS.push(v);
+ try{audit('Планировки: новая версия из текущего чертежа',((objById(objId)||{}).name||objId)+' · '+v.version+' · #'+v.snapshot.checksum);}catch(e){}
+ return v;
+}
+/* ===== /P0-1 ===== */
 function planFor(objId,block,floor){return PLANSVG[planKey(objId,block,floor)]||null;}
 function setPlanFloor(i){const fs=floorsOf(S.obj,curBlock());S.planFloor=fs[i]||fs[0];renderPlans();}
 function addPlanFloor(){
@@ -2576,7 +2617,7 @@ function tryPersist(){let ok=true;
   try{
    const b=stateBlob();delete b.GEO_DATA;
    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
-   catch(e2){delete b.BENCH;delete b.CASE_PORTFOLIO_PROJECTS;delete b.KB;localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
+   catch(e2){delete b.BENCH;delete b.CASE_PORTFOLIO_PROJECTS;delete b.KB;delete b.PLAN_SNAPSHOT_SVGS;localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
    _localReduced=true;_localSaveFailed=false;
    if(!BACKEND&&!window._reducedWarned){window._reducedWarned=1;try{toast('⚠ Локальное хранилище почти заполнено — гео-набор не кэшируется локально. Операционные данные сохраняются. Для полного сохранения нужен серверный режим.');}catch(_){}}
   }catch(e3){ok=false;_localSaveFailed=true;}
@@ -2747,7 +2788,7 @@ function planDiff(objId,block,floor,labels){const reg=unitsOf(objId).filter(u=>(
  const areaDiff=[];labels.forEach(l=>{const u=rc[l.code.toLowerCase()];if(u&&l.area>0&&Math.abs((+u.area||0)-l.area)>=0.5)areaDiff.push({id:u.id,code:u.code,plan:l.area,reg:+u.area||0});});
  return {onlyOnPlan,onlyInReg,areaDiff};}
 function openPlanReviewFromList(list){S._planRows=(list||[]).map(l=>({code:l.code,area:l.area||0,cat:l.cat||'',sub:l.sub||''}));openPlanReview('Новые помещения с чертежа (которых нет в реестре). Проверьте и нажмите «Создать».');}
-function updateAreasFromPlan(){const d=S._planDiff;if(!d||!d.areaDiff.length)return;if(!confirm('Обновить площади из чертежа у '+d.areaDiff.length+' помещений? Текущие площади будут заменены значениями с плана.'))return;let n=0;d.areaDiff.forEach(x=>{const u=U.find(z=>z.id===x.id);if(u){u.area=x.plan;u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Площадь обновлена из чертежа: '+x.reg+' → '+x.plan+' ('+S.user.name+')']);n++;}});audit('Площади из чертежа',n+' шт.');persist();PLAN_MSG='ok|Обновлено площадей: '+n+'.';go('plans');}
+function updateAreasFromPlan(){const d=S._planDiff;if(!d||!d.areaDiff.length)return;if(!confirm('Обновить площади из чертежа у '+d.areaDiff.length+' помещений? Текущие площади будут заменены значениями с плана.'))return;let n=0,ver=null;d.areaDiff.forEach(x=>{const u=U.find(z=>z.id===x.id);if(u){if(!ver)ver=planVersionForCurrent(S.obj); /* P0-1: обновление тоже трассируется к версии-снапшоту */u.area=x.plan;u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.layoutVersionId=ver.id;u.snapshotChecksum=(ver.snapshot&&ver.snapshot.checksum)||'';u.sourceArea=x.plan;u.hist.push([iso(TODAY),'Площадь обновлена из чертежа: '+x.reg+' → '+x.plan+' (версия '+(ver.version||ver.id)+') ('+S.user.name+')']);n++;}});audit('Площади из чертежа',n+' шт.'+(ver?' · версия '+(ver.version||ver.id)+' #'+((ver.snapshot&&ver.snapshot.checksum)||''):''));persist();PLAN_MSG='ok|Обновлено площадей: '+n+'.';go('plans');}
 function autoUnitsFromPlan(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав на изменение реестра.');return;}const host=$('planhost');const svg=host&&host.querySelector('svg');if(!svg){alert('Чертёж этажа не загружен или это растровая картинка (нужен SVG).');return;}
  S._planRescan=false;let found;
  try{found=detectUnitsFromSvg(svg);}catch(err){alert('Не удалось распознать чертёж: '+((err&&err.message)||err)+'\n\nЭкспортируйте план как «Plain SVG» с текстовыми подписями помещений, либо нажмите «↻ Пересчитать заново» или добавьте помещения вручную / из Excel/CSV.');return;}
@@ -2773,7 +2814,7 @@ function planReviewAdd(){S._planRows=S._planRows||[];S._planRows.push({code:'',a
 function planReviewDel(i){S._planRows.splice(i,1);openPlanReview();}
 function planReviewClear(){if(!confirm('Очистить список?'))return;S._planRows=[];openPlanReview();}
 function planReviewImport(){const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(!rows.length){alert('Файл пуст.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());let ci=head.findIndex(h=>/код|code/.test(h)),ai=head.findIndex(h=>/площад|area|кв|м2|м²/.test(h));const start=(ci>=0||ai>=0)?1:0;if(ci<0)ci=0;if(ai<0)ai=1;const out=[];for(let i=start;i<rows.length;i++){const code=String(rows[i][ci]||'').trim();if(!code)continue;const area=+String(rows[i][ai]||'').replace(',','.').replace(/[^0-9.]/g,'')||0;out.push({code,area});}if(!out.length){alert('Не нашёл строк. Нужны колонки «Код» и «Площадь» (или просто два столбца: код, площадь).');return;}S._planRows=out;openPlanReview('Загружено из файла: '+out.length+' строк. Проверьте и нажмите «Создать».');}catch(ex){alert('Ошибка чтения CSV: '+(ex&&ex.message||ex));}};r.readAsText(f,'utf-8');};inp.click();}
-function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0,cat:r.cat||'Услуги',sub:r.sub||''})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0;const skipped=[];const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skipped.push(r.code);return;}seen[k]=1;const nu=unit(S.obj,r.code,fl,r.area||0,0,r.cat,r.sub,0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'») ('+S.user.name+')']);U.push(nu);add++;});
+function doCreatePlanUnits(){if(!(R().edit||R().admin||R().plans)){alert('Нет прав.');return;}const blk=curBlock(),fl=curFloor();const have={};unitsOf(S.obj).forEach(u=>have[String(u.code).trim().toLowerCase()]=1);const rows=(S._planRows||[]).map(r=>({code:String(r.code||'').trim(),area:+r.area||0,cat:r.cat||'Услуги',sub:r.sub||''})).filter(r=>r.code);if(!rows.length){alert('Добавьте хотя бы одно помещение с кодом.');return;}let add=0,ver=null;const skipped=[];const seen={};rows.forEach(r=>{const k=r.code.toLowerCase();if(have[k]||seen[k]){skipped.push(r.code);return;}seen[k]=1;if(!ver)ver=planVersionForCurrent(S.obj); /* P0-1: юнит привязывается к версии с зафиксированным снапшотом текущего чертежа */const nu=unit(S.obj,r.code,fl,r.area||0,0,r.cat,r.sub,0,0,0,'vac','',[],[],'');nu.total=0;nu.gap=0;if(blk)nu.block=blk;nu.layoutVersionId=ver.id;nu.snapshotChecksum=(ver.snapshot&&ver.snapshot.checksum)||'';nu.sourceRoomCode=r.code;nu.sourceArea=r.area||0;nu.genStatus='generated';nu.genAt=iso(TODAY);nu.hist.push([iso(TODAY),'Создано из чертежа ('+(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'», версия '+(ver.version||ver.id)+' #'+((ver.snapshot&&ver.snapshot.checksum)||'')+') ('+S.user.name+')']);U.push(nu);add++;});
  if(!add&&skipped.length){alert('Ничего не создано: код'+(skipped.length>1?'ы':'')+' '+skipped.join(', ')+' уже есть в реестре этого объекта (возможно, на другом этаже).\n\nЧтобы изменить существующее помещение — откройте его в реестре. Чтобы создать новое — укажите другой, свободный код.');S._planRows=rows;openPlanReview('Не создано: '+skipped.join(', ')+' — такие коды уже есть в реестре.');return;}
  audit('Помещения из чертежа',(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'» · '+add+' шт.');S._planRows=null;persist();closeDrawer();PLAN_MSG=(skipped.length?'warn|':'ok|')+'Создано помещений: '+add+(skipped.length?('. ⚠ Пропущено — код уже есть в реестре: '+skipped.join(', ')):'')+'. Проверьте ставки в реестре.';go('plans');}
 function pf(s){return{vac:'#f0f0f0',neg:'#e4eefb',off:'#fdeaea',os:'#e0f2f1',cs:'#fff3e0',cd:'#e7f4e8',res:'#efe7fb'}[s];}
@@ -4187,7 +4228,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v493-portfolio-suite.js?v=4.32.7" defer></script>
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
-<script src="v417-master-plan.js?v=4.32.7" defer></script>
+<script src="v417-master-plan.js?v=4.33.0" defer></script>
 <script src="v432-data-grid.js?v=4.32.7" defer></script>
 <script src="v4327-patch.js?v=4.32.7" defer></script>
 <script>
