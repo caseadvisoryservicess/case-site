@@ -449,8 +449,8 @@
     return head+tabbar+scrRegistry()+footSafe();
   }
   window.scrTab=function(t){window.SCR_TAB=t;try{go('v32_sales');}catch(e){}};
-  window.scrSetSaleStatus=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;u.saleStatus=v;if(typeof persist==='function')persist();else persistV32();try{if(typeof audit==='function')audit('SCR: статус продажи',(u.code||'')+' → '+v);}catch(e){}go('v32_sales');}catch(e){}};
-  window.scrSetSalePrice=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;var p=Math.max(0,+String(v).replace(',','.')||0);u.salePrice=p;if(typeof persist==='function')persist();else persistV32();}catch(e){}};
+  window.scrSetSaleStatus=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;u.saleStatus=v;if(typeof persist==='function')persist();else persistV32();try{if(typeof audit==='function')audit('SCR: статус продажи',(u.code||'')+' → '+v);}catch(e){}try{if(typeof refreshViewKeepScroll==='function')refreshViewKeepScroll();else go('v32_sales');}catch(e){}}catch(e){}};
+  window.scrSetSalePrice=function(id,v){try{var u=(Array.isArray(U)?U:[]).find(function(x){return x.id===id;});if(!u)return;var p=Math.max(0,+String(v).replace(',','.')||0);u.salePrice=p;if(typeof persist==='function')persist();else persistV32();try{if(typeof refreshViewKeepScroll==='function')refreshViewKeepScroll();}catch(e){}}catch(e){}};
   function renderPartners(){
     ensureData(); var rows=canManage()?window.CASE_PARTNERS:visibleRows(window.CASE_PARTNERS);
     return pageHead(tr('partners'),tr('partnersSub'),canManage()?'<button class="btn" onclick="v32PartnerForm()">+ '+h(tr('addPartner'))+'</button>':'')+

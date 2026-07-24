@@ -301,14 +301,29 @@
   function cloneHeaderTable(tb){
     var ct=document.createElement('table');ct.className=String(tb.className||'').replace(/\bcase-page-sticky-source\b/g,'').trim()+' case-sticky-head-table';ct.removeAttribute('data-tblkey');ct.removeAttribute('data-case-grid-key');ct.removeAttribute('data-grid-engine');
     var cg=tb.querySelector('colgroup');if(cg)ct.appendChild(cg.cloneNode(true));ct.appendChild(tb.tHead.cloneNode(true));
-    ct.querySelectorAll('.case-grid-resizer').forEach(function(x){x.remove();});ct.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';ct.style.minWidth=ct.style.width;ct.style.maxWidth='none';return ct;
+    /* v4.44.1: резайзеры в клоне ОСТАЮТСЯ — перетаскивание проксируется исходной таблице (proxyStickyResizerDown) */ct.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';ct.style.minWidth=ct.style.width;ct.style.maxWidth='none';return ct;
   }
   function proxyStickyClick(e){
     var layer=e.currentTarget,tb=layer._source;if(!tb||!tb.isConnected)return;var grp=e.target.closest('[data-reg-group]');if(grp){e.preventDefault();e.stopPropagation();try{if(typeof regToggleGrp==='function')regToggleGrp(grp.getAttribute('data-reg-group'));}catch(_){}return;}
     var btn=e.target.closest('.tblfnl,.case-grid-filter-btn,.geo-th-fnl');if(btn){e.preventDefault();e.stopPropagation();var th=btn.closest('th'),id=th&&th.getAttribute('data-colkey'),key=tb.getAttribute('data-tblkey')||tb.dataset.caseGridKey;if(id&&typeof tblMenu==='function'&&key==='reg_units'){tblMenu('reg_units',id,btn,'reg');return;}try{if(window.CASE_GRID&&CASE_GRID.openColumnMenu&&id)CASE_GRID.openColumnMenu(key,id,btn);}catch(_){}return;}
   }
+  function proxyStickyResizerDown(e){
+    /* v4.44.1: перетаскивание ширины из ПРИЛИПШЕЙ шапки — событие пробрасывается настоящему
+       резайзеру исходной таблицы; клон подстраивается по ходу перетаскивания */
+    var rz=e.target&&e.target.closest&&e.target.closest('.case-grid-resizer');if(!rz)return;
+    var layer=e.currentTarget,src=layer&&layer._source;if(!src)return;
+    var id=rz.dataset&&rz.dataset.caseColId;if(!id)return;
+    var sel='.case-grid-resizer[data-case-col-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]';
+    var real=src.querySelector(sel);if(!real)return;
+    e.preventDefault();e.stopPropagation();
+    try{real.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:e.clientX,clientY:e.clientY,bubbles:true,pointerId:e.pointerId||1}));}catch(_){return;}
+    var mv=function(){scheduleStickyUpdate();};
+    var up=function(){document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);requestAnimationFrame(updateAllSticky);};
+    document.addEventListener('pointermove',mv,true);
+    document.addEventListener('pointerup',up,true);
+  }
   function ensureStickyClone(tb,wrap){
-    var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
+    var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);layer.addEventListener('pointerdown',proxyStickyResizerDown);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
     layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
     return layer;
   }
@@ -352,7 +367,7 @@
       .case-broker-picker .cbp-title{font-weight:800;font-size:12px;padding:6px 8px;color:var(--muted)}.case-broker-picker button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:8px 9px;font:600 12px inherit;cursor:pointer;color:var(--ink)}.case-broker-picker button:hover,.case-broker-picker button.on{background:color-mix(in srgb,var(--red-d,#9E0000) 9%,var(--panel,#fff));color:var(--red-d,#9E0000)}
       .case-broker-edit{width:100%;min-height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel,#fff);padding:6px 8px;font:inherit;color:var(--ink);cursor:pointer}.case-broker-edit i{font-style:normal;color:var(--red-d,#9E0000);opacity:.72}.case-broker-edit:hover{border-color:var(--red-d,#9E0000)}
       .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:1px solid var(--border);border-top:0;border-radius:0 0 7px 7px;box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto}
-      .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:none!important}
+      .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:block} /* v4.44.1: ширины можно тянуть и в прилипшей шапке */
       table.case-grid.case-page-sticky-source>thead th{position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска») */
       table[data-tblkey="reg_units"] tr.fltrow,table[data-tblkey="scr_registry"] tr.filters,.asaas35-table tr.filters,.geo-table tr.geo-tfilter-row{display:none!important}
       .case-filter-chipbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 7px;padding:6px 8px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--panel,#fff) 94%,var(--soft,#f5f2ee) 6%)}.case-filter-chipbar .cfc-label{font-size:10.5px;font-weight:750;color:var(--muted)}.case-filter-chipbar button{display:inline-flex;align-items:center;gap:5px;max-width:290px;border:1px solid color-mix(in srgb,var(--red-d,#9E0000) 22%,var(--border));border-radius:999px;background:var(--panel,#fff);padding:4px 8px;font:500 10.5px inherit;color:var(--ink);cursor:pointer}.case-filter-chipbar button b{font-weight:750}.case-filter-chipbar button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}.case-filter-chipbar button i{font-style:normal;color:var(--red-d,#9E0000);font-size:13px}.case-filter-chipbar button:hover{border-color:var(--red-d,#9E0000)}.case-filter-chipbar .cfc-clear{border-color:transparent;background:transparent;color:var(--red-d,#9E0000);font-weight:700}

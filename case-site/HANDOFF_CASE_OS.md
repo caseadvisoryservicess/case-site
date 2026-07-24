@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-24 · текущая версия платформы **v4.44.0**_
+_Обновлено: 2026-07-24 · текущая версия платформы **v4.45.0**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,11 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.45.0:** карточки→таблицы сразу + резайзер в прилипшей шапке + гео-эталон вида:
+  - refreshViewKeepScroll() (index.html): go(S.view) с восстановлением scrollLeft/Top всех .tbl-scroll и window; применён ко ВСЕМУ карточному семейству юнита (unitSave/doMerge/doSplit/addVar/delVar/отказ/saveUnitDate/extendOffer/переговоры/editUnitArea/addComment/addUnitCatV/delUnitCatV), legacy brandSave, scrSetSalePrice/Status (v32). Актуальный редактор брендов (v35 asaas35SaveBrand) уже перерисовывал сам;
+  - прилипшая шапка: cloneHeaderTable БОЛЬШЕ НЕ вырезает .case-grid-resizer; CSS display:block; proxyStickyResizerDown на layer пробрасывает pointerdown реальному резайзеру по data-case-col-id + scheduleStickyUpdate на move («пропала регулировка ширины» — в клоне резайзеры были display:none);
+  - гео-эталон (v432): плотность по умолчанию comfortable = гео-метрики (th 9×10 #faf8f5 #625d56 w750; td 9×10 h40), hover-подсветка, подпись тулбара «Показано N строк · M столбцов»;
+  - тест v4441_ui_flows.js 8/8 (в карточку входить через кнопку «Редактировать»; бренды — bd_* поля + asaas35SaveBrand; клон-резайзер — dispatch на сам rz). ПОЛНЫЙ прогон 15 наборов — всё зелёное (см. CHANGELOG).
 - **v4.44.0:** корень «данные не сохраняются» (ЛСР/гео) — истечение серверной сессии (1 час) + тихие отказы:
   - lib.php: gc_maxlifetime/cookie 3600→43200 (12ч);
   - index.html: keepalive-пинг auth.php каждые 5 мин при активности (_lastActivityAt; auth:false → sessionExpired сразу); IDLE_LOGOUT_MIN 60→120; apiGET/apiPOST кидают Error с .status; sessionExpired показывает счётчик caseUnsyncedCount(); enterWithServerUser ПЕРЕД apiLoadState дозаливает: await caseFlushUnitsNow() + (_offlineDirty && _doSaveState()) — иначе applyState затирал несохранённое;

@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.44.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.45.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1937,6 +1937,16 @@ function saveCell(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _p
 function toggleRegEdit(){if(!R().edit){alert('Нет прав на правки реестра.');return;}S.regEdit=!S.regEdit;audit('Режим правки таблицы',S.regEdit?'включён':'выключен');renderRegistry();}
 function regPlanMismatchBanner(){if(S.obj==='ALL')return '';let onP=0,inR=0,aD=0;Object.keys(PLAN_CODES).forEach(k=>{const p=k.split('::');if(p[0]!==S.obj)return;let block='',floor='';if(p.length>=3){block=p[1];floor=p.slice(2).join('::');}else{floor=p.slice(1).join('::');}const d=planDiff(S.obj,block,floor,PLAN_CODES[k]||[]);onP+=d.onlyOnPlan.length;inR+=d.onlyInReg.length;aD+=d.areaDiff.length;});if(!(onP||inR||aD))return '';return `<div class="banner warn" style="margin:0 0 10px">⚠ Планировки и реестр расходятся: ${onP?'<b>'+onP+'</b> нов. на чертеже · ':''}${inR?'<b>'+inR+'</b> нет на чертеже · ':''}${aD?'<b>'+aD+'</b> с разной площадью':''} <button class="btn ghost sm" style="margin-left:6px" onclick="go('plans')">Открыть планировки</button></div>`;}
 function saveCellLive(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _pb=u.broker,_ps=u.status;if(field==='area')u.area=+v||0;else if(field==='rate')u.rate=+v||0;else if(field==='budget')u.budget=+v||0;else if(field==='budLand'||field==='factLand'||field==='capex')u[field]=+v||0;else if(field==='block')u.block=(v||'').trim();else if(field==='code')u.code=(v||'').trim()||u.code;else u[field]=v;if(field==='area'||field==='rate'||field==='status'){u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}if(field==='broker'||field==='status')commTrack(u,_pb,_ps);tryPersist();regLiveRefresh(u,field);}
+function refreshViewKeepScroll(){/* v4.44.1: после сохранения из карточки/модалки обновляем экран ЗА ней,
+ сохраняя прокрутку — раньше таблица показывала старые значения до перезагрузки страницы */
+ try{
+  const sc=[...document.querySelectorAll('#main .tbl-scroll')].map(el=>({l:el.scrollLeft,t:el.scrollTop}));
+  const y=window.scrollY;
+  go(S.view);
+  const after=[...document.querySelectorAll('#main .tbl-scroll')];
+  sc.forEach((s0,i)=>{if(after[i]){after[i].scrollLeft=s0.l;after[i].scrollTop=s0.t;}});
+  window.scrollTo(0,y);
+ }catch(e){}}
 function regLiveRefresh(u,field){/* v4.43.3: правка в строке сразу пересчитывает «Итого/Обслуживание/Разницу» и «% занято» — раньше они обновлялись только после перезагрузки страницы */
  try{
   const tr=document.querySelector('#main tr[data-uid="'+u.id+'"]');
@@ -3225,7 +3235,7 @@ function brandSave(id){const b=BRANDS.find(x=>x.id===id);if(!b)return;const g=i=
  if(dup&&confirm('В базе уже есть бренд с таким названием: «'+dup.name+'» (изменён: '+(dup.editedBy||'-')+' '+(dup.editedAt||'')+').\n\nOK — объединить: эта запись вольётся в существующую (пустые поля дополнятся, контакты объединятся, дубликат исчезнет).\nОтмена — оставить обе записи.')){
   brandMerge(dup.id,b.id);persist();openBrand(dup.id);return;
  }
- persist();openBrand(id);}
+ persist();refreshViewKeepScroll();openBrand(id);}
 function normBrandName(s){return String(s||'').toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'');}
 function brandMerge(keepId,dupId){const k=BRANDS.find(x=>x.id===keepId),d=BRANDS.find(x=>x.id===dupId);if(!k||!d||k===d)return;
  Object.keys(d).forEach(f=>{if(f==='id'||f==='hist'||f==='contacts')return;if((k[f]==null||k[f]===''||k[f]===0)&&d[f])k[f]=d[f];});
@@ -3793,11 +3803,11 @@ function remindFromUnit(id){const u=U.find(x=>x.id===id);if(!u)return;DOC._ten=u
 function mergeUnitForm(id){if(!R().edit)return;const u=U.find(x=>x.id===id);if(!u)return;const others=unitsOf(u.obj).filter(x=>x.id!==id);if(!others.length){alert('Нет других помещений для объединения в этом объекте.');return;}
  $('drawer').innerHTML='<div class="dh"><span class="x" onclick="openUnit(\''+id+'\')">×</span><h2>Объединение помещений</h2><div class="s">'+esc(u.code)+' · '+fmtA(u.area)+' м²</div></div><div class="dbody"><div class="form"><label>Присоединить помещение</label><select id="mg_to">'+others.map(x=>'<option value="'+x.id+'">'+esc(x.code)+' · '+fmtA(x.area)+' м²</option>').join('')+'</select><div style="font-size:11px;color:var(--muted);margin-top:8px">Площади и террасы сложатся в «'+esc(u.code)+'»; присоединяемое помещение удаляется из реестра. Фиксируется в истории.</div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="doMerge(\''+id+'\')">Объединить</button><button class="btn ghost" onclick="openUnit(\''+id+'\')">Отмена</button></div></div></div>';
  openDrawerUI();localize();}
-function doMerge(id){const u=U.find(x=>x.id===id);if(!u)return;const o=U.find(x=>x.id===$('mg_to').value);if(!o||o.id===u.id)return;u.area=Math.round((u.area+o.area)*10)/10;u.terr=Math.round(((u.terr||0)+(o.terr||0))*10)/10;u.merged=(u.merged&&u.merged.length?u.merged:[u.code]).concat([o.code]);u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Объединено с '+o.code+' (+'+fmtA(o.area)+' м²) ('+S.user.name+')']);const i=U.indexOf(o);if(i>=0)U.splice(i,1);audit('Объединение помещений',u.code+' ← '+o.code);persist();openUnit(id);}
+function doMerge(id){const u=U.find(x=>x.id===id);if(!u)return;const o=U.find(x=>x.id===$('mg_to').value);if(!o||o.id===u.id)return;u.area=Math.round((u.area+o.area)*10)/10;u.terr=Math.round(((u.terr||0)+(o.terr||0))*10)/10;u.merged=(u.merged&&u.merged.length?u.merged:[u.code]).concat([o.code]);u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Объединено с '+o.code+' (+'+fmtA(o.area)+' м²) ('+S.user.name+')']);const i=U.indexOf(o);if(i>=0)U.splice(i,1);audit('Объединение помещений',u.code+' ← '+o.code);persist();refreshViewKeepScroll();openUnit(id);}
 function splitUnitForm(id){if(!R().edit)return;const u=U.find(x=>x.id===id);if(!u)return;
  $('drawer').innerHTML='<div class="dh"><span class="x" onclick="openUnit(\''+id+'\')">×</span><h2>Разделение помещения</h2><div class="s">'+esc(u.code)+' · '+fmtA(u.area)+' м²</div></div><div class="dbody"><div class="form"><label>Код нового помещения</label><input id="sp_code" value="'+esc(u.code)+'-2"><label>Площадь нового помещения, м²</label><input id="sp_area" type="number" min="0" step="0.1" value="0"><div style="font-size:11px;color:var(--muted);margin-top:8px">Указанная площадь вычитается из «'+esc(u.code)+'» и выделяется в новое вакантное помещение.</div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="doSplit(\''+id+'\')">Разделить</button><button class="btn ghost" onclick="openUnit(\''+id+'\')">Отмена</button></div></div></div>';
  openDrawerUI();localize();}
-function doSplit(id){const u=U.find(x=>x.id===id);if(!u)return;const code=($('sp_code').value||'').trim()||(u.code+'-2');const a=+$('sp_area').value||0;if(a<=0){alert('Введите площадь больше 0.');return;}if(a>=u.area){alert('Площадь нового помещения должна быть меньше текущей ('+fmtA(u.area)+' м²).');return;}u.area=Math.round((u.area-a)*10)/10;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);const nu=unit(u.obj,code,u.floor,Math.round(a*10)/10,0,u.cat,u.sub,u.rate,0,0,'vac','',[],[],'');nu.budget=u.budget;nu.total=Math.round(nu.area*nu.rate);nu.gap=-(nu.total);nu.hist.push([iso(TODAY),'Выделено из '+u.code+' ('+fmtA(a)+' м²) ('+S.user.name+')']);U.push(nu);u.hist.push([iso(TODAY),'Разделено: выделено '+code+' ('+fmtA(a)+' м²) ('+S.user.name+')']);audit('Разделение помещения',u.code+' → '+code);persist();openUnit(id);}
+function doSplit(id){const u=U.find(x=>x.id===id);if(!u)return;const code=($('sp_code').value||'').trim()||(u.code+'-2');const a=+$('sp_area').value||0;if(a<=0){alert('Введите площадь больше 0.');return;}if(a>=u.area){alert('Площадь нового помещения должна быть меньше текущей ('+fmtA(u.area)+' м²).');return;}u.area=Math.round((u.area-a)*10)/10;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);const nu=unit(u.obj,code,u.floor,Math.round(a*10)/10,0,u.cat,u.sub,u.rate,0,0,'vac','',[],[],'');nu.budget=u.budget;nu.total=Math.round(nu.area*nu.rate);nu.gap=-(nu.total);nu.hist.push([iso(TODAY),'Выделено из '+u.code+' ('+fmtA(a)+' м²) ('+S.user.name+')']);U.push(nu);u.hist.push([iso(TODAY),'Разделено: выделено '+code+' ('+fmtA(a)+' м²) ('+S.user.name+')']);audit('Разделение помещения',u.code+' → '+code);persist();refreshViewKeepScroll();openUnit(id);}
 /* Перераспределение площади: срезать часть одного помещения и передать другому */
 function areaTransferForm(fromId){if(!R().edit){alert('Недостаточно прав для редактирования.');return;}
  let oid;if(fromId){const fu=U.find(x=>x.id===fromId);oid=fu?fu.obj:S.obj;}else oid=S.obj;
@@ -3821,8 +3831,8 @@ function doTransferArea(){const f=U.find(x=>x.id===$('at_from').value),t=U.find(
  const note='Передано '+fmtA(a)+' м²: '+f.code+' → '+t.code+' ('+S.user.name+')';
  f.hist.push([iso(TODAY),note]);t.hist.push([iso(TODAY),note]);
  audit('Перераспределение площади',note);persist();closeDrawer();go(S.view);}
-function addVar(id){const u=U.find(x=>x.id===id),v=prompt('Бренд-кандидат:');if(v){u.vars.push(v);u.hist.push([iso(TODAY),'Добавлен вариант: '+v]);persist();openUnit(id);}}
-function delVar(id,i){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];if(!confirm('Удалить вариант «'+v+'» из карточки?\n\nЕсли бренд отказался — лучше «→ отказ», чтобы сохранить причину и условия в отказном листе.'))return;u.vars.splice(i,1);u.hist.push([iso(TODAY),'Удалён вариант: '+v+' ('+S.user.name+')']);audit('Удалён вариант помещения',u.code+' · '+v);persist();openUnit(id);}
+function addVar(id){const u=U.find(x=>x.id===id),v=prompt('Бренд-кандидат:');if(v){u.vars.push(v);u.hist.push([iso(TODAY),'Добавлен вариант: '+v]);persist();refreshViewKeepScroll();openUnit(id);}}
+function delVar(id,i){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];if(!confirm('Удалить вариант «'+v+'» из карточки?\n\nЕсли бренд отказался — лучше «→ отказ», чтобы сохранить причину и условия в отказном листе.'))return;u.vars.splice(i,1);u.hist.push([iso(TODAY),'Удалён вариант: '+v+' ('+S.user.name+')']);audit('Удалён вариант помещения',u.code+' · '+v);persist();refreshViewKeepScroll();openUnit(id);}
 function varToRefusal(id,i){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u||u.vars[i]==null)return;const v=u.vars[i];
  const cond='площадь '+fmtA(u.area)+' м²'+(u.rate?', ставка '+u.rate+' $/м²':'')+(u.sub?', '+u.sub:'')+(u.cat?', '+u.cat:'');
  openModal(`<h3 style="margin:0 0 10px">В отказной лист · ${esc(u.code)}</h3>
@@ -3838,7 +3848,7 @@ function saveVarRefusal(id,i){const u=U.find(x=>x.id===id);if(!u||u.vars[i]==nul
  const reason=(($('vr_reason')&&$('vr_reason').value)||'').trim();
  (REFUSALS[u.obj]=REFUSALS[u.obj]||[]).push({brand:v,reason,conditions,date:iso(TODAY),unitId:u.id,unitCode:u.code,by:S.user.name});
  u.vars.splice(i,1);u.hist.push([iso(TODAY),'В отказной лист: '+v+(reason?' — '+reason:'')+' ('+S.user.name+')']);
- audit('Бренд в отказной лист',u.code+' · '+v);persist();const m=$('rmodal');if(m)m.remove();openUnit(id);}
+ audit('Бренд в отказной лист',u.code+' · '+v);persist();const m=$('rmodal');if(m)m.remove();refreshViewKeepScroll();openUnit(id);}
 function addUnitDate(id){
  const u=U.find(x=>x.id===id);if(!u)return;
  const types=['Открытие','Окончание брони','Подписание контракта','Окончание договора','Ревизия ставки','Дедлайн'];
@@ -3857,7 +3867,7 @@ function saveUnitDate(id){
  const d=($('ud_date')&&$('ud_date').value)||'';
  if(!lbl){alert('Укажите тип даты.');return;}
  if(!d){alert('Укажите дату.');return;}
- u.dates.push([lbl,d]);u.hist.push([iso(TODAY),'Дата: '+lbl+' '+d+' ('+S.user.name+')']);audit('Добавлена контрольная дата',u.code+' · '+lbl+' '+d);persist();const m=$('rmodal');if(m)m.remove();openUnit(id);
+ u.dates.push([lbl,d]);u.hist.push([iso(TODAY),'Дата: '+lbl+' '+d+' ('+S.user.name+')']);audit('Добавлена контрольная дата',u.code+' · '+lbl+' '+d);persist();const m=$('rmodal');if(m)m.remove();refreshViewKeepScroll();openUnit(id);
 }
 /* продление срока ответа по предложению (арендатор попросил время на обдумывание) */
 function extendOffer(unitId,brand){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===unitId);if(!u)return;
@@ -3869,7 +3879,7 @@ function extendOffer(unitId,brand){if(!R().edit){alert('Недостаточно
  if(u.offer&&u.offer.to===of.to&&u.offer.no===of.no){u.offer.validUntil=of.validUntil;u.offer.validDays=of.validDays;}
  u.dates=(u.dates||[]).map(d=>(d[0].indexOf('Окончание брони')===0&&(d[0].indexOf(of.to)>=0||d[0].indexOf('КП '+of.no)>=0))?[d[0],of.validUntil]:d);
  u.hist.push([iso(TODAY),'Срок ответа продлён: '+of.to+' (КП '+(of.no||'')+') '+dateRU(oldUntil)+' → '+dateRU(of.validUntil)+' (+'+days+' дн., '+S.user.name+')']);
- audit('Продление срока КП',u.code+' · '+of.to+' → '+of.validUntil);persist();openUnit(unitId);if(S.view==='registry')renderRegistry();}
+ audit('Продление срока КП',u.code+' · '+of.to+' → '+of.validUntil);persist();refreshViewKeepScroll();openUnit(unitId);}
 /* этап «до КП»: бренд(ы) проявили интерес — фиксируем без цены. Цена и детали появятся при формировании КП. */
 function negotiateUnit(id){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u)return;
  const v=prompt('Бренд(ы), с которыми идут переговоры по «'+u.code+'» (через запятую).\nЦена и условия здесь НЕ указываются — они появятся при формировании КП (Документы):',u.vars.join(', '));
@@ -3879,14 +3889,14 @@ function negotiateUnit(id){if(!R().edit){alert('Недостаточно пра�
  const stChanged=(u.status==='vac'||u.status==='res');
  if(stChanged){u.status='neg';u.gap=-(u.total||0);}
  u.hist.push([iso(TODAY),'Переговоры: '+names.join(', ')+(stChanged?' (статус → Переговоры)':'')+' ('+S.user.name+')']);
- audit('Переговоры по помещению',u.code+' · '+names.join(', '));persist();openUnit(id);if(S.view==='registry')renderRegistry();}
+ audit('Переговоры по помещению',u.code+' · '+names.join(', '));persist();refreshViewKeepScroll();openUnit(id);}
 function editUnitArea(id){if(!R().edit){alert('Недостаточно прав.');return;}const u=U.find(x=>x.id===id);if(!u)return;
  const v=prompt('Фактическая площадь «'+u.code+'», м²'+(u.merged&&u.merged.length?'\n(объединено из '+u.merged.join(' + ')+' — после сноса стен/добавления коридоров площадь обычно больше суммы)':'')+':',u.area||'');
  if(v==null)return;const a=+String(v).replace(',','.').replace(/[^\d.]/g,'');
  if(!(a>0)){alert('Введите число больше нуля.');return;}
  const old=u.area;u.area=Math.round(a*10)/10;u.total=Math.round(u.area*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);
  u.hist.push([iso(TODAY),'Площадь уточнена: '+fmtA(old)+' → '+fmtA(u.area)+' м² ('+S.user.name+')']);
- audit('Уточнена площадь',u.code+': '+fmtA(old)+' → '+fmtA(u.area)+' м²');persist();openUnit(id);if(S.view==='registry')renderRegistry();}
+ audit('Уточнена площадь',u.code+': '+fmtA(old)+' → '+fmtA(u.area)+' м²');persist();refreshViewKeepScroll();openUnit(id);}
 function unitForm(id){
  const u=U.find(x=>x.id===id);
  const sts=[['vac','Вакант'],['neg','Переговоры'],['off','Предложено'],['os','Предложение подписано'],['cs','Контракт на подписании'],['cd','Контракт подписан'],['res','Резерв']];
@@ -3916,12 +3926,12 @@ function unitSave(id){const u=U.find(x=>x.id===id);if(!u)return;const g=i=>{cons
  const _pb=u.broker,_ps=u.status;
  u.code=newCode||u.code;u.floor=g('e_floor');u.block=(g('e_block')||'').trim();u.cat=g('e_cat');u.sub=g('e_sub');u.format=(g('e_format')||'').trim();u.concept=(g('e_concept')||'').trim();u.zone=(g('e_zone')||'').trim();u.area=+g('e_area')||0;u.terr=+g('e_terr')||0;u.rate=+g('e_rate')||0;u.budget=+g('e_budget')||0;u.status=g('e_status');{const _ss=g('e_salestatus');if(_ss&&SALESTAT[_ss])u.saleStatus=_ss;}u.broker=g('e_broker');
  u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);commTrack(u,_pb,_ps);
- planUnignoreCode(u.obj,u.code);u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);audit('Правка помещения',u.code);persist();openUnit(id);}
+ planUnignoreCode(u.obj,u.code);u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);audit('Правка помещения',u.code);persist();refreshViewKeepScroll();openUnit(id);}
 function shortlistPick(id){pickerView(id,false);}
 /* Категории юнита: основная + дополнительные (юнит может подходить под 2+ категорий) */
 function unitCats(u){const set=[];[u.cat].concat(u.extraCats||[]).forEach(c=>{if(c&&c!=='-'&&set.indexOf(c)<0)set.push(c);});return set;}
-function addUnitCatV(id,c){const u=U.find(x=>x.id===id);if(!u||!R().edit||!c)return;u.extraCats=u.extraCats||[];if(u.extraCats.indexOf(c)<0&&c!==u.cat){u.extraCats.push(c);u.hist.push([iso(TODAY),'Добавлена категория: '+c+' ('+S.user.name+')']);persist();}pickerView(id,false);}
-function delUnitCatV(id,c){const u=U.find(x=>x.id===id);if(!u||!R().edit)return;u.extraCats=(u.extraCats||[]).filter(x=>x!==c);u.hist.push([iso(TODAY),'Убрана категория: '+c+' ('+S.user.name+')']);persist();pickerView(id,false);}
+function addUnitCatV(id,c){const u=U.find(x=>x.id===id);if(!u||!R().edit||!c)return;u.extraCats=u.extraCats||[];if(u.extraCats.indexOf(c)<0&&c!==u.cat){u.extraCats.push(c);u.hist.push([iso(TODAY),'Добавлена категория: '+c+' ('+S.user.name+')']);persist();refreshViewKeepScroll();}pickerView(id,false);}
+function delUnitCatV(id,c){const u=U.find(x=>x.id===id);if(!u||!R().edit)return;u.extraCats=(u.extraCats||[]).filter(x=>x!==c);u.hist.push([iso(TODAY),'Убрана категория: '+c+' ('+S.user.name+')']);persist();refreshViewKeepScroll();pickerView(id,false);}
 function pickerView(id,all){
  const u=U.find(x=>x.id===id);if(!u)return;
  if(!window._pickSel||window._pickSel.uid!==id)window._pickSel={uid:id,ids:{}};
@@ -3954,7 +3964,7 @@ function pickerAdd(kind){const st=window._pickSel;if(!st)return;const u=U.find(x
  if(n){u.hist.push([iso(TODAY),(kind==='short'?'Шорт-лист':'Варианты')+': +'+n+' из подбора ('+S.user.name+')']);persist();}
  st.ids={};toast('Добавлено брендов: '+n);openUnit(st.uid);}
 function addToList(uid,bid,kind){const u=U.find(x=>x.id===uid),b=BRANDS.find(x=>x.id===bid);if(!u||!b)return;if(kind==='short'){u.shortlist=u.shortlist||[];if(u.shortlist.indexOf(b.name)<0)u.shortlist.push(b.name);u.hist.push([iso(TODAY),'Шорт-лист: +'+b.name+' ('+S.user.name+')']);}else{if(u.vars.indexOf(b.name)<0)u.vars.push(b.name);u.hist.push([iso(TODAY),'Вариант: +'+b.name+' ('+S.user.name+')']);}persist();pickerView(uid,false);}
-function addComment(id){const u=U.find(x=>x.id===id);const c=prompt('Комментарий по сделке / предложению:');if(c){u.comments=u.comments||[];u.comments.push([iso(TODAY),S.user.name,c]);u.hist.push([iso(TODAY),'Комментарий ('+S.user.name+')']);persist();openUnit(id);}}
+function addComment(id){const u=U.find(x=>x.id===id);const c=prompt('Комментарий по сделке / предложению:');if(c){u.comments=u.comments||[];u.comments.push([iso(TODAY),S.user.name,c]);u.hist.push([iso(TODAY),'Комментарий ('+S.user.name+')']);persist();refreshViewKeepScroll();openUnit(id);}}
 
 /* ===== DOCUMENTS ===== */
 let DOC={t:'kp',uid:null,last:'',raw:'',fname:'CASE_document',docLang:'ru'};
@@ -4329,7 +4339,7 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
-<script src="v32-upgrade.js?v=4.38.0" defer></script>
+<script src="v32-upgrade.js?v=4.45.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.32.7" defer></script>
 <script src="v3515-ux.js?v=4.32.7" defer></script>
@@ -4348,8 +4358,8 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
-<script src="v432-data-grid.js?v=4.43.2" defer></script>
-<script src="v4327-patch.js?v=4.44.0" defer></script>
+<script src="v432-data-grid.js?v=4.45.0" defer></script>
+<script src="v4327-patch.js?v=4.45.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){
