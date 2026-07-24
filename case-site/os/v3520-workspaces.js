@@ -195,7 +195,7 @@
     var allowed=effectiveViews(),out='';
     GROUP_ORDER.forEach(function(g){
       var items=MODULES.filter(function(m){return m.nav&&!m.future&&m.g===g&&allowed.indexOf(m.v)>=0;}); /* v4.39: модули-заглушки (future) убраны из меню — они дорожная карта, а не рабочие разделы; управлять ими можно в админке рабочих пространств */
-      try{if(typeof R==='function'&&R().brandsOnly)items=items.filter(function(m){return m.v==='brands';});}catch(e){} /* v4.35 (роли): «только бренды» — правило ядра, потерянное при переходе на групповое меню */
+      /* v4.41.2: жёсткий фильтр «BRJ видит только бренды» УДАЛЁН — он перекрывал настраиваемое рабочее пространство роли (у BRJ по умолчанию есть гео/рынок, и админ может расширять набор). Видимость определяет только workspace. */
       if(!items.length)return;
       var active=items.some(function(m){return S&&S.view===m.v;});
       out+='<div class="nav-group '+(active?'has-active open':'')+'"><button type="button" class="nav-group-btn" aria-haspopup="true" aria-expanded="false" onclick="caseNavToggle(event,this)"><span>'+h(tx(GROUPS[g]))+'</span><span class="chev">▼</span></button><div class="nav-menu">';
