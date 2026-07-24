@@ -33,7 +33,9 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .burger{display:block;width:38px;height:36px;padding:0;font-size:20px;background:none;border:1px solid var(--border);border-radius:9px;color:#333}
 .brand{display:flex;align-items:baseline;gap:7px;font-weight:800;font-size:19px;white-space:nowrap}.brand .c{color:var(--red)}.brand .tag{font-size:10px;font-weight:600;color:var(--muted);letter-spacing:1px;text-transform:uppercase}
 .demo{font-size:9.5px;font-weight:700;color:var(--red-d);background:#fdeaea;border:1px solid #f6cccc;padding:3px 7px;border-radius:20px}
-.tb-obj{margin-left:auto;font-family:inherit;font-size:13px;font-weight:600;padding:7px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;max-width:230px}
+.tb-obj{margin-left:auto;font-family:inherit;font-size:13px;font-weight:600;padding:7px 10px;border:1px solid var(--border);border-radius:9px;background:#fff;max-width:320px}
+/* v4.34: «+ Объект»/«✎ Объект» убраны из шапки — они дублировали кнопки главного экрана и карточки объекта; шапка разгружена под селектор проекта и поиск */
+#addObjBtn,#editObjBtn{display:none!important}
 .gsearch{position:relative;width:min(320px,28vw);min-width:150px;flex:0 1 auto}.gsearch input{width:100%;font-family:inherit;font-size:12.5px;padding:8px 26px 8px 30px;border:1px solid var(--border);border-radius:8px;background:#fff}.gsearch .gclear{position:absolute;right:7px;top:50%;transform:translateY(-50%);cursor:pointer;color:#6d6d6d;font-weight:800;font-size:13px;display:none;z-index:2;padding:2px 5px;line-height:1}.gsearch .gclear:hover{color:var(--red-d)}.gsearch::before{content:'⌕';position:absolute;left:10px;top:6px;color:#6d6d6d;font-weight:800;z-index:1}.gdrop{position:absolute;top:calc(100% + 6px);left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow);max-height:360px;overflow:auto;z-index:70;display:none}.gdrop.open{display:block}.gitem{display:flex;justify-content:space-between;gap:8px;padding:10px 11px;border-bottom:1px solid #f2f0ed;cursor:pointer}.gitem:hover{background:var(--soft)}.gitem b{font-size:12.5px}.gitem small{display:block;color:var(--muted);font-size:10.5px}.gitem .kind{font-size:9.5px;font-weight:800;color:var(--red-d);background:#fdeaea;border-radius:10px;padding:2px 7px;align-self:flex-start}
 .langbtn{border:1px solid var(--border);background:#fff;border-radius:8px;padding:7px 9px;font-weight:700;font-size:11.5px;color:#444}
 .who{display:flex;align-items:center;gap:9px}.who .av{width:34px;height:34px;border-radius:50%;background:var(--red);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px}
@@ -54,6 +56,13 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .shell{display:block;min-height:calc(100vh - var(--topbar-h,55px))}
 .side{position:fixed;top:var(--topbar-h,55px);bottom:0;left:0;width:58px;background:#fff;border-right:1px solid var(--border);padding:8px 6px;z-index:39;overflow-x:hidden;overflow-y:auto;transition:width .18s ease,box-shadow .18s ease}
 .side:hover,.side.open{width:264px;box-shadow:10px 0 30px rgba(20,20,20,.13)}
+/* v4.34: на десктопе меню по умолчанию ЗАКРЕПЛЕНО с подписями (иконки-загадки без подписей — главная жалоба на «кашу»); ☰ сворачивает в узкую рейку */
+@media(min-width:821px){
+ body.nav-pin .side{width:264px;box-shadow:none}
+ body.nav-pin .main{margin-left:264px;width:calc(100% - 264px)}
+ body.nav-pin .side .nav-group-btn{visibility:visible}
+ body.nav-pin .side .nav-menu a{justify-content:flex-start;gap:10px;width:100%;padding:8px 10px;font-size:12px}
+}
 .nav{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0}
 .nav-group{position:relative;width:100%;flex:0 0 auto}
 .nav-group-btn{display:flex;visibility:hidden;align-items:center;justify-content:space-between;width:100%;height:24px;gap:7px;padding:7px 9px 3px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
@@ -438,7 +447,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.33.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.34.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -1095,8 +1104,13 @@ function localize(){try{if(!document.createTreeWalker)return;
  conts.forEach(r=>{const skip=r.querySelector?r.querySelector('#dprev'):null;
   const w=document.createTreeWalker(r,NodeFilter.SHOW_TEXT,null);const ns=[];let x;while(x=w.nextNode()){if(skip&&skip.contains(x))continue;ns.push(x);}
   ns.forEach(tn=>{const p=tn.parentElement;if(!p)return;
-   let src=p.getAttribute('data-ru');
-   if(src==null){if(!/[А-Яа-яЁё]/.test(tn.nodeValue))return;src=tn.nodeValue;p.setAttribute('data-ru',src);}
+   /* v4.34: исходник хранится ПО-УЗЛОВО (data-ru, data-ru-t1, …). Раньше data-ru был один на элемент,
+      и в элементах с несколькими текстовыми узлами (например «⏰ Внимание: <b>7</b> просроченных…»)
+      все узлы после первого затирались первым — баннеры превращались в кашу. */
+   let idx=0;for(let c=tn.previousSibling;c;c=c.previousSibling)if(c.nodeType===3)idx++;
+   const key=idx?('data-ru-t'+idx):'data-ru';
+   let src=p.getAttribute(key);
+   if(src==null){if(!/[А-Яа-яЁё]/.test(tn.nodeValue))return;src=tn.nodeValue;p.setAttribute(key,src);}
    const nv=LANG==='ru'?src:uzText(src);if(nv!==tn.nodeValue)tn.nodeValue=nv;
   });
   (r.querySelectorAll?r.querySelectorAll('[placeholder],[title],[aria-label]'):[]).forEach(el=>{if(skip&&skip.contains(el))return;
@@ -1113,8 +1127,9 @@ let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',st
 /* Личные настройки экрана (язык, тема, текущий объект/раздел) — хранятся ТОЛЬКО в этом браузере,
    отдельно от общих данных компании, чтобы смена языка/раздела одним сотрудником не влияла на других. */
 const UI_KEY=STORAGE_KEY+'-ui';
-function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1,regColBud:!!S.regColBud,regColFac:!!S.regColFac}));}catch(e){}}
-function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if(p.regColBud)S.regColBud=true;if(p.regColFac)S.regColFac=true;}catch(e){}}
+function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1,regColBud:!!S.regColBud,regColFac:!!S.regColFac,navPin:S.navPin!==false}));}catch(e){}}
+function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if(p.regColBud)S.regColBud=true;if(p.regColFac)S.regColFac=true;if(p.navPin===false)S.navPin=false;}catch(e){}}
+function applyNavPin(){try{document.body.classList.toggle('nav-pin',S.navPin!==false);}catch(e){}}
 /* ===== Сортировка/фильтрация таблиц — ЛИЧНАЯ настройка каждого пользователя =====
    Хранится в localStorage под ключом с id пользователя и НИКОГДА не уходит в общий блоб (state.php),
    поэтому изменение сортировки/фильтра одним сотрудником не меняет вид у других. У каждого — своё. */
@@ -1349,7 +1364,7 @@ function boot(){
  $('whoName').firstChild.textContent=nameDisplay(S.user.name);$('whoRole').textContent=roleDisplay(S.role);$('b_out').textContent=t('out');
  $('addObjBtn').style.display=R().admin?'':'none';{const _eb=$('editObjBtn');if(_eb)_eb.style.display=(R().admin&&S.obj&&S.obj!=='ALL')?'':'none';}
  $('langTop').textContent=LANG_CYCLE[(LANG_CYCLE.indexOf(LANG)+1)%LANG_CYCLE.length].toUpperCase();
- applyTheme();loadFx();{const av=$('appVer');if(av)av.textContent=(BACKEND?'':(DEMO_ALLOWED?'DEMO · ':''))+'v'+APP_VERSION;}updateOfflineBadge();
+ applyTheme();loadFx();applyNavPin();{const av=$('appVer');if(av)av.textContent=(BACKEND?'':(DEMO_ALLOWED?'DEMO · ':''))+'v'+APP_VERSION;}updateOfflineBadge();
  if(S.obj!=='ALL'&&!visibleObjects().some(o=>o.id===S.obj))S.obj=(visibleObjects()[0]&&visibleObjects()[0].id)||'ALL';
 const validViews=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','case_projects','project_workspace','project_layouts','leasing_layouts','plan_master','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','document_templates','project_handover','project_contracts','docs','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','leasing_portfolio_map','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_opening','manage_portfolio','facility_management','equipment_registry','maintenance','tenant_contracts','asset_management','property_budget','noi_performance','capex_management','owner_reports','v326_suppliers','finance_dashboard','finance_income','finance_expenses','finance_invoices','finance_receivables','finance_payables','finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget','analytics_hub','map','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export','product_intelligence','product_market','product_living','product_manage','product_subscriptions','kpi','org','study','rating','users','admin_workflows','admin_directories','admin_integrations','chat'];
  if(validViews.indexOf(S.view)<0)S.view='dash';
@@ -1394,7 +1409,9 @@ function renderPerm(){const hid=!!S.permHidden;const box=$('perm');box.classList
 function togglePermPanel(){S.permHidden=!S.permHidden;saveUiPrefs();renderPerm();}
 function setObj(v){S.obj=v;S.planBlock=null;S.planFloor=null;{const _eb=$('editObjBtn');if(_eb)_eb.style.display=(R().admin&&S.obj&&S.obj!=='ALL')?'':'none';}go(S.view);}
 function syncNavTop(){const bar=document.querySelector('.topbar');if(bar)document.documentElement.style.setProperty('--topbar-h',Math.ceil(bar.getBoundingClientRect().height)+'px');}
-function toggleSide(){syncNavTop();const open=$('side').classList.toggle('open');$('scrim').classList.toggle('open',open&&matchMedia('(max-width:820px)').matches);}
+function toggleSide(){syncNavTop();
+ if(matchMedia('(min-width:821px)').matches){S.navPin=(S.navPin===false);applyNavPin();saveUiPrefs();return;} /* десктоп: ☰ закрепляет/сворачивает меню с подписями */
+ const open=$('side').classList.toggle('open');$('scrim').classList.toggle('open',open);}
 function go(v){
  if(v==='chat'){chatOpenW();v=(S.view&&S.view!=='chat')?S.view:'dash';} /* чат теперь виджет */
  const prev=S.view;S.view=v;if(prev!==v)S._focus=null;
@@ -1578,7 +1595,7 @@ function commDashCard(){
   <option value="ALL">Все агенты</option>${brokers.map(b=>`<option value="${esc(b)}"${sel===b?' selected':''}>${esc(b)}</option>`).join('')}</select>`:'';
  const pctInp=R().admin?`<span style="font-size:11px;color:var(--muted)"><label for="commAgentPct">Доля агента, %:</label></span><input id="commAgentPct" aria-label="${esc(pctLbl)}" type="number" min="0" max="100" value="${+((COMMCFG&&COMMCFG.agentPct)||0)}" onchange="commSetPct(this.value)" style="width:58px;font-family:inherit;font-size:12px;padding:5px;border:1px solid var(--border);border-radius:7px;text-align:right">`:'';
  const rows=brokers.map(b=>{const bu=all.filter(u=>String(u.broker||'').trim()===b);const K=commBook(bu,commFeeU);const A=commAgentBook(bu);const pct=commAgentPct(b);return {b,n:bu.length,K,A,pct,lost:commLostOf(b)};}).sort((a,b)=>b.A.pipe-a.A.pipe||b.A.earn-a.A.earn);
- const cmp=rows.length?`<h4 style="margin:14px 0 6px;font-size:12.5px">Бонусы команды <span class="mut">командный обзор доступен по правам Финансы / Согласование / Администрирование · остальные видят только себя</span></h4><div class="tbl-scroll"><table><thead><tr><th>Сотрудник</th><th class="num">Юнитов</th><th class="num">Накоплено</th><th class="num">Придёт при закрытии</th><th class="num">Weighted forecast</th><th class="num">Упущено</th><th class="num">Доля</th><th class="num">CASE pipeline</th></tr></thead><tbody>${rows.map(r=>`<tr style="cursor:pointer" onclick="S.commAgent='${esc(r.b)}';renderDash()"><td><b>${esc(r.b)}</b></td><td class="num">${r.n}</td><td class="num" style="color:var(--green)"><b>${fmt(r.A.earn)}</b></td><td class="num">${fmt(r.A.pipe)}</td><td class="num">${fmt(r.A.weighted)}</td><td class="num" style="color:var(--red-d)">${r.lost?'−'+fmt(r.lost).slice(1)+' $':'—'}</td><td class="num">${r.pct}%</td><td class="num">${fmt(r.K.pipe)}</td></tr>`).join('')}</tbody></table></div>`:'';
+ const cmp=rows.length?`<h4 style="margin:14px 0 6px;font-size:12.5px">Бонусы команды <span class="mut">командный обзор доступен по правам Финансы / Согласование / Администрирование · остальные видят только себя</span></h4><div class="tbl-scroll"><table><thead><tr><th>Сотрудник</th><th class="num">Юнитов</th><th class="num">Накоплено</th><th class="num">Придёт при закрытии</th><th class="num">Взвешенный прогноз</th><th class="num">Упущено</th><th class="num">Доля</th><th class="num">CASE pipeline</th></tr></thead><tbody>${rows.map(r=>`<tr style="cursor:pointer" onclick="S.commAgent='${esc(r.b)}';renderDash()"><td><b>${esc(r.b)}</b></td><td class="num">${r.n}</td><td class="num" style="color:var(--green)"><b>${fmt(r.A.earn)}</b></td><td class="num">${fmt(r.A.pipe)}</td><td class="num">${fmt(r.A.weighted)}</td><td class="num" style="color:var(--red-d)">${r.lost?'−'+fmt(r.lost).slice(1)+' $':'—'}</td><td class="num">${r.pct}%</td><td class="num">${fmt(r.K.pipe)}</td></tr>`).join('')}</tbody></table></div>`:'';
  const topAgent=rows[0];
  const closeBonus=sel==='ALL'?rows.reduce((s,r)=>s+r.A.pipe,0):commAgentBook(us).pipe;
  const weighted=sel==='ALL'?rows.reduce((s,r)=>s+r.A.weighted,0):commAgentBook(us).weighted;
@@ -1588,7 +1605,7 @@ function commDashCard(){
   <div class="kpi"><div class="lab">CASE в работе</div><div class="val">${fmt(B.pipe)}</div><div class="sub2">комиссия компании</div></div>
   <div class="kpi"><div class="lab">Бонус накоплен</div><div class="val" style="color:var(--green)">${fmt(earnedAgent)}</div><div class="sub2">по подписанным</div></div>
   <div class="kpi"><div class="lab">Бонус при закрытии</div><div class="val">${fmt(closeBonus)}</div><div class="sub2">текущий pipeline</div></div>
-  <div class="kpi"><div class="lab">Weighted forecast</div><div class="val">${fmt(weighted)}</div><div class="sub2">с учётом стадии</div></div>
+  <div class="kpi"><div class="lab">Взвешенный прогноз</div><div class="val">${fmt(weighted)}</div><div class="sub2">с учётом стадии</div></div>
   <div class="kpi"><div class="lab">Упущено</div><div class="val" style="color:var(--red-d)">${fmt(lostAg)}</div><div class="sub2">сорвано / передано</div></div>
  </div>
  ${commStatusBars(B.by)}${cmp}
@@ -1609,7 +1626,7 @@ function commMyCard(){
  <div class="kpis" style="grid-template-columns:repeat(5,1fr);margin-bottom:10px">
   <div class="kpi"><div class="lab">Накоплено</div><div class="val" style="color:var(--green)">${fmt(B.earn)}</div><div class="sub2">подписанные сделки</div></div>
   <div class="kpi"><div class="lab">Придёт при закрытии</div><div class="val">${fmt(B.pipe)}</div><div class="sub2">мой текущий pipeline</div></div>
-  <div class="kpi"><div class="lab">Weighted forecast</div><div class="val">${fmt(B.weighted)}</div><div class="sub2">с учётом стадии</div></div>
+  <div class="kpi"><div class="lab">Взвешенный прогноз</div><div class="val">${fmt(B.weighted)}</div><div class="sub2">с учётом стадии</div></div>
   <div class="kpi"><div class="lab">Упущено</div><div class="val" style="color:var(--red-d)">${fmt(lost)}</div><div class="sub2">сорвалось / передано</div></div>
   <div class="kpi"><div class="lab">Доля</div><div class="val">${pct}%</div><div class="sub2">от комиссии CASE</div></div>
  </div>
@@ -2181,7 +2198,10 @@ function maybeShowQuiz(){
   if(ui.lastAt&&Date.now()-ui.lastAt<QUIZ_COOLDOWN_MS)return;
   const q=quizPick();if(!q)return;
   ui.shown=(ui.shown||0)+1;ui.lastAt=Date.now();quizSaveUi(ui);
-  quizRenderPopup(q);
+  /* v4.34: тест больше НЕ выпрыгивает поверх рабочих экранов — появляется скромный бейдж 🎓,
+     вопрос открывается по клику (античит по-прежнему работает после открытия вопроса) */
+  _quizCurrent=q;window._quizMinUnanswered=false;
+  const b=document.createElement('button');b.id='quizPop';b.className='quizpop-badge';b.onclick=quizExpand;b.title=quizT('title');b.textContent='🎓';document.body.appendChild(b);
  }catch(e){}
 }
 function quizManual(){const q=quizPick();if(!q){alert(quizT('noBank'));return;}quizRenderPopup(q);}
@@ -2221,7 +2241,7 @@ function quizRecordAnswer(q,idx,correct){if(Array.isArray(QUIZSTATS))QUIZSTATS={
  if(S.view==='kpi'&&S.kpiTab!=='pipeline'){const el=$('main');if(el)renderKPI();}
 }
 function quizClose(){const box=$('quizPop');if(box)box.remove();_quizCurrent=null;}
-function quizMinimize(){const box=$('quizPop');if(!box)return;window._quizMinUnanswered=quizUnanswered();box.outerHTML=`<button id="quizPop" class="quizpop-badge" onclick="quizExpand()" title="${esc(quizT('title'))}">?</button>`;}
+function quizMinimize(){const box=$('quizPop');if(!box)return;window._quizMinUnanswered=quizUnanswered();box.outerHTML=`<button id="quizPop" class="quizpop-badge" onclick="quizExpand()" title="${esc(quizT('title'))}">🎓</button>`;}
 function quizExpand(){const box=$('quizPop');if(box&&box.tagName==='BUTTON')box.remove();if(!_quizCurrent)return;
  /* после сворачивания показываем НОВЫЙ вопрос — чтобы нельзя было уйти за ответом */
  if(window._quizMinUnanswered){window._quizMinUnanswered=false;const q=quizPick();if(q){_quizCurrent=null;quizRenderPopup(q);quizSwapNote();return;}}
@@ -2529,7 +2549,7 @@ function planLegend(){const m=planMode();const toggle=`<div class="tabs" style="
 let PROJECT_PPT={}; /* objId -> {data (PDF, data URL), name, by, date, size} - общая презентация проекта */
 function presentationBar(){const p=PROJECT_PPT[S.obj];const can=(R().edit||R().admin||R().plans);
  const dl=p?`<a href="${p.data}" download="${esc(p.name||'presentation.pdf')}" class="btn ghost sm">⬇ Скачать презентацию проекта</a> <span style="font-size:11px;color:var(--muted)">${esc(p.by||'')}, ${esc(p.date||'')}</span>`:'';
- const up=can?`<button class="btn ${p?'ghost ':''}sm" onclick="uploadPresentation()">📎 ${p?'Обновить':'Прикрепить'} презентацию проекта (PDF)</button>`:'';
+ const up=can?`<button class="btn ghost sm" onclick="uploadPresentation()" title="${p?'Обновить':'Прикрепить'} презентацию проекта (PDF)">📎 ${p?'Обновить':'Прикрепить'} презентацию (PDF)</button>`:''; /* v4.34: не спорит по яркости с основным действием экрана */
  const del=(can&&p)?`<button class="btn ghost sm" onclick="deletePresentation()">Удалить презентацию</button>`:'';
  if(!p&&!can)return '';
  return `<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px">${dl}${up}${del}</div>`;}
@@ -2544,7 +2564,7 @@ function uploadPresentation(){if(!(R().edit||R().admin||R().plans))return;const 
   go('plans');};
  r.readAsDataURL(f);};inp.click();}
 function deletePresentation(){if(!(R().edit||R().admin||R().plans))return;if(!confirm('Удалить презентацию проекта для «'+curObj().name+'»?'))return;delete PROJECT_PPT[S.obj];audit('Удалена презентация',curObj().name);persist();go('plans');}
-function planTools(){const can=(R().edit||R().admin||R().plans);const blk=curBlock();const fl=curFloor();const up=planFor(S.obj,blk,fl);const fln=(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»';const b=up?`<div class="banner ok">✔ Чертёж (${esc(fln)}) загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${R().admin?' <span style="color:var(--muted);font-size:11px">Удалить чертёж этажа/блока — в карточке объекта (кнопка «✎ Объект» в шапке).</span>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()">⬆ Загрузить чертёж (${esc(fln)}) (SVG / PNG)</button> <span style="font-size:11px;color:var(--muted)">SVG с id = код помещения · план виден всем</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружают сотрудники с правом правок - план виден всем.</span>`;const auto=(can&&R().edit&&up&&up.kind==='svg')?` <button class="btn ghost sm" onclick="autoUnitsFromPlan()">✚ Создать помещения из чертежа</button> <button class="btn ghost sm" onclick="autoUnitsRescan()" title="Заново распознать все помещения с чертежа (включая уже созданные) — если планировка была считана неверно. Ошибку распознавания больше не «падает».">↻ Пересчитать заново</button>`:'';const at=(R().edit&&S.obj!=='ALL')?` <button class="btn ghost sm" onclick="areaTransferForm()">✂ Перераспределить площадь</button>`:'';const showsLbl=(up&&up.kind==='svg')||(S.obj==='zm'&&curFloor()==='2 этаж');const lbl=showsLbl?` <button class="btn ghost sm" onclick="togglePlanLabels()">${S.planLabels===false?'👁 Показать подписи':'🛇 Скрыть подписи (видеть оригинал)'}</button>`:'';const sz=(showsLbl&&S.planLabels!==false)?` <button class="btn ghost sm" onclick="planLabelSize(-1)" title="Уменьшить подписи на плане">А−</button><button class="btn ghost sm" onclick="planLabelSize(1)" title="Увеличить подписи на плане">А+</button>`:'';return b+`<div style="margin-bottom:6px">${x}${auto}${lbl}${sz}${at}</div>`;}
+function planTools(){const can=(R().edit||R().admin||R().plans);const blk=curBlock();const fl=curFloor();const up=planFor(S.obj,blk,fl);const fln=(blk?'блок «'+blk+'», ':'')+'этаж «'+fl+'»';const b=up?`<div class="banner ok">✔ Чертёж (${esc(fln)}) загружен (${esc(up.by||'')}, ${esc(up.date||'')}) - виден всем.${R().admin?' <span style="color:var(--muted);font-size:11px">Удалить чертёж этажа/блока — в карточке объекта (кнопка «✎ Объект» в шапке).</span>':''}</div>`:'';const x=can?`<button class="btn sm" onclick="uploadPlan()" title="Загрузить чертёж: ${esc(fln)}. SVG с id = код помещения; план виден всем">⬆ Загрузить чертёж (SVG/PNG)</button> <span style="font-size:11px;color:var(--muted)">${esc(fln)} · SVG с id = код помещения</span>`:`<span style="font-size:11px;color:var(--muted)">Чертежи загружают сотрудники с правом правок - план виден всем.</span>`;const auto=(can&&R().edit&&up&&up.kind==='svg')?` <button class="btn ghost sm" onclick="autoUnitsFromPlan()">✚ Создать помещения из чертежа</button> <button class="btn ghost sm" onclick="autoUnitsRescan()" title="Заново распознать все помещения с чертежа (включая уже созданные) — если планировка была считана неверно. Ошибку распознавания больше не «падает».">↻ Пересчитать заново</button>`:'';const at=(R().edit&&S.obj!=='ALL')?` <button class="btn ghost sm" onclick="areaTransferForm()">✂ Перераспределить площадь</button>`:'';const showsLbl=(up&&up.kind==='svg')||(S.obj==='zm'&&curFloor()==='2 этаж');const lbl=showsLbl?` <button class="btn ghost sm" onclick="togglePlanLabels()">${S.planLabels===false?'👁 Показать подписи':'🛇 Скрыть подписи (видеть оригинал)'}</button>`:'';const sz=(showsLbl&&S.planLabels!==false)?` <button class="btn ghost sm" onclick="planLabelSize(-1)" title="Уменьшить подписи на плане">А−</button><button class="btn ghost sm" onclick="planLabelSize(1)" title="Увеличить подписи на плане">А+</button>`:'';return b+`<div style="margin-bottom:6px">${x}${auto}${lbl}${sz}${at}</div>`;}
 function planLabelSize(dir){const steps=[0.6,0.75,0.9,1,1.15,1.35,1.6];const cur=S.planLabelScale||1;let i=steps.reduce((bi,v,ix)=>Math.abs(v-cur)<Math.abs(steps[bi]-cur)?ix:bi,0);i=Math.max(0,Math.min(steps.length-1,i+dir));S.planLabelScale=steps[i];saveUiPrefs();go('plans');}
 function togglePlanLabels(){S.planLabels=(S.planLabels===false);renderPlans();}
 let PLAN_MSG='';
@@ -4205,18 +4225,18 @@ function brandProfile(id){
  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
 }catch(e){}})();
 
-try{Object.assign(ENMAP,{'Цена':'Price','Цена ур.':'Price lvl','Название':'Name','Цена ур.':'Price level','Бренд ур.':'Brand level','Мин. м²':'Min m²','Макс. м²':'Max m²','Ур. бренда':'Brand level','Бренд ур.':'Brand lvl','Бренд':'Brand','Мин. м²':'Min m²','Макс. м²':'Max m²','Мин м²':'Min m²','Макс м²':'Max m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Price level','Уровень бренда':'Brand level','Минимальная площадь':'Minimum area','Максимальная площадь':'Maximum area','Бонусы команды':'Team bonuses','Накоплено':'Accumulated','Придёт при закрытии':'Expected if closed','Упущено':'Lost','Weighted forecast':'Weighted forecast'});Object.assign(UZMAP,{'Цена':'Narx','Цена ур.':'Narx dar.','Название':'Nomi','Ур. бренда':'Brend darajasi','Бренд ур.':'Brend dar.','Бренд':'Brend','Мин. м²':'Min m²','Макс. м²':'Maks m²','Мин m²':'Min m²','Макс m²':'Maks m²','Мин м²':'Min m²','Макс м²':'Maks m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Narx darajasi','Уровень бренда':'Brend darajasi','Минимальная площадь':'Minimal maydon','Максимальная площадь':'Maksimal maydon','Бонусы команды':'Jamoa bonuslari','Накоплено':'Yigʻilgan','Придёт при закрытии':'Yopilganda keladi','Упущено':'Yoʻqotilgan'});}catch(e){}
+try{Object.assign(ENMAP,{'Цена':'Price','Цена ур.':'Price lvl','Название':'Name','Цена ур.':'Price level','Бренд ур.':'Brand level','Мин. м²':'Min m²','Макс. м²':'Max m²','Ур. бренда':'Brand level','Бренд ур.':'Brand lvl','Бренд':'Brand','Мин. м²':'Min m²','Макс. м²':'Max m²','Мин м²':'Min m²','Макс м²':'Max m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Price level','Уровень бренда':'Brand level','Минимальная площадь':'Minimum area','Максимальная площадь':'Maximum area','Бонусы команды':'Team bonuses','Накоплено':'Accumulated','Придёт при закрытии':'Expected if closed','Упущено':'Lost','Weighted forecast':'Weighted forecast','Взвешенный прогноз':'Weighted forecast'});Object.assign(UZMAP,{'Цена':'Narx','Цена ур.':'Narx dar.','Название':'Nomi','Ур. бренда':'Brend darajasi','Бренд ур.':'Brend dar.','Бренд':'Brend','Мин. м²':'Min m²','Макс. м²':'Maks m²','Мин m²':'Min m²','Макс m²':'Maks m²','Мин м²':'Min m²','Макс м²':'Maks m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Narx darajasi','Уровень бренда':'Brend darajasi','Минимальная площадь':'Minimal maydon','Максимальная площадь':'Maksimal maydon','Бонусы команды':'Jamoa bonuslari','Накоплено':'Yigʻilgan','Придёт при закрытии':'Yopilganda keladi','Упущено':'Yoʻqotilgan','Взвешенный прогноз':'Vaznlangan prognoz'});}catch(e){}
 function footNote(){return `<div class="foot"><b>CASE OS v4.32.7.</b> Единая операционная система CASE для проектов, Advisory, Leasing & Sales, Data & Analytics, будущего Property & Asset Management, внутренних финансов и цифровых продуктов. CRM, Scope, задачи, Kanban, загрузка команды и версии планировок работают в едином проектном контуре. Будущие и экспериментальные разделы управляются администратором в настройках модулей и по умолчанию скрыты. ${BACKEND?'Изменения сохраняются на сервере с реальными логинами и настраиваемой матрицей доступа.':'Локальный демо-режим: изменения сохраняются только в этом браузере.'} <button class="btn ghost sm" style="margin-left:8px" onclick="exportAllJSON()">Бэкап (JSON)</button>${R().admin?'<button class="btn ghost sm" style="margin-left:6px" onclick="importAllJSON()">Восстановить (JSON)</button>':''}${BACKEND?'':'<button class="btn ghost sm" style="margin-left:6px" onclick="resetDemo()">Сбросить демо</button>'}</div>`;}
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
-<script src="v32-upgrade.js?v=4.32.7" defer></script>
-<script src="v326-commission-engines.js?v=4.32.7" defer></script>
+<script src="v32-upgrade.js?v=4.34.0" defer></script>
+<script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.32.7" defer></script>
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
-<script src="v3520-workspaces.js?v=4.32.7" defer></script>
+<script src="v3520-workspaces.js?v=4.34.0" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
 <script src="v420-geoanalytics.js?v=4.32.7" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
@@ -4230,7 +4250,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.33.0" defer></script>
 <script src="v432-data-grid.js?v=4.32.7" defer></script>
-<script src="v4327-patch.js?v=4.32.7" defer></script>
+<script src="v4327-patch.js?v=4.34.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

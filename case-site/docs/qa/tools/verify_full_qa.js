@@ -36,10 +36,10 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   const idx = fs.readFileSync(path.join(OS_DIR, 'index.html'), 'utf8');
   const sw = fs.readFileSync(path.join(OS_DIR, 'sw.js'), 'utf8');
   const appVer = (idx.match(/const APP_VERSION='([^']+)'/) || [])[1];
-  rec('static: APP_VERSION задан', !!appVer, appVer);
-  rec('static: APP_VERSION = 4.33.0', appVer === '4.33.0', appVer);
-  rec('static: sw.js кэш соответствует версии', sw.includes("CACHE = 'case-os-v4330'"));
-  rec('static: v417-master-plan подключён с ?v=4.33.0', idx.includes('v417-master-plan.js?v=4.33.0'));
+  rec('static: APP_VERSION задан (x.y.z)', !!appVer && /^\d+\.\d+\.\d+$/.test(appVer), appVer);
+  const cacheKey = 'case-os-v' + String(appVer || '').replace(/\./g, '');
+  rec('static: sw.js кэш соответствует APP_VERSION', sw.includes("CACHE = '" + cacheKey + "'"), cacheKey);
+  rec('static: v417-master-plan подключён с cache-busting ?v=', /v417-master-plan\.js\?v=\d+\.\d+\.\d+/.test(idx));
   rec('static: P0-1 ядро в index.html (planSnapshotBuild)', idx.includes('function planSnapshotBuild('));
   rec('static: PLAN_SNAPSHOT_SVGS в stateBlob', /stateBlob\(\)\{return \{[^}]*PLAN_SNAPSHOT_SVGS/.test(idx));
   rec('static: PLAN_SNAPSHOT_SVGS в _HEAVY_LOCAL_KEYS', /_HEAVY_LOCAL_KEYS=\[[^\]]*'PLAN_SNAPSHOT_SVGS'/.test(idx));
@@ -64,7 +64,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   await page.waitForTimeout(800);
   rec('boot: вход выполнен, приложение видно', await page.evaluate(() => !document.getElementById('app').classList.contains('hidden')));
   const verLabel = await page.evaluate(() => (document.getElementById('appVer') || {}).textContent || '');
-  rec('boot: шапка показывает DEMO · v4.33.0', verLabel.includes('v4.33.0') && verLabel.includes('DEMO'), verLabel);
+  rec('boot: шапка показывает DEMO · v' + appVer, verLabel.includes('v' + appVer) && verLabel.includes('DEMO'), verLabel);
 
   /* 2. смоук навигации по основным экранам */
   const views = ['dash', 'registry', 'plans', 'plan_master', 'brands', 'docs', 'audit'];
