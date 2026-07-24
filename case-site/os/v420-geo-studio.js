@@ -727,7 +727,16 @@
     var la=+p.lat,ln=+p.lng;if(!isFinite(la)||!isFinite(ln))return;
     GEO_AUTOPROBED[pid]=1;
     var tries=0;(function wait(){
-      if(window.map&&typeof window.probeAt==='function'){try{window.probeAt(la,ln);}catch(e){}return;}
+      /* «map» в студии — top-level let (лексический глобал); window.map — это DOM-элемент
+         <div id=map> (named access), у него нет setView. Берём именно лексический map. */
+      var M=null;try{M=(typeof map!=='undefined'&&map&&typeof map.setView==='function')?map:null;}catch(e){}
+      if(M&&typeof window.probeAt==='function'){
+        var fly=function(){try{M.setView([la,ln],Math.max(M.getZoom()||0,15));}catch(e){}};
+        fly();try{window.probeAt(la,ln);}catch(e){}
+        /* v4.43.2: карта сама перелетает к проекту; повторяем после отложенных перерисовок
+           (первичное центрирование проектов срабатывает позже и перебивало первый перелёт) */
+        setTimeout(fly,700);setTimeout(fly,2000);
+        return;}
       if(++tries<40)setTimeout(wait,300);
     })();
   }
@@ -749,6 +758,7 @@
   /* ---- v4.31.0: подраздел «Объекты на карте» — карточки наших точек, вкл/выкл, вид, видимость для внешних ---- */
   var GEO_PROJ_MARKERS={},GEO_PROJ_CENTERED=false;
   window.geoMarkers=function(){return GEO_PROJ_MARKERS;};
+  window.geoObjProbe=function(id){var q=PROJECTS[String(id)];if(!q)return;var la=+q.lat,ln=+q.lng;if(!isFinite(la)||!isFinite(ln))return;try{if(typeof map!=='undefined'&&map&&map.closePopup)map.closePopup();}catch(e){}try{if(typeof window.probeAt==='function')window.probeAt(la,ln);}catch(e){}};
   function geoObjById(id){return PROJECTS[String(id)];}
   function geoObjColorOf(q){return (/^#[0-9a-f]{6}$/i.test(q&&q.markerColor||''))?q.markerColor:((q&&q.verification==='verified')?'#14675B':'#A8792C');}
   function geoApplyRoleUi(){
@@ -855,7 +865,8 @@
     var loc=[q.city,q.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[q.type]||q.type||'—',la=+q.lat,ln=+q.lng;
     var s='<div class="geo-obj-pop"><b>'+esc(q.name||id)+'</b><br><small>'+esc(typ)+' · '+esc(loc)+'</small>'
       +'<div class="geo-obj-pop-xy">'+(Number.isFinite(la)?la.toFixed(5):'—')+', '+(Number.isFinite(ln)?ln.toFixed(5):'—')+'</div>'
-      +'<div class="geo-obj-pop-ver">'+(q.verification==='verified'?'✔ подтверждён':'⚠ требует проверки')+(q.extVisible?' · <span style="color:#0a7">виден внешним</span>':'')+'</div>';
+      +'<div class="geo-obj-pop-ver">'+(q.verification==='verified'?'✔ подтверждён':'⚠ требует проверки')+(q.extVisible?' · <span style="color:#0a7">виден внешним</span>':'')+'</div>'
+      +'<div class="geo-obj-pop-act"><button class="btn" onclick="geoObjProbe(\''+esc(id)+'\')">🎯 Отчёт по точке</button></div>'; /* v4.43.2: аналитика переоткрывается кликом по объекту */
     if(GEO_CAN_EDIT)s+='<div class="geo-obj-pop-act"><button class="btn sec" onclick="geoObjEdit(\''+esc(id)+'\')">✎ Редактировать</button><button class="btn sec" onclick="geoObjToggleMap(\''+esc(id)+'\',false)">🙈 Скрыть</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoObjDelete(\''+esc(id)+'\')">🗑 Удалить</button></div>';
     return s+'</div>';
   }

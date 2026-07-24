@@ -1834,7 +1834,7 @@ async function probeAt(la,ln){
  if(!gProbe)gProbe=L.layerGroup();
  if(!map.hasLayer(gProbe))map.addLayer(gProbe);
  gProbe.clearLayers();
- L.circleMarker([la,ln],{radius:7,color:'#9E0000',weight:3,fillColor:'#fff',fillOpacity:1}).addTo(gProbe);
+ L.circleMarker([la,ln],{radius:7,color:'#9E0000',weight:3,fillColor:'#fff',fillOpacity:1}).on('click',ev=>{L.DomEvent.stopPropagation(ev);probeAt(la,ln);}).addTo(gProbe);
  [500,1000,1500].forEach(r=>L.circle([la,ln],{radius:r,color:'#9E0000',weight:1,opacity:.7,fill:false,dashArray:'4'}).addTo(gProbe));
  if(!POP){await ensureGeo();calibrate();}
  const km=r=>r/1000;
@@ -2134,5 +2134,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.43.1"></script>
+<script src="v420-geo-studio.js?v=4.43.2"></script>
 </body></html>

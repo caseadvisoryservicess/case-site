@@ -242,20 +242,37 @@
   function actionItems(bar){return Array.prototype.slice.call(bar.querySelectorAll(':scope > .case-action-item'));}
   function adaptiveActions(bar){
     if(!bar)return;var more=bar.querySelector(':scope > .case-action-more'),pop=more&&more.querySelector('.moremenu-pop');if(!more||!pop)return;
-    var inPop=Array.prototype.slice.call(pop.querySelectorAll('.case-action-item'));
-    inPop.sort(function(a,b){return (+b.dataset.priority||0)-(+a.dataset.priority||0);}).forEach(function(x){bar.insertBefore(x,more);});
-    more.classList.remove('has-items');more.open=false;
-    var items=actionItems(bar).sort(function(a,b){return (+b.dataset.priority||0)-(+a.dataset.priority||0);});
-    items.forEach(function(x){bar.insertBefore(x,more);});
-    var guard=0;
-    while(bar.scrollWidth>bar.clientWidth+2&&items.length&&guard++<50){
-      var lowest=items.reduce(function(a,b){return (+a.dataset.priority||0)<=(+b.dataset.priority||0)?a:b;});
-      pop.insertBefore(lowest,pop.firstChild);items=items.filter(function(x){return x!==lowest;});more.classList.add('has-items');
+    /* v4.43.2: раскладка без «дёрганья». Прежний алгоритм (вернуть всё в бар → измерить →
+       вынести лишнее) в связке с ResizeObserver зацикливался: перенос кнопки менял ширину
+       контейнера (появлялся/исчезал скроллбар) → пересчёт → перенос обратно, ~650 перестановок
+       DOM в секунду. Из-за этого шторма не успевал срабатывать и CASE Data Grid (вечный дебаунс),
+       а на LCR оставались «полоски»-резайзеры от прошлых улучшений. Теперь ширины кэшируются,
+       состав считается математически, DOM трогаем только при реальном изменении состава,
+       возврат из «Ещё» — лишь при запасе места (гистерезис). */
+    var HYST=28,GAP=7;
+    var inBar=actionItems(bar),inPop=Array.prototype.slice.call(pop.querySelectorAll('.case-action-item'));
+    inBar.forEach(function(x){var w=x.getBoundingClientRect().width;if(w>0)x.dataset.caseW=String(Math.ceil(w));});
+    var all=inBar.concat(inPop).sort(function(a,b){return (+b.dataset.priority||0)-(+a.dataset.priority||0);});
+    var moreW=Math.max(more.getBoundingClientRect().width||0,52)+GAP;
+    var avail=bar.clientWidth-moreW;
+    var used=0,keep=[],out=[],cut=false;
+    all.forEach(function(x){
+      if(cut){out.push(x);return;}
+      var w=(+x.dataset.caseW||96)+GAP;
+      var slack=inPop.indexOf(x)>=0?HYST:0; /* возврат из «Ещё» — только с запасом места */
+      if(used+w<=avail-slack){used+=w;keep.push(x);}
+      else{cut=true;out.push(x);}
+    });
+    var sameBar=keep.length===inBar.length&&keep.every(function(x,i){return inBar[i]===x;});
+    var samePop=out.length===inPop.length&&out.every(function(x){return inPop.indexOf(x)>=0;});
+    if(!(sameBar&&samePop)){
+      keep.forEach(function(x){bar.insertBefore(x,more);});
+      out.forEach(function(x){pop.appendChild(x);});
     }
-    if(pop.children.length)more.classList.add('has-items');else more.classList.remove('has-items');
+    if(out.length)more.classList.add('has-items');else{more.classList.remove('has-items');more.open=false;}
   }
   function installAdaptiveActions(){
-    document.querySelectorAll('.case-adaptive-actions').forEach(function(bar){adaptiveActions(bar);if(bar.dataset.caseAdaptive)return;bar.dataset.caseAdaptive='1';if(window.ResizeObserver){var ro=new ResizeObserver(function(){requestAnimationFrame(function(){adaptiveActions(bar);});});ro.observe(bar);bar._caseRO=ro;}});
+    document.querySelectorAll('.case-adaptive-actions').forEach(function(bar){adaptiveActions(bar);if(bar.dataset.caseAdaptive)return;bar.dataset.caseAdaptive='1';if(window.ResizeObserver){var ro=new ResizeObserver(function(en){var w=Math.round((en[0]&&en[0].contentRect&&en[0].contentRect.width)||bar.clientWidth);if(bar._caseLastW===w)return;bar._caseLastW=w;requestAnimationFrame(function(){adaptiveActions(bar);});});ro.observe(bar);bar._caseRO=ro;}});
   }
   var stickyTopRO=null,stickyResizeBound=false,stickyScrollBound=false,stickyRaf=0;
   function pageScroller(){return document.scrollingElement||document.documentElement||document.body;}
@@ -318,7 +335,7 @@
       .case-broker-edit{width:100%;min-height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel,#fff);padding:6px 8px;font:inherit;color:var(--ink);cursor:pointer}.case-broker-edit i{font-style:normal;color:var(--red-d,#9E0000);opacity:.72}.case-broker-edit:hover{border-color:var(--red-d,#9E0000)}
       .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:1px solid var(--border);border-top:0;border-radius:0 0 7px 7px;box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto}
       .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:none!important}
-      table.case-grid.case-page-sticky-source>thead th{position:static!important;top:auto!important}
+      table.case-grid.case-page-sticky-source>thead th{position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска») */
       table[data-tblkey="reg_units"] tr.fltrow,table[data-tblkey="scr_registry"] tr.filters,.asaas35-table tr.filters,.geo-table tr.geo-tfilter-row{display:none!important}
       .case-filter-chipbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 7px;padding:6px 8px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--panel,#fff) 94%,var(--soft,#f5f2ee) 6%)}.case-filter-chipbar .cfc-label{font-size:10.5px;font-weight:750;color:var(--muted)}.case-filter-chipbar button{display:inline-flex;align-items:center;gap:5px;max-width:290px;border:1px solid color-mix(in srgb,var(--red-d,#9E0000) 22%,var(--border));border-radius:999px;background:var(--panel,#fff);padding:4px 8px;font:500 10.5px inherit;color:var(--ink);cursor:pointer}.case-filter-chipbar button b{font-weight:750}.case-filter-chipbar button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}.case-filter-chipbar button i{font-style:normal;color:var(--red-d,#9E0000);font-size:13px}.case-filter-chipbar button:hover{border-color:var(--red-d,#9E0000)}.case-filter-chipbar .cfc-clear{border-color:transparent;background:transparent;color:var(--red-d,#9E0000);font-weight:700}
       .case-ext-submit{max-width:1050px;padding:22px!important}.case-ext-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.case-ext-head b{font-size:18px}.case-ext-head small{display:block;color:var(--muted);margin-top:4px}.case-ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.case-ext-grid label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:750;color:var(--muted)}.case-ext-grid label.wide{grid-column:1/-1}.case-ext-grid input,.case-ext-grid textarea{font:500 13px inherit;color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 11px;outline:none}.case-ext-grid input:focus,.case-ext-grid textarea:focus{border-color:var(--red-d,#9E0000);box-shadow:0 0 0 3px rgba(158,0,0,.08)}.case-ext-actions{margin-top:16px}.case-ext-msg{margin-top:10px;font-size:12px}.case-ext-msg.ok{color:#23733b}.case-ext-msg.err{color:var(--red-d,#9E0000)}.case-ext-lock{padding:30px;text-align:center;border:1px dashed var(--border);border-radius:12px}.case-ext-lock b{font-size:18px}.case-ext-lock p{color:var(--muted)}
