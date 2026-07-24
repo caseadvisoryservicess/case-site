@@ -1573,8 +1573,10 @@ function buildZones(){const z=[];
  window.__regDiag={total:rf.length,matched:z.filter(x=>x.scope==='region').length,unmatched:un};
  return z;}
 async function ensureGeo(){
- if(!DISTGEO){for(const u of ['https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@main/geojson/tashkent_districts.geojson','https://raw.githubusercontent.com/akbartus/GeoJSON-Uzbekistan/main/geojson/tashkent_districts.geojson','https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@master/geojson/tashkent_districts.geojson']){try{DISTGEO=await (await fetch(u)).json();break;}catch(e){}}}
- if(!REGGEO){for(const u of ['https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@main/geojson/tashkent_region_districts.geojson','https://raw.githubusercontent.com/akbartus/GeoJSON-Uzbekistan/main/geojson/tashkent_region_districts.geojson']){try{REGGEO=await (await fetch(u)).json();break;}catch(e){}}}
+ if(!DISTGEO){for(const u of ['data/tashkent_districts.geojson','https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@main/geojson/tashkent_districts.geojson','https://raw.githubusercontent.com/akbartus/GeoJSON-Uzbekistan/main/geojson/tashkent_districts.geojson','https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@master/geojson/tashkent_districts.geojson']){try{const r=await fetch(u);if(!r.ok)continue;DISTGEO=await r.json();break;}catch(e){}}
+  if(!DISTGEO){DISTGEO={type:'FeatureCollection',features:[]};console.info('Гео: границы районов города недоступны — слой пропущен (можно положить os/data/tashkent_districts.geojson).');}}
+ if(!REGGEO){for(const u of ['data/tashkent_region_districts.geojson','https://cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan@main/geojson/tashkent_region_districts.geojson','https://raw.githubusercontent.com/akbartus/GeoJSON-Uzbekistan/main/geojson/tashkent_region_districts.geojson']){try{const r=await fetch(u);if(!r.ok)continue;REGGEO=await r.json();break;}catch(e){}}
+  if(!REGGEO){REGGEO={type:'FeatureCollection',features:[]};console.info('Гео: границы районов области недоступны — слой пропущен (можно положить os/data/tashkent_region_districts.geojson).');}}
 }
 async function loadDist(){await ensureGeo();renderDist();}
 async function loadDens(){await ensureGeo();renderDens();$('densLegend').style.display='block';

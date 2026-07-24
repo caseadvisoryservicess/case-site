@@ -357,7 +357,7 @@ svg.leaflet-image-layer.leaflet-interactive path {
 	border-radius: 5px;
 	}
 .leaflet-control-layers-toggle {
-	background-image: url(images/layers.png);
+	background-image: url('data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 26 26%22><g fill=%22none%22 stroke=%22%23555%22 stroke-width=%222%22 stroke-linejoin=%22round%22><path d=%22M13 4 23 9 13 14 3 9z%22/><path d=%22M3 13.5 13 18.5 23 13.5%22/><path d=%22M3 18 13 23 23 18%22/></g></svg>'); background-size: 18px 18px;
 	width: 36px;
 	height: 36px;
 	}

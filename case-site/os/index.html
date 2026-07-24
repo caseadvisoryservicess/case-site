@@ -9,6 +9,7 @@
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <meta name="theme-color" content="#9E0000">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CASE OS">
 <meta name="description" content="CASE OS - real estate operating system with leasing, asset control and financial feasibility.">
@@ -469,7 +470,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.41.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.41.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -4270,7 +4271,7 @@ function brandProfile(id){
 /* ===== PWA: installable; demo data persists offline via localStorage ===== */
 (function(){try{
  const icon="data:image/svg+xml,"+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512"><rect width="512" height="512" rx="96" fill="#9E0000"/><text x="50%" y="55%" font-family="Montserrat,Arial,sans-serif" font-size="150" font-weight="800" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">CASE</text></svg>');
- const man={name:'CASE OS - Company & Real Estate Operating System',short_name:'CASE OS',start_url:'.',scope:'.',display:'standalone',orientation:'portrait',background_color:'#2a0000',theme_color:'#9E0000',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+ const man={name:'CASE OS - Company & Real Estate Operating System',short_name:'CASE OS',start_url:new URL('.',location.href).href,scope:new URL('.',location.href).href,display:'standalone',orientation:'portrait',background_color:'#2a0000',theme_color:'#9E0000',icons:[{src:icon,sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
  const blob=new Blob([JSON.stringify(man)],{type:'application/manifest+json'});
  const l=document.createElement('link');l.rel='manifest';l.href=URL.createObjectURL(blob);document.head.appendChild(l);
  if('serviceWorker' in navigator){window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});}
