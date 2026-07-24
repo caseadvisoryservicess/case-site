@@ -1,13 +1,13 @@
 {
   "slug": "takhtapul",
-  "name": "Бизнес-центр SFB - Тахтапул 31",
+  "name": "Taxtapul 31 - Тахтапул",
   "brand": {
-    "mark": "SFB",
+    "mark": "T31",
     "logo": "",
     "name": {
-      "ru": "Бизнес-центр SFB",
-      "uz": "SFB biznes markazi",
-      "en": "SFB Business Center"
+      "ru": "TAXTAPUL",
+      "uz": "TAXTAPUL",
+      "en": "TAXTAPUL"
     },
     "tag": {
       "ru": "Тахтапул 31 · Ташкент",
@@ -39,7 +39,7 @@
       "uz": "Alohida tijorat binosi, 1 882,9 m² GLA: 5 daraja open plan, lift, 12 o'rinli avtoturargoh. Ijara, sotib olish yoki keyinchalik sotib olish bilan ijara. Qavatlar 337–396 m². Shartlar — so'rov bo'yicha.",
       "en": "A standalone commercial building with 1,882.9 m² GLA: 5 open-plan levels, lift, 12 parking spaces. Lease, purchase or lease-to-own. Floor plates 337–396 m². Terms on request."
     },
-    "keywords": "аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, бизнес-центр SFB, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения, ofis ijarasi Toshkent, tijorat ko'chmas mulki",
+    "keywords": "аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, здание TAXTAPUL, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения, ofis ijarasi Toshkent, tijorat ko'chmas mulki",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -65,9 +65,9 @@
       }
     ],
     "title": {
-      "ru": "Помещения свободного назначения <span>179 и 430&nbsp;м²</span> в бизнес-центре SFB",
-      "uz": "SFB biznes markazida <span>179 va 430&nbsp;m²</span> erkin maqsadli maydonlar",
-      "en": "Flexible-use premises of <span>179 and 430&nbsp;m²</span> in the SFB Business Center"
+      "ru": "Помещения свободного назначения <span>179 и 430&nbsp;м²</span> в здании TAXTAPUL",
+      "uz": "TAXTAPUL binosida <span>179 va 430&nbsp;m²</span> erkin maqsadli maydonlar",
+      "en": "Flexible-use premises of <span>179 and 430&nbsp;m²</span> in the TAXTAPUL building"
     },
     "subtitle": {
       "ru": "Новое здание на первой линии ул. Тахтапуль в центре Ташкента. Open space с потолками <strong>3,4&nbsp;м</strong>, лифт и подземный паркинг. Подходит под <strong>офис, клинику, сервис или учебный центр</strong>. Цена и условия - по&nbsp;запросу.",
