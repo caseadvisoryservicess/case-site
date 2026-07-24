@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "checks": {
+    "AGX label forced": true,
+    "AGX no client edit": true,
+    "AGX safe after hydration": true,
+    "AGX client workspace limited": true,
+    "AGX server workspace limited": true,
+    "whole state forbidden": true,
+    "generic writes forbidden": true,
+    "sensitive reads blocked": true,
+    "state payload redacted": true,
+    "brand submit only": true,
+    "investor submit only": true,
+    "LCR patch blocked": true,
+    "no backup in external shell": true,
+    "moderated forms": true,
+    "safe nav": true
+  }
+}

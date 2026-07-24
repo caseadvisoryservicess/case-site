@@ -1,0 +1,23 @@
+{
+  "ok": true,
+  "checks": {
+    "busy_during_cell_patch": true,
+    "cell_value_retained": true,
+    "cell_endpoint": true,
+    "whole_state_cancelled_after_cell": true,
+    "busy_during_create": true,
+    "create_endpoint": true,
+    "whole_state_cancelled_after_create": true,
+    "delete_endpoint": true,
+    "deleted_locally": true,
+    "whole_state_cancelled_after_delete": true,
+    "queue_idle_after_confirm": true
+  },
+  "endpoint_calls": 1,
+  "final_revision": 4,
+  "final_units": [
+    "u1"
+  ],
+  "whole_state_saves": 0,
+  "notices": []
+}

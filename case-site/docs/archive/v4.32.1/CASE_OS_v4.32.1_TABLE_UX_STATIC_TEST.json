@@ -1,0 +1,19 @@
+{
+  "ok": true,
+  "checks": {
+    "legacy rows hidden grid": true,
+    "legacy rows hidden patch": true,
+    "LCR readable rows": true,
+    "LCR brand-style header": true,
+    "Geo full width": true,
+    "Geo readable": true,
+    "Geo lower row removed": true,
+    "Excel header filters": true,
+    "active chips": true,
+    "resize": true,
+    "personal prefs": true,
+    "explicit broker button": true,
+    "broker closes select": true,
+    "broker closes outside/Esc": true
+  }
+}

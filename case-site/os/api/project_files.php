@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — secure project/document file storage.
+// CASE OS v4.32.2 — secure project/document file storage.
 // Files are stored below data/case_files and are never exposed directly by the web server.
 declare(strict_types=1);
 require __DIR__.'/lib.php';

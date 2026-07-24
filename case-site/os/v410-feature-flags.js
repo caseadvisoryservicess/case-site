@@ -1,4 +1,4 @@
-/* CASE OS v4.17.0 — global module lifecycle / feature flags.
+/* CASE OS v4.32.6 — global module lifecycle / feature flags.
    A module can be Active, Beta (administrators only) or Hidden.
    Hidden modules keep their data and workspace assignments, but disappear from navigation
    and cannot be opened by a direct route. Future placeholder modules are hidden by default. */
@@ -8,7 +8,7 @@
   window.CASE_FEATURE_FLAGS_410=true;
 
   var VALID=['active','beta','hidden','disabled','deprecated'];
-  var PROTECTED=['dash','users','admin_modules','admin_system']; // prevents administrator lockout from Home, user management and the module/system settings screens themselves
+  var PROTECTED=['dash','users']; // prevents administrator lockout from Home and module settings
   var UI={q:'',only:'all'};
   var injectTimer=null;
 

@@ -273,6 +273,16 @@ if ($m === 'GET') {
     $fullData = $data;
     $data = redact_shared_state($data, $u);
     $data = redact_workflow_project_scope($data, $u);
+    // v4.32.2: an external agent can submit a new brand/investor through dedicated
+    // moderated endpoints, but cannot download corporate databases or the LCR/SCR blob.
+    if (($u['role_key'] ?? '') === 'AGX') {
+      foreach (['BRANDS','BRAND_REQUESTS','INVESTOR_REQUESTS','SALES_ASSETS','SALES_BUYERS','LEASE_COMMISSION_DEALS','SUPPLIER_COMMISSION_DEALS','COMMCFG','COMMLOST'] as $privateKey) {
+        if (array_key_exists($privateKey, $data)) $data[$privateKey] = [];
+      }
+      if (array_key_exists('U', $data)) $data['U'] = [];
+      if (array_key_exists('DOCREG', $data)) $data['DOCREG'] = [];
+      if (array_key_exists('DOC_CONTACTS', $data)) $data['DOC_CONTACTS'] = [];
+    }
     // Чтение теперь ограничено той же рабочей областью, что и запись. Раньше скрытый
     // GEO_DATA всё ещё возвращался агенту через state.php, хотя меню и geo_master.php
     // его не показывали. Для не-админских ролей отдаём только ключи разрешённых модулей.
@@ -291,6 +301,9 @@ if ($m === 'GET') {
 
 if ($m === 'POST') {
   $b = body();
+  // External agents use narrowly scoped moderated endpoints. Whole-state writes would
+  // otherwise allow a crafted request to restore hidden contacts, LCR or SCR records.
+  if (($u['role_key'] ?? '') === 'AGX') fail('Внешнему агенту общее сохранение платформы недоступно', 403);
   if (!array_key_exists('data', $b)) fail('Нужно поле data', 400);
   $incoming = is_array($b['data']) ? $b['data'] : [];
   // Старое состояние читаем для всех ролей: оно нужно не только ACL, но и чтобы
@@ -390,6 +403,24 @@ if ($m === 'POST') {
         return is_array($row) && workflow_row_allowed_for_user($row, $field, $u);
       }));
       $incoming[$key] = array_merge($othersOld, $allowedIncoming);
+    }
+  }
+
+  // v4.32.2: protect atomically saved LCR units from a stale whole-state tab.
+  // unit_patch.php stamps updatedAt; an older client either has no stamp or an older one.
+  if (isset($incoming['U']) && is_array($incoming['U']) && isset($oldData['U']) && is_array($oldData['U'])) {
+    $oldById = [];
+    foreach ($oldData['U'] as $ou) if (is_array($ou) && isset($ou['id'])) $oldById[(string)$ou['id']] = $ou;
+    foreach ($incoming['U'] as $i=>$iu) {
+      if (!is_array($iu) || !isset($iu['id'])) continue;
+      $uid = (string)$iu['id']; if (!isset($oldById[$uid])) continue;
+      $ou = $oldById[$uid];
+      $oldStamp = trim((string)($ou['updatedAt'] ?? ''));
+      $inStamp = trim((string)($iu['updatedAt'] ?? ''));
+      if ($oldStamp !== '' && ($inStamp === '' || strtotime($inStamp) < strtotime($oldStamp))) {
+        $incoming['U'][$i] = $ou;
+        if (!in_array('U:'.$uid, $rejectedKeys, true)) $rejectedKeys[] = 'U:'.$uid;
+      }
     }
   }
 

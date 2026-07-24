@@ -1,4 +1,4 @@
-/* CASE OS v4.17.0 — tiered commissions panel.
+/* CASE OS v4.32.6 — tiered commissions panel.
    Rides on the existing "KPI и комиссии" (kpi) view: agents see their own payouts,
    manager/admin/finance see the whole department. Reads api/commission_tiered.php. */
 (function(){

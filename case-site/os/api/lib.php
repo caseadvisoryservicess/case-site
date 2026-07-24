@@ -172,7 +172,7 @@ function asaas_workspace_default_views(): array {
     'ASH'=>$all, 'CFO'=>$all, 'ADM'=>$all,
     'BA'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','geoanalytics','bench','kpi','org','study','rating'],
     'AG'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
-    'AGX'=>['dash','v32_action','dates','work_tasks','work_kanban','case_projects','docs','leasing_portfolio_map','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease'],
+    'AGX'=>['dash','work_tasks','work_kanban','brands','v32_investors'],
     'HO'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
     'BSH'=>['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
     'HM'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
@@ -183,7 +183,7 @@ function asaas_known_module_ids(): array {
   $defs = asaas_workspace_default_views();
   return array_values(array_unique(array_filter((array)($defs['ASH'] ?? []), 'is_string')));
 }
-function asaas_protected_module_ids(): array { return ['dash','users','admin_modules','admin_system']; } // admin_modules/admin_system protected too — hiding them would lock an admin out of the settings screens (deep audit P0-2)
+function asaas_protected_module_ids(): array { return ['dash','users']; }
 function asaas_workspace_hard_allowed(array $u, string $view): bool {
   // Module visibility is controlled exclusively by ROLE_WORKSPACES / USER_WORKSPACES.
   // Fine-grained actions still require edit/finance/approve/admin rights in each endpoint.
@@ -552,9 +552,6 @@ function delete_row(string $table, $id): void {
   $defs = tables(); if (!isset($defs[$table])) fail('Неизвестная таблица', 400);
   $d = $defs[$table];
   require_login();
-  // Пользователей нельзя удалять через общий data.php — только через api/users.php,
-  // где выполняется проверка связей и по умолчанию применяется деактивация/архив (deep audit P0-3).
-  if ($table==='app_users') fail('Пользователей нельзя удалять через общий API. Откройте раздел «Пользователи»: деактивация или архив; полное удаление — только для пустой ошибочно созданной учётной записи.', 403);
   require_table_allowed($table);
   if (empty($d['write']) || !can($d['write'])) fail('Нет доступа на запись: '.$table, 403);
   $old = fetch_row_for_acl($table, $d, $id);

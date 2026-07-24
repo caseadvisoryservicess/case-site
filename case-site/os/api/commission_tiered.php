@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — tiered leasing commission engine.
+// CASE OS v4.32.2 — tiered leasing commission engine.
 // Monthly-count tiers (retroactive) + admin/architect/manager 5% bonuses + manual overrides.
 // Reads closed deals from lease_commission_deals; config in commission_engine_settings.tiered_distribution.
 // Visibility: agents see only their own; manager/admin/finance/approve see everyone.

@@ -1,0 +1,50 @@
+{
+  "grids": 3,
+  "toolbars": 3,
+  "generic_filters": 6,
+  "generic_sort_idle": 6,
+  "resizers": 18,
+  "brand_existing_filters": 6,
+  "geo_width": {
+    "w": "",
+    "min": "1583px",
+    "css": "1583px"
+  },
+  "sorted_first": "A1",
+  "density_before": "compact",
+  "density_class": "case-grid case-density-ultra",
+  "column_rows": 6,
+  "hidden_broker": "none",
+  "header_order": [
+    "Код\n▲\n▾",
+    "Площадь\n↕\n▾",
+    "Этаж\n↕\n▾",
+    "Категория\n↕\n▾",
+    "Статус\n↕\n▾",
+    "Брокер↕▾"
+  ],
+  "prefs": {
+    "test__1__1m7bool": {
+      "generic": {
+        "filters": {},
+        "sort": {
+          "id": "код",
+          "dir": 1
+        }
+      },
+      "density": "ultra",
+      "hidden": {
+        "брокер": 1
+      },
+      "pin": 0,
+      "order": [
+        "код",
+        "площадь",
+        "этаж",
+        "категория",
+        "статус",
+        "брокер"
+      ]
+    }
+  }
+}

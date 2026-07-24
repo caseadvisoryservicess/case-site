@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — dedicated, transactional Geoanalytics persistence.
+// CASE OS v4.32.2 — dedicated, transactional Geoanalytics persistence.
 declare(strict_types=1);
 require __DIR__.'/lib.php';
 
