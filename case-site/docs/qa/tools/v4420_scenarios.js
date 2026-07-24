@@ -126,13 +126,13 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     const sepMatrix = cards.some(t => /^Права ролей/.test(t));
     const foot = document.querySelector('#main .foot');
     const wsBeforeFoot = ws && foot ? !!(ws.compareDocumentPosition(foot) & Node.DOCUMENT_POSITION_FOLLOWING) : false;
-    return { sepMatrix, hasWs: !!ws, rights, rightBtns, wsBeforeFoot, footText: foot ? foot.textContent.slice(0, 60) : '' };
+    return { sepMatrix, hasWs: !!ws, rights, rightBtns, wsBeforeFoot, footText: foot ? foot.textContent.slice(0, 60) : '', appVer: (typeof APP_VERSION!=='undefined')?APP_VERSION:'' };
   });
   rec('users: отдельной таблицы «Права ролей» больше нет', !users.sepMatrix);
   rec('users: карточка доступа есть и содержит «Права на действия»', users.hasWs && users.rights.some(t => /Права на действия/.test(t)), JSON.stringify(users.rights));
   rec('users: тумблеров прав ≥ 9', users.rightBtns >= 9, users.rightBtns);
   rec('users: карточка стоит до нижней подписи', users.wsBeforeFoot);
-  rec('users: footNote показывает текущую версию', users.footText.includes('4.42.0'), users.footText);
+  rec('users: footNote показывает текущую версию (APP_VERSION)', users.footText.includes(users.appVer||'@'), users.footText);
 
   // тумблер права: выключаем и возвращаем «Финансы» у роли BA
   const toggle = await page.evaluate(async () => {

@@ -288,7 +288,7 @@
   function migrateWorkspaceSchema(){
     try{if(typeof S==='undefined'||!S||!S.user)return;}catch(e){return;}
     var st=roleStore();
-    if(+st.__caseSchema>=4420)return;
+    if(+st.__caseSchema>=4421)return;
     if(+st.__caseSchema<492){
       ['ASH','CFO','ADM'].forEach(function(rk){
         if(Array.isArray(st[rk])){
@@ -297,11 +297,17 @@
         }
       });
     }
-    /* v4.42: сохранённый в базе шаблон роли BRJ мог остаться без гео/брендов/реестра (наследие
-       жёсткого фильтра v4.35) и перекрывал исправленные умолчания. Одноразово дополняем его
+    /* v4.42–4.42.1: сохранённые в базе шаблоны ролей записывались снимками эпохи узких
+       умолчаний (v4.35) и перекрывали исправленные наборы. Это не только прятало пункты меню —
+       СЕРВЕР по той же матрице отклонял сохранения разделов (BRJ: гео/бренды; администратор
+       аренды: реестр/ЛСР), и правки «пропадали». Одноразово дополняем шаблон КАЖДОЙ роли её
        рекомендуемым набором; администратор после этого волен снова сузить доступ. */
-    if(Array.isArray(st.BRJ)){(DEFAULTS.BRJ||[]).forEach(function(v){if(st.BRJ.indexOf(v)<0)st.BRJ.push(v);});st.BRJ=uniq(st.BRJ);}
-    st.__caseSchema=4420;
+    Object.keys(DEFAULTS).forEach(function(rk){
+      if(!Array.isArray(st[rk]))return;
+      (DEFAULTS[rk]||[]).forEach(function(v){if(st[rk].indexOf(v)<0)st[rk].push(v);});
+      st[rk]=uniq(st[rk]);
+    });
+    st.__caseSchema=4421;
     try{if(typeof persist==='function')persist();}catch(e){}
   }
 
