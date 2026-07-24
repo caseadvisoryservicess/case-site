@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-24 · текущая версия платформы **v4.43.3**_
+_Обновлено: 2026-07-24 · текущая версия платформы **v4.44.0**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,13 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.44.0:** корень «данные не сохраняются» (ЛСР/гео) — истечение серверной сессии (1 час) + тихие отказы:
+  - lib.php: gc_maxlifetime/cookie 3600→43200 (12ч);
+  - index.html: keepalive-пинг auth.php каждые 5 мин при активности (_lastActivityAt; auth:false → sessionExpired сразу); IDLE_LOGOUT_MIN 60→120; apiGET/apiPOST кидают Error с .status; sessionExpired показывает счётчик caseUnsyncedCount(); enterWithServerUser ПЕРЕД apiLoadState дозаливает: await caseFlushUnitsNow() + (_offlineDirty && _doSaveState()) — иначе applyState затирал несохранённое;
+  - v4327: flushUnit/flushUnitBatch различают 401 (держим очередь, один тост, дозальётся после входа) / 403 (очистка + тревожный тост 10с, БЕЗ вечных повторов) / сеть (ретрай 5с как раньше); window.caseUnsyncedCount, window.caseFlushUnitsNow;
+  - syncTblScroll: полоса ищется среди предыдущих соседей до ближайшего .tbl-scroll, дубликаты удаляются (тулбар грида вставал между полосой и таблицей → рисовались ДВЕ полосы);
+  - ТЕСТ-ИНФРА: docs/qa/tools/mock_backend.js — мок PHP-бэкенда (sessionValid/failMode через /__ctl, инспекция /__inspect); v4440_reliability.js 14/14. Сид юнитов обязан содержать dates:[] (boot→allDates падает без него).
+  - Регресс: 34/34, 27/27, live 5/5, роли 54/54.
 - **v4.43.3:** правки в таблицах видны сразу («приходится перегружать страницу»):
   - saveCellLive сохранял, но не обновлял DOM (полный ререндер украл бы фокус) → вычисляемые колонки и «% занято» жили до reload;
   - решение: `<tr data-uid>` в regEditRow + regLiveRefresh(u,field) — точечное обновление НЕ-редактируемых ячеек строки (lcrBudVis/lcrFacVis → lcrCellVal) и бейджа занятости; инпуты не пересоздаются, фокус сохраняется;

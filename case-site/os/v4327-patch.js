@@ -47,11 +47,19 @@
       var u=unitById(id),newer=rec.changes;
       if(u&&j&&j.unit){Object.assign(u,j.unit);Object.assign(u,newer);}
       try{if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at)_lastServerUpdate=j.updated_at;_lastSavedAt=new Date();_offlineDirty=false;_saveConflict=false;}catch(_){}
-      cacheLocalCore();
+      cacheLocalCore();try{window._case401Toast=0;}catch(_){}
     }catch(e){
+      var st=+(e&&e.status)||0;
       if(!rec.cancelled)rec.changes=Object.assign({},snapshot,rec.changes||{});
-      try{_offlineDirty=true;updateOfflineBadge();if(!rec.cancelled)toast('⚠ Правка LCR сохранена локально, но сервер пока не подтвердил её. Повторим автоматически.');}catch(_){}
-      clearTimeout(rec.timer);rec.timer=setTimeout(function(){flushUnit(id);},5000);
+      if(st===403){ /* v4.44: нет прав — повторять бессмысленно, честно бьём тревогу */
+        rec.cancelled=true;rec.changes={};
+        try{toast('⛔ Сервер отклонил правку помещения: '+((e&&e.message)||'нет прав')+'. Правка НЕ сохранена — сообщите администратору.',10000);}catch(_){}
+      }else if(st===401){ /* v4.44: сессия истекла — правка ждёт повторного входа (дозальётся автоматически) */
+        try{if(!window._case401Toast){window._case401Toast=1;toast('⚠ Сеанс истёк. Войдите заново — несохранённые правки будут отправлены автоматически.',9000);}}catch(_){}
+      }else{
+        try{_offlineDirty=true;updateOfflineBadge();if(!rec.cancelled)toast('⚠ Правка LCR пока не подтверждена сервером (нет связи). Повторим автоматически.');}catch(_){}
+        clearTimeout(rec.timer);rec.timer=setTimeout(function(){flushUnit(id);},5000);
+      }
     }finally{
       rec.inflight=false;actualPending=Math.max(0,actualPending-1);
       if(!rec.cancelled&&hasKeys(rec.changes)) {clearTimeout(rec.timer);rec.timer=setTimeout(function(){flushUnit(id);},180);}
@@ -59,6 +67,8 @@
       try{updateOfflineBadge();}catch(_){}
     }
   }
+  window.caseUnsyncedCount=function(){var n=0;try{Object.keys(unitQueue).forEach(function(id){var r=unitQueue[id];if(r&&!r.cancelled&&(hasKeys(r.changes)||r.inflight))n++;});n+=Object.keys(batchPending.upserts).length+Object.keys(batchPending.deletes).length;}catch(_){}return n;};
+  window.caseFlushUnitsNow=async function(){var ids=Object.keys(unitQueue);for(var i=0;i<ids.length;i++){try{await flushUnit(ids[i]);}catch(_){}}try{await flushUnitBatch();}catch(_){}};
   window.addEventListener('online',function(){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();});
   setInterval(function(){if(navigator.onLine!==false){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();}},15000);
 
@@ -92,9 +102,17 @@
       try{if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at)_lastServerUpdate=j.updated_at;_lastSavedAt=new Date();_offlineDirty=false;_saveConflict=false;}catch(_){}
       cacheLocalCore();
     }catch(e){
+      var bst=+(e&&e.status)||0;
       upserts.forEach(function(u){if(u&&u.id!=null)batchPending.upserts[String(u.id)]=u;});deletes.forEach(function(id){if(!batchPending.upserts[id])batchPending.deletes[id]=1;});
-      try{_offlineDirty=true;updateOfflineBadge();toast('⚠ Структурные изменения LCR сохранены локально. Серверная синхронизация будет повторена автоматически.');}catch(_){}
-      clearTimeout(batchPending.timer);batchPending.timer=setTimeout(flushUnitBatch,5000);
+      if(bst===403){
+        batchPending.upserts=Object.create(null);batchPending.deletes=Object.create(null);
+        try{toast('⛔ Сервер отклонил структурные изменения LCR: '+((e&&e.message)||'нет прав')+'. Изменения НЕ сохранены — сообщите администратору.',10000);}catch(_){}
+      }else if(bst===401){
+        try{if(!window._case401Toast){window._case401Toast=1;toast('⚠ Сеанс истёк. Войдите заново — несохранённые правки будут отправлены автоматически.',9000);}}catch(_){}
+      }else{
+        try{_offlineDirty=true;updateOfflineBadge();toast('⚠ Структурные изменения LCR пока не подтверждены сервером (нет связи). Повторим автоматически.');}catch(_){}
+        clearTimeout(batchPending.timer);batchPending.timer=setTimeout(flushUnitBatch,5000);
+      }
     }finally{
       batchPending.inflight=false;actualPending=Math.max(0,actualPending-1);
       if(hasKeys(batchPending.upserts)||hasKeys(batchPending.deletes)){clearTimeout(batchPending.timer);batchPending.timer=setTimeout(flushUnitBatch,180);}

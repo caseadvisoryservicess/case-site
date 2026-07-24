@@ -16,9 +16,12 @@ if (!function_exists('mb_strtolower')) { function mb_strtolower($s, $encoding=nu
 // ── Сессия ────────────────────────────────────────────────────────────
 ini_set('session.use_strict_mode', '1');
 ini_set('session.use_only_cookies', '1');
-ini_set('session.gc_maxlifetime', '3600');
+// v4.44: 12 часов вместо 1 часа — сессия жила меньше рабочего дня: сотрудник отходил на
+// обед/встречу, сессия умирала, и все сохранения (ЛСР, гео) молча падали с 401 —
+// «данные не сохраняются». Клиент дополнительно держит сессию keepalive-пингом.
+ini_set('session.gc_maxlifetime', '43200');
 session_set_cookie_params([
-  'lifetime'=>0,
+  'lifetime'=>43200,
   'path'=>'/',
   'httponly'=>true,
   'samesite'=>'Lax',

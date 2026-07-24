@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.43.3';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.44.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -504,7 +504,7 @@ let CASE_DOCUMENT_TEMPLATES=[];
 let CASE_WORKFLOW_SETTINGS={};
 let CASE_PORTFOLIO_PROJECTS=[];      /* historical and current CASE project portfolio, separate from operational OBJECTS */
 let CASE_PROPOSAL_CATALOG={};        /* editable packages, services and pricing defaults */
-async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date.now();const r=await fetch(u,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});let j=null;try{j=await r.json();}catch(e){}if(j&&j.csrf)CSRF_TOKEN=j.csrf;if(!r.ok){if(r.status===401&&j&&j.error==='Не авторизован')try{sessionExpired();}catch(e){}throw new Error((j&&j.error)||('HTTP '+r.status));}return j;}
+async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date.now();const r=await fetch(u,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});let j=null;try{j=await r.json();}catch(e){}if(j&&j.csrf)CSRF_TOKEN=j.csrf;if(!r.ok){if(r.status===401)try{sessionExpired();}catch(e){}const err=new Error((j&&j.error)||('HTTP '+r.status));err.status=r.status;throw err;}return j;}
 async function apiPOST(p,data){
  data=data||{};
  async function ensureCsrf(){if(CSRF_TOKEN)return;try{const j=await apiGET('auth.php');if(j&&j.csrf)CSRF_TOKEN=j.csrf;}catch(e){}}
@@ -521,7 +521,7 @@ async function apiPOST(p,data){
  let out=await once();
  if(out.r.status===403){CSRF_TOKEN='';await ensureCsrf();out=await once();}
  const r=out.r,j=out.j;
- if(!r.ok){if(r.status===401&&j&&j.error==='Не авторизован')try{sessionExpired();}catch(e){}throw new Error((j&&j.error)||('HTTP '+r.status));}
+ if(!r.ok){if(r.status===401)try{sessionExpired();}catch(e){}const err=new Error((j&&j.error)||('HTTP '+r.status));err.status=r.status;throw err;}
  if(p==='state.php'&&j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;
  return j;
 }
@@ -1363,7 +1363,13 @@ function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
  }
  const safeTitle=user.role==='AGX'?'Внешний агент':(user.title||Rr.label);
  S.user={u:user.id,id:user.id,name:user.name||user.email,title:safeTitle,role:user.role,broker:user.broker||null,email:user.email,projects:user.projects||[]};}
-async function enterWithServerUser(user,rights){applyServerUser(user,rights);const data=await apiLoadState();if(data)applyState(data);await hydrateRolesFromDB();$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
+async function enterWithServerUser(user,rights){applyServerUser(user,rights);
+ /* v4.44: если вход происходит после истёкшей сессии, в памяти могли остаться несохранённые
+    правки (очередь юнитов ЛСР + изменённые домены состояния). Сначала дозаливаем их на сервер,
+    и только потом читаем свежее состояние — иначе applyState затёр бы работу сотрудника. */
+ try{if(typeof caseFlushUnitsNow==='function')await caseFlushUnitsNow();}catch(e){}
+ try{if(_offlineDirty&&typeof _doSaveState==='function')await _doSaveState();}catch(e){}
+ const data=await apiLoadState();if(data)applyState(data);await hydrateRolesFromDB();$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
 /* Матрица прав читается из таблицы roles БД — она первоисточник (сервер проверяет права по ней). */
 async function hydrateRolesFromDB(){if(!BACKEND)return;try{const j=await apiGET('data.php?table=roles');(j.rows||[]).forEach(row=>{const k=row.key;if(!k)return;const t=ROLES[k]=ROLES[k]||{label:row.label||k,rights:[]};t.label=row.label||t.label;t.leasing=!!+row.leasing;t.finance=!!+row.finance;t.edit=!!+row.edit;t.approve=!!+row.approve;t.plans=!!+row.plans;t.admin=!!+row.admin;t.ownOnly=!!+row.own_only;t.projectScoped=!!+row.project_scope;if(t.external===undefined)t.external=!!+row.project_scope;t.rights=serverRightChips({leasing:t.leasing,finance:t.finance,edit:t.edit,approve:t.approve,plans:t.plans,own_only:t.ownOnly,project_scope:t.projectScoped,admin:t.admin});});if(ROLES.AGX)Object.assign(ROLES.AGX,{label:'Внешний агент',leasing:false,finance:false,edit:false,approve:false,plans:false,admin:false,ownOnly:true,external:true,projectScoped:true,rights:['Добавление новых лидов','Доступ к проектам только после согласования','Без просмотра внутренних баз']});}catch(e){}}
 async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false).map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');$('lng_ru')&&$('lng_ru').classList.toggle('on',LANG==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',LANG==='uz');$('lng_en')&&$('lng_en').classList.toggle('on',LANG==='en');applyLoginLang();
@@ -1412,14 +1418,26 @@ async function doLogin(){
 function logout(){if(BACKEND){try{flushState();}catch(e){}apiPOST('auth.php',{action:'logout'}).catch(()=>{});}
  $('app').classList.add('hidden');$('login').classList.remove('hidden');if(BACKEND){$('lpass').value='';const c=$('lcode');if(c)c.value='';_otpSent=false;loginErr('');setLoginMode(true);}
  try{chatCloseW();const f=$('chatFab');if(f)f.style.display='none';const n=$('chatNotif');if(n)n.style.display='none';}catch(e){}}
-/* ── Авто-завершение сеанса ──
-   1) сервер гасит сессию после 30 мин без запросов (закрыли браузер/ноутбук — заново вход);
-   2) клиент сам выходит после часа без действий пользователя, даже если вкладка открыта;
-   3) если сервер ответил «Не авторизован» (сессия истекла) — сразу показываем вход. */
-let IDLE_LOGOUT_MIN=60,_idleT=null;
-function sessionExpired(){if(!BACKEND||!S.user)return;S.user=null;clearTimeout(_saveT);$('app').classList.add('hidden');$('login').classList.remove('hidden');$('lpass').value='';const c=$('lcode');if(c)c.value='';_otpSent=false;setLoginMode(true);loginErr('Сеанс истёк. Войдите заново.');}
+/* ── Авто-завершение сеанса (v4.44) ──
+   1) сервер держит сессию 12 часов, клиент дополнительно пингует её каждые 5 минут при активности;
+   2) клиент сам выходит после 2 часов без действий пользователя, даже если вкладка открыта;
+   3) если сервер ответил «Не авторизован» — сразу показываем вход; несохранённые правки
+      остаются в очереди и дозаливаются автоматически после повторного входа. */
+let IDLE_LOGOUT_MIN=120,_idleT=null,_lastActivityAt=Date.now();
+/* v4.44: keepalive — пока сотрудник работает (была активность за последние IDLE_LOGOUT_MIN минут),
+   раз в 5 минут пингуем auth.php, чтобы серверная сессия не истекала посреди работы. Если сервер
+   всё же ответил «не авторизован» — показываем вход сразу, не дожидаясь потери правок при сохранении. */
+if(typeof window!=='undefined')setInterval(()=>{try{
+ if(!BACKEND||!S.user||navigator.onLine===false)return;
+ if(Date.now()-_lastActivityAt>IDLE_LOGOUT_MIN*60*1000)return;
+ apiGET('auth.php').then(j=>{if(j&&j.auth===false)try{sessionExpired();}catch(e){}}).catch(()=>{});
+}catch(e){}},5*60*1000);
+function sessionExpired(){if(!BACKEND||!S.user)return;S.user=null;clearTimeout(_saveT);$('app').classList.add('hidden');$('login').classList.remove('hidden');$('lpass').value='';const c=$('lcode');if(c)c.value='';_otpSent=false;setLoginMode(true);
+ let n=0;try{if(typeof caseUnsyncedCount==='function')n=caseUnsyncedCount();}catch(e){}
+ if(_offlineDirty)n++;
+ loginErr(n>0?('Сеанс истёк. Войдите заново — несохранённые правки ('+n+') будут отправлены автоматически после входа.'):'Сеанс истёк. Войдите заново.');}
 function idleKick(){if(!BACKEND||!S.user)return;logout();loginErr('Сеанс завершён: не было действий в течение '+IDLE_LOGOUT_MIN+' мин. Войдите заново.');}
-function idlePoke(){clearTimeout(_idleT);_idleT=setTimeout(idleKick,IDLE_LOGOUT_MIN*60*1000);}
+function idlePoke(){_lastActivityAt=Date.now();clearTimeout(_idleT);_idleT=setTimeout(idleKick,IDLE_LOGOUT_MIN*60*1000);}
 if(typeof document!=='undefined'){['mousemove','keydown','mousedown','touchstart','scroll'].forEach(ev=>document.addEventListener(ev,idlePoke,{passive:true}));idlePoke();}
 /* круглая кнопка «наверх» на всех страницах */
 if(typeof document!=='undefined'){setTimeout(()=>{if($('toTop'))return;const b=document.createElement('button');b.id='toTop';b.title='Наверх';b.textContent='↑';b.onclick=()=>window.scrollTo({top:0,behavior:'smooth'});document.body.appendChild(b);
@@ -1591,8 +1609,15 @@ function buildTable(key,cols,rows,opts){opts=opts||{};S.tbl=S.tbl||{};const st=S
 
 
 /* Верхний синхронный ползунок для всех широких таблиц + видимый нижний */
-function syncTblScroll(){document.querySelectorAll('.tbl-scroll').forEach(sc=>{const tb=sc.querySelector('table');if(!tb)return;let top=sc.previousElementSibling;
- if(!(top&&top.classList&&top.classList.contains('tbl-scroll-top'))){top=document.createElement('div');top.className='tbl-scroll-top';top.appendChild(document.createElement('div'));sc.parentNode.insertBefore(top,sc);
+function syncTblScroll(){document.querySelectorAll('.tbl-scroll').forEach(sc=>{const tb=sc.querySelector('table');if(!tb)return;
+ /* v4.44: ищем свою полосу среди предыдущих соседей (между ней и таблицей мог встать тулбар
+    «Таблица · N столбцов») и удаляем дубликаты — раньше рисовались ДВЕ полосы прокрутки */
+ let top=null,_n=sc.previousElementSibling;
+ while(_n){if(_n.classList&&_n.classList.contains('tbl-scroll'))break;
+  if(_n.classList&&_n.classList.contains('tbl-scroll-top')){if(!top)top=_n;else{const dup=_n;_n=_n.previousElementSibling;dup.remove();continue;}}
+  _n=_n.previousElementSibling;}
+ if(top&&top.nextElementSibling!==sc&&top.parentNode===sc.parentNode&&!(top.nextElementSibling&&top.nextElementSibling.classList&&top.nextElementSibling.classList.contains('case-grid-toolbar')))sc.parentNode.insertBefore(top,sc);
+ if(!top){top=document.createElement('div');top.className='tbl-scroll-top';top.appendChild(document.createElement('div'));sc.parentNode.insertBefore(top,sc);
   top.addEventListener('scroll',()=>{if(top._lk)return;sc._lk=1;sc.scrollLeft=top.scrollLeft;sc._lk=0;},{passive:true});
   sc.addEventListener('scroll',()=>{if(sc._lk)return;top._lk=1;top.scrollLeft=sc.scrollLeft;top._lk=0;},{passive:true});}
  const need=tb.scrollWidth;top.firstElementChild.style.width=need+'px';top.style.display=need>sc.clientWidth+4?'':'none';});}
@@ -4324,7 +4349,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
 <script src="v432-data-grid.js?v=4.43.2" defer></script>
-<script src="v4327-patch.js?v=4.43.2" defer></script>
+<script src="v4327-patch.js?v=4.44.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){
