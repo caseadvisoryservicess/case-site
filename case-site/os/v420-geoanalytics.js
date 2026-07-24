@@ -82,7 +82,7 @@
     var fr=frame();if(!fr||!fr.contentWindow||!G.ready)return;
     fr.contentWindow.postMessage({source:'asaas-os-v4',type:'asaas-geo-context',context:{
       lang:(typeof LANG==='string'?LANG:'ru'),theme:(typeof THEME==='string'?THEME:'light'),role:role(),
-      editable:canEdit(),adminEdit:(function(){try{var r=typeof R==='function'?R():{};return !!(r.geoEdit||r.admin);}catch(e){return false;}})(),external:isExternal(),user:(S&&S.user)||null,projects:projectRows(),activeProjectId:(activeProject()||{}).id||'',geoData:(typeof GEO_DATA!=='undefined'?GEO_DATA:null),geoRevision:G.geoRevision||0
+      editable:canEdit(),adminEdit:(function(){try{var r=typeof R==='function'?R():{};return !!(r.geoEdit||r.admin);}catch(e){return false;}})(),external:isExternal(),user:(S&&S.user)||null,projects:projectRows(),activeProjectId:(activeProject()||{}).id||'',probeProjectId:(function(){var v=G.probeProjectId||'';G.probeProjectId='';return v;})(),geoData:(typeof GEO_DATA!=='undefined'?GEO_DATA:null),geoRevision:G.geoRevision||0
     }},location.origin);
   }
   function notifyFrame(type,payload){var fr=frame();if(fr&&fr.contentWindow)fr.contentWindow.postMessage(Object.assign({source:'asaas-os-v4',type:type},payload||{}),location.origin);}
@@ -166,7 +166,7 @@
     if(e.data.type==='asaas-geo-ready'){G.ready=true;var l=document.getElementById('geoLoader');if(l)l.style.display='none';loadGeoFresh().then(context);}
     else if(e.data.type==='asaas-geo-save')saveGeo(e.data.data,e.data.reason);
   });
-  window.geoV42Project=function(id){G.project=String(id||'');context();};
+  window.geoV42Project=function(id,opts){G.project=String(id||'');if(opts&&opts.probe)G.probeProjectId=G.project;/* v4.43.1: переход «Аналитика» из Карты объектов — студия сама откроет отчёт по точке проекта */context();};
   window.geoV42Recover=function(){if(!G.recoveryData||G.saving)return;var copy=JSON.parse(JSON.stringify(G.recoveryData));G.recoveryData=null;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='none';saveGeo(copy,'восстановление локальной копии Младшего администратора');};
   /* Серверная история геоданных: последние 50 снимков (таблица geo_state_history). Любой
      редактор может её посмотреть, администратор — откатить к выбранному снимку. Это надёжный

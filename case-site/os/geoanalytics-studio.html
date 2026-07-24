@@ -1854,7 +1854,7 @@ async function probeAt(la,ln){
  const scoreBC=demand==null?null:Math.round((0.55*demand+0.45*compBC)*100);
  const scoreMed=(demand==null||compMed==null)?null:Math.round((0.55*demand+0.45*compMed)*100);
  const fmt=v=>v==null?'-':v.toLocaleString('ru');
- let h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`;
+ let h='';
  h+=`<div class="grp">Локация</div><div class="note">${la.toFixed(5)}, ${ln.toFixed(5)}${d?' · район <b>'+d+'</b>':''}${nearMetro?'<br>метро <b>'+esc(nearMetro.n)+'</b> - '+(nearMetro.d*1000).toFixed(0)+' м':''}</div>`;
  h+=`<div class="grp">Население (жителей в радиусе)</div><table><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${fmt(popIn(r))}</b></td></tr>`).join('')+
@@ -1871,10 +1871,32 @@ async function probeAt(la,ln){
    <tr><td>Потенциал клиники</td><td style="text-align:right"><b style="color:${scoreMed>=55?'#1a7f37':scoreMed>=40?'#e67e22':'#9E0000'}">${scoreMed==null?'загрузите медицину':scoreMed}</b></td></tr>
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
- LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed};
- h+=`</div><div class="cbtns"><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
+ LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,html:h};
+ h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`+h+
+   `</div><div class="cbtns"><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="exportProbePdf()">⤓ Скачать PDF</button><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
  try{renderSavedProbes();}catch(e){}
+}
+function exportProbePdf(){ /* v4.43.1: полный отчёт по точке — в PDF через печатную версию */
+ if(!LASTPROBE||!LASTPROBE.html){alert('Сначала откройте отчёт по точке (клик по карте или переход «Аналитика» из Карты объектов).');return;}
+ const sel=document.getElementById('proj');const pname=sel&&sel.options[sel.selectedIndex]?sel.options[sel.selectedIndex].text:'';
+ const w=window.open('','_blank');
+ if(!w){alert('Браузер заблокировал окно печати — разрешите всплывающие окна для этого сайта.');return;}
+ w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>CASE OS — геоаналитика точки</title><style>
+ body{font-family:'Montserrat',Arial,sans-serif;color:#222;max-width:720px;margin:22px auto;padding:0 20px;font-size:11.5pt}
+ .lh{display:flex;justify-content:space-between;border-bottom:2px solid #9E0000;padding-bottom:9px;margin-bottom:14px}
+ .lh .b{font-size:17pt;font-weight:800}.lh .c{color:#9E0000}.lh .meta{font-size:8.5pt;color:#6d6d6d;text-align:right}
+ .grp{font-weight:800;color:#9E0000;font-size:10pt;text-transform:uppercase;letter-spacing:.05em;margin:13px 0 5px}
+ table{width:100%;border-collapse:collapse;margin:4px 0}td,th{padding:4px 8px;border:1px solid #ccc;font-size:9.5pt;text-align:left}
+ .note{font-size:9.5pt}.mini{font-size:8.5pt;color:#6d6d6d}
+ @media print{.noprint{display:none}}
+ </style></head><body>
+ <div class="lh"><div class="b"><span class="c">C</span>ASE OS · Геоаналитика локации</div><div class="meta">${pname?'Проект: '+esc(pname)+'<br>':''}${new Date().toLocaleString('ru-RU')}<br>caseadvisory.uz</div></div>
+ ${LASTPROBE.html}
+ <p class="mini" style="border-top:1px solid #ddd;margin-top:14px;padding-top:8px">Отчёт сформирован CASE OS по онлайн-данным (OpenStreetMap, Kontur, clinics.uz) и ручным правкам команды CASE. Радиусы анализа: ${LASTPROBE.radii.join(', ')} м.</p>
+ <div class="noprint" style="margin-top:14px"><button onclick="print()" style="padding:8px 14px;font-size:11pt;cursor:pointer">🖨 Печать / Сохранить как PDF</button></div>
+ </body></html>`);
+ w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},450);
 }
 /* #92: сохранённые точки на карте — список, вкл/выкл, удаление; хранятся локально в студии */
 function loadSavedProbes(){try{window.SAVED_PROBES=JSON.parse(localStorage.getItem('asaas_saved_probes')||'[]');}catch(e){window.SAVED_PROBES=[];}if(!Array.isArray(window.SAVED_PROBES))window.SAVED_PROBES=[];return window.SAVED_PROBES;}
@@ -2112,5 +2134,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.41.0"></script>
+<script src="v420-geo-studio.js?v=4.43.1"></script>
 </body></html>

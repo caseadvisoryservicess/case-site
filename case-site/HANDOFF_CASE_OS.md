@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-24 · текущая версия платформы **v4.43.0**_
+_Обновлено: 2026-07-24 · текущая версия платформы **v4.43.1**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,10 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.43.1:** гео: авто-отчёт по проекту + PDF:
+  - «Карта объектов → Аналитика» (case493OpenGeo) → geoV42Project(id,{probe:true}) → context.probeProjectId (одноразовый, очищается после отправки) → studio applyContext → geoAutoProbe (дедуп GEO_AUTOPROBED, retry-wait на map/probeAt) → probeAt(coords проекта) — «Отчёт по точке» открывается сам; обычное открытие гео из меню НЕ триггерит;
+  - probeAt теперь собирает тело отчёта в LASTPROBE.html; новая кнопка «⤓ Скачать PDF» → exportProbePdf(): window.open + печатная версия (шапка CASE, проект, дата, все разделы) + print() → «Сохранить как PDF»;
+  - тест v4431_probe_pdf.js 7/7 (авто-открытие, состав, PDF-контент, print(), дедуп). Регресс: uniform 14/14, bc 8/8, полный QA 34/34.
 - **v4.43.0:** личные настройки таблиц — на сервере, per-user («ширины сбрасываются» + «каждому по-своему»):
   - новый `api/user_prefs.php` (GET/POST только СВОИХ настроек по user_id; CREATE TABLE IF NOT EXISTS user_prefs — ручных миграций нет);
   - v432-data-grid: maybePullServerPrefs() в enhanceAll (один pull за сессию, backendOn()=BACKEND+S.user), savePrefs → pushServerPrefs (debounce 800мс, dedup по JSON); конфликт: локальные правки текущей сессии поверх серверных;
