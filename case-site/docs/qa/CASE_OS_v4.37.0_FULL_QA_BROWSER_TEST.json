@@ -1,0 +1,152 @@
+{
+  "suite": "CASE OS v4.33.0 · full QA (browser, ?demo=1)",
+  "date": "2026-07-24",
+  "env": "playwright-core + chromium (/opt/pw-browsers/chromium-1194/chrome-linux/chrome), static http 127.0.0.1",
+  "total": 34,
+  "pass": 34,
+  "fail": 0,
+  "results": [
+    {
+      "test": "static: APP_VERSION задан (x.y.z)",
+      "status": "PASS",
+      "info": "4.37.0"
+    },
+    {
+      "test": "static: sw.js кэш соответствует APP_VERSION",
+      "status": "PASS",
+      "info": "case-os-v4370"
+    },
+    {
+      "test": "static: v417-master-plan подключён с cache-busting ?v=",
+      "status": "PASS"
+    },
+    {
+      "test": "static: P0-1 ядро в index.html (planSnapshotBuild)",
+      "status": "PASS"
+    },
+    {
+      "test": "static: PLAN_SNAPSHOT_SVGS в stateBlob",
+      "status": "PASS"
+    },
+    {
+      "test": "static: PLAN_SNAPSHOT_SVGS в _HEAVY_LOCAL_KEYS",
+      "status": "PASS"
+    },
+    {
+      "test": "boot: страница отвечает 200",
+      "status": "PASS",
+      "info": "200"
+    },
+    {
+      "test": "boot: экран входа показан",
+      "status": "PASS"
+    },
+    {
+      "test": "boot: в демо-режиме доступен выбор ролей",
+      "status": "PASS",
+      "info": "10 ролей"
+    },
+    {
+      "test": "boot: вход выполнен, приложение видно",
+      "status": "PASS"
+    },
+    {
+      "test": "boot: шапка показывает DEMO · v4.37.0",
+      "status": "PASS",
+      "info": "DEMO · v4.37.0"
+    },
+    {
+      "test": "nav: экран «dash» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «registry» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «plans» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «plan_master» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «brands» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «docs» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "nav: экран «audit» рендерится",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: версия получает снапшот текущего чертежа",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: снапшот глубоко заморожен",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: SVG чертежа сохранён в дедуп-хранилище",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: изменение чертежа не меняет снапшот (drift)",
+      "status": "PASS",
+      "info": "0c4be69d ≠ 692968d0"
+    },
+    {
+      "test": "P0-1: генерация LCR создаёт юниты ИЗ СНАПШОТА (площадь 111, не 999)",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: юниты нового чертежа НЕ создаются из старого снапшота",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: юниты проштампованы layoutVersionId + snapshotChecksum",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: новый чертёж ⇒ новая активная версия",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: генерация из новой версии применяет новый чертёж",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: снапшоты и SVG-хранилище сериализуются в stateBlob",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: applyState замораживает загруженные снапшоты",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1 UI: вкладка «Версии» показывает 🔒 снапшоты",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1 UI: вкладка «Генерация LCR» показывает выбор версии-источника",
+      "status": "PASS"
+    },
+    {
+      "test": "P0-1: тестовые данные вычищены",
+      "status": "PASS"
+    },
+    {
+      "test": "persist: tryPersist сохраняет состояние в demo-режиме",
+      "status": "PASS"
+    },
+    {
+      "test": "console: нет необработанных ошибок страницы",
+      "status": "PASS"
+    }
+  ]
+}

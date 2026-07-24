@@ -25,24 +25,24 @@
 
     {v:'advisory_pipeline',g:'advisory',icon:'⇢',ru:'Воронка Advisory',uz:'Advisory voronkasi',en:'Advisory pipeline',nav:true},
     {v:'advisory_proposal_builder',g:'advisory',icon:'✎',ru:'Конструктор КП',uz:'TK konstruktori',en:'Proposal builder',nav:true},
-    {v:'advisory_proposals',g:'advisory',icon:'▧',ru:'Коммерческие предложения',uz:'Tijorat takliflari',en:'Commercial proposals',nav:true},
+    {v:'advisory_proposals',g:'advisory',icon:'▧',ru:'Реестр КП',uz:'TK reyestri',en:'Commercial proposals',nav:true},
     {v:'advisory_portfolio_map',g:'advisory',icon:'⌖',ru:'Карта проектов Advisory',uz:'Advisory loyihalari xaritasi',en:'Advisory project map',nav:true},
     {v:'advisory_contracts',g:'advisory',icon:'▣',ru:'Договоры Advisory',uz:'Advisory shartnomalari',en:'Advisory contracts',nav:true},
     {v:'advisory_scope',g:'advisory',icon:'☷',ru:'Объём работ (Scope)',uz:'Ish hajmi (Scope)',en:'Scope of Work',nav:true},
     {v:'advisory_delivery',g:'advisory',icon:'✓',ru:'Выполнение проектов',uz:'Loyihalarni bajarish',en:'Project delivery',nav:true},
-    {v:'advisory_reports',g:'advisory',icon:'▤',ru:'Черновые и финальные отчёты',uz:'Qoralama va yakuniy hisobotlar',en:'Draft and final reports',nav:true},
+    {v:'advisory_reports',g:'advisory',icon:'▤',ru:'Отчёты проектов',uz:'Loyiha hisobotlari',en:'Draft and final reports',nav:true},
     {v:'advisory_cross_sell',g:'advisory',icon:'↗',ru:'Следующие услуги',uz:'Keyingi xizmatlar',en:'Next services',nav:true},
     {v:'advisory_research',g:'advisory',icon:'◈',ru:'Исследование рынка',uz:'Bozor tadqiqoti',en:'Market research',nav:true,future:true},
     {v:'advisory_concept',g:'advisory',icon:'✦',ru:'Концепция',uz:'Konsepsiya',en:'Concept development',nav:true,future:true},
     {v:'advisory_area',g:'advisory',icon:'▥',ru:'Программа площадей',uz:'Maydonlar dasturi',en:'Area programme',nav:true,future:true},
-    {v:'feasibility',g:'advisory',icon:'∑',ru:'Финансовая модель проекта',uz:'Loyiha moliyaviy modeli',en:'Project financial model',nav:true},
+    {v:'feasibility',g:'advisory',icon:'∑',ru:'Финансовая модель',uz:'Moliyaviy model',en:'Project financial model',nav:true},
     {v:'advisory_business_plan',g:'advisory',icon:'▧',ru:'Бизнес-план',uz:'Biznes-reja',en:'Business plan',nav:true,future:true},
-    {v:'mep',g:'advisory',icon:'⚡',ru:'MEP / техническое задание',uz:'MEP / texnik topshiriq',en:'MEP / technical brief',nav:true},
+    {v:'mep',g:'advisory',icon:'⚡',ru:'MEP / техзадание',uz:'MEP / texnik topshiriq',en:'MEP / technical brief',nav:true},
     {v:'lift',g:'advisory',icon:'⇅',ru:'Расчёт лифтов',uz:'Lift hisobi',en:'Lift calculation',nav:true},
 
-    {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта проектов',uz:'Loyihalar xaritasi',en:'Project map',nav:true},
-    {v:'plans',g:'leasing',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:true}, /* перенесено из Advisory в Leasing по требованию: планировка — функция отдела аренды. Внутри «Контроль аренды (LCR)» тот же план доступен вкладкой. */
-    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:true}, /* P1-3: ЕДИНСТВЕННЫЙ вход в планировки из меню; project_layouts/leasing_layouts — внутренние экраны, открываются из мастера (реестр файлов) и из рабочих столов */
+    {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта объектов',uz:'Obyektlar xaritasi',en:'Asset map',nav:true},
+    {v:'plans',g:'leasing',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:false}, /* v4.37: дубль в меню убран — открывается табом «Планировка» из LCR и из «Версий планировок» */ /* перенесено из Advisory в Leasing по требованию: планировка — функция отдела аренды. Внутри «Контроль аренды (LCR)» тот же план доступен вкладкой. */
+    {v:'plan_master',g:'leasing',icon:'▭',ru:'Версии планировок',uz:'Planirovka versiyalari',en:'Layout versions',nav:true}, /* P1-3: ЕДИНСТВЕННЫЙ вход в планировки из меню; project_layouts/leasing_layouts — внутренние экраны, открываются из мастера (реестр файлов) и из рабочих столов */
     {v:'registry',g:'leasing',icon:'▤',ru:'Контроль аренды (LCR)',uz:'Ijara nazorati (LCR)',en:'Lease control (LCR)',nav:true},
     {v:'v32_sales',g:'leasing',icon:'◆',ru:'Контроль продажи (SCR)',uz:'Sotuv nazorati (SCR)',en:'Sales control (SCR)',nav:true},
     {v:'brands',g:'leasing',icon:'✦',ru:'База брендов',uz:'Brendlar bazasi',en:'Brand database',nav:true},
@@ -78,8 +78,8 @@
     {v:'finance_department_pnl',g:'finance',icon:'▥',ru:'P&L бизнес-направлений',uz:'Biznes yo‘nalishlari P&L',en:'Business-line P&L',nav:true,future:true},
     {v:'finance_budget',g:'finance',icon:'▤',ru:'Бюджет и план-факт',uz:'Byudjet va reja-fakt',en:'Budget and plan vs actual',nav:true,future:true},
 
-    {v:'map',g:'data',icon:'⌖',ru:'Геоаналитика — наши проекты',uz:'Geoanalitika — bizning loyihalar',en:'Geoanalytics — our projects',nav:true},
-    {v:'geoanalytics',g:'data',icon:'◉',ru:'Геоаналитика — рынок и POI',uz:'Geoanalitika — bozor va POI',en:'Geoanalytics — market & POI',nav:true},
+    {v:'map',g:'data',icon:'⌖',ru:'Гео: наши проекты',uz:'Geo: bizning loyihalar',en:'Geoanalytics — our projects',nav:true},
+    {v:'geoanalytics',g:'data',icon:'◉',ru:'Гео: рынок и POI',uz:'Geo: bozor va POI',en:'Geoanalytics — market & POI',nav:true},
     {v:'analytics_hub',g:'data',icon:'◎',ru:'Центр аналитики',uz:'Tahlil markazi',en:'Analytics hub',nav:false},
     {v:'market_data',g:'data',icon:'▥',ru:'Рыночные данные',uz:'Bozor ma’lumotlari',en:'Market data',nav:true,future:true},
     {v:'macro_data',g:'data',icon:'◫',ru:'Макроэкономика',uz:'Makroiqtisodiyot',en:'Macroeconomics',nav:true,future:true},
@@ -198,8 +198,8 @@
       try{if(typeof R==='function'&&R().brandsOnly)items=items.filter(function(m){return m.v==='brands';});}catch(e){} /* v4.35 (роли): «только бренды» — правило ядра, потерянное при переходе на групповое меню */
       if(!items.length)return;
       var active=items.some(function(m){return S&&S.view===m.v;});
-      out+='<div class="nav-group '+(active?'has-active':'')+'"><button type="button" class="nav-group-btn" aria-haspopup="true" aria-expanded="false" onclick="caseNavToggle(event,this)"><span>'+h(tx(GROUPS[g]))+'</span><span class="chev">▼</span></button><div class="nav-menu">';
-      out+=items.map(function(m){var future=m.future?'<em class="case-nav-future">план</em>':'';return '<a data-v="'+m.v+'" class="'+((S&&S.view===m.v)?'active':'')+'" title="'+h(tx(m))+'" onclick="caseNavClose();go(\''+m.v+'\')"><span class="ic">'+m.icon+'</span><span class="case-nav-label">'+h(tx(m))+'</span>'+future+'</a>';}).join('');
+      out+='<div class="nav-group '+(active?'has-active open':'')+'"><button type="button" class="nav-group-btn" aria-haspopup="true" aria-expanded="false" onclick="caseNavToggle(event,this)"><span>'+h(tx(GROUPS[g]))+'</span><span class="chev">▼</span></button><div class="nav-menu">';
+      out+=items.map(function(m){var future=m.future?'<em class="case-nav-future">план</em>':'';return '<a data-v="'+m.v+'" class="'+((S&&S.view===m.v)?'active':'')+'" title="'+h(tx(m))+'" onclick="caseNavGo(this,\''+m.v+'\')"><span class="ic">'+m.icon+'</span><span class="case-nav-label">'+h(tx(m))+'</span>'+future+'</a>';}).join('');
       out+='</div></div>';
     });
     nav.innerHTML=out;
@@ -207,7 +207,10 @@
   }
 
   window.caseNavClose=function(){document.querySelectorAll('.nav-group.open').forEach(function(g){g.classList.remove('open');var b=g.querySelector('.nav-group-btn');if(b)b.setAttribute('aria-expanded','false');});};
+  window.caseNavGo=function(a,v){try{var g=a&&a.closest('.nav-group');document.querySelectorAll('#nav .nav-group').forEach(function(x){x.classList.remove('has-active');if(x!==g)x.classList.remove('open');});if(g){g.classList.add('has-active');g.classList.add('open');}}catch(e){}go(v);};
   window.caseNavToggle=function(e,b){if(e)e.stopPropagation();var g=b&&b.closest('.nav-group'),was=g&&g.classList.contains('open');window.caseNavClose();if(g&&!was){g.classList.add('open');b.setAttribute('aria-expanded','true');}};
+  /* v4.37: аккордеон следует за навигацией — при любом go() открыта группа активного экрана (и только она) */
+  (function(){var og=window.go;if(typeof og==='function'&&!og._nav437){window.go=function(v){var r=og.apply(this,arguments);try{var a=document.querySelector('#nav a.active');var g=a&&a.closest('.nav-group');if(g){document.querySelectorAll('#nav .nav-group').forEach(function(x){x.classList.remove('has-active');if(x!==g)x.classList.remove('open');});g.classList.add('has-active');g.classList.add('open');}}catch(e){}return r;};window.go._nav437=true;}})();
   document.addEventListener('click',function(e){if(!e.target.closest('.nav-group'))window.caseNavClose();});
 
   function roleOptions(sel){return Object.keys(ROLES||{}).map(function(k){return '<option value="'+h(k)+'"'+(sel===k?' selected':'')+'>'+h((roleObj(k).label)||k)+'</option>';}).join('');}

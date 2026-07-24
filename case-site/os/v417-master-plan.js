@@ -1,4 +1,4 @@
-/* CASE OS v4.33.0 — Мастер-модуль «Планировки и LCR» (#64, ядро аудита).
+/* CASE OS v4.37.0 — Мастер-модуль «Планировки и LCR» (#64, ядро аудита).
    Единая точка на уровне проекта: версии ↔ юниты, генерация/обновление LCR с превью и защитой
    коммерческих записей, передача Advisory→Leasing (handover), валидация и история.
    P0-1: каждая версия несёт НЕИЗМЕНЯЕМЫЙ снапшот чертежа (PLAN_CODES + блоки/этажи + SVG-хеши +
@@ -209,7 +209,7 @@
     var floors=0;try{blocks.forEach(function(b){floors+=floorsOf(pid,b).length;});if(!blocks.length)floors=floorsOf(pid,'').length;}catch(e){}
     var mismatch=scan.news.length+scan.removed.length+scan.changed.length;
     var kpis=[['Версий',vs.length],['Активная',av?(h(av.version||av.id)+(snapOf(av)?' 🔒':'')):'—'],['Блоков',blocks.length||'—'],['Юнитов',units.length],['Расхождений с планом',mismatch]];
-    return card('<h3 style="margin:0 0 6px">'+h(o.name||pid)+' — Планировки</h3><p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Рабочий план отдела аренды: интерактивный план → блоки/этажи → юниты → валидация → генерация LCR. Оригинальная планировка (из Advisory или загруженная в аренду) доступна отдельной кнопкой и не перезаписывается.</p><div style="display:flex;gap:14px;flex-wrap:wrap">'+kpis.map(function(k){return '<div style="min-width:110px"><div style="font-size:22px;font-weight:700">'+h(k[1])+'</div><div style="font-size:11px;color:var(--muted)">'+h(k[0])+'</div></div>';}).join('')+'</div>')
+    return card('<h3 style="margin:0 0 6px">'+h(o.name||pid)+' — Планировки</h3><p style="font-size:12.5px;color:var(--muted);margin:0 0 10px">Версии чертежей, сверка с реестром и генерация LCR.</p><div style="display:flex;gap:14px;flex-wrap:wrap">'+kpis.map(function(k){return '<div style="min-width:110px"><div style="font-size:22px;font-weight:700">'+h(k[1])+'</div><div style="font-size:11px;color:var(--muted)">'+h(k[0])+'</div></div>';}).join('')+'</div>')
       +card('<b>Быстрые действия</b><div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'+link('plans','Рабочий интерактивный план')+'<button class="btn ghost sm" onclick="case49OpenOriginal()">Оригинальная планировка</button>'+link('registry','Реестр помещений (LCR)')+link('leasing_layouts','Реестр версий (файлы)')+'<button class="btn sm" onclick="masterTab(\'lcr\')">Генерация LCR</button></div>')
       +(mismatch?('<div class="banner warn" style="margin:0">⚠ План и реестр расходятся: <b>'+scan.news.length+'</b> новых · <b>'+scan.removed.length+'</b> нет на плане · <b>'+scan.changed.length+'</b> с др. площадью. <button class="btn ghost sm" onclick="masterTab(\'lcr\')">Открыть генерацию</button></div>'):'<div class="banner ok" style="margin:0;background:#eef8f0;color:#256433;border-color:#b8d8bf">✓ План и реестр согласованы</div>');
   }
@@ -225,13 +225,13 @@
       return '<tr><td><b>'+h(v.version||v.id)+'</b>'+(v.active?' <span class="pill">активная</span>':'')+'</td><td>'+h(v.type||'')+'</td><td>'+h(v.source||v.createdBy||'')+'</td><td>'+scell+'</td><td>'+h(hlbl)+'</td><td>'+(canEdit()&&hs==='draft'?'<button class="btn ghost sm" onclick="masterHandoverMark(\''+pid+'\',\''+v.id+'\')">Готово для аренды</button>':'')+(hs==='ready_for_leasing'?'<button class="btn sm" onclick="masterHandoverAccept(\''+pid+'\',\''+v.id+'\')">Принять</button>':'')+'</td></tr>';
     }).join('');
     var newBtn=canEdit()?'<button class="btn ghost sm" onclick="masterVersionFromCurrent(\''+pid+'\')" title="Создать версию с зафиксированным снапшотом текущего чертежа (или переключиться на уже существующую с тем же чертежом)">＋ Версия из текущего чертежа</button>':'';
-    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><b>Версии планировок проекта</b><span style="display:flex;gap:6px">'+newBtn+link('leasing_layouts','Полный реестр версий / загрузка файла')+'</span></div>'+(vs.length?('<div class="tbl-scroll"><table><thead><tr><th>Версия</th><th>Тип</th><th>Источник</th><th>Снапшот чертежа</th><th>Передача</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'):'<p style="color:var(--muted);font-size:12.5px">Версий пока нет. Загрузите первую в реестре версий, либо генерация LCR создаст рабочую версию с зафиксированным чертежом автоматически.</p>')+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">🔒 Снапшот — неизменяемая копия чертежа (коды+площади, блоки/этажи, SVG, контрольная сумма, автор/дата). Генерация LCR всегда идёт из снапшота выбранной версии; новый чертёж = новая версия.</p>');
+    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;gap:8px;flex-wrap:wrap"><b>Версии планировок проекта</b><span style="display:flex;gap:6px">'+newBtn+link('leasing_layouts','Полный реестр версий / загрузка файла')+'</span></div>'+(vs.length?('<div class="tbl-scroll"><table><thead><tr><th>Версия</th><th>Тип</th><th>Источник</th><th>Снапшот чертежа</th><th>Передача</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'):'<p style="color:var(--muted);font-size:12.5px">Версий пока нет. Загрузите первую в реестре версий, либо генерация LCR создаст рабочую версию с зафиксированным чертежом автоматически.</p>')+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">🔒 Снапшот неизменяем; новый чертёж — новая версия.</p>');
   }
 
   function renderBlocks(pid){
     var blocks=(typeof blocksOf==='function'?blocksOf(pid):[]);
     var body=blocks.length?blocks.map(function(b){var fs=floorsOf(pid,b);return '<div style="margin-bottom:6px"><b>Блок '+h(b)+'</b>: '+fs.map(h).join(' · ')+'</div>';}).join(''):(function(){var fs=floorsOf(pid,'');return '<div>Без блоков · этажи: '+fs.map(h).join(' · ')+'</div>';})();
-    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Блоки и этажи</b>'+link('plans','Управление блоками/этажами (в плане)')+'</div>'+body+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">Блоки/этажи — постоянные записи (persist). Добавление/переименование/удаление — во вкладке «Планировки» (кнопки «+ блок / ＋ этаж / ✎ / 🗑»).</p>');
+    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Блоки и этажи</b>'+link('plans','Управление блоками/этажами (в плане)')+'</div>'+body+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">Управление блоками и этажами — во вкладке «Планировки».</p>');
   }
 
   function renderUnits(pid){
@@ -245,7 +245,7 @@
       {k:'gen',label:'Источник',get:function(u){return u.genOrphan?'нет на плане':(u.genStatus==='generated'?'из плана':'вручную');},sortable:true,filter:'select',render:function(u){return u.genOrphan?'<span class="pill" style="background:#fdecea;color:#a30000">нет на плане</span>':(u.genStatus==='generated'?'<span class="pill">из плана</span>':'вручную');}}
     ];
     var tbl=(typeof buildTable==='function')?buildTable('master_units',cols,units,{rowClick:function(u){return "openUnit('"+u.id+"')";}}):'';
-    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Юниты проекта ('+units.length+')</b>'+link('registry','Полный реестр (LCR) с правкой')+'</div>'+tbl+'<p style="font-size:11.5px;color:var(--muted);margin-top:8px">Столбец «Версия» — из какой версии планировки создан/обновлён юнит (трассируемость).</p>');
+    return card('<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>Юниты проекта ('+units.length+')</b>'+link('registry','Полный реестр (LCR) с правкой')+'</div>'+tbl+'');
   }
 
   function renderValidate(pid){
@@ -267,7 +267,7 @@
     var scan=lcrScan(pid,sn?ver:null); /* превью: снапшот выбранной версии; без снапшота — текущий чертёж (зафиксируется при применении) */
     var prot=scan.removed.filter(function(x){return x.protected;}).length+scan.changed.filter(function(x){return x.protected;}).length;
     if(!scan.plans)return card('<b>Генерация LCR</b><p style="color:var(--muted);font-size:12.5px">'+(sn?'Снапшот выбранной версии пуст (в нём нет распознанных чертежей). Выберите другую версию или создайте новую из текущего чертежа.':'Нет распознанных чертежей для проекта. Сначала загрузите планировки (SVG) во вкладке «Планировки».')+'</p>');
-    var head='<b>Генерация / обновление LCR</b><p style="font-size:12.5px;color:var(--muted);margin:6px 0">Предпросмотр изменений перед применением. LCR генерируется <b>строго из зафиксированного снапшота</b> версии-источника. Юниты со связанными коммерческими данными (КП, сделки, шортлист) <b>защищены</b> — их площадь не меняется, из реестра они не убираются.</p>';
+    var head='<b>Генерация / обновление LCR</b><p style="font-size:12.5px;color:var(--muted);margin:6px 0">Генерация идёт строго из снапшота версии-источника; юниты со сделками/КП защищены.</p>';
     var opts=vs.map(function(v){var s=snapOf(v);return '<option value="'+h(v.id)+'"'+(ver&&v.id===ver.id?' selected':'')+'>'+h(v.version||v.id)+(v.active?' · активная':'')+(s?(' · 🔒 #'+s.checksum):' · без снапшота')+'</option>';}).join('');
     var target='<div style="font-size:12px;margin-bottom:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span style="color:var(--muted)">Версия-источник:</span>'
       +(vs.length?('<select onchange="masterLcrSelectVer(this.value)" style="font-family:inherit;font-size:12.5px;padding:4px 8px;border:1px solid var(--border);border-radius:7px">'+opts+'</select>'):'<b>будет создана рабочая версия с зафиксированным чертежом</b>')
@@ -286,7 +286,7 @@
     if(canEdit()&&protChanged.length){
       protBlock='<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--soft)">'
         +'<b style="font-size:12.5px">🔒 Защищённые юниты с новой площадью на плане ('+protChanged.length+')</b>'
-        +'<p style="font-size:11.5px;color:var(--muted);margin:4px 0 8px">По умолчанию их площадь НЕ меняется. Разрешить можно только отдельно, с причиной — она попадёт в историю юнита и в аудит.</p>'
+        +'<p style="font-size:11.5px;color:var(--muted);margin:4px 0 8px">Разрешение — по одному, с указанием причины (пишется в аудит).</p>'
         +protChanged.map(function(c){return '<label style="display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0"><input type="checkbox" class="lcrAllow" value="'+h(c.id)+'"> <b>'+h(c.code)+'</b> '+A(c.reg)+' → '+A(c.plan)+' м² <span style="color:var(--muted)">('+h(c.why)+')</span></label>';}).join('')
         +'<input id="lcrReason" placeholder="Причина изменения защищённых площадей (обязательно при разрешении)" style="width:100%;margin-top:7px;font-family:inherit;font-size:12px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">'
         +'</div>';
