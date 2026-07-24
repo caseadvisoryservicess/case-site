@@ -19,6 +19,14 @@
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "same-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  # v4.35 (P2): HSTS — только по HTTPS (env=HTTPS), год; без preload/includeSubDomains,
+  # чтобы не заблокировать соседние поддомены хостинга.
+  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+  # v4.35 (P2): CSP. 'unsafe-inline'/'unsafe-eval' вынужденные: платформа — один файл с
+  # inline-скриптами и onclick-обработчиками, jszip использует Function. Политика всё равно
+  # закрывает главное: чужие домены скриптов, form-action, base-uri, встраивание в чужие фреймы.
+  # Карт-тайлы (img) и внешние API — только https.
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data:; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 </IfModule>
 
 Options -Indexes

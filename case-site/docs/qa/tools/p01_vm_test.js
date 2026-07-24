@@ -34,6 +34,7 @@ function makeSandbox() {
   sb.PLAN_SNAPSHOT_SVGS = {};
   sb.PLAN_IGNORED_CODES = {};
   sb.CASE_LAYOUT_VERSIONS = [];
+  sb.LEASE_COMMISSION_DEALS = [];
   sb.U = [];
   sb.TODAY = new Date('2026-07-24');
   sb.iso = d => '2026-07-24';
@@ -209,19 +210,42 @@ test('версия без снапшота получает снапшот пр�
   ok(!sb.U.some(u => u.code === 'B-777'), 'повторная генерация из legacy-версии не подтянула новый чертёж');
 });
 
-/* 6. Защита коммерческих юнитов */
+/* 6. Защита коммерческих юнитов (P1-2: per-unit разрешение с причиной, массового override нет) */
 sb = makeSandbox();
 loadPlanA(sb);
-test('защищённый юнит не меняется без override, меняется с override', () => {
+test('P1-2: защищённый юнит не меняется без per-unit разрешения; меняется с allowIds+reason (причина в истории и аудите)', () => {
   const v1 = sb.planVersionForCurrent('p1');
-  // юнит уже есть в реестре с другой площадью и коммерческим статусом «neg»
   const prot = sb.unit('p1', 'A-101', '1 этаж', 100, 0, '', '', 10, 0, 0, 'neg', '', [], [], '');
   prot.block = 'A';
   sb.U.push(prot);
   sb.masterLcrApply('p1', { versionId: v1.id });
-  eq(prot.area, 100, 'без override площадь защищённого юнита не тронута');
+  eq(prot.area, 100, 'без разрешения площадь защищённого юнита не тронута');
   sb.masterLcrApply('p1', { versionId: v1.id, overrideProtected: true });
-  eq(prot.area, 120, 'с override площадь обновлена по снапшоту');
+  eq(prot.area, 100, 'старый массовый overrideProtected больше НЕ действует');
+  sb.masterLcrApply('p1', { versionId: v1.id, allowIds: [prot.id], reason: 'КП пересогласовано с арендатором' });
+  eq(prot.area, 120, 'с per-unit разрешением площадь обновлена по снапшоту');
+  ok(prot.hist.some(hh => String(hh[1]).indexOf('причина: КП пересогласовано с арендатором') >= 0), 'причина записана в историю юнита');
+  ok(sb._auditLog.some(a => String(a[1]).indexOf('разрешены защищённые: 1') >= 0 && String(a[1]).indexOf('КП пересогласовано') >= 0), 'разрешение и причина в аудите');
+});
+test('P1-1: сделка защищает юнит по unitId; тот же код в ДРУГОМ проекте не защищает; сделка без привязок защищает консервативно', () => {
+  // (a) точный unitId
+  const ua = sb.U.find(u => u.code === 'A-102') || sb.unit('p1', 'A-102', '1 этаж', 50, 0, '', '', 0, 0, 0, 'vac', '', [], [], '');
+  if (sb.U.indexOf(ua) < 0) { ua.block = 'A'; sb.U.push(ua); }
+  ua.area = 50; ua.status = 'vac';
+  sb.LEASE_COMMISSION_DEALS = [{ id: 'd1', unitId: ua.id, unit: 'A-102', objectName: 'Проект p1' }];
+  const v1 = sb.CASE_LAYOUT_VERSIONS[0];
+  sb.masterLcrApply('p1', { versionId: v1.id });
+  eq(ua.area, 50, '(a) unitId-сделка защищает: площадь не тронута');
+  // (b) тот же код, но сделка другого проекта — НЕ защищает
+  sb.LEASE_COMMISSION_DEALS = [{ id: 'd2', unit: 'A-102', objectName: 'Проект p2' }];
+  sb.masterLcrApply('p1', { versionId: v1.id });
+  eq(ua.area, 80, '(b) сделка чужого проекта не защищает: площадь обновлена по снапшоту');
+  // (c) сделка без unitId и объекта — консервативная защита по коду
+  ua.area = 50;
+  sb.LEASE_COMMISSION_DEALS = [{ id: 'd3', unit: 'A-102' }];
+  sb.masterLcrApply('p1', { versionId: v1.id });
+  eq(ua.area, 50, '(c) сделка без привязок защищает по коду (консервативно)');
+  sb.LEASE_COMMISSION_DEALS = [];
 });
 test('юнит, которого нет в снапшоте, помечается genOrphan (не удаляется)', () => {
   const ghost = sb.unit('p1', 'X-999', '1 этаж', 33, 0, '', '', 0, 0, 0, 'vac', '', [], [], '');

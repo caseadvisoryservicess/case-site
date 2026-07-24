@@ -165,7 +165,7 @@ function asaas_workspace_default_views(): array {
     'property_budget','noi_performance','capex_management','owner_reports','v326_suppliers',
     'finance_dashboard','finance_income','finance_expenses','finance_invoices','finance_receivables','finance_payables',
     'finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget',
-    'map','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export',
+    'analytics_hub','map','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export',
     'product_intelligence','product_market','product_living','product_manage','product_subscriptions',
     'kpi','org','study','rating','users','admin_modules','admin_system','admin_workflows','admin_directories','admin_integrations'];
   return [

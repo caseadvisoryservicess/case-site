@@ -1,0 +1,22 @@
+{
+  "suite": "CASE OS roles & security static audit",
+  "date": "2026-07-24",
+  "crit": 0,
+  "warn": 0,
+  "info": 1,
+  "notes": [
+    "каталог модулей (v3520): 89",
+    "validViews (index.html): 90",
+    "серверный список модулей (lib.php): 90",
+    "api/cron_critical_dates.php: CLI-only (веб-запросы отклоняются 403)",
+    "api/geo_collector.php: CLI-only (веб-запросы отклоняются 403)",
+    "api/geo_master_install.php: CLI-only (веб-запросы отклоняются 403)",
+    "api/geo_seed_convert.php: CLI-only (веб-запросы отклоняются 403)"
+  ],
+  "findings": [
+    {
+      "sev": "info",
+      "what": "api/geo_master.php: прямое чтение GET/POST без видимой валидации — проверить руками"
+    }
+  ]
+}

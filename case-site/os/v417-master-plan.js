@@ -62,7 +62,11 @@
     return v;
   }
 
-  /* ---- коммерческая защита юнита ---- */
+  /* ---- коммерческая защита юнита ----
+     P1-1: привязка сделки к юниту project-scoped. Сначала точный ключ unitId (его пишут
+     авто-сделки и unit_patch), затем код помещения, но ТОЛЬКО в паре с объектом сделки —
+     одинаковый код в другом проекте больше не защищает/не разблокирует чужой юнит.
+     Сделка без unitId и без объекта защищает по коду консервативно (лучше лишний замок). */
   function unitHasCommerce(u){
     try{
       if(!u)return false;
@@ -71,7 +75,15 @@
       if(['neg','off','os','cs','cd'].indexOf(u.status)>=0)return true; // переговоры/предложение/подписано/сделка
       var deals=(typeof LEASE_COMMISSION_DEALS!=='undefined'&&Array.isArray(LEASE_COMMISSION_DEALS))?LEASE_COMMISSION_DEALS:[];
       var code=String(u.code||'').trim().toLowerCase();
-      if(code&&deals.some(function(d){return String(d.unit||d.unitCode||'').trim().toLowerCase()===code;}))return true;
+      var oname='';try{oname=String(((objById(u.obj)||{}).name)||'').trim().toLowerCase();}catch(e){}
+      if(deals.some(function(d){
+        if(d&&d.unitId!=null&&String(d.unitId)!=='')return String(d.unitId)===String(u.id);
+        if(!code)return false;
+        var dcode=String((d&&(d.unit||d.unitCode))||'').trim().toLowerCase();
+        if(dcode!==code)return false;
+        var don=String((d&&d.objectName)||'').trim().toLowerCase();
+        return !don||!oname||don===oname;
+      }))return true;
     }catch(e){}
     return false;
   }
@@ -131,14 +143,20 @@
         }catch(e){}
       });
     }
-    // 2) изменённые площади (защищённые — только с явным разрешением)
+    // 2) изменённые площади. P1-2: массового «менять все защищённые» больше нет —
+    //    каждый защищённый юнит разрешается ОТДЕЛЬНО (opts.allowIds) с обязательной причиной (opts.reason),
+    //    разрешение пишется в историю юнита и в аудит.
+    var allow={};(Array.isArray(opts.allowIds)?opts.allowIds:[]).forEach(function(id){allow[id]=1;});
+    var reason=String(opts.reason||'').trim();
+    var overridden=0;
     if(opts.updateAreas!==false){
       scan.changed.forEach(function(c){
         var u=U.find(function(x){return x.id===c.id;});if(!u)return;
-        if(c.protected&&!opts.overrideProtected){skipped++;return;}
+        if(c.protected&&!allow[c.id]){skipped++;return;}
         u.area=+c.plan||u.area;u.total=Math.round((u.area||0)*(u.rate||0));
         u.layoutVersionId=ver.id;u.snapshotChecksum=sn.checksum;u.sourceArea=+c.plan||0;u.genStatus=u.genStatus||'generated';
-        u.hist.push([nowISO(),'Площадь обновлена генерацией LCR: '+A(c.reg)+' → '+A(c.plan)+' (версия '+(ver.version||ver.id)+' #'+sn.checksum+') ('+((S.user&&S.user.name)||'')+')']);
+        u.hist.push([nowISO(),'Площадь обновлена генерацией LCR: '+A(c.reg)+' → '+A(c.plan)+' (версия '+(ver.version||ver.id)+' #'+sn.checksum+')'+(c.protected?(' — защищённый юнит, разрешено отдельно, причина: '+(reason||'—')):'')+' ('+((S.user&&S.user.name)||'')+')']);
+        if(c.protected)overridden++;
         updated++;
       });
     }
@@ -151,7 +169,7 @@
       });
     }
     ver.lcrGenAt=nowISO();ver.lcrGenBy=(S.user&&S.user.name)||'';ver.lcrGenStatus='generated';
-    A_audit('LCR: генерация/обновление',(objById(pid)||{}).name+' · версия '+(ver.version||ver.id)+' · снапшот #'+sn.checksum+' · создано '+created+', обновлено '+updated+', на ревью '+orphaned+', пропущено защищённых '+skipped);
+    A_audit('LCR: генерация/обновление',(objById(pid)||{}).name+' · версия '+(ver.version||ver.id)+' · снапшот #'+sn.checksum+' · создано '+created+', обновлено '+updated+', на ревью '+orphaned+', пропущено защищённых '+skipped+(overridden?(' · разрешены защищённые: '+overridden+' (причина: '+(reason||'—')+')'):''));
     save('LCR обновлён из версии '+(ver.version||ver.id)+': +'+created+' / изм. '+updated+(skipped?' / защищено '+skipped:''));
     TAB='units';render();
   };
@@ -262,9 +280,27 @@
       +'<div><div style="font-size:22px;font-weight:700;color:#a30000">'+scan.removed.length+'</div><div style="font-size:11px;color:var(--muted)">нет на плане</div></div>'
       +'<div><div style="font-size:22px;font-weight:700">🔒 '+prot+'</div><div style="font-size:11px;color:var(--muted)">защищено</div></div>'
       +'</div>';
-    var actions=canEdit()?('<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><label style="font-size:12px;display:flex;align-items:center;gap:5px"><input type="checkbox" id="lcrOverride"> менять и защищённые площади</label><button class="btn" onclick="masterLcrApply(\''+pid+'\',{versionId:'+(ver?('\''+ver.id+'\''):'null')+',overrideProtected:document.getElementById(\'lcrOverride\').checked})">Применить генерацию LCR</button><button class="btn ghost" onclick="masterTab(\'validate\')">Сначала посмотреть детали</button></div>'):'<p style="color:var(--muted);font-size:12px">Только просмотр (нет прав на правку).</p>';
-    return card(head+target+drift+summary+actions);
+    /* P1-2: защищённые площади разрешаются только по-юнитно, с причиной; массовой галки нет */
+    var protChanged=scan.changed.filter(function(x){return x.protected;});
+    var protBlock='';
+    if(canEdit()&&protChanged.length){
+      protBlock='<div style="border:1px solid var(--border);border-radius:10px;padding:10px 12px;margin:8px 0;background:var(--soft)">'
+        +'<b style="font-size:12.5px">🔒 Защищённые юниты с новой площадью на плане ('+protChanged.length+')</b>'
+        +'<p style="font-size:11.5px;color:var(--muted);margin:4px 0 8px">По умолчанию их площадь НЕ меняется. Разрешить можно только отдельно, с причиной — она попадёт в историю юнита и в аудит.</p>'
+        +protChanged.map(function(c){return '<label style="display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0"><input type="checkbox" class="lcrAllow" value="'+h(c.id)+'"> <b>'+h(c.code)+'</b> '+A(c.reg)+' → '+A(c.plan)+' м² <span style="color:var(--muted)">('+h(c.why)+')</span></label>';}).join('')
+        +'<input id="lcrReason" placeholder="Причина изменения защищённых площадей (обязательно при разрешении)" style="width:100%;margin-top:7px;font-family:inherit;font-size:12px;padding:7px 9px;border:1px solid var(--border);border-radius:8px">'
+        +'</div>';
+    }
+    var actions=canEdit()?('<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px"><button class="btn" onclick="masterLcrApplyUI(\''+pid+'\','+(ver?('\''+ver.id+'\''):'null')+')">Применить генерацию LCR</button><button class="btn ghost" onclick="masterTab(\'validate\')">Сначала посмотреть детали</button></div>'):'<p style="color:var(--muted);font-size:12px">Только просмотр (нет прав на правку).</p>';
+    return card(head+target+drift+summary+protBlock+actions);
   }
+  /* сборка per-unit разрешений из формы вкладки LCR */
+  window.masterLcrApplyUI=function(pid,vid){
+    var ids=[];try{document.querySelectorAll('.lcrAllow:checked').forEach(function(cb){ids.push(cb.value);});}catch(e){}
+    var reason='';try{reason=String((document.getElementById('lcrReason')||{}).value||'').trim();}catch(e){}
+    if(ids.length&&!reason){alert('Укажите причину изменения защищённых площадей — она пишется в историю юнита и в аудит.');try{document.getElementById('lcrReason').focus();}catch(e){}return;}
+    masterLcrApply(pid,{versionId:vid||undefined,allowIds:ids,reason:reason});
+  };
 
   function renderHistory(pid){
     var vs=(Array.isArray(CASE_LAYOUT_VERSIONS)?CASE_LAYOUT_VERSIONS:[]).filter(function(v){return v.projectId===pid;});

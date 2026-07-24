@@ -9,6 +9,8 @@
  *   php api/geo_seed_convert.php               # → data/geo_collect_out/seed_master.csv + .geojson + summary
  * PHP 7.4-совместимо.
  */
+// v4.35 (security): конвертер — только CLI (веб-запуск писал файлы в data/ без авторизации).
+if (PHP_SAPI !== 'cli') { http_response_code(403); header('Content-Type: text/plain; charset=utf-8'); exit("CLI only\n"); }
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 if (!function_exists('mb_strtolower')) { function mb_strtolower($s, $encoding=null) { return strtolower((string)$s); } }
 function cli_arg($name,$default=null){ global $argv; foreach((array)$argv as $a){ if(strpos($a,'--'.$name.'=')===0)return substr($a,strlen($name)+3); } return $default; }

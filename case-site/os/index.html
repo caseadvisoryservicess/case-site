@@ -447,7 +447,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.34.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.35.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -503,7 +503,10 @@ async function apiPOST(p,data){
 }
 function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
 let _lastServerUpdate=null,_serverRev=0;
-async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;return (j&&j.data)||null;}catch(e){return null;}}
+/* P1-6: слепок «что сервер уже знает» по каждому ключу состояния — для доменных сохранений */
+let _syncedKeyJson={};
+function _rememberSynced(data){try{if(data&&typeof data==='object')Object.keys(data).forEach(k=>{try{_syncedKeyJson[k]=JSON.stringify(data[k]);}catch(e){}});}catch(e){}}
+async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;if(j&&j.data)_rememberSynced(j.data);return (j&&j.data)||null;}catch(e){return null;}}
 /* ===== Автообновление: подтягиваем общие данные без ручного F5, аккуратно (не мешая активной работе) ===== */
 function toast(msg){let box=document.getElementById('toastBox');if(!box){box=document.createElement('div');box.id='toastBox';box.style.cssText='position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:center';document.body.appendChild(box);}
  const el=document.createElement('div');el.textContent=msg;el.style.cssText='background:#222;color:#fff;padding:9px 16px;border-radius:20px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;transition:opacity .25s';box.appendChild(el);requestAnimationFrame(()=>el.style.opacity='1');
@@ -519,7 +522,33 @@ async function _doSaveState(){
  _saveBusy=true;updateOfflineBadge();
  let hadIssue=false;
  try{
-  await apiPOST('state.php',{data:stateBlob()});
+  /* P1-6: доменное сохранение — отправляем только изменённые ключи (меньше трафика,
+     меньше поверхность конфликта); сервер сливает по-ключево (array_replace). */
+  const blob=stateBlob();
+  const send={},dirty=[],pend={};
+  Object.keys(blob).forEach(k=>{let s;try{s=JSON.stringify(blob[k]);}catch(e2){s=null;}
+   if(s==null||_syncedKeyJson[k]!==s){send[k]=blob[k];dirty.push(k);pend[k]=s;}});
+  if(dirty.length){
+   try{
+    await apiPOST('state.php',{data:send});
+   }catch(e){
+    const conflict=String(e&&e.message||'').indexOf('изменены другим пользователем')>=0;
+    if(!conflict)throw e;
+    /* P1-6: авто-слияние вместо «обновите страницу»: тянем свежее состояние, возвращаем
+       поверх свои изменённые домены и сохраняем повторно с новой ревизией. Границы честные:
+       конфликт ВНУТРИ одного домена решается «наш домен победил» (точечные правки юнитов
+       дополнительно защищает серверный splice по updatedAt из unit_patch). */
+    const fresh=await apiGET('state.php');
+    if(!fresh||!fresh.data)throw e;
+    const mine={};dirty.forEach(k=>{if(k in send)mine[k]=send[k];});
+    applyState(fresh.data);_rememberSynced(fresh.data);
+    if(typeof fresh.revision!=='undefined')_serverRev=+fresh.revision||_serverRev;
+    applyState(mine);
+    await apiPOST('state.php',{data:mine});
+    try{toast('↻ Данные менялись параллельно — объединено и сохранено.');}catch(e3){}
+   }
+   Object.keys(pend).forEach(k=>{if(pend[k]!=null)_syncedKeyJson[k]=pend[k];});
+  }
   _lastSavedAt=new Date();
   hadIssue=_offlineDirty||_saveConflict;
   _offlineDirty=false;_saveConflict=false;
@@ -1366,7 +1395,8 @@ function boot(){
  $('langTop').textContent=LANG_CYCLE[(LANG_CYCLE.indexOf(LANG)+1)%LANG_CYCLE.length].toUpperCase();
  applyTheme();loadFx();applyNavPin();{const av=$('appVer');if(av)av.textContent=(BACKEND?'':(DEMO_ALLOWED?'DEMO · ':''))+'v'+APP_VERSION;}updateOfflineBadge();
  if(S.obj!=='ALL'&&!visibleObjects().some(o=>o.id===S.obj))S.obj=(visibleObjects()[0]&&visibleObjects()[0].id)||'ALL';
-const validViews=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','case_projects','project_workspace','project_layouts','leasing_layouts','plan_master','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','document_templates','project_handover','project_contracts','docs','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','leasing_portfolio_map','registry','brands','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_opening','manage_portfolio','facility_management','equipment_registry','maintenance','tenant_contracts','asset_management','property_budget','noi_performance','capex_management','owner_reports','v326_suppliers','finance_dashboard','finance_income','finance_expenses','finance_invoices','finance_receivables','finance_payables','finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget','analytics_hub','map','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export','product_intelligence','product_market','product_living','product_manage','product_subscriptions','kpi','org','study','rating','users','admin_workflows','admin_directories','admin_integrations','chat'];
+const validViews=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','case_projects','project_workspace','project_layouts','leasing_layouts','plan_master','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','document_templates','project_handover','project_contracts','docs','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','leasing_portfolio_map','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_opening','manage_portfolio','facility_management','equipment_registry','maintenance','tenant_contracts','asset_management','property_budget','noi_performance','capex_management','owner_reports','v326_suppliers','finance_dashboard','finance_income','finance_expenses','finance_invoices','finance_receivables','finance_payables','finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget','analytics_hub','map','geoanalytics','market_data','macro_data','bench','data_quality','data_import_export','product_intelligence','product_market','product_living','product_manage','product_subscriptions','kpi','org','study','rating','users','admin_modules','admin_system','admin_workflows','admin_directories','admin_integrations','chat'];
+ window.CASE_VALID_VIEWS=validViews; /* P1-5: список видим модулям — каталог (v3520) досыпает в него свои view, чтобы реестры не расходились */
  if(validViews.indexOf(S.view)<0)S.view='dash';
  if(S.view==='users'&&!R().admin)S.view='dash';
  try{ /* CFO — полный доступ по всем разделам (разовая миграция; сохранённые права в блобе/БД перекрывают дефолты кода) */
@@ -4236,7 +4266,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
-<script src="v3520-workspaces.js?v=4.34.0" defer></script>
+<script src="v3520-workspaces.js?v=4.35.0" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
 <script src="v420-geoanalytics.js?v=4.32.7" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
@@ -4248,7 +4278,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v493-portfolio-suite.js?v=4.32.7" defer></script>
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
-<script src="v417-master-plan.js?v=4.33.0" defer></script>
+<script src="v417-master-plan.js?v=4.35.0" defer></script>
 <script src="v432-data-grid.js?v=4.32.7" defer></script>
 <script src="v4327-patch.js?v=4.34.0" defer></script>
 <script>

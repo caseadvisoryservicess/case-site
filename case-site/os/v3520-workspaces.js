@@ -42,7 +42,7 @@
 
     {v:'leasing_portfolio_map',g:'leasing',icon:'⌖',ru:'Карта проектов',uz:'Loyihalar xaritasi',en:'Project map',nav:true},
     {v:'plans',g:'leasing',icon:'▭',ru:'Планировки',uz:'Planirovkalar',en:'Floor plans',nav:true}, /* перенесено из Advisory в Leasing по требованию: планировка — функция отдела аренды. Внутри «Контроль аренды (LCR)» тот же план доступен вкладкой. */
-    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:false}, /* доступ из «Контроль аренды (LCR)» → вкладка «Валидация / LCR» (валидация плана↔реестра, генерация LCR, версии, Handover) */
+    {v:'plan_master',g:'leasing',icon:'▭',ru:'Планировки и LCR',uz:'Planirovkalar va LCR',en:'Floor plans & LCR',nav:true}, /* P1-3: ЕДИНСТВЕННЫЙ вход в планировки из меню; project_layouts/leasing_layouts — внутренние экраны, открываются из мастера (реестр файлов) и из рабочих столов */
     {v:'registry',g:'leasing',icon:'▤',ru:'Контроль аренды (LCR)',uz:'Ijara nazorati (LCR)',en:'Lease control (LCR)',nav:true},
     {v:'v32_sales',g:'leasing',icon:'◆',ru:'Контроль продажи (SCR)',uz:'Sotuv nazorati (SCR)',en:'Sales control (SCR)',nav:true},
     {v:'brands',g:'leasing',icon:'✦',ru:'База брендов',uz:'Brendlar bazasi',en:'Brand database',nav:true},
@@ -137,6 +137,9 @@
   var UI={role:'BA',user:''};
 
   window.CASE_OS_MODULES=MODULES;
+  /* P1-5: единый реестр — каталог модулей синхронизирует validViews ядра со своим списком,
+     чтобы новый модуль в каталоге не оказывался «невалидным view» после перезагрузки */
+  try{if(Array.isArray(window.CASE_VALID_VIEWS))MODULES.forEach(function(m){if(m&&m.v&&window.CASE_VALID_VIEWS.indexOf(m.v)<0)window.CASE_VALID_VIEWS.push(m.v);});}catch(e){}
   window.CASE_OS_GROUPS=GROUPS;
   window.CASE_OS_GROUP_ORDER=GROUP_ORDER;
   /* Заголовок раздела внутри рабочей области должен совпадать с названием в боковой панели.
@@ -192,6 +195,7 @@
     var allowed=effectiveViews(),out='';
     GROUP_ORDER.forEach(function(g){
       var items=MODULES.filter(function(m){return m.nav&&m.g===g&&allowed.indexOf(m.v)>=0;});
+      try{if(typeof R==='function'&&R().brandsOnly)items=items.filter(function(m){return m.v==='brands';});}catch(e){} /* v4.35 (роли): «только бренды» — правило ядра, потерянное при переходе на групповое меню */
       if(!items.length)return;
       var active=items.some(function(m){return S&&S.view===m.v;});
       out+='<div class="nav-group '+(active?'has-active':'')+'"><button type="button" class="nav-group-btn" aria-haspopup="true" aria-expanded="false" onclick="caseNavToggle(event,this)"><span>'+h(tx(GROUPS[g]))+'</span><span class="chev">▼</span></button><div class="nav-menu">';

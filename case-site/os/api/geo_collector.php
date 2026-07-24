@@ -17,7 +17,9 @@
  * PHP 7.4-совместимо (без стрелочных функций).
  */
 
-if (PHP_SAPI !== 'cli') { header('Content-Type: text/plain; charset=utf-8'); }
+// v4.35 (security): коллектор — только CLI. Раньше веб-запрос НЕ блокировался и любой
+// аноним мог запустить долгий сбор с исходящими запросами и записью файлов в data/.
+if (PHP_SAPI !== 'cli') { http_response_code(403); header('Content-Type: text/plain; charset=utf-8'); exit("CLI only\n"); }
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_NOTICE);
 if (!function_exists('mb_strtolower')) { function mb_strtolower($s, $encoding=null) { return strtolower((string)$s); } }
 @set_time_limit(0);
