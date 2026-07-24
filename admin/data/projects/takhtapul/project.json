@@ -976,7 +976,8 @@
       },
       "status": "available",
       "ceil": "3,0",
-      "gba": "481,4"
+      "gba": "481,4",
+      "glaNote": "288,7 + 82,8"
     },
     {
       "id": "all",
