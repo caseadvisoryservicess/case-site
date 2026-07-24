@@ -1,0 +1,38 @@
+{
+  "logged_in": true,
+  "app_version": "DEMO · v4.32.0",
+  "brands": {
+    "tables": 1,
+    "grids": 1,
+    "toolbar": 1,
+    "sort_arrows": 12,
+    "filter_buttons": 12,
+    "resizers": 15,
+    "rows": 12,
+    "filter_menu_open": 1
+  },
+  "lcr": {
+    "object": "ca",
+    "tables": 1,
+    "grid": 1,
+    "existing_filters": 20,
+    "generic_filters": 0,
+    "resizers": 22,
+    "sticky_cells": 60,
+    "view_button": 1,
+    "rows": 14
+  },
+  "scr": {
+    "grid": 1,
+    "sort_arrows": 10,
+    "filters": 6,
+    "resizers": 10,
+    "toolbar": 1
+  },
+  "runtime": {
+    "page_errors": [],
+    "console_errors": []
+  },
+  "grid_version": "4.32.0",
+  "personal_table_key_count": 1
+}

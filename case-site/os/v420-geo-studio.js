@@ -318,8 +318,8 @@
   function geoAllRows(){var out=[];Object.keys(DATASETS).forEach(function(k){var cfg=DATASETS[k];if(cfg.kind!=='array')return;cfg.ref().forEach(function(x,i){out.push({k:k,x:x,i:i});});});return out;}
   function recordUpdatedAt(x){return x&&typeof x==='object'&&x._updatedAt?x._updatedAt:null;}
   function fmtUpdated(iso){if(!iso)return null;var d=new Date(iso);if(isNaN(d))return null;var days=Math.floor((Date.now()-d.getTime())/86400000);var datePart=d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit'});var rel=days<=0?'сегодня':days===1?'вчера':days<7?days+' дн. назад':datePart;return {rel:rel,full:d.toLocaleString('ru-RU'),days:days};}
-  window.geoSortChange=function(v){GEO_SORT=v||'';renderDatasetRows();};
-  window.geoToggleUnedited=function(on){GEO_ONLY_UNEDITED=!!on;renderDatasetRows();};
+  window.geoSortChange=function(v){geoEnsureUiPrefs();GEO_SORT=v||'';geoSaveUiPrefs();renderDatasetRows();};
+  window.geoToggleUnedited=function(on){geoEnsureUiPrefs();GEO_ONLY_UNEDITED=!!on;geoSaveUiPrefs();renderDatasetRows();};
   function rowText(x,i){if(Array.isArray(x))return x.slice(0,4).join(' · ');if(x&&typeof x==='object')return x.name||x.n||x.title||x.d||x.id||('Запись '+(i+1));return String(x);}
   function rowSummary(x,k){if(k==='bc')return [x.district,x['class'],x.address,x.provider].filter(Boolean).join(' · ');if(k==='medicine')return [x.d||x.a,x.t,x.sp,x.s].filter(Boolean).join(' · ');if(k==='pharmacies')return [x.format,x.district,x.address,x.chain,x.provider].filter(Boolean).join(' · ');if(k==='population')return 'Население: '+Number(x[2]||0).toLocaleString('ru-RU')+' · '+(+x[0]).toFixed(5)+', '+(+x[1]).toFixed(5);if(k==='metro')return (Array.isArray(x.s)?x.s.length:0)+' станций';if(k==='roads')return [x.km&&x.km+' км',x.min&&x.min+' мин'].filter(Boolean).join(' · ');if(POI_DEFS[k])return [x.subtype,x.district,x.address,x.operator||x.chain,x.provider].filter(Boolean).join(' · ');return '';}
   window.geoMasterToggle=function(){try{var c=localStorage.getItem('caseos_geo_master_collapsed')==='1';localStorage.setItem('caseos_geo_master_collapsed',c?'0':'1');}catch(e){}try{dataManager();}catch(e){}};
@@ -340,8 +340,10 @@
       +(GEO_CAN_EDIT?'<button class="btn" onclick="geoAddRecord()">＋ Добавить</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoDeleteSelected()">🗑 Удалить выбранные</button><button class="btn sec" onclick="geoDedupAll()" title="Удалить дубликаты во всех наборах (по названию+адресу+координатам)">🧹 Дубликаты</button><button class="btn sec" onclick="geoImportDataset()">⇧ Импорт</button>':'')+'<button class="btn sec" onclick="geoExportTableCSV()">⤓ CSV / Excel</button><button class="btn sec" onclick="geoPrintDataset()">🖨 PDF / печать</button><button class="btn sec" onclick="geoExportDataset()">⤓ JSON</button></div><input type="file" id="geoFile" accept=".json,.csv,application/json,text/csv" hidden onchange="geoFilePicked(this)"><div id="geoRows"></div>';
     renderDatasetRows();
   }
-  var GEO_COLW=(function(){try{return JSON.parse(localStorage.getItem('geo_col_widths')||'{}');}catch(e){return {};}})();
-  function geoSaveColWidths(){try{localStorage.setItem('geo_col_widths',JSON.stringify(GEO_COLW));}catch(e){}}
+  function geoColWidthKey(){try{var u=(typeof S!=='undefined'&&S&&S.user)||{};var id=String(u.id||u.email||u.name||'guest').toLowerCase().replace(/[^a-z0-9_-]+/gi,'_').slice(0,80)||'guest';return 'geo_col_widths::'+id;}catch(e){return 'geo_col_widths::guest';}}
+  var GEO_COLW_KEY='',GEO_COLW={};
+  function geoEnsureColWidthsUser(){try{var k=geoColWidthKey();if(k===GEO_COLW_KEY)return;GEO_COLW_KEY=k;var raw=localStorage.getItem(k);if(raw){GEO_COLW=JSON.parse(raw||'{}')||{};return;}var legacy=localStorage.getItem('geo_col_widths');if(legacy){localStorage.setItem(k,legacy);GEO_COLW=JSON.parse(legacy||'{}')||{};}else GEO_COLW={};}catch(e){GEO_COLW={};}}
+  function geoSaveColWidths(){try{geoEnsureColWidthsUser();localStorage.setItem(geoColWidthKey(),JSON.stringify(GEO_COLW));}catch(e){}}
   function geoTableWidthFromCols(table){var sum=0;table.querySelectorAll('col[data-colkey]').forEach(function(col){sum+=parseInt(col.style.width,10)||0;});return sum;}
   function geoMakeColsResizable(table){
     if(!table)return;
@@ -379,10 +381,13 @@
     if(POI_DEFS[k])return {city:city,district:x.district||'',category:x.subtype||'',cuisine:x.cuisinePrimary||x.cuisine||'',alcohol:x.alcoholStatus||'',address:x.address||'',source:x.operator||x.chain||x.provider||'',klass:klass};
     return {city:city,district:x.district||'',category:x['class']||x.subtype||x.format||'',cuisine:x.cuisinePrimary||x.cuisine||'',alcohol:x.alcoholStatus||'',address:x.address||'',source:x.provider||x.chain||x.operator||'',klass:klass};
   }
-  var GEO_TSORT=null,GEO_TFILTERS={},GEO_TFOCUS=null;
-  window.geoTblSort=function(key){if(!GEO_TSORT||GEO_TSORT.key!==key)GEO_TSORT={key:key,dir:1};else if(GEO_TSORT.dir>0)GEO_TSORT.dir=-1;else GEO_TSORT=null;renderDatasetRows();};
-  window.geoTblFilter=function(key,v){GEO_TFILTERS[key]=v;GEO_TFOCUS='geoTFilter_'+key;renderDatasetRows();};
-  window.geoTblFilterReset=function(){GEO_TFILTERS={};GEO_TSORT=null;renderDatasetRows();};
+  var GEO_TSORT=null,GEO_TFILTERS={},GEO_TFOCUS=null,GEO_UI_USER_KEY='';
+  function geoUiPrefKey(){try{var u=(typeof S!=='undefined'&&S&&S.user)||{};var id=String(u.id||u.email||u.name||'guest').toLowerCase().replace(/[^a-z0-9_-]+/gi,'_').slice(0,80)||'guest';return 'caseos_geo_table_prefs::'+id;}catch(e){return 'caseos_geo_table_prefs::guest';}}
+  function geoEnsureUiPrefs(){try{var k=geoUiPrefKey();if(k===GEO_UI_USER_KEY)return;GEO_UI_USER_KEY=k;var p=JSON.parse(localStorage.getItem(k)||'{}')||{};GEO_TSORT=p.sort||null;GEO_TFILTERS=p.filters&&typeof p.filters==='object'?p.filters:{};GEO_SORT=p.legacySort||GEO_SORT||'';GEO_ONLY_UNEDITED=!!p.onlyUnedited;GEO_OBJ_SORT=p.objSort||null;GEO_OBJ_FILTERS=p.objFilters&&typeof p.objFilters==='object'?p.objFilters:{};}catch(e){}}
+  function geoSaveUiPrefs(){try{localStorage.setItem(geoUiPrefKey(),JSON.stringify({sort:GEO_TSORT||null,filters:GEO_TFILTERS||{},legacySort:GEO_SORT||'',onlyUnedited:!!GEO_ONLY_UNEDITED,objSort:GEO_OBJ_SORT||null,objFilters:GEO_OBJ_FILTERS||{}}));}catch(e){}}
+  window.geoTblSort=function(key){geoEnsureUiPrefs();if(!GEO_TSORT||GEO_TSORT.key!==key)GEO_TSORT={key:key,dir:1};else if(GEO_TSORT.dir>0)GEO_TSORT.dir=-1;else GEO_TSORT=null;geoSaveUiPrefs();renderDatasetRows();};
+  window.geoTblFilter=function(key,v){geoEnsureUiPrefs();GEO_TFILTERS[key]=v;GEO_TFOCUS='geoTFilter_'+key;geoSaveUiPrefs();renderDatasetRows();};
+  window.geoTblFilterReset=function(){geoEnsureUiPrefs();GEO_TFILTERS={};GEO_TSORT=null;geoSaveUiPrefs();renderDatasetRows();};
   /* ===== Табличное редактирование геоданных (как в LCR) — только для админ-ролей (владелец / мл. админ / администратор) ===== */
   var GEO_ALC=[['','—'],['unknown','Не проверено'],['yes','Есть'],['no','Нет'],['limited','Ограниченно'],['seasonal','Сезонно']];
   function geoColToRaw(k,col){
@@ -399,47 +404,62 @@
   function geoFilterActive(fv){return fv!=null&&fv!==''&&(typeof fv!=='object'||Array.isArray(fv.vals));}
   /* Меню фильтра столбца «как в LCR/Google Sheets»: сортировка + галочки значений + поиск + «содержит». */
   var GEO_MENU=null;
-  function geoMenuClose(){var m=document.getElementById('geoColMenu');if(m&&m.parentNode)m.parentNode.removeChild(m);GEO_MENU=null;document.removeEventListener('mousedown',geoMenuAway,true);}
+  function geoMenuClose(){var m=document.getElementById('geoColMenu');if(m&&m.parentNode)m.parentNode.removeChild(m);GEO_MENU=null;document.removeEventListener('mousedown',geoMenuAway,true);document.removeEventListener('keydown',geoMenuEsc,true);}
   window.geoMenuClose=geoMenuClose;
   function geoMenuAway(e){var m=document.getElementById('geoColMenu');if(m&&!m.contains(e.target))geoMenuClose();}
+  function geoMenuEsc(e){if(e.key==='Escape')geoMenuClose();}
+  function geoPlaceColMenu(m,anchor){var vv=window.visualViewport,vw=Math.max(280,Math.floor(vv?vv.width:window.innerWidth)),vh=Math.max(280,Math.floor(vv?vv.height:window.innerHeight)),ox=vv?vv.offsetLeft:0,oy=vv?vv.offsetTop:0,mw=Math.min(326,vw-16);m.style.width=mw+'px';m.style.maxHeight=Math.max(260,vh-16)+'px';var r=anchor.getBoundingClientRect();var left=Math.max(ox+8,Math.min(r.left,ox+vw-mw-8));m.style.left=left+'px';var mh=m.offsetHeight,below=oy+vh-r.bottom-8,above=r.top-oy-8,top;if(below>=Math.min(mh,320))top=r.bottom+4;else if(above>=Math.min(mh,260))top=r.top-mh-4;else top=Math.max(oy+8,Math.min(r.bottom+4,oy+vh-mh-8));m.style.top=top+'px';}
   function geoDistinctVals(col){var base=(GEO_DATASET==='__all__')?geoAllRows():DATASETS[GEO_DATASET].ref().map(function(x,i){return{k:GEO_DATASET,x:x,i:i};});var set=[],blank=false;base.forEach(function(r){var f=rowFields(r.x,r.k);var v=col==='name'?rowText(r.x,r.i):col==='dataset'?((DATASETS[r.k]||{}).label||r.k):(f[col]||'');if(v==null||v==='')blank=true;else{v=String(v);if(set.indexOf(v)<0)set.push(v);}});set.sort(function(a,b){return a.localeCompare(b,'ru',{numeric:true});});if(blank)set.push('(Пусто)');return set;}
   window.geoColMenu=function(key,anchor){geoMenuClose();var distinct=geoDistinctVals(key);var cur=GEO_TFILTERS[key];var curVals=(cur&&typeof cur==='object'&&Array.isArray(cur.vals))?cur.vals.slice():null;var curTxt=(typeof cur==='string')?cur:'';var checked={};distinct.forEach(function(v){checked[v]=curVals==null?true:curVals.indexOf(v)>=0;});GEO_MENU={key:key,distinct:distinct,checked:checked};
     var valList=distinct.map(function(v){return '<label class="geo-m-v"><input type="checkbox" data-v="'+esc(v)+'"'+(checked[v]?' checked':'')+' onchange="geoMenuCheck(this)"><span>'+esc(v)+'</span></label>';}).join('');
-    var html='<div class="geo-m-sort"><button onclick="geoMenuSort(1)">▲ Сортировать А→Я</button><button onclick="geoMenuSort(-1)">▼ Сортировать Я→А</button></div>'
-      +'<div class="geo-m-sec">Содержит</div><input id="geoMTxt" value="'+esc(curTxt)+'" placeholder="текст…">'
-      +'<div class="geo-m-sec">Значения</div><input id="geoMSrch" placeholder="Поиск значения…" oninput="geoMenuSearch(this.value)">'
-      +'<div class="geo-m-links"><a href="#" onclick="geoMenuAll(true);return false">Выбрать все</a> · <a href="#" onclick="geoMenuAll(false);return false">Снять все</a></div>'
-      +'<div id="geoMVals" class="geo-m-vals">'+(valList||'<div class="geo-m-empty">нет значений</div>')+'</div>'
-      +'<div class="geo-m-ftr"><button onclick="geoMenuReset()">Сбросить</button><span style="flex:1"></span><button onclick="geoMenuClose()">Отмена</button><button class="geo-m-ok" onclick="geoMenuApply()">Применить</button></div>';
+    var th=anchor&&anchor.closest?anchor.closest('th'):null,label=key;if(th){var ln=th.querySelector('.geo-th-label');if(ln)label=(ln.textContent||key).replace(/[⇅▲▼▾]/g,'').trim()||key;}
+    var html='<div class="geo-m-head"><b>'+esc(label)+'</b><button type="button" class="geo-m-x" onclick="geoMenuClose()" aria-label="Закрыть">×</button></div>'
+      +'<div class="geo-m-body"><div class="geo-m-sort"><button type="button" onclick="geoMenuSort(1)">▲ А → Я</button><button type="button" onclick="geoMenuSort(-1)">▼ Я → А</button></div>'
+      +'<div class="geo-m-sec">Условие</div><label class="geo-m-field"><span>Содержит</span><input type="search" id="geoMTxt" value="'+esc(curTxt)+'" placeholder="Введите текст"></label>'
+      +'<div class="geo-m-sec">Значения <small>'+distinct.length+'</small></div><input type="search" id="geoMSrch" placeholder="Поиск значения…" oninput="geoMenuSearch(this.value)">'
+      +'<div class="geo-m-links"><a href="#" onclick="geoMenuAll(true);return false">Выбрать все</a><span>·</span><a href="#" onclick="geoMenuAll(false);return false">Снять все</a></div>'
+      +'<div id="geoMVals" class="geo-m-vals">'+(valList||'<div class="geo-m-empty">Нет значений</div>')+'</div></div>'
+      +'<div class="geo-m-ftr"><button type="button" onclick="geoMenuReset()">Сбросить</button><span class="geo-m-spacer"></span><button type="button" onclick="geoMenuClose()">Отмена</button><button type="button" class="geo-m-ok" onclick="geoMenuApply()">Применить</button></div>';
     var m=document.createElement('div');m.id='geoColMenu';m.innerHTML=html;document.body.appendChild(m);
-    var r=anchor.getBoundingClientRect(),mw=252;m.style.width=mw+'px';m.style.left=Math.max(6,Math.min(r.left,window.innerWidth-mw-8))+'px';var top=r.bottom+4;if(top+m.offsetHeight>window.innerHeight-6)top=Math.max(6,window.innerHeight-m.offsetHeight-6);m.style.top=top+'px';
-    setTimeout(function(){document.addEventListener('mousedown',geoMenuAway,true);},0);};
+    geoPlaceColMenu(m,anchor);
+    setTimeout(function(){document.addEventListener('mousedown',geoMenuAway,true);document.addEventListener('keydown',geoMenuEsc,true);},0);};
   window.geoMenuCheck=function(el){if(GEO_MENU)GEO_MENU.checked[el.getAttribute('data-v')]=el.checked;};
   window.geoMenuAll=function(on){if(!GEO_MENU)return;var q=(document.getElementById('geoMSrch').value||'').toLowerCase();document.querySelectorAll('#geoMVals input').forEach(function(cb){var v=cb.getAttribute('data-v');if(!q||v.toLowerCase().indexOf(q)>=0){cb.checked=on;GEO_MENU.checked[v]=on;}});};
-  window.geoMenuSearch=function(q){q=(q||'').toLowerCase();document.querySelectorAll('#geoMVals .geo-m-v').forEach(function(l){var v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'flex':'none';});};
-  window.geoMenuSort=function(dir){if(!GEO_MENU)return;var k=GEO_MENU.key;geoMenuClose();GEO_TSORT={key:k,dir:dir};renderDatasetRows();};
-  window.geoMenuReset=function(){if(!GEO_MENU)return;var k=GEO_MENU.key;geoMenuClose();delete GEO_TFILTERS[k];renderDatasetRows();};
-  window.geoMenuApply=function(){if(!GEO_MENU)return;var k=GEO_MENU.key,distinct=GEO_MENU.distinct;var txt=((document.getElementById('geoMTxt')||{}).value||'').trim();var all=true,any=false,sel=[];distinct.forEach(function(v){if(GEO_MENU.checked[v]){any=true;sel.push(v);}else all=false;});geoMenuClose();if(txt){GEO_TFILTERS[k]=txt;}else if(!all){GEO_TFILTERS[k]={vals:any?sel:[]};}else{delete GEO_TFILTERS[k];}renderDatasetRows();};
+  window.geoMenuSearch=function(q){q=(q||'').toLowerCase();document.querySelectorAll('#geoMVals .geo-m-v').forEach(function(l){var v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'grid':'none';});};
+  window.geoMenuSort=function(dir){if(!GEO_MENU)return;var k=GEO_MENU.key;geoMenuClose();GEO_TSORT={key:k,dir:dir};geoSaveUiPrefs();renderDatasetRows();};
+  window.geoMenuReset=function(){if(!GEO_MENU)return;var k=GEO_MENU.key;geoMenuClose();delete GEO_TFILTERS[k];if(GEO_TSORT&&GEO_TSORT.key===k)GEO_TSORT=null;geoSaveUiPrefs();renderDatasetRows();};
+  window.geoMenuApply=function(){if(!GEO_MENU)return;var k=GEO_MENU.key,distinct=GEO_MENU.distinct;var txt=((document.getElementById('geoMTxt')||{}).value||'').trim();var all=true,any=false,sel=[];distinct.forEach(function(v){if(GEO_MENU.checked[v]){any=true;sel.push(v);}else all=false;});geoMenuClose();if(txt){GEO_TFILTERS[k]=txt;}else if(!all){GEO_TFILTERS[k]={vals:any?sel:[]};}else{delete GEO_TFILTERS[k];}geoSaveUiPrefs();renderDatasetRows();};
   function geoEnsureTblCss(){if(document.getElementById('geoTblEditCss'))return;var st=document.createElement('style');st.id='geoTblEditCss';st.textContent=
     '.geo-th-fnl{display:inline-block;margin-left:5px;cursor:pointer;color:#8a847c;font-size:16px;line-height:1;opacity:.85;vertical-align:-1px}'+
     '.geo-th-fnl:hover{opacity:1;color:#9E0000}.geo-th-fnl.on{color:#fff;background:#9E0000;border-radius:5px;padding:0 4px;opacity:1}'+
     '.geo-cell-inp{width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;padding:3px 5px;border:1px solid #d9d2c7;border-radius:6px}'+
-    '#geoColMenu{position:fixed;z-index:100000;background:#fff;border:1px solid #d9d2c7;border-radius:10px;box-shadow:0 12px 34px rgba(0,0,0,.24);padding:10px;font-size:13px;max-height:82vh;overflow:auto}'+
-    '#geoColMenu .geo-m-sort{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}'+
-    '#geoColMenu .geo-m-sort button{text-align:left;background:none;border:none;padding:5px 6px;border-radius:6px;font-family:inherit;font-size:12.5px;cursor:pointer;color:#1c1f26}'+
-    '#geoColMenu .geo-m-sort button:hover{background:#f3efe9}'+
-    '#geoColMenu .geo-m-sec{font-size:11px;font-weight:700;color:#8a847c;text-transform:uppercase;margin:8px 0 4px;border-top:1px solid #eee;padding-top:7px}'+
-    '#geoColMenu input{width:100%;box-sizing:border-box;font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid #d9d2c7;border-radius:6px}'+
-    '#geoColMenu .geo-m-links{font-size:11px;margin:5px 0 4px}#geoColMenu .geo-m-links a{color:#9E0000}'+
-    '#geoColMenu .geo-m-vals{max-height:190px;overflow:auto;border:1px solid #eee;border-radius:6px;padding:4px}'+
-    '#geoColMenu .geo-m-v{display:flex;gap:7px;align-items:center;padding:3px 2px;font-size:12.5px;cursor:pointer;white-space:nowrap}'+
-    '#geoColMenu .geo-m-v span{overflow:hidden;text-overflow:ellipsis}'+
-    '#geoColMenu .geo-m-ftr{display:flex;gap:6px;align-items:center;margin-top:9px;border-top:1px solid #eee;padding-top:8px}'+
-    '#geoColMenu .geo-m-ftr button{font-family:inherit;font-size:12px;padding:5px 10px;border:1px solid #d9d2c7;border-radius:7px;background:#fff;cursor:pointer}'+
-    '#geoColMenu .geo-m-ok{background:#9E0000;color:#fff;border-color:#9E0000}'+
+    '#geoColMenu{position:fixed;z-index:100000;display:flex;flex-direction:column;box-sizing:border-box;min-width:280px;background:#fff;border:1px solid #d9d2c7;border-radius:12px;box-shadow:0 16px 42px rgba(28,22,18,.24);padding:0;font-size:12px;overflow:hidden;color:#1c1f26}'+
+    '#geoColMenu *{box-sizing:border-box}'+
+    '#geoColMenu .geo-m-head{display:flex;align-items:center;gap:8px;min-height:42px;padding:9px 11px;border-bottom:1px solid #ece7e0;background:#fff}'+
+    '#geoColMenu .geo-m-head b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px}'+
+    '#geoColMenu .geo-m-x{margin-left:auto;width:28px;height:28px;padding:0;border:0;border-radius:7px;background:transparent;color:#766f67;font-size:20px;line-height:1;cursor:pointer}'+
+    '#geoColMenu .geo-m-x:hover{background:#f4f0eb;color:#9E0000}'+
+    '#geoColMenu .geo-m-body{min-height:0;padding:10px 11px 0;overflow:hidden}'+
+    '#geoColMenu .geo-m-sort{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:7px;margin:0 0 9px}'+
+    '#geoColMenu .geo-m-sort button{min-width:0;text-align:center;background:#fff;border:1px solid #ded7ce;padding:7px 6px;border-radius:8px;font-family:inherit;font-size:11.5px;font-weight:650;cursor:pointer;color:#3d3935;white-space:nowrap}'+
+    '#geoColMenu .geo-m-sort button:hover{background:#f7f3ee;border-color:#cfc4b8}'+
+    '#geoColMenu .geo-m-sec{display:flex;align-items:center;gap:5px;font-size:9.5px;font-weight:800;color:#7d756d;text-transform:uppercase;letter-spacing:.035em;margin:9px 0 5px;border-top:1px solid #eee8e1;padding-top:9px}'+
+    '#geoColMenu .geo-m-sec small{margin-left:auto;font-size:9px;color:#a29a92;font-weight:650}'+
+    '#geoColMenu .geo-m-field{display:block;margin:0}#geoColMenu .geo-m-field>span{display:none}'+
+    '#geoColMenu input[type=search],#geoColMenu input[type=text]{display:block;width:100%;min-width:0;height:32px;font-family:inherit;font-size:11.5px;padding:6px 8px;border:1px solid #d9d2c7;border-radius:7px;background:#fff;color:#1c1f26;outline:none}'+
+    '#geoColMenu input[type=search]:focus,#geoColMenu input[type=text]:focus{border-color:#9E0000;box-shadow:0 0 0 2px rgba(158,0,0,.08)}'+
+    '#geoColMenu input[type=checkbox]{width:15px;height:15px;min-width:15px;margin:1px 0 0;accent-color:#9E0000;padding:0;border:0}'+
+    '#geoColMenu .geo-m-links{display:flex;align-items:center;gap:5px;font-size:10.5px;margin:6px 0 5px;white-space:nowrap}#geoColMenu .geo-m-links a{color:#9E0000;text-decoration:none}#geoColMenu .geo-m-links a:hover{text-decoration:underline}'+
+    '#geoColMenu .geo-m-vals{height:min(230px,34vh);min-height:76px;overflow-y:auto;overflow-x:hidden;border:1px solid #ece7e0;border-radius:8px;padding:4px;background:#fff;scrollbar-gutter:stable}'+
+    '#geoColMenu .geo-m-v{display:grid;grid-template-columns:17px minmax(0,1fr);gap:7px;align-items:start;width:100%;min-width:0;padding:5px 5px;font-size:11.5px;line-height:1.25;cursor:pointer;border-radius:6px;white-space:normal}'+
+    '#geoColMenu .geo-m-v:hover{background:#f7f3ee}#geoColMenu .geo-m-v span{display:block;min-width:0;overflow-wrap:anywhere;word-break:break-word}'+
+    '#geoColMenu .geo-m-empty{padding:12px;text-align:center;color:#8d857d}'+
+    '#geoColMenu .geo-m-ftr{display:flex;flex:0 0 auto;gap:6px;align-items:center;margin-top:10px;border-top:1px solid #ece7e0;padding:9px 11px 10px;background:#fff}'+
+    '#geoColMenu .geo-m-spacer{flex:1}#geoColMenu .geo-m-ftr button{font-family:inherit;font-size:11.5px;font-weight:650;padding:7px 10px;border:1px solid #d9d2c7;border-radius:8px;background:#fff;color:#49443f;cursor:pointer;white-space:nowrap}'+
+    '#geoColMenu .geo-m-ftr button:hover{background:#f7f3ee}#geoColMenu .geo-m-ok{background:#9E0000!important;color:#fff!important;border-color:#9E0000!important}'+
     '.btn.geo-on{background:#9E0000;color:#fff;border-color:#9E0000}';
     document.head.appendChild(st);}
-  function renderDatasetRows(){var host=document.getElementById('geoRows');if(!host)return;try{geoEnsureTblCss();}catch(e){}
+  function renderDatasetRows(){var host=document.getElementById('geoRows');if(!host)return;try{geoEnsureUiPrefs();geoEnsureColWidthsUser();geoEnsureTblCss();}catch(e){}
     var ALL=GEO_DATASET==='__all__';
     if(!ALL){var cfg0=DATASETS[GEO_DATASET];if(cfg0&&cfg0.kind==='object'){var data0=cfg0.ref();host.innerHTML='<div class="geo-object"><b>'+esc(cfg0.label)+'</b><span>'+Object.keys(data0).length+' ключей</span><pre>'+esc(JSON.stringify(data0,null,2).slice(0,12000))+(JSON.stringify(data0).length>12000?'\n…':'')+'</pre></div>';return;}}
     var base=ALL?geoAllRows():DATASETS[GEO_DATASET].ref().map(function(x,i){return{k:GEO_DATASET,x:x,i:i};});
@@ -489,8 +509,8 @@
       {key:'updated',w:130,label:'Обновлено',sortable:true}
     ]);
     var colgroup='<colgroup>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;return '<col data-colkey="'+c.key+'" style="width:'+w+'px">';}).join('')+'</colgroup>';
-    var sortIc=function(c){if(!c.sortable)return '';if(!GEO_TSORT||GEO_TSORT.key!==c.key)return ' <span class="geo-th-sort-ic">⇅</span>';return ' <span class="geo-th-sort-ic on">'+(GEO_TSORT.dir>0?'▲':'▼')+'</span>';};
-    var th='<tr>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;var sty=' style="width:'+w+'px'+(c.sortable?';cursor:pointer':'')+'"';var click=c.sortable?' onclick="geoTblSort(\''+c.key+'\')" title="Сортировать"':'';var fnl=c.filterable?' <span class="geo-th-fnl'+(geoFilterActive(GEO_TFILTERS[c.key])?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoColMenu(\''+c.key+'\',this)">▾</span>':'';return '<th data-colkey="'+c.key+'"'+click+sty+'><span class="geo-th-label">'+c.label+sortIc(c)+fnl+'</span><span class="geo-col-resizer" title="Потяните, чтобы изменить ширину · двойной клик — сбросить" onclick="event.stopPropagation()"></span></th>';}).join('')+'</tr>';
+    var sortIc=function(c){if(!c.sortable||!GEO_TSORT||GEO_TSORT.key!==c.key)return '';return ' <span class="geo-th-sort-ic on">'+(GEO_TSORT.dir>0?'▲':'▼')+'</span>';};
+    var th='<tr>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;var directSort=c.sortable&&!c.filterable;var sty=' style="width:'+w+'px'+(directSort?';cursor:pointer':'')+'"';var click=directSort?' onclick="geoTblSort(\''+c.key+'\')" title="Сортировать"':'';var fnl=c.filterable?' <span class="geo-th-fnl'+(geoFilterActive(GEO_TFILTERS[c.key])?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoColMenu(\''+c.key+'\',this)">▾</span>':'';return '<th data-colkey="'+c.key+'"'+click+sty+'><span class="geo-th-label">'+c.label+sortIc(c)+fnl+'</span><span class="geo-col-resizer" title="Потяните, чтобы изменить ширину · двойной клик — сбросить" onclick="event.stopPropagation()"></span></th>';}).join('')+'</tr>';
     var filterRow='';
     var EDIT=GEO_EDIT_MODE&&GEO_ADMIN_EDIT&&GEO_DATASET!=='__all__';
     var editCell=function(r,col,dispHtml,rawVal){if(EDIT&&geoColToRaw(r.k,col)){if(col==='alcohol')return '<td onclick="event.stopPropagation()"><select class="geo-cell-inp" onchange="geoSetCell(\''+esc(r.k)+'\','+r.i+',\'alcohol\',this.value)">'+GEO_ALC.map(function(o){return '<option value="'+o[0]+'"'+(String(rawVal||'')===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select></td>';return '<td onclick="event.stopPropagation()"><input class="geo-cell-inp" value="'+esc(rawVal==null?'':rawVal)+'" onchange="geoSetCell(\''+esc(r.k)+'\','+r.i+',\''+col+'\',this.value)"></td>';}return '<td>'+dispHtml+'</td>';};
@@ -513,7 +533,7 @@
         editCell(r,'address','<small>'+esc(f.address||'—')+'</small>',f.address)+
         editCell(r,'source','<small>'+esc(f.source||'—')+'</small>',f.source)+
         '<td>'+updCell+'</td></tr>';}).join('');
-    host.innerHTML=head+'<div class="geo-table-wrap"><table class="geo-table geo-table-resizable" style="width:'+totalW+'px">'+colgroup+th+filterRow+body+'</table></div>'+(rows.length>CAP?'<div class="geo-list-count" style="opacity:.7">Уточните поиск, чтобы увидеть остальные '+(rows.length-CAP)+'.</div>':'');
+    host.innerHTML=head+'<div class="geo-table-wrap"><table class="geo-table geo-table-resizable" data-grid-engine="geo" data-case-grid-key="geo_dataset_'+esc(GEO_DATASET)+'" style="width:100%;min-width:'+totalW+'px;--geo-min-width:'+totalW+'px">'+colgroup+th+filterRow+body+'</table></div>'+(rows.length>CAP?'<div class="geo-list-count" style="opacity:.7">Уточните поиск, чтобы увидеть остальные '+(rows.length-CAP)+'.</div>':'');
     geoMakeColsResizable(host.querySelector('.geo-table-resizable'));
     if(GEO_TFOCUS){var fe=document.getElementById(GEO_TFOCUS);GEO_TFOCUS=null;if(fe){fe.focus();var vlen=fe.value.length;if(fe.setSelectionRange)fe.setSelectionRange(vlen,vlen);}}
   }
@@ -761,34 +781,37 @@
   function geoObjSortedIds(){var ids=Object.keys(PROJECTS).filter(function(id){return geoObjPass(PROJECTS[id]);});
     if(GEO_OBJ_SORT){var c=geoObjColByKey(GEO_OBJ_SORT.key),dir=GEO_OBJ_SORT.dir<0?-1:1;if(c)ids.sort(function(a,b){var pa=PROJECTS[a],pb=PROJECTS[b],va,vb;if(c.sortval){va=c.sortval(pa);vb=c.sortval(pb);}else{va=geoObjCellText(pa,c).toLowerCase();vb=geoObjCellText(pb,c).toLowerCase();}return va<vb?-dir:va>vb?dir:0;});}
     return ids;}
-  function geoObjMenuClose(){var m=document.getElementById('geoColMenu');if(m&&m.parentNode)m.parentNode.removeChild(m);GEO_OBJ_MENU=null;document.removeEventListener('mousedown',geoObjMenuAway,true);}
+  function geoObjMenuClose(){var m=document.getElementById('geoColMenu');if(m&&m.parentNode)m.parentNode.removeChild(m);GEO_OBJ_MENU=null;document.removeEventListener('mousedown',geoObjMenuAway,true);document.removeEventListener('keydown',geoObjMenuEsc,true);}
   window.geoObjMenuClose=geoObjMenuClose;
   function geoObjMenuAway(e){var m=document.getElementById('geoColMenu');if(m&&!m.contains(e.target))geoObjMenuClose();}
+  function geoObjMenuEsc(e){if(e.key==='Escape')geoObjMenuClose();}
   window.geoObjMenu=function(key,anchor){try{if(typeof geoMenuClose==='function')geoMenuClose();}catch(e){}geoObjMenuClose();
     var c=geoObjColByKey(key);if(!c)return;try{geoEnsureTblCss();}catch(e){}
     var distinct=geoObjDistinct(key),cur=GEO_OBJ_FILTERS[key],curVals=(cur&&Array.isArray(cur.vals))?cur.vals.slice():null,checked={};
     distinct.forEach(function(v){checked[v]=curVals==null?true:curVals.indexOf(v)>=0;});GEO_OBJ_MENU={key:key,distinct:distinct,checked:checked};
     var valList=distinct.map(function(v){return '<label class="geo-m-v"><input type="checkbox" data-v="'+esc(v)+'"'+(checked[v]?' checked':'')+' onchange="geoObjMenuCheck(this)"><span>'+esc(v)+'</span></label>';}).join('');
-    var html='<div class="geo-m-sort"><button onclick="geoObjMenuSort(1)">▲ Сортировать А→Я</button><button onclick="geoObjMenuSort(-1)">▼ Сортировать Я→А</button></div>'
-      +'<div class="geo-m-sec">Значения</div><input id="geoMSrch" placeholder="Поиск значения…" oninput="geoObjMenuSearch(this.value)">'
-      +'<div class="geo-m-links"><a href="#" onclick="geoObjMenuAll(true);return false">Выбрать все</a> · <a href="#" onclick="geoObjMenuAll(false);return false">Снять все</a></div>'
-      +'<div id="geoMVals" class="geo-m-vals">'+(valList||'<div class="geo-m-empty">нет значений</div>')+'</div>'
-      +'<div class="geo-m-ftr"><button onclick="geoObjMenuReset()">Сбросить</button><span style="flex:1"></span><button onclick="geoObjMenuClose()">Отмена</button><button class="geo-m-ok" onclick="geoObjMenuApply()">Применить</button></div>';
+    var label=(c&&c.label)||key;
+    var html='<div class="geo-m-head"><b>'+esc(label)+'</b><button type="button" class="geo-m-x" onclick="geoObjMenuClose()" aria-label="Закрыть">×</button></div>'
+      +'<div class="geo-m-body"><div class="geo-m-sort"><button type="button" onclick="geoObjMenuSort(1)">▲ А → Я</button><button type="button" onclick="geoObjMenuSort(-1)">▼ Я → А</button></div>'
+      +'<div class="geo-m-sec">Значения <small>'+distinct.length+'</small></div><input type="search" id="geoMSrch" placeholder="Поиск значения…" oninput="geoObjMenuSearch(this.value)">'
+      +'<div class="geo-m-links"><a href="#" onclick="geoObjMenuAll(true);return false">Выбрать все</a><span>·</span><a href="#" onclick="geoObjMenuAll(false);return false">Снять все</a></div>'
+      +'<div id="geoMVals" class="geo-m-vals">'+(valList||'<div class="geo-m-empty">Нет значений</div>')+'</div></div>'
+      +'<div class="geo-m-ftr"><button type="button" onclick="geoObjMenuReset()">Сбросить</button><span class="geo-m-spacer"></span><button type="button" onclick="geoObjMenuClose()">Отмена</button><button type="button" class="geo-m-ok" onclick="geoObjMenuApply()">Применить</button></div>';
     var m=document.createElement('div');m.id='geoColMenu';m.innerHTML=html;document.body.appendChild(m);
-    var r=anchor.getBoundingClientRect(),mw=252;m.style.width=mw+'px';m.style.left=Math.max(6,Math.min(r.left,window.innerWidth-mw-8))+'px';var top=r.bottom+4;if(top+m.offsetHeight>window.innerHeight-6)top=Math.max(6,window.innerHeight-m.offsetHeight-6);m.style.top=top+'px';
-    setTimeout(function(){document.addEventListener('mousedown',geoObjMenuAway,true);},0);};
+    geoPlaceColMenu(m,anchor);
+    setTimeout(function(){document.addEventListener('mousedown',geoObjMenuAway,true);document.addEventListener('keydown',geoObjMenuEsc,true);},0);};
   window.geoObjMenuCheck=function(el){if(GEO_OBJ_MENU)GEO_OBJ_MENU.checked[el.getAttribute('data-v')]=el.checked;};
   window.geoObjMenuAll=function(on){if(!GEO_OBJ_MENU)return;var q=(document.getElementById('geoMSrch').value||'').toLowerCase();document.querySelectorAll('#geoMVals input').forEach(function(cb){var v=cb.getAttribute('data-v');if(!q||v.toLowerCase().indexOf(q)>=0){cb.checked=on;GEO_OBJ_MENU.checked[v]=on;}});};
-  window.geoObjMenuSearch=function(q){q=(q||'').toLowerCase();document.querySelectorAll('#geoMVals .geo-m-v').forEach(function(l){var v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'flex':'none';});};
-  window.geoObjMenuSort=function(dir){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();GEO_OBJ_SORT={key:k,dir:dir};geoObjTab();};
-  window.geoObjMenuReset=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();delete GEO_OBJ_FILTERS[k];geoObjTab();};
-  window.geoObjMenuApply=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key,distinct=GEO_OBJ_MENU.distinct,all=true,any=false,sel=[];distinct.forEach(function(v){if(GEO_OBJ_MENU.checked[v]){any=true;sel.push(v);}else all=false;});geoObjMenuClose();if(!all){GEO_OBJ_FILTERS[k]={vals:any?sel:[]};}else{delete GEO_OBJ_FILTERS[k];}geoObjTab();};
-  window.geoObjFilterReset=function(){GEO_OBJ_FILTERS={};GEO_OBJ_SORT=null;geoObjTab();};
-  window.geoObjSortToggle=function(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)GEO_OBJ_SORT={key:k,dir:1};else if(GEO_OBJ_SORT.dir>0)GEO_OBJ_SORT.dir=-1;else GEO_OBJ_SORT=null;geoObjTab();};
-  function geoObjSortIc(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)return ' <span class="geo-th-sort-ic">⇅</span>';return ' <span class="geo-th-sort-ic on">'+(GEO_OBJ_SORT.dir<0?'▼':'▲')+'</span>';}
-  function geoObjTh(c){return '<th onclick="geoObjSortToggle(\''+c.k+'\')" title="Сортировать" style="cursor:pointer"><span class="geo-th-label">'+esc(c.label)+geoObjSortIc(c.k)+' <span class="geo-th-fnl'+(geoObjFilterOn(c.k)?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoObjMenu(\''+c.k+'\',this)">▾</span></span></th>';}
+  window.geoObjMenuSearch=function(q){q=(q||'').toLowerCase();document.querySelectorAll('#geoMVals .geo-m-v').forEach(function(l){var v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'grid':'none';});};
+  window.geoObjMenuSort=function(dir){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();GEO_OBJ_SORT={key:k,dir:dir};geoSaveUiPrefs();geoObjTab();};
+  window.geoObjMenuReset=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key;geoObjMenuClose();delete GEO_OBJ_FILTERS[k];if(GEO_OBJ_SORT&&GEO_OBJ_SORT.key===k)GEO_OBJ_SORT=null;geoSaveUiPrefs();geoObjTab();};
+  window.geoObjMenuApply=function(){if(!GEO_OBJ_MENU)return;var k=GEO_OBJ_MENU.key,distinct=GEO_OBJ_MENU.distinct,all=true,any=false,sel=[];distinct.forEach(function(v){if(GEO_OBJ_MENU.checked[v]){any=true;sel.push(v);}else all=false;});geoObjMenuClose();if(!all){GEO_OBJ_FILTERS[k]={vals:any?sel:[]};}else{delete GEO_OBJ_FILTERS[k];}geoSaveUiPrefs();geoObjTab();};
+  window.geoObjFilterReset=function(){GEO_OBJ_FILTERS={};GEO_OBJ_SORT=null;geoSaveUiPrefs();geoObjTab();};
+  window.geoObjSortToggle=function(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)GEO_OBJ_SORT={key:k,dir:1};else if(GEO_OBJ_SORT.dir>0)GEO_OBJ_SORT.dir=-1;else GEO_OBJ_SORT=null;geoSaveUiPrefs();geoObjTab();};
+  function geoObjSortIc(k){if(!GEO_OBJ_SORT||GEO_OBJ_SORT.key!==k)return '';return ' <span class="geo-th-sort-ic on">'+(GEO_OBJ_SORT.dir<0?'▼':'▲')+'</span>';}
+  function geoObjTh(c){return '<th><span class="geo-th-label">'+esc(c.label)+geoObjSortIc(c.k)+' <span class="geo-th-fnl'+(geoObjFilterOn(c.k)?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoObjMenu(\''+c.k+'\',this)">▾</span></span></th>';}
   window.geoObjTab=function(){
-    var host=document.getElementById('objT');if(!host)return;
+    var host=document.getElementById('objT');if(!host)return;try{geoEnsureUiPrefs();}catch(e){}
     try{geoEnsureObjCss();}catch(e){}try{geoEnsureTblCss();}catch(e){}
     var canEdit=GEO_CAN_EDIT,ids=geoObjSortedIds(),total=Object.keys(PROJECTS).length;
     var body=ids.map(function(id){
@@ -810,7 +833,7 @@
       +(canEdit?'«На карте» — видимость точки; «Внешним» — видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» — цвет метки; ✎ — полная карточка.':'Режим просмотра — редактирование недоступно для вашей роли.')+'</small></div>'
       +'<div style="display:flex;gap:8px;align-items:center">'+(active?'<button class="btn sec" onclick="geoObjFilterReset()" title="Сбросить фильтры и сортировку">✕ Сброс</button>':'')+(canEdit?'<button class="btn" onclick="geoNewProject()">＋ Добавить объект</button>':'')+'</div></div>'
       +(active?'<div class="geo-obj-count">Показано '+ids.length+' из '+total+'</div>':'')
-      +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl"><thead><tr>'+GEO_OBJ_COLS.map(geoObjTh).join('')+'<th>Вид</th><th></th></tr></thead>'
+      +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl" data-grid-engine="geo-objects" data-case-grid-key="geo_objects"><thead><tr>'+GEO_OBJ_COLS.map(geoObjTh).join('')+'<th>Вид</th><th></th></tr></thead>'
       +'<tbody>'+(body||'<tr><td colspan="9" style="text-align:center;color:#888;padding:16px">'+(total?'Ничего не найдено по фильтру':'Пока нет объектов')+'</td></tr>')+'</tbody></table></div></div>';
   };
   function geoObjPopup(id){

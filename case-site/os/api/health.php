@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — backend/database health check (admin only).
+// CASE OS v4.32.2 — backend/database health check (admin only).
 require __DIR__.'/lib.php';
 require_login();
 if (!can('admin')) fail('Только администратор', 403);
@@ -8,7 +8,7 @@ $out = [
   'ok' => true,
   'php' => PHP_VERSION,
   'time' => date('Y-m-d H:i:s'),
-  'backend' => 'CASE OS v4.17.0',
+  'backend' => 'CASE OS v4.32.2',
   'driver' => cfg()['driver'] ?? 'mysql',
   'tables' => [],
 ];

@@ -1,0 +1,47 @@
+{
+  "version": "4.32.1",
+  "generated_at": "2026-07-23T11:06:48.662Z",
+  "counts": {
+    "files": 167,
+    "php": 35,
+    "js": 28,
+    "json": 29,
+    "html": 6,
+    "local_refs": 28,
+    "sw_assets": 38
+  },
+  "syntax": {
+    "php_failed": [],
+    "js_failed": [],
+    "json_failed": []
+  },
+  "assets": {
+    "missing_html_refs": [],
+    "missing_sw_assets": []
+  },
+  "cleanliness": {
+    "temporary_files": [],
+    "required_missing": []
+  },
+  "checks": {
+    "app_version": true,
+    "patch_loaded": true,
+    "grid_version": true,
+    "sw_cache": true,
+    "atomic_unit_patch": true,
+    "atomic_units_batch": true,
+    "agx_whole_state_block": true,
+    "agx_generic_write_block": true,
+    "agx_brand_submit_only": true,
+    "agx_investor_submit_only": true,
+    "broker_explicit_editor": true,
+    "active_filter_chips": true,
+    "lower_filter_rows_hidden": true,
+    "required_files_present": true
+  },
+  "limitations": [
+    "Real browser navigation is blocked by the environment organization policy.",
+    "The PHP CLI environment has no PDO MySQL driver, so real MySQL commit/reload testing must be completed on staging."
+  ],
+  "ok": true
+}

@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — authenticated workspace/action capability check.
+// CASE OS v4.32.2 — authenticated workspace/action capability check.
 declare(strict_types=1);
 require __DIR__.'/lib.php';
 

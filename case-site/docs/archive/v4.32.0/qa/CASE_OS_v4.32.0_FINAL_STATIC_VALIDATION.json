@@ -1,0 +1,109 @@
+{
+  "syntax": {
+    "js_total": 26,
+    "js_failed": [],
+    "php_total": 33,
+    "php_failed": [],
+    "json_total": 20,
+    "json_failed": [],
+    "inline_total": 9,
+    "inline_failed": []
+  },
+  "assets": {
+    "html_refs_total": 26,
+    "missing_html_refs": [],
+    "sw_assets_total": 37,
+    "missing_sw_assets": []
+  },
+  "versions": {
+    "app": "4.32.0",
+    "script_queries": [
+      "4.32.0"
+    ],
+    "geo_script_queries": [
+      "4.32.0"
+    ],
+    "sw_cache": "case-os-v4320"
+  },
+  "checks": {
+    "app_version_4_32_0": true,
+    "all_main_script_queries_4_32_0": true,
+    "geo_local_script_queries_4_32_0": true,
+    "sw_cache_v4320": true,
+    "grid_script_loaded_last": true,
+    "grid_in_sw": true,
+    "lcr_grid_metadata": true,
+    "geo_grid_metadata": true,
+    "brands_grid_metadata": true,
+    "scr_build_metadata": true,
+    "brand_personal_prefs": true,
+    "geo_personal_prefs": true,
+    "lcr_filter_persistence": true,
+    "brand_menu_owner_cleanup": true
+  },
+  "table_templates": {
+    "total": 98,
+    "by_file": [
+      {
+        "file": "geoanalytics-studio.html",
+        "templates": 28
+      },
+      {
+        "file": "index.html",
+        "templates": 27
+      },
+      {
+        "file": "lift-studio.html",
+        "templates": 1
+      },
+      {
+        "file": "mep-studio.html",
+        "templates": 1
+      },
+      {
+        "file": "v32-upgrade.js",
+        "templates": 9
+      },
+      {
+        "file": "v326-commission-engines.js",
+        "templates": 7
+      },
+      {
+        "file": "v35-stable.js",
+        "templates": 1
+      },
+      {
+        "file": "v417-master-plan.js",
+        "templates": 4
+      },
+      {
+        "file": "v420-geo-studio.js",
+        "templates": 5
+      },
+      {
+        "file": "v420-geoanalytics.js",
+        "templates": 1
+      },
+      {
+        "file": "v490-caseos.js",
+        "templates": 1
+      },
+      {
+        "file": "v490-workflow.js",
+        "templates": 8
+      },
+      {
+        "file": "v492-portfolio-proposals.js",
+        "templates": 2
+      },
+      {
+        "file": "v493-portfolio-suite.js",
+        "templates": 1
+      },
+      {
+        "file": "v496-commissions.js",
+        "templates": 2
+      }
+    ]
+  }
+}

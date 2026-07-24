@@ -1,4 +1,4 @@
-/* CASE OS v4.17.0 — CRM, Advisory delivery, Scope, tasks, workload and layout versioning.
+/* CASE OS v4.32.6 — CRM, Advisory delivery, Scope, tasks, workload and layout versioning.
    Design principles: one source of truth, progressive disclosure, safe versioning, 44px targets,
    recoverable actions and the same records rendered as table, Kanban, calendar-ready data. */
 (function(){
@@ -53,7 +53,7 @@
   function opportunity(id){return (CASE_OPPORTUNITIES||[]).find(function(x){return x.id===id;})||null;}
   function task(id){return (CASE_TASKS||[]).find(function(x){return x.id===id;})||null;}
   function scopeItem(id){return (CASE_SCOPE_ITEMS||[]).find(function(x){return x.id===id;})||null;}
-  function page(title,sub,body,actions){return '<div class="case49-page"><div class="case49-head"><div><div class="case49-eyebrow">CASE OS · v4.17.0</div><h1>'+E(title)+'</h1>'+(sub?'<p>'+E(sub)+'</p>':'')+'</div><div class="case49-head-actions">'+(actions||'')+'</div></div>'+body+(typeof footNote==='function'?footNote():'')+'</div>';}
+  function page(title,sub,body,actions){return '<div class="case49-page"><div class="case49-head"><div><div class="case49-eyebrow">CASE OS · v4.32.6</div><h1>'+E(title)+'</h1>'+(sub?'<p>'+E(sub)+'</p>':'')+'</div><div class="case49-head-actions">'+(actions||'')+'</div></div>'+body+(typeof footNote==='function'?footNote():'')+'</div>';}
   function empty(icon,title,text,button){return '<div class="case49-empty"><div class="case49-empty-icon">'+icon+'</div><h3>'+E(title)+'</h3><p>'+E(text)+'</p>'+(button||'')+'</div>';}
   function badge(text,cls){return '<span class="case49-badge '+(cls||'')+'">'+E(text)+'</span>';}
   function options(list,sel){return list.map(function(x){return '<option value="'+E(x[0])+'"'+(String(sel)===String(x[0])?' selected':'')+'>'+E(x[1])+'</option>';}).join('');}

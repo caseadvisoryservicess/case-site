@@ -376,12 +376,12 @@
     if(!units.length)return kpis+'<div class="v32-card"><div class="v32-empty">'+h(scrT('noUnits'))+'</div></div>';
     var objName=(typeof objById==='function'?((objById(oid)||{}).name||oid):oid);
     /* Тулбар как в LCR: правки inline, экспорт, переход на план продаж. */
-    var toolbar='<div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px">'
-      +'<b style="font-size:14px">'+h(objName)+'</b>'
-      +'<span class="v32-pill" style="font-size:11px">SCR</span>'
-      +'<div style="flex:1"></div>'
-      +'<button class="btn ghost sm" onclick="scrExportCSV()">⬇ CSV / Excel</button>'
-      +'<button class="btn ghost sm" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button>'
+    var toolbar='<div class="case-adaptive-actions" data-adaptive-actions="scr">'
+      +'<b class="case-action-item" data-priority="100" style="font-size:14px">'+h(objName)+'</b>'
+      +'<span class="v32-pill case-action-item" data-priority="95" style="font-size:11px">SCR</span>'
+      +'<button class="btn ghost sm case-action-item" data-priority="75" onclick="try{S.planMode=\'sale\';}catch(e){}go(\'plans\')">▭ '+h(scrT('plan'))+'</button>'
+      +'<button class="btn ghost sm case-action-item" data-priority="45" onclick="scrExportCSV()">⬇ CSV / Excel</button>'
+      +'<details class="moremenu case-action-more"><summary class="btn ghost sm">⋯ Ещё</summary><div class="moremenu-pop"></div></details>'
       +'</div>';
     /* Таблица через общий движок buildTable — тот же вид, что в LCR/юнитах: сортировка, пофильтровые колонки. */
     var cols=[

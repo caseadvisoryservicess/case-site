@@ -1,11 +1,11 @@
-/* CASE OS v4.17.0 — universal geoanalytics integration.
+/* CASE OS v4.32.6 — universal geoanalytics integration.
    Workspace access is configurable by role/user. Data editing is controlled by configurable edit/finance/admin action rights. */
 (function(){
   'use strict';
   if(window.ASAAS_GEO_420)return;
   window.ASAAS_GEO_420=true;
   /* Версия для cache-busting iframe студии = текущая версия платформы (раньше была зашита 4.17.0). */
-  function geoStudioVer(){try{return (typeof APP_VERSION!=='undefined'&&APP_VERSION)?String(APP_VERSION):'4.17.0';}catch(e){return '4.17.0';}}
+  function geoStudioVer(){try{return (typeof APP_VERSION!=='undefined'&&APP_VERSION)?String(APP_VERSION):'4.32.6';}catch(e){return '4.32.6';}}
 
   var G={ready:false,project:'',saving:false,geoRevision:0,lastLoadedAt:null,recoveryData:null};
   function role(){try{return String(S&&S.role||'');}catch(e){return '';}}
@@ -41,7 +41,7 @@
     if(active)G.project=String(active.id);
     return rows.map(function(o){var id=String(o.id);return '<option value="'+h(id)+'"'+(id===G.project?' selected':'')+'>'+h(o.ru||o.name||id)+'</option>';}).join('');
   }
-  /* v4.17.0 (#63): единый раздел «Геоаналитика» с вкладками.
+  /* v4.32.6 (#63): единый раздел «Геоаналитика» с вкладками.
      «Наши проекты» — только сотрудники (карта наших объектов + координаты + ключ Яндекс).
      «Рынок и POI» — студия геоаналитики (в т.ч. внешние подписчики; наши проекты им не показываются). */
   function isExternal(){try{return !!(typeof R==='function'&&R()&&R().external);}catch(e){return false;}}

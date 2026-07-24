@@ -1,0 +1,506 @@
+{
+  "php": [
+    {
+      "file": "os/api/auth.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/auth.php"
+    },
+    {
+      "file": "os/api/backup.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/backup.php"
+    },
+    {
+      "file": "os/api/brand_requests.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/brand_requests.php"
+    },
+    {
+      "file": "os/api/commission_tiered.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/commission_tiered.php"
+    },
+    {
+      "file": "os/api/commissions.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/commissions.php"
+    },
+    {
+      "file": "os/api/config.local-xampp.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/config.local-xampp.php"
+    },
+    {
+      "file": "os/api/config.production.example.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/config.production.example.php"
+    },
+    {
+      "file": "os/api/config.sample.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/config.sample.php"
+    },
+    {
+      "file": "os/api/cron_critical_dates.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/cron_critical_dates.php"
+    },
+    {
+      "file": "os/api/data.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/data.php"
+    },
+    {
+      "file": "os/api/diag.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/diag.php"
+    },
+    {
+      "file": "os/api/feasibility_models.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/feasibility_models.php"
+    },
+    {
+      "file": "os/api/geo_collector.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/geo_collector.php"
+    },
+    {
+      "file": "os/api/geo_master.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/geo_master.php"
+    },
+    {
+      "file": "os/api/geo_master_install.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/geo_master_install.php"
+    },
+    {
+      "file": "os/api/geo_seed_convert.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/geo_seed_convert.php"
+    },
+    {
+      "file": "os/api/geo_state.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/geo_state.php"
+    },
+    {
+      "file": "os/api/gis_proxy.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/gis_proxy.php"
+    },
+    {
+      "file": "os/api/health.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/health.php"
+    },
+    {
+      "file": "os/api/investor_requests.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/investor_requests.php"
+    },
+    {
+      "file": "os/api/lease_commissions.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/lease_commissions.php"
+    },
+    {
+      "file": "os/api/lib.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/lib.php"
+    },
+    {
+      "file": "os/api/market_data.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/market_data.php"
+    },
+    {
+      "file": "os/api/migrate.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/migrate.php"
+    },
+    {
+      "file": "os/api/notify_recipients.sample.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/notify_recipients.sample.php"
+    },
+    {
+      "file": "os/api/partners.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/partners.php"
+    },
+    {
+      "file": "os/api/project_files.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/project_files.php"
+    },
+    {
+      "file": "os/api/sales.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/sales.php"
+    },
+    {
+      "file": "os/api/setup.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/setup.php"
+    },
+    {
+      "file": "os/api/state.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/state.php"
+    },
+    {
+      "file": "os/api/supplier_commissions.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/supplier_commissions.php"
+    },
+    {
+      "file": "os/api/unit_patch.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/unit_patch.php"
+    },
+    {
+      "file": "os/api/units_batch.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/units_batch.php"
+    },
+    {
+      "file": "os/api/users.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/users.php"
+    },
+    {
+      "file": "os/api/workspace_access.php",
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4321_work/os/api/workspace_access.php"
+    }
+  ],
+  "js": [
+    {
+      "file": "os/data/case_portfolio.seed.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/jszip.min.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/leaflet.case.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/leaflet.markercluster.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/quiz-data.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/sw.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v32-upgrade.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v326-commission-engines.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v35-stable.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v3515-brands-import.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v3515-ux.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v3516-brands-import.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v3518-brands-import.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v3520-workspaces.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v400-feasibility.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v410-feature-flags.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v417-master-plan.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v420-geo-studio.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v420-geoanalytics.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v432-data-grid.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v4321-patch.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v440-engineering.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v450-guides.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v490-caseos.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v490-workflow.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v492-portfolio-proposals.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v493-portfolio-suite.js",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/v496-commissions.js",
+      "ok": true,
+      "output": ""
+    }
+  ],
+  "inline_js": [
+    {
+      "file": "os/feasibility-studio.html#script1",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/geoanalytics-studio.html#script1",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/geoanalytics-studio.html#script2",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/geoanalytics-studio.html#script3",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/geoanalytics-studio.html#script4",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/index.html#script1",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/index.html#script2",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/lift-studio.html#script1",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/mep-studio.html#script1",
+      "ok": true,
+      "output": ""
+    }
+  ],
+  "json": [
+    {
+      "file": "os/data/bundle_tashkent_realdata.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/case_files/index.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/case_portfolio_projects_v4.9.3.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_collect_config.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_collect_out/dry_run.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_collect_out/seed_summary.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/bc.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/cafes.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/fnb_import_qa.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/mahallas.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/medicine.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/pharmacies.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/restaurants.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/runtime.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/summary.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/mahallas_tashkent.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/mep_norms.json",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/case_portfolio.geojson",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_collect_out/seed_master.geojson",
+      "ok": true,
+      "output": ""
+    },
+    {
+      "file": "os/data/geo_master/master.geojson",
+      "ok": true,
+      "output": ""
+    }
+  ],
+  "missing_refs": [],
+  "version_checks": {
+    "app_4321": true,
+    "footer_4321": true,
+    "patch_loaded": true,
+    "grid_4321": true,
+    "sw_cache_4321": true,
+    "sw_patch_cached": true,
+    "backend_health_4321": true
+  },
+  "security_checks": {
+    "agx_state_write_block": true,
+    "agx_data_write_block": true,
+    "agx_state_redaction": true,
+    "unit_patch_exists": true,
+    "units_batch_exists": true,
+    "atomic_client_endpoints": true,
+    "broker_close_handlers": true,
+    "duplicate_filter_rows_hidden": true,
+    "external_safe_forms": true,
+    "external_footer_no_backup": true,
+    "agx_migration_exists": true
+  },
+  "summary": {
+    "php_total": 35,
+    "php_ok": 35,
+    "js_total": 28,
+    "js_ok": 28,
+    "inline_total": 9,
+    "inline_ok": 9,
+    "json_total": 20,
+    "json_ok": 20,
+    "missing_refs": 0,
+    "all_version_checks": true,
+    "all_security_checks": true
+  }
+}

@@ -1,5 +1,5 @@
 <?php
-// CASE OS v4.17.0 — protected Financial Feasibility scenarios.
+// CASE OS v4.32.2 — protected Financial Feasibility scenarios.
 // Module visibility comes from the configurable workspace; writes require action rights.
 declare(strict_types=1);
 require __DIR__.'/lib.php';

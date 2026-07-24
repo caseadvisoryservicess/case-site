@@ -1,0 +1,172 @@
+{
+  "version": "4.32.7",
+  "pass": true,
+  "dynamicTopbar": {
+    "topbarBottom": 86,
+    "layerTop": 86
+  },
+  "results": [
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 640
+      },
+      "page": {
+        "topbarBottom": 58,
+        "display": "block",
+        "layerTop": 58,
+        "layerHeight": 54,
+        "groupTop": 58,
+        "groupBottom": 82,
+        "leafTop": 82,
+        "leafBottom": 112,
+        "adjacent": true,
+        "sourceGroupTop": -91,
+        "scrollLeft": 180,
+        "cloneTransform": "translateX(-180px)",
+        "sourceLeft": -161,
+        "cloneLeft": -160,
+        "leftDelta": 1
+      },
+      "proxy": {
+        "key": "reg_units",
+        "id": "code",
+        "mode": "reg",
+        "top": 88
+      },
+      "top": {
+        "scrollY": 0,
+        "visible": 0,
+        "projectTop": 103.4375
+      },
+      "internal": {
+        "display": "block",
+        "wrapTop": 149,
+        "layerTop": 149,
+        "layerHeight": 54,
+        "groupTop": 149,
+        "groupBottom": 173,
+        "leafTop": 173,
+        "leafBottom": 203,
+        "adjacent": true,
+        "sourceHeaderPosition": "static"
+      },
+      "handoff": {
+        "topBefore": 2635,
+        "topAfter": 2455,
+        "topTransferred": true,
+        "bottomBefore": 2055,
+        "bottomAfter": 2235,
+        "bottomTransferred": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 1366,
+        "height": 768
+      },
+      "page": {
+        "topbarBottom": 58,
+        "display": "block",
+        "layerTop": 58,
+        "layerHeight": 54,
+        "groupTop": 58,
+        "groupBottom": 82,
+        "leafTop": 82,
+        "leafBottom": 112,
+        "adjacent": true,
+        "sourceGroupTop": -91,
+        "scrollLeft": 56,
+        "cloneTransform": "translateX(-56px)",
+        "sourceLeft": -37,
+        "cloneLeft": -36,
+        "leftDelta": 1
+      },
+      "proxy": {
+        "key": "reg_units",
+        "id": "code",
+        "mode": "reg",
+        "top": 88
+      },
+      "top": {
+        "scrollY": 0,
+        "visible": 0,
+        "projectTop": 103.4375
+      },
+      "internal": {
+        "display": "block",
+        "wrapTop": 149,
+        "layerTop": 149,
+        "layerHeight": 54,
+        "groupTop": 149,
+        "groupBottom": 173,
+        "leafTop": 173,
+        "leafBottom": 203,
+        "adjacent": true,
+        "sourceHeaderPosition": "static"
+      },
+      "handoff": {
+        "topBefore": 2635,
+        "topAfter": 2455,
+        "topTransferred": true,
+        "bottomBefore": 2055,
+        "bottomAfter": 2235,
+        "bottomTransferred": true
+      }
+    },
+    {
+      "viewport": {
+        "width": 2048,
+        "height": 1100
+      },
+      "page": {
+        "topbarBottom": 58,
+        "display": "block",
+        "layerTop": 58,
+        "layerHeight": 54,
+        "groupTop": 58,
+        "groupBottom": 82,
+        "leafTop": 82,
+        "leafBottom": 112,
+        "adjacent": true,
+        "sourceGroupTop": -91,
+        "scrollLeft": 4,
+        "cloneTransform": "translateX(-4px)",
+        "sourceLeft": 15,
+        "cloneLeft": 16,
+        "leftDelta": 1
+      },
+      "proxy": {
+        "key": "reg_units",
+        "id": "code",
+        "mode": "reg",
+        "top": 88
+      },
+      "top": {
+        "scrollY": 0,
+        "visible": 0,
+        "projectTop": 103.4375
+      },
+      "internal": {
+        "display": "block",
+        "wrapTop": 261,
+        "layerTop": 261,
+        "layerHeight": 54,
+        "groupTop": 261,
+        "groupBottom": 285,
+        "leafTop": 285,
+        "leafBottom": 315,
+        "adjacent": true,
+        "sourceHeaderPosition": "static"
+      },
+      "handoff": {
+        "topBefore": 2343,
+        "topAfter": 2163,
+        "topTransferred": true,
+        "bottomBefore": 2055,
+        "bottomAfter": 2235,
+        "bottomTransferred": true
+      }
+    }
+  ]
+}

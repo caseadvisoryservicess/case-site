@@ -198,6 +198,8 @@ table.reg-grp thead .grp-sp{background:transparent;border:none}
 table.reg-grp thead th.grp-bud,table.reg-grp thead th.grp-fac{background:var(--soft)}
 table.reg-grp td.grp-bud{background:rgba(21,101,192,.03)}
 table.reg-grp td.grp-fac{background:rgba(46,125,50,.03)}
+table.reg-grp.cg-bud-collapsed th[data-colkey^="b_"]:not([data-colkey="b_tots"]),table.reg-grp.cg-bud-collapsed td[data-colkey^="b_"]:not([data-colkey="b_tots"]){display:none}
+table.reg-grp.cg-fac-collapsed th[data-colkey^="f_"]:not([data-colkey="f_tots"]),table.reg-grp.cg-fac-collapsed td[data-colkey^="f_"]:not([data-colkey="f_tots"]){display:none}
 /* Аккуратная шапка ЛСР: длинные заголовки переносятся ПО СЛОВАМ (не по буквам) внутри своей
    ячейки и не налезают на соседние. Денежным колонкам задаём разумную мин-ширину, чтобы слова
    не дробились; таблица при этом горизонтально прокручивается (как в Excel). */
@@ -436,7 +438,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.31.20';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.32.7';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -454,7 +456,7 @@ let ROLE_WORKSPACES={};       /* role -> visible module ids; managed by administ
 let USER_WORKSPACES={};       /* user id/login -> {mode:'custom',views:[...]} */
 let MODULE_FLAGS={};          /* module id -> {status: active|beta|hidden}; global lifecycle switches */
 let GEO_DATA=null;            /* universal editable geoanalytics datasets */
-/* CASE OS v4.17.0 — CRM, delivery, portfolio maps and proposal builder state. */
+/* CASE OS v4.32.6 — CRM, delivery, portfolio maps and proposal builder state. */
 let CASE_CLIENTS=[];
 let CASE_OPPORTUNITIES=[];
 let CASE_PROPOSALS=[];
@@ -589,7 +591,7 @@ const ROLES={
  ADM:{label:'Администратор',leasing:true,finance:true,edit:true,approve:true,admin:true,plans:true,geoEdit:true,reportsTo:'ASH',rights:['Управление пользователями','Все комиссии','Загрузка планов','Геоданные: правка','Все права']},
  BA:{label:'Директор по аренде',leasing:true,finance:true,edit:true,approve:false,reportsTo:'ASH',rights:['Аренда: полный','Совокупные + личные KPI','Правки реестра','Ставки → виза ASH']},
  AG:{label:'Агент аренды',leasing:true,finance:false,edit:true,approve:false,reportsTo:'BA',rights:['Показы / КП','Бронь помещений','Свои KPI и комиссии','Без финансов отдела']},
- AGX:{label:'Внешний агент',leasing:true,finance:false,edit:true,approve:false,plans:false,ownOnly:true,external:true,projectScoped:true,reportsTo:'BA',rights:['Только назначенные проекты','Показы / КП','Свои KPI и комиссии','Без финансов']},
+ AGX:{label:'Внешний агент',leasing:false,finance:false,edit:false,approve:false,plans:false,admin:false,ownOnly:true,external:true,projectScoped:true,reportsTo:'BA',rights:['Добавление новых лидов','Доступ к проектам только после согласования','Без просмотра внутренних баз']},
  HO:{label:'Администратор аренды (тыл)',leasing:true,finance:true,edit:true,approve:false,reportsTo:'BA',rights:['Реестр и даты','Бюджет / Факт / NOI','Документы','Координация']},
  BSH:{label:'Архитектор',leasing:true,finance:false,edit:true,approve:false,plans:true,reportsTo:'ASH',rights:['Загрузка чертежей','Интерактивный план','Реестр (просмотр)','Без финансов']},
  HM:{label:'Менеджер по консалтингу',leasing:true,finance:true,edit:false,approve:false,reportsTo:'ASH',rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
@@ -1107,19 +1109,19 @@ function localize(){try{if(!document.createTreeWalker)return;
  });}catch(e){}}
 
 /* ===== STATE ===== */
-let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',status:'Все',cat:'Все'},regColBud:true,regColFac:true};/* ЛСР по умолчанию компактный: группы Бюджет/Факт свёрнуты (как чистая шапка Базы брендов), разворачиваются кнопкой */
+let S={role:null,user:null,view:'dash',obj:'ca',regTab:'plan',regFilter:{q:'',status:'Все',cat:'Все'}};
 /* Личные настройки экрана (язык, тема, текущий объект/раздел) — хранятся ТОЛЬКО в этом браузере,
    отдельно от общих данных компании, чтобы смена языка/раздела одним сотрудником не влияла на других. */
 const UI_KEY=STORAGE_KEY+'-ui';
 function saveUiPrefs(){try{localStorage.setItem(UI_KEY,JSON.stringify({LANG,THEME,obj:S.obj,view:S.view,permHidden:!!S.permHidden,compactNames:!!S.compactNames,planLabelScale:S.planLabelScale||1,regColBud:!!S.regColBud,regColFac:!!S.regColFac}));}catch(e){}}
-function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if('regColBud' in p)S.regColBud=!!p.regColBud;if('regColFac' in p)S.regColFac=!!p.regColFac;}catch(e){}}
+function loadUiPrefs(){try{const raw=localStorage.getItem(UI_KEY);if(!raw)return;const p=JSON.parse(raw);if(p.LANG)LANG=p.LANG;if(p.THEME)THEME=p.THEME;if(p.obj)S.obj=p.obj;if(p.view)S.view=p.view;if(p.permHidden)S.permHidden=true;if(p.compactNames)S.compactNames=true;if(p.planLabelScale)S.planLabelScale=+p.planLabelScale||1;if(p.regColBud)S.regColBud=true;if(p.regColFac)S.regColFac=true;}catch(e){}}
 /* ===== Сортировка/фильтрация таблиц — ЛИЧНАЯ настройка каждого пользователя =====
    Хранится в localStorage под ключом с id пользователя и НИКОГДА не уходит в общий блоб (state.php),
    поэтому изменение сортировки/фильтра одним сотрудником не меняет вид у других. У каждого — своё. */
 function _tblPrefKey(){const u=S.user;const id=u?(u.login||u.email||u.id||u.u||u.name||'anon'):'anon';return STORAGE_KEY+'-tbl-'+String(id);}
 let _tblPrefT=null;
-function saveTblPrefs(){if(!S.user)return;clearTimeout(_tblPrefT);_tblPrefT=setTimeout(()=>{try{localStorage.setItem(_tblPrefKey(),JSON.stringify({tbl:S.tbl||{},regFilter:S.regFilter||{},regSort:S.regSort||null,regTab:S.regTab||'plan'}));}catch(e){}},350);}
-function loadTblPrefs(){if(!S.user)return;try{const raw=localStorage.getItem(_tblPrefKey());if(!raw)return;const p=JSON.parse(raw);if(p.tbl&&typeof p.tbl==='object')S.tbl=p.tbl;if(p.regFilter&&typeof p.regFilter==='object')S.regFilter=Object.assign({q:'',status:'Все',cat:'Все'},p.regFilter);if(p.regSort&&typeof p.regSort==='object')S.regSort=p.regSort;if(p.regTab)S.regTab=p.regTab;}catch(e){}}
+function saveTblPrefs(){if(!S.user)return;clearTimeout(_tblPrefT);_tblPrefT=setTimeout(()=>{try{localStorage.setItem(_tblPrefKey(),JSON.stringify({tbl:S.tbl||{},regFilter:S.regFilter||{},regSort:S.regSort||null,regColF:S.regColF||{},regTab:S.regTab||'plan',regMine:!!S.regMine}));}catch(e){}},350);}
+function loadTblPrefs(){if(!S.user)return;try{const raw=localStorage.getItem(_tblPrefKey());if(!raw)return;const p=JSON.parse(raw);if(p.tbl&&typeof p.tbl==='object')S.tbl=p.tbl;if(p.regFilter&&typeof p.regFilter==='object')S.regFilter=Object.assign({q:'',status:'Все',cat:'Все'},p.regFilter);if(p.regSort&&typeof p.regSort==='object')S.regSort=p.regSort;if(p.regColF&&typeof p.regColF==='object')S.regColF=p.regColF;if(p.regTab)S.regTab=p.regTab;if(typeof p.regMine==='boolean')S.regMine=p.regMine;}catch(e){}}
 /* ===== Краткие / полные имена и должности — личная настройка отображения (не меняет данные) ===== */
 const ROLE_SHORT={ASH:'Ген. директор',ADM:'Админ',BA:'Дир. аренды',AG:'Агент',AGX:'Внеш. агент',HO:'Адм. аренды',BSH:'Архитектор',HM:'Консультант',CFO:'Финдиректор'};
 function roleShortLabel(rk){return ROLE_SHORT[rk]||(ROLES[rk]&&ROLES[rk].label)||rk||'';}
@@ -1271,10 +1273,17 @@ function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
  Rr.leasing=!!rights.leasing;Rr.finance=!!rights.finance;Rr.edit=!!rights.edit;Rr.approve=!!rights.approve;Rr.plans=!!rights.plans;Rr.admin=!!rights.admin;Rr.ownOnly=!!rights.own_only;
  Rr.projectScoped=!!rights.project_scope;Rr.external=!!rights.project_scope;
  Rr.rights=serverRightChips(rights);
- S.user={u:user.id,id:user.id,name:user.name||user.email,title:user.title||Rr.label,role:user.role,broker:user.broker||null,email:user.email,projects:user.projects||[]};}
+ /* Внешний агент всегда работает в fail-closed режиме. Даже если в старой БД у AGX остались
+    прежние флаги edit/leasing, интерфейс и серверные dedicated endpoints не раскрывают внутренние базы. */
+ if(user.role==='AGX'){
+  Object.assign(Rr,{label:'Внешний агент',leasing:false,finance:false,edit:false,approve:false,plans:false,admin:false,ownOnly:true,external:true,projectScoped:true});
+  Rr.rights=['Добавление новых лидов','Доступ к проектам только после согласования','Без просмотра внутренних баз'];
+ }
+ const safeTitle=user.role==='AGX'?'Внешний агент':(user.title||Rr.label);
+ S.user={u:user.id,id:user.id,name:user.name||user.email,title:safeTitle,role:user.role,broker:user.broker||null,email:user.email,projects:user.projects||[]};}
 async function enterWithServerUser(user,rights){applyServerUser(user,rights);const data=await apiLoadState();if(data)applyState(data);await hydrateRolesFromDB();$('login').classList.add('hidden');$('app').classList.remove('hidden');boot();}
 /* Матрица прав читается из таблицы roles БД — она первоисточник (сервер проверяет права по ней). */
-async function hydrateRolesFromDB(){if(!BACKEND)return;try{const j=await apiGET('data.php?table=roles');(j.rows||[]).forEach(row=>{const k=row.key;if(!k)return;const t=ROLES[k]=ROLES[k]||{label:row.label||k,rights:[]};t.label=row.label||t.label;t.leasing=!!+row.leasing;t.finance=!!+row.finance;t.edit=!!+row.edit;t.approve=!!+row.approve;t.plans=!!+row.plans;t.admin=!!+row.admin;t.ownOnly=!!+row.own_only;t.projectScoped=!!+row.project_scope;if(t.external===undefined)t.external=!!+row.project_scope;t.rights=serverRightChips({leasing:t.leasing,finance:t.finance,edit:t.edit,approve:t.approve,plans:t.plans,own_only:t.ownOnly,project_scope:t.projectScoped,admin:t.admin});});}catch(e){}}
+async function hydrateRolesFromDB(){if(!BACKEND)return;try{const j=await apiGET('data.php?table=roles');(j.rows||[]).forEach(row=>{const k=row.key;if(!k)return;const t=ROLES[k]=ROLES[k]||{label:row.label||k,rights:[]};t.label=row.label||t.label;t.leasing=!!+row.leasing;t.finance=!!+row.finance;t.edit=!!+row.edit;t.approve=!!+row.approve;t.plans=!!+row.plans;t.admin=!!+row.admin;t.ownOnly=!!+row.own_only;t.projectScoped=!!+row.project_scope;if(t.external===undefined)t.external=!!+row.project_scope;t.rights=serverRightChips({leasing:t.leasing,finance:t.finance,edit:t.edit,approve:t.approve,plans:t.plans,own_only:t.ownOnly,project_scope:t.projectScoped,admin:t.admin});});if(ROLES.AGX)Object.assign(ROLES.AGX,{label:'Внешний агент',leasing:false,finance:false,edit:false,approve:false,plans:false,admin:false,ownOnly:true,external:true,projectScoped:true,rights:['Добавление новых лидов','Доступ к проектам только после согласования','Без просмотра внутренних баз']});}catch(e){}}
 async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false).map(x=>`<option value="${x.role}">${x.name} - ${x.title}</option>`).join('');$('lng_ru')&&$('lng_ru').classList.toggle('on',LANG==='ru');$('lng_uz')&&$('lng_uz').classList.toggle('on',LANG==='uz');$('lng_en')&&$('lng_en').classList.toggle('on',LANG==='en');applyLoginLang();
  /* Синхронно выставляем нужный вид входа ДО запроса к серверу, чтобы старая панель
     (выбор роли) не мелькала пару секунд, пока идёт проверка auth.php. */
@@ -1354,7 +1363,7 @@ const validViews=['dash','v32_action','dates','work_tasks','work_kanban','worklo
    if(BACKEND){apiPOST('data.php',{table:'roles',row:{key:'CFO',label:c.label||'Финансовый директор',leasing:1,finance:1,edit:1,approve:1,plans:1,own_only:0,project_scope:0,admin:1}}).catch(()=>{});clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}
   }
  }catch(e){}
- /* v4.17.0: одноразовая очистка импортированного портфеля CASE (по запросу — заполняется вручную). Флаг в persisted-состоянии, поэтому срабатывает один раз глобально и не трогает проекты, добавленные вручную после очистки. */
+ /* v4.32.6: одноразовая очистка импортированного портфеля CASE (по запросу — заполняется вручную). Флаг в persisted-состоянии, поэтому срабатывает один раз глобально и не трогает проекты, добавленные вручную после очистки. */
  try{if(typeof CASE_WORKFLOW_SETTINGS!=='object'||!CASE_WORKFLOW_SETTINGS)CASE_WORKFLOW_SETTINGS={};if(!CASE_WORKFLOW_SETTINGS.portfolioClearedV411){if(Array.isArray(CASE_PORTFOLIO_PROJECTS)&&CASE_PORTFOLIO_PROJECTS.length){CASE_PORTFOLIO_PROJECTS.splice(0,CASE_PORTFOLIO_PROJECTS.length);}CASE_WORKFLOW_SETTINGS.portfolioClearedV411=true;persist();}}catch(e){}
  rebuildObjSel();buildNav();renderPerm();audit('Вход в систему','роль: '+(R().label||S.role));if(!BACKEND)persist();go(S.view);
  quizStartTimer();
@@ -1464,6 +1473,7 @@ function tblMenu(key,colKey,anchor,engine){engine=engine||'tbl';tblMenuClose();
   <input id="tbm_srch" placeholder="Поиск значения…" oninput="tblMenuSearch(this.value)" style="width:100%;font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:6px;box-sizing:border-box;margin-bottom:5px">
   <div style="font-size:11px;margin-bottom:4px"><a href="#" onclick="tblMenuAll(true);return false" style="color:var(--red-d)">Выбрать все</a> · <a href="#" onclick="tblMenuAll(false);return false" style="color:var(--red-d)">Снять все</a></div>
   <div id="tbm_vals" class="tbm-vals">${valList||'<div style="color:var(--muted);font-size:12px;padding:4px">Нет значений</div>'}</div>
+  <button class="btn ghost sm" style="width:100%;margin-top:7px;text-align:left" onclick="tblMenuHideColumn()">Скрыть столбец</button>
   <div class="tbm-ftr"><button class="btn ghost sm" onclick="tblMenuReset()">Сбросить</button><div style="flex:1"></div><button class="btn ghost sm" onclick="tblMenuClose()">Отмена</button><button class="btn sm" onclick="tblMenuApply()">Применить</button></div>`;
  const m=document.createElement('div');m.id='tblmenu';m.innerHTML=html;document.body.appendChild(m);
  const r=anchor.getBoundingClientRect();const mw=Math.min(300,window.innerWidth-16);m.style.width=mw+'px';let left=Math.max(8,Math.min(r.left,window.innerWidth-mw-8));let top=r.bottom+4;if(top+m.offsetHeight>window.innerHeight-8)top=Math.max(8,window.innerHeight-m.offsetHeight-8);m.style.left=left+'px';m.style.top=top+'px';
@@ -1473,6 +1483,7 @@ function tblMenuCheck(el){const st=window._TBLMENU;if(!st)return;st.checked[el.g
 function tblMenuAll(on){const st=window._TBLMENU;if(!st)return;const q=(document.getElementById('tbm_srch').value||'').toLowerCase();document.querySelectorAll('#tbm_vals input[type=checkbox]').forEach(cb=>{const v=cb.getAttribute('data-v');if(!q||v.toLowerCase().indexOf(q)>=0){cb.checked=on;st.checked[v]=on;}});}
 function tblMenuSearch(q){q=(q||'').toLowerCase();document.querySelectorAll('#tbm_vals .tbm-v').forEach(l=>{const v=l.querySelector('input').getAttribute('data-v');l.style.display=(!q||v.toLowerCase().indexOf(q)>=0)?'flex':'none';});}
 function tblMenuSort(dir){const st=window._TBLMENU;if(!st)return;const k=st.key,c=st.colKey,e=st.engine;tblMenuClose();_tblSetSort(k,c,e,dir);}
+function tblMenuHideColumn(){const st=window._TBLMENU;if(!st)return;const k=st.key,c=st.colKey;tblMenuClose();try{if(window.CASE_GRID&&typeof window.CASE_GRID.hideColumn==='function')window.CASE_GRID.hideColumn(k,c);else alert('Настройка столбцов ещё загружается.');}catch(e){alert('Не удалось скрыть столбец.');}}
 function tblMenuReset(){const st=window._TBLMENU;if(!st)return;const k=st.key,c=st.colKey,e=st.engine;tblMenuClose();_tblSetFilter(k,c,e,'');}
 function tblMenuApply(){const st=window._TBLMENU;if(!st)return;const k=st.key,c=st.colKey,e=st.engine,distinct=st.distinct;
  const op=document.getElementById('tbm_op').value,a=document.getElementById('tbm_a').value,b=document.getElementById('tbm_b').value;
@@ -1483,15 +1494,14 @@ function tblMenuApply(){const st=window._TBLMENU;if(!st)return;const k=st.key,c=
 function buildTable(key,cols,rows,opts){opts=opts||{};S.tbl=S.tbl||{};const st=S.tbl[key]=S.tbl[key]||{filters:{},sort:null};
  let data=rows.filter(r=>cols.every(c=>tblFilterPass(c,r,st.filters[c.k])));
  if(st.sort){const c=cols.find(x=>x.k===st.sort.k);if(c)data=data.slice().sort((a,b)=>{let va=c.get(a),vb=c.get(b);if(c.num){return((+va||0)-(+vb||0))*st.sort.dir;}va=(va==null?'':String(va));vb=(vb==null?'':String(vb));return va.localeCompare(vb,'ru',{numeric:true,sensitivity:'base'})*st.sort.dir;});} /* numeric:true — натуральная сортировка: B1_2 раньше B1_10 */
- const arrow=c=>!c.sortable?'':(st.sort&&st.sort.k===c.k?` <span style="display:inline-block;color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;font-size:10px;font-weight:800;vertical-align:1px">${st.sort.dir>0?'▲':'▼'}</span>`:' <span class="sortbtn" style="display:inline-block;opacity:.5;font-size:10px;vertical-align:1px" title="Сортировать">↕</span>');
  const hasF=cols.some(c=>c.filter);
- /* Excel/Google Sheets: имя + сортировка + кнопка меню фильтра (воронка) в одной строке заголовка. */
+ /* v4.32.6: one compact column-menu button. Sorting lives inside this menu. */
  try{tblRegMeta(key,'tbl',cols,rows);}catch(e){}
- const th=cols.map(c=>{const active=c.filter&&_tblFilterActive(st.filters[c.k]);const fn=c.filter?` <span class="tblfnl${active?' on':''}" title="Фильтр и сортировка" onclick="event.stopPropagation();tblMenu('${key}','${c.k}',this,'tbl')">▾</span>`:'';return `<th${c.num?' class="num"':''}><div class="th1r"><span class="th-name"${c.sortable?` style="cursor:pointer" onclick="tblS('${key}','${c.k}')"`:''}>${esc(c.label)}${arrow(c)}</span>${fn}</div></th>`;}).join('');
- const body=data.map(r=>{const cls=[opts.rowClick?'click':'',opts.rowClass?opts.rowClass(r):''].filter(Boolean).join(' ');const clickAttr=opts.rowClick?` onclick="${opts.rowClick(r)}"`:'';const styleAttr=opts.rowStyle?` style="${opts.rowStyle(r)}"`:'';return `<tr${cls?` class="${cls}"`:''}${styleAttr}${clickAttr}>`+cols.map(c=>`<td${c.num?' class="num"':''}>${c.render?c.render(r):esc(c.get(r))}</td>`).join('')+'</tr>';}).join('')||`<tr><td colspan="${cols.length}" style="color:var(--muted)">Ничего не найдено.</td></tr>`;
+ const th=cols.map(c=>{const active=c.filter&&_tblFilterActive(st.filters[c.k]);const sorted=st.sort&&st.sort.k===c.k;const fn=(c.filter||c.sortable)?` <span class="tblfnl${active?' on':''}${sorted?(st.sort.dir>0?' sort-asc':' sort-desc'):''}" title="Фильтр, сортировка и столбец" onclick="event.stopPropagation();tblMenu('${key}','${c.k}',this,'tbl')">▾</span>`:'';return `<th data-colkey="${esc(c.k)}" data-sortable="${c.sortable?1:0}" data-filterable="${c.filter?1:0}"${c.num?' class="num"':''}><div class="th1r"><span class="th-name" title="${esc(c.label)}">${esc(c.label)}</span>${fn}</div></th>`;}).join('');
+ const body=data.map(r=>{const cls=[opts.rowClick?'click':'',opts.rowClass?opts.rowClass(r):''].filter(Boolean).join(' ');const clickAttr=opts.rowClick?` onclick="${opts.rowClick(r)}"`:'';const styleAttr=opts.rowStyle?` style="${opts.rowStyle(r)}"`:'';return `<tr${cls?` class="${cls}"`:''}${styleAttr}${clickAttr}>`+cols.map(c=>`<td data-colkey="${esc(c.k)}"${c.num?' class="num"':''}>${c.render?c.render(r):esc(c.get(r))}</td>`).join('')+'</tr>';}).join('')||`<tr><td colspan="${cols.length}" style="color:var(--muted)">Ничего не найдено.</td></tr>`;
  const cnt=(data.length!==rows.length)?`<span style="font-size:11px;color:var(--muted);margin-left:8px">${data.length} / ${rows.length}</span>`:'';
  const _cg=_tblColgroup(key,cols.length);
- return `<div class="tbl-scroll"><table data-tblkey="${esc(key)}"${_cg.cls}>${_cg.cg}<thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`+(cnt?`<div style="text-align:right;margin-top:4px">${cnt}</div>`:'');
+ return `<div class="tbl-scroll"><table data-tblkey="${esc(key)}" data-grid-engine="build"${_cg.cls}>${_cg.cg}<thead><tr>${th}</tr></thead><tbody>${body}</tbody></table></div>`+(cnt?`<div style="text-align:right;margin-top:4px">${cnt}</div>`:'');
 }
 
 
@@ -1503,15 +1513,16 @@ function syncTblScroll(){document.querySelectorAll('.tbl-scroll').forEach(sc=>{c
  const need=tb.scrollWidth;top.firstElementChild.style.width=need+'px';top.style.display=need>sc.clientWidth+4?'':'none';});}
 if(typeof window!=='undefined')window.addEventListener('resize',()=>{clearTimeout(window._tssT);window._tssT=setTimeout(()=>{try{syncTblScroll();}catch(e){}},150);});
 /* ===== Изменение ширины столбцов (как в Excel) для таблиц buildTable ===== */
-function _tblColW(){try{return JSON.parse(localStorage.getItem('caseos_tbl_colw')||'{}');}catch(e){return {};}}
-function _tblColWSave(o){try{localStorage.setItem('caseos_tbl_colw',JSON.stringify(o));}catch(e){}}
+function _tblColWKey(){try{const u=(typeof S==='object'&&S&&S.user)||{};const id=String(u.id||u.email||u.name||'guest').toLowerCase().replace(/[^a-z0-9_-]+/gi,'_').slice(0,80)||'guest';return 'caseos_tbl_colw::'+id;}catch(e){return 'caseos_tbl_colw::guest';}}
+function _tblColW(){try{const k=_tblColWKey(),raw=localStorage.getItem(k);if(raw)return JSON.parse(raw||'{}');const legacy=localStorage.getItem('caseos_tbl_colw');if(legacy){localStorage.setItem(k,legacy);return JSON.parse(legacy||'{}');}return {};}catch(e){return {};}}
+function _tblColWSave(o){try{localStorage.setItem(_tblColWKey(),JSON.stringify(o));}catch(e){}}
 function tblColReset(key){const o=_tblColW();delete o[key];_tblColWSave(o);try{go(S.view);}catch(e){}}
 /* Ширины столбцов рендерим сразу в <colgroup> (+table-layout:fixed), чтобы при перерисовке/входе в режим
    правки таблица не «мерцала» и столбцы не прыгали (не было доп. пересчёта ширины уже после отрисовки). */
-function _tblColgroup(key,ncols){try{const w=_tblColW()[key];if(!w||!w.length)return {cg:'',cls:''};let s='<colgroup>';for(let i=0;i<ncols;i++)s+=(w[i]?`<col style="width:${+w[i]}px">`:'<col>');s+='</colgroup>';return {cg:s,cls:' colr-fixed'};}catch(e){return {cg:'',cls:''};}}
+function _tblColgroup(key,ncols){/* v4.32.6: CASE Data Grid is the single owner of colgroup/widths. */return {cg:'',cls:''};}
 function initColResize(root){
  if(!document.getElementById('colrzCss')){const st=document.createElement('style');st.id='colrzCss';st.textContent='.colrz{position:absolute;top:0;right:0;width:9px;height:100%;cursor:col-resize;user-select:none;z-index:6;border-right:2px solid rgba(0,0,0,.16)}.colrz:hover{border-right-color:var(--red-d,#9E0000);background:rgba(158,0,0,.10)}.colrz:active{border-right-color:var(--red-d,#9E0000);background:rgba(158,0,0,.18)}table[data-tblkey]{table-layout:auto}table[data-tblkey].colr-fixed{table-layout:fixed}table[data-tblkey] thead th{position:relative}';document.head.appendChild(st);}
- (root||document).querySelectorAll('table[data-tblkey]:not([data-colr])').forEach(tb=>{
+ (root||document).querySelectorAll('table[data-tblkey]:not([data-colr]):not([data-grid-engine])').forEach(tb=>{
   tb.setAttribute('data-colr','1');const key=tb.getAttribute('data-tblkey');
   const _hrows=tb.querySelectorAll('thead tr');const _hr=_hrows.length?_hrows[_hrows.length-1]:null;const ths=_hr?_hr.querySelectorAll(':scope > th'):tb.querySelectorAll('thead tr:first-child > th');if(!ths.length)return;
   let cg=tb.querySelector('colgroup');if(!cg){cg=document.createElement('colgroup');ths.forEach(()=>cg.appendChild(document.createElement('col')));tb.insertBefore(cg,tb.firstChild);}
@@ -1695,7 +1706,7 @@ function addActivity(kind){const labels={touch:'Касание',meet:'Встре
 /* ===== REGISTRY ===== */
 function regFilterBar(us){const fr=S.regFilter;const cats=['Все'].concat(us.map(u=>u.cat).filter((v,i,a)=>v&&v!=='-'&&a.indexOf(v)===i));const stOpts=[['Все',LANG==='uz'?'Barcha holatlar':LANG==='en'?'All statuses':'Все статусы']].concat(Object.keys(STAT).map(k=>[k,stT(k)]));const ss='font-family:inherit;font-size:12.5px;padding:7px 9px;border:1px solid var(--border);border-radius:8px';
  const geoSel=S.obj==='ALL'?`<select onchange="S.regFilter.country=this.value;S.regFilter.city='Все';renderRegistry()" style="${ss}">${[['Все','Все страны']].concat(objCountries().map(c=>[c,c])).map(o=>`<option value="${esc(o[0])}"${fr.country===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select><select onchange="S.regFilter.city=this.value;renderRegistry()" style="${ss}">${[['Все','Все города']].concat(objCities(fr.country).map(c=>[c,c])).map(o=>`<option value="${esc(o[0])}"${fr.city===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:'';
- return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">${geoSel}${(S.obj!=='ALL'&&hasBlocks(S.obj))?`<select onchange="S.regFilter.block=this.value;renderRegistry()" style="${ss}">${[['Все','Все блоки']].concat(blocksOf(S.obj).map(b=>[b,'Блок '+b])).map(o=>`<option value="${esc(o[0])}"${(fr.block||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}${(S.obj!=='ALL'&&new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor))).size>1)?`<select onchange="S.regFilter.floor=this.value;renderRegistry()" style="${ss}">${[['Все','Все этажи']].concat(Array.from(new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor)))).sort(floorCmp).map(f=>[f,f])).map(o=>`<option value="${esc(o[0])}"${(fr.floor||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}<select onchange="S.regFilter.status=this.value;renderRegistry()" style="${ss}">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;renderRegistry()" style="${ss}">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
+ return `<div class="card" style="padding:10px"><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><input placeholder="Поиск: код / бренд / категория..." value="${fr.q}" oninput="S.regFilter.q=this.value;saveTblPrefs();renderRegistry()" style="flex:1;min-width:150px;font-family:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--border);border-radius:8px">${geoSel}${(S.obj!=='ALL'&&hasBlocks(S.obj))?`<select onchange="S.regFilter.block=this.value;saveTblPrefs();renderRegistry()" style="${ss}">${[['Все','Все блоки']].concat(blocksOf(S.obj).map(b=>[b,'Блок '+b])).map(o=>`<option value="${esc(o[0])}"${(fr.block||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}${(S.obj!=='ALL'&&new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor))).size>1)?`<select onchange="S.regFilter.floor=this.value;saveTblPrefs();renderRegistry()" style="${ss}">${[['Все','Все этажи']].concat(Array.from(new Set(unitsOf(S.obj).map(u=>floorLabel(u.floor)))).sort(floorCmp).map(f=>[f,f])).map(o=>`<option value="${esc(o[0])}"${(fr.floor||'Все')===o[0]?' selected':''}>${esc(o[1])}</option>`).join('')}</select>`:''}<select onchange="S.regFilter.status=this.value;saveTblPrefs();renderRegistry()" style="${ss}">${stOpts.map(o=>`<option value="${o[0]}"${fr.status===o[0]?' selected':''}>${o[1]}</option>`).join('')}</select><select onchange="S.regFilter.cat=this.value;saveTblPrefs();renderRegistry()" style="${ss}">${cats.map(c=>`<option${fr.cat===c?' selected':''}>${c}</option>`).join('')}</select></div></div>`;}
 function renderRegistry(){
  saveTblPrefs(); /* сохраняем личный фильтр/сортировку/вкладку реестра этого пользователя (debounced) */
  const fin=R().finance,us=unitsOf(S.obj),allObj=S.obj==='ALL';
@@ -1738,7 +1749,7 @@ function renderRegistry(){
   <td><b>${u.merged&&u.merged.length?hlt(u.merged.join(' + '),hq):hlt(u.code,hq)}</b>${u.merged?' <span class="pill" title="Объединённое помещение — площадь можно уточнить в карточке (стены/коридоры)">объед.</span>':''}${allObj?`<div style="font-size:10px;color:#6d6d6d">${esc(objById(u.obj).name)} · ${esc(objCountry(objById(u.obj)))}, ${esc(objById(u.obj).city)}</div>`:''}</td>${showBlk?`<td>${unitBlock(u)?esc(unitBlock(u)):'<span style="color:#6d6d6d">-</span>'}</td>`:''}<td>${esc(floorLabel(u.floor))}</td>
   <td>${hlt(u.cat,hq)}<div style="font-size:10px;color:#6d6d6d">${u.sub}</div></td>
   <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#6d6d6d">+'+fmtA(u.terr)+' терр.</div>':''}</td>
-  ${lcrBudVis().map(c=>`<td class="num grp-bud">${lcrCellVal(u,c,fin)}</td>`).join('')}${lcrFacVis().map(c=>`<td class="num grp-fac">${lcrCellVal(u,c,fin)}</td>`).join('')}
+  ${lcrBudVis().map(c=>`<td data-colkey="${c.k}" class="num grp-bud">${lcrCellVal(u,c,fin)}</td>`).join('')}${lcrFacVis().map(c=>`<td data-colkey="${c.k}" class="num grp-fac">${lcrCellVal(u,c,fin)}</td>`).join('')}
   <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
   <td${canEdit?` title="2× клик — изменить" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','broker',this)"`:''}>${u.broker||'-'}</td>
   <td onclick="event.stopPropagation()" style="min-width:150px">${(()=>{const lc=(u.comments&&u.comments.length)?u.comments[u.comments.length-1]:null;return `${lc?`<div style="font-size:10.5px;color:#555" title="${esc(lc[1])} · ${esc(lc[0])}">${esc(String(lc[2]).slice(0,48))}${String(lc[2]).length>48?'…':''}</div>`:''}${canEdit?`<input placeholder="+ комментарий…" style="width:100%;font-family:inherit;font-size:10.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;margin-top:2px" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" onblur="if(this.value.trim()){regQuickComment('${u.id}',this.value);this.value='';}">`:''}`;})()}</td>
@@ -1748,20 +1759,22 @@ function renderRegistry(){
  const selUnits=(S.regSel||[]).map(i=>U.find(u=>u.id===i)).filter(Boolean);
  const sameObj=selUnits.length>=2&&selUnits.every(u=>u.obj===selUnits[0].obj);
  const selbar=selN?`<div class="selbar"><b>Выбрано: ${selN}</b>${canEdit?`<button class="btn sm" onclick="regBulkKP()">Сформировать КП по выбранным</button><select onchange="if(this.value){bulkStatus(this.value);}this.value=''" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px"><option value="">Статус всем…</option>${Object.keys(STAT).map(k=>`<option value="${k}">${stT(k)}</option>`).join('')}</select><select onchange="if(this.value){bulkBroker(this.value);}this.value=''" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px"><option value="">Брокер всем…</option>${brokerNames().map(n=>`<option value="${esc(n)}">${esc(n)}</option>`).join('')}</select>${sameObj?`<button class="btn ghost sm" onclick="bulkMerge()" title="Слить выбранные помещения в одно (площади и террасы сложатся)">⊕ Объединить (${selN})</button>`:''}<button class="btn ghost sm" onclick="bulkRenumber()" title="Перенумеровать выбранные помещения">№ Перенумеровать (${selN})</button><button class="btn ghost sm" style="border-color:#e0a0a0;color:var(--red-d,#9E0000)" onclick="bulkDelete()">🗑 Удалить (${selN})</button>`:''}<button class="btn ghost sm" onclick="regClearSel()">Снять выбор</button></div>`:'';
- /* Панель инструментов ЛСР: только 3–4 главные кнопки на виду; всё остальное (объект, импорт,
-    экспорт, служебные пересчёты) свёрнуто в компактное меню «⋯ Ещё», как аккуратная панель в Базе брендов. */
- const moreItems=[
-  R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>`:'',
-  (R().admin&&S.obj!=='ALL')?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Изменить объект</button>`:'',
-  canEdit?`<button class="btn ghost sm" onclick="importRegCSV()">⬆ Импорт CSV</button>`:'',
-  `<select onchange="var v=this.value;this.value='';if(v==='csv'){exportRegCSV();}else if(v){exportLCRExcel(v);}" style="font-family:inherit;font-size:13px;padding:7px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink)" title="Экспорт реестра — Excel (шаблон LCR) или CSV"><option value="">⬇ Экспорт…</option><option value="ru">Excel — Русский (шаблон LCR)</option><option value="uz">Excel — Oʻzbekcha</option><option value="en">Excel — English</option><option value="csv">CSV (таблица реестра)</option></select>`,
-  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm" onclick="fillBlocksFromCodes()">⬓ Блоки из кодов</button>`:'',
-  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm" onclick="recalcGLAfromUnits()" title="Пересчитать GLA объекта из суммы площадей юнитов">∑ GLA из юнитов</button>`:'',
-  `<button class="btn ghost sm" onclick="tblColReset('reg_units')" title="Сбросить ширину столбцов к авто (ширину можно тянуть за границу заголовка)">↔ Сбросить ширину</button>`
+ /* v4.32.6: responsive action bar. Visible buttons fill available width; lower-priority actions move to «Ещё». */
+ const actionItems=[
+  canEdit?`<button class="btn sm case-action-item" data-priority="100" onclick="addUnit()">+ Помещение</button>`:'',
+  canEdit?`<button class="thbtn case-action-item${S.regEdit?' on':''}" data-priority="95" onclick="toggleRegEdit()" title="Включить правку прямо в таблице">✎ Правка${S.regEdit?': ВКЛ':''}</button>`:'',
+  `<button data-reg-fin-toggle class="thbtn case-action-item${(S.regColBud&&S.regColFac)?' on':''}" data-priority="90" onclick="regToggleFin()" title="Свернуть/развернуть группы столбцов «Бюджет» и «Факт»">${(S.regColBud&&S.regColFac)?'▸ Бюджет/Факт':'▾ Бюджет/Факт'}</button>`,
+  forceMine?`<span class="thbtn on case-action-item" data-priority="88" title="Ограничение роли: видны только ваши сделки">Только свои</span>`:(mine?`<button class="thbtn case-action-item${S.regMine?' on':''}" data-priority="88" onclick="S.regMine=!S.regMine;saveTblPrefs();renderRegistry()">Мои сделки</button>`:''),
+  R().admin?`<button class="btn ghost sm case-action-item" data-priority="70" onclick="addObjectForm()">+ Объект</button>`:'',
+  (R().admin&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="65" onclick="addObjectForm('${S.obj}')">✎ Изменить объект</button>`:'',
+  canEdit?`<button class="btn ghost sm case-action-item" data-priority="55" onclick="importRegCSV()">⬆ Импорт CSV</button>`:'',
+  `<select class="case-action-item" data-priority="50" onchange="var v=this.value;this.value='';if(v==='csv'){exportRegCSV();}else if(v){exportLCRExcel(v);}" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink)" title="Экспорт реестра"><option value="">⬇ Экспорт…</option><option value="ru">Excel — Русский</option><option value="uz">Excel — Oʻzbekcha</option><option value="en">Excel — English</option><option value="csv">CSV</option></select>`,
+  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="35" onclick="fillBlocksFromCodes()">⬓ Блоки из кодов</button>`:'',
+  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="30" onclick="recalcGLAfromUnits()" title="Пересчитать GLA объекта из суммы площадей юнитов">∑ GLA из юнитов</button>`:'',
+  `<button class="btn ghost sm case-action-item" data-priority="20" onclick="if(window.CASE_GRID)CASE_GRID.resetWidths('reg_units');else tblColReset('reg_units')">↔ Сбросить ширину</button>`
  ].filter(Boolean).join('');
- const more=moreItems?`<details class="moremenu"><summary class="btn ghost sm">⋯ Ещё</summary><div class="moremenu-pop">${moreItems}</div></details>`:'';
- const toolbar=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px">${canEdit?`<button class="btn sm" onclick="addUnit()">+ Помещение</button>`:''}${canEdit?`<button class="thbtn${S.regEdit?' on':''}" onclick="toggleRegEdit()" title="Включить правку прямо в таблице">✎ Правка${S.regEdit?': ВКЛ':''}</button>`:''}<button class="thbtn${(S.regColBud&&S.regColFac)?'':' on'}" onclick="regToggleFin()" title="Показать/скрыть все денежные столбцы «Бюджет» и «Факт» (по умолчанию скрыты для компактного вида)">${(S.regColBud&&S.regColFac)?'▸ Бюджет/Факт детально':'▾ Свернуть Бюджет/Факт'}</button>${forceMine?`<span class="thbtn on" title="Ограничение роли: видны только ваши сделки">Только свои</span>`:(mine?`<button class="thbtn${S.regMine?' on':''}" onclick="S.regMine=!S.regMine;renderRegistry()">Мои сделки</button>`:'')}${more}</div>`;
- $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1><span class="pill">${Math.round(occPct(S.obj)*100)}% занято</span></div><p class="sub">${allObj?t('allobj'):curObj().name} · ${fus.length} / ${us.length} помещений</p>${regPlanTabs('table')}${tabs}${toolbar}${regFilterBar(us)}${regColActive()?`<div style="margin:0 0 6px"><button class="btn ghost sm" onclick="regColReset()">✕ Сбросить фильтры колонок</button></div>`:''}${regPlanMismatchBanner()}${S.regEdit&&canEdit?`<div class="banner warn">✎ Режим правки включён — изменения сохраняются сразу. Будьте внимательны. <button class="btn ghost sm" style="margin-left:8px" onclick="toggleRegEdit()">Выключить</button></div>`:''}<div class="card" style="padding:6px"><div class="tbl-scroll">${(function(){const nc=8+(showBlk?1:0)+(canEdit?1:0)+lcrBudVis().length+lcrFacVis().length;const _cg=_tblColgroup('reg_units',nc);return '<table data-tblkey="reg_units" class="reg-grp'+(_cg.cls?' '+_cg.cls.trim():'')+'">'+_cg.cg;})()}<thead>${regHeadRow(us,canEdit,showBlk,allSel)}</thead><tbody>${rows}</tbody></table></div></div>${selbar}${footNote()}`;
+ const toolbar=`<div class="case-adaptive-actions" data-adaptive-actions="lcr">${actionItems}<details class="moremenu case-action-more"><summary class="btn ghost sm">⋯ Ещё</summary><div class="moremenu-pop"></div></details></div>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1><span class="pill">${Math.round(occPct(S.obj)*100)}% занято</span></div><p class="sub">${allObj?t('allobj'):curObj().name} · ${fus.length} / ${us.length} помещений</p>${regPlanTabs('table')}${tabs}${toolbar}${regFilterBar(us)}${regColActive()?`<div style="margin:0 0 6px"><button class="btn ghost sm" onclick="regColReset()">✕ Сбросить фильтры колонок</button></div>`:''}${regPlanMismatchBanner()}${S.regEdit&&canEdit?`<div class="banner warn">✎ Режим правки включён — изменения сохраняются сразу. Будьте внимательны. <button class="btn ghost sm" style="margin-left:8px" onclick="toggleRegEdit()">Выключить</button></div>`:''}<div class="card" style="padding:6px"><div class="tbl-scroll">${(function(){const nc=8+(showBlk?1:0)+(canEdit?1:0)+lcrBudVis().length+lcrFacVis().length;const _cg=_tblColgroup('reg_units',nc);return '<table data-tblkey="reg_units" data-grid-engine="lcr" data-grid-sticky="0" class="reg-grp'+(S.regColBud?' cg-bud-collapsed':'')+(S.regColFac?' cg-fac-collapsed':'')+(_cg.cls?' '+_cg.cls.trim():'')+'">'+_cg.cg;})()}<thead>${regHeadRow(us,canEdit,showBlk,allSel)}</thead><tbody>${rows}</tbody></table></div></div>${selbar}${footNote()}`;
 }
 function myBrokerName(){if(S.user&&S.user.broker)return S.user.broker;for(const k in brokerUser){if(brokerUser[k]===(S.user&&S.user.u))return k;}return null;}
 function regToggleSel(id,on){S.regSel=S.regSel||[];const i=S.regSel.indexOf(id);if(on&&i<0)S.regSel.push(id);else if(!on&&i>=0)S.regSel.splice(i,1);renderRegistry();}
@@ -1829,8 +1842,8 @@ function regEditRow(u,showBlk,allObj,ch){const inS='font-family:inherit;font-siz
  c+=`<td ${stp}>${inp('floor',u.floor)}</td>`;
  c+=`<td ${stp}>${catDot(u.cat)}${inp('cat',u.cat)}<div style="margin-top:3px;margin-left:15px">${inp('sub',u.sub)}</div></td>`;
  c+=`<td class="num" ${stp}>${inp('area',u.area,1)}</td>`;
- lcrBudVis().forEach(col=>{c+=`<td class="num grp-bud" ${col.edit?stp:''}>${col.edit?inp(col.edit,u[col.edit],1):(fin?lcrCellVal(u,col):'•••')}</td>`;});
- lcrFacVis().forEach(col=>{c+=`<td class="num grp-fac" ${col.edit?stp:''}>${col.edit?inp(col.edit,u[col.edit],1):(fin?lcrCellVal(u,col):'•••')}</td>`;});
+ lcrBudVis().forEach(col=>{c+=`<td data-colkey="${col.k}" class="num grp-bud" ${col.edit?stp:''}>${col.edit?inp(col.edit,u[col.edit],1):(fin?lcrCellVal(u,col):'•••')}</td>`;});
+ lcrFacVis().forEach(col=>{c+=`<td data-colkey="${col.k}" class="num grp-fac" ${col.edit?stp:''}>${col.edit?inp(col.edit,u[col.edit],1):(fin?lcrCellVal(u,col):'•••')}</td>`;});
  c+=`<td ${stp}>${R().external?'<span style="font-size:11px;color:#6d6d6d">скрыто</span>':`<input list="brandsDL" value="${esc((u.vars||[]).join(', '))}" placeholder="бренд из базы / через запятую" title="Начните вводить — появится выпадающий список брендов из базы. Несколько брендов — через запятую." onchange="saveVarsLive('${u.id}',this.value)" onfocus="ensureBrandsDL()" style="${inS}">`}</td>`;
  const bopts=brokerNames(),bcur=u.broker||'',blist=(bcur&&bopts.indexOf(bcur)<0)?[bcur,...bopts]:bopts;
  c+=`<td ${stp}><select onchange="saveCellLive('${u.id}','broker',this.value)" style="${inS}"><option value="">-</option>${blist.map(n=>`<option value="${esc(n)}"${n===bcur?' selected':''}>${esc(n)}</option>`).join('')}</select></td>`;
@@ -1920,8 +1933,8 @@ function _regFCols(){return [
 ].concat(_lcrBudColsAll().concat(_lcrFacColsAll()).map(c=>({k:c.k,filter:'number',num:true,get:c.get})));}
 function regColMatch(u){const f=S.regColF;if(!f)return true;const cs=_regFCols();for(let i=0;i<cs.length;i++){const c=cs[i],fv=f[c.k];if(fv!=null&&fv!==''&&fv!=='Все'){if(!tblFilterPass(c,u,fv))return false;}}return true;}
 function regColActive(){const f=S.regColF;return !!(f&&Object.keys(f).some(k=>f[k]!=null&&f[k]!==''&&f[k]!=='Все'));}
-function regColFilter(k,v){S.regColF=S.regColF||{};S.regColF[k]=v;S._focus='rcf_'+k;go('registry');}
-function regColReset(){S.regColF={};S._focus=null;go('registry');}
+function regColFilter(k,v){S.regColF=S.regColF||{};S.regColF[k]=v;S._focus='rcf_'+k;try{saveTblPrefs();}catch(e){}go('registry');}
+function regColReset(){S.regColF={};S._focus=null;try{saveTblPrefs();}catch(e){}go('registry');}
 function regFltRow(us,canEdit,showBlk){
  const f=S.regColF||{};const RCFIN='width:100%;font-family:inherit;font-size:11px;padding:4px;border:1px solid var(--border);border-radius:6px;font-weight:400';
  const distinct=g=>{const s=[];us.forEach(u=>{const v=g(u);if(v!=null&&v!==''&&s.indexOf(String(v))<0)s.push(String(v));});return s.sort((a,b)=>a.localeCompare(b,'ru',{numeric:true}));};
@@ -1945,8 +1958,18 @@ function regFltRow(us,canEdit,showBlk){
 }
 function regSort(k){const rs=S.regSort;if(rs&&rs.k===k)rs.dir=-rs.dir;else S.regSort={k,dir:1};saveTblPrefs();renderRegistry();}
 /* Свернуть/показать группу финансовых (бюджетных) столбцов одной кнопкой — как группировка колонок в Excel. */
-function regToggleFin(){S.regColBud=S.regColFac=!(S.regColBud&&S.regColFac);try{saveUiPrefs();}catch(e){}renderRegistry();}
-function regToggleGrp(g){if(g==='bud')S.regColBud=!S.regColBud;else S.regColFac=!S.regColFac;try{saveUiPrefs();}catch(e){}renderRegistry();}
+function regUpdateGroupUi(){
+ document.querySelectorAll('[data-reg-group="bud"]').forEach(el=>{el.textContent=(S.regColBud?'▸':'▾')+' Бюджет';});
+ document.querySelectorAll('[data-reg-group="fac"]').forEach(el=>{el.textContent=(S.regColFac?'▸':'▾')+' Факт';});
+ document.querySelectorAll('[data-reg-fin-toggle]').forEach(el=>{const both=!!(S.regColBud&&S.regColFac);el.classList.toggle('on',both);el.textContent=(both?'▸':'▾')+' Бюджет/Факт';});
+ document.querySelectorAll('table[data-tblkey="reg_units"]').forEach(tb=>{tb.classList.toggle('cg-bud-collapsed',!!S.regColBud);tb.classList.toggle('cg-fac-collapsed',!!S.regColFac);});
+}
+function regApplyGroupState(anchor){
+ try{if(window.CASE_GRID&&CASE_GRID.setGroupState&&CASE_GRID.setGroupState('reg_units',anchor)){regUpdateGroupUi();return true;}}catch(e){}
+ return false;
+}
+function regToggleFin(){const anchor=(window.CASE_GRID&&CASE_GRID.captureScrollAnchor)?CASE_GRID.captureScrollAnchor('reg_units'):null;S.regColBud=S.regColFac=!(S.regColBud&&S.regColFac);try{saveUiPrefs();}catch(e){}if(!regApplyGroupState(anchor))renderRegistry();}
+function regToggleGrp(g){const anchor=(window.CASE_GRID&&CASE_GRID.captureScrollAnchor)?CASE_GRID.captureScrollAnchor('reg_units'):null;if(g==='bud')S.regColBud=!S.regColBud;else S.regColFac=!S.regColFac;try{saveUiPrefs();}catch(e){}if(!regApplyGroupState(anchor))renderRegistry();}
 /* ===== LCR: денежный блок «Бюджет / Факт» (как в Excel-отчёте контроля аренды) =====
    Значения считаются автоматически из ставок и сервис-чарджа объекта; поля-исходники (ставки, посадка, CAPEX)
    можно править прямо в таблице (режим «Правка»). Итоги/обслуживание/разница — расчётные. */
@@ -1980,8 +2003,8 @@ function _lcrFacColsAll(){return [
  {k:'f_tots',lbl:'Итого вкл. обсл., $/мес',get:facTotS,money:1,sum:1},
  {k:'f_diff',lbl:'Разница, $/мес',get:lcrDiff,money:1,diff:1}
 ];}
-function lcrBudVis(){const cs=_lcrBudColsAll();return S.regColBud?cs.filter(c=>c.sum):cs;}
-function lcrFacVis(){const cs=_lcrFacColsAll();return S.regColFac?cs.filter(c=>c.sum||c.diff):cs;}
+function lcrBudVis(){return _lcrBudColsAll();}
+function lcrFacVis(){return _lcrFacColsAll();}
 function lcrColByKey(k){return _lcrBudColsAll().concat(_lcrFacColsAll()).find(c=>c.k===k);}
 function lcrCellVal(u,c,fin){if(fin===false)return '•••';const v=c.get(u);if(!v&&v!==0)return '-';if(v===0)return c.diff?'0':'-';if(c.money)return (c.diff&&v<0?'<span style="color:var(--red-d,#9E0000)">'+fmt(v)+'</span>':(c.diff&&v>0?'<span style="color:var(--green,#2e7d32)">+'+fmt(v)+'</span>':fmt(v)));return String(Math.round(v*100)/100);}
 function regArrow(k){const rs=S.regSort;return rs&&rs.k===k?` <span style="display:inline-block;color:#fff;background:var(--red-d,#9E0000);border-radius:4px;padding:0 4px;font-size:10px;font-weight:800;vertical-align:1px">${rs.dir>0?'▲':'▼'}</span>`:' <span style="display:inline-block;opacity:.5;font-size:10px;vertical-align:1px" title="Сортировать">↕</span>';}
@@ -1989,37 +2012,27 @@ function regArrow(k){const rs=S.regSort;return rs&&rs.k===k?` <span style="displ
 function regHeadRow(us,canEdit,showBlk,allSel){
  try{tblRegMeta('reg_units','reg',_regFCols(),us);}catch(e){}
  const act=k=>_tblFilterActive((S.regColF||{})[k]);
- const fn=(k,filt)=>filt?` <span class="tblfnl${act(k)?' on':''}" title="Фильтр и сортировка" onclick="event.stopPropagation();tblMenu('reg_units','${k}',this,'reg')">▾</span>`:'';
- const nmH=(k,label,sortable)=>`<span class="th-name"${sortable!==false?` style="cursor:pointer" onclick="regSort('${k}')"`:''}>${esc(label)}${sortable!==false?regArrow(k):''}</span>`;
- const cell=(k,label,num,filt,sortable,cls)=>{const cc=[num?'num':'',cls||''].filter(Boolean).join(' ');return `<th${cc?` class="${cc}"`:''}><div class="th1r">${nmH(k,label,sortable)}${fn(k,filt)}</div></th>`;};
+ const sorted=k=>S.regSort&&S.regSort.k===k;
+ const fn=(k,enabled)=>enabled?` <span class="tblfnl${act(k)?' on':''}${sorted(k)?(S.regSort.dir>0?' sort-asc':' sort-desc'):''}" title="Фильтр, сортировка и столбец" onclick="event.stopPropagation();tblMenu('reg_units','${k}',this,'reg')">▾</span>`:'';
+ const cell=(k,label,num,filt,sortable,cls)=>{const cc=[num?'num':'',cls||''].filter(Boolean).join(' ');return `<th data-colkey="${esc(k)}" data-sortable="${sortable===false?0:1}" data-filterable="${filt?1:0}"${cc?` class="${cc}"`:''}><div class="th1r"><span class="th-name" title="${esc(label)}">${esc(label)}</span>${fn(k,filt||sortable!==false)}</div></th>`;};
  const bud=lcrBudVis(),fac=lcrFacVis();const sp='<th class="grp-sp"></th>';
- const bothCollapsed=S.regColBud&&S.regColFac;
- /* Подписи свёрнутых итогов — коротко и понятно (как одна чистая строка заголовков в Базе брендов). */
- const budLbl=c=>(S.regColBud&&c.k==='b_tots')?'Бюджет, $/мес':c.lbl;
- const facLbl=c=>(S.regColFac&&c.k==='f_tots')?'Факт, $/мес':c.lbl;
- /* Ряд 1 — цветные заголовки групп «Бюджет»/«Факт». Показываем ТОЛЬКО когда группы развёрнуты;
-    в компактном (свёрнутом) виде — одна чистая строка заголовков, без большой двухуровневой шапки. */
- let r1='';
- if(!bothCollapsed){
-  r1='<tr class="grprow">';
-  if(canEdit)r1+=sp;r1+=sp;if(showBlk)r1+=sp;r1+=sp+sp+sp;
-  r1+=`<th class="grp-hd grp-bud" colspan="${bud.length}"><span onclick="regToggleGrp('bud')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Бюджет»">${S.regColBud?'▸':'▾'} Бюджет</span></th>`;
-  r1+=`<th class="grp-hd grp-fac" colspan="${fac.length}"><span onclick="regToggleGrp('fac')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Факт»">${S.regColFac?'▸':'▾'} Факт</span></th>`;
-  r1+=sp+sp+sp+sp;r1+='</tr>';
- }
- /* Ряд 2 — все листовые столбцы (имя + сортировка + фильтр-воронка). */
- let r2='<tr>';
- if(canEdit)r2+=`<th class="selcol"><input type="checkbox" ${allSel?'checked':''} onclick="regSelAll(this.checked)" title="Выбрать всё"></th>`;
+ let r1='<tr class="grprow">';
+ if(canEdit)r1+=sp;r1+=sp;if(showBlk)r1+=sp;r1+=sp+sp+sp;
+ r1+=`<th class="grp-hd grp-bud" colspan="${S.regColBud?1:bud.length}"><span data-reg-group="bud" onclick="regToggleGrp('bud')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Бюджет»">${S.regColBud?'▸':'▾'} Бюджет</span></th>`;
+ r1+=`<th class="grp-hd grp-fac" colspan="${S.regColFac?1:fac.length}"><span data-reg-group="fac" onclick="regToggleGrp('fac')" style="cursor:pointer;user-select:none" title="Свернуть/развернуть группу «Факт»">${S.regColFac?'▸':'▾'} Факт</span></th>`;
+ r1+=sp+sp+sp+sp;r1+='</tr>';
+ let r2='<tr class="leafrow">';
+ if(canEdit)r2+=`<th class="selcol" data-colkey="_select"><input type="checkbox" ${allSel?'checked':''} onclick="regSelAll(this.checked)" title="Выбрать всё"></th>`;
  r2+=cell('code','Помещение',0,true);
  if(showBlk)r2+=cell('block','Блок',0,true);
  r2+=cell('floor','Этаж',0,true);
  r2+=cell('cat','Категория',0,true);
  r2+=cell('area','м²',1,true);
- bud.forEach(c=>{r2+=cell(c.k,budLbl(c),1,true,true,'grp-bud');});
- fac.forEach(c=>{r2+=cell(c.k,facLbl(c),1,true,true,'grp-fac');});
+ bud.forEach(c=>{r2+=cell(c.k,c.lbl,1,true,true,'grp-bud');});
+ fac.forEach(c=>{r2+=cell(c.k,c.lbl,1,true,true,'grp-fac');});
  r2+=cell('vars','Варианты',0,true);
  r2+=cell('broker','Брокер',0,true);
- r2+=`<th><div class="th1r"><span class="th-name">Комментарий</span></div></th>`;
+ r2+=`<th data-colkey="comment"><div class="th1r"><span class="th-name" title="Комментарий">Комментарий</span><span class="tblfnl" title="Настройки столбца" onclick="event.stopPropagation();if(window.CASE_GRID)CASE_GRID.openColumnMenu('reg_units','comment',this)">▾</span></div></th>`;
  r2+=cell('status','Статус',0,true);
  r2+='</tr>';
  return r1+r2;
@@ -2554,17 +2567,14 @@ function uploadPlan(){const inp=document.createElement('input');inp.type='file';
  }catch(ex){PLAN_MSG='err|Ошибка при обработке файла: '+(ex&&ex.message||ex);go('plans');}};
  if(isSvg)r.readAsText(f);else r.readAsDataURL(f);};inp.click();}
 function tryPersist(){let ok=true;
- /* В backend-режиме localStorage — только офлайн-кэш; тяжёлые корпоративные данные (чертежи SVG,
-    гео-набор, презентации) живут на сервере и в него НЕ кладутся (deep audit P1-4: uploadPlan
-    больше не вызывает ложное «хранилище переполнено» после успешного серверного сохранения). */
- try{let _blob=stateBlob();if(BACKEND){_HEAVY_LOCAL_KEYS.forEach(k=>{try{delete _blob[k];}catch(_){}});}localStorage.setItem(STORAGE_KEY,JSON.stringify(_blob));_localReduced=false;_localSaveFailed=false;}
+ try{localStorage.setItem(STORAGE_KEY,JSON.stringify(stateBlob()));_localReduced=false;_localSaveFailed=false;}
  catch(e){
   /* localStorage переполнен (тяжёлые справочники — ГЕО ~2.5МБ, база брендов, портфель). Раньше
      ошибка глоталась молча и правки (варианты/ставки/статусы) ПРОПАДАЛИ после перезагрузки в
      офлайн/демо-режиме. Теперь сохраняем УРЕЗАННЫЙ блок без самых больших наборов, чтобы
      операционные данные всё равно сохранились локально; если и это не влезло — громко предупреждаем. */
   try{
-   const b=stateBlob();_HEAVY_LOCAL_KEYS.forEach(k=>{try{delete b[k];}catch(_){}});
+   const b=stateBlob();delete b.GEO_DATA;
    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
    catch(e2){delete b.BENCH;delete b.CASE_PORTFOLIO_PROJECTS;delete b.KB;localStorage.setItem(STORAGE_KEY,JSON.stringify(b));}
    _localReduced=true;_localSaveFailed=false;
@@ -3433,7 +3443,7 @@ function reloadSrvUsers(){SRV_USERS=null;_rerenderUsersOrOrg();}
 function roleOptions(sel){return Object.keys(ROLES).map(k=>`<option value="${k}"${sel===k?' selected':''}>${esc(ROLES[k].label)}</option>`).join('');}
 function renderUsersBackend(){
  const _all=SRV_USERS||[];const _isArch=x=>(+x.archived===1||x.archived===true);const _archN=_all.filter(_isArch).length;
- const users=S.showArchivedUsers?_all:_all.filter(x=>!_isArch(x)); /* v4.17.0: архивные скрыты из активного списка (переключатель ниже) */
+ const users=S.showArchivedUsers?_all:_all.filter(x=>!_isArch(x)); /* v4.32.6: архивные скрыты из активного списка (переключатель ниже) */
  const preRole=_prefillRole;_prefillRole=null;
  const addForm=`<div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:560px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Email (логин)</label><input id="nu_email" type="email" placeholder="user@caseadvisory.uz"></div></div><div class="row2"><div><label>Пароль (мин. 8)</label><div style="position:relative"><input id="nu_pass" type="password" placeholder="временный пароль" style="padding-right:34px;width:100%;box-sizing:border-box"><button type="button" onclick="togglePassVis('nu_pass',this)" title="Показать/скрыть пароль" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:14px;padding:4px">👁</button></div></div><div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select></div></div><label>Имя брокера (для «только свои сделки», необязательно)</label><input id="nu_broker" placeholder="как в поле «Брокер» у помещений"><button class="btn" style="margin-top:12px" onclick="srvAddUser()">+ Создать пользователя</button></div></div>`;
  const rows=users.map(u=>{const act=(+u.active===1||u.active===true);const self=S.user&&S.user.id===u.id;const scoped=ROLES[u.role_key]&&ROLES[u.role_key].projectScoped;const projLbl=(u.projects||[]).map(id=>{const o=objById(id);return o?o.name:id;}).join(', ');return `<tr><td><b>${esc(nameDisplay(u.name||''))}</b>${self?' <span class="pill">вы</span>':''}<div style="font-size:10px;color:#6d6d6d">${esc(u.email||'')}</div></td><td><select onchange="srvSetRole('${u.id}',this.value)" style="font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:7px">${roleOptions(u.role_key)}</select></td><td>${esc(u.broker_name||'-')}</td><td>${scoped?`<div style="font-size:11px;color:${(u.projects||[]).length?'inherit':'var(--red-d)'}">${esc(projLbl||'нет доступа')}</div><button class="btn ghost sm" onclick="srvEditUserProjects('${u.id}')">Проекты…</button>`:'<span class="mut">—</span>'}</td><td>${act?'<span style="color:var(--green)">активен</span>':'<span style="color:#6d6d6d">отключён</span>'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="srvUserEdit('${u.id}')">Изменить</button> <button class="btn ghost sm" onclick="srvSetPass('${u.id}')">Пароль</button> <button class="btn ghost sm" onclick="srvSetActive('${u.id}',${act?0:1})">${act?'Отключить':'Включить'}</button></td></tr>`;}).join('');
@@ -3505,7 +3515,7 @@ function srvSetPass(id){
 async function srvSetPassSave(id){const p=($('sp_pass')&&$('sp_pass').value)||'';if(p.length<8){alert('Минимум 8 символов');return;}try{await apiPOST('users.php',{action:'setpass',id,password:p});audit('Сброс пароля',id);const m=$('rmodal');if(m)m.remove();alert('Пароль обновлён. Передайте его сотруднику.');}catch(e){alert('Ошибка: '+(e&&e.message||e));}}
 function srvUserEdit(id){const u=(SRV_USERS||[]).find(x=>x.id===id);if(!u)return;S.view='users';const scoped=ROLES[u.role_key]&&ROLES[u.role_key].projectScoped;const act=(+u.active===1||u.active===true);const arch=(+u.archived===1||u.archived===true);const projLbl=(u.projects||[]).map(pid=>{const o=objById(pid);return o?o.name:pid;}).join(', ')||'нет доступа';
  $('main').innerHTML=`<div class="ph"><h1>Изменить пользователя</h1></div><p class="sub">Карточка сотрудника. Логин (e-mail) изменяет администратор; внутренний ID остаётся прежним — история и назначения не отвязываются.</p><div class="card" style="max-width:640px"><div class="form"><div class="row2"><div><label>Имя</label><input id="ue_name" value="${esc(u.name||'')}"></div><div><label>E-mail / логин <span class="mut" style="font-size:10px">(меняет только админ)</span></label><input id="ue_email" type="email" value="${esc(u.email||'')}" title="Логин можно изменить"></div></div><div class="row2"><div><label>Роль</label><select id="ue_role">${roleOptions(u.role_key)}</select></div><div><label>Имя брокера (для «только свои сделки»)</label><input id="ue_broker" value="${esc(u.broker_name||'')}" placeholder="как в поле «Брокер»"></div></div><div class="row2"><div><label>Статус</label><select id="ue_active"><option value="1"${act?' selected':''}>Активен</option><option value="0"${act?'':' selected'}>Отключён</option></select></div><div><label>Пароль</label><div><button class="btn ghost sm" type="button" onclick="srvSetPass('${u.id}')">Сменить пароль…</button></div></div></div>${scoped?`<label>Доступные проекты (внешний агент)</label><div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="mut" style="font-size:12px">${esc(projLbl)}</span><button class="btn ghost sm" type="button" onclick="srvEditUserProjects('${u.id}')">Изменить проекты…</button></div>`:''}<div style="margin-top:16px;display:flex;gap:8px;flex-wrap:wrap"><button class="btn" onclick="srvUserCardSave('${u.id}')">Сохранить</button><button class="btn ghost" onclick="renderUsers()">← Назад к списку</button><button class="btn ghost" onclick="srvUserArchive('${u.id}',${arch?0:1})">${arch?'Вернуть из архива':'В архив'}</button><button class="btn ghost" style="color:#b3261e;border-color:#e6b4ae" onclick="srvUserDelete('${u.id}')">Удалить…</button></div><p class="mut" style="font-size:11px;margin-top:10px">Статус «Отключён» блокирует вход (данные сохраняются). «В архив» убирает из активных списков (история сохраняется). Полное удаление доступно только для учёток без связанных данных — иначе система предложит архив.</p></div></div>`;localize();}
-/* v4.17.0: подсчёт связанных записей пользователя (сделки/задачи/комиссии/юниты/бренды и т.п.) — для защиты при удалении */
+/* v4.32.6: подсчёт связанных записей пользователя (сделки/задачи/комиссии/юниты/бренды и т.п.) — для защиты при удалении */
 function srvUserLinks(u){const name=(u.name||'').trim().toLowerCase(),broker=(u.broker_name||'').trim().toLowerCase(),id=u.id;const hit=v=>{v=(v==null?'':String(v)).trim().toLowerCase();return v&&(v===name||(broker&&v===broker)||v===id);};let n=0;const parts=[];
  try{const c=U.filter(x=>hit(x.broker)).length;if(c){n+=c;parts.push('юниты/брокер: '+c);}}catch(e){}
  try{const c=(typeof AGENTS!=='undefined'?AGENTS:[]).filter(a=>hit(a.name)||hit(a.role)).length;if(c){parts.push('строки KPI: '+c);}}catch(e){}
@@ -4155,29 +4165,31 @@ function brandProfile(id){
 }catch(e){}})();
 
 try{Object.assign(ENMAP,{'Цена':'Price','Цена ур.':'Price lvl','Название':'Name','Цена ур.':'Price level','Бренд ур.':'Brand level','Мин. м²':'Min m²','Макс. м²':'Max m²','Ур. бренда':'Brand level','Бренд ур.':'Brand lvl','Бренд':'Brand','Мин. м²':'Min m²','Макс. м²':'Max m²','Мин м²':'Min m²','Макс м²':'Max m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Price level','Уровень бренда':'Brand level','Минимальная площадь':'Minimum area','Максимальная площадь':'Maximum area','Бонусы команды':'Team bonuses','Накоплено':'Accumulated','Придёт при закрытии':'Expected if closed','Упущено':'Lost','Weighted forecast':'Weighted forecast'});Object.assign(UZMAP,{'Цена':'Narx','Цена ур.':'Narx dar.','Название':'Nomi','Ур. бренда':'Brend darajasi','Бренд ур.':'Brend dar.','Бренд':'Brend','Мин. м²':'Min m²','Макс. м²':'Maks m²','Мин m²':'Min m²','Макс m²':'Maks m²','Мин м²':'Min m²','Макс м²':'Maks m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Narx darajasi','Уровень бренда':'Brend darajasi','Минимальная площадь':'Minimal maydon','Максимальная площадь':'Maksimal maydon','Бонусы команды':'Jamoa bonuslari','Накоплено':'Yigʻilgan','Придёт при закрытии':'Yopilganda keladi','Упущено':'Yoʻqotilgan'});}catch(e){}
-function footNote(){return `<div class="foot"><b>CASE OS v4.17.0.</b> Единая операционная система CASE для проектов, Advisory, Leasing & Sales, Data & Analytics, будущего Property & Asset Management, внутренних финансов и цифровых продуктов. CRM, Scope, задачи, Kanban, загрузка команды и версии планировок работают в едином проектном контуре. Будущие и экспериментальные разделы управляются администратором в настройках модулей и по умолчанию скрыты. ${BACKEND?'Изменения сохраняются на сервере с реальными логинами и настраиваемой матрицей доступа.':'Локальный демо-режим: изменения сохраняются только в этом браузере.'} <button class="btn ghost sm" style="margin-left:8px" onclick="exportAllJSON()">Бэкап (JSON)</button>${R().admin?'<button class="btn ghost sm" style="margin-left:6px" onclick="importAllJSON()">Восстановить (JSON)</button>':''}${BACKEND?'':'<button class="btn ghost sm" style="margin-left:6px" onclick="resetDemo()">Сбросить демо</button>'}</div>`;}
+function footNote(){return `<div class="foot"><b>CASE OS v4.32.7.</b> Единая операционная система CASE для проектов, Advisory, Leasing & Sales, Data & Analytics, будущего Property & Asset Management, внутренних финансов и цифровых продуктов. CRM, Scope, задачи, Kanban, загрузка команды и версии планировок работают в едином проектном контуре. Будущие и экспериментальные разделы управляются администратором в настройках модулей и по умолчанию скрыты. ${BACKEND?'Изменения сохраняются на сервере с реальными логинами и настраиваемой матрицей доступа.':'Локальный демо-режим: изменения сохраняются только в этом браузере.'} <button class="btn ghost sm" style="margin-left:8px" onclick="exportAllJSON()">Бэкап (JSON)</button>${R().admin?'<button class="btn ghost sm" style="margin-left:6px" onclick="importAllJSON()">Восстановить (JSON)</button>':''}${BACKEND?'':'<button class="btn ghost sm" style="margin-left:6px" onclick="resetDemo()">Сбросить демо</button>'}</div>`;}
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
-<script src="v32-upgrade.js?v=4.17.0" defer></script>
-<script src="v326-commission-engines.js?v=4.17.0" defer></script>
-<script src="v35-stable.js?v=4.17.0" defer></script>
-<script src="v3515-ux.js?v=4.17.0" defer></script>
-<script src="jszip.min.js?v=4.17.0" defer></script>
-<script src="v3518-brands-import.js?v=4.17.0" defer></script>
-<script src="v3520-workspaces.js?v=4.17.0" defer></script>
-<script src="v400-feasibility.js?v=4.17.0" defer></script>
-<script src="v420-geoanalytics.js?v=4.31.5" defer></script>
-<script src="v440-engineering.js?v=4.17.0" defer></script>
-<script src="v450-guides.js?v=4.17.0" defer></script>
-<script src="v490-caseos.js?v=4.17.0" defer></script>
-<script src="v490-workflow.js?v=4.17.0" defer></script>
-<script src="v492-portfolio-proposals.js?v=4.31.9" defer></script>
-<script src="data/case_portfolio.seed.js?v=4.17.0" defer></script>
-<script src="v493-portfolio-suite.js?v=4.31.9" defer></script>
-<script src="v496-commissions.js?v=4.17.0" defer></script>
-<script src="v410-feature-flags.js?v=4.17.0" defer></script>
-<script src="v417-master-plan.js?v=4.17.0" defer></script>
+<script src="v32-upgrade.js?v=4.32.7" defer></script>
+<script src="v326-commission-engines.js?v=4.32.7" defer></script>
+<script src="v35-stable.js?v=4.32.7" defer></script>
+<script src="v3515-ux.js?v=4.32.7" defer></script>
+<script src="jszip.min.js?v=4.32.7" defer></script>
+<script src="v3518-brands-import.js?v=4.32.7" defer></script>
+<script src="v3520-workspaces.js?v=4.32.7" defer></script>
+<script src="v400-feasibility.js?v=4.32.7" defer></script>
+<script src="v420-geoanalytics.js?v=4.32.7" defer></script>
+<script src="v440-engineering.js?v=4.32.7" defer></script>
+<script src="v450-guides.js?v=4.32.7" defer></script>
+<script src="v490-caseos.js?v=4.32.7" defer></script>
+<script src="v490-workflow.js?v=4.32.7" defer></script>
+<script src="v492-portfolio-proposals.js?v=4.32.7" defer></script>
+<script src="data/case_portfolio.seed.js?v=4.32.7" defer></script>
+<script src="v493-portfolio-suite.js?v=4.32.7" defer></script>
+<script src="v496-commissions.js?v=4.32.7" defer></script>
+<script src="v410-feature-flags.js?v=4.32.7" defer></script>
+<script src="v417-master-plan.js?v=4.32.7" defer></script>
+<script src="v432-data-grid.js?v=4.32.7" defer></script>
+<script src="v4327-patch.js?v=4.32.7" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

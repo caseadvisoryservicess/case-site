@@ -1,4 +1,4 @@
-/* CASE OS v4.17.0 — CASE portfolio maps + flexible Advisory proposal builder.
+/* CASE OS v4.32.6 — CASE portfolio maps + flexible Advisory proposal builder.
    Historical portfolio is deliberately separate from operational OBJECTS/LCR. */
 (function(){
 'use strict';
@@ -16,7 +16,7 @@ var SERVICES={
 var TYPE_DEFAULTS={retail:{label:'Торговый центр / ритейл',mode:'per_sqm',rates:{concept:2,feasibility:2.5,strategic:4.5}},mixed:{label:'Многофункциональный комплекс',mode:'hybrid',rates:{concept:2,feasibility:2.5,strategic:4.5}},office:{label:'Бизнес-центр / офисы',mode:'fixed',rates:{}},residential:{label:'Жилой комплекс',mode:'fixed',rates:{}},hotel:{label:'Гостиница / курорт',mode:'fixed',rates:{}},industrial:{label:'Логистика / индустриальный объект',mode:'fixed',rates:{}},other:{label:'Другой объект',mode:'fixed',rates:{}}};
 function E(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
 function n(v){v=Number(v);return isFinite(v)?v:0;}function uid(p){return p+'-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2,8);}function today(){return new Date().toISOString().slice(0,10);}function plusDays(d,x){var z=new Date((d||today())+'T12:00:00');z.setDate(z.getDate()+n(x));return z.toISOString().slice(0,10);}function fmt(v){return n(v).toLocaleString('ru-RU',{maximumFractionDigits:2});}
-function save(reason){try{audit('CASE OS v4.17.0',reason||'изменение');}catch(e){}try{persist();}catch(e){}try{if(typeof apiSaveState==='function')apiSaveState();}catch(e){}}
+function save(reason){try{audit('CASE OS v4.32.6',reason||'изменение');}catch(e){}try{persist();}catch(e){}try{if(typeof apiSaveState==='function')apiSaveState();}catch(e){}}
 function canEdit(){try{var r=R();return !!(r.admin||r.edit||r.finance);}catch(e){return false;}}
 function ensureData(){if(!Array.isArray(CASE_PORTFOLIO_PROJECTS))CASE_PORTFOLIO_PROJECTS=[];if(!CASE_PORTFOLIO_PROJECTS.length)CASE_PORTFOLIO_PROJECTS=JSON.parse(JSON.stringify(SEED));
  /* Уважаем постоянно удалённые проекты портфеля (см. v493 delSetPortfolio) — не возвращаем их re-seed'ом. */

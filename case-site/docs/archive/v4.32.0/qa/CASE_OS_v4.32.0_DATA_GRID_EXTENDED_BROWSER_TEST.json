@@ -1,0 +1,18 @@
+{
+  "numeric_gt_visible": [
+    "B2",
+    "C3"
+  ],
+  "combined_visible": [
+    "B2",
+    "C3"
+  ],
+  "active_filter_buttons": 2,
+  "lcr_existing_filters": 6,
+  "lcr_generic_filters": 0,
+  "lcr_has_view_button": 1,
+  "lcr_sticky_default": 8,
+  "captured_lcr_code_width": 123,
+  "u2_storage_exists": false,
+  "u1_storage_exists": true
+}

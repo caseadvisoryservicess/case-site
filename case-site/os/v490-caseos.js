@@ -1,4 +1,4 @@
-/* CASE OS v4.17.0 — company architecture, project portfolio and planned business lines. */
+/* CASE OS v4.32.6 — company architecture, project portfolio and planned business lines. */
 (function(){
   'use strict';
   if(window.CASE_OS_V490) return;
@@ -58,7 +58,7 @@
   function csvCell(v){v=String(v==null?'':v);if(/^[=+\-@]/.test(v))v="'"+v;return /[",\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
   function download(name,text,type){var b=new Blob([text],{type:type||'text/plain;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);}
 
-  function pageShell(title,sub,body){return '<div class="ph"><div><div class="case-v490-eye">CASE OS · v4.17.0</div><h1>'+h(title)+'</h1></div></div>'+(sub?'<p class="sub">'+h(sub)+'</p>':'')+body+(typeof footNote==='function'?footNote():'');}
+  function pageShell(title,sub,body){return '<div class="ph"><div><div class="case-v490-eye">CASE OS · v4.32.6</div><h1>'+h(title)+'</h1></div></div>'+(sub?'<p class="sub">'+h(sub)+'</p>':'')+body+(typeof footNote==='function'?footNote():'');}
   function plannedPage(v){
     var p=PLACEHOLDERS[v]||{title:moduleTitle(v),desc:'Раздел заложен в архитектуру CASE OS и будет активирован после утверждения бизнес-процесса и технического задания.',items:[]};
     var list=(p.items||[]).map(function(x){return '<li>'+h(x)+'</li>';}).join('');
