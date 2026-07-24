@@ -1060,14 +1060,18 @@ function renderBC(){if(!map)return;
   const m=L.circleMarker([la,ln],{renderer:CANV,radius:rad,color:ed?'#e6a700':'#fff',weight:ed?2.5:1,fillColor:col,fillOpacity:op});
   const dkm=hav(p.lat,p.lng,la,ln);
   m.bindPopup(popContent(e,dkm,b.id),{maxWidth:310});
-  m.bindTooltip(esc(e.name),{sticky:true});
   m.on('click',ev=>{L.DomEvent.stopPropagation(ev);markSel(la,ln);m.openPopup();});
+  /* v4.42.3: bindTooltip вызывается РОВНО один раз — повторный bind до добавления на карту
+     в Leaflet 1.9.4 молча ломает постоянную подпись (галочка «подписи» не срабатывала) */
+  let showLab=false;
   if(lab){const pt=map.latLngToLayerPoint([la,ln]);
     const w=Math.max(24,String(e.name).length*fs*0.55),h=fs+4;
     let ok=true;
     for(const q of placed){if(Math.abs(pt.x-q[0])<(w+q[2])/2+5 && Math.abs(pt.y-q[1])<(h+q[3])/2+2){ok=false;break;}}
-    if(ok){placed.push([pt.x,pt.y,w,h]);m.bindTooltip(esc(e.name),{permanent:true,direction:'right',className:'bclab',offset:[6,0]});}
+    if(ok){placed.push([pt.x,pt.y,w,h]);showLab=true;}
   }
+  if(showLab)m.bindTooltip(esc(e.name),{permanent:true,direction:'right',className:'bclab',offset:[6,0]});
+  else m.bindTooltip(esc(e.name),{sticky:true});
   m.addTo(gBC);nbc++;});
  VIS.bc=nbc;updateLegend();}
 // edit card
@@ -1141,13 +1145,15 @@ function renderMed(){if(!map)return;
   const m=L.circleMarker([x.la,x.ln],{renderer:CANV,radius:rad,color:'#fff',weight:1,fillColor:col,fillOpacity:mOp});
   const d=hav(p.lat,p.lng,x.la,x.ln),idx=MEDPTS.indexOf(x);
   m.bindPopup('<div class="geo-map-popup"><strong>'+esc(x.n)+'</strong><p>'+esc([SPLBL[x.sp]||x.sp,MEDLBL[x.t]||x.t,x.d].filter(Boolean).join(' · '))+'</p>'+(x.a?'<p>'+esc(x.a)+'</p>':'')+'<div class="geo-map-popup-grid">'+(x.p?'<div><span>Телефон</span><b>'+esc(x.p)+'</b></div>':'')+(x.rv?'<div><span>Отзывы</span><b>'+esc(x.rv)+'</b></div>':'')+'</div><small>'+d.toFixed(2)+' км от проекта · '+esc(x.s||'источник не указан')+'</small><button type="button" onclick="geoOpenMapRecord(\'medicine\','+idx+');return false">Открыть карточку</button></div>',{maxWidth:310});
-  m.bindTooltip(esc(x.n),{sticky:true});
   m.on('click',ev=>{L.DomEvent.stopPropagation(ev);markSel(x.la,x.ln);m.openPopup();});
+  /* v4.42.3: bindTooltip один раз — см. комментарий в renderBC */
+  let showLab=false;
   if(lab&&shown<CAP){const pt=map.latLngToLayerPoint([x.la,x.ln]);
    const w=Math.max(24,String(x.n).length*fs*0.55),hh=fs+4;let ok=true;
    for(const q of placed){if(Math.abs(pt.x-q[0])<(w+q[2])/2+5&&Math.abs(pt.y-q[1])<(hh+q[3])/2+2){ok=false;break;}}
-   if(ok){placed.push([pt.x,pt.y,w,hh]);shown++;
-    m.bindTooltip(esc(x.n),{permanent:true,direction:'right',className:'medlab',offset:[6,0]});}}
+   if(ok){placed.push([pt.x,pt.y,w,hh]);shown++;showLab=true;}}
+  if(showLab)m.bindTooltip(esc(x.n),{permanent:true,direction:'right',className:'medlab',offset:[6,0]});
+  else m.bindTooltip(esc(x.n),{sticky:true});
   m.addTo(gMed);});
  VIS.med=list; const noName=all.filter(x=>x.nn).length;
  updateLegend();
