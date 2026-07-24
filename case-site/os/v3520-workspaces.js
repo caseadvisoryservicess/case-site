@@ -207,11 +207,13 @@
   }
 
   window.caseNavClose=function(){document.querySelectorAll('.nav-group.open').forEach(function(g){g.classList.remove('open');var b=g.querySelector('.nav-group-btn');if(b)b.setAttribute('aria-expanded','false');});};
-  window.caseNavGo=function(a,v){try{var g=a&&a.closest('.nav-group');document.querySelectorAll('#nav .nav-group').forEach(function(x){x.classList.remove('has-active');if(x!==g)x.classList.remove('open');});if(g){g.classList.add('has-active');g.classList.add('open');}}catch(e){}go(v);};
-  window.caseNavToggle=function(e,b){if(e)e.stopPropagation();var g=b&&b.closest('.nav-group'),was=g&&g.classList.contains('open');window.caseNavClose();if(g&&!was){g.classList.add('open');b.setAttribute('aria-expanded','true');}};
+  window.caseNavGo=function(a,v){try{var g=a&&a.closest('.nav-group');document.querySelectorAll('#nav .nav-group.has-active').forEach(function(x){x.classList.remove('has-active');});if(g){g.classList.add('has-active');g.classList.add('open');}}catch(e){}go(v);}; /* v4.40.1: чужие открытые группы не трогаем */
+  window.caseNavToggle=function(e,b){if(e)e.stopPropagation();var g=b&&b.closest('.nav-group');if(!g)return;var now=g.classList.toggle('open');b.setAttribute('aria-expanded',now?'true':'false');}; /* v4.40.1: заголовок сворачивает/раскрывает только свою группу */
   /* v4.37: аккордеон следует за навигацией — при любом go() открыта группа активного экрана (и только она) */
-  (function(){var og=window.go;if(typeof og==='function'&&!og._nav437){window.go=function(v){var r=og.apply(this,arguments);try{var a=document.querySelector('#nav a.active');var g=a&&a.closest('.nav-group');if(g){document.querySelectorAll('#nav .nav-group').forEach(function(x){x.classList.remove('has-active');if(x!==g)x.classList.remove('open');});g.classList.add('has-active');g.classList.add('open');}}catch(e){}return r;};window.go._nav437=true;}})();
-  document.addEventListener('click',function(e){if(!e.target.closest('.nav-group'))window.caseNavClose();});
+  (function(){var og=window.go;if(typeof og==='function'&&!og._nav437){window.go=function(v){var prev=null;try{prev=S&&S.view;}catch(e){}var r=og.apply(this,arguments);var cur=null;try{cur=S&&S.view;}catch(e){}
+    if(cur!==prev){try{var a=document.querySelector('#nav a.active');var g=a&&a.closest('.nav-group');if(g){document.querySelectorAll('#nav .nav-group.has-active').forEach(function(x){if(x!==g)x.classList.remove('has-active');});g.classList.add('has-active');g.classList.add('open');}}catch(e){}}
+    return r;};window.go._nav437=true;}})(); /* v4.40.1: перерендер того же экрана (сортировка/фильтр/сохранение) меню не трогает */
+  /* v4.40.1: обработчик «клик вне меню → закрыть группы» удалён — в закреплённом меню он сворачивал группы при любом действии в рабочем окне */
 
   function roleOptions(sel){return Object.keys(ROLES||{}).map(function(k){return '<option value="'+h(k)+'"'+(sel===k?' selected':'')+'>'+h((roleObj(k).label)||k)+'</option>';}).join('');}
   function userOptions(sel){return people().filter(function(p){return p.active!==false;}).map(function(p){return '<option value="'+h(String(p.id))+'"'+(String(sel)===String(p.id)?' selected':'')+'>'+h(p.name||p.id)+' · '+h((roleObj(p.role).label)||p.role)+'</option>';}).join('');}

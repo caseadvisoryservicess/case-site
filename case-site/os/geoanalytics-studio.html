@@ -876,13 +876,14 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="geo-cat-title">HoReCa</div>
    <div id="geoCatAnchor-horeca"></div>
    <div class="geo-cat-title">Медицина и аптеки</div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed"> Медицина (OSM + clinics.uz)</label><input type="color" id="medC" value="#16a085" title="фикс. цвет"><input type="range" id="medR" min="3" max="9" value="5" title="размер"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed"> Медицина (OSM + clinics.uz)</label><input type="color" id="medC" value="#16a085" title="фикс. цвет"><input type="range" id="medR" min="3" max="9" value="5" title="размер"><input type="range" id="medO" min="20" max="100" value="85" title="прозрачность"></div>
       <div class="styrow sub"><label for="medT">тип</label><select id="medT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="comp">конкуренты клиники (больницы+клиники+частные+врачи+лаб.)</option><option value="hospital">больницы / стационары</option><option value="clinic">клиники / поликлиники</option><option value="private">частные клиники (clinics.uz)</option><option value="doctors">врачебные практики / кабинеты</option><option value="dentist">стоматологии</option><option value="lab">лаборатории / диагностика</option><option value="maternity">роддома / перинатальные</option><option value="rehab">реабилитация / санатории</option><option value="other">прочее</option></select><label>подписи</label><input type="checkbox" id="medLab" checked></div>
    <div class="styrow sub"><label for="medSp">направление</label><select id="medSp" style="width:auto;font-size:11px"><option value="">все направления</option><option value="gen">Многопрофильные / общие</option><option value="polikl">Поликлиники / семейные / диспансеры</option><option value="hosp">Больницы / стационары / скорая</option><option value="stom">Стоматология</option><option value="lor">ЛОР / сурдология</option><option value="nevro">Неврология / нейрохирургия</option><option value="kardio">Кардиология / флебология</option><option value="oftalm">Офтальмология / оптика</option><option value="lab">Лаборатории / диагностика / МРТ</option><option value="pediatr">Педиатрия / детские</option><option value="gynec">Гинекология / роддома / ЭКО</option><option value="derma">Дерматология / косметология / пластика</option><option value="uro">Урология / нефрология</option><option value="travma">Травматология / ортопедия</option><option value="psih">Психиатрия / наркология / логопедия</option><option value="onko">Онкология / гематология</option><option value="infekt">Инфекции / туберкулёз / СЭС</option><option value="allerg">Аллергология / иммунология / пульмонология</option><option value="endo">Эндокринология / гастроэнтерология</option><option value="reabil">Реабилитация / физиотерапия / санатории</option></select></div>
    <div class="styrow sub"><label for="medColBy">раскраска</label><select id="medColBy" style="width:auto;font-size:11px"><option value="sp" selected>по направлению медицины</option><option value="t">по типу учреждения</option><option value="fix">один цвет</option></select></div>
    <div class="styrow sub"><label>подписи с зума</label><input type="range" id="medLabZ" min="11" max="18" value="13"><span class="mini" id="medLabZv"></span></div>
    <div class="mini" id="medLeg" style="line-height:1.7;margin:2px 0 4px"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label><input type="color" id="phC" value="#2ecc71" aria-label="Цвет слоя «Аптеки»"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label><input type="color" id="phC" value="#2ecc71" aria-label="Цвет слоя «Аптеки»"><input type="checkbox" id="phLab" title="подписи аптек (порог — «подписи с зума» медицины)"></div>
+   <div class="styrow sub"><label>размер</label><input type="range" id="phR" min="2" max="9" value="3"><label>прозр.</label><input type="range" id="phO" min="20" max="100" value="60"></div>
    <div class="mini" id="phNote"></div>
    <div class="mini" id="medNote"></div>
    <div class="geo-cat-title">Ритейл</div>
@@ -1110,7 +1111,7 @@ function medFiltered(){const f=$('medT').value,sp=$('medSp').value;
  if(sp)a=a.filter(x=>x.sp===sp);
  return a;}
 function renderMed(){if(!map)return;gMed.clearLayers();if(!$('lMed')||!$('lMed').checked)return;
- const rad=+$('medR').value,mode=$('medColBy').value,fix=$('medC').value;
+ const rad=+$('medR').value,mOp=($('medO')?+$('medO').value:85)/100,mode=$('medColBy').value,fix=$('medC').value;
  const z=map.getZoom(),minZ=+$('medLabZ').value;$('medLabZv').textContent='z'+minZ+' (сейчас z'+z+')';
  const lab=$('medLab').checked && z>=minZ;
  const fs=labelFont(),CAP=180;
@@ -1122,7 +1123,7 @@ function renderMed(){if(!map)return;gMed.clearLayers();if(!$('lMed')||!$('lMed')
  const ord=list.slice().sort((a,b)=>(+(b.rv||0))-(+(a.rv||0)));
  ord.forEach(x=>{
   const col=mode==='sp'?(SPCOL[x.sp]||'#95a5a6'):mode==='t'?(MEDCOL[x.t]||'#16a085'):fix;
-  const m=L.circleMarker([x.la,x.ln],{renderer:CANV,radius:rad,color:'#fff',weight:1,fillColor:col,fillOpacity:.85});
+  const m=L.circleMarker([x.la,x.ln],{renderer:CANV,radius:rad,color:'#fff',weight:1,fillColor:col,fillOpacity:mOp});
   const d=hav(p.lat,p.lng,x.la,x.ln),idx=MEDPTS.indexOf(x);
   m.bindPopup('<div class="geo-map-popup"><strong>'+esc(x.n)+'</strong><p>'+esc([SPLBL[x.sp]||x.sp,MEDLBL[x.t]||x.t,x.d].filter(Boolean).join(' · '))+'</p>'+(x.a?'<p>'+esc(x.a)+'</p>':'')+'<div class="geo-map-popup-grid">'+(x.p?'<div><span>Телефон</span><b>'+esc(x.p)+'</b></div>':'')+(x.rv?'<div><span>Отзывы</span><b>'+esc(x.rv)+'</b></div>':'')+'</div><small>'+d.toFixed(2)+' км от проекта · '+esc(x.s||'источник не указан')+'</small><button type="button" onclick="geoOpenMapRecord(\'medicine\','+idx+');return false">Открыть карточку</button></div>',{maxWidth:310});
   m.bindTooltip(esc(x.n),{sticky:true});
@@ -1151,16 +1152,17 @@ function phLat(p){return +(Array.isArray(p)?p[0]:p&&p.lat);}
 function phLng(p){return +(Array.isArray(p)?p[1]:p&&p.lng);}
 function phName(p){return Array.isArray(p)?'Аптека':(p&&p.name)||'Аптека';}
 function renderPharm(){if(!map)return;gPharm.clearLayers();if(!$('lPharm')||!$('lPharm').checked)return;
- const c=$('phC').value;
+ const c=$('phC').value,pr=($('phR')?+$('phR').value:3),po=($('phO')?+$('phO').value:60)/100;
+ const _pz=map.getZoom(),_pMinZ=($('medLabZ')?+$('medLabZ').value:13),plab=$('phLab')&&$('phLab').checked&&_pz>=_pMinZ;let _phLabN=0;
  const VB=vbox();let n=0;
  PHARM.forEach((p,i)=>{const la=phLat(p),ln=phLng(p);if(!Number.isFinite(la)||!Number.isFinite(ln)||VB&&!VB.contains([la,ln]))return;n++;
   const name=phName(p),district=!Array.isArray(p)&&(p.district||distAt(la,ln))||distAt(la,ln)||'Район не указан';
   const extra=!Array.isArray(p)?[p.address,p.hours&&('Режим: '+p.hours),p.phone&&('Телефон: '+p.phone)].filter(Boolean).slice(0,2):[];
   const status=!Array.isArray(p)&&p._verification==='verified'?'Подтверждено вручную':!Array.isArray(p)&&p._verification==='needs_review'?'Нужна ручная проверка':'Онлайн, не проверено';
-  const pm=L.circleMarker([la,ln],{renderer:CANV,radius:3,color:c,weight:1,fillColor:c,fillOpacity:.6});
+  const pm=L.circleMarker([la,ln],{renderer:CANV,radius:pr,color:c,weight:1,fillColor:c,fillOpacity:po});
   pm.bindPopup('<div class="geo-map-popup"><strong>'+esc(name)+'</strong><p>'+esc(district)+'</p>'+(extra.length?'<p>'+extra.map(esc).join('<br>')+'</p>':'')+'<div class="geo-map-popup-grid"><div><span>Координаты</span><b>'+la.toFixed(5)+', '+ln.toFixed(5)+'</b></div></div><small>'+esc(status)+(!Array.isArray(p)&&p.provider?' · '+esc(p.provider):'')+'</small><button type="button" onclick="geoOpenMapRecord(\'pharmacies\','+i+');return false">Открыть карточку</button></div>',{maxWidth:310});
   pm.on('click',ev=>{L.DomEvent.stopPropagation(ev);markSel(la,ln);pm.openPopup();});
-  pm.addTo(gPharm).bindTooltip(esc(name),{sticky:true});});
+  pm.addTo(gPharm);if(plab&&_phLabN<140){_phLabN++;pm.bindTooltip(esc(name),{permanent:true,direction:'top',offset:[0,-4],className:'medlab'});}else pm.bindTooltip(esc(name),{sticky:true});});
  VIS.ph=n;updateLegend();
  $('phNote').textContent=PHARM.length+' аптек (OSM), на экране '+n+' - прокси спроса и пешего трафика.';}
 function medStats(){
@@ -1944,7 +1946,7 @@ function dataTab(){$('dataT').innerHTML=`<div style="margin-bottom:8px"><input i
 $('lMetro').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gMetro);renderMetro();}else map.removeLayer(gMetro);};
 $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);renderRoad();}else map.removeLayer(gRoad);};
 $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm);renderPharm();}else map.removeLayer(gPharm);};
-$('phC').addEventListener('input',renderPharm);
+$('phC').addEventListener('input',renderPharm);['phR','phO'].forEach(id=>{if($(id))$(id).addEventListener('input',renderPharm);});if($('phLab'))$('phLab').addEventListener('change',renderPharm);
 
 $('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
 $('btnZoneDone').onclick=zoneDone;
@@ -1957,7 +1959,7 @@ $('sZW').addEventListener('input',()=>{const w=+$('sZW').value;$('sZWv').textCon
 ['sZBiz','sZR','sZStep','sZP0','sZC0','sZW','sZTop','sZO'].forEach(id=>$(id).addEventListener('change',()=>{if(ZGRID)zoneMapBuild();}));
 $('sZO').addEventListener('input',()=>{if(ZGRID)zoneMapBuild();});
 $('lMed').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gMed);renderMed();}else map.removeLayer(gMed);};
-['medC','medR','medT','medLab','medSp','medColBy','medLabZ'].forEach(id=>$(id).addEventListener('input',renderMed));
+['medC','medR','medO','medT','medLab','medSp','medColBy','medLabZ'].forEach(id=>$(id).addEventListener('input',renderMed));
 ['lBC','lMed','lPharm','lMetro','lRoad','lDist','bcNa','phC','mC','rC','dC','medSp','medColBy'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(updateLegend,60));});
 let _rt=null;
 function redrawPts(){if(_rt)clearTimeout(_rt);_rt=setTimeout(()=>{_rt=null;
@@ -2080,5 +2082,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.32.7"></script>
+<script src="v420-geo-studio.js?v=4.41.0"></script>
 </body></html>

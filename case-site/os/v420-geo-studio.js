@@ -586,6 +586,7 @@
       +'<div class="geo-poi-gear" id="geoGear-'+k+'" style="display:none">'
       +'<div class="styrow sub geo-poi-sub"><label>цвет</label><input type="color" id="geoColor-'+k+'" value="'+d.color+'" title="фикс. цвет" oninput="geoPoiColor(\''+k+'\',this.value)"><label>размер</label><input type="range" id="geoR-'+k+'" min="3" max="12" value="'+radius+'" oninput="geoPoiRadius(\''+k+'\',this.value)" title="размер точки"><label>прозр.</label><input type="range" id="geoOp-'+k+'" min="20" max="100" value="'+opacity+'" oninput="geoPoiOpacity(\''+k+'\',this.value)" title="непрозрачность"></div>'
       +'<div class="styrow sub geo-poi-sub"><label class="ck"><input type="checkbox" id="geoLab-'+k+'" title="показывать надписи на карте"'+(labels?' checked':'')+' onchange="geoPoiLabels(\''+k+'\',this.checked)"> подписи</label><label>размер подписи</label><input type="range" id="geoLS-'+k+'" min="8" max="20" value="'+labelSize+'" oninput="geoPoiLabelSize(\''+k+'\',this.value)" title="размер надписи на карте"></div>'
+      +'<div class="styrow sub geo-poi-sub"><label class="ck"><input type="checkbox" id="geoClu-'+k+'"'+(d.cluster!==false?' checked':'')+' onchange="geoPoiCluster(\''+k+'\',this.checked)" title="объединять близкие точки в кружки-кластеры; выключите, чтобы видеть каждую точку отдельно"> кластеры точек</label></div>'
       +(k==='street_retail'?retailSubPanelHtml():'')
       +'</div>';
   }
@@ -593,10 +594,10 @@
   // Единая настройка стиля слоя (цвет/размер/прозрачность/подписи) - раньше сохранялся
   // только цвет (asaas_geo_layer_colors). Ключ переименован, но старые сохранённые цвета
   // всё ещё читаются один раз для обратной совместимости.
-  function geoSaveLayerStyle(){var out={};Object.keys(POI_DEFS).forEach(function(k){var d=POI_DEFS[k];out[k]={color:d.color,radius:d.radius,opacity:d.opacity,labels:!!d.labels,labelSize:d.labelSize};});try{localStorage.setItem('asaas_geo_layer_style',JSON.stringify(out));}catch(e){}}
+  function geoSaveLayerStyle(){var out={};Object.keys(POI_DEFS).forEach(function(k){var d=POI_DEFS[k];out[k]={color:d.color,radius:d.radius,opacity:d.opacity,labels:!!d.labels,labelSize:d.labelSize,cluster:d.cluster!==false};});try{localStorage.setItem('asaas_geo_layer_style',JSON.stringify(out));}catch(e){}}
   function geoLoadLayerStyle(){
     try{var legacy=JSON.parse(localStorage.getItem('asaas_geo_layer_colors')||'{}');Object.keys(legacy).forEach(function(k){if(POI_DEFS[k]&&/^#[0-9a-f]{6}$/i.test(legacy[k]))POI_DEFS[k].color=legacy[k];});}catch(e){}
-    try{var saved=JSON.parse(localStorage.getItem('asaas_geo_layer_style')||'{}');Object.keys(saved).forEach(function(k){if(!POI_DEFS[k])return;var s=saved[k];if(s&&/^#[0-9a-f]{6}$/i.test(s.color))POI_DEFS[k].color=s.color;if(s&&Number.isFinite(+s.radius))POI_DEFS[k].radius=+s.radius;if(s&&Number.isFinite(+s.opacity))POI_DEFS[k].opacity=+s.opacity;if(s)POI_DEFS[k].labels=!!s.labels;if(s&&Number.isFinite(+s.labelSize))POI_DEFS[k].labelSize=+s.labelSize;});}catch(e){}
+    try{var saved=JSON.parse(localStorage.getItem('asaas_geo_layer_style')||'{}');Object.keys(saved).forEach(function(k){if(!POI_DEFS[k])return;var s=saved[k];if(s&&/^#[0-9a-f]{6}$/i.test(s.color))POI_DEFS[k].color=s.color;if(s&&Number.isFinite(+s.radius))POI_DEFS[k].radius=+s.radius;if(s&&Number.isFinite(+s.opacity))POI_DEFS[k].opacity=+s.opacity;if(s)POI_DEFS[k].labels=!!s.labels;if(s&&s.cluster===false)POI_DEFS[k].cluster=false;if(s&&Number.isFinite(+s.labelSize))POI_DEFS[k].labelSize=+s.labelSize;});}catch(e){}
   }
   var GEO_POI_CONTROLS_BUILT=false;
   function ensurePoiLayerControls(){
@@ -621,9 +622,11 @@
    // Кластеризация маркеров (Leaflet.markercluster) — при поднятом лимите 2000 точек/слой без
    // неё карта превращается в кашу и тормозит. На близком зуме (>=17) кластеры распадаются на
    // отдельные точки, и подписи снова видны. Если плагин почему-то не загрузился — обычная группа.
-   if(!g){g=GEO_POI_LAYERS[k]=(typeof L.markerClusterGroup==='function'
+   var _wantClu=(POI_DEFS[k].cluster!==false)&&typeof L.markerClusterGroup==='function';
+   if(g&&g._geoClu!==_wantClu){try{map.removeLayer(g);}catch(e){}g=GEO_POI_LAYERS[k]=null;}
+   if(!g){g=GEO_POI_LAYERS[k]=(_wantClu
        ?L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:17,maxClusterRadius:48,spiderfyOnMaxZoom:true,showCoverageOnHover:false})
-       :L.layerGroup()).addTo(map);}
+       :L.layerGroup()).addTo(map);g._geoClu=_wantClu;}
    g.clearLayers();var cb=document.getElementById('geoLayer-'+k),count=document.getElementById('geoLayerCount-'+k);if(count)count.textContent=GEO_POI[k].length;if(!cb||!cb.checked)return;
    var d=POI_DEFS[k],VB=typeof vbox==='function'?vbox():null;
    var radius=(d.radius!=null?d.radius:6),op=(d.opacity!=null?d.opacity:92)/100,showLab=!!d.labels;
@@ -691,6 +694,7 @@
   window.geoPoiLabelSize=function(k,v){if(!POI_DEFS[k])return;var n=+v;if(!Number.isFinite(n))return;POI_DEFS[k].labelSize=n;geoSaveLayerStyle();renderPoiLayer(k);};
   window.geoPoiRadius=function(k,v){if(!POI_DEFS[k])return;var n=+v;if(!Number.isFinite(n))return;POI_DEFS[k].radius=n;geoSaveLayerStyle();renderPoiLayer(k);};
   window.geoPoiOpacity=function(k,v){if(!POI_DEFS[k])return;var n=+v;if(!Number.isFinite(n))return;POI_DEFS[k].opacity=n;geoSaveLayerStyle();renderPoiLayer(k);};
+  window.geoPoiCluster=function(k,on){if(!POI_DEFS[k])return;POI_DEFS[k].cluster=!!on;geoSaveLayerStyle();var g=GEO_POI_LAYERS[k];if(g){try{map.removeLayer(g);}catch(e){}delete GEO_POI_LAYERS[k];}renderPoiLayer(k);}; /* v4.41: «разъединить точки» по каждой категории */
   window.geoPoiColor=function(k,color){if(!POI_DEFS[k]||!/^#[0-9a-f]{6}$/i.test(color))return;POI_DEFS[k].color=color;geoSaveLayerStyle();renderPoiLayer(k);};
   window.geoOpenMapRecord=function(k,i){if(map)map.closePopup();openDatasetRecord(k,+i);};
   /* Удаление неактуального (закрытого/устаревшего) объекта прямо из всплывающего окна на карте.
