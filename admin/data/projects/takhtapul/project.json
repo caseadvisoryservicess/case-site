@@ -790,7 +790,7 @@
         }
       },
       {
-        "n": "1 882,9",
+        "n": "1 855,0",
         "l": {
           "ru": "м² арендопригодной площади (GLA)",
           "uz": "m² ijaraga yaroqli maydon (GLA)",
@@ -798,7 +798,7 @@
         }
       },
       {
-        "n": "2 152,4",
+        "n": "2 299,0",
         "l": {
           "ru": "м² общей площади (GBA)",
           "uz": "m² umumiy maydon (GBA)",
@@ -806,7 +806,7 @@
         }
       },
       {
-        "n": "337–396",
+        "n": "359-382",
         "l": {
           "ru": "м² на этаж (GLA)",
           "uz": "m² har qavatda (GLA)",
@@ -825,7 +825,7 @@
   },
   "params": [
     {
-      "n": "1 882,9",
+      "n": "1 855,0",
       "l": {
         "ru": "м² арендопригодной площади (GLA)",
         "uz": "m² ijaraga yaroqli maydon (GLA)",
@@ -886,7 +886,7 @@
     {
       "id": "b",
       "lvlShort": "−1",
-      "gla": "337,4",
+      "gla": "358,9",
       "plan": "plan-cad-b.jpg",
       "level": {
         "ru": "Подвал",
@@ -900,12 +900,12 @@
       },
       "status": "available",
       "ceil": "3,0",
-      "gba": "375,9"
+      "gba": "415,0"
     },
     {
       "id": "f1",
       "lvlShort": "1",
-      "gla": "358,7",
+      "gla": "381,6",
       "plan": "plan-cad-f1.jpg",
       "level": {
         "ru": "1 этаж",
@@ -919,12 +919,12 @@
       },
       "status": "available",
       "ceil": "4,0",
-      "gba": "412,9"
+      "gba": "440,0"
     },
     {
       "id": "f2",
       "lvlShort": "2",
-      "gla": "395,6",
+      "gla": "371,5",
       "plan": "plan-cad-f23.jpg",
       "level": {
         "ru": "2 этаж",
@@ -938,12 +938,12 @@
       },
       "status": "available",
       "ceil": "3,6",
-      "gba": "453,0"
+      "gba": "481,3"
     },
     {
       "id": "f3",
       "lvlShort": "3",
-      "gla": "395,6",
+      "gla": "371,5",
       "plan": "plan-cad-f23.jpg",
       "level": {
         "ru": "3 этаж",
@@ -957,13 +957,12 @@
       },
       "status": "available",
       "ceil": "3,6",
-      "gba": "453,0"
+      "gba": "481,3"
     },
     {
       "id": "f4",
       "lvlShort": "4",
-      "gla": "395,6",
-      "glaNote": "314,2 + 101,8",
+      "gla": "371,5",
       "plan": "plan-cad-f4.jpg",
       "level": {
         "ru": "4 этаж",
@@ -977,12 +976,12 @@
       },
       "status": "available",
       "ceil": "3,0",
-      "gba": "457,6"
+      "gba": "481,4"
     },
     {
       "id": "all",
       "lvlShort": "1–4",
-      "gla": "1 882,9",
+      "gla": "1 855,0",
       "whole": true,
       "level": {
         "ru": "Здание целиком",
@@ -995,7 +994,7 @@
         "en": "clinic, training center, headquarters — the building under one brand"
       },
       "status": "available",
-      "gba": "2 152,4"
+      "gba": "2 299,0"
     }
   ],
   "useCases": {
@@ -1160,9 +1159,9 @@
           "en": "GLA"
         },
         "s": {
-          "ru": "1 882,9 м²",
-          "uz": "1 882,9 m²",
-          "en": "1,882.9 m²"
+          "ru": "1 855,0 м²",
+          "uz": "1 855,0 m²",
+          "en": "1,855.0 m²"
         }
       },
       {
@@ -1172,9 +1171,9 @@
           "en": "GBA"
         },
         "s": {
-          "ru": "2 152,4 м²",
-          "uz": "2 152,4 m²",
-          "en": "2,152.4 m²"
+          "ru": "2 299,0 м²",
+          "uz": "2 299,0 m²",
+          "en": "2,299.0 m²"
         }
       },
       {

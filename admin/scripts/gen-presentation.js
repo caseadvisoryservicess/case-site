@@ -28,7 +28,7 @@ const L = (v, lang) => {
 };
 
 // GBA по уровням - из рабочей документации
-const GBA = { b: '375,9', f1: '412,9', f2: '453,0', f3: '453,0', f4: '457,6' };
+const GBA = { b: '415,0', f1: '440,0', f2: '481,3', f3: '481,3', f4: '481,4' }; // кадастр, сессия 2026-07-24
 const ELEV = { b: '-', f1: '±0.000', f2: '+4.300', f3: '+8.200', f4: '+12.100' };
 // цветные CAD-листы (те же, что на лендинге)
 const PLAN_CAD = { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2: 'plan-cad-f23.jpg', f3: 'plan-cad-f23.jpg', f4: 'plan-cad-f4.jpg' };
@@ -192,7 +192,7 @@ function buildHtml(lang, qr) {
       <div style="font-size:13pt;margin-top:6mm;opacity:.9">${M(cfg.intro.sub)}</div>
       <div style="font-size:10.5pt;margin-top:3mm;opacity:.75">${M(cfg.location.address)}</div>
       <div style="display:flex;gap:14mm;margin-top:10mm;font-size:10pt">
-        <span><b style="font-size:16pt">1 882,9 м²</b><br><span style="opacity:.75">${t('cover_glaAll')}</span></span>
+        <span><b style="font-size:16pt">1 855,0 м²</b><br><span style="opacity:.75">${t('cover_glaAll')}</span></span>
         <span><b style="font-size:16pt">5</b><br><span style="opacity:.75">${t('cover_levels')}</span></span>
         <span><b style="font-size:16pt">12</b><br><span style="opacity:.75">${t('cover_parking')}</span></span>
         <span><b style="font-size:16pt">3,0-4,0 м</b><br><span style="opacity:.75">${t('cover_ceil')}</span></span>
@@ -207,7 +207,7 @@ function buildHtml(lang, qr) {
     <div style="display:flex;gap:12mm;flex:1;min-height:0">
       <div style="flex:1;display:flex;flex-direction:column;gap:5mm">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm">
-          ${[['1 882,9 м²', t('card_gla')], ['2 152,4 м²', t('card_gba')], [t('card_lvl_n'), t('card_lvl_s')], [t('card_park_n'), t('card_park_s')]]
+          ${[['1 855,0 м²', t('card_gla')], ['2 299,0 м²', t('card_gba')], [t('card_lvl_n'), t('card_lvl_s')], [t('card_park_n'), t('card_park_s')]]
             .map(([n, l]) => `<div style="background:#fff;border-radius:4mm;padding:6mm">
               <div style="font-size:17pt;font-weight:800">${n}</div>
               <div style="font-size:9pt;color:${MUTED};margin-top:1mm">${l}</div></div>`).join('')}
@@ -230,7 +230,7 @@ function buildHtml(lang, qr) {
       <tr><th>${t('th_level')}</th><th>${t('th_elev')}</th><th>GBA</th><th>GLA</th><th>${t('th_ceil')}</th><th>${t('th_use')}</th><th>${t('th_status')}</th></tr>
       ${units.map(unitRow).join('')}
       <tr style="background:${BG}">
-        <td><b>${M(whole.level)}</b></td><td></td><td><b>2 152,4 м²</b></td><td><b>1 882,9 м²</b></td><td></td>
+        <td><b>${M(whole.level)}</b></td><td></td><td><b>2 299,0 м²</b></td><td><b>1 855,0 м²</b></td><td></td>
         <td style="font-size:9.5pt;color:${MUTED}">${M(whole.uses)}</td>
         <td><span class="st${whole.status === 'available' ? '' : ' off'}">${stLabel(whole.status)}</span></td>
       </tr>

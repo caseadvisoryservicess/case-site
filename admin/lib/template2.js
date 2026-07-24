@@ -52,9 +52,9 @@ const STR = {
   'units.th.gla': { ru: 'Арендная площадь (GLA)', uz: 'Ijara maydoni (GLA)', en: 'GLA' },
   'units.gba': { ru: 'общая площадь (GBA)', uz: 'umumiy maydon (GBA)', en: 'GBA' },
   'legal.area': {
-    ru: 'Арендопригодная (GLA) и общая (GBA) площади указаны по рабочей документации и подлежат уточнению по фактическим обмерам при сдаче здания и помещений. Информация на странице носит справочный характер и не является публичной офертой.',
-    uz: 'Ijaraga yaroqli (GLA) va umumiy (GBA) maydonlar ish hujjatlari asosida ko‘rsatilgan bo‘lib, bino va maydonlar topshirilganda amaldagi o‘lchovlar asosida aniqlashtiriladi. Sahifadagi ma’lumotlar tavsiya xarakteriga ega va ommaviy oferta hisoblanmaydi.',
-    en: 'Leasable (GLA) and gross (GBA) areas are based on working documentation and are subject to final on-site remeasurement upon handover of the building or premises. The information on this page is for reference only and does not constitute a public offer.'
+    ru: 'Арендопригодная (GLA) и общая (GBA) площади указаны по данным государственного кадастра и подлежат уточнению по фактическим обмерам помещений. Информация на странице носит справочный характер и не является публичной офертой.',
+    uz: 'Ijaraga yaroqli (GLA) va umumiy (GBA) maydonlar davlat kadastri ma’lumotlari asosida ko‘rsatilgan bo‘lib, xonalarning amaldagi o‘lchovlari bo‘yicha aniqlashtiriladi. Sahifadagi ma’lumotlar tavsiya xarakteriga ega va ommaviy oferta hisoblanmaydi.',
+    en: 'Leasable (GLA) and gross (GBA) areas are based on state cadastre data and are subject to final on-site measurement of the premises. The information on this page is for reference only and does not constitute a public offer.'
   },
   'units.th.uses': { ru: 'Возможное использование', uz: 'Mumkin bo‘lgan foydalanish', en: 'Suggested use' },
   'units.th.status': { ru: 'Статус', uz: 'Holat', en: 'Status' },
