@@ -152,6 +152,19 @@ td{padding:9px 9px;border-bottom:1px solid #f0eeec;vertical-align:top}tr.click{c
 .card table tbody tr:nth-child(even)>td{background:rgba(0,0,0,.015)}
 body.dark .card table tbody tr:nth-child(even)>td{background:rgba(255,255,255,.02)}
 .card table tbody tr:hover>td{background:rgba(158,0,0,.04)}
+/* ═══ v4.38: ЕДИНЫЙ СКИН для таблиц ВСЕХ модулей (v32/v326/case49) — как «База брендов».
+   #main в селекторе даёт приоритет над CSS модулей независимо от порядка их загрузки. ═══ */
+#main .v32-table thead th,#main .v326-table thead th,#main .case49-table thead th{background:var(--soft);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.04em;padding:7px 6px;vertical-align:middle;font-weight:700;text-align:left}
+#main .v32-table td,#main .v326-table td,#main .case49-table td{font-size:12px;padding:8px 6px;border-bottom:1px solid var(--border);vertical-align:top;color:var(--ink)}
+#main .v32-table tbody tr:nth-child(even)>td,#main .v326-table tbody tr:nth-child(even)>td,#main .case49-table tbody tr:nth-child(even)>td{background:rgba(0,0,0,.015)}
+#main .v32-table tbody tr:hover>td,#main .v326-table tbody tr:hover>td,#main .case49-table tbody tr:hover>td{background:rgba(158,0,0,.04)}
+body.dark #main .v32-table tbody tr:nth-child(even)>td,body.dark #main .v326-table tbody tr:nth-child(even)>td,body.dark #main .case49-table tbody tr:nth-child(even)>td{background:rgba(255,255,255,.02)}
+/* таббары гео-модулей и мастера планировок — тот же вид, что вкладки ядра (.tabs) */
+#main .geo-tabbar{gap:8px;margin:0 0 12px}
+#main .geo-tabbar button{border:1px solid var(--border);background:#fff;border-radius:20px;padding:6px 13px;font-weight:600;font-size:12px;color:#444;cursor:pointer}
+#main .geo-tabbar button.on{background:#222;color:#fff;border-color:#222}
+body.dark #main .geo-tabbar button{background:var(--panel);color:var(--ink);border-color:var(--border)}
+body.dark #main .geo-tabbar button.on{background:#222;color:#fff;border-color:#222}
 .st{display:inline-block;padding:2px 8px;border-radius:11px;font-size:10px;font-weight:700;white-space:nowrap}
 .st-vac{background:#f0f0f0;color:#6d6d6d}.st-neg{background:#e4eefb;color:var(--blue)}.st-off{background:#fdeaea;color:var(--red-d)}.st-os{background:#e0f2f1;color:var(--teal)}.st-cs{background:#fff3e0;color:var(--amber)}.st-cd{background:#e7f4e8;color:var(--green)}.st-res{background:#efe7fb;color:var(--purple)}
 .bw{height:8px;background:#eee;border-radius:6px;overflow:hidden}.bar{height:100%;background:var(--red);border-radius:6px}
@@ -456,7 +469,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.37.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.38.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -4269,7 +4282,7 @@ function footNote(){return `<div class="foot"><b>CASE OS v4.32.7.</b> Едина
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
-<script src="v32-upgrade.js?v=4.36.0" defer></script>
+<script src="v32-upgrade.js?v=4.38.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.32.7" defer></script>
 <script src="v3515-ux.js?v=4.32.7" defer></script>
