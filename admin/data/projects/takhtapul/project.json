@@ -1184,9 +1184,9 @@
           "en": "Ceiling height"
         },
         "s": {
-          "ru": "3,0–4,0 м: 1-й этаж 4,0 · 2–3-й 3,6 · 4-й и подвал 3,0",
-          "uz": "3,0–4,0 m: 1-qavat 4,0 · 2–3-qavatlar 3,6 · 4-qavat va podval 3,0",
-          "en": "3.0–4.0 m: floor 1 — 4.0 · floors 2–3 — 3.6 · floor 4 and basement — 3.0"
+          "ru": "• 1‑й этаж: 4,0 м\n• 2‑3‑й: 3,6 м\n• 4‑й и подвал: 3,0 м",
+          "uz": "• 1‑qavat: 4,0 m\n• 2‑3‑qavatlar: 3,6 m\n• 4‑qavat va podval: 3,0 m",
+          "en": "• Floor 1: 4.0 m\n• Floors 2‑3: 3.6 m\n• Floor 4 and basement: 3.0 m"
         }
       },
       {

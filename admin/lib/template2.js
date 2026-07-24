@@ -116,10 +116,12 @@ function pictureTag(uploadsDir, prefix, file, { cls = '', alt = '', eager = fals
   const base = path.basename(file, path.extname(file));
   const ext = path.extname(file);
   const has = (n) => fs.existsSync(path.join(uploadsDir, n));
+  // если есть вариант 1920, оригинал был крупнее (кап пайплайна 2560)
+  const origW = has(`${base}-1920${ext}`) || has(`${base}-1920.webp`) ? 2560 : 1920;
   const srcset = (e) => {
     const parts = [];
-    if (has(`${base}${e}`)) parts.push(`${prefix}assets/${base}${e} 1920w`);
-    for (const s of [1280, 640]) if (has(`${base}-${s}${e}`)) parts.push(`${prefix}assets/${base}-${s}${e} ${s}w`);
+    if (has(`${base}${e}`)) parts.push(`${prefix}assets/${base}${e} ${origW}w`);
+    for (const s of [1920, 1280, 640]) if (has(`${base}-${s}${e}`)) parts.push(`${prefix}assets/${base}-${s}${e} ${s}w`);
     return parts.join(', ');
   };
   const webp = srcset('.webp');
@@ -277,8 +279,8 @@ body[data-intent="buy"] tr.row-whole td{background:rgba(168,128,76,.12)}
 table.specs{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
 table.specs td{padding:13px 16px;border-top:1px solid var(--line);font-size:14.5px}
 table.specs tr:first-child td{border-top:0}
-table.specs td:first-child{font-weight:650;white-space:nowrap;width:1%;padding-right:26px}
-table.specs td:last-child{color:var(--muted)}
+table.specs td:first-child{font-weight:650;width:42%;padding-right:20px}
+table.specs td:last-child{color:var(--muted);white-space:pre-line}
 .about-status{margin-top:16px;padding:14px 16px;background:rgba(168,128,76,.08);border-left:3px solid var(--bronze);border-radius:0 10px 10px 0;font-size:14px}
 .sfb-note{margin-top:10px;font-size:12.5px;color:var(--muted)}
 .gallery{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -688,8 +690,9 @@ if(hPic&&hero&&!RM){
   addEventListener('scroll',function(){if(!ppPend){ppPend=true;requestAnimationFrame(ppUpd)}},{passive:true});
 }
 
-/* появление блоков при скролле: однократно, со стаггером внутри групп;
-   видимое при загрузке не прячем (ноль CLS и мигания) */
+/* появление блоков при скролле: работает в обе стороны (вниз и вверх);
+   класс .in снимается только когда блок целиком ушёл за экран, поэтому
+   у краёв ничего не мигает; видимое при загрузке не прячем (ноль CLS) */
 if(!RM&&'IntersectionObserver' in window){
   var rvCand=[];
   var rvAdd=function(el,delay){rvCand.push([el,delay,el.getBoundingClientRect().top])};
@@ -710,11 +713,15 @@ if(!RM&&'IntersectionObserver' in window){
   if(rvEls.length){
     var rvIO=new IntersectionObserver(function(en){
       en.forEach(function(x){
-        if(!x.isIntersecting)return;
         var el=x.target;
-        el.classList.add('in');
-        rvIO.unobserve(el);
-        if(el.style.transitionDelay)el.addEventListener('transitionend',function h(){el.style.transitionDelay='';el.removeEventListener('transitionend',h)});
+        if(x.isIntersecting){
+          el.classList.add('in');
+          /* у карточек с наклоном стаггер-задержка снимается после первого появления,
+             чтобы не тормозить возврат наклона после ухода курсора */
+          if(el.style.transitionDelay&&el.classList.contains('tilt'))el.addEventListener('transitionend',function h(){el.style.transitionDelay='';el.removeEventListener('transitionend',h)});
+        }else if(x.boundingClientRect.top>=innerHeight||x.boundingClientRect.bottom<=0){
+          el.classList.remove('in');
+        }
       });
     },{threshold:0,rootMargin:'0px 0px -8% 0px'});
     rvEls.forEach(function(el){rvIO.observe(el)});
@@ -865,10 +872,17 @@ function renderPage(cfg, lang, uploadsDir) {
 
   // preload hero (webp приоритетно)
   const heroBase = path.basename(cfg.intro.image || '', path.extname(cfg.intro.image || ''));
+  const heroExt = path.extname(cfg.intro.image || '');
   const heroWebp = fs.existsSync(path.join(uploadsDir, heroBase + '.webp'));
+  const heroW = fs.existsSync(path.join(uploadsDir, heroBase + '-1920' + heroExt)) || fs.existsSync(path.join(uploadsDir, heroBase + '-1920.webp')) ? 2560 : 1920;
+  const heroSet = [`${prefix}assets/${heroBase}.webp ${heroW}w`]
+    .concat([1920, 1280, 640]
+      .filter((s) => fs.existsSync(path.join(uploadsDir, `${heroBase}-${s}.webp`)))
+      .map((s) => `${prefix}assets/${heroBase}-${s}.webp ${s}w`))
+    .join(', ');
   const heroPreload = cfg.intro.image
     ? `<link rel="preload" as="image" ${heroWebp
-      ? `href="${prefix}assets/${heroBase}.webp" imagesrcset="${prefix}assets/${heroBase}.webp 1920w${fs.existsSync(path.join(uploadsDir, heroBase + '-1280.webp')) ? `, ${prefix}assets/${heroBase}-1280.webp 1280w` : ''}${fs.existsSync(path.join(uploadsDir, heroBase + '-640.webp')) ? `, ${prefix}assets/${heroBase}-640.webp 640w` : ''}" imagesizes="100vw" type="image/webp"`
+      ? `href="${prefix}assets/${heroBase}.webp" imagesrcset="${heroSet}" imagesizes="100vw" type="image/webp"`
       : `href="${prefix}assets/${esc(cfg.intro.image)}"`} fetchpriority="high">`
     : '';
 
