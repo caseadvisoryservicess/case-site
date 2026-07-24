@@ -872,7 +872,8 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="geo-cat-title">Бизнес-центры</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label><input type="color" id="bcNa" value="#0d7a6f" title="фикс. цвет"><input type="checkbox" id="bcLab" title="подписи" checked></div>
    <div class="styrow sub"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"><label>цвет по источнику</label><input type="checkbox" id="bcBySrc"><label>цвет по ставке</label><input type="checkbox" id="bcByRent"></div>
-   <div class="styrow sub"><label>подписи с зума</label><input type="range" id="labZ" min="11" max="17" value="13"><span class="mini" id="labZv"></span></div>
+   <div class="styrow sub"><label>подписи с зума</label><input type="range" id="labZ" min="11" max="17" value="13"><span class="mini" id="labZv"></span><label>размер подписи</label><input type="range" id="bcLS" min="8" max="20" value="12"></div>
+   <div class="styrow sub"><label class="ck"><input type="checkbox" id="bcClu"> кластеры точек</label></div>
    <div class="geo-cat-title">HoReCa</div>
    <div id="geoCatAnchor-horeca"></div>
    <div class="geo-cat-title">Медицина и аптеки</div>
@@ -1032,11 +1033,15 @@ function popContent(e,dkm,id){const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google
  return `<div class="geo-map-popup"><strong>${esc(e.name)}</strong><p>${esc([e.district,e.provider].filter(Boolean).join(' · '))}</p>${e.address?'<p>'+esc(e.address)+'</p>':''}<div class="geo-map-popup-grid">${e['class']?'<div><span>Класс</span><b>'+esc(e['class'])+'</b></div>':''}${e.gla?'<div><span>GLA</span><b>'+esc(e.gla)+' м²</b></div>':''}${e.floors?'<div><span>Этажей</span><b>'+esc(e.floors)+'</b></div>':''}${e.rent?'<div><span>Аренда</span><b>'+esc(e.rent)+' $/м²</b></div>':''}</div><small>${fl?'Есть в: '+fl:'Источник требует проверки'}${dkm!=null?' · '+dkm.toFixed(2)+' км от проекта':''}</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenBusinessCard(${id});return false">Открыть карточку</button>${(!document.body.classList.contains('geo-readonly')&&typeof window.geoDeleteMapRecord==='function')?'<button type="button" onclick="geoDeleteMapRecord(\'bc\','+id+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот БЦ с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':''}</div></div>`;}
 function vbox(){if(!map)return null;const s=map.getSize();if(!s||s.x<60||s.y<60)return null;const b=map.getBounds();return (b&&b.isValid())?b.pad(0.25):null;}
 function labelFont(){const z=map.getZoom();return Math.max(8,Math.min(15,8+(z-13)*1.4));}
-function renderBC(){if(!map)return;gBC.clearLayers();if(!$('lBC')||!$('lBC').checked)return;if(!$('bcBySrc')||!$('bcR'))return;
+function renderBC(){if(!map)return;
+ /* v4.42: кластеры точек для БЦ — как у POI-слоёв (HORECA и др.) */
+ const wantClu=!!($('bcClu')&&$('bcClu').checked&&typeof L.markerClusterGroup==='function');
+ if(!!gBC._caseClu!==wantClu){map.removeLayer(gBC);gBC=wantClu?L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:17,maxClusterRadius:48,spiderfyOnMaxZoom:true,showCoverageOnHover:false}):L.layerGroup();gBC._caseClu=wantClu;gBC.addTo(map);}
+ gBC.clearLayers();if(!$('lBC')||!$('lBC').checked)return;if(!$('bcBySrc')||!$('bcR'))return;
  const p=proj(),bySrc=$('bcBySrc').checked,rad=+$('bcR').value,op=+$('bcO').value/100,fix=$('bcNa').value;
  const z=map.getZoom(),minZ=+$('labZ').value;$('labZv').textContent='z'+minZ;
  const lab=$('bcLab').checked && z>=minZ;
- const fs=labelFont();
+ const fs=$('bcLS')?+$('bcLS').value:labelFont(); /* v4.42: размер подписи БЦ — ползунком, как у POI-слоёв */
  let st=document.getElementById('labStyle');if(!st){st=document.createElement('style');st.id='labStyle';document.head.appendChild(st);}
  st.textContent='.leaflet-tooltip.bclab{font-size:'+fs.toFixed(1)+'px}';
  const placed=[];const VB=vbox();let nbc=0;
@@ -1943,7 +1948,7 @@ function dataTab(){$('dataT').innerHTML=`<div style="margin-bottom:8px"><input i
  const draw=()=>{const q=($('dq').value||'').toLowerCase();const rows=BC.map(eff).filter(b=>!q||b.name.toLowerCase().includes(q)||(b.district||'').toLowerCase().includes(q));$('dcount').textContent=rows.length+' из '+BC.length;
   $('dbody').innerHTML=rows.map(b=>`<tr onclick="openCard(${b.id})" style="cursor:pointer"><td><b>${esc(b.name)}</b>${EDITS[b.id]?' <span class="pill" style="background:#e6a700">ред</span>':''}</td><td>${esc(b.district)}</td><td><span class="pill" style="background:${PROVCOL[b.provider]||'#666'}">${esc(b.provider)}</span></td><td>${esc(b['class']||'')}</td><td style="font-size:10px">${[b.in2gis?'2ГИС':'',b.ingoogle?'G':'',b.inyandex?'Y':'',b.ingp?'GP':''].filter(Boolean).join(' ')}</td><td>${b.lat!=null?'✓':'—'}</td></tr>`).join('');};
  $('dq').oninput=draw;draw();}
-['bcNa','bcR','bcO','bcLab','bcBySrc','bcByRent'].forEach(id=>$(id).addEventListener('input',renderBC));$('lBC').onchange=renderBC;
+['bcNa','bcR','bcO','bcLab','bcBySrc','bcByRent','bcLS','bcClu'].forEach(id=>{const e=$(id);if(e)e.addEventListener('input',renderBC);});$('lBC').onchange=renderBC;
 ['ringW','ringWc'].forEach(id=>$(id).addEventListener('input',renderRings));
 $('lMetro').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gMetro);renderMetro();}else map.removeLayer(gMetro);};
 $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);renderRoad();}else map.removeLayer(gRoad);};

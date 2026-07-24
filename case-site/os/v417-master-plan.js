@@ -355,7 +355,7 @@
           if(!canView()){try{return oldGo.call(this,(typeof window.asaasWorkspaceFirst==='function')?window.asaasWorkspaceFirst():'dash');}catch(e){return;}}
           try{S.view=VIEW;}catch(e){}
           try{document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('active',a.dataset.v===VIEW);});}catch(e){}
-          try{if(typeof window.caseNavClose==='function')window.caseNavClose();}catch(e){}
+          try{if(typeof window.caseNavSync==='function')window.caseNavSync();}catch(e){} /* v4.42: синхронизация групп вместо сворачивания всех */
           var side=document.getElementById('side'),scrim=document.getElementById('scrim');if(side)side.classList.remove('open');if(scrim)scrim.classList.remove('open');
           render();try{if(typeof saveUiPrefs==='function')saveUiPrefs();}catch(e){}return;
         }

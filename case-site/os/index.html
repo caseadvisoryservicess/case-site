@@ -349,7 +349,7 @@ body.dark .kcol.kover{background:#3a1414}
 .kcard{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:8px;margin-bottom:7px;cursor:grab;box-shadow:var(--shadow)}
 .kcard:active{cursor:grabbing}
 body.dark .kcard{background:#262420}
-.quizpop{position:fixed;right:16px;bottom:16px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:2000;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
+.quizpop{position:fixed;right:16px;bottom:86px;width:320px;max-width:90vw;background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 10px 34px rgba(0,0,0,.22);z-index:2000;font-size:13px;overflow:hidden;animation:quizIn .18s ease-out}
 @keyframes quizIn{from{transform:translateY(14px);opacity:0}to{transform:translateY(0);opacity:1}}
 .quizpop-h{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--red);color:#fff}
 .quizpop-h b{font-size:12.5px;letter-spacing:.02em}
@@ -367,8 +367,9 @@ body.dark .kcard{background:#262420}
 .quizpop-ok{color:var(--green);font-weight:700}
 .quizpop-bad{color:var(--red-d);font-weight:700}
 .quizpop-why{color:var(--muted);margin-top:4px}
-.quizpop-badge{position:fixed;left:16px;right:auto;bottom:16px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
-@media (max-width:480px){.quizpop{right:8px;bottom:8px;left:8px;width:auto}.quizpop-badge{left:8px;right:auto;bottom:8px}}
+.quizpop-badge{position:fixed;right:18px;left:auto;bottom:86px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
+@media (max-width:480px){.quizpop{right:8px;bottom:8px;left:8px;width:auto}}
+@media (max-width:900px){.quizpop-badge{display:none!important}}
 /* v3.1: тёмный режим для квиз-окна и тестов — все тексты читаемые */
 .quizpop,.quizpop-body,.quizpop-q,.quizpop-fb{color:var(--ink)}
 .quizpop-opt{color:var(--ink);background:var(--soft)}
@@ -470,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.41.2';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.42.0';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -2241,6 +2242,8 @@ function quizPick(){const bank=quizBank();if(!bank.length)return null;const uk=q
 function maybeShowQuiz(){
  try{
   if(!S.user||!$('app')||$('app').classList.contains('hidden'))return;
+  if(R().external)return;
+  if(window.innerWidth<=900)return;
   if(typeof document!=='undefined'&&document.hidden)return;
   if(isUserBusy())return;
   if($('quizPop'))return;
@@ -3543,7 +3546,7 @@ function renderUsers(){
  if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}
  if(BACKEND){if(SRV_USERS===null){loadSrvUsers();$('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><div class="card" style="color:var(--muted)">Загрузка пользователей…</div>`;return;}renderUsersBackend();return;}
  const preRole=_prefillRole;_prefillRole=null;
- $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><p class="sub">Единая платформа: роль задаёт шаблон, администратор настраивает доступ каждому сотруднику</p><div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:520px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Логин</label><input id="nu_login" placeholder="login"></div></div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select><button class="btn" style="margin-top:12px" onclick="addUser()">+ ${t('add')}</button></div></div>${demoUsersCard()}${renderRoleMatrix()}${footNote()}`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div><div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:520px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Логин</label><input id="nu_login" placeholder="login"></div></div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select><button class="btn" style="margin-top:12px" onclick="addUser()">+ ${t('add')}</button></div></div>${demoUsersCard()}${footNote()}`;
  if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
 function renderAdminModules(){if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}$('main').innerHTML=`<div class="ph"><h1>Управление модулями</h1></div>${footNote()}`;localize();/* карточка флагов монтируется модулем v410 (наблюдатель за #main) */}
@@ -3560,13 +3563,12 @@ function renderUsersBackend(){
  const preRole=_prefillRole;_prefillRole=null;
  const addForm=`<div class="card"><h3>Добавить пользователя</h3><div class="form" style="max-width:560px"><div class="row2"><div><label>Имя</label><input id="nu_name" placeholder="ФИО"></div><div><label>Email (логин)</label><input id="nu_email" type="email" placeholder="user@caseadvisory.uz"></div></div><div class="row2"><div><label>Пароль (мин. 8)</label><div style="position:relative"><input id="nu_pass" type="password" placeholder="временный пароль" style="padding-right:34px;width:100%;box-sizing:border-box"><button type="button" onclick="togglePassVis('nu_pass',this)" title="Показать/скрыть пароль" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);border:0;background:transparent;cursor:pointer;font-size:14px;padding:4px">👁</button></div></div><div><label>Роль</label><select id="nu_role">${roleOptions(preRole||'AG')}</select></div></div><label>Имя брокера (для «только свои сделки», необязательно)</label><input id="nu_broker" placeholder="как в поле «Брокер» у помещений"><button class="btn" style="margin-top:12px" onclick="srvAddUser()">+ Создать пользователя</button></div></div>`;
  const rows=users.map(u=>{const act=(+u.active===1||u.active===true);const self=S.user&&S.user.id===u.id;const scoped=ROLES[u.role_key]&&ROLES[u.role_key].projectScoped;const projLbl=(u.projects||[]).map(id=>{const o=objById(id);return o?o.name:id;}).join(', ');return `<tr><td><b>${esc(nameDisplay(u.name||''))}</b>${self?' <span class="pill">вы</span>':''}<div style="font-size:10px;color:#6d6d6d">${esc(u.email||'')}</div></td><td><select onchange="srvSetRole('${u.id}',this.value)" style="font-family:inherit;font-size:12px;padding:5px 7px;border:1px solid var(--border);border-radius:7px">${roleOptions(u.role_key)}</select></td><td>${esc(u.broker_name||'-')}</td><td>${scoped?`<div style="font-size:11px;color:${(u.projects||[]).length?'inherit':'var(--red-d)'}">${esc(projLbl||'нет доступа')}</div><button class="btn ghost sm" onclick="srvEditUserProjects('${u.id}')">Проекты…</button>`:'<span class="mut">—</span>'}</td><td>${act?'<span style="color:var(--green)">активен</span>':'<span style="color:#6d6d6d">отключён</span>'}</td><td style="white-space:nowrap"><button class="btn ghost sm" onclick="srvUserEdit('${u.id}')">Изменить</button> <button class="btn ghost sm" onclick="srvSetPass('${u.id}')">Пароль</button> <button class="btn ghost sm" onclick="srvSetActive('${u.id}',${act?0:1})">${act?'Отключить':'Включить'}</button></td></tr>`;}).join('');
- const list=`<div class="card"><h3>Пользователи (${users.length}) <span class="mut">реальные учётки входа (база)</span>${_archN?`<button class="btn ghost sm" style="margin-left:8px" onclick="S.showArchivedUsers=!S.showArchivedUsers;renderUsersBackend()">${S.showArchivedUsers?'Скрыть архив':'Показать архив ('+_archN+')'}</button>`:''}</h3><div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Роль</th><th>Брокер</th><th>Проекты (внешние)</th><th>Статус</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" style="color:var(--muted)">Пока только вы. Добавьте сотрудников выше.</td></tr>'}</tbody></table></div></div>`;
- $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div>${addForm}${list}${renderRoleMatrix()}${footNote()}`;localize();
+ const list=`<div class="card"><h3>Пользователи (${users.length})${_archN?`<button class="btn ghost sm" style="margin-left:8px" onclick="S.showArchivedUsers=!S.showArchivedUsers;renderUsersBackend()">${S.showArchivedUsers?'Скрыть архив':'Показать архив ('+_archN+')'}</button>`:''}</h3><div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Роль</th><th>Брокер</th><th>Проекты (внешние)</th><th>Статус</th><th></th></tr></thead><tbody>${rows||'<tr><td colspan="6" style="color:var(--muted)">Пока только вы. Добавьте сотрудников выше.</td></tr>'}</tbody></table></div></div>`;
+ $('main').innerHTML=`<div class="ph"><h1>${t('users')}</h1></div>${addForm}${list}${footNote()}`;localize();
  loadBackupList();
  if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
 function backupCard(){if(!R().admin)return '';return `<div class="card" id="backupCard"><h3>Резервные копии базы <span class="mut">ежедневный автоматический бэкап</span></h3>
- <p style="font-size:12.5px;color:#555;margin:4px 0 10px">Бэкап — полная копия базы в защищённой папке на сервере; скачивание и восстановление — только администратор.</p>
  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px"><button class="btn sm" onclick="runBackupNow()">💾 Создать бэкап сейчас</button><button class="btn ghost sm" onclick="showCronHelp()">⏱ Как настроить ежедневный запуск</button></div>
  <div id="backupList" style="font-size:12.5px;color:var(--muted)">Загрузка списка…</div>
  </div>`;}
@@ -3577,7 +3579,6 @@ function renderBackupList(list){const el=$('backupList');if(!el)return;if(!list.
 async function restoreBackup(name){if(!R().admin)return;if(!confirm('ВОССТАНОВИТЬ базу из «'+name+'»?\n\nВся текущая база (пользователи, помещения, документы, настройки) будет ЗАМЕНЕНА содержимым этой копии. Перед заменой сервер автоматически сохранит снимок текущей базы для отката.\n\nПродолжить?'))return;if(!confirm('Подтвердите ещё раз: восстановить базу из «'+name+'»? Действие необратимо без снимка отката.'))return;try{const j=await apiPOST0('backup.php?action=restore',{name:name});alert('База восстановлена из «'+name+'».\nСнимок отката сохранён: '+(j.snapshot||'—')+'\n\nСтраница будет перезагружена.');location.reload();}catch(e){alert('Ошибка восстановления: '+(e&&e.message||e));}}
 async function runBackupNow(){const btn=event&&event.target;if(btn)btn.disabled=true;try{const j=await apiPOST0('backup.php');renderBackupList(j.backups||[]);alert('Бэкап создан: '+j.file);}catch(e){alert('Ошибка бэкапа: '+(e&&e.message||e));}finally{if(btn)btn.disabled=false;}}
 function migrationsCard(){if(!R().admin)return '';return `<div class="card"><h3>Обновление базы данных <span class="mut">миграции</span></h3>
- <p style="font-size:12.5px;color:#555;margin:4px 0 10px">После обновления версии платформы нажмите один раз — применятся только новые миграции базы.</p>
  <button class="btn sm" onclick="runMigrations()">⇪ Применить миграции</button>
  <button class="btn ghost sm" style="margin-left:6px" onclick="runDbDiag()">🩺 Диагностика базы</button>
  <div id="migResult" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>
@@ -3648,8 +3649,6 @@ async function srvUserCardSave(id){const u=(SRV_USERS||[]).find(x=>x.id===id);if
  try{await apiPOST('data.php',{table:'app_users',row:{id,name,broker_name:broker||null,role_key:role,active}});if(emailChanged){await apiPOST('users.php',{action:'change_email',id,email});audit('Изменён логин пользователя',id+': '+oldEmail+' → '+email);}audit('Изменён пользователь',id);toast&&toast('Сохранено');await reloadSrvUsers();}catch(e){alert('Ошибка: '+(e&&e.message||e));await reloadSrvUsers();}}
 async function srvEditUserProjects(id){const u=(SRV_USERS||[]).find(x=>x.id===id);if(!u)return;const list=OBJECTS.map(o=>o.id+' = '+o.name).join('\n');const cur=(u.projects||[]).join(',');const val=prompt('Проекты, доступные этому внешнему агенту.\nВведите id объектов через запятую:\n\n'+list,cur);if(val==null)return;const ids=val.split(',').map(s=>s.trim()).filter(Boolean).filter(id2=>OBJECTS.some(o=>o.id===id2));try{await apiPOST('data.php',{table:'app_users',row:{id,projects:ids}});audit('Назначены проекты',id+' → '+(ids.join(', ')||'нет'));reloadSrvUsers();}catch(e){alert('Ошибка: '+(e&&e.message||e));}}
 const RIGHTLBL=[['leasing','Аренда'],['finance','Финансы'],['edit','Правки'],['approve','Виза'],['plans','Планы'],['ownOnly','Только свои'],['external','Внешний'],['projectScoped','Только проекты'],['admin','Админ']];
-function renderRoleMatrix(){const rows=Object.keys(ROLES).map(rk=>{const r0=ROLES[rk];return `<tr><td><b>${esc(r0.label||rk)}</b></td>`+RIGHTLBL.map(rt=>{const on=!!r0[rt[0]];const lock=(rt[0]==='admin'&&rk==='ASH');return `<td style="text-align:center"><span ${lock?'title="Админ-доступ меняется только в коде (защита от блокировки)" style="cursor:default;opacity:.6;':'onclick="toggleRight(\''+rk+'\',\''+rt[0]+'\')" title="Открыть / закрыть доступ" style="cursor:pointer;'}display:inline-block;min-width:30px;padding:3px 8px;border-radius:7px;font-weight:800;${on?'background:#e7f4e8;color:var(--green)':'background:#f0f0f0;color:#6d6d6d'}">${on?'✓':'✕'}</span></td>`;}).join('')+'</tr>';}).join('');
- return `<div class="card"><h3>Права ролей <span class="mut">шаблоны доступа (это не люди) · клик по ячейке — открыть / закрыть</span></h3><div class="tbl-scroll"><table><thead><tr><th>Роль</th>${RIGHTLBL.map(rt=>`<th style="text-align:center">${rt[1]}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div><div style="font-size:11px;color:var(--muted);margin-top:8px">Права применяются ко всем пользователям этой роли. Админ-доступ (управление пользователями) защищён от случайного отключения. Изменения сохраняются.</div></div>`;}
 function auditSeverity(a){const act=a.action||'';
  if(/^Удал|Очистка данных|Изменение прав роли|^Смена роли|Сброс пароля|^Статус (пользователя|сотрудника)|^Создан пользователь/.test(act))return 'crit';
  if(/^Изменён|^Создан объект|^Правка|^Быстрая правка|^Объединение|^Разделение|^Перераспределение|^Массовая|^Импорт|^Помещения из чертежа|^Площади из чертежа|^Блоки из кодов|^Добавлен|^Канбан|^Документ/.test(act))return 'warn';
@@ -4278,7 +4277,7 @@ function brandProfile(id){
 }catch(e){}})();
 
 try{Object.assign(ENMAP,{'Цена':'Price','Цена ур.':'Price lvl','Название':'Name','Цена ур.':'Price level','Бренд ур.':'Brand level','Мин. м²':'Min m²','Макс. м²':'Max m²','Ур. бренда':'Brand level','Бренд ур.':'Brand lvl','Бренд':'Brand','Мин. м²':'Min m²','Макс. м²':'Max m²','Мин м²':'Min m²','Макс м²':'Max m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Price level','Уровень бренда':'Brand level','Минимальная площадь':'Minimum area','Максимальная площадь':'Maximum area','Бонусы команды':'Team bonuses','Накоплено':'Accumulated','Придёт при закрытии':'Expected if closed','Упущено':'Lost','Weighted forecast':'Weighted forecast','Взвешенный прогноз':'Weighted forecast'});Object.assign(UZMAP,{'Цена':'Narx','Цена ур.':'Narx dar.','Название':'Nomi','Ур. бренда':'Brend darajasi','Бренд ур.':'Brend dar.','Бренд':'Brend','Мин. м²':'Min m²','Макс. м²':'Maks m²','Мин m²':'Min m²','Макс m²':'Maks m²','Мин м²':'Min m²','Макс м²':'Maks m²','м² min':'m² min','м² max':'m² max','Ценовой уровень':'Narx darajasi','Уровень бренда':'Brend darajasi','Минимальная площадь':'Minimal maydon','Максимальная площадь':'Maksimal maydon','Бонусы команды':'Jamoa bonuslari','Накоплено':'Yigʻilgan','Придёт при закрытии':'Yopilganda keladi','Упущено':'Yoʻqotilgan','Взвешенный прогноз':'Vaznlangan prognoz'});}catch(e){}
-function footNote(){return `<div class="foot"><b>CASE OS v4.32.7.</b> Единая операционная система CASE для проектов, Advisory, Leasing & Sales, Data & Analytics, будущего Property & Asset Management, внутренних финансов и цифровых продуктов. CRM, Scope, задачи, Kanban, загрузка команды и версии планировок работают в едином проектном контуре. Будущие и экспериментальные разделы управляются администратором в настройках модулей и по умолчанию скрыты. ${BACKEND?'Изменения сохраняются на сервере с реальными логинами и настраиваемой матрицей доступа.':'Локальный демо-режим: изменения сохраняются только в этом браузере.'} <button class="btn ghost sm" style="margin-left:8px" onclick="exportAllJSON()">Бэкап (JSON)</button>${R().admin?'<button class="btn ghost sm" style="margin-left:6px" onclick="importAllJSON()">Восстановить (JSON)</button>':''}${BACKEND?'':'<button class="btn ghost sm" style="margin-left:6px" onclick="resetDemo()">Сбросить демо</button>'}</div>`;}
+function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${BACKEND?'Изменения сохраняются на сервере.':'Демо-режим: данные хранятся только в этом браузере.'} <button class="btn ghost sm" style="margin-left:8px" onclick="exportAllJSON()">Бэкап (JSON)</button>${R().admin?'<button class="btn ghost sm" style="margin-left:6px" onclick="importAllJSON()">Восстановить (JSON)</button>':''}${BACKEND?'':'<button class="btn ghost sm" style="margin-left:6px" onclick="resetDemo()">Сбросить демо</button>'}</div>`;}
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
@@ -4288,7 +4287,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
-<script src="v3520-workspaces.js?v=4.41.2" defer></script>
+<script src="v3520-workspaces.js?v=4.42.0" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
 <script src="v420-geoanalytics.js?v=4.32.7" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
@@ -4300,8 +4299,8 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v493-portfolio-suite.js?v=4.32.7" defer></script>
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
-<script src="v417-master-plan.js?v=4.37.0" defer></script>
-<script src="v432-data-grid.js?v=4.32.7" defer></script>
+<script src="v417-master-plan.js?v=4.42.0" defer></script>
+<script src="v432-data-grid.js?v=4.42.0" defer></script>
 <script src="v4327-patch.js?v=4.34.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */

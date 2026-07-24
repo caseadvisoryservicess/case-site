@@ -191,6 +191,7 @@
   }
 
   function buildNav(){
+    try{migrateWorkspaceSchema();}catch(e){}
     var nav=document.getElementById('nav');if(!nav)return;
     var allowed=effectiveViews(),out='';
     GROUP_ORDER.forEach(function(g){
@@ -206,12 +207,13 @@
     try{if(typeof updateChatBadge==='function')updateChatBadge();}catch(e){}
   }
 
-  window.caseNavClose=function(){document.querySelectorAll('.nav-group.open').forEach(function(g){g.classList.remove('open');var b=g.querySelector('.nav-group-btn');if(b)b.setAttribute('aria-expanded','false');});};
+  window.caseNavClose=function(){/* v4.42: no-op — раньше сворачивал ВСЕ группы; при переходе в разделы с собственным go-обработчиком (Версии планировок) складывалось всё меню */};
+  window.caseNavSync=function(){try{var a=document.querySelector('#nav a.active');var g=a&&a.closest('.nav-group');if(g){document.querySelectorAll('#nav .nav-group.has-active').forEach(function(x){if(x!==g)x.classList.remove('has-active');});g.classList.add('has-active');g.classList.add('open');}}catch(e){}};
   window.caseNavGo=function(a,v){try{var g=a&&a.closest('.nav-group');document.querySelectorAll('#nav .nav-group.has-active').forEach(function(x){x.classList.remove('has-active');});if(g){g.classList.add('has-active');g.classList.add('open');}}catch(e){}go(v);}; /* v4.40.1: чужие открытые группы не трогаем */
   window.caseNavToggle=function(e,b){if(e)e.stopPropagation();var g=b&&b.closest('.nav-group');if(!g)return;var now=g.classList.toggle('open');b.setAttribute('aria-expanded',now?'true':'false');}; /* v4.40.1: заголовок сворачивает/раскрывает только свою группу */
   /* v4.37: аккордеон следует за навигацией — при любом go() открыта группа активного экрана (и только она) */
   (function(){var og=window.go;if(typeof og==='function'&&!og._nav437){window.go=function(v){var prev=null;try{prev=S&&S.view;}catch(e){}var r=og.apply(this,arguments);var cur=null;try{cur=S&&S.view;}catch(e){}
-    if(cur!==prev){try{var a=document.querySelector('#nav a.active');var g=a&&a.closest('.nav-group');if(g){document.querySelectorAll('#nav .nav-group.has-active').forEach(function(x){if(x!==g)x.classList.remove('has-active');});g.classList.add('has-active');g.classList.add('open');}}catch(e){}}
+    if(cur!==prev){try{window.caseNavSync();}catch(e){}}
     return r;};window.go._nav437=true;}})(); /* v4.40.1: перерендер того же экрана (сортировка/фильтр/сохранение) меню не трогает */
   /* v4.40.1: обработчик «клик вне меню → закрыть группы» удалён — в закреплённом меню он сворачивал группы при любом действии в рабочем окне */
 
@@ -228,6 +230,19 @@
       }).join('')+'</div></div>';
     }).join('');
   }
+  function rightsBlock(rk,L){
+    /* v4.42: отдельная таблица «Права ролей» на странице «Пользователи» объединена с этой карточкой —
+       права на действия выбранной роли настраиваются здесь же, тем же toggleRight ядра */
+    try{
+      if(typeof RIGHTLBL==='undefined'||typeof ROLES==='undefined'||!ROLES[rk])return '';
+      var IC={leasing:'🏬',finance:'💰',edit:'✎',approve:'✔',plans:'▤',ownOnly:'👤',external:'🌐',projectScoped:'📁',admin:'⚙'};
+      var r0=ROLES[rk];
+      return '<div class="ws-group"><div class="ws-group-title">'+h(L.rights)+'</div><div class="ws-modules">'+RIGHTLBL.map(function(rt){
+        var on=!!r0[rt[0]],lock=(rt[0]==='admin'&&rk==='ASH');
+        return '<button type="button" class="ws-module '+(on?'on ':'')+(lock?'locked':'')+'"'+(lock?' title="Админ-доступ генерального директора защищён от отключения"':' onclick="wsToggleRight(\''+h(rk)+'\',\''+rt[0]+'\')" title="Включить / выключить"')+'><span>'+(IC[rt[0]]||'·')+'</span><span>'+h(rt[1])+'</span><b>'+(on?'✓':'—')+'</b></button>';
+      }).join('')+'</div></div>';
+    }catch(e){return '';}
+  }
   function renderCard(){
     var el=document.getElementById('wsAdminCard');if(!el)return;
     if(!canManage()){el.remove();return;}
@@ -238,18 +253,18 @@
     var p=personByKey(UI.user),pr=p?(p.role||'AG'):'AG';
     var rec=p?userStore()[String(p.id)]:null,custom=!!(rec&&rec.mode==='custom');
     var rv=roleViews(UI.role),uv=p?userViews(String(p.id),pr):[];
-    var L={ru:{title:'Матрица разделов CASE OS',sub:'Роль — только шаблон. Администратор сам решает, какие разделы видит каждая роль и каждый сотрудник. Жёстких запретов по названию роли больше нет.',role:'Шаблон роли',user:'Индивидуально сотруднику',inherit:'Наследует роль',custom:'Индивидуальный набор',reset:'Вернуть рекомендуемый набор',resetUser:'Сбросить индивидуальные настройки',note:'Права на действия внутри разделов (правка, финансы, согласование, администрирование) настраиваются ниже в матрице прав.'},uz:{title:'CASE OS bo‘limlar matritsasi',sub:'Rol faqat shablon. Administrator har bir rol va xodim ko‘radigan bo‘limlarni o‘zi belgilaydi.',role:'Rol shabloni',user:'Xodim uchun alohida',inherit:'Rolni meros qiladi',custom:'Shaxsiy to‘plam',reset:'Tavsiya etilgan to‘plam',resetUser:'Shaxsiy sozlamani bekor qilish',note:'Bo‘lim ichidagi amallar huquqi quyidagi huquqlar matritsasida boshqariladi.'},en:{title:'CASE OS module matrix',sub:'A role is only a template. The administrator decides which modules every role and employee can see. There are no hidden role-name restrictions.',role:'Role template',user:'Employee override',inherit:'Inherit role',custom:'Custom set',reset:'Restore recommended set',resetUser:'Clear employee override',note:'Action rights inside modules are managed in the permissions matrix below.'}}[lang()]||null;
-    el.innerHTML='<div class="ws-head"><div><div class="ws-eye">CASE OS · configurable access</div><h3>'+h(L.title)+'</h3><p>'+h(L.sub)+'</p></div><div class="ws-lock">ADMIN CONTROL</div></div>'+ 
-      '<div class="ws-columns"><section class="ws-pane"><div class="ws-pane-head"><div><b>'+h(L.role)+'</b><small>'+h((roleObj(UI.role).label)||UI.role)+'</small></div><select onchange="wsSelectRole(this.value)">'+roleOptions(UI.role)+'</select></div>'+moduleButtons('role',UI.role,UI.role,rv)+'<button class="btn ghost sm" onclick="wsResetRole(\''+h(UI.role)+'\')">↺ '+h(L.reset)+'</button></section>'+ 
+    var L={ru:{title:'Доступ ролей и сотрудников',role:'Шаблон роли',user:'Индивидуально сотруднику',inherit:'Наследует роль',custom:'Индивидуальный набор',reset:'Вернуть рекомендуемый набор',resetUser:'Сбросить индивидуальные настройки',rights:'Права на действия',sections:'Видимые разделы'},uz:{title:'Rollar va xodimlar ruxsatlari',role:'Rol shabloni',user:'Xodim uchun alohida',inherit:'Rolni meros qiladi',custom:'Shaxsiy to‘plam',reset:'Tavsiya etilgan to‘plam',resetUser:'Shaxsiy sozlamani bekor qilish',rights:'Amallar huquqlari',sections:'Ko‘rinadigan bo‘limlar'},en:{title:'Roles & employees access',role:'Role template',user:'Employee override',inherit:'Inherit role',custom:'Custom set',reset:'Restore recommended set',resetUser:'Clear employee override',rights:'Action rights',sections:'Visible modules'}}[lang()]||null;
+    el.innerHTML='<div class="ws-head"><div><div class="ws-eye">CASE OS · configurable access</div><h3>'+h(L.title)+'</h3></div><div class="ws-lock">ADMIN CONTROL</div></div>'+ 
+      '<div class="ws-columns"><section class="ws-pane"><div class="ws-pane-head"><div><b>'+h(L.role)+'</b><small>'+h((roleObj(UI.role).label)||UI.role)+'</small></div><select onchange="wsSelectRole(this.value)">'+roleOptions(UI.role)+'</select></div>'+rightsBlock(UI.role,L)+'<div class="ws-group-title" style="margin-top:12px">'+h(L.sections)+'</div>'+moduleButtons('role',UI.role,UI.role,rv)+'<button class="btn ghost sm" onclick="wsResetRole(\''+h(UI.role)+'\')">↺ '+h(L.reset)+'</button></section>'+ 
       '<section class="ws-pane"><div class="ws-pane-head"><div><b>'+h(L.user)+'</b><small>'+(p?h((roleObj(pr).label)||pr):'—')+'</small></div><select onchange="wsSelectUser(this.value)">'+userOptions(UI.user)+'</select></div>'+ 
-      (p?'<div class="ws-mode"><button class="'+(!custom?'active':'')+'" onclick="wsSetUserMode(\''+h(String(p.id))+'\',\'inherit\')">'+h(L.inherit)+'</button><button class="'+(custom?'active':'')+'" onclick="wsSetUserMode(\''+h(String(p.id))+'\',\'custom\')">'+h(L.custom)+'</button></div>'+moduleButtons('user',String(p.id),pr,uv)+(custom?'<button class="btn ghost sm" onclick="wsResetUser(\''+h(String(p.id))+'\')">↺ '+h(L.resetUser)+'</button>':''):'<div class="ws-empty">—</div>')+'</section></div><div class="ws-note">🔐 '+h(L.note)+'</div>';
+      (p?'<div class="ws-mode"><button class="'+(!custom?'active':'')+'" onclick="wsSetUserMode(\''+h(String(p.id))+'\',\'inherit\')">'+h(L.inherit)+'</button><button class="'+(custom?'active':'')+'" onclick="wsSetUserMode(\''+h(String(p.id))+'\',\'custom\')">'+h(L.custom)+'</button></div>'+moduleButtons('user',String(p.id),pr,uv)+(custom?'<button class="btn ghost sm" onclick="wsResetUser(\''+h(String(p.id))+'\')">↺ '+h(L.resetUser)+'</button>':''):'<div class="ws-empty">—</div>')+'</section></div>';
   }
   function injectCard(){
     if(!canManage())return;
     var main=document.getElementById('main');if(!main||document.getElementById('wsAdminCard'))return;
     var card=document.createElement('div');card.className='card ws-admin';card.id='wsAdminCard';
     var ref=null,children=main.children;
-    for(var i=0;i<children.length;i++){var h3=children[i].querySelector&&children[i].querySelector('h3');if(h3&&/Права ролей|Role permissions|Rol huquqlari/i.test(h3.textContent||'')){ref=children[i];break;}}
+    for(var i=0;i<children.length;i++){if(children[i].classList&&children[i].classList.contains('foot')){ref=children[i];break;}}
     if(ref)main.insertBefore(card,ref);else main.appendChild(card);renderCard();
   }
 
@@ -262,6 +277,7 @@
   window.caseWorkspaceCanOpen=canOpen;
   window.caseWorkspaceViews=effectiveViews;
   window.wsSelectRole=function(rk){UI.role=rk;renderCard();};
+  window.wsToggleRight=function(rk,k){if(!canManage())return;try{if(typeof toggleRight==='function')toggleRight(rk,k);}catch(e){}};
   window.wsSelectUser=function(key){UI.user=String(key||'');renderCard();};
   window.wsToggleRoleView=function(rk,v){if(!canManage()||locked(rk,v))return;var st=roleStore(),a=roleViews(rk).slice(),i=a.indexOf(v);if(i>=0)a.splice(i,1);else a.push(v);st[rk]=uniq(a);save('Рабочая область роли',rk+' · '+v+' → '+(i>=0?'скрыт':'показан'));renderCard();};
   window.wsResetRole=function(rk){if(!canManage())return;delete roleStore()[rk];save('Рабочая область роли',rk+' → рекомендуемый набор');renderCard();};
@@ -270,20 +286,26 @@
   window.wsResetUser=function(key){if(!canManage())return;var p=personByKey(key);delete userStore()[String(key)];save('Рабочая область пользователя',(p&&p.name||key)+' → настройки роли');renderCard();};
 
   function migrateWorkspaceSchema(){
+    try{if(typeof S==='undefined'||!S||!S.user)return;}catch(e){return;}
     var st=roleStore();
-    if(+st.__caseSchema>=492)return;
-    ['ASH','CFO','ADM'].forEach(function(rk){
-      if(Array.isArray(st[rk])){
-        ALL.forEach(function(v){if(st[rk].indexOf(v)<0)st[rk].push(v);});
-        st[rk]=uniq(st[rk]);
-      }
-    });
-    st.__caseSchema=492;
+    if(+st.__caseSchema>=4420)return;
+    if(+st.__caseSchema<492){
+      ['ASH','CFO','ADM'].forEach(function(rk){
+        if(Array.isArray(st[rk])){
+          ALL.forEach(function(v){if(st[rk].indexOf(v)<0)st[rk].push(v);});
+          st[rk]=uniq(st[rk]);
+        }
+      });
+    }
+    /* v4.42: сохранённый в базе шаблон роли BRJ мог остаться без гео/брендов/реестра (наследие
+       жёсткого фильтра v4.35) и перекрывал исправленные умолчания. Одноразово дополняем его
+       рекомендуемым набором; администратор после этого волен снова сузить доступ. */
+    if(Array.isArray(st.BRJ)){(DEFAULTS.BRJ||[]).forEach(function(v){if(st.BRJ.indexOf(v)<0)st.BRJ.push(v);});st.BRJ=uniq(st.BRJ);}
+    st.__caseSchema=4420;
     try{if(typeof persist==='function')persist();}catch(e){}
   }
 
   function install(){
-    migrateWorkspaceSchema();
     css();window.buildNav=buildNav;
     var oldGo=window.go;
     if(typeof oldGo==='function'&&!oldGo._casews480){window.go=function(v){if(!canOpen(v)){try{if(typeof toast==='function')toast(lang()==='en'?'This module is not enabled for your workspace.':lang()==='uz'?'Bu bo‘lim sizning ish sohangiz uchun yoqilmagan.':'Этот раздел не включён в вашу рабочую область.');}catch(e){}v=firstAllowed();}return oldGo.call(this,v);};window.go._casews480=true;}
