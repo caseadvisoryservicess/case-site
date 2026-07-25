@@ -300,7 +300,7 @@ table.cf td.ng{color:var(--neg)}
           </div>
         </div>
         <div class="sens-wrap" id="chSens"></div>
-        <div class="sens-axes"><span>Строки: капитальные затраты, % от базы</span><span>Столбцы: доход (аренда, ADR и цена продажи), % от базы</span></div>
+        <div class="sens-axes"><span id="sensAxL">Строки: капитальные затраты, % от базы</span><span>Столбцы: доход (аренда, ADR и цена продажи), % от базы</span></div>
       </div>
 
       <div class="card" id="cardTorn">
@@ -366,8 +366,9 @@ function defaults(){
     other:{ enabled:false, label:'Прочий доход', amount:200000 },
     budget:{ land:0, retailGba:32000, retailCost:900, hotelGba:15000, hotelCost:1400, ffePerKey:12000,
       officeGba:2299, officeCost:400, softPct:0, contPct:0, spread:'scurve' },
+    buy:{ enabled:false, price:2300000, dealPct:1 },
     fin:{ enabled:false, ltc:55, rate:9, termYears:10, idcCap:true },
-    exit:{ sale:false, capRate:9, sellPct:2 },
+    exit:{ sale:false, mode:'cap', capRate:9, growth:5, sellPct:2 },
     tax:{ enabled:false, rate:15, deprYears:25 }
   };
 }
@@ -391,8 +392,8 @@ const SECTIONS = [
     {k:'project.slug', label:'Слаг проекта в панели <span class="u">(для пакета с презентацией)</span>', type:'text'},
     {k:'project.siteArea', label:'Земельный участок <span class="u">(справочно)</span>', sfx:'м²', min:0, max:1e7, step:1},
     {k:'project.footprint', label:'Пятно застройки <span class="u">(справочно)</span>', sfx:'м²', min:0, max:1e6, step:1},
-    {k:'project.startYear', label:'Год начала строительства', min:2020, max:2060, step:1},
-    {k:'project.constructionYears', label:'Срок строительства <span class="u">(18 мес = 2 года)</span>', sfx:'лет', min:1, max:5, step:1, slider:true},
+    {k:'project.startYear', label:'Год старта <span class="u">(начало стройки или год покупки)</span>', min:2020, max:2060, step:1},
+    {k:'project.constructionYears', label:'Срок строительства <span class="u">(18 мес = 2 года)</span>', sfx:'лет', min:1, max:5, step:1, slider:true, show:s=>!s.buy.enabled},
     {k:'project.operationYears', label:'Анализируемый период эксплуатации', sfx:'лет', min:3, max:30, step:1, slider:true},
     {k:'project.discountRate', label:'Ставка дисконтирования (номинальная)', sfx:'%', min:0, max:35, step:0.5, slider:true},
     {k:'project.escalation', label:'Годовая эскалация ставок / цен / затрат', sfx:'%', min:0, max:20, step:0.5, slider:true},
@@ -442,18 +443,22 @@ const SECTIONS = [
     {k:'other.label', label:'Описание', type:'text'},
     {k:'other.amount', label:'Чистый доход в год <span class="u">(1-й год, эскалируется)</span>', min:0, max:1e9, step:10000},
   ]},
-  { id:'budget', num:'07', title:'Бюджет строительства', open:true, fields:[
-    {k:'budget.land', label:'Земля / приобретение площадки', min:0, max:1e10, step:10000},
-    {k:'budget.retailGba', label:'Ритейл - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:500, show:s=>s.retail.enabled},
-    {k:'budget.retailCost', label:'Ритейл - стоимость за м² GBA', min:0, max:10000, step:10, show:s=>s.retail.enabled},
-    {k:'budget.hotelGba', label:'Отель - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:500, show:s=>s.hotel.enabled},
-    {k:'budget.hotelCost', label:'Отель - стоимость за м² GBA', min:0, max:10000, step:10, show:s=>s.hotel.enabled},
-    {k:'budget.ffePerKey', label:'Отель - FF&amp;E / OS&amp;E на номер', min:0, max:200000, step:500, show:s=>s.hotel.enabled},
-    {k:'budget.officeGba', label:'Здание - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:10, show:s=>s.office.enabled||s.sales.enabled},
-    {k:'budget.officeCost', label:'Инвестиции за м² GBA', min:0, max:10000, step:10, show:s=>s.office.enabled||s.sales.enabled},
-    {k:'budget.softPct', label:'Мягкие затраты (проект, PM, согласования), % от строительных', sfx:'%', min:0, max:40, step:0.5, slider:true},
-    {k:'budget.contPct', label:'Непредвиденные, % от суммы', sfx:'%', min:0, max:30, step:0.5, slider:true},
-    {k:'budget.spread', label:'Распределение затрат по годам стройки', type:'select', options:[['scurve','S-кривая'],['even','Равномерно']]},
+  { id:'budget', num:'07', title:'Бюджет: стройка или покупка', open:true,
+    note:'Режим покупателя: инвестиция = цена сделки, бюджет строительства не считается и нигде не отображается - себестоимость девелопера не раскрывается. Бизнес покупателя (БЦ, клиника, учебный центр) настраивается в разделе 04 - готовые сценарии есть в списке сверху.', fields:[
+    {k:'buy.enabled', label:'Модель для покупателя: объект приобретается готовым (вместо бюджета стройки)', type:'check'},
+    {k:'buy.price', label:'Цена приобретения объекта', min:0, max:1e10, step:10000, show:s=>s.buy.enabled},
+    {k:'buy.dealPct', label:'Расходы на сделку (регистрация, брокер), % от цены', sfx:'%', min:0, max:10, step:0.25, show:s=>s.buy.enabled},
+    {k:'budget.land', label:'Земля / приобретение площадки', min:0, max:1e10, step:10000, show:s=>!s.buy.enabled},
+    {k:'budget.retailGba', label:'Ритейл - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:500, show:s=>!s.buy.enabled&&s.retail.enabled},
+    {k:'budget.retailCost', label:'Ритейл - стоимость за м² GBA', min:0, max:10000, step:10, show:s=>!s.buy.enabled&&s.retail.enabled},
+    {k:'budget.hotelGba', label:'Отель - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:500, show:s=>!s.buy.enabled&&s.hotel.enabled},
+    {k:'budget.hotelCost', label:'Отель - стоимость за м² GBA', min:0, max:10000, step:10, show:s=>!s.buy.enabled&&s.hotel.enabled},
+    {k:'budget.ffePerKey', label:'Отель - FF&amp;E / OS&amp;E на номер', min:0, max:200000, step:500, show:s=>!s.buy.enabled&&s.hotel.enabled},
+    {k:'budget.officeGba', label:'Здание - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:10, show:s=>!s.buy.enabled&&(s.office.enabled||s.sales.enabled)},
+    {k:'budget.officeCost', label:'Инвестиции за м² GBA', min:0, max:10000, step:10, show:s=>!s.buy.enabled&&(s.office.enabled||s.sales.enabled)},
+    {k:'budget.softPct', label:'Мягкие затраты (проект, PM, согласования), % от строительных', sfx:'%', min:0, max:40, step:0.5, slider:true, show:s=>!s.buy.enabled},
+    {k:'budget.contPct', label:'Непредвиденные, % от суммы', sfx:'%', min:0, max:30, step:0.5, slider:true, show:s=>!s.buy.enabled},
+    {k:'budget.spread', label:'Распределение затрат по годам стройки', type:'select', options:[['scurve','S-кривая'],['even','Равномерно']], show:s=>!s.buy.enabled},
   ], footer:'budgetSummary'},
   { id:'fin', num:'08', title:'Финансирование (кредит)', toggle:'fin.enabled', fields:[
     {k:'fin.ltc', label:'Доля кредита в затратах (LTC)', sfx:'%', min:0, max:90, step:1, slider:true},
@@ -462,8 +467,10 @@ const SECTIONS = [
     {k:'fin.idcCap', label:'Капитализировать проценты в период стройки', type:'check'},
   ]},
   { id:'exit', num:'09', title:'Выход и налог', open:true, fields:[
-    {k:'exit.sale', label:'Продажа объекта в конце периода (по cap rate)', type:'check'},
-    {k:'exit.capRate', label:'Ставка капитализации на выходе', sfx:'%', min:1, max:25, step:0.25, slider:true, show:s=>s.exit.sale},
+    {k:'exit.sale', label:'Продажа объекта в конце периода', type:'check'},
+    {k:'exit.mode', label:'Оценка стоимости на выходе', type:'select', options:[['cap','по cap rate от NOI'],['growth','рост стоимости недвижимости, % в год']], show:s=>s.exit.sale},
+    {k:'exit.capRate', label:'Ставка капитализации на выходе', sfx:'%', min:1, max:25, step:0.25, slider:true, show:s=>s.exit.sale&&(s.exit.mode||'cap')==='cap'},
+    {k:'exit.growth', label:'Рост стоимости недвижимости <span class="u">(от цены покупки / инвестиций)</span>', sfx:'% в год', min:-10, max:30, step:0.5, slider:true, show:s=>s.exit.sale&&s.exit.mode==='growth'},
     {k:'exit.sellPct', label:'Расходы на продажу, % от цены', sfx:'%', min:0, max:10, step:0.5, show:s=>s.exit.sale},
     {k:'tax.enabled', label:'Учитывать налог на прибыль', type:'check'},
     {k:'tax.rate', label:'Ставка налога на прибыль', sfx:'%', min:0, max:50, step:1, show:s=>s.tax.enabled},
@@ -475,18 +482,22 @@ const setPath=(o,p,v)=>{const ks=p.split('.');const last=ks.pop();ks.reduce((a,k
 
 /* ─── 3. FINANCIAL ENGINE ─── */
 function calc(st, mods={}){
-  const m = Object.assign({rentMult:1, occMult:1, hardMult:1, opexMult:1, capAdd:0, escAdd:0, salesMult:1}, mods);
+  const m = Object.assign({rentMult:1, occMult:1, hardMult:1, opexMult:1, capAdd:0, escAdd:0, salesMult:1, growthAdd:0}, mods);
   const P=st.project;
-  const C=Math.max(1,Math.round(P.constructionYears)), O=Math.max(1,Math.round(P.operationYears)), N=C+O;
+  /* режим покупателя: объект готов, "стройка" = 1 год приобретения, инвестиция = цена сделки */
+  const buyMode=!!(st.buy&&st.buy.enabled);
+  const C=buyMode?1:Math.max(1,Math.round(P.constructionYears)), O=Math.max(1,Math.round(P.operationYears)), N=C+O;
   const esc=Math.max(-0.5,(P.escalation+m.escAdd)/100), disc=P.discountRate/100;
   const B=st.budget;
 
-  /* development budget */
-  const hard=((st.retail.enabled?B.retailGba*B.retailCost:0)+(st.hotel.enabled?B.hotelGba*B.hotelCost:0)+((st.office.enabled||st.sales.enabled)?B.officeGba*B.officeCost:0))*m.hardMult;
+  /* development budget (в режиме покупателя не считается и не показывается) */
+  const hard=buyMode?0:((st.retail.enabled?B.retailGba*B.retailCost:0)+(st.hotel.enabled?B.hotelGba*B.hotelCost:0)+((st.office.enabled||st.sales.enabled)?B.officeGba*B.officeCost:0))*m.hardMult;
   const soft=hard*B.softPct/100;
   const cont=(hard+soft)*B.contPct/100;
-  const ffe=st.hotel.enabled?st.hotel.keys*B.ffePerKey*m.hardMult:0;
-  const devCost=B.land+hard+soft+cont+ffe;
+  const ffe=(!buyMode&&st.hotel.enabled)?st.hotel.keys*B.ffePerKey*m.hardMult:0;
+  const acqPrice=buyMode?st.buy.price*m.hardMult:0;
+  const dealCost=acqPrice*(st.buy?st.buy.dealPct:0)/100;
+  const devCost=buyMode?acqPrice+dealCost:B.land+hard+soft+cont+ffe;
 
   /* capex phasing */
   const weights=[];
@@ -496,9 +507,9 @@ function calc(st, mods={}){
     for(let i=0;i<C;i++) weights.push((F((i+1)/C)-F(i/C))/(hi-lo));
   } else for(let i=0;i<C;i++) weights.push(1/C);
   const capex=new Array(N).fill(0);
-  const constrCost=hard+soft+cont;
+  const constrCost=buyMode?devCost:hard+soft+cont;
   for(let i=0;i<C;i++) capex[i]=constrCost*weights[i];
-  capex[0]+=B.land; capex[C-1]+=ffe;
+  if(!buyMode){ capex[0]+=B.land; capex[C-1]+=ffe; }
 
   /* occupancy ramp: linear from occStart (yr 1) to occStab (yr rampYears) */
   const occ=(c,k)=>{
@@ -538,11 +549,16 @@ function calc(st, mods={}){
   const noi=new Array(N).fill(0), revTot=new Array(N).fill(0);
   for(let i=0;i<N;i++){ for(const c of ['retail','hotel','office','other']){ noi[i]+=noiC[c][i]; revTot[i]+=rev[c][i]; } }
 
-  /* exit */
+  /* exit: по cap rate от NOI либо по росту стоимости от цены покупки / инвестиций */
   let saleGross=0, saleNet=0;
   const capEff=(st.exit.capRate+m.capAdd)/100;
-  if(st.exit.sale&&capEff>0.001){
-    saleGross=noi[N-1]*(1+esc)/capEff;
+  if(st.exit.sale){
+    if((st.exit.mode||'cap')==='growth'){
+      const g=Math.max(-0.5,((st.exit.growth||0)+m.growthAdd)/100);
+      saleGross=(buyMode?acqPrice:devCost)*Math.pow(1+g,O);
+    } else if(capEff>0.001){
+      saleGross=noi[N-1]*(1+esc)/capEff;
+    }
     saleNet=saleGross*(1-st.exit.sellPct/100);
   }
 
@@ -628,7 +644,7 @@ function calc(st, mods={}){
 
   return {
     C,O,N,years:Array.from({length:N},(_,i)=>P.startYear+i),
-    devCost,hard,soft,cont,ffe,land:B.land,totalIDC,totalDebt,
+    devCost,hard,soft,cont,ffe,land:B.land,totalIDC,totalDebt,buyMode,acqPrice,dealCost,
     capex,rev,noiC,noi,revTot,saleGross,saleNet,balloon,salesRev,salesNetTotal,
     draw,interest,service,idcPaid,balArr,utax,ltax,ucf,lcf,cumU,cumL,
     metrics:{
@@ -785,7 +801,9 @@ function updateFieldVisibility(){
 function renderBudgetSummary(R){
   const el=document.getElementById('budgetSum'); if(!el)return;
   el.textContent='';
-  const rows=[['Земля',R.land],['Строительные затраты',R.hard],['Мягкие затраты',R.soft],['Непредвиденные',R.cont]];
+  const rows=R.buyMode
+    ?[['Приобретение объекта',R.acqPrice],['Расходы на сделку',R.dealCost]]
+    :[['Земля',R.land],['Строительные затраты',R.hard],['Мягкие затраты',R.soft],['Непредвиденные',R.cont]];
   if(R.ffe>0)rows.push(['Отель: FF&E / OS&E',R.ffe]);
   if(R.totalIDC>0&&S.fin.idcCap)rows.push(['Капитализированные проценты (IDC)',R.totalIDC]);
   rows.push(['Инвестиции всего',R.metrics.totalInvestment,'total']);
@@ -928,7 +946,7 @@ function drawCumChart(R){
     li.append(k,t);lg.appendChild(li);
   });
   document.getElementById('cumSub').textContent=
-    `Накопленный, номинальный · стройка ${years[0]}-${years[R.C-1]} · эксплуатация с ${years[R.C]}${S.exit.sale?` · выход в ${years[R.N-1]}`:''}`;
+    `Накопленный, номинальный · ${R.buyMode?`покупка в ${years[0]}`:`стройка ${years[0]}-${years[R.C-1]}`} · эксплуатация с ${years[R.C]}${S.exit.sale?` · выход в ${years[R.N-1]}`:''}`;
 }
 
 let stackMode='noi';
@@ -1085,6 +1103,8 @@ function drawSensitivity(){
   wrap.appendChild(t);
   const mName=sensMode==='irr'?'IRR проекта (без кредита)':sensMode==='npv'?('NPV проекта @ '+S.project.discountRate+'%'):'Прибыль проекта (номинально, без дисконта)';
   document.getElementById('sensSub').textContent=mName+' · шаг '+sensStep+'% · базовый вариант обведён';
+  const axl=document.getElementById('sensAxL');
+  if(axl)axl.textContent=S.buy.enabled?'Строки: цена покупки, % от базы':'Строки: капитальные затраты, % от базы';
 }
 
 function drawTornado(R){
@@ -1093,8 +1113,9 @@ function drawTornado(R){
   const drivers=[
     ...(S.retail.enabled||S.hotel.enabled||S.office.enabled?[['Аренда / ADR ±10%',{rentMult:0.9},{rentMult:1.1}],['Заполняемость ±10%',{occMult:0.9},{occMult:1.1}],['Опер. расходы ±10%',{opexMult:1.1},{opexMult:0.9}]]:[]),
     ...(S.sales.enabled?[['Цена продажи ±10%',{salesMult:0.9},{salesMult:1.1}]]:[]),
-    ['Капзатраты ±10%',{hardMult:1.1},{hardMult:0.9}],
-    ...(S.exit.sale?[['Cap rate ±0,5 пп',{capAdd:0.5},{capAdd:-0.5}]]:[]),
+    [S.buy.enabled?'Цена покупки ±10%':'Капзатраты ±10%',{hardMult:1.1},{hardMult:0.9}],
+    ...(S.exit.sale&&(S.exit.mode||'cap')==='cap'?[['Cap rate ±0,5 пп',{capAdd:0.5},{capAdd:-0.5}]]:[]),
+    ...(S.exit.sale&&S.exit.mode==='growth'?[['Рост стоимости ±1 пп',{growthAdd:-1},{growthAdd:1}]]:[]),
     ['Эскалация ±1 пп',{escAdd:-1},{escAdd:1}],
   ].map(([label,mLow,mHigh])=>{
     const lo=calc(S,mLow).metrics.npv-base, hi=calc(S,mHigh).metrics.npv-base;
@@ -1155,10 +1176,10 @@ function renderKPIs(R){
     ['IRR капитала',S.fin.enabled?fmtPct(mets.irrL):'-',S.fin.enabled?`с кредитом ${S.fin.ltc}% LTC`:'кредит выключен',mets.irrL!==null&&mets.irrL<0],
     ['Окупаемость',fmtYrs(mets.pb),`с дисконтом: ${fmtYrs(mets.dpb)}`,false],
     ['Мультипликатор',fmtX(mets.moic),`на вложенные ${fmtM(mets.contrib)}`,mets.moic!==null&&mets.moic<1],
-    ['Yield on Cost',fmtPct(mets.yoc),`NOI стабилиз. (год ${mets.kStab}) / затраты`,false],
-    ['Инвестиции всего',fmtM(mets.totalInvestment),S.fin.enabled&&S.fin.idcCap&&R.totalIDC>0?'вкл. капитализированные проценты':'затраты на девелопмент',false],
+    ['Yield on Cost',fmtPct(mets.yoc),`NOI стабилиз. (год ${mets.kStab}) / ${R.buyMode?'цена покупки':'затраты'}`,false],
+    ['Инвестиции всего',fmtM(mets.totalInvestment),R.buyMode?'цена приобретения со сделкой':(S.fin.enabled&&S.fin.idcCap&&R.totalIDC>0?'вкл. капитализированные проценты':'затраты на девелопмент'),false],
     S.exit.sale
-      ?['Стоимость на выходе',fmtM(R.saleGross),`@ cap ${S.exit.capRate}%, нетто ${fmtM(R.saleNet)}`,false]
+      ?['Стоимость на выходе',fmtM(R.saleGross),(S.exit.mode==='growth'?`рост ${S.exit.growth}% в год, нетто ${fmtM(R.saleNet)}`:`@ cap ${S.exit.capRate}%, нетто ${fmtM(R.saleNet)}`),false]
       :(S.sales.enabled
         ?['Продажи, нетто',fmtM(R.salesNetTotal),`${S.sales.area.toLocaleString('ru-RU')} м² x ${sym()}${S.sales.price}/м² с эскалацией`,false]
         :['Мин. DSCR',mets.dscrMin?fmtX(mets.dscrMin):'-','за срок кредита',false]),
@@ -1192,14 +1213,14 @@ function renderTable(R){
   const th0=document.createElement('th');th0.textContent='Год';thead.appendChild(th0);
   R.years.forEach((y,i)=>{
     const th=document.createElement('th');
-    th.textContent=`${y}${i<R.C?' (С)':''}`;
+    th.textContent=`${y}${i<R.C?(R.buyMode?' (П)':' (С)'):''}`;
     thead.appendChild(th);
   });
   t.appendChild(thead);
   const N=R.N, zeros=()=>new Array(N).fill(0);
 
-  mkRow('ДЕВЕЛОПМЕНТ',new Array(N).fill(null),'sect');
-  mkRow('Капитальные затраты',R.capex.map(v=>-v),'sub');
+  mkRow(R.buyMode?'ПРИОБРЕТЕНИЕ':'ДЕВЕЛОПМЕНТ',new Array(N).fill(null),'sect');
+  mkRow(R.buyMode?'Приобретение объекта (со сделкой)':'Капитальные затраты',R.capex.map(v=>-v),'sub');
 
   mkRow('ОПЕРАЦИОННАЯ ДЕЯТЕЛЬНОСТЬ И ПРОДАЖИ',new Array(N).fill(null),'sect');
   COMP_META.forEach(([k,label])=>{
@@ -1236,7 +1257,7 @@ function renderTable(R){
     mkRow('Накопленный поток на капитал',R.cumL,'sub');
   }
   wrap.appendChild(t);
-  document.getElementById('cfSub').textContent=`Годовые, номинальные, полные суммы в ${sym()} · (С) = год строительства`;
+  document.getElementById('cfSub').textContent=`Годовые, номинальные, полные суммы в ${sym()} · ${R.buyMode?'(П) = год покупки':'(С) = год строительства'}`;
   document.getElementById('cfNote').textContent=(S.tax.enabled
     ?'Налог в потоке на капитал считается после процентов и амортизации; в строке проекта - до процентов. '
     :'Расчёт до налога - включите налог на прибыль в разделе 09 при необходимости. ')
@@ -1254,11 +1275,12 @@ function renderAssumptions(R){
     d.append(s1,s2);el.appendChild(d);
   };
   add('Сроки и ставки');
-  row('Строительство',`${S.project.constructionYears} г. с ${S.project.startYear}`);
+  if(R.buyMode)row('Покупка объекта',`в ${S.project.startYear} году`);
+  else row('Строительство',`${S.project.constructionYears} г. с ${S.project.startYear}`);
   row('Период эксплуатации',`${S.project.operationYears} лет`);
   row('Ставка дисконтирования',S.project.discountRate+'%');
-  row('Эскалация',S.project.escalation+'% в год');
-  row('Распределение затрат',S.budget.spread==='scurve'?'S-кривая':'Равномерно');
+  row('Эскалация (индексация аренды и затрат)',S.project.escalation+'% в год');
+  if(!R.buyMode)row('Распределение затрат',S.budget.spread==='scurve'?'S-кривая':'Равномерно');
   row('Инвестиции всего',fmtM(R.metrics.totalInvestment));
   if(S.project.siteArea>0||S.project.footprint>0){
     add('Участок');
@@ -1299,12 +1321,20 @@ function renderAssumptions(R){
     row('Продажи всего (нетто)',fmtM(R.salesNetTotal));
   }
   add('Капитал и выход');
-  row('Земля',fmtM(S.budget.land));
-  row('Строительные / мягкие / непредвиденные',`${fmtM(R.hard)} / ${S.budget.softPct}% / ${S.budget.contPct}%`);
+  if(R.buyMode){
+    const areaRef=S.office.enabled&&S.office.nla>0?S.office.nla:(S.sales.enabled&&S.sales.area>0?S.sales.area:0);
+    row('Цена приобретения',fmtM(R.acqPrice)+(areaRef?` (${sym()}${Math.round(R.acqPrice/areaRef).toLocaleString('ru-RU')}/м² GLA)`:''));
+    row('Расходы на сделку',S.buy.dealPct+'%');
+  } else {
+    row('Земля',fmtM(S.budget.land));
+    row('Строительные / мягкие / непредвиденные',`${fmtM(R.hard)} / ${S.budget.softPct}% / ${S.budget.contPct}%`);
+  }
   if(S.fin.enabled){
     row('Кредит',`${S.fin.ltc}% LTC @ ${S.fin.rate}%, ${S.fin.termYears} лет${S.fin.idcCap?', IDC капитализируются':''}`);
   } else row('Кредит','нет (полностью собственный капитал)');
-  row('Выход',S.exit.sale?`продажа @ cap ${S.exit.capRate}%, расходы ${S.exit.sellPct}%`:'удержание (без терминальной стоимости)');
+  row('Выход',S.exit.sale
+    ?(S.exit.mode==='growth'?`продажа, рост стоимости ${S.exit.growth}% в год, расходы ${S.exit.sellPct}%`:`продажа @ cap ${S.exit.capRate}%, расходы ${S.exit.sellPct}%`)
+    :'удержание (без терминальной стоимости)');
   row('Налог на прибыль',S.tax.enabled?`${S.tax.rate}%, амортизация ${S.tax.deprYears} лет`:'не применяется');
 }
 
@@ -1403,7 +1433,7 @@ document.getElementById('btnCsv').addEventListener('click',()=>{
   const R=calc(S);
   const rows=[['Год',...R.years]];
   const push=(l,a)=>rows.push([l,...a.map(v=>Math.round(v))]);
-  push('Капзатраты',R.capex.map(v=>-v));
+  push(R.buyMode?'Приобретение объекта':'Капзатраты',R.capex.map(v=>-v));
   COMP_META.forEach(([k,label])=>{if(S[k].enabled)push('Выручка '+label,R.rev[k]);});
   push('Операционная выручка всего',R.revTot);
   COMP_META.forEach(([k,label])=>{if(S[k].enabled)push('NOI '+label,R.noiC[k]);});
@@ -1447,6 +1477,7 @@ const PKG_I18N={
     lease:'Аренда',occ:'заполняемость',saleA:'Продажа помещений',saleSched:'график продаж',credit:'Кредит',none:'нет (собственный капитал)',
     exitR:'Выход',hold:'удержание объекта',exitSale:'продажа @ cap',tax:'Налог на прибыль',notApp:'не применяется',
     opexA:'Опер. расходы',ofRent:'от аренды',ofRev:'от выручки',
+    acq:'Приобретение объекта',deal:'Расходы на сделку',acqYr:'Покупка объекта',grow:'рост стоимости',perYr:'в год',cL:' (П)',constrYrB:'(П) = год покупки',
     chart:'Накопленный денежный поток',pbMark:'окупаемость',
     tCapex:'Капитальные затраты',tRev:'Операционная выручка',tOpex:'Операционные расходы',tNoi:'NOI',tSales:'Продажа помещений (нетто)',tExit:'Продажа объекта (нетто)',tPcf:'Поток проекта',tCum:'Накопленный поток',tInt:'Проценты',tSvc:'Обслуживание долга',tEcf:'Поток на капитал',tCumE:'Накопленный поток на капитал',
     thous:'полные суммы в',constrYr:'(С) = год строительства',
@@ -1459,6 +1490,7 @@ const PKG_I18N={
     lease:'Ijara',occ:'bandlik',saleA:'Maydonlar sotuvi',saleSched:'sotuv jadvali',credit:'Kredit',none:"yo'q (o'z kapitali)",
     exitR:'Chiqish',hold:'obyektni saqlash',exitSale:'sotish @ cap',tax:'Foyda solig'+"'"+'i',notApp:"qo'llanilmaydi",
     opexA:'Oper. xarajatlar',ofRent:'ijaradan',ofRev:'tushumdan',
+    acq:'Obyektni sotib olish',deal:'Bitim xarajatlari',acqYr:'Obyekt xaridi',grow:"qiymat o'sishi",perYr:'yiliga',cL:' (P)',constrYrB:'(P) = xarid yili',
     chart:'Jamlangan pul oqimi',pbMark:'qoplanish',
     tCapex:'Kapital xarajatlar',tRev:'Operatsion tushum',tOpex:'Operatsion xarajatlar',tNoi:'NOI',tSales:'Maydonlar sotuvi (netto)',tExit:'Obyekt sotuvi (netto)',tPcf:'Loyiha oqimi',tCum:'Jamlangan oqim',tInt:'Foizlar',tSvc:'Qarz xizmati',tEcf:'Kapital oqimi',tCumE:'Jamlangan kapital oqimi',
     thous:"to'liq summalar",constrYr:'(С) = qurilish yili',
@@ -1471,6 +1503,7 @@ const PKG_I18N={
     lease:'Lease',occ:'occupancy',saleA:'Unit sales',saleSched:'sales schedule',credit:'Debt',none:'none (all-equity)',
     exitR:'Exit',hold:'hold',exitSale:'sale @ cap',tax:'Profit tax',notApp:'not applied',
     opexA:'Opex',ofRent:'of rent',ofRev:'of revenue',
+    acq:'Property acquisition',deal:'Transaction costs',acqYr:'Purchase',grow:'value growth',perYr:'p.a.',cL:' (P)',constrYrB:'(P) = purchase year',
     chart:'Cumulative cash flow',pbMark:'payback',
     tCapex:'Capital expenditure',tRev:'Operating revenue',tOpex:'Operating expenses',tNoi:'NOI',tSales:'Unit sales (net)',tExit:'Asset sale (net)',tPcf:'Project cash flow',tCum:'Cumulative CF',tInt:'Interest',tSvc:'Debt service',tEcf:'Equity cash flow',tCumE:'Cumulative equity CF',
     thous:'full amounts in',constrYr:'(С) = construction year',
@@ -1575,7 +1608,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
     [T.em,fmtX(M.moic),''],
     [T.yoc,fmtPct(M.yoc),''],
     [T.inv,pkgMoney(M.totalInvestment),''],
-    S.exit.sale?[T.exitK,pkgMoney(R.saleGross),'@ cap '+S.exit.capRate+'%']
+    S.exit.sale?[T.exitK,pkgMoney(R.saleGross),(S.exit.mode==='growth'?'+'+S.exit.growth+'% '+T.perYr:'@ cap '+S.exit.capRate+'%')]
       :(S.sales.enabled?[T.salesK,pkgMoney(R.salesNetTotal),S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price]
       :[T.dscr,M.dscrMin?fmtX(M.dscrMin):'-','']),
   ];
@@ -1588,10 +1621,12 @@ function drawFinPages(doc,font,fontB,lang,rgb){
     if(tile[2])p1.drawText(String(tile[2]),{x,y:y0-24,size:7,font,color:GRAY});
   });
 
-  /* бюджет */
+  /* бюджет (в режиме покупателя - покупка, себестоимость не раскрывается) */
   let by=H-300;
-  p1.drawText(T.budget,{x:40,y:by,size:10,font:fontB,color:INK}); by-=16;
-  const bRows=[[T.land,R.land],[T.hard,R.hard],[T.soft,R.soft],[T.cont,R.cont]];
+  p1.drawText(R.buyMode?T.acqYr:T.budget,{x:40,y:by,size:10,font:fontB,color:INK}); by-=16;
+  const bRows=R.buyMode
+    ?[[T.acq,R.acqPrice],[T.deal,R.dealCost]]
+    :[[T.land,R.land],[T.hard,R.hard],[T.soft,R.soft],[T.cont,R.cont]];
   if(R.ffe>0)bRows.push(['FF&E',R.ffe]);
   if(R.totalIDC>0&&S.fin.idcCap)bRows.push([T.idc,R.totalIDC]);
   bRows.push([T.invT,R.metrics.totalInvestment,1]);
@@ -1606,8 +1641,11 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   /* предпосылки */
   let ay=H-300;
   p1.drawText(T.ass,{x:300,y:ay,size:10,font:fontB,color:INK}); ay-=16;
+  const areaRef=S.office.enabled&&S.office.nla>0?S.office.nla:(S.sales.enabled&&S.sales.area>0?S.sales.area:0);
   const aRows=[
-    [T.constr,S.project.constructionYears+' '+T.yrs+' · '+T.from+' '+S.project.startYear],
+    R.buyMode
+      ?[T.acqYr,S.project.startYear+' · '+pkgMoney(R.acqPrice)+(areaRef?' ('+pkgMoney(R.acqPrice/areaRef)+'/m²)':'')]
+      :[T.constr,S.project.constructionYears+' '+T.yrs+' · '+T.from+' '+S.project.startYear],
     [T.oper,S.project.operationYears+' '+T.yrs],
     [T.disc,S.project.discountRate+'%'],[T.escal,S.project.escalation+'% p.a.'],
   ];
@@ -1621,7 +1659,9 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   if(S.hotel.enabled)aRows.push(['Hotel',S.hotel.keys+' keys · ADR '+sym()+S.hotel.adr]);
   if(S.sales.enabled)aRows.push([T.saleA,S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price+'/m² · '+T.saleSched+': '+T.from+' '+(S.project.startYear+Math.round(S.sales.startAt)-1)+', '+T.forYears+' '+S.sales.years+' '+T.yrs]);
   aRows.push([T.credit,S.fin.enabled?(S.fin.ltc+'% LTC @ '+S.fin.rate+'%'):T.none]);
-  aRows.push([T.exitR,S.exit.sale?(T.exitSale+' '+S.exit.capRate+'%'):T.hold]);
+  aRows.push([T.exitR,S.exit.sale
+    ?(S.exit.mode==='growth'?T.grow+' '+S.exit.growth+'% '+T.perYr:T.exitSale+' '+S.exit.capRate+'%')
+    :T.hold]);
   aRows.push([T.tax,S.tax.enabled?(S.tax.rate+'%'):T.notApp]);
   aRows.forEach(([l,v])=>{
     p1.drawText(l,{x:300,y:ay,size:8.5,font:fontB,color:GRAY});
@@ -1655,7 +1695,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   p2.drawRectangle({x:0,y:H-56,width:W,height:56,color:INK});
   p2.drawText(S.project.name||'-',{x:40,y:H-36,size:12,font:fontB,color:rgb(1,1,1)});
   drawR(p2,T.p2,W-40,H-36,fontB,10,rgb(1,1,1));
-  const rows=[[T.tCapex,R.capex.map(v=>-v)],[T.tRev,R.revTot]];
+  const rows=[[R.buyMode?T.acq:T.tCapex,R.capex.map(v=>-v)],[T.tRev,R.revTot]];
   const opexP=R.revTot.map((v,i)=>-(v-R.noi[i]));
   if(opexP.some(v=>Math.abs(v)>0.5))rows.push([T.tOpex,opexP]);
   rows.push([T.tNoi,R.noi]);
@@ -1669,9 +1709,9 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   const LX=40,LW=150,tx0=LX+LW,tx1=W-40,colW=(tx1-tx0)/R.N;
   const vSz=R.N>13?6.3:6.9;
   let ty=H-88;
-  p2.drawText(T.thous+' '+sym()+' · '+T.constrYr,{x:LX,y:ty+8,size:7.5,font,color:GRAY});
+  p2.drawText(T.thous+' '+sym()+' · '+(R.buyMode?T.constrYrB:T.constrYr),{x:LX,y:ty+8,size:7.5,font,color:GRAY});
   ty-=14;
-  R.years.forEach((yr,i)=>drawR(p2,yr+(i<R.C?' (С)':''),tx0+colW*(i+1)-4,ty,fontB,7.5,INK));
+  R.years.forEach((yr,i)=>drawR(p2,yr+(i<R.C?(R.buyMode?T.cL:' (С)'):''),tx0+colW*(i+1)-4,ty,fontB,7.5,INK));
   p2.drawLine({start:{x:LX,y:ty-5},end:{x:tx1,y:ty-5},thickness:0.8,color:INK});
   ty-=20;
   rows.forEach(([label,vals,tot],ri)=>{
@@ -1722,13 +1762,29 @@ window.addEventListener('beforeprint',()=>refresh());
     const clinic=defaults(); clinic.project.name='Taxtapul 31 - клиника (всё здание)';
     clinic.office.rent=12.5; clinic.office.occStart=100; clinic.office.occStab=100; clinic.office.rampYears=1;
     clinic.office.opexMode='sqm'; clinic.office.opexSqm=0.9;
+    /* сценарии для покупателя: инвестиция = цена сделки (2,3 млн - листинг), себестоимость не фигурирует,
+       выход через рост стоимости; бизнесы: БЦ мульти-аренда / клиника / учебный центр (одиночный арендатор) */
+    const mkBuyer=(name,rent,occ,opexSqm)=>{
+      const b=defaults(); b.project.name=name;
+      b.project.startYear=2026; b.buy.enabled=true; b.buy.price=2300000; b.buy.dealPct=1;
+      b.office.rent=rent; b.office.occStart=occ[0]; b.office.occStab=occ[1]; b.office.rampYears=occ[0]===occ[1]?1:2;
+      b.office.opexMode='sqm'; b.office.opexSqm=opexSqm;
+      b.exit.sale=true; b.exit.mode='growth'; b.exit.growth=5; b.exit.sellPct=2;
+      return b;
+    };
+    const buyers=[
+      mkBuyer('Покупка Taxtapul - БЦ (аренда)',20,[70,90],3),
+      mkBuyer('Покупка Taxtapul - клиника',12.5,[100,100],0.9),
+      mkBuyer('Покупка Taxtapul - учебный центр',12.5,[100,100],0.9),
+    ];
     if(!localStorage.getItem(LS_SCEN)){
-      const seed={}; seed[lease.project.name]=lease; seed[sale.project.name]=sale; seed[clinic.project.name]=clinic;
+      const seed={}; [lease,sale,clinic,...buyers].forEach(p=>{seed[p.project.name]=p;});
       localStorage.setItem(LS_SCEN,JSON.stringify(seed));
     } else {
-      /* хранилище уже есть: доложить недостающий пресет клиники, ничего не перезаписывая */
-      const all=loadScenarios();
-      if(!all[clinic.project.name]){ all[clinic.project.name]=clinic; localStorage.setItem(LS_SCEN,JSON.stringify(all)); }
+      /* хранилище уже есть: доложить только новые пресеты, ничего не перезаписывая */
+      const all=loadScenarios(); let added=false;
+      [clinic,...buyers].forEach(p=>{ if(!all[p.project.name]){ all[p.project.name]=p; added=true; } });
+      if(added)localStorage.setItem(LS_SCEN,JSON.stringify(all));
     }
   }catch(e){}
   buildSidebar();
