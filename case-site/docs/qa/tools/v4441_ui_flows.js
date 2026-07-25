@@ -55,8 +55,10 @@ srv.listen(0,'127.0.0.1',async()=>{
    await new Promise(r=>setTimeout(r,400));
    const tb=document.querySelector('#main table.case-grid');
    const wr=wrap.getBoundingClientRect();
-   const grpTop=tb.tHead.rows[0].getBoundingClientRect().top;
-   if(Math.abs(grpTop-wr.top)>3)return {err:'шапка не прилипла (top='+Math.round(grpTop-wr.top)+')'};
+   const leafRow0=tb.tHead.rows[tb.tHead.rows.length-1];
+   const leafTh0=[...leafRow0.cells].find(c=>c.getBoundingClientRect().width>0.5);
+   const leafTop0=leafTh0.getBoundingClientRect().top;
+   if(Math.abs(leafTop0-wr.top)>3)return {err:'шапка не прилипла (top='+Math.round(leafTop0-wr.top)+')'};
    const leaf=tb.tHead.rows[tb.tHead.rows.length-1];
    const rz=[...leaf.querySelectorAll('.case-grid-resizer')].find(r2=>r2.dataset.caseColId&&r2.dataset.caseColId!=='_select'&&r2.closest('th').getBoundingClientRect().width>0);
    if(!rz)return {err:'в прилипшей шапке нет резайзеров'};

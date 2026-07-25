@@ -48,13 +48,12 @@ srv.listen(0, '127.0.0.1', async () => {
     const tdInfo = pinTd.map(c => ({ pos: getComputedStyle(c).position, x: Math.round(c.getBoundingClientRect().x - wrapX) }));
     const aligned = thInfo.length === 3 && thInfo.every((t, i) => tdInfo[i] && Math.abs(t.x - tdInfo[i].x) <= 1 && t.pos === 'sticky' && tdInfo[i].pos === 'sticky' && t.x >= -1);
     const strays = [...tb.tHead.querySelectorAll('th:not(.case-grid-pin)')].filter(c => c.style.left && c.style.left !== '' && c.style.left !== '0px').length;
-    const grpPin = [...tb.tHead.rows[0].cells].filter(c => c.classList.contains('case-grid-pin'));
-    const grpOk = grpPin.every(c => getComputedStyle(c).position === 'sticky');
-    return { thInfo, tdInfo, aligned, strays, grpPinN: grpPin.length, grpOk };
+    const grpRel = [...tb.tHead.rows[0].cells].every(c => getComputedStyle(c).position !== 'sticky');
+    return { thInfo, tdInfo, aligned, strays, grpOk: grpRel };
   });
   rec('гор. скролл: шапка закреплённых столбцов прилипает вместе с телом', h.aligned, JSON.stringify(h));
   rec('незакреплённые th без паразитных left-сдвигов', h.strays === 0, 'сдвигов: ' + h.strays);
-  rec('групповой ряд шапки: закреплённые ячейки sticky', h.grpOk, JSON.stringify({ n: h.grpPinN, ok: h.grpOk }));
+  rec('групповой ряд шапки: не липнет (прокручивается штатно, ряды не накладываются)', h.grpOk, JSON.stringify({ ok: h.grpOk }));
 
   /* 3. вертикальная прокрутка: настоящий thead виден (native sticky), клонов нет */
   const v = await page.evaluate(async () => {
@@ -64,13 +63,14 @@ srv.listen(0, '127.0.0.1', async () => {
     const tb = document.querySelector('#main table.case-grid');
     const wr = wrap.getBoundingClientRect();
     const leaf = tb.tHead.rows[tb.tHead.rows.length - 1];
-    const leafR = leaf.getBoundingClientRect();
-    const grpR = tb.tHead.rows[0].getBoundingClientRect();
     const layers = document.querySelectorAll('.case-sticky-head-layer').length;
-    /* шапка прилипла: верх группового ряда у верхней кромки обёртки */
-    const headStuck = Math.abs(grpR.top - wr.top) <= 3 && leafR.top > grpR.top && leafR.bottom < wr.top + 120;
-    /* линии: границы th совпадают с границами td (один элемент — but проверим) */
-    const edges = row => [...row.cells].filter(c => getComputedStyle(c).display !== 'none').map(c => c.getBoundingClientRect().right);
+    /* липнут ЯЧЕЙКИ шапки (tr не sticky — его rect уезжает, мерить надо th!) */
+    const leafTh = [...leaf.cells].find(c => c.getBoundingClientRect().width > 0.5);
+    const leafThR = leafTh.getBoundingClientRect();
+    /* липнет ряд колонок: его верх у кромки обёртки (групповой ряд прокручивается — это штатно) */
+    const headStuck = Math.abs(leafThR.top - wr.top) <= 3 && leafThR.bottom < wr.top + 80;
+    /* линии: границы th совпадают с границами td */
+    const edges = row => [...row.cells].filter(c => c.getBoundingClientRect().width > 0.5).map(c => c.getBoundingClientRect().right);
     const bodyRow = [...tb.tBodies[0].rows].find(r => r.cells.length > 5 && r.getBoundingClientRect().height > 5);
     const thE = edges(leaf), tdE = edges(bodyRow);
     const badLines = thE.map((x, i) => Math.abs(x - (tdE[i] != null ? tdE[i] : NaN))).filter(d => !isNaN(d) && d > 1).length;
@@ -78,11 +78,36 @@ srv.listen(0, '127.0.0.1', async () => {
     const pinTh = [...leaf.cells].filter(c => c.classList.contains('case-grid-pin'));
     const pinTd = [...bodyRow.cells].filter(c => c.classList.contains('case-grid-pin'));
     const pinAligned = pinTh.length === 3 && pinTh.every((c, i) => pinTd[i] && Math.abs(c.getBoundingClientRect().x - pinTd[i].getBoundingClientRect().x) <= 1);
-    return { layers, headStuck, badLines, pinAligned, grpTop: Math.round(grpR.top - wr.top), scrollTop: wrap.scrollTop };
+    return { layers, headStuck, badLines, pinAligned, leafTop: Math.round(leafThR.top - wr.top), scrollTop: wrap.scrollTop };
   });
   rec('верт. прокрутка: настоящий thead прилип (клона нет в DOM)', v.layers === 0 && v.headStuck, JSON.stringify(v));
   rec('верт.+гор.: линии шапки совпадают с телом (±1px)', v.badLines === 0, 'плохих линий: ' + v.badLines);
   rec('верт.+гор.: закреплённые столбцы шапки на одном x с телом', v.pinAligned, JSON.stringify({ pinAligned: v.pinAligned }));
+
+  /* 3в. скрыть/показать столбец: шапка и тело синхронно (collapse на col) */
+  const hideT = await page.evaluate(async () => {
+    document.querySelector('#main .case-grid-toolbar [data-columns]').click();
+    await new Promise(x => setTimeout(x, 250));
+    const row = [...document.querySelectorAll('.case-grid-panel [data-col]')].find(r => /м²/.test(r.textContent) && !r.querySelector('input').disabled);
+    if (!row) return { skip: 'нет м² в панели' };
+    row.querySelector('input').checked = false;
+    document.querySelector('.case-grid-panel [data-save]').click();
+    await new Promise(x => setTimeout(x, 900));
+    const tb = document.querySelector('#main table.case-grid');
+    const visTh = [...tb.tHead.rows[tb.tHead.rows.length - 1].cells].filter(c => c.getBoundingClientRect().width > 0.5);
+    const visTd = [...tb.tBodies[0].rows[0].cells].filter(c => c.getBoundingClientRect().width > 0.5);
+    const thHasM2 = visTh.some(c => /^м²/.test(c.textContent.trim()));
+    const misalign = visTh.length !== visTd.length;
+    // вернуть обратно
+    document.querySelector('#main .case-grid-toolbar [data-columns]').click();
+    await new Promise(x => setTimeout(x, 250));
+    const row2 = [...document.querySelectorAll('.case-grid-panel [data-col]')].find(r => /м²/.test(r.textContent));
+    if (row2) row2.querySelector('input').checked = true;
+    document.querySelector('.case-grid-panel [data-save]').click();
+    await new Promise(x => setTimeout(x, 700));
+    return { thN: visTh.length, tdN: visTd.length, thHasM2, misalign };
+  });
+  rec('скрытие столбца: шапка и тело синхронны (м² исчез из ОБОИХ)', hideT.skip || (!hideT.thHasM2 && !hideT.misalign), JSON.stringify(hideT));
 
   /* 4. резайзер в прилипшем состоянии: тянем ширину из шапки */
   const rz = await page.evaluate(async () => {
