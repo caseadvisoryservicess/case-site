@@ -510,6 +510,10 @@
         class: 'nav-btn' + (active === 'users' ? ' active' : ''),
         onclick: guard(showUsers)
       }, 'Пользователи'));
+      nav.push(h('button', {
+        class: 'nav-btn',
+        onclick: function () { window.open('feasibility', '_blank'); }
+      }, 'Фин-модель'));
     }
     return h('header', { class: 'topnav' },
       h('div', { class: 'topnav-in' },

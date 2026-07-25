@@ -305,6 +305,14 @@ router.get('/uploads/:slug/:file', (req, res) => {
   res.sendFile(full);
 });
 
+// ─── Фин-модель (Feasibility Studio): страница только для администратора ───
+router.get('/feasibility', (req, res) => {
+  const p = verify(getCookie(req, 'sfb_session'));
+  const user = p && loadUsers().find((u) => u.username === p.u);
+  if (!user || user.role !== 'admin') return res.redirect(BASE_PATH + '/');
+  res.sendFile(path.join(ROOT, 'private', 'feasibility.html'));
+});
+
 // ─── API: сборка лендинга ───
 function generate(slug) {
   const cfg = JSON.parse(fs.readFileSync(projectFile(slug), 'utf8'));
