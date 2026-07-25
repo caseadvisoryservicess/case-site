@@ -41,6 +41,7 @@ button{font-family:var(--sans)}
 .tb-spacer{flex:1}
 .tb-group{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 select.tb-select{font:inherit;font-size:12px;padding:7px 10px;border:1.5px solid var(--i30);background:var(--white);color:var(--ink);max-width:220px}
+.tb-lbl{font-size:10px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--i60);white-space:nowrap}
 .btn{font-size:10.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:9px 14px;border:1.5px solid var(--i30);background:transparent;color:var(--i70);cursor:pointer;transition:all .15s;white-space:nowrap}
 .btn:hover{border-color:var(--ink);color:var(--ink)}
 .btn.primary{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -210,7 +211,8 @@ table.cf td.ng{color:var(--neg)}
   <div class="tb-title">Feasibility Studio · фин-модель</div>
   <div class="tb-spacer"></div>
   <div class="tb-group">
-    <select class="tb-select" id="scenSelect" title="Сохранённые сценарии"></select>
+    <span class="tb-lbl">Проект:</span>
+    <select class="tb-select" id="scenSelect" title="Выбор проекта / сценария: список пополняется кнопкой «Сохранить»"></select>
     <button class="btn" id="btnSave" title="Сохранить текущие данные под именем проекта">Сохранить</button>
     <button class="btn" id="btnDelete" title="Удалить выбранный сценарий">Удалить</button>
     <button class="btn" id="btnNew" title="Сбросить все поля к пресету Taxtapul">Сброс</button>
@@ -218,7 +220,8 @@ table.cf td.ng{color:var(--neg)}
     <button class="btn" id="btnExport" title="Скачать данные файлом JSON">Экспорт</button>
     <button class="btn" id="btnImport" title="Загрузить данные из файла JSON">Импорт</button>
     <button class="btn" id="btnCsv" title="Скачать таблицу потоков в CSV">CSV</button>
-    <select class="tb-select" id="pkgLang" title="Язык пакета" style="max-width:64px"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select>
+    <span class="tb-lbl" title="Язык скачиваемого пакета PDF, интерфейс панели всегда на русском">Пакет:</span>
+    <select class="tb-select" id="pkgLang" title="Язык скачиваемого пакета PDF (не языка панели)" style="max-width:64px"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select>
     <button class="btn" id="btnPackage" title="Один PDF: презентация проекта с сервера + страницы фин-модели с текущими цифрами">Скачать пакет</button>
     <div class="tb-sep"></div>
     <button class="btn" id="btnPdfSum" title="Одностраничная сводка: ключевые показатели, график окупаемости и предпосылки">PDF: показатели</button>
@@ -366,7 +369,7 @@ function defaults(){
     other:{ enabled:false, label:'Прочий доход', amount:200000 },
     budget:{ land:0, retailGba:32000, retailCost:900, hotelGba:15000, hotelCost:1400, ffePerKey:12000,
       officeGba:2299, officeCost:400, softPct:0, contPct:0, spread:'scurve' },
-    buy:{ enabled:false, price:2300000, dealPct:1 },
+    buy:{ enabled:false, price:2300000, dealPct:1, dealPayer:'buyer' },
     fin:{ enabled:false, ltc:55, rate:9, termYears:10, idcCap:true },
     exit:{ sale:false, mode:'cap', capRate:9, growth:5, sellPct:2 },
     tax:{ enabled:false, rate:15, deprYears:25 }
@@ -447,7 +450,8 @@ const SECTIONS = [
     note:'Режим покупателя: инвестиция = цена сделки, бюджет строительства не считается и нигде не отображается - себестоимость девелопера не раскрывается. Бизнес покупателя (БЦ, клиника, учебный центр) настраивается в разделе 04 - готовые сценарии есть в списке сверху.', fields:[
     {k:'buy.enabled', label:'Модель для покупателя: объект приобретается готовым (вместо бюджета стройки)', type:'check'},
     {k:'buy.price', label:'Цена приобретения объекта', min:0, max:1e10, step:10000, show:s=>s.buy.enabled},
-    {k:'buy.dealPct', label:'Расходы на сделку (регистрация, брокер), % от цены', sfx:'%', min:0, max:10, step:0.25, show:s=>s.buy.enabled},
+    {k:'buy.dealPayer', label:'Расходы на сделку (брокер, регистрация) - кто платит', type:'select', options:[['buyer','покупатель (входят в его инвестицию)'],['seller','продавец (у покупателя не учитываются)']], show:s=>s.buy.enabled},
+    {k:'buy.dealPct', label:'Расходы на сделку, % от цены', sfx:'%', min:0, max:10, step:0.25, show:s=>s.buy.enabled&&s.buy.dealPayer!=='seller'},
     {k:'budget.land', label:'Земля / приобретение площадки', min:0, max:1e10, step:10000, show:s=>!s.buy.enabled},
     {k:'budget.retailGba', label:'Ритейл - общая площадь (GBA)', sfx:'м²', min:0, max:800000, step:500, show:s=>!s.buy.enabled&&s.retail.enabled},
     {k:'budget.retailCost', label:'Ритейл - стоимость за м² GBA', min:0, max:10000, step:10, show:s=>!s.buy.enabled&&s.retail.enabled},
@@ -496,7 +500,8 @@ function calc(st, mods={}){
   const cont=(hard+soft)*B.contPct/100;
   const ffe=(!buyMode&&st.hotel.enabled)?st.hotel.keys*B.ffePerKey*m.hardMult:0;
   const acqPrice=buyMode?st.buy.price*m.hardMult:0;
-  const dealCost=acqPrice*(st.buy?st.buy.dealPct:0)/100;
+  /* расходы на сделку входят в инвестицию покупателя, только если платит он (а не продавец) */
+  const dealCost=(st.buy&&st.buy.dealPayer==='seller')?0:acqPrice*(st.buy?st.buy.dealPct:0)/100;
   const devCost=buyMode?acqPrice+dealCost:B.land+hard+soft+cont+ffe;
 
   /* capex phasing */
@@ -802,7 +807,7 @@ function renderBudgetSummary(R){
   const el=document.getElementById('budgetSum'); if(!el)return;
   el.textContent='';
   const rows=R.buyMode
-    ?[['Приобретение объекта',R.acqPrice],['Расходы на сделку',R.dealCost]]
+    ?[['Приобретение объекта',R.acqPrice],...(R.dealCost>0?[['Расходы на сделку',R.dealCost]]:[])]
     :[['Земля',R.land],['Строительные затраты',R.hard],['Мягкие затраты',R.soft],['Непредвиденные',R.cont]];
   if(R.ffe>0)rows.push(['Отель: FF&E / OS&E',R.ffe]);
   if(R.totalIDC>0&&S.fin.idcCap)rows.push(['Капитализированные проценты (IDC)',R.totalIDC]);
@@ -1177,7 +1182,7 @@ function renderKPIs(R){
     ['Окупаемость',fmtYrs(mets.pb),`с дисконтом: ${fmtYrs(mets.dpb)}`,false],
     ['Мультипликатор',fmtX(mets.moic),`на вложенные ${fmtM(mets.contrib)}`,mets.moic!==null&&mets.moic<1],
     ['Yield on Cost',fmtPct(mets.yoc),`NOI стабилиз. (год ${mets.kStab}) / ${R.buyMode?'цена покупки':'затраты'}`,false],
-    ['Инвестиции всего',fmtM(mets.totalInvestment),R.buyMode?'цена приобретения со сделкой':(S.fin.enabled&&S.fin.idcCap&&R.totalIDC>0?'вкл. капитализированные проценты':'затраты на девелопмент'),false],
+    ['Инвестиции всего',fmtM(mets.totalInvestment),R.buyMode?(R.dealCost>0?'цена приобретения со сделкой':'цена приобретения (сделку платит продавец)'):(S.fin.enabled&&S.fin.idcCap&&R.totalIDC>0?'вкл. капитализированные проценты':'затраты на девелопмент'),false],
     S.exit.sale
       ?['Стоимость на выходе',fmtM(R.saleGross),(S.exit.mode==='growth'?`рост ${S.exit.growth}% в год, нетто ${fmtM(R.saleNet)}`:`@ cap ${S.exit.capRate}%, нетто ${fmtM(R.saleNet)}`),false]
       :(S.sales.enabled
@@ -1220,7 +1225,7 @@ function renderTable(R){
   const N=R.N, zeros=()=>new Array(N).fill(0);
 
   mkRow(R.buyMode?'ПРИОБРЕТЕНИЕ':'ДЕВЕЛОПМЕНТ',new Array(N).fill(null),'sect');
-  mkRow(R.buyMode?'Приобретение объекта (со сделкой)':'Капитальные затраты',R.capex.map(v=>-v),'sub');
+  mkRow(R.buyMode?(R.dealCost>0?'Приобретение объекта (со сделкой)':'Приобретение объекта'):'Капитальные затраты',R.capex.map(v=>-v),'sub');
 
   mkRow('ОПЕРАЦИОННАЯ ДЕЯТЕЛЬНОСТЬ И ПРОДАЖИ',new Array(N).fill(null),'sect');
   COMP_META.forEach(([k,label])=>{
@@ -1324,7 +1329,7 @@ function renderAssumptions(R){
   if(R.buyMode){
     const areaRef=S.office.enabled&&S.office.nla>0?S.office.nla:(S.sales.enabled&&S.sales.area>0?S.sales.area:0);
     row('Цена приобретения',fmtM(R.acqPrice)+(areaRef?` (${sym()}${Math.round(R.acqPrice/areaRef).toLocaleString('ru-RU')}/м² GLA)`:''));
-    row('Расходы на сделку',S.buy.dealPct+'%');
+    row('Расходы на сделку',S.buy.dealPayer==='seller'?'платит продавец':`${S.buy.dealPct}% (платит покупатель)`);
   } else {
     row('Земля',fmtM(S.budget.land));
     row('Строительные / мягкие / непредвиденные',`${fmtM(R.hard)} / ${S.budget.softPct}% / ${S.budget.contPct}%`);
@@ -1377,7 +1382,7 @@ function saveAuto(){
 function loadScenarios(){ try{return JSON.parse(localStorage.getItem(LS_SCEN))||{};}catch(e){return{};} }
 function renderScenSelect(sel){
   const el=document.getElementById('scenSelect'); el.textContent='';
-  const opt0=document.createElement('option');opt0.value='';opt0.textContent='- сценарии -';el.appendChild(opt0);
+  const opt0=document.createElement('option');opt0.value='';opt0.textContent='- выбрать проект / сценарий -';el.appendChild(opt0);
   Object.keys(loadScenarios()).sort().forEach(n=>{
     const o=document.createElement('option');o.value=n;o.textContent=n;el.appendChild(o);
   });
@@ -1625,7 +1630,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   let by=H-300;
   p1.drawText(R.buyMode?T.acqYr:T.budget,{x:40,y:by,size:10,font:fontB,color:INK}); by-=16;
   const bRows=R.buyMode
-    ?[[T.acq,R.acqPrice],[T.deal,R.dealCost]]
+    ?[[T.acq,R.acqPrice],...(R.dealCost>0?[[T.deal,R.dealCost]]:[])]
     :[[T.land,R.land],[T.hard,R.hard],[T.soft,R.soft],[T.cont,R.cont]];
   if(R.ffe>0)bRows.push(['FF&E',R.ffe]);
   if(R.totalIDC>0&&S.fin.idcCap)bRows.push([T.idc,R.totalIDC]);
