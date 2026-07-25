@@ -195,6 +195,9 @@ table.cf td.ng{color:var(--neg)}
   table.cf{font-size:9.5px}
   table.cf th,table.cf td{padding:3px 6px}
   .tip{display:none}
+  body.print-summary #cardStack,body.print-summary #cardAnn,body.print-summary #cardSens,body.print-summary #cardTorn,body.print-summary #cardCf{display:none!important}
+  body.print-summary .grid2{grid-template-columns:1fr}
+  body.print-summary .card.pb{break-before:auto}
 }
 </style>
 </head>
@@ -215,7 +218,11 @@ table.cf td.ng{color:var(--neg)}
     <button class="btn" id="btnExport" title="Скачать данные файлом JSON">Экспорт</button>
     <button class="btn" id="btnImport" title="Загрузить данные из файла JSON">Импорт</button>
     <button class="btn" id="btnCsv" title="Скачать таблицу потоков в CSV">CSV</button>
-    <button class="btn accent" id="btnPrint">Печать / PDF-отчёт</button>
+    <select class="tb-select" id="pkgLang" title="Язык пакета" style="max-width:64px"><option value="ru">RU</option><option value="uz">UZ</option><option value="en">EN</option></select>
+    <button class="btn" id="btnPackage" title="Один PDF: презентация проекта с сервера + страницы фин-модели с текущими цифрами">Скачать пакет</button>
+    <div class="tb-sep"></div>
+    <button class="btn" id="btnPdfSum" title="Одностраничная сводка: ключевые показатели, график окупаемости и предпосылки">PDF: показатели</button>
+    <button class="btn accent" id="btnPdfFull" title="Полный отчёт: все графики, чувствительность и таблица потоков">PDF: полная модель</button>
     <input type="file" id="fileImport" accept=".json,application/json" style="display:none">
   </div>
 </header>
@@ -236,7 +243,7 @@ table.cf td.ng{color:var(--neg)}
     <div class="kpis" id="kpis"></div>
 
     <div class="grid2">
-      <div class="card full">
+      <div class="card full" id="cardCum">
         <div class="card-head">
           <div>
             <div class="card-title">Накопленный денежный поток и окупаемость</div>
@@ -247,7 +254,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="legend" id="lgCum"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="cardStack">
         <div class="card-head">
           <div>
             <div class="card-title" id="stackTitle">NOI по компонентам</div>
@@ -262,7 +269,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="legend" id="lgStack"></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="cardAnn">
         <div class="card-head">
           <div>
             <div class="card-title">Годовой чистый поток</div>
@@ -276,7 +283,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="chart-box" id="chAnn"></div>
       </div>
 
-      <div class="card pb">
+      <div class="card pb" id="cardSens">
         <div class="card-head">
           <div>
             <div class="card-title">Чувствительность - матрица</div>
@@ -296,7 +303,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="sens-axes"><span>Строки: капитальные затраты, % от базы</span><span>Столбцы: доход (аренда, ADR и цена продажи), % от базы</span></div>
       </div>
 
-      <div class="card">
+      <div class="card" id="cardTorn">
         <div class="card-head">
           <div>
             <div class="card-title">Чувствительность - драйверы NPV</div>
@@ -307,7 +314,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="legend" id="lgTorn"></div>
       </div>
 
-      <div class="card full pb">
+      <div class="card full pb" id="cardCf">
         <div class="card-head">
           <div>
             <div class="card-title">Таблица денежных потоков</div>
@@ -318,7 +325,7 @@ table.cf td.ng{color:var(--neg)}
         <div class="cf-note" id="cfNote"></div>
       </div>
 
-      <div class="card full">
+      <div class="card full" id="cardAssump">
         <div class="card-head">
           <div><div class="card-title">Ключевые предпосылки</div></div>
         </div>
@@ -351,7 +358,7 @@ function defaults(){
   return {
     project:{ name:'Taxtapul 31', location:'Ташкент, ул. Тахтапул, 31', symbol:'$',
       startYear:2025, constructionYears:2, operationYears:10, discountRate:12, escalation:5,
-      siteArea:645, footprint:440 },
+      siteArea:645, footprint:440, slug:'takhtapul' },
     retail:{ enabled:false, gla:25000, rent:25, occStart:70, occStab:92, rampYears:3, otherIncomePct:10, opexPct:25 },
     hotel:{ enabled:false, keys:150, adr:110, occStart:45, occStab:68, rampYears:3, otherRevPct:45, gopMargin:38, baseFeePct:3, incFeePct:8, ffeReservePct:4 },
     office:{ enabled:true, nla:1855, rent:20, occStart:70, occStab:90, rampYears:2, otherIncomePct:0, opexPct:15 },
@@ -381,6 +388,7 @@ const SECTIONS = [
     {k:'project.name', label:'Название проекта', type:'text'},
     {k:'project.location', label:'Локация / адрес', type:'text'},
     {k:'project.symbol', label:'Символ валюты', type:'text'},
+    {k:'project.slug', label:'Слаг проекта в панели <span class="u">(для пакета с презентацией)</span>', type:'text'},
     {k:'project.siteArea', label:'Земельный участок <span class="u">(справочно)</span>', sfx:'м²', min:0, max:1e7, step:1},
     {k:'project.footprint', label:'Пятно застройки <span class="u">(справочно)</span>', sfx:'м²', min:0, max:1e6, step:1},
     {k:'project.startYear', label:'Год начала строительства', min:2020, max:2060, step:1},
@@ -1401,7 +1409,257 @@ document.getElementById('btnCsv').addEventListener('click',()=>{
   a.download=(S.project.name||'feasibility').replace(/[^\w\- ]+/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'-cashflow.csv';
   a.click(); URL.revokeObjectURL(a.href);
 });
-document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+let titleBackup=null;
+function printPdf(mode){
+  document.body.classList.toggle('print-summary',mode==='summary');
+  titleBackup=document.title;
+  document.title=(S.project.name||'Проект')+(mode==='summary'?' - показатели':' - фин-модель');
+  refresh();
+  setTimeout(()=>window.print(),80);
+}
+window.addEventListener('afterprint',()=>{
+  document.body.classList.remove('print-summary');
+  if(titleBackup){document.title=titleBackup;titleBackup=null;}
+});
+document.getElementById('btnPdfSum').addEventListener('click',()=>printPdf('summary'));
+document.getElementById('btnPdfFull').addEventListener('click',()=>printPdf('full'));
+
+/* ─── 12b. ПАКЕТ PDF: презентация проекта + фин-модель одним файлом ─── */
+const PKG_I18N={
+  ru:{p1:'Финансовая модель - ключевые показатели',p2:'Финансовая модель - денежные потоки',
+    npv:'NPV ПРОЕКТА',irr:'IRR ПРОЕКТА',irrE:'IRR КАПИТАЛА',pb:'ОКУПАЕМОСТЬ',em:'МУЛЬТИПЛИКАТОР',yoc:'YIELD ON COST',inv:'ИНВЕСТИЦИИ ВСЕГО',salesK:'ПРОДАЖИ, НЕТТО',exitK:'СТОИМОСТЬ НА ВЫХОДЕ',dscr:'МИН. DSCR',
+    rate:'ставка',yrs:'лет',noCredit:'без кредита',withCredit:'с кредитом',discounted:'с дисконтом',
+    budget:'Бюджет',land:'Земля',hard:'Строительные затраты',soft:'Мягкие затраты',cont:'Непредвиденные',idc:'Проценты (IDC)',invT:'Инвестиции всего',
+    ass:'Ключевые предпосылки',constr:'Строительство',oper:'Период эксплуатации',disc:'Ставка дисконта',escal:'Эскалация',
+    lease:'Аренда',occ:'заполняемость',saleA:'Продажа помещений',saleSched:'график продаж',credit:'Кредит',none:'нет (собственный капитал)',
+    exitR:'Выход',hold:'удержание объекта',exitSale:'продажа @ cap',tax:'Налог на прибыль',notApp:'не применяется',
+    chart:'Накопленный денежный поток',pbMark:'окупаемость',
+    tCapex:'Капитальные затраты',tRev:'Операционная выручка',tNoi:'NOI',tSales:'Продажа помещений (нетто)',tExit:'Продажа объекта (нетто)',tPcf:'Поток проекта',tCum:'Накопленный поток',tInt:'Проценты',tSvc:'Обслуживание долга',tEcf:'Поток на капитал',tCumE:'Накопленный поток на капитал',
+    thous:'в тысячах',constrYr:'(С) = год строительства',
+    foot:'Подготовлено в CASE Feasibility Studio · индикативный расчёт, не оферта',from:'с',forYears:'за',inMon:'в мес.'},
+  uz:{p1:"Moliyaviy model - asosiy ko'rsatkichlar",p2:'Moliyaviy model - pul oqimlari',
+    npv:'LOYIHA NPV',irr:'LOYIHA IRR',irrE:'KAPITAL IRR',pb:'QOPLANISH',em:'MULTIPLIKATOR',yoc:'YIELD ON COST',inv:'JAMI INVESTITSIYA',salesK:'SOTUVLAR, NETTO',exitK:'CHIQISH QIYMATI',dscr:'MIN. DSCR',
+    rate:'stavka',yrs:'yil',noCredit:'kreditsiz',withCredit:'kredit bilan',discounted:'diskont bilan',
+    budget:'Byudjet',land:'Yer',hard:'Qurilish xarajatlari',soft:'Yumshoq xarajatlar',cont:'Kutilmagan xarajatlar',idc:'Foizlar (IDC)',invT:'Jami investitsiya',
+    ass:'Asosiy taxminlar',constr:'Qurilish',oper:'Ekspluatatsiya davri',disc:'Diskont stavkasi',escal:'Eskalatsiya',
+    lease:'Ijara',occ:'bandlik',saleA:'Maydonlar sotuvi',saleSched:'sotuv jadvali',credit:'Kredit',none:"yo'q (o'z kapitali)",
+    exitR:'Chiqish',hold:'obyektni saqlash',exitSale:'sotish @ cap',tax:'Foyda solig'+"'"+'i',notApp:"qo'llanilmaydi",
+    chart:'Jamlangan pul oqimi',pbMark:'qoplanish',
+    tCapex:'Kapital xarajatlar',tRev:'Operatsion tushum',tNoi:'NOI',tSales:'Maydonlar sotuvi (netto)',tExit:'Obyekt sotuvi (netto)',tPcf:'Loyiha oqimi',tCum:'Jamlangan oqim',tInt:'Foizlar',tSvc:'Qarz xizmati',tEcf:'Kapital oqimi',tCumE:'Jamlangan kapital oqimi',
+    thous:'mingda',constrYr:'(С) = qurilish yili',
+    foot:"CASE Feasibility Studio'da tayyorlangan · indikativ hisob, oferta emas",from:'boshlab',forYears:'davomida',inMon:'oyiga'},
+  en:{p1:'Financial model - key indicators',p2:'Financial model - cash flow',
+    npv:'PROJECT NPV',irr:'PROJECT IRR',irrE:'EQUITY IRR',pb:'PAYBACK',em:'EQUITY MULTIPLE',yoc:'YIELD ON COST',inv:'TOTAL INVESTMENT',salesK:'SALES, NET',exitK:'EXIT VALUE',dscr:'MIN DSCR',
+    rate:'rate',yrs:'yrs',noCredit:'unlevered',withCredit:'levered',discounted:'discounted',
+    budget:'Budget',land:'Land',hard:'Hard costs',soft:'Soft costs',cont:'Contingency',idc:'Interest (IDC)',invT:'Total investment',
+    ass:'Key assumptions',constr:'Construction',oper:'Operating period',disc:'Discount rate',escal:'Escalation',
+    lease:'Lease',occ:'occupancy',saleA:'Unit sales',saleSched:'sales schedule',credit:'Debt',none:'none (all-equity)',
+    exitR:'Exit',hold:'hold',exitSale:'sale @ cap',tax:'Profit tax',notApp:'not applied',
+    chart:'Cumulative cash flow',pbMark:'payback',
+    tCapex:'Capital expenditure',tRev:'Operating revenue',tNoi:'NOI',tSales:'Unit sales (net)',tExit:'Asset sale (net)',tPcf:'Project cash flow',tCum:'Cumulative CF',tInt:'Interest',tSvc:'Debt service',tEcf:'Equity cash flow',tCumE:'Cumulative equity CF',
+    thous:'in thousands',constrYr:'(С) = construction year',
+    foot:'Prepared with CASE Feasibility Studio · indicative estimate, not an offer',from:'from',forYears:'over',inMon:'/mo'}
+};
+let pkgDeps=null;
+function loadScriptOnce(src){
+  return new Promise((ok,err)=>{
+    const sc=document.createElement('script'); sc.src=src;
+    sc.onload=ok; sc.onerror=()=>err(new Error('Не удалось загрузить '+src));
+    document.head.appendChild(sc);
+  });
+}
+async function ensurePkgDeps(){
+  if(pkgDeps)return pkgDeps;
+  if(!window.PDFLib)await loadScriptOnce('vendor/pdf-lib.min.js');
+  if(!window.fontkit)await loadScriptOnce('vendor/fontkit.umd.min.js');
+  const [reg,bold]=await Promise.all([
+    fetch('vendor/DejaVuSans.ttf').then(r=>{if(!r.ok)throw new Error('шрифт');return r.arrayBuffer();}),
+    fetch('vendor/DejaVuSans-Bold.ttf').then(r=>{if(!r.ok)throw new Error('шрифт');return r.arrayBuffer();})
+  ]);
+  pkgDeps={reg,bold};
+  return pkgDeps;
+}
+const pkgFmtTh=v=>{const n=Math.round(v/1000);return n===0?'-':n.toLocaleString('ru-RU').replace(/ /g,' ');};
+async function downloadPackage(lang){
+  const btn=document.getElementById('btnPackage');
+  const was=btn.textContent; btn.textContent='Готовим...'; btn.disabled=true;
+  try{
+    const deps=await ensurePkgDeps();
+    const {PDFDocument,rgb}=PDFLib;
+    const out=await PDFDocument.create();
+    out.registerFontkit(fontkit);
+    /* презентация проекта с сервера (на выбранном языке) */
+    const slug=(S.project.slug||'takhtapul').trim();
+    const presFile=lang==='ru'?'presentation.pdf':'presentation-'+lang+'.pdf';
+    let presOk=false;
+    try{
+      const r=await fetch('uploads/'+encodeURIComponent(slug)+'/'+presFile);
+      if(r.ok){
+        const pres=await PDFDocument.load(await r.arrayBuffer());
+        const pages=await out.copyPages(pres,pres.getPageIndices());
+        pages.forEach(pg=>out.addPage(pg));
+        presOk=true;
+      }
+    }catch(e){}
+    const font=await out.embedFont(deps.reg,{subset:true});
+    const fontB=await out.embedFont(deps.bold,{subset:true});
+    drawFinPages(out,font,fontB,lang,rgb);
+    const bytes=await out.save();
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(new Blob([bytes],{type:'application/pdf'}));
+    a.download=((S.project.name||'project').replace(/[^\wЀ-ӿ\- ]+/g,'').trim().replace(/\s+/g,'-')+'-package-'+lang.toUpperCase()+'.pdf');
+    a.click(); URL.revokeObjectURL(a.href);
+    if(!presOk)alert('Презентация '+presFile+' не найдена в загрузках проекта «'+slug+'» - в пакете только страницы фин-модели.');
+  }catch(e){
+    alert('Не удалось собрать пакет: '+e.message);
+  }finally{
+    btn.textContent=was; btn.disabled=false;
+  }
+}
+function drawFinPages(doc,font,fontB,lang,rgb){
+  const T=PKG_I18N[lang]||PKG_I18N.ru;
+  const R=calc(S);
+  const INK=rgb(0.104,0.114,0.122), RED=rgb(0.69,0.12,0.13), GRAY=rgb(0.45,0.44,0.42), LIGHT=rgb(0.88,0.87,0.85), BG=rgb(0.965,0.96,0.95);
+  const W=841.89,H=595.28;
+  const tW=(t,f,sz)=>f.widthOfTextAtSize(String(t),sz);
+  const drawR=(pg,t,x,y,f,sz,col)=>pg.drawText(String(t),{x:x-tW(t,f,sz),y,size:sz,font:f,color:col});
+  const wrapText=(t,f,sz,w)=>{
+    const words=String(t).split(' ');const lines=[];let cur='';
+    for(const wd of words){const test=cur?cur+' '+wd:wd;
+      if(!cur||tW(test,f,sz)<=w)cur=test;else{lines.push(cur);cur=wd;}}
+    if(cur)lines.push(cur);return lines;
+  };
+  /* месяцы вручную: локаль uz в браузерах часто без названий месяцев */
+  const MONTHS={
+    ru:['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'],
+    uz:['yanvar','fevral','mart','aprel','may','iyun','iyul','avgust','sentabr','oktabr','noyabr','dekabr'],
+    en:['January','February','March','April','May','June','July','August','September','October','November','December']
+  };
+  const nowD=new Date();
+  const dateStr=lang==='uz'
+    ?nowD.getFullYear()+'-yil '+nowD.getDate()+'-'+MONTHS.uz[nowD.getMonth()]
+    :nowD.getDate()+' '+(MONTHS[lang]||MONTHS.ru)[nowD.getMonth()]+' '+nowD.getFullYear()+(lang==='ru'?' г.':'');
+
+  /* ── страница 1: показатели ── */
+  const p1=doc.addPage([W,H]);
+  p1.drawRectangle({x:0,y:H-72,width:W,height:72,color:INK});
+  p1.drawRectangle({x:40,y:H-46,width:26,height:3,color:RED});
+  p1.drawText('CASE FEASIBILITY STUDIO',{x:74,y:H-48,size:8.5,font:fontB,color:rgb(0.75,0.73,0.7)});
+  p1.drawText(S.project.name||'-',{x:40,y:H-66,size:15,font:fontB,color:rgb(1,1,1)});
+  drawR(p1,T.p1,W-40,H-48,fontB,10,rgb(1,1,1));
+  drawR(p1,(S.project.location||'')+'  ·  '+dateStr,W-40,H-64,font,8,rgb(0.75,0.73,0.7));
+
+  const M=R.metrics;
+  const kTiles=[
+    [T.npv,fmtM(M.npv),'@ '+T.rate+' '+S.project.discountRate+'%'],
+    [T.irr,fmtPct(M.irrU),T.noCredit],
+    [T.irrE,S.fin.enabled?fmtPct(M.irrL):'-',S.fin.enabled?T.withCredit+' '+S.fin.ltc+'% LTC':'-'],
+    [T.pb,M.pb===null?'-':M.pb.toFixed(1)+' '+T.yrs,T.discounted+': '+(M.dpb===null?'-':M.dpb.toFixed(1)+' '+T.yrs)],
+    [T.em,fmtX(M.moic),''],
+    [T.yoc,fmtPct(M.yoc),''],
+    [T.inv,fmtM(M.totalInvestment),''],
+    S.exit.sale?[T.exitK,fmtM(R.saleGross),'@ cap '+S.exit.capRate+'%']
+      :(S.sales.enabled?[T.salesK,fmtM(R.salesNetTotal),S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price]
+      :[T.dscr,M.dscrMin?fmtX(M.dscrMin):'-','']),
+  ];
+  kTiles.forEach((tile,i)=>{
+    const col=i%4,row=Math.floor(i/4);
+    const x=40+col*196,y0=H-118-row*74;
+    p1.drawRectangle({x:x-12,y:y0-34,width:184,height:64,color:BG});
+    p1.drawText(tile[0],{x,y:y0+14,size:7,font:fontB,color:GRAY});
+    p1.drawText(String(tile[1]),{x,y:y0-8,size:17,font:fontB,color:INK});
+    if(tile[2])p1.drawText(String(tile[2]),{x,y:y0-24,size:7,font,color:GRAY});
+  });
+
+  /* бюджет */
+  let by=H-300;
+  p1.drawText(T.budget,{x:40,y:by,size:10,font:fontB,color:INK}); by-=16;
+  const bRows=[[T.land,R.land],[T.hard,R.hard],[T.soft,R.soft],[T.cont,R.cont]];
+  if(R.ffe>0)bRows.push(['FF&E',R.ffe]);
+  if(R.totalIDC>0&&S.fin.idcCap)bRows.push([T.idc,R.totalIDC]);
+  bRows.push([T.invT,R.metrics.totalInvestment,1]);
+  bRows.forEach(([l,v,tot])=>{
+    const f=tot?fontB:font;
+    p1.drawText(l,{x:40,y:by,size:8.5,font:f,color:tot?INK:GRAY});
+    drawR(p1,fmtM(v),268,by,f,8.5,INK);
+    p1.drawLine({start:{x:40,y:by-4},end:{x:268,y:by-4},thickness:0.5,color:LIGHT});
+    by-=15;
+  });
+
+  /* предпосылки */
+  let ay=H-300;
+  p1.drawText(T.ass,{x:300,y:ay,size:10,font:fontB,color:INK}); ay-=16;
+  const aRows=[
+    [T.constr,S.project.constructionYears+' '+T.yrs+' · '+T.from+' '+S.project.startYear],
+    [T.oper,S.project.operationYears+' '+T.yrs],
+    [T.disc,S.project.discountRate+'%'],[T.escal,S.project.escalation+'% p.a.'],
+  ];
+  if(S.office.enabled)aRows.push([T.lease,S.office.nla.toLocaleString('ru-RU')+' m² x '+sym()+S.office.rent+'/m² '+T.inMon+' · '+T.occ+' '+S.office.occStart+'-'+S.office.occStab+'%']);
+  if(S.retail.enabled)aRows.push([T.lease+' (retail)',S.retail.gla.toLocaleString('ru-RU')+' m² x '+sym()+S.retail.rent+'/m² '+T.inMon]);
+  if(S.hotel.enabled)aRows.push(['Hotel',S.hotel.keys+' keys · ADR '+sym()+S.hotel.adr]);
+  if(S.sales.enabled)aRows.push([T.saleA,S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price+'/m² · '+T.saleSched+': '+T.from+' '+(S.project.startYear+Math.round(S.sales.startAt)-1)+', '+T.forYears+' '+S.sales.years+' '+T.yrs]);
+  aRows.push([T.credit,S.fin.enabled?(S.fin.ltc+'% LTC @ '+S.fin.rate+'%'):T.none]);
+  aRows.push([T.exitR,S.exit.sale?(T.exitSale+' '+S.exit.capRate+'%'):T.hold]);
+  aRows.push([T.tax,S.tax.enabled?(S.tax.rate+'%'):T.notApp]);
+  aRows.forEach(([l,v])=>{
+    p1.drawText(l,{x:300,y:ay,size:8.5,font:fontB,color:GRAY});
+    const lines=wrapText(v,font,8.5,188);
+    lines.forEach((ln,li)=>p1.drawText(ln,{x:412,y:ay-li*10,size:8.5,font,color:INK}));
+    ay-=(lines.length>1?lines.length*10+6:15);
+  });
+
+  /* мини-график накопленного потока */
+  const cx0=612,cx1=W-40,cy0=100,cy1=H-316;
+  p1.drawText(T.chart,{x:cx0,y:cy1+12,size:10,font:fontB,color:INK});
+  const data=R.cumU, n=data.length;
+  let lo=Math.min(0,...data),hi=Math.max(0,...data); const pad=(hi-lo)*0.06||1; lo-=pad;hi+=pad;
+  const X=i=>cx0+(cx1-cx0)*(n===1?0.5:i/(n-1));
+  const Y=v=>cy0+(cy1-cy0)*(v-lo)/(hi-lo);
+  p1.drawLine({start:{x:cx0,y:Y(0)},end:{x:cx1,y:Y(0)},thickness:0.7,color:GRAY});
+  for(let i=1;i<n;i++)p1.drawLine({start:{x:X(i-1),y:Y(data[i-1])},end:{x:X(i),y:Y(data[i])},thickness:1.6,color:rgb(0.16,0.47,0.84)});
+  drawR(p1,fmtM(data[n-1]),cx1,Y(data[n-1])+5,fontB,8,INK);
+  p1.drawText(String(R.years[0]),{x:cx0,y:cy0-12,size:7,font,color:GRAY});
+  drawR(p1,String(R.years[n-1]),cx1,cy0-12,font,7,GRAY);
+  if(M.pb!==null&&M.pb<=n){
+    const px=cx0+(cx1-cx0)*((M.pb-1)/Math.max(1,n-1));
+    p1.drawCircle({x:px,y:Y(0),size:3.2,color:rgb(0.16,0.47,0.84)});
+    p1.drawText(T.pbMark+' '+M.pb.toFixed(1),{x:Math.min(px+5,cx1-70),y:Y(0)+7,size:7,font:fontB,color:INK});
+  }
+  p1.drawText(T.foot,{x:40,y:34,size:7.5,font,color:GRAY});
+  drawR(p1,'CASE Real Estate Advisory · caseadvisory.uz',W-40,34,font,7.5,GRAY);
+
+  /* ── страница 2: денежные потоки ── */
+  const p2=doc.addPage([W,H]);
+  p2.drawRectangle({x:0,y:H-56,width:W,height:56,color:INK});
+  p2.drawText(S.project.name||'-',{x:40,y:H-36,size:12,font:fontB,color:rgb(1,1,1)});
+  drawR(p2,T.p2,W-40,H-36,fontB,10,rgb(1,1,1));
+  const rows=[[T.tCapex,R.capex.map(v=>-v)],[T.tRev,R.revTot],[T.tNoi,R.noi]];
+  if(S.sales.enabled)rows.push([T.tSales,R.salesRev]);
+  if(S.exit.sale){const e=new Array(R.N).fill(0);e[R.N-1]=R.saleNet;rows.push([T.tExit,e]);}
+  rows.push([T.tPcf,R.ucf,1],[T.tCum,R.cumU]);
+  if(S.fin.enabled){
+    rows.push([T.tInt,R.interest.map(v=>-v)],[T.tSvc,R.service.map(v=>-v)],[T.tEcf,R.lcf,1],[T.tCumE,R.cumL]);
+  }
+  const LX=40,LW=176,tx0=LX+LW,tx1=W-40,colW=(tx1-tx0)/R.N;
+  let ty=H-88;
+  p2.drawText(T.thous+' '+sym()+' · '+T.constrYr,{x:LX,y:ty+8,size:7.5,font,color:GRAY});
+  ty-=14;
+  R.years.forEach((yr,i)=>drawR(p2,yr+(i<R.C?' (С)':''),tx0+colW*(i+1)-4,ty,fontB,7.5,INK));
+  p2.drawLine({start:{x:LX,y:ty-5},end:{x:tx1,y:ty-5},thickness:0.8,color:INK});
+  ty-=20;
+  rows.forEach(([label,vals,tot],ri)=>{
+    if(ri%2===0)p2.drawRectangle({x:LX-4,y:ty-5,width:tx1-LX+8,height:17,color:BG});
+    p2.drawText(label,{x:LX,y:ty,size:8,font:tot?fontB:font,color:tot?INK:GRAY});
+    vals.forEach((v,i)=>{
+      const txt=pkgFmtTh(v);
+      drawR(p2,txt,tx0+colW*(i+1)-4,ty,tot?fontB:font,7.3,v<-499?RED:INK);
+    });
+    ty-=17;
+  });
+  p2.drawText(T.foot+' · '+dateStr,{x:40,y:34,size:7.5,font,color:GRAY});
+}
+
+document.getElementById('btnPackage').addEventListener('click',()=>downloadPackage(document.getElementById('pkgLang').value));
 
 /* segmented controls */
 function bindSeg(id,cb){
