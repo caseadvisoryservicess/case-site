@@ -1,0 +1,543 @@
+{
+  "version": "4.45.0",
+  "tests": [
+    {
+      "name": "business-data-byte-equivalent-at-runtime",
+      "passed": true,
+      "baselineHash": "35063aa73662ced0e55a7b4475018afdaacad5d9579529cb98d890c4abd6d448",
+      "newHash": "35063aa73662ced0e55a7b4475018afdaacad5d9579529cb98d890c4abd6d448",
+      "bytes": {
+        "baseline": 40987,
+        "new": 40987
+      }
+    },
+    {
+      "name": "boot-version-and-modules",
+      "passed": true,
+      "details": {
+        "version": "4.45.0",
+        "ux": "4.45.0",
+        "role": "ASH",
+        "objects": 4,
+        "units": 59,
+        "brands": 12,
+        "reportFunction": "function",
+        "strictGuard": "function",
+        "ownerReports": true
+      }
+    },
+    {
+      "name": "role-route-security",
+      "passed": true,
+      "details": [
+        {
+          "role": "ASH",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "advisory_pipeline",
+            "advisory_proposal_builder",
+            "advisory_proposals",
+            "advisory_portfolio_map",
+            "advisory_contracts",
+            "advisory_scope",
+            "advisory_delivery",
+            "advisory_reports",
+            "advisory_cross_sell",
+            "feasibility",
+            "mep",
+            "lift",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "v32_sales",
+            "brands",
+            "v32_demand",
+            "v32_partners",
+            "v326_lease",
+            "v326_suppliers",
+            "map",
+            "geoanalytics",
+            "bench",
+            "kpi",
+            "org",
+            "study",
+            "rating",
+            "users",
+            "admin_modules",
+            "admin_system",
+            "document_templates"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": true,
+            "admin": true
+          }
+        },
+        {
+          "role": "ADM",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "advisory_pipeline",
+            "advisory_proposal_builder",
+            "advisory_proposals",
+            "advisory_portfolio_map",
+            "advisory_contracts",
+            "advisory_scope",
+            "advisory_delivery",
+            "advisory_reports",
+            "advisory_cross_sell",
+            "feasibility",
+            "mep",
+            "lift",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "v32_sales",
+            "brands",
+            "v32_demand",
+            "v32_partners",
+            "v326_lease",
+            "v326_suppliers",
+            "map",
+            "geoanalytics",
+            "bench",
+            "kpi",
+            "org",
+            "study",
+            "rating",
+            "users",
+            "admin_modules",
+            "admin_system",
+            "document_templates"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": true,
+            "admin": true
+          }
+        },
+        {
+          "role": "BA",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "feasibility",
+            "mep",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "v32_sales",
+            "brands",
+            "v32_demand",
+            "v32_partners",
+            "v326_lease",
+            "map",
+            "geoanalytics",
+            "bench",
+            "kpi",
+            "org",
+            "study",
+            "rating"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": true
+          }
+        },
+        {
+          "role": "AG",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "v32_sales",
+            "brands",
+            "v32_demand",
+            "v326_lease",
+            "map",
+            "geoanalytics",
+            "kpi",
+            "org",
+            "study",
+            "rating"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": false,
+            "edit": true
+          }
+        },
+        {
+          "role": "AGX",
+          "nav": [
+            "dash",
+            "work_tasks",
+            "work_kanban",
+            "brands"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": true,
+          "readonly": false,
+          "editButton": false,
+          "rights": {
+            "leasing": true,
+            "finance": false,
+            "edit": false,
+            "admin": false
+          }
+        },
+        {
+          "role": "HO",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "brands",
+            "v32_demand",
+            "v326_lease",
+            "kpi",
+            "org",
+            "study"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": true
+          }
+        },
+        {
+          "role": "BSH",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "advisory_pipeline",
+            "advisory_proposal_builder",
+            "advisory_proposals",
+            "advisory_portfolio_map",
+            "advisory_contracts",
+            "advisory_scope",
+            "advisory_delivery",
+            "advisory_reports",
+            "advisory_cross_sell",
+            "mep",
+            "lift",
+            "plan_master",
+            "registry",
+            "map",
+            "geoanalytics",
+            "org",
+            "study"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": true,
+          "editButton": false,
+          "rights": {
+            "leasing": true,
+            "finance": false,
+            "edit": true,
+            "admin": false
+          }
+        },
+        {
+          "role": "HM",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "advisory_pipeline",
+            "advisory_proposal_builder",
+            "advisory_proposals",
+            "advisory_portfolio_map",
+            "advisory_contracts",
+            "advisory_scope",
+            "advisory_delivery",
+            "advisory_reports",
+            "advisory_cross_sell",
+            "feasibility",
+            "mep",
+            "lift",
+            "plan_master",
+            "map",
+            "geoanalytics",
+            "bench",
+            "kpi",
+            "org",
+            "study",
+            "rating"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": true,
+          "readonly": false,
+          "editButton": false,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": false
+          }
+        },
+        {
+          "role": "CFO",
+          "nav": [
+            "dash",
+            "crm_clients",
+            "case_projects",
+            "v32_action",
+            "dates",
+            "work_tasks",
+            "work_kanban",
+            "workload",
+            "work_approvals",
+            "advisory_pipeline",
+            "advisory_proposal_builder",
+            "advisory_proposals",
+            "advisory_portfolio_map",
+            "advisory_contracts",
+            "advisory_scope",
+            "advisory_delivery",
+            "advisory_reports",
+            "advisory_cross_sell",
+            "feasibility",
+            "mep",
+            "lift",
+            "leasing_portfolio_map",
+            "plan_master",
+            "registry",
+            "v32_sales",
+            "brands",
+            "v32_demand",
+            "v32_partners",
+            "v326_lease",
+            "v326_suppliers",
+            "map",
+            "geoanalytics",
+            "bench",
+            "kpi",
+            "org",
+            "study",
+            "rating",
+            "users",
+            "admin_modules",
+            "admin_system",
+            "document_templates"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": false,
+          "readonly": false,
+          "editButton": true,
+          "rights": {
+            "leasing": true,
+            "finance": true,
+            "edit": true,
+            "admin": true
+          }
+        },
+        {
+          "role": "BRJ",
+          "nav": [
+            "dash",
+            "work_tasks",
+            "work_kanban",
+            "brands",
+            "geoanalytics"
+          ],
+          "requested": "registry",
+          "actual": "registry",
+          "denied": true,
+          "readonly": false,
+          "editButton": false,
+          "rights": {
+            "leasing": true,
+            "finance": false,
+            "edit": true,
+            "admin": false
+          }
+        }
+      ]
+    },
+    {
+      "name": "owner-report-end-to-end",
+      "passed": true,
+      "details": {
+        "opened": true,
+        "obj": "zm",
+        "gla": 17800,
+        "unitArea": 5328.6,
+        "statusArea": 5328.6,
+        "units": 41,
+        "brands": 31,
+        "refusals": 1,
+        "quality": 11,
+        "saved": true,
+        "storedProfile": "owner",
+        "storedHasRate": false,
+        "planUnits": 41,
+        "realPlans": 0,
+        "hasTabs": 7
+      }
+    },
+    {
+      "name": "responsive-shell-accessibility-and-single-scrollbar",
+      "passed": true,
+      "details": [
+        {
+          "viewport": {
+            "w": 1440,
+            "h": 900
+          },
+          "bodyOverflow": 0,
+          "sideWidth": 224,
+          "mainWidth": 1201,
+          "topbarHeight": 63,
+          "topScrolls": 1,
+          "tables": 1,
+          "unlabeled": 0,
+          "badClick": 0,
+          "stickyTop": "static"
+        },
+        {
+          "viewport": {
+            "w": 1024,
+            "h": 768
+          },
+          "bodyOverflow": 0,
+          "sideWidth": 64,
+          "mainWidth": 945,
+          "topbarHeight": 59,
+          "topScrolls": 1,
+          "tables": 1,
+          "unlabeled": 0,
+          "badClick": 0,
+          "stickyTop": "static"
+        },
+        {
+          "viewport": {
+            "w": 480,
+            "h": 900
+          },
+          "bodyOverflow": 0,
+          "sideWidth": 310,
+          "mainWidth": 480,
+          "topbarHeight": 107,
+          "topScrolls": 1,
+          "tables": 1,
+          "unlabeled": 0,
+          "badClick": 0,
+          "stickyTop": "sticky"
+        }
+      ]
+    },
+    {
+      "name": "lcr-scroll-and-multirow-header-regression",
+      "passed": true,
+      "details": {
+        "topCount": 1,
+        "scrollLeft": 400,
+        "topScrollLeft": 400,
+        "headRows": 2,
+        "headHeights": [
+          24,
+          43
+        ],
+        "pageMovedUp": true,
+        "bottomScrollbarVisible": "auto"
+      }
+    },
+    {
+      "name": "no-unexpected-runtime-errors",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "limitations": [
+    "Local/file/http navigation is blocked by managed Chrome policy; tests use a self-contained production bundle injected through Chrome DevTools Protocol.",
+    "Remote map tiles, external CDN availability, real MySQL/PHP authentication and multi-user concurrency require staging-server acceptance testing."
+  ],
+  "consoleErrors": [],
+  "passed": true
+}

@@ -177,9 +177,9 @@ function asaas_workspace_default_views(): array {
     'AG'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
     'AGX'=>['dash','work_tasks','work_kanban','brands','v32_investors'],
     'HO'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
-    'BSH'=>['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
+    'BSH'=>['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','registry','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
     'HM'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
-    'BRJ'=>['dash','work_tasks','work_kanban','case_projects','registry','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'],
+    'BRJ'=>['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'],
   ];
 }
 function asaas_known_module_ids(): array {
@@ -188,8 +188,11 @@ function asaas_known_module_ids(): array {
 }
 function asaas_protected_module_ids(): array { return ['dash','users']; }
 function asaas_workspace_hard_allowed(array $u, string $view): bool {
-  // Module visibility is controlled exclusively by ROLE_WORKSPACES / USER_WORKSPACES.
-  // Fine-grained actions still require edit/finance/approve/admin rights in each endpoint.
+  // v4.45.0: role invariants are security boundaries, not only menu presets.
+  // External agents never receive corporate registries; junior data admins never receive LCR/projects.
+  $rk = (string)($u['role_key'] ?? '');
+  if ($rk === 'AGX') return in_array($view, ['dash','work_tasks','work_kanban','brands','v32_investors'], true);
+  if ($rk === 'BRJ') return in_array($view, ['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'], true);
   return true;
 }
 function asaas_future_module_ids(): array {
@@ -236,7 +239,7 @@ function asaas_workspace_effective_views(array $u, array $state=[]): array {
   }
   $out = [];
   foreach ((array)$base as $view) {
-    if (is_string($view) && $view !== '' && asaas_feature_can_view($u, $state, $view) && !in_array($view, $out, true)) $out[] = $view;
+    if (is_string($view) && $view !== '' && asaas_workspace_hard_allowed($u, $view) && asaas_feature_can_view($u, $state, $view) && !in_array($view, $out, true)) $out[] = $view;
   }
   if (asaas_feature_can_view($u, $state, 'dash') && !in_array('dash', $out, true)) array_unshift($out, 'dash');
   return $out;

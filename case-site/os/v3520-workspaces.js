@@ -130,9 +130,9 @@
     AG:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
     AGX:['dash','work_tasks','work_kanban','brands','v32_investors'],
     HO:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
-    BSH:['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
+    BSH:['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','registry','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
     HM:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
-    BRJ:['dash','work_tasks','work_kanban','case_projects','registry','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export']
+    BRJ:['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export']
   };
   var UI={role:'BA',user:''};
 
@@ -157,7 +157,7 @@
   function roleStore(){try{ROLE_WORKSPACES=mapObj(ROLE_WORKSPACES);return ROLE_WORKSPACES;}catch(e){return {};}}
   function userStore(){try{USER_WORKSPACES=mapObj(USER_WORKSPACES);return USER_WORKSPACES;}catch(e){return {};}}
   function uniq(a){var out=[];(Array.isArray(a)?a:[]).forEach(function(v){if(ALL.indexOf(v)>=0&&out.indexOf(v)<0)out.push(v);});return out;}
-  function hardAllowed(){return true;}
+  function hardAllowed(v,rk){rk=rk||currentRole();if(rk==='AGX')return (DEFAULTS.AGX||[]).indexOf(v)>=0;if(rk==='BRJ')return (DEFAULTS.BRJ||[]).indexOf(v)>=0;return true;}
   function locked(rk,v){return v==='dash';}
   function roleViews(rk){
     var configured=roleStore()[rk];
@@ -180,7 +180,7 @@
   }
   function effectiveViews(){return userViews(currentUserKey(),currentRole());}
   function isManaged(v){return ALL.indexOf(v)>=0;}
-  function canOpen(v){if(v==='chat')return true;if(!isManaged(v))return true;return effectiveViews().indexOf(v)>=0;}
+  function canOpen(v){if(v==='chat')return true;if(!isManaged(v))return true;if(!hardAllowed(v,currentRole()))return false;return effectiveViews().indexOf(v)>=0;}
   function firstAllowed(){var a=effectiveViews();for(var i=0;i<NAV_ORDER.length;i++)if(a.indexOf(NAV_ORDER[i])>=0)return NAV_ORDER[i];return 'dash';}
   function canManage(){try{return !!(typeof R==='function'&&R().admin);}catch(e){return false;}}
   function save(action,detail){
@@ -288,7 +288,7 @@
   function migrateWorkspaceSchema(){
     try{if(typeof S==='undefined'||!S||!S.user)return;}catch(e){return;}
     var st=roleStore();
-    if(+st.__caseSchema>=4421)return;
+    if(+st.__caseSchema>=4450)return;
     if(+st.__caseSchema<492){
       ['ASH','CFO','ADM'].forEach(function(rk){
         if(Array.isArray(st[rk])){
@@ -307,7 +307,14 @@
       (DEFAULTS[rk]||[]).forEach(function(v){if(st[rk].indexOf(v)<0)st[rk].push(v);});
       st[rk]=uniq(st[rk]);
     });
-    st.__caseSchema=4421;
+    /* v4.45.0: fail-closed role baselines. External agent and junior data admin cannot
+       regain hidden LCR/project modules from an old saved workspace snapshot. Architect gets
+       the promised read-only registry view; editing remains blocked by specialized checks. */
+    if(Array.isArray(st.AGX))st.AGX=uniq(st.AGX.filter(function(v){return (DEFAULTS.AGX||[]).indexOf(v)>=0;}));
+    if(Array.isArray(st.BRJ))st.BRJ=uniq(st.BRJ.filter(function(v){return (DEFAULTS.BRJ||[]).indexOf(v)>=0;}));
+    if(Array.isArray(st.BSH)&&st.BSH.indexOf('registry')<0)st.BSH.push('registry');
+    try{var us=userStore();people().forEach(function(p){var rec=us[String(p.id)];if(!rec||rec.mode!=='custom'||!Array.isArray(rec.views))return;if(p.role==='AGX')rec.views=uniq(rec.views.filter(function(v){return (DEFAULTS.AGX||[]).indexOf(v)>=0;}));if(p.role==='BRJ')rec.views=uniq(rec.views.filter(function(v){return (DEFAULTS.BRJ||[]).indexOf(v)>=0;}));if(p.role==='BSH'&&rec.views.indexOf('registry')<0)rec.views.push('registry');});}catch(e){}
+    st.__caseSchema=4450;
     try{if(typeof persist==='function')persist();}catch(e){}
   }
 

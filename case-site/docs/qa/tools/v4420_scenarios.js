@@ -179,8 +179,8 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     brj: (ROLE_WORKSPACES.BRJ || []).slice()
   }));
   rec('BRJ: миграция дополнила сохранённый шаблон (geoanalytics)', (healed.brj || []).includes('geoanalytics'), JSON.stringify(healed));
-  rec('BRJ: registry и brands в шаблоне', healed.brj.includes('registry') && healed.brj.includes('brands'));
-  rec('BRJ: схема поднята до 4420', +healed.schema >= 4420, healed.schema);
+  rec('BRJ: brands в шаблоне, ЛСР исключён (fail-closed v4.46)', healed.brj.includes('brands') && !healed.brj.includes('registry') && !healed.brj.includes('case_projects'));
+  rec('BRJ: схема поднята до 4450', +healed.schema >= 4450, healed.schema);
   // и меню младшего админа реально содержит гео/бренды
   await page.evaluate(() => { ROLE_WORKSPACES.__caseSchema = 4420;  });
   await page.evaluate(() => { try { logout(); } catch (e) { location.reload(); } });
@@ -189,7 +189,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   if (!hasLogin) { await page.goto(base + '/index.html?demo=1', { waitUntil: 'networkidle' }); await page.waitForTimeout(500); }
   await login('BRJ');
   const brjMenu = await page.evaluate(() => [...document.querySelectorAll('#nav a[data-v]')].map(a => a.dataset.v));
-  rec('BRJ: в меню младшего админа есть гео и бренды', brjMenu.includes('geoanalytics') && brjMenu.includes('brands') && brjMenu.includes('registry'), brjMenu.join(','));
+  rec('BRJ: в меню гео и бренды, БЕЗ ЛСР/проектов (fail-closed)', brjMenu.includes('geoanalytics') && brjMenu.includes('brands') && !brjMenu.includes('registry') && !brjMenu.includes('case_projects'), brjMenu.join(','));
 
   /* ---------- 5. Мини-тест ---------- */
   const quiz = await page.evaluate(() => {

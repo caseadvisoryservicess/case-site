@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-24 · текущая версия платформы **v4.45.0**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.0**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,14 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.46.0:** слияние с параллельным билдом пользователя (v4.45.0_FULL_HOSTING_READY) — «собери сам хороший вариант»:
+  - взято из билда пользователя: **v4450-owner-report.js** (Отчёт собственнику: профили owner/internal, вкладки summary/areas/brands/refusals/plan/quality/versions, кнопка через MutationObserver, view `owner_reports`, state-ключ OWNER_REPORTS) + **v4450-ux-system.js** (caseStrictCanOpen-гард поверх go(), caseCanEditRegistry, экран «Нет доступа», a11y, адаптивный CSS, бейдж «Только просмотр»);
+  - **fail-closed модель ролей** (принята КАК ЗАДУМАНО пользователем — отменяет прежний курс «вернуть BRJ реестр»): AGX только ['dash','work_tasks','work_kanban','brands','v32_investors']; BRJ — + гео/рынок/качество/импорт, но БЕЗ registry/case_projects; BSH — дефолт + registry только чтение. Сервер: lib.php `asaas_workspace_hard_allowed`, unit_patch/units_batch → 403 для AGX/BSH/BRJ; клиент: v3520 hardAllowed/canOpen + миграция схемы **4450** (union с DEFAULTS, затем fail-closed обрезка, включая кастомные USER_WORKSPACES);
+  - state.php — файл пользователя целиком: OWNER_REPORTS (создатели ASH/CFO/BA/HO) + `sanitize_owner_report_snapshot` (вычищает broker/rate/rent/comment/contacts/ownerContact/internalComment/commission из снапшотов);
+  - сохранено моё из v4.44–4.45: сессия 12ч + keepalive, дозаливка очереди, refreshViewKeepScroll, резайзеры в прилипшей шапке, гео-эталон таблиц, серверные per-user настройки таблиц;
+  - index.html: OWNER_REPORTS в stateBlob/applyState/labels; canEdit-гейты реестра через caseCanEditRegistry (ловушка: у пользователя и у меня был свой `const canEditVars` в openUnit — дубль объявления ломал ВЕСЬ inline-скрипт, старую строку удалить);
+  - СЕРВЕРНЫЕ файлы обновлены: lib.php, state.php, unit_patch.php, units_batch.php. После деплоя нужен ОДИН вход администратором для миграции 4450;
+  - тест docs/qa/tools/v4460_merge_smoke.js 8/8 + полный регресс всех наборов зелёный (см. CHANGELOG v4.46.0). Аудит-доки билда пользователя сохранены в docs/audit/v4.45.0/, его QA — docs/qa/v4.45.0/.
 - **v4.45.0:** карточки→таблицы сразу + резайзер в прилипшей шапке + гео-эталон вида:
   - refreshViewKeepScroll() (index.html): go(S.view) с восстановлением scrollLeft/Top всех .tbl-scroll и window; применён ко ВСЕМУ карточному семейству юнита (unitSave/doMerge/doSplit/addVar/delVar/отказ/saveUnitDate/extendOffer/переговоры/editUnitArea/addComment/addUnitCatV/delUnitCatV), legacy brandSave, scrSetSalePrice/Status (v32). Актуальный редактор брендов (v35 asaas35SaveBrand) уже перерисовывал сам;
   - прилипшая шапка: cloneHeaderTable БОЛЬШЕ НЕ вырезает .case-grid-resizer; CSS display:block; proxyStickyResizerDown на layer пробрасывает pointerdown реальному резайзеру по data-case-col-id + scheduleStickyUpdate на move («пропала регулировка ширины» — в клоне резайзеры были display:none);

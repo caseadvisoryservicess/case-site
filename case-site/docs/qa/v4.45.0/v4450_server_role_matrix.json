@@ -1,0 +1,29 @@
+{
+    "tests": [
+        {
+            "name": "AGX registry blocked",
+            "passed": true
+        },
+        {
+            "name": "AGX brands allowed",
+            "passed": true
+        },
+        {
+            "name": "BRJ registry blocked",
+            "passed": true
+        },
+        {
+            "name": "BRJ geoanalytics allowed",
+            "passed": true
+        },
+        {
+            "name": "BSH registry default",
+            "passed": true
+        },
+        {
+            "name": "BRJ project removed",
+            "passed": true
+        }
+    ],
+    "passed": true
+}

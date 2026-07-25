@@ -1,0 +1,39 @@
+{
+  "version": "4.45.0",
+  "js": {
+    "total": 30,
+    "passed": 30,
+    "failed": []
+  },
+  "php": {
+    "total": 36,
+    "passed": 36,
+    "failed": []
+  },
+  "json": {
+    "total": 20,
+    "passed": 20,
+    "failed": []
+  },
+  "html_refs": {
+    "total": 24,
+    "unique": 24,
+    "missing": []
+  },
+  "service_worker": {
+    "cache": "case-os-v4450",
+    "assets": 40,
+    "missing": [],
+    "new_modules_cached": true
+  },
+  "version_checks": {
+    "app_version": "4.45.0",
+    "sw_comment_4450": true,
+    "sw_cache_4450": true,
+    "new_script_refs": true,
+    "stale_4440_code_refs": []
+  },
+  "symlinks": [],
+  "errors": [],
+  "passed": true
+}

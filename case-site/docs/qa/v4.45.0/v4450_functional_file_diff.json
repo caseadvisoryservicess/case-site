@@ -1,0 +1,99 @@
+{
+  "scope": "production functional files, excluding release documentation and checksum lists",
+  "original_files": 140,
+  "new_files": 142,
+  "added": [
+    "os/v4450-owner-report.js",
+    "os/v4450-ux-system.js"
+  ],
+  "deleted": [],
+  "modified": [
+    "os/api/lib.php",
+    "os/api/state.php",
+    "os/api/unit_patch.php",
+    "os/api/units_batch.php",
+    "os/index.html",
+    "os/sw.js",
+    "os/v3520-workspaces.js"
+  ],
+  "unchanged_count": 133,
+  "modified_details": [
+    {
+      "file": "os/api/lib.php",
+      "before": {
+        "sha256": "ff589317f4313ffa6ee0a5c3a460c389ea024dedc16134590597a515e64da92c",
+        "size": 44021
+      },
+      "after": {
+        "sha256": "87efa916cf84616cb028b6b8ee715f1be91955ac517fdd924183370a0337eca0",
+        "size": 44379
+      }
+    },
+    {
+      "file": "os/api/state.php",
+      "before": {
+        "sha256": "33fe7f89fecb5989120855dd26bc25a6e7c10ddda1d1edb7cef7d807968c6d25",
+        "size": 31754
+      },
+      "after": {
+        "sha256": "dba70f2b0c7f44d572cf73da36003d4e1641c9246f7cdbae388e0ec83dbbfb32",
+        "size": 34931
+      }
+    },
+    {
+      "file": "os/api/unit_patch.php",
+      "before": {
+        "sha256": "0e6cfbd5bd9df5c6ff90fe299518e74c2cd2426367a79a72c6273906aad58629",
+        "size": 5284
+      },
+      "after": {
+        "sha256": "95007557db82bc0f2f49b59b239a183d0306ffee28110458d3d6c7aaa7f60792",
+        "size": 5330
+      }
+    },
+    {
+      "file": "os/api/units_batch.php",
+      "before": {
+        "sha256": "125869ad00d219d38dabc0c3e9df1dfc176e91cdb89ef60014d147d1aeb1b436",
+        "size": 5440
+      },
+      "after": {
+        "sha256": "8591fec08af9e086cb537c73e8ae80bd5201c17c6e0f89c61fc72d235998ed18",
+        "size": 5486
+      }
+    },
+    {
+      "file": "os/index.html",
+      "before": {
+        "sha256": "a9476a0e4bcedb72a2c841530e1cebb20cbd7b7c2d195a8fa3b88105f2aa7ddb",
+        "size": 1023422
+      },
+      "after": {
+        "sha256": "39cddb1c529d14108a5c4c3b1347a2ba114d8208cfdf586ded8a72210afeda07",
+        "size": 1024193
+      }
+    },
+    {
+      "file": "os/sw.js",
+      "before": {
+        "sha256": "ce03f60b148855ee3343af24b36feb895445286fc5aa15c579315a121f5fdb98",
+        "size": 2820
+      },
+      "after": {
+        "sha256": "7f493dc289464e52d69a102652bf06bb085c1d7403593e45bee265d89915ea1d",
+        "size": 2871
+      }
+    },
+    {
+      "file": "os/v3520-workspaces.js",
+      "before": {
+        "sha256": "0636e3b4aa09027bb8c976fa633b722a662933f643c3aad864de071c6e1eb43c",
+        "size": 41165
+      },
+      "after": {
+        "sha256": "74c0cc1b10364c0390c6db48c985880406401dbd68f938489012459f89eb81cd",
+        "size": 42362
+      }
+    }
+  ]
+}

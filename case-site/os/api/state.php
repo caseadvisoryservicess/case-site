@@ -55,7 +55,7 @@ function all_shared_state_keys(): array {
     'SUPPLIER_COMMISSION_LEDGER',
     'CASE_CLIENTS','CASE_OPPORTUNITIES','CASE_PROPOSALS','CASE_CONTRACTS','CASE_SCOPE_ITEMS',
     'CASE_SCOPE_CHANGES','CASE_TASKS','CASE_DELIVERABLES','CASE_LAYOUT_VERSIONS','CASE_DECISIONS',
-    'CASE_DOCUMENT_TEMPLATES','CASE_WORKFLOW_SETTINGS','CASE_PORTFOLIO_PROJECTS','CASE_PROPOSAL_CATALOG'];
+    'CASE_DOCUMENT_TEMPLATES','CASE_WORKFLOW_SETTINGS','CASE_PORTFOLIO_PROJECTS','CASE_PROPOSAL_CATALOG','OWNER_REPORTS'];
 }
 // === P0-01 (независимый deep-review v4.8.1) ==================================
 // Раньше здесь был ОДИН широкий статический список ключей на почти все не-админские
@@ -250,6 +250,9 @@ function role_allowed_state_keys(array $u, ?array $oldData=null): ?array {
   // Просмотр геоаналитики не равен праву редактировать мастер-базу. BA/BSH/HM могут
   // видеть карту могут пользователи с модулем; GEO_DATA меняют только пользователи с edit/finance/admin rights.
   if (!asaas_geo_can_edit($u)) $allowed = array_values(array_diff($allowed, ['GEO_DATA']));
+  // Client-safe immutable owner-report snapshots may be created by leasing leadership.
+  if (in_array((string)($u['role_key'] ?? ''), ['ASH','CFO','BA','HO'], true) && !in_array('OWNER_REPORTS', $allowed, true)) $allowed[] = 'OWNER_REPORTS';
+  else if (!in_array((string)($u['role_key'] ?? ''), ['ASH','CFO','BA','HO'], true)) $allowed = array_values(array_diff($allowed, ['OWNER_REPORTS']));
   return $allowed;
 }
 
@@ -262,7 +265,32 @@ function role_visible_state_keys(array $u, ?array $state=null): ?array {
   $map = workspace_view_keys();
   $visible = baseline_state_keys();
   foreach ($views as $v) { foreach (($map[$v] ?? []) as $k) { if (!in_array($k, $visible, true)) $visible[] = $k; } }
+  if (in_array((string)($u['role_key'] ?? ''), ['ASH','CFO','BA','HO'], true) && !in_array('OWNER_REPORTS', $visible, true)) $visible[] = 'OWNER_REPORTS';
   return array_values(array_diff($visible, ['USERS','ROLES','ACTLOG','AUDIT','ROLE_WORKSPACES','USER_WORKSPACES']));
+}
+
+// Owner reports are audit snapshots, not editable working records. Existing IDs are
+// immutable and new rows are sanitized again on the server even if a crafted client
+// bypasses the UI's client-safe profile.
+function sanitize_owner_report_snapshot(array $row, array $u): ?array {
+  $id = substr(trim((string)($row['id'] ?? '')), 0, 120);
+  $objId = substr(trim((string)($row['objId'] ?? '')), 0, 120);
+  $reportDate = substr(trim((string)($row['reportDate'] ?? '')), 0, 10);
+  if ($id === '' || $objId === '' || !preg_match('/^\d{4}-\d{2}-\d{2}$/', $reportDate)) return null;
+  $row['id'] = $id;
+  $row['objId'] = $objId;
+  $row['reportDate'] = $reportDate;
+  $row['profile'] = 'owner';
+  $row['createdAt'] = gmdate('c');
+  $row['createdBy'] = owner_identity($u);
+  $units = (isset($row['units']) && is_array($row['units'])) ? array_slice($row['units'], 0, 5000) : [];
+  foreach ($units as $i=>$unit) {
+    if (!is_array($unit)) { $units[$i] = []; continue; }
+    foreach (['broker','rate','rent','comment','contacts','ownerContact','internalComment','commission'] as $privateKey) unset($unit[$privateKey]);
+    $units[$i] = $unit;
+  }
+  $row['units'] = $units;
+  return $row;
 }
 
 if ($m === 'GET') {
@@ -363,6 +391,30 @@ if ($m === 'POST') {
     if ($rejectedKeys) {
       try { audit('state_key_denied', 'role='.(string)($u['role_key'] ?? '-').' keys='.implode(',', $rejectedKeys)); } catch (Throwable $e) {}
     }
+  }
+
+  // Append-only immutable owner-report history. Omitting the key, deleting an old row or
+  // resending an old ID with changed content never removes or rewrites the server copy.
+  if (array_key_exists('OWNER_REPORTS', $oldData) || array_key_exists('OWNER_REPORTS', $incoming)) {
+    $oldReports = (isset($oldData['OWNER_REPORTS']) && is_array($oldData['OWNER_REPORTS'])) ? array_values($oldData['OWNER_REPORTS']) : [];
+    $oldById = [];
+    foreach ($oldReports as $oldReport) if (is_array($oldReport) && isset($oldReport['id'])) $oldById[(string)$oldReport['id']] = $oldReport;
+    $mergedReports = $oldReports;
+    $seen = array_fill_keys(array_keys($oldById), true);
+    $incomingReports = (isset($incoming['OWNER_REPORTS']) && is_array($incoming['OWNER_REPORTS'])) ? $incoming['OWNER_REPORTS'] : [];
+    foreach ($incomingReports as $candidate) {
+      if (!is_array($candidate)) continue;
+      $candidateId = trim((string)($candidate['id'] ?? ''));
+      if ($candidateId !== '' && isset($oldById[$candidateId])) {
+        if ($candidate !== $oldById[$candidateId]) $rejectedKeys[] = 'OWNER_REPORTS:'.$candidateId;
+        continue;
+      }
+      $cleanReport = sanitize_owner_report_snapshot($candidate, $u);
+      if (!$cleanReport || isset($seen[$cleanReport['id']])) continue;
+      $seen[$cleanReport['id']] = true;
+      $mergedReports[] = $cleanReport;
+    }
+    $incoming['OWNER_REPORTS'] = $mergedReports;
   }
   // A non-finance, non-admin caller only ever received their OWN rows for these keys
   // (see redact_shared_state() on GET above) — so a normal save round-trip must not be

@@ -4,7 +4,7 @@
 require __DIR__.'/lib.php';
 $u = require_login();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') fail('Метод не поддерживается', 405);
-if (($u['role_key'] ?? '') === 'AGX') fail('Внешнему агенту изменение LCR недоступно', 403);
+if (in_array((string)($u['role_key'] ?? ''), ['AGX','BSH','BRJ'], true)) fail('Для этой роли LCR доступен только для просмотра', 403);
 if (empty($u['edit']) && empty($u['admin'])) fail('Нет прав на изменение LCR', 403);
 $b = body();
 $id = trim((string)($b['id'] ?? ''));
