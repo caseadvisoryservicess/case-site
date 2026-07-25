@@ -65,7 +65,12 @@ function restore(snap){
 }
 function withPreservedUi(fn){
   var snap=capture(),result;
-  try{result=fn&&fn();}finally{restore(snap);}
+  try{
+    result=fn&&fn();
+    /* v4.46.2: улучшение таблиц в том же кадре — иначе до срабатывания дебаунса
+       таблица мигает «сырым» (старым) видом */
+    if(window.case432EnhanceNow)window.case432EnhanceNow();
+  }finally{restore(snap);}
   return result;
 }
 function refreshBrands(){

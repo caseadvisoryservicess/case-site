@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.46.1';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.46.2';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -537,7 +537,7 @@ function toast(msg,ms){let box=document.getElementById('toastBox');if(!box){box=
  setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},ms||3200);}
 function isUserBusy(){const dr=$('drawer');if(dr&&dr.classList.contains('open'))return true;if(_saveBusy||_savePend||_offlineDirty||(Date.now()-_lastLocalMutationAt<2500))return true;if(S.regEdit)return true;if(document.querySelector('.modal.open,.rmodal.open,[role=dialog][aria-modal=true]'))return true;if(S&&['advisory_portfolio_map','leasing_portfolio_map','advisory_proposal_builder'].indexOf(S.view)>=0)return true;const ae=document.activeElement;if(ae&&['INPUT','TEXTAREA','SELECT'].indexOf(ae.tagName)>=0)return true;return false;}
 function _serverChangedKeys(data){const out=[];try{Object.keys(data||{}).forEach(k=>{let v=null;try{v=JSON.stringify(data[k]);}catch(e){}if(v!==_syncedKeyJson[k])out.push(k);});}catch(e){}return out;}
-async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length)toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
+async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length&&!(j.updated_by&&S.user&&j.updated_by===S.user.name))toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
 if(typeof window!=='undefined')setInterval(pollServerState,20000);
 let _saveT=null,_saveBusy=false,_savePend=false,_offlineDirty=false,_localSaveFailed=false,_saveConflict=false,_lastSavedAt=null,_localReduced=false;
 function apiSaveState(){if(!BACKEND)return;updateOfflineBadge();clearTimeout(_saveT);_saveT=setTimeout(_doSaveState,800);}
@@ -1866,7 +1866,7 @@ function renderRegistry(){
   <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
   <td${canEdit?` title="2× клик — изменить" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','broker',this)"`:''}>${u.broker||'-'}</td>
   <td onclick="event.stopPropagation()" style="min-width:150px">${(()=>{const lc=(u.comments&&u.comments.length)?u.comments[u.comments.length-1]:null;return `${lc?`<div style="font-size:10.5px;color:#555" title="${esc(lc[1])} · ${esc(lc[0])}">${esc(String(lc[2]).slice(0,48))}${String(lc[2]).length>48?'…':''}</div>`:''}${canEdit?`<input placeholder="+ комментарий…" style="width:100%;font-family:inherit;font-size:10.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;margin-top:2px" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" onblur="if(this.value.trim()){regQuickComment('${u.id}',this.value);this.value='';}">`:''}`;})()}</td>
-   <td onclick="event.stopPropagation()">${canEdit?`<select onchange="saveCell('${u.id}','status',this.value)" class="st-sel st-sel-${STCLS[u.status]}" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:7px;max-width:150px">${Object.keys(STAT).map(k=>`<option value="${k}"${u.status===k?' selected':''}>${stT(k)}</option>`).join('')}</select>`:`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`}${reservationBadge(u)}</td></tr>`;}).join('');
+   <td onclick="event.stopPropagation()">${canEdit?`<select onchange="saveCell('${u.id}','status',this.value)" class="st-sel st-sel-${STCLS[u.status]}" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:7px;width:100%;max-width:150px;box-sizing:border-box">${Object.keys(STAT).map(k=>`<option value="${k}"${u.status===k?' selected':''}>${stT(k)}</option>`).join('')}</select>`:`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`}${reservationBadge(u)}</td></tr>`;}).join('');
  const allSel=fus.length&&fus.every(u=>selSet.indexOf(u.id)>=0);
  const selN=selSet.filter(id=>fus.some(u=>u.id===id)).length;
  const selUnits=(S.regSel||[]).map(i=>U.find(u=>u.id===i)).filter(Boolean);
@@ -4367,11 +4367,11 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
-<script src="v432-data-grid.js?v=4.46.0" defer></script>
+<script src="v432-data-grid.js?v=4.46.2" defer></script>
 <script src="v4327-patch.js?v=4.46.0" defer></script>
 <script src="v4450-ux-system.js?v=4.46.0" defer></script>
 <script src="v4450-owner-report.js?v=4.46.0" defer></script>
-<script src="v4451-live-sync.js?v=4.46.1" defer></script>
+<script src="v4451-live-sync.js?v=4.46.2" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

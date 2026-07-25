@@ -101,9 +101,11 @@ const rec = (n, ok, i) => { results.push({ test: n, status: ok ? 'PASS' : 'FAIL'
   });
   rec('карточка: сохранение сразу в таблице (55) с позицией 150', !r5.err && r5.budget === 55 && r5.shown && r5.left === 150, JSON.stringify(r5));
 
-  /* 6. статика: sw кэш v4461 + live-sync в ASSETS */
+  /* 6. статика: sw кэш соответствует APP_VERSION + live-sync в ASSETS */
   const sw = fs.readFileSync(path.join(OS_DIR, 'sw.js'), 'utf8');
-  rec('sw.js: кэш case-os-v4461 и v4451-live-sync.js в ASSETS', /case-os-v4461/.test(sw) && /v4451-live-sync\.js/.test(sw));
+  const appV = (fs.readFileSync(path.join(OS_DIR, 'index.html'), 'utf8').match(/APP_VERSION='([\d.]+)'/) || [])[1] || '';
+  const expCache = 'case-os-v' + appV.replace(/\./g, '');
+  rec('sw.js: кэш ' + expCache + ' и v4451-live-sync.js в ASSETS', sw.includes(expCache) && /v4451-live-sync\.js/.test(sw), expCache);
 
   const realErr = errs.filter(e => !/favicon|Failed to load/.test(e));
   rec('нет JS-ошибок', realErr.length === 0, realErr.slice(0, 3).join(' | '));

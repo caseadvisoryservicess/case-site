@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.1**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.2**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,11 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.46.2:** стабильный вид таблиц (3 жалобы дня):
+  - «мигает то старый то новый вид»: после live-sync перерисовки таблица жила без улучшения до дебаунса (~90-600мс) → v432 экспортирует `window.case432EnhanceNow=enhanceAll`, live-sync withPreservedUi вызывает его СРАЗУ после fn() (до restore) — кадра «сырой» таблицы нет. Вторая половина: свои правки через unit_patch не попадают в _syncedKeyJson → опрос считал их «чужими» и тостил — тост подавлен при `updated_by===S.user.name` (перерисовка остаётся, она теперь невидима);
+  - «селекты за линию выходят»: статус-селект классической строки ЛСР (index.html ~1869, class st-sel) имел `max-width:150px` БЕЗ width:100% → при столбце <150px торчал на 40px (мерить: sel.getBoundingClientRect().right - td...right). Фикс: width:100%+box-sizing там + страховка в v432 CSS `table.case-grid td select,td input:not([type=checkbox]),td textarea{max-width:100%!important;box-sizing:border-box!important}`;
+  - «у администратора тыла (роль HO!) нет настроек таблиц»: в текущей v432 гейта НЕТ — «Столбцы»/«Вид» у всех ролей на всех основных таблицах; урезанная панель на скриншоте пользователя = его старый v4.45.x билд на хостинге (там canColumns гейтился). Решение = обновление; закреплено тестом (HO: registry/brands/dates полная панель);
+  - тест docs/qa/tools/v4462_visual.js 9/9; v4461_poll_sync теперь версионно-независим (кэш выводится из APP_VERSION). Серверные PHP не менялись.
 - **v4.46.1:** живая синхронизация без перерисовок — влит билд пользователя v4.45.1:
   - **v4451-live-sync.js** (из билда пользователя, целиком): capture/restore UI (позиции всех прокруток по ключам `table:<data-tblkey>`, фокус+курсор, details[open]; restore с ретраями rAF+40/120/260/520мс, токен restoreSeq гасит старые цепочки); VIEW_KEYS (раздел→ключи состояния); refreshAfterServer(changed) — перерисовка ТОЛЬКО если изменение касается текущего раздела; entitySaved(kind,id) + событие `caseos:entity-saved`. МОЁ дополнение: универсальный фолбэк entitySaved на остальные разделы (кроме geo/feas-iframe) — их unitSave обновлял только registry/plans/dash/map;
   - index.html: pollServerState считает `_serverChangedKeys` (сравнение с _syncedKeyJson) → refreshAfterServer, `_rememberSynced` после applyState, тост только при changed.length; isUserBusy += `_saveBusy||_savePend||_offlineDirty||_lastLocalMutationAt<2.5с` + модалки `[role=dialog]`; persist() штампует _lastLocalMutationAt; unitSave/brandSave(legacy)/brandTouch/brandMerge-ветка → entitySaved (фолбэк refreshViewKeepScroll);
