@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.2**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.3**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,15 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.46.3:** закрепление столбцов работает целиком («фиксируется только тело, шапка нет + белые пятна»):
+  - КОРЕНЬ: конфликт слоёв. v432 applyPins даёт th/td класс `.case-grid-pin{position:sticky!important}` (спец. 0,2,1) + inline left; правило v4327 `table.case-grid.case-page-sticky-source>thead th{position:relative!important}` (спец. 0,2,3, грузится позже) ПЕРЕБИВАЛО sticky у th → заголовки со сдвигом left при relative «уезжали» = белые пятна. Фикс: `:not(.case-grid-pin)` в правиле v4327;
+  - ВТОРОЙ КОРЕНЬ: клон шапки (вертикальное прилипание) синхронился `head.style.transform=translateX(-scrollLeft)` — внутри transform sticky НЕ работает вообще. Фикс: слой = настоящий скролл-контейнер (`layer.scrollLeft=wrap.scrollLeft`, transform убран; overflow:hidden у слоя уже был) — клонированные .case-grid-pin th (классы копируются) прилипают сами;
+  - диагностика таких багов: мерить `getComputedStyle(th).position` + `th.getBoundingClientRect().x - wrap.x` у pin-ячеек шапки И тела при scrollLeft>0 — должны совпадать и быть sticky;
+  - тест docs/qa/tools/v4463_pins.js 7/7 (закрепление через настоящую панель «Столбцы» → [data-pin]/[data-save]); полный регресс зелёный, вкл. v4441 (резайзер из клона).
+- **ПЛАН v4.47.0 — консолидация табличного стека** (запрос пользователя «надо пересобрать все таблицы, а то друг на друга пишем коды»):
+  - сейчас три слоя: v432-data-grid (вид/ширины/пины/фильтры/тулбар), v4327-patch (клон шапки + adaptiveActions + очередь unit-синка), v4451-live-sync (точечные перерисовки). Последние баги — ВСЕ на стыках (CSS-специфичность, transform vs sticky, debounce vs render);
+  - план: (1) вынести из v4327 всё табличное (клон шапки, adaptiveActions, syncTblScroll-взаимодействие) в v432 → один владелец презентации таблиц; v4327 остаётся только очередью unit_patch/flush; (2) в v432 единый пайплайн enhance: order→density→widths→visibility→resizers→pins→sticky→toolbar, вызываемый и по debounce, и синхронно (case432EnhanceNow); (3) публичные API сохранить: window.case432EnhanceNow, window.CASE_SYNC_STICKY, window.caseFlushUnitsNow/caseUnsyncedCount, формат префов caseos_grid_prefs_v4322 (миграция не нужна); (4) прогнать ВСЕ наборы + v4463_pins + v4462_visual; (5) отдельный релиз, без смешивания с фичами;
+  - страховка: тесты уже покрывают стыки (пины+клон 7/7, клон-резайзер, флэш-кадр, поза при live-sync).
 - **v4.46.2:** стабильный вид таблиц (3 жалобы дня):
   - «мигает то старый то новый вид»: после live-sync перерисовки таблица жила без улучшения до дебаунса (~90-600мс) → v432 экспортирует `window.case432EnhanceNow=enhanceAll`, live-sync withPreservedUi вызывает его СРАЗУ после fn() (до restore) — кадра «сырой» таблицы нет. Вторая половина: свои правки через unit_patch не попадают в _syncedKeyJson → опрос считал их «чужими» и тостил — тост подавлен при `updated_by===S.user.name` (перерисовка остаётся, она теперь невидима);
   - «селекты за линию выходят»: статус-селект классической строки ЛСР (index.html ~1869, class st-sel) имел `max-width:150px` БЕЗ width:100% → при столбце <150px торчал на 40px (мерить: sel.getBoundingClientRect().right - td...right). Фикс: width:100%+box-sizing там + страховка в v432 CSS `table.case-grid td select,td input:not([type=checkbox]),td textarea{max-width:100%!important;box-sizing:border-box!important}`;
