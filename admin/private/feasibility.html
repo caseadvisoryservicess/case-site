@@ -361,7 +361,7 @@ function defaults(){
       siteArea:645, footprint:440, slug:'takhtapul' },
     retail:{ enabled:false, gla:25000, rent:25, occStart:70, occStab:92, rampYears:3, otherIncomePct:10, opexPct:25 },
     hotel:{ enabled:false, keys:150, adr:110, occStart:45, occStab:68, rampYears:3, otherRevPct:45, gopMargin:38, baseFeePct:3, incFeePct:8, ffeReservePct:4 },
-    office:{ enabled:true, nla:1855, rent:20, occStart:70, occStab:90, rampYears:2, otherIncomePct:0, opexPct:15 },
+    office:{ enabled:true, nla:1855, rent:20, occStart:70, occStab:90, rampYears:2, otherIncomePct:0, opexPct:15, opexMode:'sqm', opexSqm:3 },
     sales:{ enabled:false, area:1855, price:1400, startAt:2, years:2, sellPct:2 },
     other:{ enabled:false, label:'Прочий доход', amount:200000 },
     budget:{ land:0, retailGba:32000, retailCost:900, hotelGba:15000, hotelCost:1400, ffePerKey:12000,
@@ -418,14 +418,17 @@ const SECTIONS = [
     {k:'hotel.incFeePct', label:'Поощрительное вознаграждение, % GOP', sfx:'%', min:0, max:20, step:0.5},
     {k:'hotel.ffeReservePct', label:'Резерв FF&amp;E, % выручки', sfx:'%', min:0, max:10, step:0.5},
   ]},
-  { id:'office', num:'04', title:'Бизнес-центр (аренда)', toggle:'office.enabled', fields:[
+  { id:'office', num:'04', title:'Бизнес-центр (аренда)', toggle:'office.enabled',
+    note:'Ориентир опекса собственника для БЦ класса B в Ташкенте при полной сдаче (мировая практика, на м² GLA в месяц): управление 0,90 + техобслуживание инженерии 0,50 + охрана 24/7 0,50 + коммунальные МОП 0,45 + уборка МОП и территории 0,30 + страхование 0,10 + налоги на имущество и землю 0,25 = около 3,0 $/м² (15% от аренды 20 $). Одиночный арендатор всего здания (клиника, учебный центр): на собственнике только управление, страховка, налоги и резерв на ремонт - около 0,9 $/м² (7% от аренды 12,5 $).', fields:[
     {k:'office.nla', label:'Арендопригодная площадь (GLA)', sfx:'м²', min:0, max:500000, step:10},
     {k:'office.rent', label:'Средняя ставка, за м² в месяц <span class="u">(1-й год)</span>', min:0, max:500, step:0.5},
     {k:'office.occStart', label:'Заполняемость - первый год', sfx:'%', min:0, max:100, step:1, slider:true},
     {k:'office.occStab', label:'Заполняемость - стабилизированная', sfx:'%', min:0, max:100, step:1, slider:true},
     {k:'office.rampYears', label:'Лет до стабилизации', sfx:'лет', min:1, max:8, step:1},
     {k:'office.otherIncomePct', label:'Прочий доход, % от аренды', sfx:'%', min:0, max:60, step:1},
-    {k:'office.opexPct', label:'Невозмещаемые расходы, % от выручки', sfx:'%', min:0, max:80, step:1, slider:true},
+    {k:'office.opexMode', label:'Операционные расходы - способ расчёта', type:'select', options:[['sqm','за м² GLA в месяц (фиксированные)'],['pct','% от выручки']]},
+    {k:'office.opexSqm', label:'Опекс за м² GLA в месяц <span class="u">(не зависит от заполняемости, эскалируется)</span>', min:0, max:100, step:0.05, slider:false, show:s=>s.office.opexMode==='sqm'},
+    {k:'office.opexPct', label:'Невозмещаемые расходы, % от выручки', sfx:'%', min:0, max:80, step:1, slider:true, show:s=>s.office.opexMode!=='sqm'},
   ]},
   { id:'sales', num:'05', title:'Продажа помещений', toggle:'sales.enabled',
     note:'Если продаются те же площади, что и сдаются, отключите аренду (раздел 04), иначе доход задвоится.', fields:[
@@ -515,7 +518,11 @@ function calc(st, mods={}){
     }
     if(st.office.enabled){
       const r=st.office, g=r.nla*r.rent*12*m.rentMult*occ(r,k)*ef*(1+r.otherIncomePct/100);
-      rev.office[i]=g; noiC.office[i]=g*(1-Math.min(100,r.opexPct*m.opexMult)/100);
+      /* опекс: фиксированный $/м² GLA в месяц (не зависит от заполняемости) или % от выручки */
+      const ox=r.opexMode==='sqm'
+        ? r.nla*(r.opexSqm||0)*12*ef*m.opexMult
+        : g*Math.min(100,r.opexPct*m.opexMult)/100;
+      rev.office[i]=g; noiC.office[i]=g-ox;
     }
     if(st.hotel.enabled){
       const h=st.hotel;
@@ -667,6 +674,7 @@ const fmtPct=(v,d=1)=>v===null||isNaN(v)?'-':(v*100).toFixed(d)+'%';
 const fmtX=v=>v===null||isNaN(v)?'-':v.toFixed(2)+'×';
 const fmtYrs=v=>v===null?'-':v.toFixed(1)+' лет';
 const fmtTh=v=>{const n=Math.round(v/1000);return n===0?'-':n.toLocaleString('ru-RU');};
+const fmtFull=v=>{const n=Math.round(v);return n===0?'-':n.toLocaleString('ru-RU');};
 const esc_=s=>String(s);
 
 /* ─── 5. SIDEBAR UI ─── */
@@ -1174,7 +1182,7 @@ function renderTable(R){
     vals.forEach(v=>{
       const td=document.createElement('td');
       if(v===null){td.textContent='';}
-      else{td.textContent=fmtTh(v); if(v<-499)td.classList.add('ng');}
+      else{td.textContent=fmtFull(v); if(v<-499)td.classList.add('ng');}
       tr.appendChild(td);
     });
     t.appendChild(tr);
@@ -1199,6 +1207,8 @@ function renderTable(R){
     mkRow(`Выручка - ${k==='other'?S.other.label||label:label}`,R.rev[k],'sub');
   });
   mkRow('Операционная выручка всего',R.revTot,'tot');
+  const opexArr=R.revTot.map((v,i)=>-(v-R.noi[i]));
+  if(opexArr.some(v=>Math.abs(v)>0.5)) mkRow('Операционные расходы всего',opexArr,'sub');
   COMP_META.forEach(([k,label])=>{ if(S[k].enabled) mkRow(`NOI - ${k==='other'?S.other.label||label:label}`,R.noiC[k],'sub'); });
   mkRow('Чистый операционный доход (NOI)',R.noi,'tot');
   if(S.sales.enabled) mkRow('Выручка от продажи помещений (нетто)',R.salesRev,'tot');
@@ -1226,7 +1236,7 @@ function renderTable(R){
     mkRow('Накопленный поток на капитал',R.cumL,'sub');
   }
   wrap.appendChild(t);
-  document.getElementById('cfSub').textContent=`Годовые, номинальные - в тысячах ${sym()} · (С) = год строительства`;
+  document.getElementById('cfSub').textContent=`Годовые, номинальные, полные суммы в ${sym()} · (С) = год строительства`;
   document.getElementById('cfNote').textContent=(S.tax.enabled
     ?'Налог в потоке на капитал считается после процентов и амортизации; в строке проекта - до процентов. '
     :'Расчёт до налога - включите налог на прибыль в разделе 09 при необходимости. ')
@@ -1275,7 +1285,10 @@ function renderAssumptions(R){
     row('GLA / GBA',`${S.office.nla.toLocaleString('ru-RU')} / ${S.budget.officeGba.toLocaleString('ru-RU')} м²`);
     row('Ставка (1-й год)',`${sym()}${S.office.rent}/м² в мес.`);
     row('Заполняемость',`${S.office.occStart}% -> ${S.office.occStab}% за ${S.office.rampYears} г.`);
-    row('Прочий доход / расходы',`${S.office.otherIncomePct}% / ${S.office.opexPct}%`);
+    if(S.office.otherIncomePct>0)row('Прочий доход',S.office.otherIncomePct+'% от аренды');
+    row('Операционные расходы',S.office.opexMode==='sqm'
+      ?`${sym()}${S.office.opexSqm}/м² в мес. (≈${Math.round(S.office.opexSqm/Math.max(0.01,S.office.rent)*100)}% от аренды)`
+      :`${S.office.opexPct}% от выручки`);
   }
   if(S.sales.enabled){
     add('Продажа помещений');
@@ -1433,9 +1446,10 @@ const PKG_I18N={
     ass:'Ключевые предпосылки',constr:'Строительство',oper:'Период эксплуатации',disc:'Ставка дисконта',escal:'Эскалация',
     lease:'Аренда',occ:'заполняемость',saleA:'Продажа помещений',saleSched:'график продаж',credit:'Кредит',none:'нет (собственный капитал)',
     exitR:'Выход',hold:'удержание объекта',exitSale:'продажа @ cap',tax:'Налог на прибыль',notApp:'не применяется',
+    opexA:'Опер. расходы',ofRent:'от аренды',ofRev:'от выручки',
     chart:'Накопленный денежный поток',pbMark:'окупаемость',
-    tCapex:'Капитальные затраты',tRev:'Операционная выручка',tNoi:'NOI',tSales:'Продажа помещений (нетто)',tExit:'Продажа объекта (нетто)',tPcf:'Поток проекта',tCum:'Накопленный поток',tInt:'Проценты',tSvc:'Обслуживание долга',tEcf:'Поток на капитал',tCumE:'Накопленный поток на капитал',
-    thous:'в тысячах',constrYr:'(С) = год строительства',
+    tCapex:'Капитальные затраты',tRev:'Операционная выручка',tOpex:'Операционные расходы',tNoi:'NOI',tSales:'Продажа помещений (нетто)',tExit:'Продажа объекта (нетто)',tPcf:'Поток проекта',tCum:'Накопленный поток',tInt:'Проценты',tSvc:'Обслуживание долга',tEcf:'Поток на капитал',tCumE:'Накопленный поток на капитал',
+    thous:'полные суммы в',constrYr:'(С) = год строительства',
     foot:'Подготовлено в CASE Feasibility Studio · индикативный расчёт, не оферта',from:'с',forYears:'за',inMon:'в мес.'},
   uz:{p1:"Moliyaviy model - asosiy ko'rsatkichlar",p2:'Moliyaviy model - pul oqimlari',
     npv:'LOYIHA NPV',irr:'LOYIHA IRR',irrE:'KAPITAL IRR',pb:'QOPLANISH',em:'MULTIPLIKATOR',yoc:'YIELD ON COST',inv:'JAMI INVESTITSIYA',salesK:'SOTUVLAR, NETTO',exitK:'CHIQISH QIYMATI',dscr:'MIN. DSCR',
@@ -1444,9 +1458,10 @@ const PKG_I18N={
     ass:'Asosiy taxminlar',constr:'Qurilish',oper:'Ekspluatatsiya davri',disc:'Diskont stavkasi',escal:'Eskalatsiya',
     lease:'Ijara',occ:'bandlik',saleA:'Maydonlar sotuvi',saleSched:'sotuv jadvali',credit:'Kredit',none:"yo'q (o'z kapitali)",
     exitR:'Chiqish',hold:'obyektni saqlash',exitSale:'sotish @ cap',tax:'Foyda solig'+"'"+'i',notApp:"qo'llanilmaydi",
+    opexA:'Oper. xarajatlar',ofRent:'ijaradan',ofRev:'tushumdan',
     chart:'Jamlangan pul oqimi',pbMark:'qoplanish',
-    tCapex:'Kapital xarajatlar',tRev:'Operatsion tushum',tNoi:'NOI',tSales:'Maydonlar sotuvi (netto)',tExit:'Obyekt sotuvi (netto)',tPcf:'Loyiha oqimi',tCum:'Jamlangan oqim',tInt:'Foizlar',tSvc:'Qarz xizmati',tEcf:'Kapital oqimi',tCumE:'Jamlangan kapital oqimi',
-    thous:'mingda',constrYr:'(С) = qurilish yili',
+    tCapex:'Kapital xarajatlar',tRev:'Operatsion tushum',tOpex:'Operatsion xarajatlar',tNoi:'NOI',tSales:'Maydonlar sotuvi (netto)',tExit:'Obyekt sotuvi (netto)',tPcf:'Loyiha oqimi',tCum:'Jamlangan oqim',tInt:'Foizlar',tSvc:'Qarz xizmati',tEcf:'Kapital oqimi',tCumE:'Jamlangan kapital oqimi',
+    thous:"to'liq summalar",constrYr:'(С) = qurilish yili',
     foot:"CASE Feasibility Studio'da tayyorlangan · indikativ hisob, oferta emas",from:'boshlab',forYears:'davomida',inMon:'oyiga'},
   en:{p1:'Financial model - key indicators',p2:'Financial model - cash flow',
     npv:'PROJECT NPV',irr:'PROJECT IRR',irrE:'EQUITY IRR',pb:'PAYBACK',em:'EQUITY MULTIPLE',yoc:'YIELD ON COST',inv:'TOTAL INVESTMENT',salesK:'SALES, NET',exitK:'EXIT VALUE',dscr:'MIN DSCR',
@@ -1455,9 +1470,10 @@ const PKG_I18N={
     ass:'Key assumptions',constr:'Construction',oper:'Operating period',disc:'Discount rate',escal:'Escalation',
     lease:'Lease',occ:'occupancy',saleA:'Unit sales',saleSched:'sales schedule',credit:'Debt',none:'none (all-equity)',
     exitR:'Exit',hold:'hold',exitSale:'sale @ cap',tax:'Profit tax',notApp:'not applied',
+    opexA:'Opex',ofRent:'of rent',ofRev:'of revenue',
     chart:'Cumulative cash flow',pbMark:'payback',
-    tCapex:'Capital expenditure',tRev:'Operating revenue',tNoi:'NOI',tSales:'Unit sales (net)',tExit:'Asset sale (net)',tPcf:'Project cash flow',tCum:'Cumulative CF',tInt:'Interest',tSvc:'Debt service',tEcf:'Equity cash flow',tCumE:'Cumulative equity CF',
-    thous:'in thousands',constrYr:'(С) = construction year',
+    tCapex:'Capital expenditure',tRev:'Operating revenue',tOpex:'Operating expenses',tNoi:'NOI',tSales:'Unit sales (net)',tExit:'Asset sale (net)',tPcf:'Project cash flow',tCum:'Cumulative CF',tInt:'Interest',tSvc:'Debt service',tEcf:'Equity cash flow',tCumE:'Cumulative equity CF',
+    thous:'full amounts in',constrYr:'(С) = construction year',
     foot:'Prepared with CASE Feasibility Studio · indicative estimate, not an offer',from:'from',forYears:'over',inMon:'/mo'}
 };
 let pkgDeps=null;
@@ -1479,7 +1495,8 @@ async function ensurePkgDeps(){
   pkgDeps={reg,bold};
   return pkgDeps;
 }
-const pkgFmtTh=v=>{const n=Math.round(v/1000);return n===0?'-':n.toLocaleString('ru-RU').replace(/ /g,' ');};
+const pkgFmtTh=v=>{const n=Math.round(v);return n===0?'-':n.toLocaleString('ru-RU').replace(/ /g,' ');};
+const pkgMoney=v=>{const n=Math.round(v);return (n<0?'-':'')+sym()+Math.abs(n).toLocaleString('ru-RU').replace(/ /g,' ');};
 async function downloadPackage(lang){
   const btn=document.getElementById('btnPackage');
   const was=btn.textContent; btn.textContent='Готовим...'; btn.disabled=true;
@@ -1551,15 +1568,15 @@ function drawFinPages(doc,font,fontB,lang,rgb){
 
   const M=R.metrics;
   const kTiles=[
-    [T.npv,fmtM(M.npv),'@ '+T.rate+' '+S.project.discountRate+'%'],
+    [T.npv,pkgMoney(M.npv),'@ '+T.rate+' '+S.project.discountRate+'%'],
     [T.irr,fmtPct(M.irrU),T.noCredit],
     [T.irrE,S.fin.enabled?fmtPct(M.irrL):'-',S.fin.enabled?T.withCredit+' '+S.fin.ltc+'% LTC':'-'],
     [T.pb,M.pb===null?'-':M.pb.toFixed(1)+' '+T.yrs,T.discounted+': '+(M.dpb===null?'-':M.dpb.toFixed(1)+' '+T.yrs)],
     [T.em,fmtX(M.moic),''],
     [T.yoc,fmtPct(M.yoc),''],
-    [T.inv,fmtM(M.totalInvestment),''],
-    S.exit.sale?[T.exitK,fmtM(R.saleGross),'@ cap '+S.exit.capRate+'%']
-      :(S.sales.enabled?[T.salesK,fmtM(R.salesNetTotal),S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price]
+    [T.inv,pkgMoney(M.totalInvestment),''],
+    S.exit.sale?[T.exitK,pkgMoney(R.saleGross),'@ cap '+S.exit.capRate+'%']
+      :(S.sales.enabled?[T.salesK,pkgMoney(R.salesNetTotal),S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price]
       :[T.dscr,M.dscrMin?fmtX(M.dscrMin):'-','']),
   ];
   kTiles.forEach((tile,i)=>{
@@ -1581,7 +1598,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   bRows.forEach(([l,v,tot])=>{
     const f=tot?fontB:font;
     p1.drawText(l,{x:40,y:by,size:8.5,font:f,color:tot?INK:GRAY});
-    drawR(p1,fmtM(v),268,by,f,8.5,INK);
+    drawR(p1,pkgMoney(v),268,by,f,8.5,INK);
     p1.drawLine({start:{x:40,y:by-4},end:{x:268,y:by-4},thickness:0.5,color:LIGHT});
     by-=15;
   });
@@ -1594,7 +1611,12 @@ function drawFinPages(doc,font,fontB,lang,rgb){
     [T.oper,S.project.operationYears+' '+T.yrs],
     [T.disc,S.project.discountRate+'%'],[T.escal,S.project.escalation+'% p.a.'],
   ];
-  if(S.office.enabled)aRows.push([T.lease,S.office.nla.toLocaleString('ru-RU')+' m² x '+sym()+S.office.rent+'/m² '+T.inMon+' · '+T.occ+' '+S.office.occStart+'-'+S.office.occStab+'%']);
+  if(S.office.enabled){
+    aRows.push([T.lease,S.office.nla.toLocaleString('ru-RU')+' m² x '+sym()+S.office.rent+'/m² '+T.inMon+' · '+T.occ+' '+S.office.occStart+'-'+S.office.occStab+'%']);
+    aRows.push([T.opexA,S.office.opexMode==='sqm'
+      ?sym()+S.office.opexSqm+'/m² '+T.inMon+' (≈'+Math.round(S.office.opexSqm/Math.max(0.01,S.office.rent)*100)+'% '+T.ofRent+')'
+      :S.office.opexPct+'% '+T.ofRev]);
+  }
   if(S.retail.enabled)aRows.push([T.lease+' (retail)',S.retail.gla.toLocaleString('ru-RU')+' m² x '+sym()+S.retail.rent+'/m² '+T.inMon]);
   if(S.hotel.enabled)aRows.push(['Hotel',S.hotel.keys+' keys · ADR '+sym()+S.hotel.adr]);
   if(S.sales.enabled)aRows.push([T.saleA,S.sales.area.toLocaleString('ru-RU')+' m² x '+sym()+S.sales.price+'/m² · '+T.saleSched+': '+T.from+' '+(S.project.startYear+Math.round(S.sales.startAt)-1)+', '+T.forYears+' '+S.sales.years+' '+T.yrs]);
@@ -1617,7 +1639,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   const Y=v=>cy0+(cy1-cy0)*(v-lo)/(hi-lo);
   p1.drawLine({start:{x:cx0,y:Y(0)},end:{x:cx1,y:Y(0)},thickness:0.7,color:GRAY});
   for(let i=1;i<n;i++)p1.drawLine({start:{x:X(i-1),y:Y(data[i-1])},end:{x:X(i),y:Y(data[i])},thickness:1.6,color:rgb(0.16,0.47,0.84)});
-  drawR(p1,fmtM(data[n-1]),cx1,Y(data[n-1])+5,fontB,8,INK);
+  drawR(p1,pkgMoney(data[n-1]),cx1,Y(data[n-1])+5,fontB,8,INK);
   p1.drawText(String(R.years[0]),{x:cx0,y:cy0-12,size:7,font,color:GRAY});
   drawR(p1,String(R.years[n-1]),cx1,cy0-12,font,7,GRAY);
   if(M.pb!==null&&M.pb<=n){
@@ -1633,14 +1655,19 @@ function drawFinPages(doc,font,fontB,lang,rgb){
   p2.drawRectangle({x:0,y:H-56,width:W,height:56,color:INK});
   p2.drawText(S.project.name||'-',{x:40,y:H-36,size:12,font:fontB,color:rgb(1,1,1)});
   drawR(p2,T.p2,W-40,H-36,fontB,10,rgb(1,1,1));
-  const rows=[[T.tCapex,R.capex.map(v=>-v)],[T.tRev,R.revTot],[T.tNoi,R.noi]];
+  const rows=[[T.tCapex,R.capex.map(v=>-v)],[T.tRev,R.revTot]];
+  const opexP=R.revTot.map((v,i)=>-(v-R.noi[i]));
+  if(opexP.some(v=>Math.abs(v)>0.5))rows.push([T.tOpex,opexP]);
+  rows.push([T.tNoi,R.noi]);
   if(S.sales.enabled)rows.push([T.tSales,R.salesRev]);
+  if(S.tax.enabled)rows.push([T.tax,R.utax.map(v=>-v)]);
   if(S.exit.sale){const e=new Array(R.N).fill(0);e[R.N-1]=R.saleNet;rows.push([T.tExit,e]);}
   rows.push([T.tPcf,R.ucf,1],[T.tCum,R.cumU]);
   if(S.fin.enabled){
     rows.push([T.tInt,R.interest.map(v=>-v)],[T.tSvc,R.service.map(v=>-v)],[T.tEcf,R.lcf,1],[T.tCumE,R.cumL]);
   }
-  const LX=40,LW=176,tx0=LX+LW,tx1=W-40,colW=(tx1-tx0)/R.N;
+  const LX=40,LW=150,tx0=LX+LW,tx1=W-40,colW=(tx1-tx0)/R.N;
+  const vSz=R.N>13?6.3:6.9;
   let ty=H-88;
   p2.drawText(T.thous+' '+sym()+' · '+T.constrYr,{x:LX,y:ty+8,size:7.5,font,color:GRAY});
   ty-=14;
@@ -1652,7 +1679,7 @@ function drawFinPages(doc,font,fontB,lang,rgb){
     p2.drawText(label,{x:LX,y:ty,size:8,font:tot?fontB:font,color:tot?INK:GRAY});
     vals.forEach((v,i)=>{
       const txt=pkgFmtTh(v);
-      drawR(p2,txt,tx0+colW*(i+1)-4,ty,tot?fontB:font,7.3,v<-499?RED:INK);
+      drawR(p2,txt,tx0+colW*(i+1)-4,ty,tot?fontB:font,vSz,v<-499?RED:INK);
     });
     ty-=17;
   });
@@ -1685,14 +1712,23 @@ window.addEventListener('beforeprint',()=>refresh());
     const saved=localStorage.getItem(LS_AUTO);
     if(saved) S=mergeState(defaults(),JSON.parse(saved));
   }catch(e){}
-  /* первый запуск: два готовых сценария Taxtapul (аренда и продажа) */
+  /* первый запуск: готовые сценарии Taxtapul (аренда БЦ, продажа, клиника всем зданием) */
   try{
+    const lease=defaults(); lease.project.name='Taxtapul 31 - аренда';
+    const sale=defaults(); sale.project.name='Taxtapul 31 - продажа';
+    sale.office.enabled=false; sale.sales.enabled=true;
+    /* одиночный арендатор всего здания (клиника / учебный центр): ставка ниже,
+       заполняемость 100%, у собственника минимальный опекс (управление, страховка, налоги, резерв) */
+    const clinic=defaults(); clinic.project.name='Taxtapul 31 - клиника (всё здание)';
+    clinic.office.rent=12.5; clinic.office.occStart=100; clinic.office.occStab=100; clinic.office.rampYears=1;
+    clinic.office.opexMode='sqm'; clinic.office.opexSqm=0.9;
     if(!localStorage.getItem(LS_SCEN)){
-      const lease=defaults(); lease.project.name='Taxtapul 31 - аренда';
-      const sale=defaults(); sale.project.name='Taxtapul 31 - продажа';
-      sale.office.enabled=false; sale.sales.enabled=true;
-      const seed={}; seed[lease.project.name]=lease; seed[sale.project.name]=sale;
+      const seed={}; seed[lease.project.name]=lease; seed[sale.project.name]=sale; seed[clinic.project.name]=clinic;
       localStorage.setItem(LS_SCEN,JSON.stringify(seed));
+    } else {
+      /* хранилище уже есть: доложить недостающий пресет клиники, ничего не перезаписывая */
+      const all=loadScenarios();
+      if(!all[clinic.project.name]){ all[clinic.project.name]=clinic; localStorage.setItem(LS_SCEN,JSON.stringify(all)); }
     }
   }catch(e){}
   buildSidebar();
