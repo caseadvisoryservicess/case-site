@@ -292,89 +292,8 @@
   function installAdaptiveActions(){
     document.querySelectorAll('.case-adaptive-actions').forEach(function(bar){adaptiveActions(bar);if(bar.dataset.caseAdaptive)return;bar.dataset.caseAdaptive='1';if(window.ResizeObserver){var ro=new ResizeObserver(function(en){var w=Math.round((en[0]&&en[0].contentRect&&en[0].contentRect.width)||bar.clientWidth);if(bar._caseLastW===w)return;bar._caseLastW=w;requestAnimationFrame(function(){adaptiveActions(bar);});});ro.observe(bar);bar._caseRO=ro;}});
   }
-  var stickyTopRO=null,stickyResizeBound=false,stickyScrollBound=false,stickyRaf=0;
-  function pageScroller(){return document.scrollingElement||document.documentElement||document.body;}
-  function topbarHeight(){var bar=document.querySelector('.topbar');return bar?Math.max(0,Math.ceil(bar.getBoundingClientRect().height)):0;}
-  function hasVerticalRange(el){if(!el)return false;var cs=getComputedStyle(el),oy=cs.overflowY;return (oy==='auto'||oy==='scroll')&&(el.scrollHeight-el.clientHeight>2);}
-  function parentVerticalScroller(el){var n=el&&el.parentElement;while(n&&n!==document.body&&n!==document.documentElement){if(hasVerticalRange(n))return n;n=n.parentElement;}return pageScroller();}
-  function destroyStickyClone(tb){var l=tb&&tb._caseStickyLayer;if(l){l.remove();tb._caseStickyLayer=null;}if(tb)tb.classList.remove('case-page-sticky-source');}
-  function cloneHeaderTable(tb){
-    var ct=document.createElement('table');ct.className=String(tb.className||'').replace(/\bcase-page-sticky-source\b/g,'').trim()+' case-sticky-head-table';ct.removeAttribute('data-tblkey');ct.removeAttribute('data-case-grid-key');ct.removeAttribute('data-grid-engine');
-    var cg=tb.querySelector('colgroup');if(cg)ct.appendChild(cg.cloneNode(true));ct.appendChild(tb.tHead.cloneNode(true));
-    /* v4.44.1: резайзеры в клоне ОСТАЮТСЯ — перетаскивание проксируется исходной таблице (proxyStickyResizerDown) */ct.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';ct.style.minWidth=ct.style.width;ct.style.maxWidth='none';return ct;
-  }
-  function proxyStickyClick(e){
-    var layer=e.currentTarget,tb=layer._source;if(!tb||!tb.isConnected)return;var grp=e.target.closest('[data-reg-group]');if(grp){e.preventDefault();e.stopPropagation();try{if(typeof regToggleGrp==='function')regToggleGrp(grp.getAttribute('data-reg-group'));}catch(_){}return;}
-    var btn=e.target.closest('.tblfnl,.case-grid-filter-btn,.geo-th-fnl');if(btn){e.preventDefault();e.stopPropagation();var th=btn.closest('th'),id=th&&th.getAttribute('data-colkey'),key=tb.getAttribute('data-tblkey')||tb.dataset.caseGridKey;if(id&&typeof tblMenu==='function'&&key==='reg_units'){tblMenu('reg_units',id,btn,'reg');return;}try{if(window.CASE_GRID&&CASE_GRID.openColumnMenu&&id)CASE_GRID.openColumnMenu(key,id,btn);}catch(_){}return;}
-  }
-  function proxyStickyResizerDown(e){
-    /* v4.44.1: перетаскивание ширины из ПРИЛИПШЕЙ шапки — событие пробрасывается настоящему
-       резайзеру исходной таблицы; клон подстраивается по ходу перетаскивания */
-    var rz=e.target&&e.target.closest&&e.target.closest('.case-grid-resizer');if(!rz)return;
-    var layer=e.currentTarget,src=layer&&layer._source;if(!src)return;
-    var id=rz.dataset&&rz.dataset.caseColId;if(!id)return;
-    var sel='.case-grid-resizer[data-case-col-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]';
-    var real=src.querySelector(sel);if(!real)return;
-    e.preventDefault();e.stopPropagation();
-    try{real.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:e.clientX,clientY:e.clientY,bubbles:true,pointerId:e.pointerId||1}));}catch(_){return;}
-    var mv=function(){scheduleStickyUpdate();};
-    var up=function(){document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);requestAnimationFrame(updateAllSticky);};
-    document.addEventListener('pointermove',mv,true);
-    document.addEventListener('pointerup',up,true);
-  }
-  function ensureStickyClone(tb,wrap){
-    var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);layer.addEventListener('pointerdown',proxyStickyResizerDown);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
-    layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));layer.dataset.caseSig=headSignature(tb);if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
-    return layer;
-  }
-  function headSignature(tb){
-    /* v4.46.4: «отпечаток» шапки-источника — ширины, пины, скрытые, классы. Изменился → клон пересобирается.
-       Раньше клон строился один раз и мог остаться без закреплённых столбцов или со старыми ширинами
-       (пины применяются в rAF ПОСЛЕ построения клона) — поверх настоящей шапки лежала устаревшая копия. */
-    try{
-      var cg=tb.querySelector('colgroup'),leaf=tb.tHead&&tb.tHead.rows[tb.tHead.rows.length-1];
-      var cols=cg?Array.prototype.map.call(cg.children,function(c){return (c.style.display==='none'?'H':'')+(c.style.width||'');}).join(','):'';
-      var cells=leaf?Array.prototype.map.call(leaf.cells,function(c){return (c.classList.contains('case-grid-pin')?'P'+(c.style.left||''):'')+(c.style.display==='none'?'H':'');}).join(''):'';
-      return tb.className+'|'+(tb.style.width||'')+'|'+cols+'|'+cells;
-    }catch(_){return String(Math.random());}
-  }
-  function updateOneSticky(tb){
-    var layer=tb&&tb._caseStickyLayer;if(!layer||!tb.isConnected){if(layer)layer.remove();return;}var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');if(!wrap){destroyStickyClone(tb);return;}
-    var sig=headSignature(tb);
-    if(layer.dataset.caseSig!==sig){layer.dataset.caseSig=sig;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));}
-    var pageTop=topbarHeight(),tr=tb.getBoundingClientRect(),wr=wrap.getBoundingClientRect(),head=layer.firstElementChild,hh=tb.tHead?Math.max(1,Math.ceil(tb.tHead.getBoundingClientRect().height)):1,internal=!!tb._caseStickyInternal;
-    var top=internal?Math.max(pageTop,wr.top):pageTop;
-    var show=internal?(wrap.scrollTop>1&&wr.bottom>top+Math.max(1,hh)&&wr.top<window.innerHeight):(tr.top<top&&tr.bottom>top+Math.max(1,hh)&&wr.bottom>top);
-    show=show&&wr.right>0&&wr.left<window.innerWidth;
-    layer.style.display=show?'block':'none';if(!show)return;layer.style.top=top+'px';layer.style.left=Math.max(0,wr.left)+'px';layer.style.width=Math.max(0,Math.min(window.innerWidth,wr.right)-Math.max(0,wr.left))+'px';layer.style.height=hh+'px';
-    /* v4.46.3: слой — настоящий скролл-контейнер (scrollLeft вместо translateX), иначе
-       position:sticky закреплённых столбцов внутри клона не работал и шапка расходилась с телом */
-    head.style.transform='';head.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';head.style.minWidth=head.style.width;layer.scrollLeft=wrap.scrollLeft;
-  }
-  function updateAllSticky(){stickyRaf=0;document.querySelectorAll('.case-sticky-head-layer').forEach(function(l){if(!l._source||!l._source.isConnected)l.remove();});document.querySelectorAll('table.case-page-sticky-source:not(.case-sticky-head-table)').forEach(updateOneSticky);}
-  function scheduleStickyUpdate(){if(stickyRaf)return;stickyRaf=requestAnimationFrame(updateAllSticky);}
-  function syncOneStickyTable(tb){
-    if(!tb||!tb.tHead)return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');var internal=hasVerticalRange(wrap);
-    if(tb.classList.contains('reg-grp')&&tb.tHead.rows.length>1){var gr=tb.tHead.rows[0],h=Math.max(1,Math.ceil(gr.getBoundingClientRect().height));tb.style.setProperty('--cg-group-h',h+'px');}
-    tb._caseStickyInternal=internal;tb.classList.add('case-page-sticky-source');tb.style.setProperty('--cg-sticky-top','0px');ensureStickyClone(tb,wrap);
-  }
-  function handoffWheel(e){
-    if(e.defaultPrevented||e.ctrlKey||e.metaKey||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;var sc=e.currentTarget;if(!hasVerticalRange(sc))return;
-    var max=Math.max(0,sc.scrollHeight-sc.clientHeight),atTop=sc.scrollTop<=1,atBottom=sc.scrollTop>=max-1;if(!((e.deltaY<0&&atTop)||(e.deltaY>0&&atBottom)))return;
-    var parent=parentVerticalScroller(sc),before=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;parent.scrollTop=before+e.deltaY;var after=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;if(after!==before){e.preventDefault();e.stopPropagation();}
-  }
-  function installScrollHandoff(wrap){if(!wrap||wrap.dataset.caseScrollHandoff==='4327')return;wrap.dataset.caseScrollHandoff='4327';wrap.style.overscrollBehaviorY='auto';wrap.addEventListener('wheel',handoffWheel,{passive:false});}
-  function syncStickyTables(){
-    var h=topbarHeight();document.documentElement.style.setProperty('--topbar-h',h+'px');
-    document.querySelectorAll('table.case-grid:not(.case-sticky-head-table)').forEach(function(tb){syncOneStickyTable(tb);installScrollHandoff(tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap'));});
-    if(!stickyResizeBound){stickyResizeBound=true;window.addEventListener('resize',function(){requestAnimationFrame(syncStickyTables);},{passive:true});document.addEventListener('pointerup',function(){requestAnimationFrame(syncStickyTables);},true);document.addEventListener('mouseup',function(){requestAnimationFrame(syncStickyTables);},true);}
-    if(!stickyScrollBound){stickyScrollBound=true;window.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
-    if(!stickyTopRO&&window.ResizeObserver){var bar=document.querySelector('.topbar');if(bar){stickyTopRO=new ResizeObserver(function(){requestAnimationFrame(syncStickyTables);});stickyTopRO.observe(bar);}}
-    scheduleStickyUpdate();
-  }
-  window.CASE_SYNC_STICKY=syncStickyTables;
   function postRender(){
-    enforceExternalRole();normalizeBrokerEditors();styleGeoFrame();renderFilterChips();installAdaptiveActions();syncStickyTables();
+    enforceExternalRole();normalizeBrokerEditors();styleGeoFrame();renderFilterChips();installAdaptiveActions();try{if(typeof window.CASE_SYNC_STICKY==='function')window.CASE_SYNC_STICKY();}catch(_){}
     document.querySelectorAll('table.case-grid tr.filters,table.case-grid tr.fltrow,table.case-grid tr.geo-tfilter-row').forEach(function(r){r.style.display='none';});
   }
   function injectCss(){
@@ -382,9 +301,6 @@
       .case-broker-picker{position:fixed;z-index:12000;width:230px;max-height:330px;overflow:auto;padding:7px;background:var(--panel,#fff);border:1px solid var(--border);border-radius:12px;box-shadow:0 18px 45px rgba(0,0,0,.22)}
       .case-broker-picker .cbp-title{font-weight:800;font-size:12px;padding:6px 8px;color:var(--muted)}.case-broker-picker button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:8px;padding:8px 9px;font:600 12px inherit;cursor:pointer;color:var(--ink)}.case-broker-picker button:hover,.case-broker-picker button.on{background:color-mix(in srgb,var(--red-d,#9E0000) 9%,var(--panel,#fff));color:var(--red-d,#9E0000)}
       .case-broker-edit{width:100%;min-height:30px;display:flex;align-items:center;justify-content:space-between;gap:8px;border:1px solid var(--border);border-radius:7px;background:var(--panel,#fff);padding:6px 8px;font:inherit;color:var(--ink);cursor:pointer}.case-broker-edit i{font-style:normal;color:var(--red-d,#9E0000);opacity:.72}.case-broker-edit:hover{border-color:var(--red-d,#9E0000)}
-      .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:1px solid var(--border);border-top:0;border-radius:0 0 7px 7px;box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto}
-      .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:block} /* v4.44.1: ширины можно тянуть и в прилипшей шапке */
-      table.case-grid.case-page-sticky-source>thead th:not(.case-grid-pin){position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска»); v4.46.3: закреплённые столбцы (.case-grid-pin) исключены — иначе правило перебивало их position:sticky и шапка «уезжала» с белыми пятнами */
       table[data-tblkey="reg_units"] tr.fltrow,table[data-tblkey="scr_registry"] tr.filters,.asaas35-table tr.filters,.geo-table tr.geo-tfilter-row{display:none!important}
       .case-filter-chipbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 7px;padding:6px 8px;border:1px solid var(--border);border-radius:10px;background:color-mix(in srgb,var(--panel,#fff) 94%,var(--soft,#f5f2ee) 6%)}.case-filter-chipbar .cfc-label{font-size:10.5px;font-weight:750;color:var(--muted)}.case-filter-chipbar button{display:inline-flex;align-items:center;gap:5px;max-width:290px;border:1px solid color-mix(in srgb,var(--red-d,#9E0000) 22%,var(--border));border-radius:999px;background:var(--panel,#fff);padding:4px 8px;font:500 10.5px inherit;color:var(--ink);cursor:pointer}.case-filter-chipbar button b{font-weight:750}.case-filter-chipbar button span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}.case-filter-chipbar button i{font-style:normal;color:var(--red-d,#9E0000);font-size:13px}.case-filter-chipbar button:hover{border-color:var(--red-d,#9E0000)}.case-filter-chipbar .cfc-clear{border-color:transparent;background:transparent;color:var(--red-d,#9E0000);font-weight:700}
       .case-ext-submit{max-width:1050px;padding:22px!important}.case-ext-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.case-ext-head b{font-size:18px}.case-ext-head small{display:block;color:var(--muted);margin-top:4px}.case-ext-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.case-ext-grid label{display:flex;flex-direction:column;gap:5px;font-size:11px;font-weight:750;color:var(--muted)}.case-ext-grid label.wide{grid-column:1/-1}.case-ext-grid input,.case-ext-grid textarea{font:500 13px inherit;color:var(--ink);background:var(--panel);border:1px solid var(--border);border-radius:9px;padding:10px 11px;outline:none}.case-ext-grid input:focus,.case-ext-grid textarea:focus{border-color:var(--red-d,#9E0000);box-shadow:0 0 0 3px rgba(158,0,0,.08)}.case-ext-actions{margin-top:16px}.case-ext-msg{margin-top:10px;font-size:12px}.case-ext-msg.ok{color:#23733b}.case-ext-msg.err{color:var(--red-d,#9E0000)}.case-ext-lock{padding:30px;text-align:center;border:1px dashed var(--border);border-radius:12px}.case-ext-lock b{font-size:18px}.case-ext-lock p{color:var(--muted)}
@@ -403,4 +319,4 @@
   window.CASE_PATCH_4322={version:PATCH_VERSION,flush:function(){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();},busy:queueBusy,adaptive:installAdaptiveActions};
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4327-patch']='4.46.4';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4327-patch']='4.47.0';

@@ -177,4 +177,4 @@ function boot(){injectCSS();applyRoleInvariants();patchApplyState();patchToast()
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4450-ux-system']='4.46.4';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4450-ux-system']='4.47.0';

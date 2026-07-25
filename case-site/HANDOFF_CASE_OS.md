@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.4**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.47.0**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,11 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.47.0: ПЕРЕСБОРКА ТАБЛИЧНОГО ЯДРА (план из v4.46.3 выполнен, запрос «пересобрать все таблицы» + «исправь сразу»):**
+  - весь sticky-блок (stickyTopRO/…Raf, pageScroller, topbarHeight, hasVerticalRange, parentVerticalScroller, destroy/ensure/updateOne/updateAllSticky, cloneHeaderTable, headSignature, proxyStickyClick/ResizerDown, scheduleStickyUpdate, syncOneStickyTable, handoffWheel, installScrollHandoff, syncStickyTables, export window.CASE_SYNC_STICKY) ПЕРЕЕХАЛ из v4327-patch.js в v432-data-grid.js (перед window.case432EnhanceNow), вместе с 3 CSS-правилами (.case-sticky-head-layer{}, .case-sticky-head-layer table{}, sticky-source th:not(.case-grid-pin)); в v4327 postRender теперь зовёт window.CASE_SYNC_STICKY через typeof-guard; v4327 остался: очередь unit_patch/batch, adaptiveActions, broker picker, external-agent, chipbar;
+  - **страховочный CSS в index.html** (в первом <style>): `table.case-grid.case-page-sticky-source>thead th.case-grid-pin{position:sticky!important}` (спец. 0,3,3 бьёт старое модульное правило 0,2,3 независимо от порядка) + клэмп контролов в ячейках. Доказано смешанной сборкой: os_mixed = новый os + `git show 72e95fe:case-site/os/v4327-patch.js` (v4.46.2) → v4463_pins 6/7 (падает только клон из старого файла, о нём кричит сверка версий);
+  - полная батарея 117 проверок зелёная (pins 7/7×3, visual 9/9, poll 12/12, ui 8/8, rel 14/14, live 5/5, smoke 8/8, scen 27/27, roles 54/54, QA 34/34);
+  - ВАЖНО про два клона в смешанном режиме: старый v4327 создаёт СВОЙ слой поверх нового — деградация видна только в клоне, основная шапка работает от страховочного CSS.
 - **v4.46.4:** самовосстанавливающийся клон шапки + контроль неполной заливки («всё равно та же проблема»):
   - ГОНКА КЛОНА (поймана тестом v4463_pins, флейк 5/7→7/7×3): enhanceAll вызывал CASE_SYNC_STICKY синхронно, а applyPins/adjustGroupedHeader живут в rAF внутри enhanceTable → клон строился ДО пинов/ширин и НЕ пересобирался (ensureStickyClone один раз на sync) → поверх настоящей шапки лежала копия без пинов/со старыми ширинами — вероятно ЭТО скрин пользователя «шапка съехала на столбец». Фикс: (а) headSignature(tb) — отпечаток шапки (className+width+col widths/display+пины left+hidden) хранится в layer.dataset.caseSig, updateOneSticky пересобирает клон при изменении; (б) enhanceAll зовёт CASE_SYNC_STICKY через requestAnimationFrame (после rAF-этапов enhanceTable);
   - СВЕРКА ВЕРСИЙ ФАЙЛОВ: 6 модулей (v432-data-grid, v4327-patch, v4451-live-sync, v3520-workspaces, v4450-ux-system, v4450-owner-report) в конце файла пишут CASE_MODULE_VERSIONS['имя']='4.46.4'; index.html через 2.5с после load сверяет с CASE_EXPECTED_MODULES и при рассинхроне тостит 15с «Перезалейте /os целиком» + console.warn. Ловит главный кейс ручного деплоя: залили index, забыли модуль (симптом пользователя совпадал с v4.46.2-багом = старый v4327-patch на хостинге). ПРИ КАЖДОМ РЕЛИЗЕ: поднимать версии в CASE_EXPECTED_MODULES только для реально изменённых файлов НЕЛЬЗЯ — маркер пишется в конец файла при каждом релизе всем шести (проще: обновлять все 6 маркеров + карту разом; в этом релизе все = 4.46.4);

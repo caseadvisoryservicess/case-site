@@ -87,6 +87,9 @@
   table.case-grid.reg-grp input,table.case-grid.reg-grp select{font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--panel,#fff);padding:4px 6px;min-height:26px;max-width:100%}
   table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.case-grid td textarea{max-width:100%!important;box-sizing:border-box!important} /* v4.46.2: контролы не выходят за границу столбца при узкой колонке */
   table.case-grid .case-grid-pin{position:sticky!important;z-index:6;background:var(--cg-sticky)!important}table.case-grid thead .case-grid-pin{z-index:12;background:var(--cg-head)!important}.case-grid-pin-last{box-shadow:none!important;border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line))!important}
+  .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:1px solid var(--border);border-top:0;border-radius:0 0 7px 7px;box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto}
+  .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:block} /* v4.44.1: ширины можно тянуть и в прилипшей шапке */
+  table.case-grid.case-page-sticky-source>thead th:not(.case-grid-pin){position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска»); v4.46.3: закреплённые столбцы (.case-grid-pin) исключены — иначе правило перебивало их position:sticky и шапка «уезжала» с белыми пятнами */
   table.case-grid .case-grid-resizer{position:absolute;right:-4px;top:0;width:9px;height:100%;cursor:col-resize;z-index:60;touch-action:none;background:transparent}table.case-grid .case-grid-resizer:after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(90,80,70,.28)}table.case-grid th:hover>.case-grid-resizer:after,table.case-grid .case-grid-resizer:hover:after,table.case-grid .case-grid-resizer.drag:after{width:2px;background:var(--red-d,#9E0000)}table.case-grid .case-grid-resizer:hover,table.case-grid .case-grid-resizer.drag{background:linear-gradient(to left,rgba(158,0,0,.10),transparent)}
   table.case-grid tr.filters,table.case-grid tr.fltrow,table.case-grid tr.geo-tfilter-row{display:none!important}
   .case-grid-panel{position:fixed;z-index:10050;width:min(390px,calc(100vw - 20px));max-height:min(650px,calc(100vh - 20px));overflow:auto;background:var(--panel,#fff);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.2);padding:12px;color:var(--ink)}
@@ -191,6 +194,90 @@
        дебаунс никогда не срабатывал и новые таблицы оставались без улучшения */
     if(now-schedule._first>600){schedule._first=0;TIMER=setTimeout(enhanceAll,0);return;}
     TIMER=setTimeout(function(){schedule._first=0;enhanceAll();},90);}
+
+  /* ===== v4.47.0: прилипшая шапка (клон) — ПЕРЕЕХАЛА из v4327-patch: один владелец всей презентации таблиц ===== */
+  var stickyTopRO=null,stickyResizeBound=false,stickyScrollBound=false,stickyRaf=0;
+  function pageScroller(){return document.scrollingElement||document.documentElement||document.body;}
+  function topbarHeight(){var bar=document.querySelector('.topbar');return bar?Math.max(0,Math.ceil(bar.getBoundingClientRect().height)):0;}
+  function hasVerticalRange(el){if(!el)return false;var cs=getComputedStyle(el),oy=cs.overflowY;return (oy==='auto'||oy==='scroll')&&(el.scrollHeight-el.clientHeight>2);}
+  function parentVerticalScroller(el){var n=el&&el.parentElement;while(n&&n!==document.body&&n!==document.documentElement){if(hasVerticalRange(n))return n;n=n.parentElement;}return pageScroller();}
+  function destroyStickyClone(tb){var l=tb&&tb._caseStickyLayer;if(l){l.remove();tb._caseStickyLayer=null;}if(tb)tb.classList.remove('case-page-sticky-source');}
+  function cloneHeaderTable(tb){
+    var ct=document.createElement('table');ct.className=String(tb.className||'').replace(/\bcase-page-sticky-source\b/g,'').trim()+' case-sticky-head-table';ct.removeAttribute('data-tblkey');ct.removeAttribute('data-case-grid-key');ct.removeAttribute('data-grid-engine');
+    var cg=tb.querySelector('colgroup');if(cg)ct.appendChild(cg.cloneNode(true));ct.appendChild(tb.tHead.cloneNode(true));
+    /* v4.44.1: резайзеры в клоне ОСТАЮТСЯ — перетаскивание проксируется исходной таблице (proxyStickyResizerDown) */ct.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';ct.style.minWidth=ct.style.width;ct.style.maxWidth='none';return ct;
+  }
+  function proxyStickyClick(e){
+    var layer=e.currentTarget,tb=layer._source;if(!tb||!tb.isConnected)return;var grp=e.target.closest('[data-reg-group]');if(grp){e.preventDefault();e.stopPropagation();try{if(typeof regToggleGrp==='function')regToggleGrp(grp.getAttribute('data-reg-group'));}catch(_){}return;}
+    var btn=e.target.closest('.tblfnl,.case-grid-filter-btn,.geo-th-fnl');if(btn){e.preventDefault();e.stopPropagation();var th=btn.closest('th'),id=th&&th.getAttribute('data-colkey'),key=tb.getAttribute('data-tblkey')||tb.dataset.caseGridKey;if(id&&typeof tblMenu==='function'&&key==='reg_units'){tblMenu('reg_units',id,btn,'reg');return;}try{if(window.CASE_GRID&&CASE_GRID.openColumnMenu&&id)CASE_GRID.openColumnMenu(key,id,btn);}catch(_){}return;}
+  }
+  function proxyStickyResizerDown(e){
+    /* v4.44.1: перетаскивание ширины из ПРИЛИПШЕЙ шапки — событие пробрасывается настоящему
+       резайзеру исходной таблицы; клон подстраивается по ходу перетаскивания */
+    var rz=e.target&&e.target.closest&&e.target.closest('.case-grid-resizer');if(!rz)return;
+    var layer=e.currentTarget,src=layer&&layer._source;if(!src)return;
+    var id=rz.dataset&&rz.dataset.caseColId;if(!id)return;
+    var sel='.case-grid-resizer[data-case-col-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]';
+    var real=src.querySelector(sel);if(!real)return;
+    e.preventDefault();e.stopPropagation();
+    try{real.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:e.clientX,clientY:e.clientY,bubbles:true,pointerId:e.pointerId||1}));}catch(_){return;}
+    var mv=function(){scheduleStickyUpdate();};
+    var up=function(){document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);requestAnimationFrame(updateAllSticky);};
+    document.addEventListener('pointermove',mv,true);
+    document.addEventListener('pointerup',up,true);
+  }
+  function ensureStickyClone(tb,wrap){
+    var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);layer.addEventListener('pointerdown',proxyStickyResizerDown);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
+    layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));layer.dataset.caseSig=headSignature(tb);if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
+    return layer;
+  }
+  function headSignature(tb){
+    /* v4.46.4: «отпечаток» шапки-источника — ширины, пины, скрытые, классы. Изменился → клон пересобирается.
+       Раньше клон строился один раз и мог остаться без закреплённых столбцов или со старыми ширинами
+       (пины применяются в rAF ПОСЛЕ построения клона) — поверх настоящей шапки лежала устаревшая копия. */
+    try{
+      var cg=tb.querySelector('colgroup'),leaf=tb.tHead&&tb.tHead.rows[tb.tHead.rows.length-1];
+      var cols=cg?Array.prototype.map.call(cg.children,function(c){return (c.style.display==='none'?'H':'')+(c.style.width||'');}).join(','):'';
+      var cells=leaf?Array.prototype.map.call(leaf.cells,function(c){return (c.classList.contains('case-grid-pin')?'P'+(c.style.left||''):'')+(c.style.display==='none'?'H':'');}).join(''):'';
+      return tb.className+'|'+(tb.style.width||'')+'|'+cols+'|'+cells;
+    }catch(_){return String(Math.random());}
+  }
+  function updateOneSticky(tb){
+    var layer=tb&&tb._caseStickyLayer;if(!layer||!tb.isConnected){if(layer)layer.remove();return;}var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');if(!wrap){destroyStickyClone(tb);return;}
+    var sig=headSignature(tb);
+    if(layer.dataset.caseSig!==sig){layer.dataset.caseSig=sig;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));}
+    var pageTop=topbarHeight(),tr=tb.getBoundingClientRect(),wr=wrap.getBoundingClientRect(),head=layer.firstElementChild,hh=tb.tHead?Math.max(1,Math.ceil(tb.tHead.getBoundingClientRect().height)):1,internal=!!tb._caseStickyInternal;
+    var top=internal?Math.max(pageTop,wr.top):pageTop;
+    var show=internal?(wrap.scrollTop>1&&wr.bottom>top+Math.max(1,hh)&&wr.top<window.innerHeight):(tr.top<top&&tr.bottom>top+Math.max(1,hh)&&wr.bottom>top);
+    show=show&&wr.right>0&&wr.left<window.innerWidth;
+    layer.style.display=show?'block':'none';if(!show)return;layer.style.top=top+'px';layer.style.left=Math.max(0,wr.left)+'px';layer.style.width=Math.max(0,Math.min(window.innerWidth,wr.right)-Math.max(0,wr.left))+'px';layer.style.height=hh+'px';
+    /* v4.46.3: слой — настоящий скролл-контейнер (scrollLeft вместо translateX), иначе
+       position:sticky закреплённых столбцов внутри клона не работал и шапка расходилась с телом */
+    head.style.transform='';head.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';head.style.minWidth=head.style.width;layer.scrollLeft=wrap.scrollLeft;
+  }
+  function updateAllSticky(){stickyRaf=0;document.querySelectorAll('.case-sticky-head-layer').forEach(function(l){if(!l._source||!l._source.isConnected)l.remove();});document.querySelectorAll('table.case-page-sticky-source:not(.case-sticky-head-table)').forEach(updateOneSticky);}
+  function scheduleStickyUpdate(){if(stickyRaf)return;stickyRaf=requestAnimationFrame(updateAllSticky);}
+  function syncOneStickyTable(tb){
+    if(!tb||!tb.tHead)return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');var internal=hasVerticalRange(wrap);
+    if(tb.classList.contains('reg-grp')&&tb.tHead.rows.length>1){var gr=tb.tHead.rows[0],h=Math.max(1,Math.ceil(gr.getBoundingClientRect().height));tb.style.setProperty('--cg-group-h',h+'px');}
+    tb._caseStickyInternal=internal;tb.classList.add('case-page-sticky-source');tb.style.setProperty('--cg-sticky-top','0px');ensureStickyClone(tb,wrap);
+  }
+  function handoffWheel(e){
+    if(e.defaultPrevented||e.ctrlKey||e.metaKey||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;var sc=e.currentTarget;if(!hasVerticalRange(sc))return;
+    var max=Math.max(0,sc.scrollHeight-sc.clientHeight),atTop=sc.scrollTop<=1,atBottom=sc.scrollTop>=max-1;if(!((e.deltaY<0&&atTop)||(e.deltaY>0&&atBottom)))return;
+    var parent=parentVerticalScroller(sc),before=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;parent.scrollTop=before+e.deltaY;var after=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;if(after!==before){e.preventDefault();e.stopPropagation();}
+  }
+  function installScrollHandoff(wrap){if(!wrap||wrap.dataset.caseScrollHandoff==='4327')return;wrap.dataset.caseScrollHandoff='4327';wrap.style.overscrollBehaviorY='auto';wrap.addEventListener('wheel',handoffWheel,{passive:false});}
+  function syncStickyTables(){
+    var h=topbarHeight();document.documentElement.style.setProperty('--topbar-h',h+'px');
+    document.querySelectorAll('table.case-grid:not(.case-sticky-head-table)').forEach(function(tb){syncOneStickyTable(tb);installScrollHandoff(tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap'));});
+    if(!stickyResizeBound){stickyResizeBound=true;window.addEventListener('resize',function(){requestAnimationFrame(syncStickyTables);},{passive:true});document.addEventListener('pointerup',function(){requestAnimationFrame(syncStickyTables);},true);document.addEventListener('mouseup',function(){requestAnimationFrame(syncStickyTables);},true);}
+    if(!stickyScrollBound){stickyScrollBound=true;window.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
+    if(!stickyTopRO&&window.ResizeObserver){var bar=document.querySelector('.topbar');if(bar){stickyTopRO=new ResizeObserver(function(){requestAnimationFrame(syncStickyTables);});stickyTopRO.observe(bar);}}
+    scheduleStickyUpdate();
+  }
+  window.CASE_SYNC_STICKY=syncStickyTables;
+
   window.case432EnhanceNow=function(){try{enhanceAll();}catch(e){}}; /* v4.46.2: синхронное улучшение сразу после точечной перерисовки (live-sync) — без кадра «сырой» таблицы */
   function boot(){injectCss();enhanceAll();var root=document.getElementById('main')||document.body;if(root&&!OBS){OBS=new MutationObserver(schedule);OBS.observe(root,{childList:true,subtree:true});}try{if(typeof window.go==='function'&&!window.go._caseGridWrapped){var originalGo=window.go;var wrapped=function(){var r=originalGo.apply(this,arguments);schedule();setTimeout(enhanceAll,120);return r;};wrapped._caseGridWrapped=true;wrapped._caseGridOriginal=originalGo;window.go=wrapped;}}catch(_){}window.addEventListener('resize',function(){clearTimeout(TIMER);TIMER=setTimeout(function(){document.querySelectorAll('table.case-grid').forEach(function(tb){applyPins(tb,tb.dataset.caseGridKey);});},120);},{passive:true});document.addEventListener('mouseup',function(){var list=document.querySelectorAll('table.case-grid[data-cg-capture="1"]');if(!list.length)return;list.forEach(function(tb){captureWidths(tb,tb.dataset.caseGridKey);});clearTimeout(TIMER);TIMER=setTimeout(enhanceAll,80);},true);}
 
@@ -205,4 +292,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.46.4';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.47.0';
