@@ -324,11 +324,24 @@
   }
   function ensureStickyClone(tb,wrap){
     var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);layer.addEventListener('pointerdown',proxyStickyResizerDown);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
-    layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
+    layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));layer.dataset.caseSig=headSignature(tb);if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
     return layer;
+  }
+  function headSignature(tb){
+    /* v4.46.4: «отпечаток» шапки-источника — ширины, пины, скрытые, классы. Изменился → клон пересобирается.
+       Раньше клон строился один раз и мог остаться без закреплённых столбцов или со старыми ширинами
+       (пины применяются в rAF ПОСЛЕ построения клона) — поверх настоящей шапки лежала устаревшая копия. */
+    try{
+      var cg=tb.querySelector('colgroup'),leaf=tb.tHead&&tb.tHead.rows[tb.tHead.rows.length-1];
+      var cols=cg?Array.prototype.map.call(cg.children,function(c){return (c.style.display==='none'?'H':'')+(c.style.width||'');}).join(','):'';
+      var cells=leaf?Array.prototype.map.call(leaf.cells,function(c){return (c.classList.contains('case-grid-pin')?'P'+(c.style.left||''):'')+(c.style.display==='none'?'H':'');}).join(''):'';
+      return tb.className+'|'+(tb.style.width||'')+'|'+cols+'|'+cells;
+    }catch(_){return String(Math.random());}
   }
   function updateOneSticky(tb){
     var layer=tb&&tb._caseStickyLayer;if(!layer||!tb.isConnected){if(layer)layer.remove();return;}var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');if(!wrap){destroyStickyClone(tb);return;}
+    var sig=headSignature(tb);
+    if(layer.dataset.caseSig!==sig){layer.dataset.caseSig=sig;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));}
     var pageTop=topbarHeight(),tr=tb.getBoundingClientRect(),wr=wrap.getBoundingClientRect(),head=layer.firstElementChild,hh=tb.tHead?Math.max(1,Math.ceil(tb.tHead.getBoundingClientRect().height)):1,internal=!!tb._caseStickyInternal;
     var top=internal?Math.max(pageTop,wr.top):pageTop;
     var show=internal?(wrap.scrollTop>1&&wr.bottom>top+Math.max(1,hh)&&wr.top<window.innerHeight):(tr.top<top&&tr.bottom>top+Math.max(1,hh)&&wr.bottom>top);
@@ -389,3 +402,5 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
   window.CASE_PATCH_4322={version:PATCH_VERSION,flush:function(){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();},busy:queueBusy,adaptive:installAdaptiveActions};
 })();
+
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4327-patch']='4.46.4';

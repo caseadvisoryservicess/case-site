@@ -176,3 +176,5 @@ function patchApplyState(){try{if(typeof window.applyState==='function'&&!window
 function boot(){injectCSS();applyRoleInvariants();patchApplyState();patchToast();installFinalRouteGuard();installObservers();enhance(document);window.CASE_UX_VERSION=VERSION;/* Other legacy modules also wrap go() during DOMContentLoaded. Re-apply once after all installers so this guard is the outermost boundary. */setTimeout(function(){installFinalRouteGuard();applyRoleInvariants();},0);setTimeout(function(){installFinalRouteGuard();applyRoleInvariants();},250);}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
+
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4450-ux-system']='4.46.4';

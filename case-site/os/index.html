@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.46.3';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.46.4';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -539,6 +539,17 @@ function isUserBusy(){const dr=$('drawer');if(dr&&dr.classList.contains('open'))
 function _serverChangedKeys(data){const out=[];try{Object.keys(data||{}).forEach(k=>{let v=null;try{v=JSON.stringify(data[k]);}catch(e){}if(v!==_syncedKeyJson[k])out.push(k);});}catch(e){}return out;}
 async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length&&!(j.updated_by&&S.user&&j.updated_by===S.user.name))toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
 if(typeof window!=='undefined')setInterval(pollServerState,20000);
+/* v4.46.4: сверка версий модулей — ловит «залил не все файлы» и застрявший кэш на хостинге */
+const CASE_EXPECTED_MODULES={'v432-data-grid':'4.46.4','v4327-patch':'4.46.4','v4451-live-sync':'4.46.4','v3520-workspaces':'4.46.4','v4450-ux-system':'4.46.4','v4450-owner-report':'4.46.4'};
+function caseCheckModuleVersions(){try{
+ const got=window.CASE_MODULE_VERSIONS||{};
+ const stale=Object.keys(CASE_EXPECTED_MODULES).filter(m=>got[m]!==CASE_EXPECTED_MODULES[m]);
+ if(!stale.length){console.info('CASE OS: все модули версии '+APP_VERSION);return;}
+ const list=stale.map(m=>m+'.js ('+(got[m]||'старый файл')+')').join(', ');
+ console.warn('CASE OS: устаревшие модули:',list);
+ toast('⚠ Обновление применено не полностью: '+list+' — на сервере старые файлы. Перезалейте папку /os целиком из архива и сделайте Ctrl+Shift+R.',15000);
+}catch(e){}}
+if(typeof window!=='undefined')window.addEventListener('load',()=>setTimeout(caseCheckModuleVersions,2500));
 let _saveT=null,_saveBusy=false,_savePend=false,_offlineDirty=false,_localSaveFailed=false,_saveConflict=false,_lastSavedAt=null,_localReduced=false;
 function apiSaveState(){if(!BACKEND)return;updateOfflineBadge();clearTimeout(_saveT);_saveT=setTimeout(_doSaveState,800);}
 const STATE_KEY_LABELS={BRANDS:'База брендов',GEO_DATA:'Геоаналитика',U:'Реестр помещений / ЛСР',OBJECTS:'Проекты',CHANGES:'Журнал реестра',PLANUP:'Планировки',PLANSVG:'Чертежи',PLAN_CODES:'Коды планировок',PLAN_STRUCT:'Структура чертежа',PLAN_LABELPOS:'Подписи чертежа',PLAN_IGNORED_CODES:'Исключённые коды',CASE_LAYOUT_VERSIONS:'Версии планировок',DOCREG:'Документы',DOC_CONTACTS:'Контакты',BENCH:'Бенчмарки',REFUSALS:'Отказы',BRAND_REQUESTS:'Заявки брендов',INVESTOR_REQUESTS:'Заявки инвесторов',SALES_ASSETS:'Продажи: активы',SALES_BUYERS:'Продажи: покупатели',CASE_TASKS:'Задачи',CASE_CLIENTS:'Клиенты',KPI_TARGETS:'KPI',MAPCFG:'Настройки карты',CASE_PORTFOLIO_PROJECTS:'Портфель проектов',OWNER_REPORTS:'Отчёты владельцу'};
@@ -4354,7 +4365,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
-<script src="v3520-workspaces.js?v=4.46.0" defer></script>
+<script src="v3520-workspaces.js?v=4.46.4" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
 <script src="v420-geoanalytics.js?v=4.43.1" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
@@ -4367,11 +4378,11 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
-<script src="v432-data-grid.js?v=4.46.2" defer></script>
-<script src="v4327-patch.js?v=4.46.3" defer></script>
-<script src="v4450-ux-system.js?v=4.46.0" defer></script>
-<script src="v4450-owner-report.js?v=4.46.0" defer></script>
-<script src="v4451-live-sync.js?v=4.46.2" defer></script>
+<script src="v432-data-grid.js?v=4.46.4" defer></script>
+<script src="v4327-patch.js?v=4.46.4" defer></script>
+<script src="v4450-ux-system.js?v=4.46.4" defer></script>
+<script src="v4450-owner-report.js?v=4.46.4" defer></script>
+<script src="v4451-live-sync.js?v=4.46.4" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

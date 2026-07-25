@@ -119,3 +119,5 @@ function refreshAfterServer(changed){
 }
 window.CASE_LIVE_SYNC={version:VERSION,capture:capture,restore:restore,withPreservedUi:withPreservedUi,entitySaved:entitySaved,refreshAfterServer:refreshAfterServer};
 })();
+
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4451-live-sync']='4.46.4';

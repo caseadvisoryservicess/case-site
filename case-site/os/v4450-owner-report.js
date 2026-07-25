@@ -128,3 +128,5 @@ function injectButtons(){if(!canReport())return;var main=document.getElementById
 function install(){ensureCSS();injectButtons();var main=document.getElementById('main');if(main&&window.MutationObserver)new MutationObserver(function(){requestAnimationFrame(injectButtons);}).observe(main,{childList:true,subtree:true});document.addEventListener('keydown',function(ev){if(ev.key==='Escape'&&document.getElementById('caseOwnerReport'))caseOwnerReportClose();});}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
+
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4450-owner-report']='4.46.4';
