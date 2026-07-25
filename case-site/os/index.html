@@ -471,7 +471,7 @@ const TODAY=(function(){var d=new Date();d.setHours(0,0,0,0);return d;})();
 const fmt=n=>'$'+Math.round(n).toLocaleString('en-US');
 const fmtA=n=>{n=+n||0;return (Math.round(n*100)/100).toLocaleString('ru-RU',{maximumFractionDigits:2});};
 const $=id=>document.getElementById(id);
-const APP_VERSION='4.46.0';    /* версия платформы — повышается с каждым обновлением */
+const APP_VERSION='4.46.1';    /* версия платформы — повышается с каждым обновлением */
 const STORAGE_KEY='asaas-os-demo-state-v7';
 const ASAAS_KEY_MIGRATIONS=[['case'+'-os-demo-state-v7','asaas-os-demo-state-v7'],['case'+'-os-search-hist','asaas-os-search-hist'],['case'+'-os-mapkey','asaas-os-mapkey'],['case'+'-os-quiz-ui','asaas-os-quiz-ui']];
 try{ASAAS_KEY_MIGRATIONS.forEach(function(p){if(localStorage.getItem(p[0])&&!localStorage.getItem(p[1]))localStorage.setItem(p[1],localStorage.getItem(p[0]));});}catch(e){}
@@ -526,7 +526,7 @@ async function apiPOST(p,data){
  return j;
 }
 function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,OWNER_REPORTS,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
-let _lastServerUpdate=null,_serverRev=0;
+let _lastServerUpdate=null,_serverRev=0,_lastLocalMutationAt=0;
 /* P1-6: слепок «что сервер уже знает» по каждому ключу состояния — для доменных сохранений */
 let _syncedKeyJson={};
 function _rememberSynced(data){try{if(data&&typeof data==='object')Object.keys(data).forEach(k=>{try{_syncedKeyJson[k]=JSON.stringify(data[k]);}catch(e){}});}catch(e){}}
@@ -535,8 +535,9 @@ async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.upda
 function toast(msg,ms){let box=document.getElementById('toastBox');if(!box){box=document.createElement('div');box.id='toastBox';box.style.cssText='position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:center';document.body.appendChild(box);}
  const el=document.createElement('div');el.textContent=msg;el.style.cssText='background:#222;color:#fff;padding:9px 16px;border-radius:20px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;transition:opacity .25s';box.appendChild(el);requestAnimationFrame(()=>el.style.opacity='1');
  setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},ms||3200);}
-function isUserBusy(){const dr=$('drawer');if(dr&&dr.classList.contains('open'))return true;if(S.regEdit)return true;if(S&&['advisory_portfolio_map','leasing_portfolio_map','advisory_proposal_builder'].indexOf(S.view)>=0)return true;const ae=document.activeElement;if(ae&&['INPUT','TEXTAREA','SELECT'].indexOf(ae.tagName)>=0)return true;return false;}
-async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){_lastServerUpdate=j.updated_at;applyState(j.data);var _mn=$('main'),_mt=_mn?_mn.scrollTop:0,_wy=(window.scrollY||window.pageYOffset||0),_frm=document.querySelector('#main #geoFrame, #main #feasFrame');if(!_frm){go(S.view);if(_mn)_mn.scrollTop=_mt;try{window.scrollTo(0,_wy);}catch(e){}}toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
+function isUserBusy(){const dr=$('drawer');if(dr&&dr.classList.contains('open'))return true;if(_saveBusy||_savePend||_offlineDirty||(Date.now()-_lastLocalMutationAt<2500))return true;if(S.regEdit)return true;if(document.querySelector('.modal.open,.rmodal.open,[role=dialog][aria-modal=true]'))return true;if(S&&['advisory_portfolio_map','leasing_portfolio_map','advisory_proposal_builder'].indexOf(S.view)>=0)return true;const ae=document.activeElement;if(ae&&['INPUT','TEXTAREA','SELECT'].indexOf(ae.tagName)>=0)return true;return false;}
+function _serverChangedKeys(data){const out=[];try{Object.keys(data||{}).forEach(k=>{let v=null;try{v=JSON.stringify(data[k]);}catch(e){}if(v!==_syncedKeyJson[k])out.push(k);});}catch(e){}return out;}
+async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length)toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
 if(typeof window!=='undefined')setInterval(pollServerState,20000);
 let _saveT=null,_saveBusy=false,_savePend=false,_offlineDirty=false,_localSaveFailed=false,_saveConflict=false,_lastSavedAt=null,_localReduced=false;
 function apiSaveState(){if(!BACKEND)return;updateOfflineBadge();clearTimeout(_saveT);_saveT=setTimeout(_doSaveState,800);}
@@ -1228,6 +1229,7 @@ const monthRent=id=>unitsOf(id).filter(u=>OCCK.indexOf(u.status)>=0).reduce((s,u
 const noi=id=>monthRent(id)*0.78;
 const _HEAVY_LOCAL_KEYS=['PLANSVG','PLANUP','PLAN_LABELPOS','PLAN_SNAPSHOT_SVGS','GEO_DATA','PROJECT_PPT']; /* крупные base64/чертежи/гео — под нехватку места не кладём в localStorage (они на сервере) */
 function persist(){
+ _lastLocalMutationAt=Date.now();
  let ok=false,_perr=null;
  // Аудит топбара #2: при работающем сервере крупные данные (чертежи/гео/картинки) НЕ дублируем в localStorage —
  // сервер источник, браузеру хватает ядра. Это проактивно предотвращает переполнение, а не лечит его постфактум.
@@ -3114,7 +3116,7 @@ function brandCardPrint(id){const b=BRANDS.find(x=>x.id===id);if(!b)return;
  <div style="margin-top:22px;font-size:11px;color:#6d6d6d">Карточка выгружена из CASE OS · ${esc(nowMin())} · ${esc(S.user?S.user.name:'')}</div>
  <div style="margin-top:14px"><button onclick="window.print()" style="padding:9px 18px;font-size:13px;cursor:pointer">Печать / сохранить PDF</button></div></body></html>`);
  w.document.close();}
-function brandTouch(id){const b=BRANDS.find(x=>x.id===id);if(!b||!R().edit)return;b.lastContact=iso(TODAY);b.editedBy=S.user.name;b.editedAt=nowMin();(b.hist=b.hist||[]).push([iso(TODAY),S.user.name,'Отмечен контакт с брендом']);persist();openBrand(id);}
+function brandTouch(id){const b=BRANDS.find(x=>x.id===id);if(!b||!R().edit)return;b.lastContact=iso(TODAY);b.editedBy=S.user.name;b.editedAt=nowMin();(b.hist=b.hist||[]).push([iso(TODAY),S.user.name,'Отмечен контакт с брендом']);persist();if(window.CASE_LIVE_SYNC)CASE_LIVE_SYNC.entitySaved('brand',id);openBrand(id);}
 function brandFitsArea(b,area){area=+String(area||'').replace(',','.')||0;if(!area)return true;const mn=+b.amin||0,mx=+b.amax||0;return (!mn||mn<=area)&&(!mx||mx>=area);}
 function renderBrands(){
  const canEdit=R().edit;
@@ -3234,9 +3236,9 @@ function brandSave(id){const b=BRANDS.find(x=>x.id===id);if(!b)return;const g=i=
  /* дубликат по названию? предложить объединить */
  const dup=BRANDS.find(x=>x.id!==b.id&&normBrandName(x.name)===normBrandName(b.name));
  if(dup&&confirm('В базе уже есть бренд с таким названием: «'+dup.name+'» (изменён: '+(dup.editedBy||'-')+' '+(dup.editedAt||'')+').\n\nOK — объединить: эта запись вольётся в существующую (пустые поля дополнятся, контакты объединятся, дубликат исчезнет).\nОтмена — оставить обе записи.')){
-  brandMerge(dup.id,b.id);persist();openBrand(dup.id);return;
+  brandMerge(dup.id,b.id);persist();if(window.CASE_LIVE_SYNC)CASE_LIVE_SYNC.entitySaved('brand',dup.id);openBrand(dup.id);return;
  }
- persist();refreshViewKeepScroll();openBrand(id);}
+ persist();if(window.CASE_LIVE_SYNC)CASE_LIVE_SYNC.entitySaved('brand',id);else refreshViewKeepScroll();openBrand(id);}
 function normBrandName(s){return String(s||'').toLowerCase().replace(/[^a-zа-яё0-9]+/gi,'');}
 function brandMerge(keepId,dupId){const k=BRANDS.find(x=>x.id===keepId),d=BRANDS.find(x=>x.id===dupId);if(!k||!d||k===d)return;
  Object.keys(d).forEach(f=>{if(f==='id'||f==='hist'||f==='contacts')return;if((k[f]==null||k[f]===''||k[f]===0)&&d[f])k[f]=d[f];});
@@ -3613,7 +3615,12 @@ function renderAdminSystem(){if(!R().admin){$('main').innerHTML=`<div class="car
 let SRV_USERS=null,_prefillRole=null;
 function addPersonToRole(rk){if(!R().admin)return;_prefillRole=rk;go('users');}
 function _rerenderUsersOrOrg(){if(S.view==='org')renderOrg();else if(S.view==='registry')renderRegistry();else if(S.view==='admin_system')renderAdminSystem();else if(S.view==='admin_modules')renderAdminModules();else renderUsers();}
-async function loadSrvUsers(){try{const j=await apiGET('data.php?table=app_users');SRV_USERS=(j.rows||[]).slice();}catch(e){SRV_USERS=[];}_rerenderUsersOrOrg();}
+async function loadSrvUsers(){const _prev=JSON.stringify(SRV_USERS);try{const j=await apiGET('data.php?table=app_users');SRV_USERS=(j.rows||[]).slice();}catch(e){SRV_USERS=[];}
+ /* v4.46.1: первый вызов прилетает из карточки редактирования (brokerNames) — раньше он молча
+    перерисовывал ЛСР за карточкой и сбрасывал прокрутку; теперь без изменений не дёргаем экран,
+    а при изменениях восстанавливаем позицию/фокус */
+ if(JSON.stringify(SRV_USERS)===_prev)return;
+ if(window.CASE_LIVE_SYNC&&CASE_LIVE_SYNC.withPreservedUi)CASE_LIVE_SYNC.withPreservedUi(_rerenderUsersOrOrg);else _rerenderUsersOrOrg();}
 function reloadSrvUsers(){SRV_USERS=null;_rerenderUsersOrOrg();}
 function roleOptions(sel){return Object.keys(ROLES).map(k=>`<option value="${k}"${sel===k?' selected':''}>${esc(ROLES[k].label)}</option>`).join('');}
 function renderUsersBackend(){
@@ -3928,7 +3935,7 @@ function unitSave(id){const u=U.find(x=>x.id===id);if(!u)return;const g=i=>{cons
  const _pb=u.broker,_ps=u.status;
  u.code=newCode||u.code;u.floor=g('e_floor');u.block=(g('e_block')||'').trim();u.cat=g('e_cat');u.sub=g('e_sub');u.format=(g('e_format')||'').trim();u.concept=(g('e_concept')||'').trim();u.zone=(g('e_zone')||'').trim();u.area=+g('e_area')||0;u.terr=+g('e_terr')||0;u.rate=+g('e_rate')||0;u.budget=+g('e_budget')||0;u.status=g('e_status');{const _ss=g('e_salestatus');if(_ss&&SALESTAT[_ss])u.saleStatus=_ss;}u.broker=g('e_broker');
  u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);commTrack(u,_pb,_ps);
- planUnignoreCode(u.obj,u.code);u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);audit('Правка помещения',u.code);persist();refreshViewKeepScroll();openUnit(id);}
+ planUnignoreCode(u.obj,u.code);u.hist.push([iso(TODAY),'Правка помещения ('+S.user.name+')']);audit('Правка помещения',u.code);persist();if(window.CASE_LIVE_SYNC)CASE_LIVE_SYNC.entitySaved('unit',id);else refreshViewKeepScroll();openUnit(id);}
 function shortlistPick(id){pickerView(id,false);}
 /* Категории юнита: основная + дополнительные (юнит может подходить под 2+ категорий) */
 function unitCats(u){const set=[];[u.cat].concat(u.extraCats||[]).forEach(c=>{if(c&&c!=='-'&&set.indexOf(c)<0)set.push(c);});return set;}
@@ -4343,7 +4350,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 </script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
-<script src="v35-stable.js?v=4.32.7" defer></script>
+<script src="v35-stable.js?v=4.46.1" defer></script>
 <script src="v3515-ux.js?v=4.32.7" defer></script>
 <script src="jszip.min.js?v=4.32.7" defer></script>
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
@@ -4364,6 +4371,7 @@ try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 <script src="v4327-patch.js?v=4.46.0" defer></script>
 <script src="v4450-ux-system.js?v=4.46.0" defer></script>
 <script src="v4450-owner-report.js?v=4.46.0" defer></script>
+<script src="v4451-live-sync.js?v=4.46.1" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

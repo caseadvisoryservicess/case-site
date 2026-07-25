@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.0**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.46.1**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,13 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.46.1:** живая синхронизация без перерисовок — влит билд пользователя v4.45.1:
+  - **v4451-live-sync.js** (из билда пользователя, целиком): capture/restore UI (позиции всех прокруток по ключам `table:<data-tblkey>`, фокус+курсор, details[open]; restore с ретраями rAF+40/120/260/520мс, токен restoreSeq гасит старые цепочки); VIEW_KEYS (раздел→ключи состояния); refreshAfterServer(changed) — перерисовка ТОЛЬКО если изменение касается текущего раздела; entitySaved(kind,id) + событие `caseos:entity-saved`. МОЁ дополнение: универсальный фолбэк entitySaved на остальные разделы (кроме geo/feas-iframe) — их unitSave обновлял только registry/plans/dash/map;
+  - index.html: pollServerState считает `_serverChangedKeys` (сравнение с _syncedKeyJson) → refreshAfterServer, `_rememberSynced` после applyState, тост только при changed.length; isUserBusy += `_saveBusy||_savePend||_offlineDirty||_lastLocalMutationAt<2.5с` + модалки `[role=dialog]`; persist() штампует _lastLocalMutationAt; unitSave/brandSave(legacy)/brandTouch/brandMerge-ветка → entitySaved (фолбэк refreshViewKeepScroll);
+  - v35-stable: asaas35SaveBrand → entitySaved/renderBrandsResultsOnly (лёгкий ререндер результатов, НЕ полный renderBrandsStable), экспорт window.asaas35RefreshResults;
+  - v420-geo-studio: geoUiSnapshot/geoUiRestore вокруг refreshAll;
+  - **НАЙДЕН СКРЫТЫЙ БАГ (только backend!)**: первый клик «✎ Редактировать помещение» → brokerNames() → loadSrvUsers() → `_rerenderUsersOrOrg()` МОЛЧА перерисовывал ЛСР за карточкой → scrollLeft=0. В demo не воспроизводится (SRV_USERS не грузится) — потому v4441 его не ловил. Фикс: loadSrvUsers не дёргает экран если данные не изменились (JSON-сравнение), при изменениях — withPreservedUi;
+  - ТЕСТ: docs/qa/tools/v4461_poll_sync.js 12/12 (мок-бэкенд; mock_backend.js теперь отдаёт `state.appState.updatedAt` — менять серверное состояние «чужой рукой» через /__ctl {appState:{data,revision,updatedAt}}). Полный регресс 13 наборов зелёный. Серверные PHP в этом релизе НЕ менялись.
 - **v4.46.0:** слияние с параллельным билдом пользователя (v4.45.0_FULL_HOSTING_READY) — «собери сам хороший вариант»:
   - взято из билда пользователя: **v4450-owner-report.js** (Отчёт собственнику: профили owner/internal, вкладки summary/areas/brands/refusals/plan/quality/versions, кнопка через MutationObserver, view `owner_reports`, state-ключ OWNER_REPORTS) + **v4450-ux-system.js** (caseStrictCanOpen-гард поверх go(), caseCanEditRegistry, экран «Нет доступа», a11y, адаптивный CSS, бейдж «Только просмотр»);
   - **fail-closed модель ролей** (принята КАК ЗАДУМАНО пользователем — отменяет прежний курс «вернуть BRJ реестр»): AGX только ['dash','work_tasks','work_kanban','brands','v32_investors']; BRJ — + гео/рынок/качество/импорт, но БЕЗ registry/case_projects; BSH — дефолт + registry только чтение. Сервер: lib.php `asaas_workspace_hard_allowed`, unit_patch/units_batch → 403 для AGX/BSH/BRJ; клиент: v3520 hardAllowed/canOpen + миграция схемы **4450** (union с DEFAULTS, затем fail-closed обрезка, включая кастомные USER_WORKSPACES);

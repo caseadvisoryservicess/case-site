@@ -1,0 +1,380 @@
+{
+  "js": {
+    "data/case_portfolio.seed.js": {
+      "ok": true,
+      "output": ""
+    },
+    "jszip.min.js": {
+      "ok": true,
+      "output": ""
+    },
+    "leaflet.case.js": {
+      "ok": true,
+      "output": ""
+    },
+    "leaflet.markercluster.js": {
+      "ok": true,
+      "output": ""
+    },
+    "quiz-data.js": {
+      "ok": true,
+      "output": ""
+    },
+    "sw.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v32-upgrade.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v326-commission-engines.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v35-stable.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v3515-brands-import.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v3515-ux.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v3516-brands-import.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v3518-brands-import.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v3520-workspaces.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v400-feasibility.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v410-feature-flags.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v417-master-plan.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v420-geo-studio.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v420-geoanalytics.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v432-data-grid.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v4327-patch.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v440-engineering.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v4450-owner-report.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v4450-ux-system.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v4451-live-sync.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v450-guides.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v490-caseos.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v490-workflow.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v492-portfolio-proposals.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v493-portfolio-suite.js": {
+      "ok": true,
+      "output": ""
+    },
+    "v496-commissions.js": {
+      "ok": true,
+      "output": ""
+    }
+  },
+  "inline_js": {
+    "1": {
+      "ok": true,
+      "output": ""
+    },
+    "2": {
+      "ok": true,
+      "output": ""
+    }
+  },
+  "php": {
+    "api/auth.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/auth.php"
+    },
+    "api/backup.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/backup.php"
+    },
+    "api/brand_requests.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/brand_requests.php"
+    },
+    "api/commission_tiered.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/commission_tiered.php"
+    },
+    "api/commissions.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/commissions.php"
+    },
+    "api/config.local-xampp.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/config.local-xampp.php"
+    },
+    "api/config.production.example.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/config.production.example.php"
+    },
+    "api/config.sample.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/config.sample.php"
+    },
+    "api/cron_critical_dates.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/cron_critical_dates.php"
+    },
+    "api/data.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/data.php"
+    },
+    "api/diag.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/diag.php"
+    },
+    "api/feasibility_models.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/feasibility_models.php"
+    },
+    "api/geo_collector.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/geo_collector.php"
+    },
+    "api/geo_master.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/geo_master.php"
+    },
+    "api/geo_master_install.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/geo_master_install.php"
+    },
+    "api/geo_seed_convert.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/geo_seed_convert.php"
+    },
+    "api/geo_state.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/geo_state.php"
+    },
+    "api/gis_proxy.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/gis_proxy.php"
+    },
+    "api/health.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/health.php"
+    },
+    "api/investor_requests.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/investor_requests.php"
+    },
+    "api/lease_commissions.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/lease_commissions.php"
+    },
+    "api/lib.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/lib.php"
+    },
+    "api/market_data.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/market_data.php"
+    },
+    "api/migrate.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/migrate.php"
+    },
+    "api/notify_recipients.sample.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/notify_recipients.sample.php"
+    },
+    "api/partners.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/partners.php"
+    },
+    "api/project_files.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/project_files.php"
+    },
+    "api/sales.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/sales.php"
+    },
+    "api/setup.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/setup.php"
+    },
+    "api/state.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/state.php"
+    },
+    "api/supplier_commissions.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/supplier_commissions.php"
+    },
+    "api/unit_patch.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/unit_patch.php"
+    },
+    "api/units_batch.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/units_batch.php"
+    },
+    "api/user_prefs.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/user_prefs.php"
+    },
+    "api/users.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/users.php"
+    },
+    "api/workspace_access.php": {
+      "ok": true,
+      "output": "No syntax errors detected in /mnt/data/caseos_v4451_work/os/api/workspace_access.php"
+    }
+  },
+  "json": {
+    "data/bundle_tashkent_realdata.json": {
+      "ok": true
+    },
+    "data/case_files/index.json": {
+      "ok": true
+    },
+    "data/case_portfolio_projects_v4.9.3.json": {
+      "ok": true
+    },
+    "data/geo_collect_config.json": {
+      "ok": true
+    },
+    "data/geo_collect_out/dry_run.json": {
+      "ok": true
+    },
+    "data/geo_collect_out/seed_summary.json": {
+      "ok": true
+    },
+    "data/geo_master/bc.json": {
+      "ok": true
+    },
+    "data/geo_master/cafes.json": {
+      "ok": true
+    },
+    "data/geo_master/fnb_import_qa.json": {
+      "ok": true
+    },
+    "data/geo_master/mahallas.json": {
+      "ok": true
+    },
+    "data/geo_master/medicine.json": {
+      "ok": true
+    },
+    "data/geo_master/pharmacies.json": {
+      "ok": true
+    },
+    "data/geo_master/restaurants.json": {
+      "ok": true
+    },
+    "data/geo_master/runtime.json": {
+      "ok": true
+    },
+    "data/geo_master/summary.json": {
+      "ok": true
+    },
+    "data/mahallas_tashkent.json": {
+      "ok": true
+    },
+    "data/mep_norms.json": {
+      "ok": true
+    },
+    "data/case_portfolio.geojson": {
+      "ok": true
+    },
+    "data/geo_collect_out/seed_master.geojson": {
+      "ok": true
+    },
+    "data/geo_master/master.geojson": {
+      "ok": true
+    }
+  },
+  "service_worker": {
+    "cache": "case-os-v4451",
+    "assets_count": 41,
+    "missing": [],
+    "ok": true
+  },
+  "summary": {
+    "js": {
+      "passed": 31,
+      "total": 31,
+      "ok": true
+    },
+    "inline_js": {
+      "passed": 2,
+      "total": 2,
+      "ok": true
+    },
+    "php": {
+      "passed": 36,
+      "total": 36,
+      "ok": true
+    },
+    "json": {
+      "passed": 20,
+      "total": 20,
+      "ok": true
+    },
+    "service_worker": {
+      "passed": 1,
+      "total": 1,
+      "ok": true
+    }
+  },
+  "all_passed": true
+}

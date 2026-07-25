@@ -15,7 +15,7 @@ function createMockServer(OS_DIR, opts) {
   const state = {
     sessionValid: true,
     failMode: null,
-    appState: { data: opts.initialState || {}, revision: 1 },
+    appState: { data: opts.initialState || {}, revision: 1, updatedAt: '2026-07-24 12:00:00' },
     geo: { data: { datasets: {}, projects: [] }, geo_revision: 1 },
     unitPatches: [],          // все принятые патчи
     statePosts: [],           // все принятые POST state.php (ключи)
@@ -50,7 +50,7 @@ function createMockServer(OS_DIR, opts) {
         const b = await readBody(req); state.prefs = b.data || {}; json(rsp, 200, { ok: true }); return;
       }
       if (ep === 'state.php') {
-        if (req.method === 'GET') { json(rsp, 200, { data: state.appState.data, revision: state.appState.revision, updated_at: '2026-07-24 12:00:00', updated_by: 'mock' }); return; }
+        if (req.method === 'GET') { json(rsp, 200, { data: state.appState.data, revision: state.appState.revision, updated_at: state.appState.updatedAt, updated_by: state.updatedBy || 'mock' }); return; }
         const b = await readBody(req);
         if (state.failMode === 'state-conflict') { json(rsp, 409, { error: 'Данные уже изменены другим пользователем. Обновите страницу и повторите действие.' }); return; }
         const incoming = b.data || {};

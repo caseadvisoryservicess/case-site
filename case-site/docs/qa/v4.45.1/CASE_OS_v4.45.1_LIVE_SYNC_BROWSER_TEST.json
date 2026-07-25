@@ -1,0 +1,12 @@
+{
+  "brand_targeted_refresh": true,
+  "brand_horizontal_scroll_preserved": true,
+  "brand_window_scroll_preserved": true,
+  "unit_registry_refresh": true,
+  "registry_horizontal_scroll_preserved": true,
+  "registry_window_scroll_preserved": true,
+  "irrelevant_server_update_skipped": true,
+  "relevant_server_update_applied": true,
+  "server_refresh_scroll_preserved": true,
+  "all_passed": true
+}

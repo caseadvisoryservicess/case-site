@@ -237,13 +237,16 @@
     var data=collectState();if(EMBEDDED)post('asaas-geo-save',{data:data,reason:reason||'ручное редактирование'});else try{localStorage.setItem('asaas_geo_v1',JSON.stringify(data));GEO_SAVE_STATE='saved';GEO_SAVE_MESSAGE='Сохранено локально';}catch(e){GEO_SAVE_STATE='error';GEO_SAVE_MESSAGE=e.message;alert('Не удалось сохранить: '+e.message);}
     updateBanner();
   }
+  function geoUiSnapshot(){var w=document.querySelector('.geo-table-wrap');return {y:window.scrollY||window.pageYOffset||0,x:window.scrollX||0,tableX:w?w.scrollLeft:0,dataY:(document.getElementById('dataT')||{}).scrollTop||0};}
+  function geoUiRestore(s){if(!s)return;function r(){var w=document.querySelector('.geo-table-wrap');if(w)w.scrollLeft=s.tableX||0;var d=document.getElementById('dataT');if(d)d.scrollTop=s.dataY||0;try{window.scrollTo(s.x||0,s.y||0);}catch(e){}}requestAnimationFrame(function(){r();requestAnimationFrame(r);});setTimeout(r,80);setTimeout(r,220);}
   function refreshAll(){
+    var snap=geoUiSnapshot();
     try{renderProj();renderBC();renderMed();renderPharm();catchSummary();}catch(e){}
     try{renderPoiLayers();}catch(e){}
     try{analytics();compare();siteTab();dataTab();}catch(e){}
     try{if(typeof geoObjTab==='function')geoObjTab();}catch(e){}
     try{planningTab();}catch(e){}
-    updateBanner();
+    updateBanner();geoUiRestore(snap);
   }
   function updateBanner(){
     var q=quality(),a=document.getElementById('geoAccess'),h=document.getElementById('hdrCount'),sv=document.getElementById('geoSaveStatus'),poi=Object.keys(POI_DEFS).reduce(function(n,k){return n+GEO_POI[k].length;},0);
