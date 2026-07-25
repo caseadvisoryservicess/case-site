@@ -69,7 +69,7 @@
   table.case-grid th,table.case-grid td{border-right:1px solid var(--cg-line)!important;border-bottom:1px solid var(--cg-line)!important;box-sizing:border-box}table.case-grid td{overflow:hidden}table.case-grid thead th{overflow:visible!important}
   table.case-grid th:first-child,table.case-grid td:first-child{border-left:1px solid var(--cg-line)!important}table.case-grid thead tr:first-child th{border-top:1px solid var(--cg-line)!important}
   table.case-grid thead th{position:sticky;top:var(--cg-sticky-top,0px);z-index:8;background:var(--cg-head)!important; /* v4.48.1: липнет КАЖДАЯ ячейка шапки — по горизонтали она привязана к своей колонке и отстать от тела не может (sticky на всём thead отставал по X) */color:#625d56;vertical-align:middle!important;box-shadow:none!important;user-select:none}
-  table.case-grid.reg-grp thead tr.grprow th{position:relative!important;top:auto!important;z-index:10;height:24px!important;padding:3px 5px!important;background:#fff!important} /* v4.48.1: групповой ряд НЕ липнет (Chromium игнорирует разные top у sticky-ячеек многорядного thead — ряды накладывались); липнет ряд колонок */
+  table.case-grid.reg-grp thead tr.grprow th{position:relative!important;top:auto!important;z-index:10;height:24px!important;padding:3px 5px!important;background:var(--cg-head,#faf8f5)!important} /* v4.48.2: беж вместо белого — «белые пятна» над шапкой */ /* v4.48.1: групповой ряд НЕ липнет (Chromium игнорирует разные top у sticky-ячеек многорядного thead — ряды накладывались); липнет ряд колонок */
   table.case-grid.reg-grp thead tr.leafrow th,table.case-grid.reg-grp thead tr:last-child th{top:0;z-index:9}
   table.case-grid tbody tr:hover>td{background:var(--cg-hover)!important}.case-grid-filtered{display:none!important}
   table.case-grid .sortbtn,table.case-grid .case-grid-gsort,table.case-grid .case-grid-sort-idle,table.case-grid .case-grid-sort-on,table.case-grid .geo-th-sort-ic{display:none!important}
@@ -86,7 +86,12 @@
   table.case-grid.reg-grp tbody td{height:32px;vertical-align:middle!important}table.case-grid.reg-grp thead th{font-weight:750!important}
   table.case-grid.reg-grp input,table.case-grid.reg-grp select{font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--panel,#fff);padding:4px 6px;min-height:26px;max-width:100%}
   table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.case-grid td textarea{max-width:100%!important;box-sizing:border-box!important} /* v4.46.2: контролы не выходят за границу столбца при узкой колонке */
-  table.case-grid .case-grid-pin{position:sticky!important;z-index:6;background:var(--cg-sticky)!important}table.case-grid thead .case-grid-pin{z-index:12;background:var(--cg-head)!important}.case-grid-pin-last{box-shadow:none!important;border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line))!important}
+  .case-pin-corner{position:sticky;top:0;left:0;z-index:16;display:block;overflow:hidden;background:var(--cg-head,#faf8f5);border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line));box-shadow:4px 0 10px -6px rgba(35,28,22,.25);pointer-events:auto}
+  .case-pin-corner .cpc-grp{background:var(--cg-head,#faf8f5);border-bottom:1px solid var(--cg-line)}
+  .case-pin-corner .cpc-row{display:flex;align-items:stretch}
+  .case-pin-corner .cpc-cell{position:relative;box-sizing:border-box;flex:0 0 auto;border-right:1px solid var(--cg-line);border-bottom:1px solid var(--cg-line);padding:9px 10px;font-size:10.4px;line-height:1.2;font-weight:750;color:#625d56;background:var(--cg-head,#faf8f5);overflow:hidden;display:flex;align-items:center}
+  .case-pin-corner .case-grid-resizer{display:block}
+  table.case-grid .case-grid-pin{position:sticky!important;z-index:6;background:var(--cg-sticky)!important}table.case-grid thead .case-grid-pin{z-index:12;background:var(--cg-head)!important;left:auto!important} /* v4.48.2: пины ШАПКИ не липнут сами (Chromium не рисует двухосевой sticky/transform на ячейках) — их показывает угловой блок .case-pin-corner */.case-grid-pin-last{box-shadow:none!important;border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line))!important}
   table.case-grid .case-grid-resizer{position:absolute;right:-4px;top:0;width:9px;height:100%;cursor:col-resize;z-index:60;touch-action:none;background:transparent}table.case-grid .case-grid-resizer:after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(90,80,70,.28)}table.case-grid th:hover>.case-grid-resizer:after,table.case-grid .case-grid-resizer:hover:after,table.case-grid .case-grid-resizer.drag:after{width:2px;background:var(--red-d,#9E0000)}table.case-grid .case-grid-resizer:hover,table.case-grid .case-grid-resizer.drag{background:linear-gradient(to left,rgba(158,0,0,.10),transparent)}
   table.case-grid tr.filters,table.case-grid tr.fltrow,table.case-grid tr.geo-tfilter-row{display:none!important}
   .case-grid-panel{position:fixed;z-index:10050;width:min(390px,calc(100vw - 20px));max-height:min(650px,calc(100vh - 20px));overflow:auto;background:var(--panel,#fff);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.2);padding:12px;color:var(--ink)}
@@ -155,10 +160,10 @@
    });adjustGroupedHeader(tb,key,hidden);syncTableWidth(tb,key);}
   function visibleIndices(tb,key){var hidden=effectiveHidden(tb,key),ids=colIds(tb),a=[];ids.forEach(function(id,i){if(!hidden[id])a.push(i);});return a;}
   function applyOrder(tb,key){if(!tb.tHead)return;var aligned=tb.tHead.rows.length===1||tb.classList.contains('asaas35-table');if(!aligned)return;var p=tablePref(key).one,order=Array.isArray(p.order)?p.order:[];if(!order.length)return;var row=leafRow(tb),hs=Array.prototype.slice.call(row.cells),ids=hs.map(function(th,i){return th.getAttribute('data-colkey')||th.dataset.caseColId||cleanId(th.textContent,i);}),map={};ids.forEach(function(id,i){map[id]=i;});var seq=[];order.forEach(function(id){if(Object.prototype.hasOwnProperty.call(map,id)&&seq.indexOf(map[id])<0)seq.push(map[id]);});ids.forEach(function(_,i){if(seq.indexOf(i)<0)seq.push(i);});if(seq.every(function(v,i){return v===i;}))return;Array.prototype.forEach.call(tb.tHead.rows,function(hr){var cells=Array.prototype.slice.call(hr.cells);if(cells.length===ids.length&&cells.every(function(c){return (c.colSpan||1)===1;}))seq.forEach(function(old){hr.appendChild(cells[old]);});});var cg=tb.querySelector('colgroup'),cols=cg?Array.prototype.slice.call(cg.children):[];if(cg&&cols.length===ids.length)seq.forEach(function(old){cg.appendChild(cols[old]);});Array.prototype.forEach.call(tb.tBodies||[],function(body){Array.prototype.forEach.call(body.rows,function(r){var cs=Array.prototype.slice.call(r.cells);if(cs.length!==ids.length||cs.some(function(c){return (c.colSpan||1)!==1;}))return;seq.forEach(function(old){r.appendChild(cs[old]);});});});}
-  function clearPins(tb){tb.querySelectorAll('.case-grid-pin,.case-grid-pin-last').forEach(function(x){x.classList.remove('case-grid-pin','case-grid-pin-last');x.style.left='';});}
+  function clearPins(tb){tb.querySelectorAll('.case-grid-pin,.case-grid-pin-last').forEach(function(x){x.classList.remove('case-grid-pin','case-grid-pin-last');x.style.left='';x.style.transform='';});var w=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');var c=w&&w.querySelector(':scope > .case-pin-corner');if(c)c.remove();}
   function maxPinCount(tb,key){var ids=colIds(tb);if(tb.classList.contains('reg-grp')){var b=ids.findIndex(function(id){return id.indexOf('b_')===0;});return b<0?0:b;}return Math.min(6,ids.length);}
   function groupPrefixCells(tb,count){if(!tb.classList.contains('reg-grp')||!tb.tHead||tb.tHead.rows.length<2)return[];var gr=tb.tHead.rows[0],cells=Array.prototype.slice.call(gr.cells),bud=cells.findIndex(function(c){return c.classList.contains('grp-bud');});return bud<0?[]:cells.slice(0,Math.min(count,bud));}
-  function applyPins(tb,key){clearPins(tb);var p=tablePref(key).one,pin=('pin' in p)?Math.max(0,+p.pin||0):defaultPin(key),cap=maxPinCount(tb,key);pin=Math.min(pin,cap);if(!pin)return;var vis=visibleIndices(tb,key).filter(function(i){return i<cap;}).slice(0,pin),hs=headers(tb),body=tb.tBodies&&tb.tBodies[0],cg=tb.querySelector('colgroup'),left=0,gpcs=groupPrefixCells(tb,cap);vis.forEach(function(i,n){var th=hs[i],w=(cg&&cg.children[i]&&parseFloat(cg.children[i].style.width))||Math.round(th.getBoundingClientRect().width)||80;if(!th)return;th.classList.add('case-grid-pin');th.style.left=left+'px';var g=gpcs[i];if(g&&g.style.display!=='none'){g.classList.add('case-grid-pin');g.style.left=left+'px';}if(body)Array.prototype.forEach.call(body.rows,function(r){var c=cellAt(r,i);if(c&&c.style.display!=='none'){c.classList.add('case-grid-pin');c.style.left=left+'px';}});if(n===vis.length-1){th.classList.add('case-grid-pin-last');if(g)g.classList.add('case-grid-pin-last');if(body)Array.prototype.forEach.call(body.rows,function(r){var c=cellAt(r,i);if(c)c.classList.add('case-grid-pin-last');});}left+=w;});}
+  function applyPins(tb,key){clearPins(tb);var p=tablePref(key).one,pin=('pin' in p)?Math.max(0,+p.pin||0):defaultPin(key),cap=maxPinCount(tb,key);pin=Math.min(pin,cap);if(!pin)return;var vis=visibleIndices(tb,key).filter(function(i){return i<cap;}).slice(0,pin),hs=headers(tb),body=tb.tBodies&&tb.tBodies[0],cg=tb.querySelector('colgroup'),left=0,gpcs=groupPrefixCells(tb,cap);vis.forEach(function(i,n){var th=hs[i],w=(cg&&cg.children[i]&&parseFloat(cg.children[i].style.width))||Math.round(th.getBoundingClientRect().width)||80;if(!th)return;th.classList.add('case-grid-pin');th.style.left=left+'px';var g=gpcs[i];if(g&&g.style.display!=='none'){g.classList.add('case-grid-pin');g.style.left=left+'px';}if(body)Array.prototype.forEach.call(body.rows,function(r){var c=cellAt(r,i);if(c&&c.style.display!=='none'){c.classList.add('case-grid-pin');c.style.left=left+'px';}});if(n===vis.length-1){th.classList.add('case-grid-pin-last');if(g)g.classList.add('case-grid-pin-last');if(body)Array.prototype.forEach.call(body.rows,function(r){var c=cellAt(r,i);if(c)c.classList.add('case-grid-pin-last');});}left+=w;});try{buildPinCorner(tb,key);}catch(_){}}
   function gridWidthPrefs(key){var p=tablePref(key).one;return p.widths||{};}
   function syncTableWidth(tb,key){try{var cg=tb.querySelector('colgroup'),ids=colIds(tb),hidden=effectiveHidden(tb,key),total=0;if(!cg)return 0;ids.forEach(function(id,i){if(hidden[id])return;var c=cg.children[i];if(!c)return;var w=parseFloat(c.style.width)||0;if(w>0)total+=w;});total=Math.max(1,Math.round(total));tb.style.width=total+'px';tb.style.minWidth='100%';tb.style.maxWidth='none';return total;/* v4.42: min-width 100% — узкая таблица растягивается на всю карточку (свободное место при table-layout:fixed браузер делит между столбцами), вместо «сжатых» столбцов с переносами */}catch(_){return 0;}}
   function setGridWidth(key,id,w){mutatePref(key,function(p){p.widths=p.widths||{};p.widths[id]=Math.round(w);});}
@@ -231,6 +236,50 @@
     var want=h+'px';
     if(wrap.style.maxHeight!==want)wrap.style.maxHeight=want;
   }
+  function buildPinCorner(tb,key){
+    /* v4.48.2: УГЛОВОЙ БЛОК закреплённых заголовков. Chromium не отрисовывает ни двухосевой
+       position:sticky, ни transform на ячейках таблицы (rect верный, paint нет — проверено
+       elementFromPoint). Поэтому закреплённые ЗАГОЛОВКИ показывает маленький div-двойник,
+       прилипший в углу обёртки нативным двухосевым sticky (на div он работает). Никакого
+       слежения за прокруткой: геометрию держит браузер. Перестраивается в applyPins. */
+    var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');if(!wrap)return;
+    var old=wrap.querySelector(':scope > .case-pin-corner');if(old)old.remove();
+    var leaf=tb.tHead&&tb.tHead.rows[tb.tHead.rows.length-1];if(!leaf)return;
+    var pins=Array.prototype.filter.call(leaf.cells,function(c){return c.classList.contains('case-grid-pin');});
+    if(!pins.length)return;
+    var grpH=tb.tHead.rows.length>1?Math.max(0,Math.ceil(tb.tHead.rows[0].getBoundingClientRect().height)):0;
+    var leafH=Math.max(1,Math.ceil(leaf.getBoundingClientRect().height));
+    var box=document.createElement('div');box.className='case-pin-corner';
+    var totalW=0;
+    var inner='<div class="cpc-grp" style="height:'+grpH+'px"></div><div class="cpc-row" style="height:'+leafH+'px">';
+    pins.forEach(function(th){
+      var w=Math.round(th.getBoundingClientRect().width);totalW+=w;
+      inner+='<div class="cpc-cell" data-src-col="'+(th.dataset.caseColId||'')+'" style="width:'+w+'px">'+th.innerHTML+'</div>';
+    });
+    inner+='</div>';
+    box.innerHTML=inner;
+    box.style.width=totalW+'px';box.style.height=(grpH+leafH)+'px';box.style.marginBottom=-(grpH+leafH)+'px';
+    /* прокси: клики (сортировка/фильтр/меню) и резайзеры уходят настоящим ячейкам */
+    box.addEventListener('pointerdown',function(e){
+      var rz=e.target&&e.target.closest&&e.target.closest('.case-grid-resizer');if(!rz)return;
+      var id=rz.dataset&&rz.dataset.caseColId;if(!id)return;
+      var real=tb.querySelector('thead .case-grid-resizer[data-case-col-id="'+cssEsc(id)+'"]');
+      if(!real)return;e.preventDefault();e.stopPropagation();
+      try{real.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:e.clientX,clientY:e.clientY,bubbles:true,pointerId:e.pointerId||1}));}catch(_){ }
+    });
+    box.addEventListener('click',function(e){
+      if(e.target.closest('.case-grid-resizer'))return;
+      var cell=e.target.closest('.cpc-cell');if(!cell)return;
+      var id=cell.dataset.srcCol;var th=id?tb.querySelector('thead th[data-case-col-id="'+cssEsc(id)+'"]'):null;
+      if(!th)return;
+      var btn=e.target.closest('button, .tblfnl, .case-grid-filter-btn, a');
+      var realBtn=null;
+      if(btn){var sel=btn.className?('.'+String(btn.className).trim().split(/\s+/).join('.')):btn.tagName;try{realBtn=th.querySelector(sel);}catch(_){realBtn=null;}}
+      e.preventDefault();e.stopPropagation();
+      try{(realBtn||th).dispatchEvent(new MouseEvent('click',{bubbles:true,clientX:e.clientX,clientY:e.clientY}));}catch(_){ }
+    });
+    wrap.insertBefore(box,wrap.firstChild);
+  }
   function syncOneStickyTable(tb){
     if(!tb||!tb.tHead)return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');
     var rows=tb.tHead.rows,gh=0;
@@ -265,4 +314,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.48.1';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.48.2';

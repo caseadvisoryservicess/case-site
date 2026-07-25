@@ -33,25 +33,32 @@ srv.listen(0, '127.0.0.1', async () => {
   await page.evaluate(() => { document.querySelector('.case-grid-panel [data-pin]').value = '3'; document.querySelector('.case-grid-panel [data-save]').click(); });
   await page.waitForTimeout(1200);
 
-  /* 1-2. горизонтальный скролл: шапка прилипает с телом, прочие th без сдвигов */
+  /* 1-2. горизонтальный скролл: угловой блок закреплённых заголовков стоит в углу и РЕАЛЬНО отрисован */
   const h = await page.evaluate(async () => {
     const wrap = document.querySelector('#main .tbl-scroll');
     wrap.scrollLeft = 400; wrap.dispatchEvent(new Event('scroll'));
     await new Promise(r => setTimeout(r, 400));
-    const wrapX = wrap.getBoundingClientRect().x;
+    const wr = wrap.getBoundingClientRect();
     const tb = document.querySelector('#main table.case-grid');
-    const lastHead = tb.tHead.rows[tb.tHead.rows.length - 1];
-    const pinTh = [...lastHead.cells].filter(c => c.classList.contains('case-grid-pin'));
+    const corner = wrap.querySelector(':scope > .case-pin-corner');
+    if (!corner) return { err: 'нет углового блока' };
+    const cr = corner.getBoundingClientRect();
+    const cells = [...corner.querySelectorAll('.cpc-cell')];
     const row0 = tb.tBodies[0].rows[0];
     const pinTd = [...row0.cells].filter(c => c.classList.contains('case-grid-pin'));
-    const thInfo = pinTh.map(c => ({ pos: getComputedStyle(c).position, x: Math.round(c.getBoundingClientRect().x - wrapX) }));
-    const tdInfo = pinTd.map(c => ({ pos: getComputedStyle(c).position, x: Math.round(c.getBoundingClientRect().x - wrapX) }));
-    const aligned = thInfo.length === 3 && thInfo.every((t, i) => tdInfo[i] && Math.abs(t.x - tdInfo[i].x) <= 1 && t.pos === 'sticky' && tdInfo[i].pos === 'sticky' && t.x >= -1);
+    const cellsX = cells.map(c => Math.round(c.getBoundingClientRect().x - wr.x));
+    const tdX = pinTd.map(c => Math.round(c.getBoundingClientRect().x - wr.x));
+    const aligned = cells.length === 3 && cellsX.every((x, i) => tdX[i] != null && Math.abs(x - tdX[i]) <= 1);
+    /* ИСТИНА ОТРИСОВКИ: elementFromPoint в центре второй ячейки угла должен попасть в угол */
+    const c1 = cells[1].getBoundingClientRect();
+    const probe = document.elementFromPoint(c1.x + c1.width / 2, c1.y + c1.height / 2);
+    const painted = !!(probe && corner.contains(probe));
+    const atCorner = Math.abs(cr.x - wr.x) <= 1 && Math.abs(cr.y - wr.y) <= 1;
     const strays = [...tb.tHead.querySelectorAll('th:not(.case-grid-pin)')].filter(c => c.style.left && c.style.left !== '' && c.style.left !== '0px').length;
     const grpRel = [...tb.tHead.rows[0].cells].every(c => getComputedStyle(c).position !== 'sticky');
-    return { thInfo, tdInfo, aligned, strays, grpOk: grpRel };
+    return { cellsX, tdX, aligned, painted, atCorner, strays, grpOk: grpRel };
   });
-  rec('гор. скролл: шапка закреплённых столбцов прилипает вместе с телом', h.aligned, JSON.stringify(h));
+  rec('гор. скролл: угловой блок пинов в углу, ячейки совпадают с телом и ОТРИСОВАНЫ', !h.err && h.aligned && h.painted && h.atCorner, JSON.stringify(h));
   rec('незакреплённые th без паразитных left-сдвигов', h.strays === 0, 'сдвигов: ' + h.strays);
   rec('групповой ряд шапки: не липнет (прокручивается штатно, ряды не накладываются)', h.grpOk, JSON.stringify({ ok: h.grpOk }));
 
@@ -70,14 +77,17 @@ srv.listen(0, '127.0.0.1', async () => {
     /* липнет ряд колонок: его верх у кромки обёртки (групповой ряд прокручивается — это штатно) */
     const headStuck = Math.abs(leafThR.top - wr.top) <= 3 && leafThR.bottom < wr.top + 80;
     /* линии: границы th совпадают с границами td */
-    const edges = row => [...row.cells].filter(c => c.getBoundingClientRect().width > 0.5).map(c => c.getBoundingClientRect().right);
     const bodyRow = [...tb.tBodies[0].rows].find(r => r.cells.length > 5 && r.getBoundingClientRect().height > 5);
-    const thE = edges(leaf), tdE = edges(bodyRow);
+    const edgesUnpinned = row => [...row.cells].filter(c => !c.classList.contains('case-grid-pin') && c.getBoundingClientRect().width > 0.5).map(c => c.getBoundingClientRect().right);
+    const thE = edgesUnpinned(leaf), tdE = edgesUnpinned(bodyRow);
     const badLines = thE.map((x, i) => Math.abs(x - (tdE[i] != null ? tdE[i] : NaN))).filter(d => !isNaN(d) && d > 1).length;
-    /* закреплённые: th и td на одном x */
-    const pinTh = [...leaf.cells].filter(c => c.classList.contains('case-grid-pin'));
-    const pinTd = [...bodyRow.cells].filter(c => c.classList.contains('case-grid-pin'));
-    const pinAligned = pinTh.length === 3 && pinTh.every((c, i) => pinTd[i] && Math.abs(c.getBoundingClientRect().x - pinTd[i].getBoundingClientRect().x) <= 1);
+    /* закреплённые: угловой блок в углу и отрисован при верт+гор прокрутке */
+    const corner = wrap.querySelector(':scope > .case-pin-corner');
+    const cr2 = corner ? corner.getBoundingClientRect() : null;
+    const cc = corner ? corner.querySelector('.cpc-cell') : null;
+    const ccr = cc ? cc.getBoundingClientRect() : null;
+    const probe2 = ccr ? document.elementFromPoint(ccr.x + ccr.width / 2, ccr.y + ccr.height / 2) : null;
+    const pinAligned = !!(cr2 && Math.abs(cr2.x - wr.x) <= 1 && Math.abs(cr2.y - wr.y) <= 1 && probe2 && corner.contains(probe2));
     return { layers, headStuck, badLines, pinAligned, leafTop: Math.round(leafThR.top - wr.top), scrollTop: wrap.scrollTop };
   });
   rec('верт. прокрутка: настоящий thead прилип (клона нет в DOM)', v.layers === 0 && v.headStuck, JSON.stringify(v));
@@ -109,6 +119,26 @@ srv.listen(0, '127.0.0.1', async () => {
   });
   rec('скрытие столбца: шапка и тело синхронны (м² исчез из ОБОИХ)', hideT.skip || (!hideT.thHasM2 && !hideT.misalign), JSON.stringify(hideT));
 
+  /* 4а. резайзер УГЛОВОГО блока меняет ширину закреплённого столбца (прокси) */
+  const rzCorner = await page.evaluate(async () => {
+    const wrap = document.querySelector('#main .tbl-scroll');
+    const tb = document.querySelector('#main table.case-grid');
+    const corner = wrap.querySelector(':scope > .case-pin-corner');
+    if (!corner) return { err: 'нет угла' };
+    const r = [...corner.querySelectorAll('.case-grid-resizer')].find(x => x.dataset.caseColId && x.dataset.caseColId !== '_select');
+    if (!r) return { err: 'в углу нет резайзеров' };
+    const id = r.dataset.caseColId;
+    const col = [...tb.querySelector('colgroup').children].find(c => c.dataset.caseColId === id);
+    const w0 = parseFloat(col.style.width);
+    const b = r.getBoundingClientRect();
+    r.dispatchEvent(new PointerEvent('pointerdown', { button: 0, clientX: b.x + 2, clientY: b.y + 5, bubbles: true, pointerId: 9 }));
+    document.dispatchEvent(new PointerEvent('pointermove', { clientX: b.x + 55, clientY: b.y + 5, bubbles: true, pointerId: 9 }));
+    document.dispatchEvent(new PointerEvent('pointerup', { clientX: b.x + 55, clientY: b.y + 5, bubbles: true, pointerId: 9 }));
+    await new Promise(x => setTimeout(x, 400));
+    return { id, w0, w1: parseFloat(col.style.width) };
+  });
+  rec('резайзер углового блока меняет ширину закреплённого столбца', !rzCorner.err && rzCorner.w1 > rzCorner.w0 + 35, JSON.stringify(rzCorner));
+
   /* 4. резайзер в прилипшем состоянии: тянем ширину из шапки */
   const rz = await page.evaluate(async () => {
     const tb = document.querySelector('#main table.case-grid');
@@ -134,7 +164,7 @@ srv.listen(0, '127.0.0.1', async () => {
   await page.waitForTimeout(300);
   await page.evaluate(() => { document.querySelector('.case-grid-panel [data-pin]').value = '0'; document.querySelector('.case-grid-panel [data-save]').click(); });
   await page.waitForTimeout(1000);
-  const off = await page.evaluate(() => document.querySelectorAll('#main table.case-grid .case-grid-pin').length);
+  const off = await page.evaluate(() => document.querySelectorAll('#main table.case-grid .case-grid-pin').length + document.querySelectorAll('#main .case-pin-corner').length);
   rec('снятие закрепления: pin-классов не осталось', off === 0, 'осталось: ' + off);
 
   const realErr = errs.filter(e => !/favicon/.test(e));
