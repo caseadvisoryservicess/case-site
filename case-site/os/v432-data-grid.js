@@ -68,9 +68,10 @@
   table.case-grid{border-collapse:separate!important;border-spacing:0!important;width:auto;min-width:0;background:var(--panel,#fff);font-variant-numeric:tabular-nums;table-layout:fixed!important}
   table.case-grid th,table.case-grid td{border-right:1px solid var(--cg-line)!important;border-bottom:1px solid var(--cg-line)!important;box-sizing:border-box}table.case-grid td{overflow:hidden}table.case-grid thead th{overflow:visible!important}
   table.case-grid th:first-child,table.case-grid td:first-child{border-left:1px solid var(--cg-line)!important}table.case-grid thead tr:first-child th{border-top:1px solid var(--cg-line)!important}
-  table.case-grid thead th{position:sticky;top:var(--cg-sticky-top,0px);z-index:8;background:var(--cg-head)!important;color:#625d56;vertical-align:middle!important;box-shadow:none!important;user-select:none}
-  table.case-grid.reg-grp thead tr.grprow th{top:var(--cg-sticky-top,0px);z-index:10;height:24px!important;padding:3px 5px!important;background:#fff!important}
-  table.case-grid.reg-grp thead tr.leafrow th,table.case-grid.reg-grp thead tr:last-child th{top:calc(var(--cg-sticky-top,0px) + var(--cg-group-h,24px));z-index:9}
+  table.case-grid>thead{position:sticky;top:0;z-index:11;background:var(--cg-head,#faf8f5)} /* v4.48: вертикально липнет ВЕСЬ thead (sticky на th вертикально не работает в Chromium при fixed+colgroup) */
+  table.case-grid thead th{z-index:8;background:var(--cg-head)!important;color:#625d56;vertical-align:middle!important;box-shadow:none!important;user-select:none}
+  table.case-grid.reg-grp thead tr.grprow th{z-index:10;height:24px!important;padding:3px 5px!important;background:#fff!important}
+  table.case-grid.reg-grp thead tr.leafrow th,table.case-grid.reg-grp thead tr:last-child th{z-index:9}
   table.case-grid tbody tr:hover>td{background:var(--cg-hover)!important}.case-grid-filtered{display:none!important}
   table.case-grid .sortbtn,table.case-grid .case-grid-gsort,table.case-grid .case-grid-sort-idle,table.case-grid .case-grid-sort-on,table.case-grid .geo-th-sort-ic{display:none!important}
   table.case-grid .th1r,table.case-grid .geo-th-label,table.case-grid .case-grid-th{display:grid!important;grid-template-columns:minmax(0,1fr) 18px;align-items:center;gap:3px;min-width:0;width:100%;height:100%;white-space:normal!important}
@@ -87,9 +88,6 @@
   table.case-grid.reg-grp input,table.case-grid.reg-grp select{font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--panel,#fff);padding:4px 6px;min-height:26px;max-width:100%}
   table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.case-grid td textarea{max-width:100%!important;box-sizing:border-box!important} /* v4.46.2: контролы не выходят за границу столбца при узкой колонке */
   table.case-grid .case-grid-pin{position:sticky!important;z-index:6;background:var(--cg-sticky)!important}table.case-grid thead .case-grid-pin{z-index:12;background:var(--cg-head)!important}.case-grid-pin-last{box-shadow:none!important;border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line))!important}
-  .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:0;border-bottom:1px solid var(--border);box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto} /* v4.47.1: без боковых рамок — рамка сдвигала клон на 1-2px и «линии сбивались» с телом */
-  .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:block} /* v4.44.1: ширины можно тянуть и в прилипшей шапке */
-  table.case-grid.case-page-sticky-source>thead th:not(.case-grid-pin){position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска»); v4.46.3: закреплённые столбцы (.case-grid-pin) исключены — иначе правило перебивало их position:sticky и шапка «уезжала» с белыми пятнами */
   table.case-grid .case-grid-resizer{position:absolute;right:-4px;top:0;width:9px;height:100%;cursor:col-resize;z-index:60;touch-action:none;background:transparent}table.case-grid .case-grid-resizer:after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(90,80,70,.28)}table.case-grid th:hover>.case-grid-resizer:after,table.case-grid .case-grid-resizer:hover:after,table.case-grid .case-grid-resizer.drag:after{width:2px;background:var(--red-d,#9E0000)}table.case-grid .case-grid-resizer:hover,table.case-grid .case-grid-resizer.drag{background:linear-gradient(to left,rgba(158,0,0,.10),transparent)}
   table.case-grid tr.filters,table.case-grid tr.fltrow,table.case-grid tr.geo-tfilter-row{display:none!important}
   .case-grid-panel{position:fixed;z-index:10050;width:min(390px,calc(100vw - 20px));max-height:min(650px,calc(100vh - 20px));overflow:auto;background:var(--panel,#fff);border:1px solid var(--border);border-radius:14px;box-shadow:0 18px 50px rgba(0,0,0,.2);padding:12px;color:var(--ink)}
@@ -155,7 +153,7 @@
   function applyStoredWidths(tb,key){ensureColgroup(tb,key);var gr=tb.tHead&&tb.tHead.rows[0];if(tb.classList.contains('reg-grp')&&gr){requestAnimationFrame(function(){tb.style.setProperty('--cg-group-h',Math.max(22,Math.ceil(gr.getBoundingClientRect().height))+'px');});}}
   function autoFitColumn(tb,key,i){var hs=headers(tb),th=hs[i];if(!th)return;var label=(th.querySelector('.th-name,.case-grid-label')||th).textContent||'',max=Math.max(54,Math.min(260,Math.round(Math.min(label.length,32)*5.8+38))),body=tb.tBodies&&tb.tBodies[0];if(body){for(var r=0;r<Math.min(body.rows.length,100);r++){var c=cellAt(body.rows[r],i);if(!c)continue;var txt=(c.textContent||'').trim().replace(/\s+/g,' ');max=Math.max(max,Math.min(360,Math.round(Math.min(txt.length,45)*6+24)));}}var id=colIds(tb)[i];setGridWidth(key,id,max);var cg=ensureColgroup(tb,key);if(cg.children[i])cg.children[i].style.width=max+'px';syncTableWidth(tb,key);requestAnimationFrame(function(){applyPins(tb,key);adjustGroupedHeader(tb,key,effectiveHidden(tb,key));try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}});}
   function autoFitAll(key){var tb=findTable(key);if(!tb)return;headers(tb).forEach(function(_,i){autoFitColumn(tb,key,i);});}
-  function addGenericResizers(tb,key){tb.querySelectorAll('.colrz,.geo-col-resizer').forEach(function(x){x.remove();});tb.querySelectorAll('.case-grid-resizer').forEach(function(x){if(x.dataset.caseResizerVersion!=='4325')x.remove();});var hs=headers(tb),cg=ensureColgroup(tb,key),ids=colIds(tb);hs.forEach(function(th,i){var id=ids[i],old=th.querySelector('.case-grid-resizer');if(old&&old.dataset.caseColId===id)return;if(old)old.remove();th.style.position='relative';var h=document.createElement('span');h.className='case-grid-resizer';h.dataset.caseColId=id;h.dataset.caseResizerVersion='4325';h.title='Изменить ширину · двойной клик — автоподбор';h.addEventListener('click',function(ev){ev.stopPropagation();});h.addEventListener('dblclick',function(ev){ev.preventDefault();ev.stopPropagation();var ci=colIds(tb).indexOf(id);if(ci>=0)autoFitColumn(tb,key,ci);});h.addEventListener('pointerdown',function(ev){if(ev.button!==0)return;ev.preventDefault();ev.stopPropagation();var currentIds=colIds(tb),ci=currentIds.indexOf(id);if(ci<0)return;cg=ensureColgroup(tb,key);var col=cg.children[ci];if(!col)return;h.classList.add('drag');tb.dataset.cgResizing='1';var sx=ev.clientX,sw=parseFloat(col.style.width)||headers(tb)[ci].getBoundingClientRect().width,lastW=sw,persistT=0;try{h.setPointerCapture(ev.pointerId);}catch(_){}var persist=function(){clearTimeout(persistT);persistT=setTimeout(function(){setGridWidth(key,id,lastW);},70);};var move=function(x){lastW=Math.max(32,Math.min(600,sw+(x.clientX-sx)));col.style.width=Math.round(lastW)+'px';syncTableWidth(tb,key);adjustGroupedHeader(tb,key,effectiveHidden(tb,key));applyPins(tb,key);persist();try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}};var up=function(x){document.removeEventListener('pointermove',move,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);document.removeEventListener('mousemove',move,true);document.removeEventListener('mouseup',up,true);window.removeEventListener('blur',up,true);h.classList.remove('drag');delete tb.dataset.cgResizing;try{h.releasePointerCapture(x&&x.pointerId);}catch(_){}lastW=Math.max(32,Math.min(600,lastW));col.style.width=Math.round(lastW)+'px';clearTimeout(persistT);setGridWidth(key,id,lastW);syncTableWidth(tb,key);applyPins(tb,key);try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}};document.addEventListener('pointermove',move,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);document.addEventListener('mousemove',move,true);document.addEventListener('mouseup',up,true);window.addEventListener('blur',up,true);});th.appendChild(h);});}
+  function addGenericResizers(tb,key){tb.querySelectorAll('.colrz,.geo-col-resizer').forEach(function(x){x.remove();});tb.querySelectorAll('.case-grid-resizer').forEach(function(x){if(x.dataset.caseResizerVersion!=='4325')x.remove();});var hs=headers(tb),cg=ensureColgroup(tb,key),ids=colIds(tb);hs.forEach(function(th,i){var id=ids[i],old=th.querySelector('.case-grid-resizer');if(old&&old.dataset.caseColId===id)return;if(old)old.remove();th.style.position='';/* v4.48: НЕ ставим inline relative — он перебивал position:sticky шапки (корень появления клона) */var h=document.createElement('span');h.className='case-grid-resizer';h.dataset.caseColId=id;h.dataset.caseResizerVersion='4325';h.title='Изменить ширину · двойной клик — автоподбор';h.addEventListener('click',function(ev){ev.stopPropagation();});h.addEventListener('dblclick',function(ev){ev.preventDefault();ev.stopPropagation();var ci=colIds(tb).indexOf(id);if(ci>=0)autoFitColumn(tb,key,ci);});h.addEventListener('pointerdown',function(ev){if(ev.button!==0)return;ev.preventDefault();ev.stopPropagation();var currentIds=colIds(tb),ci=currentIds.indexOf(id);if(ci<0)return;cg=ensureColgroup(tb,key);var col=cg.children[ci];if(!col)return;h.classList.add('drag');tb.dataset.cgResizing='1';var sx=ev.clientX,sw=parseFloat(col.style.width)||headers(tb)[ci].getBoundingClientRect().width,lastW=sw,persistT=0;try{h.setPointerCapture(ev.pointerId);}catch(_){}var persist=function(){clearTimeout(persistT);persistT=setTimeout(function(){setGridWidth(key,id,lastW);},70);};var move=function(x){lastW=Math.max(32,Math.min(600,sw+(x.clientX-sx)));col.style.width=Math.round(lastW)+'px';syncTableWidth(tb,key);adjustGroupedHeader(tb,key,effectiveHidden(tb,key));applyPins(tb,key);persist();try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}};var up=function(x){document.removeEventListener('pointermove',move,true);document.removeEventListener('pointerup',up,true);document.removeEventListener('pointercancel',up,true);document.removeEventListener('mousemove',move,true);document.removeEventListener('mouseup',up,true);window.removeEventListener('blur',up,true);h.classList.remove('drag');delete tb.dataset.cgResizing;try{h.releasePointerCapture(x&&x.pointerId);}catch(_){}lastW=Math.max(32,Math.min(600,lastW));col.style.width=Math.round(lastW)+'px';clearTimeout(persistT);setGridWidth(key,id,lastW);syncTableWidth(tb,key);applyPins(tb,key);try{if(typeof syncTblScroll==='function')syncTblScroll();}catch(_){}};document.addEventListener('pointermove',move,true);document.addEventListener('pointerup',up,true);document.addEventListener('pointercancel',up,true);document.addEventListener('mousemove',move,true);document.addEventListener('mouseup',up,true);window.addEventListener('blur',up,true);});th.appendChild(h);});}
 
   function normalizeHeader(th,i){if(th.querySelector('.th1r,.geo-th-label,.case-grid-th')||th.querySelector('input,select,button'))return;var raw=(th.textContent||'').trim();if(!raw)return;th.textContent='';var w=document.createElement('div');w.className='case-grid-th';var l=document.createElement('span');l.className='case-grid-label';l.textContent=raw;w.appendChild(l);th.appendChild(w);}
 
@@ -195,89 +193,45 @@
     if(now-schedule._first>600){schedule._first=0;TIMER=setTimeout(enhanceAll,0);return;}
     TIMER=setTimeout(function(){schedule._first=0;enhanceAll();},90);}
 
-  /* ===== v4.47.0: прилипшая шапка (клон) — ПЕРЕЕХАЛА из v4327-patch: один владелец всей презентации таблиц ===== */
-  var stickyTopRO=null,stickyResizeBound=false,stickyScrollBound=false,stickyRaf=0;
+  /* ===== v4.48.0: НАТИВНАЯ прилипшая шапка — БЕЗ клона.
+     Прилипает настоящий thead внутри прокручиваемой обёртки (position:sticky), поэтому
+     линии, закрепления и резайзеры совпадают с телом ПО ПОСТРОЕНИЮ — это один элемент.
+     Обёртке главного грида задаётся высота по экрану, чтобы вертикальная прокрутка
+     всегда была внутренней. Клон-слоёв больше нет — нечему рассинхронизироваться. */
+  var stickyBound=false,stickyCapRaf=0;
   function pageScroller(){return document.scrollingElement||document.documentElement||document.body;}
   function topbarHeight(){var bar=document.querySelector('.topbar');return bar?Math.max(0,Math.ceil(bar.getBoundingClientRect().height)):0;}
   function hasVerticalRange(el){if(!el)return false;var cs=getComputedStyle(el),oy=cs.overflowY;return (oy==='auto'||oy==='scroll')&&(el.scrollHeight-el.clientHeight>2);}
   function parentVerticalScroller(el){var n=el&&el.parentElement;while(n&&n!==document.body&&n!==document.documentElement){if(hasVerticalRange(n))return n;n=n.parentElement;}return pageScroller();}
-  function destroyStickyClone(tb){var l=tb&&tb._caseStickyLayer;if(l){l.remove();tb._caseStickyLayer=null;}if(tb)tb.classList.remove('case-page-sticky-source');}
-  function cloneHeaderTable(tb){
-    var ct=document.createElement('table');ct.className=String(tb.className||'').replace(/\bcase-page-sticky-source\b/g,'').trim()+' case-sticky-head-table';ct.removeAttribute('data-tblkey');ct.removeAttribute('data-case-grid-key');ct.removeAttribute('data-grid-engine');
-    var cg=tb.querySelector('colgroup');if(cg)ct.appendChild(cg.cloneNode(true));ct.appendChild(tb.tHead.cloneNode(true));
-    /* v4.44.1: резайзеры в клоне ОСТАЮТСЯ — перетаскивание проксируется исходной таблице (proxyStickyResizerDown) */ct.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';ct.style.minWidth=ct.style.width;ct.style.maxWidth='none';return ct;
-  }
-  function proxyStickyClick(e){
-    var layer=e.currentTarget,tb=layer._source;if(!tb||!tb.isConnected)return;var grp=e.target.closest('[data-reg-group]');if(grp){e.preventDefault();e.stopPropagation();try{if(typeof regToggleGrp==='function')regToggleGrp(grp.getAttribute('data-reg-group'));}catch(_){}return;}
-    var btn=e.target.closest('.tblfnl,.case-grid-filter-btn,.geo-th-fnl');if(btn){e.preventDefault();e.stopPropagation();var th=btn.closest('th'),id=th&&th.getAttribute('data-colkey'),key=tb.getAttribute('data-tblkey')||tb.dataset.caseGridKey;if(id&&typeof tblMenu==='function'&&key==='reg_units'){tblMenu('reg_units',id,btn,'reg');return;}try{if(window.CASE_GRID&&CASE_GRID.openColumnMenu&&id)CASE_GRID.openColumnMenu(key,id,btn);}catch(_){}return;}
-  }
-  function proxyStickyResizerDown(e){
-    /* v4.44.1: перетаскивание ширины из ПРИЛИПШЕЙ шапки — событие пробрасывается настоящему
-       резайзеру исходной таблицы; клон подстраивается по ходу перетаскивания */
-    var rz=e.target&&e.target.closest&&e.target.closest('.case-grid-resizer');if(!rz)return;
-    var layer=e.currentTarget,src=layer&&layer._source;if(!src)return;
-    var id=rz.dataset&&rz.dataset.caseColId;if(!id)return;
-    var sel='.case-grid-resizer[data-case-col-id="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]';
-    var real=src.querySelector(sel);if(!real)return;
-    e.preventDefault();e.stopPropagation();
-    try{real.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:e.clientX,clientY:e.clientY,bubbles:true,pointerId:e.pointerId||1}));}catch(_){return;}
-    var mv=function(){scheduleStickyUpdate();};
-    var up=function(){document.removeEventListener('pointermove',mv,true);document.removeEventListener('pointerup',up,true);requestAnimationFrame(updateAllSticky);};
-    document.addEventListener('pointermove',mv,true);
-    document.addEventListener('pointerup',up,true);
-  }
-  function ensureStickyClone(tb,wrap){
-    var layer=tb._caseStickyLayer;if(!layer){layer=document.createElement('div');layer.className='case-sticky-head-layer';layer._source=tb;layer.addEventListener('click',proxyStickyClick);layer.addEventListener('pointerdown',proxyStickyResizerDown);document.body.appendChild(layer);tb._caseStickyLayer=layer;}
-    layer._source=tb;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));layer.dataset.caseSig=headSignature(tb);if(wrap&&wrap.dataset.caseStickyX!=='4327'){wrap.dataset.caseStickyX='4327';wrap.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
-    return layer;
-  }
-  function headSignature(tb){
-    /* v4.46.4: «отпечаток» шапки-источника — ширины, пины, скрытые, классы. Изменился → клон пересобирается.
-       Раньше клон строился один раз и мог остаться без закреплённых столбцов или со старыми ширинами
-       (пины применяются в rAF ПОСЛЕ построения клона) — поверх настоящей шапки лежала устаревшая копия. */
-    try{
-      var cg=tb.querySelector('colgroup'),leaf=tb.tHead&&tb.tHead.rows[tb.tHead.rows.length-1];
-      var cols=cg?Array.prototype.map.call(cg.children,function(c){return (c.style.display==='none'?'H':'')+(c.style.width||'');}).join(','):'';
-      var cells=leaf?Array.prototype.map.call(leaf.cells,function(c){return (c.classList.contains('case-grid-pin')?'P'+(c.style.left||''):'')+(c.style.display==='none'?'H':'');}).join(''):'';
-      return tb.className+'|'+(tb.style.width||'')+'|'+cols+'|'+cells;
-    }catch(_){return String(Math.random());}
-  }
-  function updateOneSticky(tb){
-    var layer=tb&&tb._caseStickyLayer;if(!layer||!tb.isConnected){if(layer)layer.remove();return;}var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');if(!wrap){destroyStickyClone(tb);return;}
-    var sig=headSignature(tb);
-    if(layer.dataset.caseSig!==sig){layer.dataset.caseSig=sig;layer.innerHTML='';layer.appendChild(cloneHeaderTable(tb));}
-    var pageTop=topbarHeight(),tr=tb.getBoundingClientRect(),wr=wrap.getBoundingClientRect(),head=layer.firstElementChild,hh=tb.tHead?Math.max(1,Math.ceil(tb.tHead.getBoundingClientRect().height)):1,internal=!!tb._caseStickyInternal;
-    var top=internal?Math.max(pageTop,wr.top):pageTop;
-    var show=internal?(wrap.scrollTop>1&&wr.bottom>top+Math.max(1,hh)&&wr.top<window.innerHeight):(tr.top<top&&tr.bottom>top+Math.max(1,hh)&&wr.bottom>top);
-    show=show&&wr.right>0&&wr.left<window.innerWidth;
-    layer.style.display=show?'block':'none';if(!show)return;layer.style.top=top+'px';layer.style.left=Math.max(0,wr.left)+'px';layer.style.width=Math.max(0,Math.min(window.innerWidth,wr.right)-Math.max(0,wr.left))+'px';layer.style.height=hh+'px';
-    /* v4.46.3: слой — настоящий скролл-контейнер (scrollLeft вместо translateX), иначе
-       position:sticky закреплённых столбцов внутри клона не работал и шапка расходилась с телом */
-    head.style.transform='';head.style.width=Math.ceil(tb.getBoundingClientRect().width)+'px';head.style.minWidth=head.style.width;layer.scrollLeft=wrap.scrollLeft;
-  }
-  function updateAllSticky(){stickyRaf=0;document.querySelectorAll('.case-sticky-head-layer').forEach(function(l){if(!l._source||!l._source.isConnected)l.remove();});document.querySelectorAll('table.case-page-sticky-source:not(.case-sticky-head-table)').forEach(updateOneSticky);}
-  function scheduleStickyUpdate(){if(stickyRaf)return;stickyRaf=requestAnimationFrame(updateAllSticky);}
-  function syncOneStickyTable(tb){
-    if(!tb||!tb.tHead)return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');var internal=hasVerticalRange(wrap);
-    if(tb.classList.contains('reg-grp')&&tb.tHead.rows.length>1){var gr=tb.tHead.rows[0],h=Math.max(1,Math.ceil(gr.getBoundingClientRect().height));tb.style.setProperty('--cg-group-h',h+'px');}
-    tb._caseStickyInternal=internal;tb.classList.add('case-page-sticky-source');tb.style.setProperty('--cg-sticky-top','0px');ensureStickyClone(tb,wrap);
-  }
   function handoffWheel(e){
     if(e.defaultPrevented||e.ctrlKey||e.metaKey||Math.abs(e.deltaY)<=Math.abs(e.deltaX))return;var sc=e.currentTarget;if(!hasVerticalRange(sc))return;
     var max=Math.max(0,sc.scrollHeight-sc.clientHeight),atTop=sc.scrollTop<=1,atBottom=sc.scrollTop>=max-1;if(!((e.deltaY<0&&atTop)||(e.deltaY>0&&atBottom)))return;
     var parent=parentVerticalScroller(sc),before=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;parent.scrollTop=before+e.deltaY;var after=parent===pageScroller()?(parent.scrollTop||window.scrollY||0):parent.scrollTop;if(after!==before){e.preventDefault();e.stopPropagation();}
   }
   function installScrollHandoff(wrap){if(!wrap||wrap.dataset.caseScrollHandoff==='4327')return;wrap.dataset.caseScrollHandoff='4327';wrap.style.overscrollBehaviorY='auto';wrap.addEventListener('wheel',handoffWheel,{passive:false});}
+  function capMainGridWrap(tb,wrap){
+    if(!wrap||!isMainGrid(tb))return;
+    var top=Math.max(topbarHeight(),Math.round(wrap.getBoundingClientRect().top));
+    var h=Math.max(260,window.innerHeight-top-14);
+    var want=h+'px';
+    if(wrap.style.maxHeight!==want)wrap.style.maxHeight=want;
+  }
+  function syncOneStickyTable(tb){
+    if(!tb||!tb.tHead)return;var wrap=tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap');
+    if(tb.classList.contains('reg-grp')&&tb.tHead.rows.length>1){var gr=tb.tHead.rows[0],h=Math.max(1,Math.ceil(gr.getBoundingClientRect().height));tb.style.setProperty('--cg-group-h',h+'px');}
+    capMainGridWrap(tb,wrap);installScrollHandoff(wrap);
+  }
   function syncStickyTables(){
-    var h=topbarHeight();document.documentElement.style.setProperty('--topbar-h',h+'px');
-    document.querySelectorAll('table.case-grid:not(.case-sticky-head-table)').forEach(function(tb){syncOneStickyTable(tb);installScrollHandoff(tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap'));});
-    if(!stickyResizeBound){stickyResizeBound=true;window.addEventListener('resize',function(){requestAnimationFrame(syncStickyTables);},{passive:true});document.addEventListener('pointerup',function(){requestAnimationFrame(syncStickyTables);},true);document.addEventListener('mouseup',function(){requestAnimationFrame(syncStickyTables);},true);}
-    if(!stickyScrollBound){stickyScrollBound=true;window.addEventListener('scroll',scheduleStickyUpdate,{passive:true});}
-    if(!stickyTopRO&&window.ResizeObserver){var bar=document.querySelector('.topbar');if(bar){stickyTopRO=new ResizeObserver(function(){requestAnimationFrame(syncStickyTables);});stickyTopRO.observe(bar);}}
-    scheduleStickyUpdate();
+    document.documentElement.style.setProperty('--topbar-h',topbarHeight()+'px');
+    document.querySelectorAll('.case-sticky-head-layer').forEach(function(l){l.remove();});
+    document.querySelectorAll('table.case-grid:not(.case-sticky-head-table)').forEach(syncOneStickyTable);
+    if(!stickyBound){stickyBound=true;
+      var recap=function(){if(stickyCapRaf)return;stickyCapRaf=requestAnimationFrame(function(){stickyCapRaf=0;document.querySelectorAll('table.case-grid').forEach(function(tb){capMainGridWrap(tb,tb.closest('.tbl-scroll,.geo-table-wrap,.geo-obj-tblwrap'));});});};
+      window.addEventListener('resize',recap,{passive:true});
+      window.addEventListener('scroll',recap,{passive:true});
+    }
   }
   window.CASE_SYNC_STICKY=syncStickyTables;
-
   window.case432EnhanceNow=function(){try{enhanceAll();}catch(e){}}; /* v4.46.2: синхронное улучшение сразу после точечной перерисовки (live-sync) — без кадра «сырой» таблицы */
   function boot(){injectCss();enhanceAll();var root=document.getElementById('main')||document.body;if(root&&!OBS){OBS=new MutationObserver(schedule);OBS.observe(root,{childList:true,subtree:true});}try{if(typeof window.go==='function'&&!window.go._caseGridWrapped){var originalGo=window.go;var wrapped=function(){var r=originalGo.apply(this,arguments);schedule();setTimeout(enhanceAll,120);return r;};wrapped._caseGridWrapped=true;wrapped._caseGridOriginal=originalGo;window.go=wrapped;}}catch(_){}window.addEventListener('resize',function(){clearTimeout(TIMER);TIMER=setTimeout(function(){document.querySelectorAll('table.case-grid').forEach(function(tb){applyPins(tb,tb.dataset.caseGridKey);});},120);},{passive:true});document.addEventListener('mouseup',function(){var list=document.querySelectorAll('table.case-grid[data-cg-capture="1"]');if(!list.length)return;list.forEach(function(tb){captureWidths(tb,tb.dataset.caseGridKey);});clearTimeout(TIMER);TIMER=setTimeout(enhanceAll,80);},true);}
 
@@ -292,4 +246,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.47.1';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.48.0';

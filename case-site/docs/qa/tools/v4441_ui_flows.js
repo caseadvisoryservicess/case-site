@@ -45,22 +45,24 @@ srv.listen(0,'127.0.0.1',async()=>{
  rec('карточка: осталась открытой после сохранения',!!drawer.drawerOpen);
  rec('карточка: прокрутка таблицы сохранена (120)',drawer.scrollLeft===120,drawer.scrollLeft);
 
- /* 2. Резайзер работает из ПРИЛИПШЕЙ шапки */
+ /* 2. Резайзер работает в ПРИЛИПШЕЙ шапке (v4.48: настоящий thead прилипает, клона нет) */
  await page.evaluate(()=>{closeDrawer();go('registry');});
  await page.waitForTimeout(900);
  const sticky=await page.evaluate(async()=>{
    const wrap=document.querySelector('#main .tbl-scroll');
-   wrap.scrollTop=300;wrap.dispatchEvent(new Event('scroll')); // внутренняя прокрутка → прилипание
+   wrap.scrollTop=300;wrap.dispatchEvent(new Event('scroll')); // внутренняя прокрутка → шапка прилипла (native sticky)
    window.dispatchEvent(new Event('scroll'));
    await new Promise(r=>setTimeout(r,400));
-   const layer=document.querySelector('.case-sticky-head-layer');
-   if(!layer||layer.style.display==='none')return {err:'клон шапки не показан (display='+(layer?layer.style.display:'нет')+')'};
-   const rz=[...layer.querySelectorAll('.case-grid-resizer')].find(r2=>r2.dataset.caseColId&&r2.dataset.caseColId!=='_select');
-   if(!rz)return {err:'в клоне нет резайзеров'};
+   const tb=document.querySelector('#main table.case-grid');
+   const wr=wrap.getBoundingClientRect();
+   const grpTop=tb.tHead.rows[0].getBoundingClientRect().top;
+   if(Math.abs(grpTop-wr.top)>3)return {err:'шапка не прилипла (top='+Math.round(grpTop-wr.top)+')'};
+   const leaf=tb.tHead.rows[tb.tHead.rows.length-1];
+   const rz=[...leaf.querySelectorAll('.case-grid-resizer')].find(r2=>r2.dataset.caseColId&&r2.dataset.caseColId!=='_select'&&r2.closest('th').getBoundingClientRect().width>0);
+   if(!rz)return {err:'в прилипшей шапке нет резайзеров'};
    const vis=getComputedStyle(rz).display!=='none';
    const id=rz.dataset.caseColId;
-   const src=layer._source;
-   const col0=[...src.querySelector('colgroup').children].find(c=>c.dataset.caseColId===id);
+   const col0=[...tb.querySelector('colgroup').children].find(c=>c.dataset.caseColId===id);
    const w0=parseFloat(col0.style.width);
    const r=rz.getBoundingClientRect();
    rz.dispatchEvent(new PointerEvent('pointerdown',{button:0,clientX:r.x+3,clientY:r.y+5,bubbles:true,pointerId:5}));
@@ -68,9 +70,10 @@ srv.listen(0,'127.0.0.1',async()=>{
    document.dispatchEvent(new PointerEvent('pointerup',{clientX:r.x+58,clientY:r.y+5,bubbles:true,pointerId:5}));
    await new Promise(r2=>setTimeout(r2,400));
    const w1=parseFloat(col0.style.width);
-   return {id,vis,w0,w1};
+   const noClones=document.querySelectorAll('.case-sticky-head-layer').length===0;
+   return {id,vis,w0,w1,noClones};
  });
- rec('прилипшая шапка: резайзеры видимы',!sticky.err&&sticky.vis,JSON.stringify(sticky));
+ rec('прилипшая шапка: настоящий thead прилип, резайзеры видимы',!sticky.err&&sticky.vis&&sticky.noClones,JSON.stringify(sticky));
  rec('прилипшая шапка: перетаскивание меняет ширину столбца',!sticky.err&&sticky.w1>sticky.w0+40,JSON.stringify(sticky));
  await page.evaluate(()=>window.scrollTo(0,0));
 

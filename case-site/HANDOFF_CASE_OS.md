@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.47.1**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.48.0**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,13 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.48.0: КЛОН ШАПКИ УДАЛЁН — нативный sticky («всё сбивается при малейшем движении»):**
+  - весь клон-механизм (слой, headSignature, proxy-обработчики) ВЫРЕЗАН из v432; вместо него: (1) capMainGridWrap — обёртка главного грида получает maxHeight по экрану → вся вертикальная прокрутка ВНУТРЕННЯЯ; (2) `table.case-grid>thead{position:sticky;top:0;z-index:11}` — липнет ВЕСЬ thead; (3) горизонтальные пины как раньше (.case-grid-pin sticky left);
+  - ДВА ИСТОРИЧЕСКИХ ВИНОВНИКА, из-за которых родные sticky-правила (лежали в CSS v432 годами!) не работали и был придуман клон: (а) addGenericResizers ставил КАЖДОМУ th инлайновый position:relative — глушил sticky (убран, th.style.position=''); (б) БАГ CHROMIUM: sticky на отдельных th ВЕРТИКАЛЬНО не работает в этой таблице (fixed+colgroup) — изолированный тест th работает, в реальной нет; sticky на ЦЕЛОМ thead работает. Диагностика: форсировать inline sticky на th (не липнет) vs на thead (липнет);
+  - сохранены: handoffWheel/installScrollHandoff (передача колёсика странице), --cg-group-h, resize/scroll → recap высоты (rAF);
+  - syncStickyTables теперь: убирает чужие .case-sticky-head-layer из DOM (старые модули), ставит --topbar-h, capMainGridWrap + handoff на все case-grid;
+  - ТЕСТЫ ПЕРЕПИСАНЫ под нативную модель: v4463_pins 9 проверок (thead прилип у кромки wrap, линии th vs td ±1px, пины при верт+гор, резайзер В ПРИЛИПШЕМ состоянии, ноль клон-слоёв), v4441 сценарий 2 — резайзер в реальном thead. 9/9×3 + вся батарея 180 проверок зелёная;
+  - UX-примечание: главные гриды теперь скроллят строки ВНУТРИ себя (высота по экрану) — как AG Grid; страница прокручивается только до таблицы.
 - **v4.47.1:** «линии сбиваются при прокрутке вниз» — боковая рамка 1px у .case-sticky-head-layer сдвигала весь клон на 1-2px вправо от тела (замер: постоянные +2px по ВСЕМ границам). Фикс: border:0 + border-bottom у слоя (v432 injectCss). Тест v4463_pins расширен до 9 проверок (линии клона vs тело ±1px, групповой ряд) — 9/9×2. Урок: клон в fixed-слое — ЛЮБАЯ рамка/паддинг слоя = смещение всех линий; мерить `right`-границы видимых ячеек клона против той же колонки тела.
 - **v4.47.0: ПЕРЕСБОРКА ТАБЛИЧНОГО ЯДРА (план из v4.46.3 выполнен, запрос «пересобрать все таблицы» + «исправь сразу»):**
   - весь sticky-блок (stickyTopRO/…Raf, pageScroller, topbarHeight, hasVerticalRange, parentVerticalScroller, destroy/ensure/updateOne/updateAllSticky, cloneHeaderTable, headSignature, proxyStickyClick/ResizerDown, scheduleStickyUpdate, syncOneStickyTable, handoffWheel, installScrollHandoff, syncStickyTables, export window.CASE_SYNC_STICKY) ПЕРЕЕХАЛ из v4327-patch.js в v432-data-grid.js (перед window.case432EnhanceNow), вместе с 3 CSS-правилами (.case-sticky-head-layer{}, .case-sticky-head-layer table{}, sticky-source th:not(.case-grid-pin)); в v4327 postRender теперь зовёт window.CASE_SYNC_STICKY через typeof-guard; v4327 остался: очередь unit_patch/batch, adaptiveActions, broker picker, external-agent, chipbar;
