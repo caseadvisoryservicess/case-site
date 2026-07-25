@@ -74,8 +74,10 @@ srv.listen(0, '127.0.0.1', async () => {
     /* липнут ЯЧЕЙКИ шапки (tr не sticky — его rect уезжает, мерить надо th!) */
     const leafTh = [...leaf.cells].find(c => c.getBoundingClientRect().width > 0.5);
     const leafThR = leafTh.getBoundingClientRect();
-    /* липнет ряд колонок: его верх у кромки обёртки (групповой ряд прокручивается — это штатно) */
-    const headStuck = Math.abs(leafThR.top - wr.top) <= 3 && leafThR.bottom < wr.top + 80;
+    /* липнет ряд колонок ПОД полосой групп (полоса ~24px) */
+    const bandEl = wrap.querySelector(':scope > .case-grp-band');
+    const bandH = bandEl ? bandEl.getBoundingClientRect().height : 0;
+    const headStuck = Math.abs(leafThR.top - (wr.top + bandH)) <= 3 && leafThR.bottom < wr.top + bandH + 90;
     /* линии: границы th совпадают с границами td */
     const bodyRow = [...tb.tBodies[0].rows].find(r => r.cells.length > 5 && r.getBoundingClientRect().height > 5);
     const edgesUnpinned = row => [...row.cells].filter(c => !c.classList.contains('case-grid-pin') && c.getBoundingClientRect().width > 0.5).map(c => c.getBoundingClientRect().right);
@@ -91,6 +93,36 @@ srv.listen(0, '127.0.0.1', async () => {
     return { layers, headStuck, badLines, pinAligned, leafTop: Math.round(leafThR.top - wr.top), scrollTop: wrap.scrollTop };
   });
   rec('верт. прокрутка: настоящий thead прилип (клона нет в DOM)', v.layers === 0 && v.headStuck, JSON.stringify(v));
+
+  /* 3б. полоса «Бюджет/Факт» прилипла и совпадает с колонками по горизонтали */
+  const band = await page.evaluate(() => {
+    const wrap = document.querySelector('#main .tbl-scroll');
+    const wr = wrap.getBoundingClientRect();
+    const tb = document.querySelector('#main table.case-grid');
+    const b = wrap.querySelector(':scope > .case-grp-band');
+    if (!b) return { err: 'нет полосы групп' };
+    const br = b.getBoundingClientRect();
+    const stuck = Math.abs(br.top - wr.top) <= 2;
+    /* горизонталь: левый край блока «Бюджет» = левый край первой видимой бюджетной колонки тела */
+    const budDiv = b.querySelector('.cgb-bud');
+    const ids = [...tb.querySelector('colgroup').children].map(c => c.dataset.caseColId);
+    const bi = ids.findIndex(id => id && id.indexOf('b_') === 0);
+    const bodyRow = [...tb.tBodies[0].rows].find(r => r.cells.length > 5);
+    const budTd = bodyRow.cells[bi];
+    const dx = Math.abs(budDiv.getBoundingClientRect().x - budTd.getBoundingClientRect().x);
+    const corner0 = wrap.querySelector(':scope > .case-pin-corner');
+    const cornerRight = corner0 ? corner0.getBoundingClientRect().right : wr.x;
+    const px = Math.max(budDiv.getBoundingClientRect().x + 40, cornerRight + 25);
+    const probe = document.elementFromPoint(px, br.top + br.height / 2);
+    const painted = !!(probe && b.contains(probe));
+    /* ряд колонок — ПОД полосой */
+    const leaf = tb.tHead.rows[tb.tHead.rows.length - 1];
+    const lTh = [...leaf.cells].find(c => !c.classList.contains('case-grid-pin') && c.getBoundingClientRect().width > 0.5);
+    const leafBelow = lTh ? Math.abs(lTh.getBoundingClientRect().top - (wr.top + br.height)) <= 2 : false;
+    return { stuck, dx: Math.round(dx), painted, leafBelow };
+  });
+  rec('полоса «Бюджет/Факт» прилипла, совпадает с колонками (±1px) и отрисована', !band.err && band.stuck && band.dx <= 1 && band.painted, JSON.stringify(band));
+  rec('ряд колонок липнет ПОД полосой групп', !band.err && band.leafBelow, JSON.stringify({ leafBelow: band.leafBelow }));
   rec('верт.+гор.: линии шапки совпадают с телом (±1px)', v.badLines === 0, 'плохих линий: ' + v.badLines);
   rec('верт.+гор.: закреплённые столбцы шапки на одном x с телом', v.pinAligned, JSON.stringify({ pinAligned: v.pinAligned }));
 
