@@ -79,6 +79,22 @@ srv.listen(0, '127.0.0.1', async () => {
   rec('клон шапки: закреплённые столбцы совпадают с телом', !v.err && v.aligned, JSON.stringify(v));
   rec('клон шапки: незакреплённые столбцы прокручены синхронно с телом', !v.err && v.otherAligned, JSON.stringify({ other: v.otherAligned, sl: v.layerScroll }));
 
+  /* 3б. ЛИНИИ: каждая видимая граница столбца в клоне совпадает с границей в теле (±1px) */
+  const lines = await page.evaluate(() => {
+    const layer = document.querySelector('.case-sticky-head-layer');
+    if (!layer || layer.style.display === 'none') return { err: 'клон не показан' };
+    const ct = layer.querySelector('table'), src = layer._source;
+    const edges = row => [...row.cells].filter(c => getComputedStyle(c).display !== 'none').map(c => c.getBoundingClientRect().right);
+    const leaf = edges(ct.tHead.rows[ct.tHead.rows.length - 1]);
+    const bodyRow = [...src.tBodies[0].rows].find(r => r.cells.length > 5);
+    const body = edges(bodyRow);
+    const bad = leaf.map((x, i) => Math.abs(x - (body[i] != null ? body[i] : NaN))).filter(d => !isNaN(d) && d > 1.5);
+    const grp = edges(ct.tHead.rows[0]).filter(x => !leaf.some(y => Math.abs(x - y) <= 1.5));
+    return { badN: bad.length, bad: bad.slice(0, 4), grpStray: grp.length };
+  });
+  rec('клон шапки: линии столбцов совпадают с телом (±1px)', !lines.err && lines.badN === 0, JSON.stringify(lines));
+  rec('клон шапки: линии группового ряда не расходятся с колонками', !lines.err && lines.grpStray === 0, JSON.stringify(lines));
+
   /* 4. снятие закрепления */
   await page.evaluate(() => { window.scrollTo(0, 0); const w = document.querySelector('#main .tbl-scroll'); w.scrollTop = 0; w.dispatchEvent(new Event('scroll')); });
   await page.waitForTimeout(300);

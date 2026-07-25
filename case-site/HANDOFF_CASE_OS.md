@@ -1,6 +1,6 @@
 # CASE OS — Handoff (передача проекта в новую сессию)
 
-_Обновлено: 2026-07-25 · текущая версия платформы **v4.47.0**_
+_Обновлено: 2026-07-25 · текущая версия платформы **v4.47.1**_
 
 ## 1. Где лежат все файлы и данные
 
@@ -50,6 +50,7 @@ CASE OS — операционная система для агентства н
 
 ## 6. Что уже сделано (последние релизы)
 
+- **v4.47.1:** «линии сбиваются при прокрутке вниз» — боковая рамка 1px у .case-sticky-head-layer сдвигала весь клон на 1-2px вправо от тела (замер: постоянные +2px по ВСЕМ границам). Фикс: border:0 + border-bottom у слоя (v432 injectCss). Тест v4463_pins расширен до 9 проверок (линии клона vs тело ±1px, групповой ряд) — 9/9×2. Урок: клон в fixed-слое — ЛЮБАЯ рамка/паддинг слоя = смещение всех линий; мерить `right`-границы видимых ячеек клона против той же колонки тела.
 - **v4.47.0: ПЕРЕСБОРКА ТАБЛИЧНОГО ЯДРА (план из v4.46.3 выполнен, запрос «пересобрать все таблицы» + «исправь сразу»):**
   - весь sticky-блок (stickyTopRO/…Raf, pageScroller, topbarHeight, hasVerticalRange, parentVerticalScroller, destroy/ensure/updateOne/updateAllSticky, cloneHeaderTable, headSignature, proxyStickyClick/ResizerDown, scheduleStickyUpdate, syncOneStickyTable, handoffWheel, installScrollHandoff, syncStickyTables, export window.CASE_SYNC_STICKY) ПЕРЕЕХАЛ из v4327-patch.js в v432-data-grid.js (перед window.case432EnhanceNow), вместе с 3 CSS-правилами (.case-sticky-head-layer{}, .case-sticky-head-layer table{}, sticky-source th:not(.case-grid-pin)); в v4327 postRender теперь зовёт window.CASE_SYNC_STICKY через typeof-guard; v4327 остался: очередь unit_patch/batch, adaptiveActions, broker picker, external-agent, chipbar;
   - **страховочный CSS в index.html** (в первом <style>): `table.case-grid.case-page-sticky-source>thead th.case-grid-pin{position:sticky!important}` (спец. 0,3,3 бьёт старое модульное правило 0,2,3 независимо от порядка) + клэмп контролов в ячейках. Доказано смешанной сборкой: os_mixed = новый os + `git show 72e95fe:case-site/os/v4327-patch.js` (v4.46.2) → v4463_pins 6/7 (падает только клон из старого файла, о нём кричит сверка версий);

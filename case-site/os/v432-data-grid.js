@@ -87,7 +87,7 @@
   table.case-grid.reg-grp input,table.case-grid.reg-grp select{font:inherit;border:1px solid var(--border);border-radius:6px;background:var(--panel,#fff);padding:4px 6px;min-height:26px;max-width:100%}
   table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.case-grid td textarea{max-width:100%!important;box-sizing:border-box!important} /* v4.46.2: контролы не выходят за границу столбца при узкой колонке */
   table.case-grid .case-grid-pin{position:sticky!important;z-index:6;background:var(--cg-sticky)!important}table.case-grid thead .case-grid-pin{z-index:12;background:var(--cg-head)!important}.case-grid-pin-last{box-shadow:none!important;border-right:2px solid color-mix(in srgb,var(--red-d,#9E0000) 28%,var(--cg-line))!important}
-  .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:1px solid var(--border);border-top:0;border-radius:0 0 7px 7px;box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto}
+  .case-sticky-head-layer{position:fixed;display:none;overflow:hidden;z-index:35;background:var(--panel,#fff);border:0;border-bottom:1px solid var(--border);box-shadow:0 6px 18px rgba(35,28,22,.12);pointer-events:auto} /* v4.47.1: без боковых рамок — рамка сдвигала клон на 1-2px и «линии сбивались» с телом */
   .case-sticky-head-layer table{margin:0!important;transform-origin:left top;background:var(--panel,#fff)}.case-sticky-head-layer thead th{position:static!important;top:auto!important}.case-sticky-head-layer .case-grid-resizer{display:block} /* v4.44.1: ширины можно тянуть и в прилипшей шапке */
   table.case-grid.case-page-sticky-source>thead th:not(.case-grid-pin){position:relative!important;top:auto!important} /* v4.43.2: static отрывал якорь резайзеров — они растягивались во всю высоту таблицы («полоска»); v4.46.3: закреплённые столбцы (.case-grid-pin) исключены — иначе правило перебивало их position:sticky и шапка «уезжала» с белыми пятнами */
   table.case-grid .case-grid-resizer{position:absolute;right:-4px;top:0;width:9px;height:100%;cursor:col-resize;z-index:60;touch-action:none;background:transparent}table.case-grid .case-grid-resizer:after{content:'';position:absolute;right:0;top:0;bottom:0;width:1px;background:rgba(90,80,70,.28)}table.case-grid th:hover>.case-grid-resizer:after,table.case-grid .case-grid-resizer:hover:after,table.case-grid .case-grid-resizer.drag:after{width:2px;background:var(--red-d,#9E0000)}table.case-grid .case-grid-resizer:hover,table.case-grid .case-grid-resizer.drag{background:linear-gradient(to left,rgba(158,0,0,.10),transparent)}
@@ -292,4 +292,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.47.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.47.1';
