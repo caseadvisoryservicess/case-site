@@ -127,14 +127,14 @@
       },
       {
         "n": {
-          "ru": "2 400,0",
-          "uz": "2 400,0",
-          "en": "2,400.0"
+          "ru": "2 000,0",
+          "uz": "2 000,0",
+          "en": "2,000.0"
         },
         "l": {
-          "ru": "м² общей площади здания (GBA)",
-          "uz": "m² binoning umumiy maydoni (GBA)",
-          "en": "m² total building GBA"
+          "ru": "м² общей площади этажей 1-5 (GBA)",
+          "uz": "m² 1-5-qavatlar umumiy maydoni (GBA)",
+          "en": "m² GBA of floors 1 to 5"
         }
       },
       {
@@ -499,26 +499,14 @@
       },
       {
         "b": {
-          "ru": "Общая площадь здания (GBA)",
-          "uz": "Binoning umumiy maydoni (GBA)",
-          "en": "Total building GBA"
-        },
-        "s": {
-          "ru": "2 400,0 м² (подвал и 5 этажей)",
-          "uz": "2 400,0 m² (podval va 5 qavat)",
-          "en": "2,400.0 m² (basement and 5 floors)"
-        }
-      },
-      {
-        "b": {
           "ru": "Общая площадь этажей 1-5 (GBA)",
           "uz": "1-5-qavatlar umumiy maydoni (GBA)",
           "en": "GBA of floors 1 to 5"
         },
         "s": {
-          "ru": "2 000,0 м²",
-          "uz": "2 000,0 m²",
-          "en": "2,000.0 m²"
+          "ru": "2 000,0 м² (этажи в предложении, без подвала)",
+          "uz": "2 000,0 m² (taklifdagi qavatlar, podvalsiz)",
+          "en": "2,000.0 m² (floors offered, basement excluded)"
         }
       },
       {
@@ -863,9 +851,9 @@
         "en": "leasable area (GLA)"
       },
       "card_gba": {
-        "ru": "общая площадь здания (GBA)",
-        "uz": "binoning umumiy maydoni (GBA)",
-        "en": "total building GBA"
+        "ru": "общая площадь этажей 1-5 (GBA)",
+        "uz": "1-5-qavatlar umumiy maydoni (GBA)",
+        "en": "GBA of floors 1 to 5"
       },
       "h_units": {
         "ru": "Пять этажей - от одного до всех сразу",
@@ -899,7 +887,7 @@
       }
     },
     "cover": {
-      "gba": "2 400,0"
+      "gba": "2 000,0"
     }
   }
 }
