@@ -99,7 +99,7 @@ const rec = (n, ok, i) => { results.push({ test: n, status: ok ? 'PASS' : 'FAIL'
   rec('горизонтальный ползунок один на таблицу', strips.length > 0 && strips.every(n => n <= 1), JSON.stringify(strips));
 
   /* 6. keepalive-пинг заведён (статически) */
-  const src = require('fs').readFileSync(path.join(OS_DIR, 'index.html'), 'utf8');
+  const src = (function(){var i=require('fs').readFileSync(path.join(OS_DIR,'index.html'),'utf8');var c=path.join(OS_DIR,'core.js');return i+(require('fs').existsSync(c)?require('fs').readFileSync(c,'utf8'):'');})(); /* v4.49: index.html + core.js */
   rec('keepalive: пинг auth.php каждые 5 минут в коде', /keepalive/.test(src) && /5\*60\*1000/.test(src));
   rec('сервер: сессия 12 часов', /gc_maxlifetime', '43200'/.test(require('fs').readFileSync(path.join(OS_DIR, 'api/lib.php'), 'utf8')));
 

@@ -8,7 +8,7 @@ const path = require('path');
 const vm = require('vm');
 
 const OS_DIR = process.argv[2] || '.';
-const html = fs.readFileSync(path.join(OS_DIR, 'index.html'), 'utf8');
+const html = (function(){var i=fs.readFileSync(path.join(OS_DIR,'index.html'),'utf8');var c=path.join(OS_DIR,'core.js');return i+(fs.existsSync(c)?fs.readFileSync(c,'utf8'):'');})(); /* v4.49: ядро вынесено в core.js — читаем оба файла */
 const v417 = fs.readFileSync(path.join(OS_DIR, 'v417-master-plan.js'), 'utf8');
 
 /* ---- извлечение кода из index.html ---- */

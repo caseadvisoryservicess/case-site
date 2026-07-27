@@ -33,7 +33,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
 
 (async () => {
   /* статические проверки версии релиза */
-  const idx = fs.readFileSync(path.join(OS_DIR, 'index.html'), 'utf8');
+  const idx = (function(){var i=fs.readFileSync(path.join(OS_DIR,'index.html'),'utf8');var c=path.join(OS_DIR,'core.js');return i+(fs.existsSync(c)?fs.readFileSync(c,'utf8'):'');})(); /* v4.49: index.html + core.js */
   const sw = fs.readFileSync(path.join(OS_DIR, 'sw.js'), 'utf8');
   const appVer = (idx.match(/const APP_VERSION='([^']+)'/) || [])[1];
   rec('static: APP_VERSION задан (x.y.z)', !!appVer && /^\d+\.\d+\.\d+$/.test(appVer), appVer);
