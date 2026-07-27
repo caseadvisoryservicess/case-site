@@ -406,6 +406,9 @@ footer a{color:#fff}
   .f-row{grid-template-columns:1fr}
   section{padding:48px 0}
   .top-phone{display:none}
+  /* на узком экране логотип с адресом и переключатель языков не помещались вместе,
+     и кнопка EN уходила за край: подпись под логотипом убираем, адрес есть в локации и подвале */
+  .brand small{display:none}
 }
 /* мобильная таблица юнитов -> карточки, CTA всегда на виду */
 .st-m{display:none}
@@ -826,7 +829,8 @@ if(!RM&&FINE){
 
 // ── JSON-LD ──
 function jsonLd(cfg, lang, canonical, base) {
-  const s = (k) => STR[k][lang];
+  // строку можно переопределить в конфиге (вкладка «Кнопки и тексты»)
+  const s = (k) => pick((cfg.texts && cfg.texts[k]) || STR[k], lang);
   const SITE = siteOf(cfg);
   const statusMap = {
     available: 'https://schema.org/InStock',
@@ -888,7 +892,8 @@ function jsonLd(cfg, lang, canonical, base) {
 // ── страница одного языка ──
 function renderPage(cfg, lang, uploadsDir) {
   const SITE = siteOf(cfg);
-  const s = (k) => STR[k][lang];
+  // строку можно переопределить в конфиге (вкладка «Кнопки и тексты»)
+  const s = (k) => pick((cfg.texts && cfg.texts[k]) || STR[k], lang);
   const t = (v) => esc(pick(v, lang));
   const base = String(cfg.seo.publicUrl || '').replace(/\/+$/, '');
   const prefix = lang === 'ru' ? '' : '../';
@@ -909,9 +914,11 @@ function renderPage(cfg, lang, uploadsDir) {
   const presName = SITE.fileBase + '-' + lang.toUpperCase() + '.pdf';
   // палитра объекта: выводится только если она задана в конфиге,
   // иначе страница остаётся в точности на базовых цветах
-  const themeCss = (cfg.site && cfg.site.theme)
+  const themeCss = ((cfg.site && cfg.site.theme)
     ? `\n:root{--bg:${SITE.theme.bg};--ink:${SITE.theme.ink};--muted:${SITE.theme.muted};--bronze:${SITE.theme.accent};--bronze-d:${SITE.theme.accentD};--dark:${SITE.theme.dark};--acc-rgb:${SITE.rgb.accent};--dark-rgb:${SITE.rgb.dark}}`
-    : '';
+    : '')
+    // точка кадрирования героя: нужна, когда рендер вертикальный, а экран широкий
+    + (cfg.intro && cfg.intro.focus ? `\n.hero picture img{object-position:${String(cfg.intro.focus).replace(/[^0-9a-z%. ]/gi, '')}}` : '');
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -1086,7 +1093,7 @@ ${counters}
       <button type="button" data-i="buy">${s('intent.buy')}</button>
     </div>
     <div class="facts">
-      ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(f.n)}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}
+      ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(pick(f.n, lang))}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
       <a class="btn primary" href="#units" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>

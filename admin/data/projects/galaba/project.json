@@ -1,0 +1,762 @@
+{
+  "slug": "galaba",
+  "name": "Галаба (Shon-Shuhrat)",
+  "schemaVersion": 2,
+  "site": {
+    "code": "GALABA",
+    "title": "Galaba",
+    "fileBase": "Galaba",
+    "planBase": "Galaba",
+    "favicon": "G",
+    "addr": {
+      "headline": {
+        "ru": "Гузальбог, 27а · Ташкент",
+        "uz": "Go'zalbog' 27a · Toshkent",
+        "en": "27a Gozalbog St · Tashkent"
+      },
+      "street": {
+        "ru": "ул. Гузальбог, 27а",
+        "uz": "Go'zalbog' ko'chasi, 27a",
+        "en": "27a Gozalbog Street"
+      },
+      "locality": {
+        "ru": "Ташкент",
+        "uz": "Toshkent",
+        "en": "Tashkent"
+      },
+      "region": {
+        "ru": "Алмазарский район",
+        "uz": "Olmazor tumani",
+        "en": "Olmazor district"
+      },
+      "streetLd": "Go'zalbog' ko'chasi 27a",
+      "localityLd": "Toshkent",
+      "regionLd": "Olmazor"
+    },
+    "theme": {
+      "bg": "#f6f2ea",
+      "ink": "#222932",
+      "muted": "#5f6670",
+      "accent": "#b08f66",
+      "accentD": "#82694b",
+      "dark": "#2b3c50"
+    }
+  },
+  "brand": {
+    "mark": "G",
+    "logo": "",
+    "name": {
+      "ru": "GALABA",
+      "uz": "G'ALABA",
+      "en": "GALABA"
+    },
+    "tag": {
+      "ru": "Гузальбог 27а · Ташкент",
+      "uz": "Go'zalbog' 27a · Toshkent",
+      "en": "Gozalbog 27a · Tashkent"
+    }
+  },
+  "contacts": {
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
+    "email": "caseadvisoryservicess@gmail.com",
+    "sheetsEndpoint": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtpUser": "",
+    "smtpPass": ""
+  },
+  "adminUrl": "",
+  "leadEndpoint": "",
+  "texts": {
+    "legal.area": {
+      "ru": "Площади приведены по рабочей документации и подлежат уточнению по фактическим обмерам при сдаче. Информация носит справочный характер и не является публичной офертой.",
+      "uz": "Maydonlar ishchi hujjatlar bo'yicha keltirilgan va topshirishda haqiqiy o'lchovlar bo'yicha aniqlanadi. Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
+      "en": "Areas are stated per the working documentation and are subject to verification by as-built measurement at handover. This information is for reference only and does not constitute a public offer."
+    }
+  },
+  "seo": {
+    "title": {
+      "ru": "Галаба, Гузальбог 27а, Ташкент - аренда и продажа помещений",
+      "uz": "G'alaba, Go'zalbog' 27a, Toshkent - maydonlar ijarasi va sotuvi",
+      "en": "Galaba, 27a Gozalbog St, Tashkent - premises for lease and sale"
+    },
+    "description": {
+      "ru": "Новое коммерческое здание в Алмазарском районе: 1 436,5 м² под аренду, этажи по 330,1 м², потолки до 4,05 м, лифт, эксплуатируемая терраса. Аренда, покупка или аренда с выкупом.",
+      "uz": "Olmazor tumanidagi yangi tijorat binosi: ijara uchun 1 436,5 m², qavatlar 330,1 m², shift balandligi 4,05 m gacha, lift, foydalaniladigan terrassa. Ijara, sotib olish yoki keyinchalik sotib olish bilan ijara.",
+      "en": "A new commercial building in Olmazor district: 1,436.5 m² available, 330.1 m² floor plates, ceilings up to 4.05 m, lift, rooftop terrace. Lease, purchase or lease-to-own."
+    },
+    "keywords": "аренда помещений Ташкент, Алмазарский район аренда, помещение под клинику Ташкент, учебный центр аренда Ташкент, Каракамыш аренда, Галаба, Gozalbog 27a, ofis ijarasi Toshkent, tijorat ko'chmas mulki Olmazor",
+    "domain": "",
+    "googleVerification": "",
+    "yandexVerification": "",
+    "publicUrl": "https://caseadvisory.uz/galaba"
+  },
+  "intro": {
+    "image": "hero-dusk.jpg",
+    "h1": {
+      "ru": "Коммерческое здание Галаба - Ташкент, Гузальбог 27а",
+      "uz": "G'alaba tijorat binosi - Toshkent, Go'zalbog' 27a",
+      "en": "Galaba commercial building - 27a Gozalbog St, Tashkent"
+    },
+    "sub": {
+      "ru": "Аренда · Покупка · Аренда с последующим выкупом",
+      "uz": "Ijara · Sotib olish · Keyinchalik sotib olish sharti bilan ijara",
+      "en": "Lease · Purchase · Lease with option to buy"
+    },
+    "facts": [
+      {
+        "n": "5",
+        "l": {
+          "ru": "этажей в предложении",
+          "uz": "qavat taklifda",
+          "en": "floors available"
+        }
+      },
+      {
+        "n": {
+          "ru": "1 436,5",
+          "uz": "1 436,5",
+          "en": "1,436.5"
+        },
+        "l": {
+          "ru": "м² арендопригодной площади (GLA)",
+          "uz": "m² ijaraga yaroqli maydon (GLA)",
+          "en": "m² available GLA"
+        }
+      },
+      {
+        "n": {
+          "ru": "330,1",
+          "uz": "330,1",
+          "en": "330.1"
+        },
+        "l": {
+          "ru": "м² типовой этаж",
+          "uz": "m² tipik qavat",
+          "en": "m² typical floor plate"
+        }
+      },
+      {
+        "n": "35-40",
+        "l": {
+          "ru": "машиномест рядом",
+          "uz": "yaqin atrofda avtoturargoh joyi",
+          "en": "parking spaces nearby"
+        }
+      },
+      {
+        "n": "",
+        "l": {
+          "ru": "Алмазарский район",
+          "uz": "Olmazor tumani",
+          "en": "Olmazor district"
+        }
+      }
+    ],
+    "focus": "50% 20%"
+  },
+  "params": [
+    {
+      "n": {
+        "ru": "1 436,5",
+        "uz": "1 436,5",
+        "en": "1,436.5"
+      },
+      "l": {
+        "ru": "м² арендопригодной площади (GLA)",
+        "uz": "m² ijaraga yaroqli maydon (GLA)",
+        "en": "m² available GLA"
+      }
+    },
+    {
+      "n": "5",
+      "l": {
+        "ru": "этажей",
+        "uz": "qavat",
+        "en": "floors"
+      }
+    },
+    {
+      "n": {
+        "ru": "Свободная планировка",
+        "uz": "Erkin planirovka",
+        "en": "Open plan"
+      },
+      "l": {
+        "ru": "делится под ваш бриф",
+        "uz": "briefingizga moslab bo'linadi",
+        "en": "flexible floor plates"
+      }
+    },
+    {
+      "n": "35-40",
+      "l": {
+        "ru": "машиномест рядом",
+        "uz": "yaqin atrofda avtoturargoh joyi",
+        "en": "parking spaces nearby"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Лифт",
+        "uz": "Lift",
+        "en": "Lift"
+      },
+      "icon": "lift"
+    }
+  ],
+  "unitsSection": {
+    "h2": {
+      "ru": "Помещения",
+      "uz": "Maydonlar",
+      "en": "Premises"
+    },
+    "note": {
+      "ru": "Этажи со свободной планировкой: колонны с сеткой 6 000 x 6 000 мм (крайний пролёт 6 600 мм) и лестнично-лифтовой узел, без внутренних перегородок. Этажи с 3-го по 5-й свободны целиком, по 330,1 м² каждый. Подвал занимает махаллинский комитет и в аренду не предлагается.",
+      "uz": "Qavatlar erkin planirovkali: 6 000 x 6 000 mm to'rli kolonnalar (chekka oraliq 6 600 mm) va zinapoya-lift yadrosi, ichki to'siqlarsiz. 3-5-qavatlar to'liq bo'sh, har biri 330,1 m². Podvalni mahalla qo'mitasi egallaydi va ijaraga berilmaydi.",
+      "en": "Open-plan floors: columns on a 6 000 x 6 000 mm grid (6 600 mm end bay) and the stair and lift core only, no internal partitions. Floors 3 to 5 are entirely available, 330.1 m² each. The basement is occupied by the mahalla committee and is not offered for lease."
+    }
+  },
+  "units": [
+    {
+      "id": "f1",
+      "lvlShort": "1",
+      "gla": "175,5",
+      "gba": "400,0",
+      "ceil": "4,05",
+      "plan": "plan-f1.jpg",
+      "level": {
+        "ru": "1 этаж",
+        "uz": "1-qavat",
+        "en": "Floor 1"
+      },
+      "uses": {
+        "ru": "аптека, кафе, шоурум, банковский офис - витрина на первой линии",
+        "uz": "dorixona, kafe, shourum, bank ofisi - birinchi qatorda vitrina",
+        "en": "pharmacy, cafe, showroom, bank branch - street-front retail"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f2",
+      "lvlShort": "2",
+      "gla": "270,7",
+      "gba": "400,0",
+      "ceil": "3,60",
+      "plan": "plan-f2.jpg",
+      "level": {
+        "ru": "2 этаж",
+        "uz": "2-qavat",
+        "en": "Floor 2"
+      },
+      "uses": {
+        "ru": "клиника, сервис, офис",
+        "uz": "klinika, xizmat ko'rsatish, ofis",
+        "en": "clinic, services, office"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f3",
+      "lvlShort": "3",
+      "gla": "330,1",
+      "gba": "400,0",
+      "ceil": "3,60",
+      "plan": "plan-f345.jpg",
+      "level": {
+        "ru": "3 этаж",
+        "uz": "3-qavat",
+        "en": "Floor 3"
+      },
+      "uses": {
+        "ru": "клиника, учебный центр, офис - этаж целиком",
+        "uz": "klinika, o'quv markazi, ofis - butun qavat",
+        "en": "clinic, training center, office - whole floor"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f4",
+      "lvlShort": "4",
+      "gla": "330,1",
+      "gba": "400,0",
+      "ceil": "3,60",
+      "plan": "plan-f345.jpg",
+      "level": {
+        "ru": "4 этаж",
+        "uz": "4-qavat",
+        "en": "Floor 4"
+      },
+      "uses": {
+        "ru": "клиника, учебный центр, офис - этаж целиком",
+        "uz": "klinika, o'quv markazi, ofis - butun qavat",
+        "en": "clinic, training center, office - whole floor"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f5",
+      "lvlShort": "5",
+      "gla": "330,1",
+      "gba": "400,0",
+      "ceil": "3,60",
+      "plan": "plan-f345.jpg",
+      "level": {
+        "ru": "5 этаж",
+        "uz": "5-qavat",
+        "en": "Floor 5"
+      },
+      "uses": {
+        "ru": "верхний этаж с выходом на террасу",
+        "uz": "terrassaga chiqish bilan yuqori qavat",
+        "en": "top floor with terrace access"
+      },
+      "status": "available"
+    },
+    {
+      "id": "all",
+      "lvlShort": "1-5",
+      "gla": "1 436,5",
+      "gba": "2 000,0",
+      "whole": true,
+      "level": {
+        "ru": "Этажи целиком",
+        "uz": "Butun qavatlar",
+        "en": "All floors"
+      },
+      "uses": {
+        "ru": "клиника, учебный центр, штаб-квартира - здание под один бренд",
+        "uz": "klinika, o'quv markazi, bosh ofis - bino bitta brend uchun",
+        "en": "clinic, training center, headquarters - the building under one brand"
+      },
+      "status": "available"
+    }
+  ],
+  "useCases": {
+    "h2": {
+      "ru": "Кому подходит",
+      "uz": "Kimga mos keladi",
+      "en": "Use cases"
+    },
+    "cards": [
+      {
+        "icon": "clinic",
+        "h": {
+          "ru": "Клиника",
+          "uz": "Klinika",
+          "en": "Clinic"
+        },
+        "levels": {
+          "ru": "этажи 2-5",
+          "uz": "2-5-qavatlar",
+          "en": "floors 2-5"
+        },
+        "p": {
+          "ru": "Потолки 3,60 м в свету дают спрятать вентиляцию и медицинские газы под подвесной потолок и оставить около трёх метров чистой высоты. Этаж без перегородок проектируется под кабинеты и диагностику по требованиям лицензии. Рядом сложившийся медицинский и учебный кластер Каракамыша.",
+          "uz": "3,60 m shift balandligi ventilyatsiya va tibbiy gazlarni osma shift ostiga yashirib, uch metrga yaqin toza balandlik qoldiradi. To'siqlarsiz qavat litsenziya talablariga mos kabinetlar va diagnostika uchun loyihalanadi. Yaqin atrofda Qoraqamishning tibbiyot va ta'lim klasteri.",
+          "en": "A 3.60 m clear height lets you run ventilation and medical gases above a suspended ceiling and still keep about three metres clear. The partition-free floor plate can be laid out for consulting and diagnostic rooms to licensing requirements. An established medical and education cluster is nearby."
+        }
+      },
+      {
+        "icon": "education",
+        "h": {
+          "ru": "Учебный центр",
+          "uz": "O'quv markazi",
+          "en": "Training center"
+        },
+        "levels": {
+          "ru": "этажи 3-5",
+          "uz": "3-5-qavatlar",
+          "en": "floors 3-5"
+        },
+        "p": {
+          "ru": "Этаж 330,1 м² без перегородок делится на аудитории любого размера. Плотный жилой массив вокруг даёт постоянный поток слушателей, рядом парковка на 35-40 мест.",
+          "uz": "To'siqlarsiz 330,1 m² qavat istalgan o'lchamdagi auditoriyalarga bo'linadi. Atrofdagi zich turar-joy massivi doimiy tinglovchilar oqimini beradi, yaqinda 35-40 o'rinli avtoturargoh.",
+          "en": "A 330.1 m² floor plate with no partitions divides into classrooms of any size. The dense residential neighbourhood provides a steady flow of students, with 35 to 40 parking spaces nearby."
+        }
+      },
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Офис",
+          "uz": "Ofis",
+          "en": "Office"
+        },
+        "levels": {
+          "ru": "этажи 2-5 или все этажи",
+          "uz": "2-5-qavatlar yoki barcha qavatlar",
+          "en": "floors 2-5 or all floors"
+        },
+        "p": {
+          "ru": "Штаб-квартира с собственной вывеской на фасаде. Один этаж - одна компания, без соседей по коридору. Выход на общую террасу на кровле.",
+          "uz": "Fasadda o'z peshlavhangiz bilan bosh ofis. Bir qavat - bitta kompaniya, yo'lakda qo'shnilarsiz. Tomdagi umumiy terrassaga chiqish.",
+          "en": "A headquarters with your own signage on the facade. One floor, one company, no corridor neighbours. Access to the shared rooftop terrace."
+        }
+      },
+      {
+        "icon": "service",
+        "h": {
+          "ru": "Сервис и торговля",
+          "uz": "Servis va savdo",
+          "en": "Service and retail"
+        },
+        "levels": {
+          "ru": "1 этаж",
+          "uz": "1-qavat",
+          "en": "Floor 1"
+        },
+        "p": {
+          "ru": "Первый этаж с потолком 4,05 м и арочным стилобатом на первой линии: аптека, кафе, банковский офис или шоурум. Витрины выходят на улицу, вход отдельный.",
+          "uz": "4,05 m shift va birinchi qatordagi arkali stilobat bilan birinchi qavat: dorixona, kafe, bank ofisi yoki shourum. Vitrinalar ko'chaga qaraydi, kirish alohida.",
+          "en": "The ground floor with a 4.05 m ceiling and an arcaded stylobate on the street front: a pharmacy, cafe, bank branch or showroom. Shopfronts face the street with a separate entrance."
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "h2": {
+      "ru": "Форматы сделки",
+      "uz": "Bitim formatlari",
+      "en": "Deal scenarios"
+    },
+    "cols": [
+      {
+        "h": {
+          "ru": "Аренда",
+          "uz": "Ijara",
+          "en": "Lease"
+        },
+        "p": {
+          "ru": "Помещения свободного назначения под офис, клинику, учебный центр или сервис. Условия обсуждаются по каждому лоту отдельно - площадь, срок, порядок входа.",
+          "uz": "Ofis, klinika, o'quv markazi yoki xizmat ko'rsatish uchun erkin maqsadli maydonlar. Shartlar har bir lot bo'yicha alohida muhokama qilinadi - maydon, muddat, kirish tartibi.",
+          "en": "Flexible-use premises for offices, clinics, training centers or services. Terms are discussed per unit: area, duration, entry conditions."
+        }
+      },
+      {
+        "h": {
+          "ru": "Покупка",
+          "uz": "Sotib olish",
+          "en": "Purchase"
+        },
+        "p": {
+          "ru": "Возможна покупка отдельного этажа или всех этажей целиком.",
+          "uz": "Alohida qavat yoki barcha qavatlarni sotib olish mumkin.",
+          "en": "Individual floors or all floors together are available for purchase."
+        }
+      },
+      {
+        "h": {
+          "ru": "Аренда с последующим выкупом",
+          "uz": "Ijara va keyinchalik sotib olish",
+          "en": "Lease with option to buy"
+        },
+        "p": {
+          "ru": "Работаем и по комбинированной схеме: заходите как арендатор, решение о покупке принимаете позже. Условия структурируем под конкретную ситуацию - обсуждаем при встрече.",
+          "uz": "Kombinatsiyalangan sxema bo'yicha ham ishlaymiz: avval ijarachi sifatida kirasiz, sotib olish qarorini keyinroq qabul qilasiz. Shartlarni aniq vaziyatga moslab tuzamiz.",
+          "en": "We also work on a combined basis: enter as a tenant, decide on purchase later. Terms are structured around your specific situation."
+        }
+      }
+    ]
+  },
+  "about": {
+    "h2": {
+      "ru": "О здании",
+      "uz": "Bino haqida",
+      "en": "The building"
+    },
+    "sfbNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "status": {
+      "ru": "Идут отделочные работы: фасад и внутренние помещения. Осмотр возможен по договорённости.",
+      "uz": "Pardozlash ishlari olib borilmoqda: fasad va ichki xonalar. Ko'rikni kelishuv asosida tashkil etamiz.",
+      "en": "Finishing works underway: facade and interiors. Site visits by arrangement."
+    },
+    "specs": [
+      {
+        "b": {
+          "ru": "Уровни",
+          "uz": "Darajalar",
+          "en": "Levels"
+        },
+        "s": {
+          "ru": "5 этажей и эксплуатируемая терраса, лифт",
+          "uz": "5 qavat va foydalaniladigan terrassa, lift",
+          "en": "5 floors and a rooftop terrace, lift"
+        }
+      },
+      {
+        "b": {
+          "ru": "Арендопригодная площадь (GLA)",
+          "uz": "Ijaraga yaroqli maydon (GLA)",
+          "en": "Available GLA"
+        },
+        "s": {
+          "ru": "1 436,5 м²",
+          "uz": "1 436,5 m²",
+          "en": "1,436.5 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Типовой этаж",
+          "uz": "Tipik qavat",
+          "en": "Typical floor plate"
+        },
+        "s": {
+          "ru": "330,1 м² (этажи 3-5)",
+          "uz": "330,1 m² (3-5-qavatlar)",
+          "en": "330.1 m² (floors 3 to 5)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Высота потолков",
+          "uz": "Shift balandligi",
+          "en": "Ceiling height"
+        },
+        "s": {
+          "ru": "• 1‑й этаж: 4,05 м\n• 2‑5‑й: 3,60 м",
+          "uz": "• 1‑qavat: 4,05 m\n• 2‑5‑qavatlar: 3,60 m",
+          "en": "• Floor 1: 4.05 m\n• Floors 2‑5: 3.60 m"
+        }
+      },
+      {
+        "b": {
+          "ru": "Сетка колонн",
+          "uz": "Kolonnalar to'ri",
+          "en": "Column grid"
+        },
+        "s": {
+          "ru": "6 000 x 6 000 мм, крайний пролёт 6 600 мм",
+          "uz": "6 000 x 6 000 mm, chekka oraliq 6 600 mm",
+          "en": "6 000 x 6 000 mm, 6 600 mm end bay"
+        }
+      },
+      {
+        "b": {
+          "ru": "Терраса",
+          "uz": "Terrassa",
+          "en": "Terrace"
+        },
+        "s": {
+          "ru": "открытая на кровле, общая для арендаторов, доступ лифтом и по лестнице",
+          "uz": "tomda ochiq, ijarachilar uchun umumiy, lift va zinapoya orqali kirish",
+          "en": "open rooftop, shared by tenants, lift and stair access"
+        }
+      },
+      {
+        "b": {
+          "ru": "Паркинг",
+          "uz": "Avtoturargoh",
+          "en": "Parking"
+        },
+        "s": {
+          "ru": "35-40 машиномест рядом со зданием",
+          "uz": "bino yonida 35-40 avtoturargoh joyi",
+          "en": "35 to 40 spaces next to the building"
+        }
+      }
+    ],
+    "images": [
+      {
+        "file": "facade-dusk.jpg"
+      },
+      {
+        "file": "render-1.jpg"
+      },
+      {
+        "file": "render-3.jpg"
+      }
+    ]
+  },
+  "location": {
+    "h2": {
+      "ru": "Каракамыш, первая линия у парка Победы",
+      "uz": "Qoraqamish, G'alaba bog'i yonida birinchi qator",
+      "en": "Qoraqamish, street front by Victory Park"
+    },
+    "sub": {
+      "ru": "Алмазарский район - плотный жилой массив с постоянным дневным трафиком, рядом парк Победы и сложившийся медицинско-образовательный кластер.",
+      "uz": "Olmazor tumani - doimiy kunduzgi trafikka ega zich turar-joy massivi, yaqinida G'alaba bog'i va shakllangan tibbiyot-ta'lim klasteri.",
+      "en": "Olmazor district: a dense residential neighbourhood with steady daytime traffic, next to Victory Park and an established medical and education cluster."
+    },
+    "address": {
+      "ru": "ул. Гузальбог, 27а, Алмазарский район, Ташкент",
+      "uz": "Go'zalbog' ko'chasi 27a, Olmazor tumani, Toshkent",
+      "en": "27a Gozalbog Street, Olmazor district, Tashkent"
+    },
+    "addressNote": {
+      "ru": "Алмазарский район · 41.35644, 69.22575",
+      "uz": "Olmazor tumani · 41.35644, 69.22575",
+      "en": "Olmazor district · 41.35644, 69.22575"
+    },
+    "city": "Ташкент",
+    "lat": 41.35644,
+    "lng": 69.22575,
+    "pois": [
+      {
+        "name": {
+          "ru": "Парк Победы (G'alaba bog'i)",
+          "uz": "G'alaba bog'i",
+          "en": "Victory Park"
+        },
+        "dist": {
+          "ru": "рядом",
+          "uz": "yaqinda",
+          "en": "nearby"
+        }
+      },
+      {
+        "name": {
+          "ru": "Массив Каракамыш",
+          "uz": "Qoraqamish massivi",
+          "en": "Qoraqamish neighbourhood"
+        },
+        "dist": {
+          "ru": "вокруг",
+          "uz": "atrofda",
+          "en": "surrounding"
+        }
+      },
+      {
+        "name": {
+          "ru": "Келесская дорога",
+          "uz": "Keles yo'li",
+          "en": "Keles road"
+        },
+        "dist": {
+          "ru": "первая линия",
+          "uz": "birinchi qator",
+          "en": "street front"
+        }
+      }
+    ],
+    "drive": [],
+    "metroNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "around": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    }
+  },
+  "lead": {
+    "h2": {
+      "ru": "Получите планировки и условия сделки",
+      "uz": "Planirovkalar va bitim shartlarini oling",
+      "en": "Request floor plans and deal terms"
+    },
+    "sub": {
+      "ru": "Оставьте контакты - вышлем планы этажей и ответим на вопросы.",
+      "uz": "Kontaktlaringizni qoldiring - qavat rejalarini yuboramiz va savollarga javob beramiz.",
+      "en": "Leave your contacts and we will send the floor plans and answer your questions."
+    }
+  },
+  "enquiry": {
+    "note": {
+      "ru": "Ответим в течение дня",
+      "uz": "Kun davomida javob beramiz",
+      "en": "We reply within the day"
+    }
+  },
+  "faq": [
+    {
+      "q": {
+        "ru": "Какой бизнес можно разместить?",
+        "uz": "Qanday biznes joylashtirish mumkin?",
+        "en": "What businesses are allowed?"
+      },
+      "a": {
+        "ru": "Помещения имеют свободное (нежилое) назначение: офис, клиника или медицинский кабинет, сфера услуг, шоурум, учебный центр или курсы.",
+        "uz": "Maydonlar erkin (noturar) maqsadga ega: ofis, klinika yoki tibbiy kabinet, xizmat ko'rsatish sohasi, shourum, o'quv markazi yoki kurslar.",
+        "en": "The premises have flexible (non-residential) use: an office, clinic or medical practice, services, a showroom, a training center or courses."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли арендовать этаж целиком?",
+        "uz": "Butun qavatni ijaraga olish mumkinmi?",
+        "en": "Can I lease a whole floor?"
+      },
+      "a": {
+        "ru": "Да. Этажи с 3-го по 5-й свободны целиком, по 330,1 м² каждый, без соседей по этажу. Возможна аренда нескольких этажей подряд.",
+        "uz": "Ha. 3-5-qavatlar to'liq bo'sh, har biri 330,1 m², qavatda qo'shnilarsiz. Bir nechta qavatni ketma-ket ijaraga olish mumkin.",
+        "en": "Yes. Floors 3 to 5 are entirely available, 330.1 m² each, with no neighbours on the floor. Several consecutive floors can be leased together."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что с подвалом и первым этажом?",
+        "uz": "Podval va birinchi qavat-chi?",
+        "en": "What about the basement and ground floor?"
+      },
+      "a": {
+        "ru": "Подвал занимает махаллинский комитет, в аренду он не предлагается. На первом этаже под аренду доступно 175,5 м² с витринами на улицу, остальную часть также занимает махаллинский комитет.",
+        "uz": "Podvalni mahalla qo'mitasi egallaydi, u ijaraga berilmaydi. Birinchi qavatda ko'chaga qaragan vitrinalar bilan 175,5 m² ijaraga mavjud, qolgan qismini ham mahalla qo'mitasi egallaydi.",
+        "en": "The basement is occupied by the mahalla committee and is not offered for lease. On the ground floor 175.5 m² with street-facing shopfronts is available; the rest is also occupied by the mahalla committee."
+      }
+    },
+    {
+      "q": {
+        "ru": "Есть ли лифт и терраса?",
+        "uz": "Lift va terrassa bormi?",
+        "en": "Is there a lift and a terrace?"
+      },
+      "a": {
+        "ru": "Да. В здании лифт и лестница на все этажи. На кровле открытая эксплуатируемая терраса, общая для арендаторов, с доступом на лифте и по лестнице.",
+        "uz": "Ha. Binoda barcha qavatlarga lift va zinapoya bor. Tomda ochiq foydalaniladigan terrassa, ijarachilar uchun umumiy, lift va zinapoya orqali kirish mumkin.",
+        "en": "Yes. The building has a lift and stairs to all floors. The roof has an open terrace shared by tenants, reached by lift or stairs."
+      }
+    },
+    {
+      "q": {
+        "ru": "Какая парковка?",
+        "uz": "Avtoturargoh qanday?",
+        "en": "What parking is available?"
+      },
+      "a": {
+        "ru": "Рядом со зданием парковка примерно на 35-40 машиномест.",
+        "uz": "Bino yonida taxminan 35-40 avtoturargoh joyi mavjud.",
+        "en": "There is parking for approximately 35 to 40 cars next to the building."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли посмотреть объект?",
+        "uz": "Obyektni ko'rish mumkinmi?",
+        "en": "Can I visit the site?"
+      },
+      "a": {
+        "ru": "Да, осмотр по договорённости. Оставьте контакты в форме, и мы согласуем удобное время.",
+        "uz": "Ha, ko'rik kelishuv asosida. Formada kontaktlaringizni qoldiring, qulay vaqtni kelishamiz.",
+        "en": "Yes, visits are by arrangement. Leave your contacts in the form and we will agree on a convenient time."
+      }
+    }
+  ],
+  "footer": {
+    "addr": {
+      "ru": "г. Ташкент, ул. Гузальбог, 27а",
+      "uz": "Toshkent sh., Go'zalbog' ko'chasi, 27a",
+      "en": "27a Gozalbog st., Tashkent"
+    },
+    "legal": {
+      "ru": "Информация на сайте носит справочный характер и не является публичной офертой. Визуализации - иллюстративные. © 2026 CASE Advisory",
+      "uz": "Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. Vizualizatsiyalar - illyustrativ. © 2026 CASE Advisory",
+      "en": "Information on this site is for reference and does not constitute a public offer. Visualisations are illustrative. © 2026 CASE Advisory"
+    }
+  },
+  "settings": {
+    "mapsApiKey": "",
+    "metricaId": "",
+    "ga4Id": "",
+    "gtmId": ""
+  }
+}
