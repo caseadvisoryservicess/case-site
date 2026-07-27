@@ -848,9 +848,9 @@
         "en": "leasable area (GLA)"
       },
       "card_gba": {
-        "ru": "общая площадь этажей 1-5 (GBA)",
-        "uz": "1-5-qavatlar umumiy maydoni (GBA)",
-        "en": "gross area of floors 1 to 5 (GBA)"
+        "ru": "общая площадь здания (GBA)",
+        "uz": "binoning umumiy maydoni (GBA)",
+        "en": "total building GBA"
       },
       "h_units": {
         "ru": "Пять этажей - от одного до всех сразу",
@@ -882,6 +882,9 @@
         "uz": "Latun to'rli va arkali stilobatli oq fasad, ko'kalamzorlashtirilgan balkonlar va kechki arxitektura yoritilishi. Tomda pergolali ochiq terrassa, ijarachilar uchun umumiy. Fasadda ijarachi peshlavhasi uchun joy ko'zda tutilgan.",
         "en": "A white facade with a brass mesh and an arcaded stylobate, planted balconies and evening architectural lighting. The roof carries an open terrace with a pergola, shared by tenants. The facade provides space for tenant signage."
       }
+    },
+    "cover": {
+      "gba": "2 400,0"
     }
   }
 }
