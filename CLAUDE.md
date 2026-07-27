@@ -38,7 +38,7 @@
 `source /home/wwwcasea/nodevenv/admin_panel/22/bin/activate && cd /home/wwwcasea/admin_panel && node migrations/00N-... .js`
 
 Стандартный цикл обновления:
-1. Собрать zip только с изменёнными файлами: `taxtapul-update-N.zip` (нумерация сквозная, последний был 21), отправить владельцу через SendUserFile.
+1. Собрать zip только с изменёнными файлами: `<проект>-update-N.zip` (нумерация сквозная, последний был 22 - galaba-update-22.zip), отправить владельцу через SendUserFile. ВАЖНО: в архив с данными нового проекта НЕЛЬЗЯ класть data/projects/takhtapul - это затрёт прод-конфиг с секретами (правило 7). Новый проект появляется в панели сам: сервер сканирует data/projects/.
 2. Инструкция владельцу: File Manager -> загрузить zip в admin_panel -> Extract с заменой -> Setup Node.js App -> «Перезапустить приложение» -> в админке «Сохранить и собрать» -> в терминале:
    `rm -rf /home/wwwcasea/public_html/taxtapul/* && cp -r /home/wwwcasea/admin_panel/sites/takhtapul/. /home/wwwcasea/public_html/taxtapul/ && echo ГОТОВО`
 3. Владелец проверяет и присылает скриншоты. Прод из этой среды напрямую недоступен (egress закрыт), верификация только через владельца.
