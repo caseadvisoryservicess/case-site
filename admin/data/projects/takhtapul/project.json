@@ -35,11 +35,11 @@
       "en": "Commercial building at 31 Taxtapul St, Tashkent — offices for lease and sale"
     },
     "description": {
-      "ru": "Отдельное коммерческое здание 1 882,9 м² GLA: 5 уровней open plan, лифт, паркинг 12 мест. Аренда, покупка или аренда с выкупом. Этажи 337–396 м². Условия — по запросу.",
-      "uz": "Alohida tijorat binosi, 1 882,9 m² GLA: 5 daraja open plan, lift, 12 o'rinli avtoturargoh. Ijara, sotib olish yoki keyinchalik sotib olish bilan ijara. Qavatlar 337–396 m². Shartlar — so'rov bo'yicha.",
-      "en": "A standalone commercial building with 1,882.9 m² GLA: 5 open-plan levels, lift, 12 parking spaces. Lease, purchase or lease-to-own. Floor plates 337–396 m². Terms on request."
+      "ru": "Отдельно стоящее коммерческое здание в Шайхантахурском районе: 1 855,0 м² арендопригодной площади, 5 уровней со свободной планировкой, потолки до 4,0 м, лифт, паркинг. Этажи от 359 до 382 м². Аренда, покупка или аренда с последующим выкупом.",
+      "uz": "Shayxontohur tumanidagi alohida tijorat binosi: 1 855,0 m² ijaraga yaroqli maydon, erkin planirovkali 5 daraja, shift balandligi 4,0 m gacha, lift, avtoturargoh. Qavatlar 359 dan 382 m² gacha. Ijara, sotib olish yoki keyinchalik sotib olish sharti bilan ijara.",
+      "en": "A standalone commercial building in Shaykhantahur district: 1,855.0 m² of leasable area, 5 open-plan levels, ceilings up to 4.0 m, lift and parking. Floor plates from 359 to 382 m². Available for lease, purchase or lease-to-own."
     },
-    "keywords": "аренда офиса Ташкент, продажа коммерческой недвижимости Ташкент, помещение под клинику Ташкент, здание TAXTAPUL, Тахтапуль 31, офис Шайхантахурский район, помещение свободного назначения, ofis ijarasi Toshkent, tijorat ko'chmas mulki",
+    "keywords": "аренда офиса Ташкент, аренда помещения Ташкент, продажа коммерческой недвижимости Ташкент, аренда здания целиком Ташкент, помещение под клинику Ташкент, помещение под медцентр Ташкент, помещение под учебный центр Ташкент, аренда с последующим выкупом Ташкент, офис Шайхантахурский район, коммерческая недвижимость Шайхантахур, помещение свободного назначения Ташкент, аренда этажа под офис, бизнес центр Тахтапул, здание TAXTAPUL, Тахтапул 31, open space офис Ташкент, ofis ijarasi Toshkent, bino ijaraga berish Toshkent, tijorat ko'chmas mulki Toshkent, klinika uchun bino, office for rent Tashkent, commercial building for sale Tashkent",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -1204,13 +1204,28 @@
     ],
     "images": [
       {
-        "file": "aerial-night.jpg"
+        "file": "aerial-night.jpg",
+        "alt": {
+          "ru": "Коммерческое здание Тахтапул 31 в Ташкенте, вид с высоты ночью",
+          "uz": "Toshkentdagi Taxtapul 31 tijorat binosi, tunda yuqoridan ko'rinish",
+          "en": "Taxtapul 31 commercial building in Tashkent, aerial night view"
+        }
       },
       {
-        "file": "facade-vertical-dusk.jpg"
+        "file": "facade-vertical-dusk.jpg",
+        "alt": {
+          "ru": "Фасад здания Тахтапул 31 с витражным остеклением, вечерняя подсветка",
+          "uz": "Taxtapul 31 binosi fasadi, vitraj oynalar va kechki yoritish",
+          "en": "Facade of Taxtapul 31 with floor-to-ceiling glazing and evening lighting"
+        }
       },
       {
-        "file": "facade-night.jpg"
+        "file": "facade-night.jpg",
+        "alt": {
+          "ru": "Коммерческое здание под офис, клинику или учебный центр в Шайхантахурском районе Ташкента",
+          "uz": "Toshkent Shayxontohur tumanida ofis, klinika yoki o'quv markazi uchun tijorat binosi",
+          "en": "Commercial building for an office, clinic or training center in Shaykhantahur district, Tashkent"
+        }
       }
     ]
   },

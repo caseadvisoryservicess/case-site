@@ -82,11 +82,11 @@
       "en": "Galaba, 27a Gozalbog St, Tashkent - premises for lease and sale"
     },
     "description": {
-      "ru": "Новое коммерческое здание в Алмазарском районе: 1 436,5 м² под аренду, этажи по 330,1 м², потолки до 4,05 м, лифт, эксплуатируемая терраса. Аренда, покупка или аренда с выкупом.",
-      "uz": "Olmazor tumanidagi yangi tijorat binosi: ijara uchun 1 436,5 m², qavatlar 330,1 m², shift balandligi 4,05 m gacha, lift, foydalaniladigan terrassa. Ijara, sotib olish yoki keyinchalik sotib olish bilan ijara.",
-      "en": "A new commercial building in Olmazor district: 1,436.5 m² available, 330.1 m² floor plates, ceilings up to 4.05 m, lift, rooftop terrace. Lease, purchase or lease-to-own."
+      "ru": "Новое коммерческое здание в Алмазарском районе у парка Победы: 1 436,5 м² под аренду, этажи с 3-го по 5-й свободны целиком по 330,1 м², потолки 4,05 м на первом этаже и 3,60 м выше, лифт, эксплуатируемая терраса, парковка на 35-40 мест. Аренда, покупка или аренда с последующим выкупом.",
+      "uz": "Olmazor tumanida, G'alaba bog'i yonida yangi tijorat binosi: ijaraga 1 436,5 m², 3-5-qavatlar to'liq bo'sh, har biri 330,1 m², birinchi qavatda shift 4,05 m va yuqorida 3,60 m, lift, foydalaniladigan terrassa, 35-40 o'rinli avtoturargoh. Ijara, sotib olish yoki keyinchalik sotib olish sharti bilan ijara.",
+      "en": "A new commercial building in Olmazor district by Victory Park: 1,436.5 m² available, floors 3 to 5 entirely free at 330.1 m² each, 4.05 m ceilings on the ground floor and 3.60 m above, a lift, a rooftop terrace and parking for 35 to 40 cars. Available for lease, purchase or lease-to-own."
     },
-    "keywords": "аренда помещений Ташкент, Алмазарский район аренда, помещение под клинику Ташкент, учебный центр аренда Ташкент, Каракамыш аренда, Галаба, Gozalbog 27a, ofis ijarasi Toshkent, tijorat ko'chmas mulki Olmazor",
+    "keywords": "аренда помещения Ташкент, аренда офиса Алмазарский район, коммерческая недвижимость Алмазар, помещение под клинику Ташкент, помещение под медцентр Алмазарский район, аренда под учебный центр Ташкент, аренда этажа целиком Ташкент, помещение свободного назначения Ташкент, аренда с последующим выкупом Ташкент, продажа коммерческого помещения Ташкент, аренда Каракамыш, помещение у парка Победы Ташкент, аренда помещения Гузальбог, здание Галаба Ташкент, первый этаж под аптеку Ташкент, помещение под кафе Ташкент, open space этаж Ташкент, ofis ijarasi Toshkent, Olmazor tumani ijara, tijorat ko'chmas mulki Olmazor, klinika uchun maydon Toshkent, o'quv markazi uchun bino, office for rent Tashkent, commercial premises Olmazor Tashkent",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -584,13 +584,28 @@
     ],
     "images": [
       {
-        "file": "facade-dusk.jpg"
+        "file": "facade-dusk.jpg",
+        "alt": {
+          "ru": "Коммерческое здание Галаба в Ташкенте, белый фасад с латунной сеткой и арочным стилобатом",
+          "uz": "Toshkentdagi G'alaba tijorat binosi, latun to'rli oq fasad va arkali stilobat",
+          "en": "Galaba commercial building in Tashkent, white facade with brass mesh and an arcaded stylobate"
+        }
       },
       {
-        "file": "render-1.jpg"
+        "file": "render-1.jpg",
+        "alt": {
+          "ru": "Здание под клинику, офис или учебный центр в Алмазарском районе Ташкента, у парка Победы",
+          "uz": "Toshkent Olmazor tumanida, G'alaba bog'i yonida klinika, ofis yoki o'quv markazi uchun bino",
+          "en": "A building for a clinic, office or training center in Olmazor district, Tashkent, by Victory Park"
+        }
       },
       {
-        "file": "render-3.jpg"
+        "file": "render-3.jpg",
+        "alt": {
+          "ru": "Первый этаж с витринами на первой линии и арками стилобата, помещение под аптеку или кафе",
+          "uz": "Birinchi qatorda vitrinali birinchi qavat va stilobat arklari, dorixona yoki kafe uchun maydon",
+          "en": "Ground floor with street-front shopfronts and stylobate arches, suitable for a pharmacy or cafe"
+        }
       }
     ]
   },

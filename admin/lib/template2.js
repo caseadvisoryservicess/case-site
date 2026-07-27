@@ -1000,7 +1000,7 @@ function renderPage(cfg, lang, uploadsDir) {
   const specRows = (cfg.about.specs || []).filter((r) => pick(r.s, lang).trim()).map((r) =>
     `<tr><td>${t(r.b)}</td><td>${t(r.s)}</td></tr>`).join('\n');
   const gallery = (cfg.about.images || []).filter((g) => g.file).map((g) => `
-    <figure>${pictureTag(uploadsDir, prefix, g.file, { alt: t(cfg.intro.h1), sizes: '(max-width:920px) 100vw, 640px' })}
+    <figure>${pictureTag(uploadsDir, prefix, g.file, { alt: g.alt ? t(g.alt) : t(cfg.intro.h1), sizes: '(max-width:920px) 100vw, 640px' })}
       <figcaption>${s('about.viz')}</figcaption>
     </figure>`).join('');
 
@@ -1037,6 +1037,7 @@ function renderPage(cfg, lang, uploadsDir) {
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${t(cfg.seo.title)}</title>
 <meta name="description" content="${t(cfg.seo.description)}">
+${cfg.seo.keywords ? `<meta name="keywords" content="${esc(cfg.seo.keywords)}">` : ''}
 <meta name="robots" content="index, follow">
 ${(cfg.seo.googleVerification || '').trim() ? `<meta name="google-site-verification" content="${esc(cfg.seo.googleVerification.trim())}">` : ''}
 ${(cfg.seo.yandexVerification || '').trim() ? `<meta name="yandex-verification" content="${esc(cfg.seo.yandexVerification.trim())}">` : ''}
