@@ -138,8 +138,16 @@ if ($idx === false) {
 
 /* ============ 2. ОКРУЖЕНИЕ PHP ============ */
 hr('2. ОКРУЖЕНИЕ PHP');
-echo 'PHP: ' . PHP_VERSION . ' (' . PHP_OS . ")\n";
-if (version_compare(PHP_VERSION, '8.0', '<')) echo "!!  Нужен PHP 8.0 и новее\n";
+echo 'PHP в терминале: ' . PHP_VERSION . ' (' . PHP_OS . ")\n";
+echo "    ВНИМАНИЕ: это версия PHP в терминале. Сайту её может выдавать другая версия —\n";
+echo "    смотрите в DirectAdmin: «Выбрать версию PHP». По этой же версии работает cron.\n";
+/* Код платформы не использует синтаксис PHP 8, поэтому 7.x его выполняет.
+   Но 7.2 снят с поддержки в ноябре 2020 — обновления безопасности для него не выходят. */
+if (version_compare(PHP_VERSION, '7.4', '<'))
+  echo "!!  PHP " . PHP_VERSION . " снят с поддержки — обновления безопасности не выходят.\n"
+     . "    Платформа на нём работает, но версию стоит поднять до 8.1+ в панели хостинга.\n";
+elseif (version_compare(PHP_VERSION, '8.0', '<'))
+  echo "    PHP 7.4 платформу выполняет, но поддержка закончилась — стоит перейти на 8.1+.\n";
 foreach (['pdo_mysql','pdo_sqlite','json','mbstring','zip','gd','curl','openssl'] as $e)
   echo ok(extension_loaded($e)) . "расширение $e\n";
 foreach (['memory_limit','post_max_size','upload_max_filesize','max_execution_time',
@@ -354,9 +362,12 @@ if ($pdo) {
     if (!$a) echo "  журнал пуст\n";
     else {
       echo '  ' . p('когда', 21) . p('кто', 24) . p('роль', 6) . p('действие', 24) . "подробности\n";
-      foreach ($a as $r)
+      foreach ($a as $r) {
+        /* detail НЕ обрезаем: у state_key_denied именно в нём лежит полный список
+           разделов, которые сервер не принял — ради него всё и затевалось. */
         echo '  ' . p(substr((string)$r['at'], 0, 19), 21) . p($r['by_name'] ?? '', 24)
-           . p($r['role_key'] ?? '-', 6) . p($r['action'] ?? '', 24) . cut($r['detail'] ?? '', 44) . "\n";
+           . p($r['role_key'] ?? '-', 6) . p($r['action'] ?? '', 24) . trim((string)($r['detail'] ?? '')) . "\n";
+      }
       echo "\n  Действие «state_key_denied» означает: сотрудник пытался сохранить раздел, который\n";
       echo "  закрыт для его роли. Для него это выглядит как «ввёл и всё пропало».\n";
     }
