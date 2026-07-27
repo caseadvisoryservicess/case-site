@@ -66,6 +66,23 @@ function createMockServer(OS_DIR, opts) {
         if (state.failMode === 'reject-units') { json(rsp, 403, { error: 'Нет прав на изменение реестра' }); return; }
         if (state.failMode === 'units-500') { json(rsp, 500, { error: 'Внутренняя ошибка' }); return; }
         state.unitPatches.push(b);
+        /* Настоящий unit_patch.php делает UPDATE app_state — мок обязан вести себя так же,
+           иначе тест «данные не доехали до сервера» даёт ложное срабатывание. */
+        const NUM = ['area','terr','rate','budget','budLand','factLand','capex','total','gap'];
+        const ALLOWED = new Set(['code','block','floor','area','terr','cat','sub','rate','budget','budLand','factLand','capex','total','gap','status','broker','assignedTo','assigned_to','vars','shortlist','merged','offer','comment','comments','dates','hist','leaseModel','vat','utilities','terms','opening','reservationEnd','contractSign','contractEnd','rateReview','fitout','handover','specialTerms','brand','tenant','layoutVersionId','layoutVersionNo','layoutSource','manualOverride','updatedAt','updatedBy']);
+        const applyOne = (id, changes) => {
+          const arr = state.appState.data && state.appState.data.U;
+          if (!Array.isArray(arr)) return;
+          const u = arr.find(x => x && x.id === id);
+          if (!u || !changes) return;
+          Object.keys(changes).forEach(k => {
+            if (!ALLOWED.has(k)) return;
+            u[k] = NUM.indexOf(k) >= 0 ? (changes[k] === '' || changes[k] == null ? 0 : Number(changes[k])) : changes[k];
+          });
+        };
+        if (ep === 'unit_patch.php') applyOne(b.id, b.changes || b.patch || b.fields);
+        else (Array.isArray(b.units) ? b.units : []).forEach(x => applyOne(x.id, x.changes || x));
+        state.appState.updatedAt = '2026-07-27 12:00:00';
         json(rsp, 200, { ok: true, applied: true, revision: ++state.appState.revision, updated: [] }); return;
       }
       if (ep === 'geo_state.php') {
