@@ -1,0 +1,4 @@
+# Артефакты graphify (граф знаний по коду) — генерируются локально, в репозиторий не нужны
+graphify-out/
+.graphify_python
+.graphifyignore.local
