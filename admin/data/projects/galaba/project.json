@@ -758,5 +758,110 @@
     "metricaId": "",
     "ga4Id": "",
     "gtmId": ""
+  },
+  "pres": {
+    "elev": {
+      "f1": "±0.000",
+      "f2": "+4.350",
+      "f3": "+8.250",
+      "f4": "+12.150",
+      "f5": "+16.050"
+    },
+    "plans": {
+      "f1": "plan-f1.jpg",
+      "f2": "plan-f2.jpg",
+      "f3": "plan-f345.jpg",
+      "f4": "plan-f345.jpg",
+      "f5": "plan-f345.jpg"
+    },
+    "planPages": [
+      {
+        "id": "f1"
+      },
+      {
+        "id": "f2"
+      },
+      {
+        "id": "f3",
+        "title": "f345_title"
+      }
+    ],
+    "aboutImg": "facade-dusk.jpg",
+    "vizImgs": [
+      "render-1.jpg",
+      "render-3.jpg"
+    ],
+    "T": {
+      "addr": {
+        "ru": "Гузальбог, 27а · Ташкент",
+        "uz": "Go'zalbog' 27a · Toshkent",
+        "en": "27a Gozalbog St · Tashkent"
+      },
+      "h_about": {
+        "ru": "Новое здание со свободной планировкой у парка Победы",
+        "uz": "G'alaba bog'i yonida erkin planirovkali yangi bino",
+        "en": "A new open-plan building by Victory Park"
+      },
+      "card_lvl_n": {
+        "ru": "5 этажей",
+        "uz": "5 qavat",
+        "en": "5 floors"
+      },
+      "card_lvl_s": {
+        "ru": "и эксплуатируемая терраса, лифт",
+        "uz": "va foydalaniladigan terrassa, lift",
+        "en": "plus a rooftop terrace, lift"
+      },
+      "card_park_n": {
+        "ru": "35-40 мест",
+        "uz": "35-40 joy",
+        "en": "35-40 spaces"
+      },
+      "card_park_s": {
+        "ru": "парковка рядом со зданием",
+        "uz": "bino yonida avtoturargoh",
+        "en": "parking next to the building"
+      },
+      "card_gla": {
+        "ru": "арендопригодная площадь (GLA)",
+        "uz": "ijaraga yaroqli maydon (GLA)",
+        "en": "leasable area (GLA)"
+      },
+      "card_gba": {
+        "ru": "общая площадь этажей 1-5 (GBA)",
+        "uz": "1-5-qavatlar umumiy maydoni (GBA)",
+        "en": "gross area of floors 1 to 5 (GBA)"
+      },
+      "h_units": {
+        "ru": "Пять этажей - от одного до всех сразу",
+        "uz": "Besh qavat - bittadan barchasigacha",
+        "en": "Five floors - from one to all of them"
+      },
+      "f345_title": {
+        "ru": "3, 4 и 5 этажи (идентичные)",
+        "uz": "3, 4 va 5-qavatlar (bir xil)",
+        "en": "Floors 3, 4 and 5 (identical)"
+      },
+      "plan_note": {
+        "ru": "Схема по рабочим чертежам, не является точным обмером. Свободная планировка: сетка колонн 6 000 x 6 000 мм, крайний пролёт 6 600 мм, лестнично-лифтовой узел. Голубым на планах показаны помещения махаллинского комитета, они в аренду не предлагаются.",
+        "uz": "Ish chizmalari asosidagi sxema, aniq o'lchov emas. Erkin planirovka: 6 000 x 6 000 mm kolonnalar to'ri, chekka oraliq 6 600 mm, zinapoya-lift yadrosi. Rejalarda ko'k rang bilan mahalla qo'mitasi xonalari ko'rsatilgan, ular ijaraga berilmaydi.",
+        "en": "Diagram based on working drawings, not a survey. Open plan: a 6 000 x 6 000 mm column grid with a 6 600 mm end bay and the stair and lift core. Areas shown in blue belong to the mahalla committee and are not offered for lease."
+      },
+      "units_note": {
+        "ru": "Цены и условия - по запросу. Возможна аренда, покупка отдельного этажа или всех этажей, аренда с последующим выкупом. Подвал занимает махаллинский комитет и в предложение не входит.",
+        "uz": "Narxlar va shartlar - so'rov bo'yicha. Ijara, alohida qavat yoki barcha qavatlarni sotib olish, keyinchalik sotib olish sharti bilan ijara mumkin. Podvalni mahalla qo'mitasi egallaydi va taklifga kirmaydi.",
+        "en": "Prices and terms on request. Lease, purchase of a floor or of all floors, and lease with option to buy are available. The basement is occupied by the mahalla committee and is not part of the offer."
+      },
+      "loc_first": {
+        "ru": "Первая линия у пересечения с Келесской дорогой, напротив парка Победы. Плотный жилой массив Каракамыш вокруг даёт постоянный дневной трафик, рядом парковка на 35-40 машиномест.",
+        "uz": "Keles yo'li bilan kesishgan joyda birinchi qator, G'alaba bog'i ro'parasida. Atrofdagi zich Qoraqamish turar-joy massivi doimiy kunduzgi trafik beradi, yaqinda 35-40 o'rinli avtoturargoh.",
+        "en": "Street front at the Keles road junction, opposite Victory Park. The dense Qoraqamish residential neighbourhood provides steady daytime traffic, with parking for 35 to 40 cars nearby."
+      },
+      "viz_p": {
+        "ru": "Белый фасад с латунной сеткой и арочным стилобатом, озеленённые балконы и вечерняя архитектурная подсветка. На кровле открытая терраса с перголой, общая для арендаторов. На фасаде предусмотрено место под вывеску арендатора.",
+        "uz": "Latun to'rli va arkali stilobatli oq fasad, ko'kalamzorlashtirilgan balkonlar va kechki arxitektura yoritilishi. Tomda pergolali ochiq terrassa, ijarachilar uchun umumiy. Fasadda ijarachi peshlavhasi uchun joy ko'zda tutilgan.",
+        "en": "A white facade with a brass mesh and an arcaded stylobate, planted balconies and evening architectural lighting. The roof carries an open terrace with a pergola, shared by tenants. The facade provides space for tenant signage."
+      }
+    }
   }
 }

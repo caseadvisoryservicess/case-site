@@ -14,10 +14,13 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const UP = path.join(ROOT, 'data', 'projects', 'takhtapul', 'uploads');
-const SITE = 'https://caseadvisory.uz/taxtapul/';
+const SLUG = process.argv[2] || 'takhtapul';
+const UP = path.join(ROOT, 'data', 'projects', SLUG, 'uploads');
 
-const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data/projects/takhtapul/project.json'), 'utf8'));
+const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'projects', SLUG, 'project.json'), 'utf8'));
+const SITE = String(cfg.seo.publicUrl || '').replace(/\/+$/, '') + '/';
+// проектные переопределения брошюры: cfg.pres = { elev, plans, planPages, T: {...} }
+const PRES = cfg.pres || {};
 
 // значение мультиязычного поля с фолбэком на русский
 const L = (v, lang) => {
@@ -27,11 +30,15 @@ const L = (v, lang) => {
   return (t && String(t).trim()) ? t : (v.ru || '');
 };
 
-// GBA по уровням - из рабочей документации
-const GBA = { b: '415,0', f1: '440,0', f2: '481,3', f3: '481,3', f4: '481,4' }; // кадастр, сессия 2026-07-24
-const ELEV = { b: '-', f1: '±0.000', f2: '+4.300', f3: '+8.200', f4: '+12.100' };
-// цветные CAD-листы (те же, что на лендинге)
-const PLAN_CAD = { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2: 'plan-cad-f23.jpg', f3: 'plan-cad-f23.jpg', f4: 'plan-cad-f4.jpg' };
+// GBA по уровням берём из юнитов конфига
+const GBA = {};
+for (const u of cfg.units || []) if (u.gba) GBA[u.id] = u.gba;
+// отметки этажей и листы планов - из cfg.pres, по умолчанию значения Тахтапула
+const ELEV = PRES.elev || { b: '-', f1: '±0.000', f2: '+4.300', f3: '+8.200', f4: '+12.100' };
+const PLAN_CAD = PRES.plans || { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2: 'plan-cad-f23.jpg', f3: 'plan-cad-f23.jpg', f4: 'plan-cad-f4.jpg' };
+// какие уровни показывать отдельными страницами планировок
+const PLAN_PAGES = PRES.planPages || [{ id: 'b' }, { id: 'f1' }, { id: 'f2', title: 'f23_title' }, { id: 'f4' }];
+const TOTAL = 8 + PLAN_PAGES.length;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];
   return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
@@ -107,13 +114,24 @@ const T = {
 };
 
 const img64 = (name) => {
-  const p = path.join(UP, name);
-  const ext = path.extname(name).slice(1);
+  // для брошюры берём уменьшенный вариант, если пайплайн его создал:
+  // оригиналы рендеров весят по 3 МБ и раздувают PDF
+  const ext0 = path.extname(name);
+  const base = name.slice(0, -ext0.length);
+  const pick = [base + '-1920' + ext0, base + '-1280' + ext0, name].find((f) => fs.existsSync(path.join(UP, f))) || name;
+  const p = path.join(UP, pick);
+  const ext = path.extname(pick).slice(1);
   const mime = ext === 'svg' ? 'svg+xml' : ext === 'png' ? 'png' : 'jpeg';
   return `data:image/${mime};base64,${fs.readFileSync(p).toString('base64')}`;
 };
 
-const BRONZE = '#a8804c', INK = '#212326', MUTED = '#63666b', BG = '#f6f5f2', DARK = '#1b1d1f';
+const TH = (cfg.site && cfg.site.theme) || {};
+const BRONZE = TH.accent || '#a8804c', INK = TH.ink || '#212326', MUTED = TH.muted || '#63666b',
+      BG = TH.bg || '#f6f5f2', DARK = TH.dark || '#1b1d1f';
+const CODE = (cfg.site && cfg.site.code) || 'TAXTAPUL';
+const rgbOf = (hex) => { const h = String(hex).replace('#',''); const n = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
+  return [0,2,4].map(i=>parseInt(n.slice(i,i+2),16)||0).join(','); };
+const ACC_RGB = rgbOf(BRONZE);
 
 const CSS = `
 @page { size: A4 landscape; margin: 0; }
@@ -133,7 +151,42 @@ tr:last-child td { border-bottom: none; }
 .st.off { background: #ececeb; color: #75787c; }
 `;
 
+// проектные строки поверх умолчаний
+for (const k of Object.keys(PRES.T || {})) T[k] = Object.assign({}, T[k], PRES.T[k]);
+
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+
+// цифры обложки и картинки: из конфига, с возможностью переопределить в cfg.pres
+const factN = (re) => {
+  // ищем и в фактах героя, и в ленте параметров: у разных проектов цифра лежит по-разному
+  const all = [].concat(cfg.intro.facts || [], cfg.params || []);
+  const f = all.find((x) => re.test((x.l && x.l.ru) || '') && x.n);
+  if (!f) return '';
+  return typeof f.n === 'string' ? f.n : (f.n && f.n.ru) || '';
+};
+const numOf = (s) => parseFloat(String(s).replace(/\s/g, '').replace(',', '.'));
+const fmtNum = (n) => String(n).replace('.', ',');
+const wholeUnit = (cfg.units || []).find((u) => u.whole) || {};
+const ceils = (cfg.units || []).filter((u) => u.ceil).map((u) => u.ceil);
+const COVER = Object.assign({
+  gla: wholeUnit.gla || factN(/GLA/),
+  gba: wholeUnit.gba || factN(/GBA/),
+  levels: factN(/уровн|этаж/),
+  parking: factN(/машином/),
+  ceil: (() => {
+    // берём исходные строки, чтобы сохранить формат: 3,0-4,0 у одного проекта, 3,60-4,05 у другого
+    const ps = ceils.map((c) => [numOf(c), c]).filter((x) => !isNaN(x[0]));
+    if (!ps.length) return '';
+    const lo = ps.reduce((a, b) => (b[0] < a[0] ? b : a));
+    const hi = ps.reduce((a, b) => (b[0] > a[0] ? b : a));
+    return lo[1] === hi[1] ? lo[1] : lo[1] + '-' + hi[1];
+  })()
+}, PRES.cover || {});
+const ABOUT_IMG = PRES.aboutImg
+  || ((cfg.about.images || [])[0] || {}).file
+  || cfg.intro.image;
+const VIZ_IMGS = PRES.vizImgs
+  || (cfg.about.images || []).slice(1, 3).map((x) => x.file).filter(Boolean);
 
 function buildHtml(lang, qr) {
   const t = (k) => T[k][lang];
@@ -143,7 +196,7 @@ function buildHtml(lang, qr) {
   const siteShown = SITE.replace('https://', '') + (lang === 'ru' ? '' : lang + '/');
   const stLabel = (st) => t('st_' + (st || 'available')) || t('st_available');
 
-  const foot = (n) => `<div class="foot"><span><b>TAXTAPUL</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / 12</span></div>`;
+  const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
 
   const unitRow = (u) => `<tr>
     <td><b>${M(u.level)}</b></td>
@@ -184,18 +237,18 @@ function buildHtml(lang, qr) {
   return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><style>${CSS}</style></head><body>
 
   <div class="pg" style="padding:0;background:${DARK}">
-    <img src="${img64('hero-dusk.jpg')}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+    <img src="${img64(cfg.intro.image)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
     <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,16,18,.35),rgba(15,16,18,.82))"></div>
     <div style="position:relative;margin-top:auto;padding:0 18mm 20mm;color:#fff">
-      <div style="font-size:11pt;font-weight:800;letter-spacing:.2em;margin-bottom:6mm">TAXTAPUL</div>
+      <div style="font-size:11pt;font-weight:800;letter-spacing:.2em;margin-bottom:6mm">${esc(CODE)}</div>
       <div style="font-size:32pt;font-weight:800;letter-spacing:-.01em;line-height:1.12;max-width:210mm">${M(cfg.intro.h1)}</div>
       <div style="font-size:13pt;margin-top:6mm;opacity:.9">${M(cfg.intro.sub)}</div>
       <div style="font-size:10.5pt;margin-top:3mm;opacity:.75">${M(cfg.location.address)}</div>
       <div style="display:flex;gap:14mm;margin-top:10mm;font-size:10pt">
-        <span><b style="font-size:16pt">1 855,0 м²</b><br><span style="opacity:.75">${t('cover_glaAll')}</span></span>
-        <span><b style="font-size:16pt">5</b><br><span style="opacity:.75">${t('cover_levels')}</span></span>
-        <span><b style="font-size:16pt">12</b><br><span style="opacity:.75">${t('cover_parking')}</span></span>
-        <span><b style="font-size:16pt">3,0-4,0 м</b><br><span style="opacity:.75">${t('cover_ceil')}</span></span>
+        <span><b style="font-size:16pt">${esc(COVER.gla)} м²</b><br><span style="opacity:.75">${t('cover_glaAll')}</span></span>
+        <span><b style="font-size:16pt">${esc(COVER.levels)}</b><br><span style="opacity:.75">${t('cover_levels')}</span></span>
+        <span><b style="font-size:16pt">${esc(COVER.parking)}</b><br><span style="opacity:.75">${t('cover_parking')}</span></span>
+        <span><b style="font-size:16pt">${esc(COVER.ceil)} м</b><br><span style="opacity:.75">${t('cover_ceil')}</span></span>
       </div>
     </div>
     <div style="position:absolute;right:18mm;bottom:20mm;color:#fff;font-size:9pt;opacity:.8">CASE Real Estate Advisory</div>
@@ -207,16 +260,16 @@ function buildHtml(lang, qr) {
     <div style="display:flex;gap:12mm;flex:1;min-height:0">
       <div style="flex:1;display:flex;flex-direction:column;gap:5mm">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm">
-          ${[['1 855,0 м²', t('card_gla')], ['2 299,0 м²', t('card_gba')], [t('card_lvl_n'), t('card_lvl_s')], [t('card_park_n'), t('card_park_s')]]
+          ${[[esc(COVER.gla) + ' м²', t('card_gla')], [esc(COVER.gba) + ' м²', t('card_gba')], [t('card_lvl_n'), t('card_lvl_s')], [t('card_park_n'), t('card_park_s')]]
             .map(([n, l]) => `<div style="background:#fff;border-radius:4mm;padding:6mm">
               <div style="font-size:17pt;font-weight:800">${n}</div>
               <div style="font-size:9pt;color:${MUTED};margin-top:1mm">${l}</div></div>`).join('')}
         </div>
-        <div style="background:rgba(168,128,76,.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10.5pt;line-height:1.5">${M(cfg.about.status)}</div>
+        <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10.5pt;line-height:1.5">${M(cfg.about.status)}</div>
         <div style="font-size:9.5pt;color:${MUTED};line-height:1.55">${M(cfg.unitsSection.note)} ${M(cfg.about.sfbNote)}</div>
       </div>
       <div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
-        <img src="${img64('facade-vertical-dusk.jpg')}" style="width:100%;height:100%;object-fit:cover">
+        <img src="${img64(ABOUT_IMG)}" style="width:100%;height:100%;object-fit:cover">
         <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
       </div>
     </div>
@@ -230,7 +283,7 @@ function buildHtml(lang, qr) {
       <tr><th>${t('th_level')}</th><th>${t('th_elev')}</th><th>GBA</th><th>GLA</th><th>${t('th_ceil')}</th><th>${t('th_use')}</th><th>${t('th_status')}</th></tr>
       ${units.map(unitRow).join('')}
       <tr style="background:${BG}">
-        <td><b>${M(whole.level)}</b></td><td></td><td><b>2 299,0 м²</b></td><td><b>1 855,0 м²</b></td><td></td>
+        <td><b>${M(whole.level)}</b></td><td></td><td><b>${esc(whole.gba || '')} м²</b></td><td><b>${esc(whole.gla || '')} м²</b></td><td></td>
         <td style="font-size:9.5pt;color:${MUTED}">${M(whole.uses)}</td>
         <td><span class="st${whole.status === 'available' ? '' : ' off'}">${stLabel(whole.status)}</span></td>
       </tr>
@@ -239,10 +292,10 @@ function buildHtml(lang, qr) {
     ${foot(3)}
   </div>
 
-  ${planPage(4, units.find((u) => u.id === 'b'))}
-  ${planPage(5, units.find((u) => u.id === 'f1'))}
-  ${planPage(6, units.find((u) => u.id === 'f2'), t('f23_title'))}
-  ${planPage(7, units.find((u) => u.id === 'f4'))}
+  ${PLAN_PAGES.map((pp, i) => {
+      const u = units.find((x) => x.id === pp.id);
+      return u ? planPage(4 + i, u, pp.title ? t(pp.title) : '') : '';
+    }).join('')}
 
   <div class="pg">
     <span class="lbl">${t('lbl_cases')}</span>
@@ -250,7 +303,7 @@ function buildHtml(lang, qr) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6mm;flex:1;align-content:start">
       ${cfg.useCases.cards.map(caseCard).join('')}
     </div>
-    ${foot(8)}
+    ${foot(4 + PLAN_PAGES.length)}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff">
@@ -263,7 +316,7 @@ function buildHtml(lang, qr) {
       </div>`).join('')}
     </div>
     <div style="margin-top:6mm;font-size:10pt;color:rgba(255,255,255,.65)">${t('deal_note')} ${esc(cfg.contacts.phone)} · t.me/${esc(cfg.contacts.telegram)}</div>
-    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">TAXTAPUL</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>9 / 12</span></div>
+    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>${5 + PLAN_PAGES.length} / ${TOTAL}</span></div>
   </div>
 
   <div class="pg">
@@ -276,14 +329,14 @@ function buildHtml(lang, qr) {
           <tr><th colspan="2" style="padding-left:0">${t('loc_car')}</th></tr>
           ${cfg.location.drive.map((d) => `<tr><td style="padding-left:0;background:none">${M(d.to)}</td><td style="text-align:right;font-weight:700;background:none">${M(d.time)}</td></tr>`).join('')}
         </table>
-        <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${M(cfg.location.metroNote)} · ${t('loc_coord')}: 41.338889, 69.263403</div>
+        <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${M(cfg.location.metroNote)} · ${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
       </div>
       <div style="flex:1;display:flex;flex-direction:column;gap:5mm">
         <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>
-        <div style="background:rgba(168,128,76,.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>
+        <div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>
       </div>
     </div>
-    ${foot(10)}
+    ${foot(6 + PLAN_PAGES.length)}
   </div>
 
   <div class="pg">
@@ -292,21 +345,21 @@ function buildHtml(lang, qr) {
     <div style="display:flex;gap:10mm;flex:1;min-height:0">
       <div style="flex:.8;display:flex;flex-direction:column;gap:5mm;justify-content:center">
         <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:11pt;line-height:1.65">${t('viz_p')}</div>
-        <div style="background:rgba(168,128,76,.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10pt;line-height:1.5">${M(cfg.about.status)}</div>
+        <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10pt;line-height:1.5">${M(cfg.about.status)}</div>
         <div style="font-size:8.5pt;color:${MUTED}">${t('viz_all')}</div>
       </div>
       <div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
-        ${['aerial-night.jpg', 'facade-night.jpg'].map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
+        ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
           <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
         </div>`).join('')}
       </div>
     </div>
-    ${foot(11)}
+    ${foot(7 + PLAN_PAGES.length)}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">
-    <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">TAXTAPUL</div>
+    <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
     <div style="font-size:26pt;font-weight:800;margin-bottom:3mm">${t('c_h')}</div>
     <div style="font-size:11pt;color:rgba(255,255,255,.7);margin-bottom:10mm">${t('c_s')}</div>
     <div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>
@@ -314,7 +367,7 @@ function buildHtml(lang, qr) {
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
     <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
-      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>12 / 12</span>
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${TOTAL} / ${TOTAL}</span>
     </div>
   </div>
 
@@ -331,7 +384,7 @@ async function main() {
 
   for (const lang of ['ru', 'uz', 'en']) {
     const url = SITE + (lang === 'ru' ? '' : lang + '/');
-    const qr = await QR.toDataURL(url, { width: 380, margin: 1, color: { dark: DARK, light: '#f6f5f2' } });
+    const qr = await QR.toDataURL(url, { width: 380, margin: 1, color: { dark: DARK, light: BG } });
     // типографика: никаких длинных/средних тире
     const html = buildHtml(lang, qr).replace(/[—–]/g, '-');
     const htmlPath = path.join(ROOT, 'tmp-presentation.html');
