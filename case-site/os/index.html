@@ -14,7 +14,7 @@
 <meta name="apple-mobile-web-app-title" content="CASE OS">
 <meta name="description" content="CASE OS - real estate operating system with leasing, asset control and financial feasibility.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Crect%20width='180'%20height='180'%20rx='34'%20fill='%239E0000'/%3E%3Ctext%20x='50%25'%20y='56%25'%20font-family='Arial'%20font-size='52'%20font-weight='800'%20fill='%23fff'%20text-anchor='middle'%20dominant-baseline='middle'%3ECASE%3C/text%3E%3C/svg%3E">
-<style>
+<style>/* v4.49.1: правила сворачивания групп «Бюджет»/«Факт» через display:none УДАЛЕНЫ. Они убирали ячейки из строки, а грид дополнительно схлопывал их колонки — оставшиеся ячейки съезжали на обнулённые слоты, и Варианты/Брокер/Комментарий пропадали. Сворачивание целиком делает грид (effectiveHidden + visibility:collapse на col), это согласовано с colgroup. */
 :root{--red:#9E0000;--red-d:#7a0000;--red-l:#c62828;--bg:#f4f3f1;--panel:#fff;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--soft:#faf9f7;--border:#e6e3df;--green:#2e7d32;--amber:#a16000;--blue:#1565c0;--teal:#0d8484;--purple:#6a3fb5;--shadow:0 1px 3px rgba(0,0,0,.06),0 8px 30px rgba(0,0,0,.05)}
 *{box-sizing:border-box}html,body{margin:0;padding:0;overflow-x:clip}
 body{font-family:'Montserrat',system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.45;-webkit-text-size-adjust:100%;overflow-x:clip}
@@ -226,8 +226,8 @@ table.reg-grp thead .grp-sp{background:transparent;border:none}
 table.reg-grp thead th.grp-bud,table.reg-grp thead th.grp-fac{background:var(--soft)}
 table.reg-grp td.grp-bud{background:rgba(21,101,192,.03)}
 table.reg-grp td.grp-fac{background:rgba(46,125,50,.03)}
-table.reg-grp.cg-bud-collapsed th[data-colkey^="b_"]:not([data-colkey="b_tots"]),table.reg-grp.cg-bud-collapsed td[data-colkey^="b_"]:not([data-colkey="b_tots"]){display:none}
-table.reg-grp.cg-fac-collapsed th[data-colkey^="f_"]:not([data-colkey="f_tots"]),table.reg-grp.cg-fac-collapsed td[data-colkey^="f_"]:not([data-colkey="f_tots"]){display:none}
+
+
 /* Аккуратная шапка ЛСР: длинные заголовки переносятся ПО СЛОВАМ (не по буквам) внутри своей
    ячейки и не налезают на соседние. Денежным колонкам задаём разумную мин-ширину, чтобы слова
    не дробились; таблица при этом горизонтально прокручивается (как в Excel). */
@@ -445,7 +445,10 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js" defer></script>
-<script>const APP_VERSION='4.49.0';    /* версия платформы — повышается с каждым обновлением */</script>
+<script>const APP_VERSION='4.49.1';
+/* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
+   менялось при каждом обновлении любого модуля и не кэшировалось */
+const CASE_EXPECTED_MODULES={'core':'4.49.0','v432-data-grid':'4.49.1','v4327-patch':'4.47.0','v4451-live-sync':'4.47.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.48.4','v4450-owner-report':'4.47.0'};    /* версия платформы — повышается с каждым обновлением */</script>
 <script src="core.js?v=4.49.0"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
@@ -455,7 +458,7 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <script src="v3518-brands-import.js?v=4.32.7" defer></script>
 <script src="v3520-workspaces.js?v=4.47.0" defer></script>
 <script src="v400-feasibility.js?v=4.32.7" defer></script>
-<script src="v420-geoanalytics.js?v=4.43.1" defer></script>
+<script src="v420-geoanalytics.js?v=4.49.1" defer></script>
 <script src="v440-engineering.js?v=4.32.7" defer></script>
 <script src="v450-guides.js?v=4.32.7" defer></script>
 <script src="v490-caseos.js?v=4.39.0" defer></script>
@@ -466,7 +469,7 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <script src="v496-commissions.js?v=4.32.7" defer></script>
 <script src="v410-feature-flags.js?v=4.32.7" defer></script>
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
-<script src="v432-data-grid.js?v=4.48.3" defer></script>
+<script src="v432-data-grid.js?v=4.49.1" defer></script>
 <script src="v4327-patch.js?v=4.47.0" defer></script>
 <script src="v4450-ux-system.js?v=4.48.4" defer></script>
 <script src="v4450-owner-report.js?v=4.47.0" defer></script>

@@ -149,9 +149,14 @@
       (индексные сдвиги невозможны), colspan групп остаётся ПОЛНЫМ (collapse-колонки считаются в colspan),
       подпись группы прячется только когда вся группа скрыта */
    cells.forEach(function(c){if(c.style.display==='none')c.style.display='';});
-   var budIds=ids.slice(bi,fi),facIds=ids.slice(fi,post);
-   bud.colSpan=Math.max(1,budIds.length);fac.colSpan=Math.max(1,facIds.length);
-   var bv=budIds.filter(function(id){return !hidden[id];}).length,fv=facIds.filter(function(id){return !hidden[id];}).length;
+   /* v4.49.1: colspan группы = число ячеек, реально занимающих колонку.
+      display:none (так сворачиваются группы «Бюджет»/«Факт») ячейку из ряда УБИРАЕТ — считать нельзя,
+      иначе групповой ряд шире тела и хвостовые столбцы выдавливаются за край.
+      visibility:collapse (так прячутся столбцы через «Столбцы») слот оставляет — считать нужно. */
+   var hs2=headers(tb);
+   var shown=function(from,to){var n=0;for(var i=from;i<to;i++){var th=hs2[i];if(th&&getComputedStyle(th).display!=='none')n++;}return n;};
+   var bv=shown(bi,fi),fv=shown(fi,post);
+   bud.colSpan=Math.max(1,bv);fac.colSpan=Math.max(1,fv);
    bud.style.visibility=bv?'':'hidden';fac.style.visibility=fv?'':'hidden';} 
   function applyVisibility(tb,key){var hidden=effectiveHidden(tb,key),ids=colIds(tb),hs=headers(tb),body=tb.tBodies&&tb.tBodies[0],cg=tb.querySelector('colgroup');
    /* v4.48.1: скрытие ТОЛЬКО через col{visibility:collapse} — браузер прячет th и td одной операцией,
@@ -345,4 +350,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.48.3';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v432-data-grid']='4.49.1';

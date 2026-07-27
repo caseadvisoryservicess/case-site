@@ -103,13 +103,44 @@
     }catch(e){console.warn('Geoanalytics: fresh server state was not loaded',e);}
   }
   async function saveGeo(data,reason){
-    if(!canEdit()||G.saving)return;
+    /* v4.49.1: НИКОГДА не выходим молча. Раньше при отсутствии права на правку (или во время
+       другого сохранения) функция просто возвращалась: сотрудник вводил данные, жал «Сохранить»,
+       и работа исчезала без единого сообщения. Теперь всегда либо сохраняем, либо честно говорим,
+       и в любом случае кладём черновик в localStorage, чтобы работу можно было вернуть. */
+    if(!canEdit()){
+      try{localStorage.setItem('case_os_geo_pending_v1',JSON.stringify(data));}catch(e){}
+      toast(tr('Геоданные НЕ сохранены: у вашей роли нет права изменять геоданные. Правка сохранена черновиком в браузере — обратитесь к администратору.',
+               'Geo maʼlumotlar saqlanmadi: rolingizda tahrirlash huquqi yoʻq.',
+               'Geo data NOT saved: your role has no edit right.'),12000);
+      notifyFrame('asaas-geo-save-failed',{error:'нет права на изменение геоданных'});
+      return;
+    }
+    if(G.saving){
+      toast(tr('Идёт сохранение геоданных — подождите пару секунд и повторите.',
+               'Saqlanmoqda — biroz kuting.','Saving in progress — please retry in a moment.'),6000);
+      return;
+    }
     var raw='';try{raw=JSON.stringify(data);}catch(e){toast(tr('Ошибка структуры геоданных','Geo maʼlumotlar tuzilmasi xatosi','Invalid geo data structure'));return;}
     if(!data||typeof data!=='object'||Array.isArray(data)||raw.length>31457280){toast(tr('Геоданные не сохранены: неверный или слишком большой пакет','Geo maʼlumotlar saqlanmadi: paket noto‘g‘ri yoki juda katta','Geo data were not saved: invalid or oversized payload'));return;}
     G.saving=true;notifyFrame('asaas-geo-saving',{reason:String(reason||'ручное редактирование')});
     try{localStorage.setItem('case_os_geo_pending_v1',raw);}catch(e){}
     try{
       var clean=JSON.parse(raw),j=null;
+      /* v4.49.1: защита от обвала. Сохраняется ВЕСЬ массив геоданных целиком, поэтому неполный
+         пакет затирает чужую работу. Если записей стало резко меньше — спрашиваем подтверждение. */
+      var wasN=geoCount(GEO_DATA),newN=geoCount(clean);
+      if(wasN>20&&newN<wasN*0.5){
+        var okDrop=confirm(tr('Внимание: сохраняется '+newN+' записей вместо '+wasN+' — потеряется '+(wasN-newN)+'.\n\nЭто похоже на сбой загрузки, а не на вашу правку. Сохранить всё равно?',
+                              'Diqqat: '+newN+' ta yozuv '+wasN+' oʻrniga. Saqlansinmi?',
+                              'Warning: saving '+newN+' records instead of '+wasN+'. Save anyway?'));
+        if(!okDrop){
+          G.saving=false;
+          toast(tr('Сохранение отменено — данные на сервере не тронуты. Обновите страницу и повторите правку.',
+                   'Saqlash bekor qilindi.','Save cancelled — server data untouched.'),9000);
+          notifyFrame('asaas-geo-save-failed',{error:'отменено пользователем: резкое сокращение числа записей'});
+          return;
+        }
+      }
       if(BACKEND&&typeof apiPOST==='function')j=await apiPOST('geo_state.php',{data:clean,reason:String(reason||'ручное редактирование'),expected_geo_revision:G.geoRevision||0});
       else{GEO_DATA=clean;if(typeof persist==='function')persist();j={ok:true,data:clean,geo_revision:G.geoRevision||0,updated_at:new Date().toISOString(),updated_by:(S&&S.user&&S.user.name)||''};}
       if(!j||!j.ok)throw new Error('Сервер не подтвердил сохранение'+(j&&j.error?(': '+j.error):(j?(' (ответ без ok: '+JSON.stringify(j).slice(0,160)+')'):' (пустой ответ)')));

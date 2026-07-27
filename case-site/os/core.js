@@ -101,7 +101,7 @@ function _serverChangedKeys(data){const out=[];try{Object.keys(data||{}).forEach
 async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length&&!(j.updated_by&&S.user&&j.updated_by===S.user.name))toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
 if(typeof window!=='undefined')setInterval(pollServerState,20000);
 /* v4.46.4: сверка версий модулей — ловит «залил не все файлы» и застрявший кэш на хостинге */
-const CASE_EXPECTED_MODULES={'core':'4.49.0','v432-data-grid':'4.48.3','v4327-patch':'4.47.0','v4451-live-sync':'4.47.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.48.4','v4450-owner-report':'4.47.0'};
+
 function caseCheckModuleVersions(){try{
  const got=window.CASE_MODULE_VERSIONS||{};
  const stale=Object.keys(CASE_EXPECTED_MODULES).filter(m=>got[m]!==CASE_EXPECTED_MODULES[m]);
