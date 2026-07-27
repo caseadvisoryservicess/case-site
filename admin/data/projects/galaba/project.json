@@ -127,6 +127,18 @@
       },
       {
         "n": {
+          "ru": "2 400,0",
+          "uz": "2 400,0",
+          "en": "2,400.0"
+        },
+        "l": {
+          "ru": "м² общей площади здания (GBA)",
+          "uz": "m² binoning umumiy maydoni (GBA)",
+          "en": "m² total building GBA"
+        }
+      },
+      {
+        "n": {
           "ru": "330,1",
           "uz": "330,1",
           "en": "330.1"
@@ -135,22 +147,6 @@
           "ru": "м² типовой этаж",
           "uz": "m² tipik qavat",
           "en": "m² typical floor plate"
-        }
-      },
-      {
-        "n": "35-40",
-        "l": {
-          "ru": "машиномест рядом",
-          "uz": "yaqin atrofda avtoturargoh joyi",
-          "en": "parking spaces nearby"
-        }
-      },
-      {
-        "n": "",
-        "l": {
-          "ru": "Алмазарский район",
-          "uz": "Olmazor tumani",
-          "en": "Olmazor district"
         }
       }
     ],
@@ -499,6 +495,30 @@
           "ru": "1 436,5 м²",
           "uz": "1 436,5 m²",
           "en": "1,436.5 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Общая площадь здания (GBA)",
+          "uz": "Binoning umumiy maydoni (GBA)",
+          "en": "Total building GBA"
+        },
+        "s": {
+          "ru": "2 400,0 м² (подвал и 5 этажей)",
+          "uz": "2 400,0 m² (podval va 5 qavat)",
+          "en": "2,400.0 m² (basement and 5 floors)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Общая площадь этажей 1-5 (GBA)",
+          "uz": "1-5-qavatlar umumiy maydoni (GBA)",
+          "en": "GBA of floors 1 to 5"
+        },
+        "s": {
+          "ru": "2 000,0 м²",
+          "uz": "2 000,0 m²",
+          "en": "2,000.0 m²"
         }
       },
       {
