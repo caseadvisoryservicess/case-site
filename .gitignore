@@ -1,2 +1,7 @@
 # graphify build output — regenerate with `graphify update .`
 graphify-out/
+
+# graphify hook config — contains machine-specific absolute paths to the
+# graphify binary, so it cannot be shared. Regenerate with `graphify claude install`.
+.claude/settings.json
+*.graphify-bak
