@@ -38,6 +38,44 @@ function pick(v, lang) {
 
 function telHref(phone) { return 'tel:' + String(phone || '').replace(/[^\d+]/g, ''); }
 
+// ── настройки конкретного объекта: бренд, адреса, имена файлов, палитра ──
+// Все значения по умолчанию - Taxtapul, поэтому уже собранные лендинги
+// остаются байт в байт прежними, пока в конфиге нет блока site.
+function hexRgb(hex) {
+  const h = String(hex || '').replace('#', '');
+  const n = h.length === 3 ? h.split('').map((c) => c + c).join('') : h;
+  return [0, 2, 4].map((i) => parseInt(n.slice(i, i + 2), 16) || 0).join(',');
+}
+function siteOf(cfg) {
+  const s = (cfg && cfg.site) || {};
+  const a = s.addr || {};
+  const th = s.theme || {};
+  const theme = {
+    bg: th.bg || '#f6f5f2',
+    ink: th.ink || '#212326',
+    muted: th.muted || '#63666b',
+    accent: th.accent || '#a8804c',
+    accentD: th.accentD || '#8c6a3d',
+    dark: th.dark || '#1b1d1f'
+  };
+  return {
+    code: s.code || 'TAXTAPUL',
+    title: s.title || 'Taxtapul 31',
+    fileBase: s.fileBase || 'Taxtapul-31',
+    planBase: s.planBase || 'Taxtapul',
+    favicon: s.favicon || 'T',
+    headline: a.headline || { ru: 'Тахтапул, 31 · Ташкент', uz: "Taxtapul ko'chasi 31 · Toshkent", en: '31 Taxtapul St · Tashkent' },
+    street: a.street || { ru: 'ул. Тахтапул, 31', uz: "Taxtapul ko'chasi 31", en: "Taxtapul ko'chasi 31" },
+    locality: a.locality || { ru: 'Ташкент', uz: 'Toshkent', en: 'Toshkent' },
+    region: a.region || { ru: 'Шайхантахурский район', uz: 'Shayxontohur', en: 'Shayxontohur' },
+    streetLd: a.streetLd || "Taxtapul ko'chasi 31",
+    localityLd: a.localityLd || 'Toshkent',
+    regionLd: a.regionLd || 'Shayxontohur',
+    theme,
+    rgb: { accent: hexRgb(theme.accent), dark: hexRgb(theme.dark) }
+  };
+}
+
 // ── строки интерфейса ──
 const STR = {
   'nav.units': { ru: 'Помещения', uz: 'Maydonlar', en: 'Premises' },
@@ -172,7 +210,7 @@ ${bands.join('\n')}
 
 // ── CSS (инлайн, system-ui — ноль внешних запросов за шрифтами) ──
 const CSS = `
-:root{--bg:#f6f5f2;--ink:#212326;--muted:#63666b;--bronze:#a8804c;--bronze-d:#8c6a3d;--dark:#1b1d1f;--line:rgba(27,29,31,.12);--r:16px;--ok:#2e7c39;--warn:#9a6a12;--off:#75787c}
+:root{--bg:#f6f5f2;--ink:#212326;--muted:#63666b;--bronze:#a8804c;--bronze-d:#8c6a3d;--dark:#1b1d1f;--acc-rgb:168,128,76;--dark-rgb:27,29,31;--line:rgba(var(--dark-rgb),.12);--r:16px;--ok:#2e7c39;--warn:#9a6a12;--off:#75787c}
 *{box-sizing:border-box}html{scroll-behavior:smooth}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
@@ -186,7 +224,7 @@ a{color:var(--bronze-d)}
 .btn.ghost{background:#fff;border-color:var(--line);color:var(--ink)}.btn.ghost:hover{border-color:var(--bronze)}
 .btn.tg{background:#2aabee;color:#fff}.btn.tg:hover{background:#1e96d6}
 section{padding:64px 0}
-.lbl{display:inline-block;font:700 11px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-d);background:rgba(168,128,76,.12);padding:7px 12px;border-radius:999px;margin-bottom:16px}
+.lbl{display:inline-block;font:700 11px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-d);background:rgba(var(--acc-rgb),.12);padding:7px 12px;border-radius:999px;margin-bottom:16px}
 .h2{font-size:clamp(26px,4vw,36px);margin-bottom:14px}
 .sub{color:var(--muted);max-width:640px;margin:0 0 34px}
 /* header */
@@ -246,7 +284,7 @@ table.units td{padding:14px 10px;border-top:1px solid var(--line);font-size:14.5
 table.units td:first-child,table.units th:first-child{padding-left:16px}
 table.units td:last-child,table.units th:last-child{padding-right:16px}
 table.units tr{cursor:pointer}
-table.units tr.on td{background:rgba(168,128,76,.07)}
+table.units tr.on td{background:rgba(var(--acc-rgb),.07)}
 table.units b.gla{font:750 16px/1 system-ui;white-space:nowrap}
 .gla-note{display:block;font:500 12px/1.4 system-ui;color:var(--muted)}
 .uses-cell{color:var(--muted);font-size:13px;max-width:210px}
@@ -256,8 +294,8 @@ table.units b.gla{font:750 16px/1 system-ui;white-space:nowrap}
 .st.reserved{background:#fdf3da;color:var(--warn)}
 .st.leased,.st.sold{background:#ececeb;color:var(--off)}
 .unit-cta{white-space:nowrap;padding:9px 13px;font-size:12.5px}
-tr.row-whole td{background:rgba(27,29,31,.035)}
-body[data-intent="buy"] tr.row-whole td{background:rgba(168,128,76,.12)}
+tr.row-whole td{background:rgba(var(--dark-rgb),.035)}
+body[data-intent="buy"] tr.row-whole td{background:rgba(var(--acc-rgb),.12)}
 .cta-b{display:none}body[data-intent="buy"] .cta-b{display:inline}body[data-intent="buy"] .cta-l{display:none}
 /* use cases */
 .cases{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -281,7 +319,7 @@ table.specs td{padding:13px 16px;border-top:1px solid var(--line);font-size:14.5
 table.specs tr:first-child td{border-top:0}
 table.specs td:first-child{font-weight:650;width:42%;padding-right:20px}
 table.specs td:last-child{color:var(--muted);white-space:pre-line}
-.about-status{margin-top:16px;padding:14px 16px;background:rgba(168,128,76,.08);border-left:3px solid var(--bronze);border-radius:0 10px 10px 0;font-size:14px}
+.about-status{margin-top:16px;padding:14px 16px;background:rgba(var(--acc-rgb),.08);border-left:3px solid var(--bronze);border-radius:0 10px 10px 0;font-size:14px}
 .sfb-note{margin-top:10px;font-size:12.5px;color:var(--muted)}
 .gallery{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .gallery figure{margin:0;position:relative;border-radius:var(--r);overflow:hidden}
@@ -295,7 +333,7 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 .mapbox .pin{position:absolute;left:50%;top:44%;transform:translate(-50%,-100%);width:44px;height:56px}
 .map-hint{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:#fff;border-radius:10px;padding:11px 20px;font:650 13.5px/1 system-ui;box-shadow:0 6px 24px rgba(0,0,0,.14)}
 .mapbox iframe,.mapbox .ymap{position:absolute;inset:0;width:100%;height:100%}
-.map-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(27,29,31,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(27,29,31,.05) 1px,transparent 1px);background-size:34px 34px}
+.map-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(var(--dark-rgb),.05) 1px,transparent 1px),linear-gradient(90deg,rgba(var(--dark-rgb),.05) 1px,transparent 1px);background-size:34px 34px}
 .loc-addr{font:650 16px/1.5 system-ui;margin:0 0 6px}
 .routes{display:flex;gap:10px;flex-wrap:wrap;margin:16px 0 26px}
 table.drive{width:100%;border-collapse:collapse;font-size:14.5px}
@@ -329,7 +367,7 @@ table.drive td:last-child{text-align:right;white-space:nowrap;font-weight:650}
 .enq-side .btn.tg{width:100%;margin:16px 0 10px}
 .enq-side .call{display:block;text-align:center;font:750 21px/1.3 system-ui;color:var(--ink);text-decoration:none;margin-top:14px}
 /* акцентные CTA: мягкая пульсация + пробегающий блик */
-@keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(168,128,76,.45)}55%{box-shadow:0 0 0 11px rgba(168,128,76,0)}}
+@keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.45)}55%{box-shadow:0 0 0 11px rgba(var(--acc-rgb),0)}}
 @keyframes ctaSheen{0%,55%{transform:translateX(-160%) skewX(-20deg)}90%,100%{transform:translateX(320%) skewX(-20deg)}}
 a.btn.primary[href="#enquiry"]{position:relative;overflow:hidden;animation:ctaPulse 2.8s ease-out infinite}
 a.btn.primary[href="#enquiry"]::after{content:"";position:absolute;left:0;top:0;bottom:0;width:34%;background:linear-gradient(105deg,transparent,rgba(255,255,255,.38),transparent);animation:ctaSheen 4.2s ease-in-out infinite;pointer-events:none}
@@ -411,7 +449,7 @@ html.anim .hero picture img{animation:kbZoom 6.5s cubic-bezier(.25,.6,.35,1) bot
 .cut-f{cursor:pointer;outline:none}
 .cut-f rect{fill:#fbfaf7;stroke:var(--line);transition:fill .18s,stroke .18s}
 .cut-f.cut-below rect{fill:#efede7}
-.cut-f:hover rect{fill:rgba(168,128,76,.16);stroke:var(--bronze)}
+.cut-f:hover rect{fill:rgba(var(--acc-rgb),.16);stroke:var(--bronze)}
 .cut-f:focus-visible rect{stroke:var(--bronze);stroke-width:2}
 .cut-f.on rect{fill:var(--bronze);stroke:var(--bronze-d)}
 .cut-lvl{font:750 13px system-ui;fill:var(--ink)}
@@ -789,6 +827,7 @@ if(!RM&&FINE){
 // ── JSON-LD ──
 function jsonLd(cfg, lang, canonical, base) {
   const s = (k) => STR[k][lang];
+  const SITE = siteOf(cfg);
   const statusMap = {
     available: 'https://schema.org/InStock',
     reserved: 'https://schema.org/LimitedAvailability',
@@ -797,9 +836,9 @@ function jsonLd(cfg, lang, canonical, base) {
   };
   const addr = {
     '@type': 'PostalAddress',
-    streetAddress: "Taxtapul ko'chasi 31",
-    addressLocality: 'Toshkent',
-    addressRegion: 'Shayxontohur',
+    streetAddress: SITE.streetLd,
+    addressLocality: SITE.localityLd,
+    addressRegion: SITE.regionLd,
     addressCountry: 'UZ'
   };
   const geo = { '@type': 'GeoCoordinates', latitude: Number(cfg.location.lat) || 41.338889, longitude: Number(cfg.location.lng) || 69.263403 };
@@ -832,7 +871,7 @@ function jsonLd(cfg, lang, canonical, base) {
     '@context': 'https://schema.org', '@type': 'BreadcrumbList',
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: 'CASE Advisory', item: 'https://caseadvisory.uz' },
-      { '@type': 'ListItem', position: 2, name: 'Taxtapul 31', item: base + '/' }
+      { '@type': 'ListItem', position: 2, name: SITE.title, item: base + '/' }
     ]
   };
   const faq = (cfg.faq || []).length ? {
@@ -848,6 +887,7 @@ function jsonLd(cfg, lang, canonical, base) {
 
 // ── страница одного языка ──
 function renderPage(cfg, lang, uploadsDir) {
+  const SITE = siteOf(cfg);
   const s = (k) => STR[k][lang];
   const t = (v) => esc(pick(v, lang));
   const base = String(cfg.seo.publicUrl || '').replace(/\/+$/, '');
@@ -866,7 +906,12 @@ function renderPage(cfg, lang, uploadsDir) {
   // презентация на языке страницы (фолбэк - русская)
   const presFile = (lang === 'ru' ? ['presentation.pdf'] : ['presentation-' + lang + '.pdf', 'presentation.pdf'])
     .find((f) => fs.existsSync(path.join(uploadsDir, f))) || '';
-  const presName = 'Taxtapul-31-' + lang.toUpperCase() + '.pdf';
+  const presName = SITE.fileBase + '-' + lang.toUpperCase() + '.pdf';
+  // палитра объекта: выводится только если она задана в конфиге,
+  // иначе страница остаётся в точности на базовых цветах
+  const themeCss = (cfg.site && cfg.site.theme)
+    ? `\n:root{--bg:${SITE.theme.bg};--ink:${SITE.theme.ink};--muted:${SITE.theme.muted};--bronze:${SITE.theme.accent};--bronze-d:${SITE.theme.accentD};--dark:${SITE.theme.dark};--acc-rgb:${SITE.rgb.accent};--dark-rgb:${SITE.rgb.dark}}`
+    : '';
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -928,7 +973,7 @@ function renderPage(cfg, lang, uploadsDir) {
     id: u.id, ru: pick(u.level, 'ru'),
     label: pick(u.level, lang), gla: u.gla || '', gba: u.gba || '', ceil: u.ceil || '',
     planUrl: u.plan ? prefix + 'assets/' + u.plan : '',
-    planName: u.plan ? 'Taxtapul-' + u.id + u.plan.slice(u.plan.lastIndexOf('.')) : ''
+    planName: u.plan ? SITE.planBase + '-' + u.id + u.plan.slice(u.plan.lastIndexOf('.')) : ''
   })));
   const ceilLabel = s('units.ceil');
 
@@ -1001,22 +1046,22 @@ ${ogImg ? `<meta property="og:image" content="${esc(ogImg)}">` : ''}
 <meta property="og:type" content="website">
 <meta property="og:locale" content="${OG_LOCALE[lang]}">
 ${LANGS.filter((l) => l !== lang).map((l) => `<meta property="og:locale:alternate" content="${OG_LOCALE[l]}">`).join('\n')}
-<meta property="og:site_name" content="Taxtapul 31">
+<meta property="og:site_name" content="${esc(SITE.title)}">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${t(cfg.seo.title)}">
 ${ogImg ? `<meta name="twitter:image" content="${esc(ogImg)}">` : ''}
-<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23a8804c'/><text x='16' y='21.5' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='14' fill='white'>T</text></svg>`).replace(/%23/g, '%23')}">
+<link rel="icon" href="data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='${SITE.theme.accent.replace('#', '%23')}'/><text x='16' y='21.5' text-anchor='middle' font-family='system-ui' font-weight='800' font-size='14' fill='white'>${esc(SITE.favicon)}</text></svg>`).replace(/%23/g, '%23')}">
 ${heroPreload}
 ${jsonLd(cfg, lang, canonical, base)}
 ${counters}
-<style>${CSS}</style>
+<style>${CSS}${themeCss}</style>
 <script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim")}catch(e){}</script>
 </head>
 <body data-intent="lease">
 
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="${canonical}">TAXTAPUL<small>${lang === 'en' ? '31 Taxtapul St · Tashkent' : lang === 'uz' ? "Taxtapul ko'chasi 31 · Toshkent" : 'Тахтапул, 31 · Ташкент'}</small></a>
+    <a class="brand" href="${canonical}">${esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
     <nav>
       <a href="#units">${s('nav.units')}</a>
       <a href="#about">${s('nav.about')}</a>
@@ -1211,11 +1256,11 @@ ${counters}
 
 <footer>
   <div class="wrap" itemscope itemtype="https://schema.org/LocalBusiness">
-    <b itemprop="name" style="color:#fff">Taxtapul 31 · CASE Advisory</b>
+    <b itemprop="name" style="color:#fff">${esc(SITE.title)} · CASE Advisory</b>
     <span itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
-      <span itemprop="streetAddress">${lang === 'ru' ? 'ул. Тахтапул, 31' : "Taxtapul ko'chasi 31"}</span>,
-      <span itemprop="addressLocality">${lang === 'ru' ? 'Ташкент' : 'Toshkent'}</span>
-      (<span itemprop="addressRegion">${lang === 'ru' ? 'Шайхантахурский район' : 'Shayxontohur'}</span>)
+      <span itemprop="streetAddress">${esc(pick(SITE.street, lang))}</span>,
+      <span itemprop="addressLocality">${esc(pick(SITE.locality, lang))}</span>
+      (<span itemprop="addressRegion">${esc(pick(SITE.region, lang))}</span>)
     </span>
     <a href="${telHref(phone)}" itemprop="telephone" data-ev="phone_click" data-evx='{"where":"footer"}'>${esc(phone)}</a>
     <span>${t(cfg.footer.legal)}</span>
