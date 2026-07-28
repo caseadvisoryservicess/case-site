@@ -269,7 +269,7 @@ body[data-intent="lease"] .intent button[data-i="lease"],body[data-intent="buy"]
 /* params strip */
 .params{background:var(--dark);color:#fff;padding:34px 0}
 .params .wrap{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
-.params b{display:block;font:750 25px/1.1 system-ui;letter-spacing:-.01em}
+.params b{display:block;font:750 25px/1.1 system-ui;letter-spacing:-.01em;overflow-wrap:anywhere}
 .params span{font:500 12.5px/1.4 system-ui;opacity:.72}
 /* units */
 .units-note{color:var(--muted);font-size:14.5px;max-width:720px;margin:26px 0 0}
@@ -322,7 +322,7 @@ body[data-intent="buy"] tr.row-whole td{background:rgba(var(--acc-rgb),.12)}
 /* about */
 .about-grid{display:grid;grid-template-columns:5fr 7fr;gap:34px;align-items:start}
 table.specs{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-table.specs td{padding:13px 16px;border-top:1px solid var(--line);font-size:14.5px}
+table.specs td{overflow-wrap:anywhere;padding:13px 16px;border-top:1px solid var(--line);font-size:14.5px}
 table.specs tr:first-child td{border-top:0}
 table.specs td:first-child{font-weight:650;width:42%;padding-right:20px}
 table.specs td:last-child{color:var(--muted);white-space:pre-line}
@@ -333,6 +333,18 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 .gallery figure:first-child{grid-column:1/-1}
 .gallery img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9}
 .gallery figcaption{position:absolute;right:10px;bottom:10px;background:rgba(15,16,18,.55);color:#fff;font:600 10.5px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:7px}
+/* отдельная секция фотографий: нужна объектам, которые продаются глазами
+   (ресторан, салон), где кадров больше, чем помещается в галерею «О ...» */
+.photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.photos-grid figure{margin:0;position:relative;border-radius:var(--r);overflow:hidden}
+/* одна пропорция на все кадры: сетка из вертикальных и горизонтальных снимков
+   рвётся на дыры, а ровные ячейки читаются как каталог */
+.photos-grid img{width:100%;height:auto;object-fit:cover;aspect-ratio:4/3;display:block;cursor:zoom-in}
+.photos-grid figure.wide img{aspect-ratio:8/3}
+.photos-grid figure.wide{grid-column:span 2}
+.photos-grid figcaption{position:absolute;left:10px;bottom:10px;background:rgba(15,16,18,.55);color:#fff;font:600 10.5px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:7px}
+@media(max-width:920px){.photos-grid{grid-template-columns:1fr 1fr}.photos-grid figure.wide{grid-column:span 2}}
+@media(max-width:560px){.photos-grid{grid-template-columns:1fr}.photos-grid figure.wide{grid-column:span 1}}
 .viz-all{margin-top:12px;font-size:12px;color:var(--muted)}
 /* location */
 .loc-grid{display:grid;grid-template-columns:7fr 5fr;gap:34px;align-items:start}
@@ -406,6 +418,7 @@ footer a{color:#fff}
 @media(max-width:920px){
   .top nav{display:none}
   .params .wrap{grid-template-columns:repeat(2,1fr);gap:20px 14px}
+  .params b{font-size:21px}
   .params .wrap div:nth-child(odd):last-child{grid-column:1/-1}
   .units-grid,.about-grid,.loc-grid,.enq-grid{grid-template-columns:1fr}
   .cases{grid-template-columns:1fr 1fr}
@@ -618,7 +631,7 @@ if(lb){
   function lbClose(){lb.hidden=true;lbImg.src='';document.body.style.overflow=''}
   lb.addEventListener('click',lbClose);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')lbClose()});
-  document.querySelectorAll('.plan-card img,.gallery img').forEach(function(im){
+  document.querySelectorAll('.plan-card img,.gallery img,.photos-grid img').forEach(function(im){
     im.addEventListener('click',function(){lbOpen(im.dataset.full||im.currentSrc||im.src)});
   });
 }
@@ -753,7 +766,7 @@ if(!RM&&'IntersectionObserver' in window){
   ['.lbl','.h2','.sub','.sec-cta','.units-note','.scen-note','.plan-card','.units-table-wrap','.about-status','.sfb-note','.viz-all','.loc-addr','.routes','table.drive','.around','.metro-note','#enq-form','.enq-side'].forEach(function(q){
     document.querySelectorAll(q).forEach(function(el){rvAdd(el,0)});
   });
-  ['.params .wrap>div','.lvl-picker button','.cases .case','.scen-grid .scen-col','.gallery figure','.faq details'].forEach(function(q){
+  ['.params .wrap>div','.lvl-picker button','.cases .case','.scen-grid .scen-col','.gallery figure','.photos-grid figure','.faq details'].forEach(function(q){
     var i=0;
     document.querySelectorAll(q).forEach(function(el){rvAdd(el,Math.min(i*70,350));i++});
   });
@@ -820,7 +833,7 @@ if(!RM&&'IntersectionObserver' in window){
 
 /* 3D-наклон карточек рендеров и планировки за курсором (только desktop, fine pointer) */
 if(!RM&&FINE){
-  document.querySelectorAll('.gallery figure,.plan-card').forEach(function(card){
+  document.querySelectorAll('.gallery figure,.photos-grid figure,.plan-card').forEach(function(card){
     card.classList.add('tilt');
     var rect=null,pend=false,rx=0,ry=0;
     var apply=function(){
@@ -954,6 +967,8 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
 .hero h1,.h2,.enq-side h3,.facts b,.params b,.cases h3,.scen h3,.faq-q,.plan-card b,.spec-name,.brand{font-family:'${FT.family}',Georgia,'Times New Roman',serif}
 .brand{letter-spacing:.14em;font-weight:600}
 .brand small{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.14em}
+/* на узком экране разрядка антиквы съедает место у переключателя языков */
+@media(max-width:560px){.brand{letter-spacing:.05em;font-size:23px}}
 /* у антиквы цифры минускульные, поэтому в фактах их надо крупнее обычного */
 .facts b{font-size:30px}
 .params b{font-size:31px}
@@ -1051,6 +1066,27 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
       <figcaption>${g.badge ? t(g.badge) : s('about.viz')}</figcaption>
     </figure>`).join('');
 
+  // ── секция фотографий (необязательная) ──
+  // Блок cfg.photos = { lbl, h2, sub, note, images: [{file, alt, badge, span}] }.
+  // Нужен объектам, которые продаются глазами: у ресторана снимков заметно
+  // больше, чем помещается в галерею «О помещении». span: wide | tall.
+  const photoItems = ((cfg.photos && cfg.photos.images) || []).filter((g) => g.file);
+  const photosSection = !photoItems.length ? '' : `
+<section id="photos" style="padding-top:0">
+  <div class="wrap">
+    ${cfg.photos.lbl ? `<span class="lbl">${t(cfg.photos.lbl)}</span>` : ''}
+    <h2 class="h2">${t(cfg.photos.h2)}</h2>
+    ${cfg.photos.sub ? `<p class="sub" style="max-width:760px;margin:0 0 22px">${t(cfg.photos.sub)}</p>` : ''}
+    <div class="photos-grid">
+      ${photoItems.map((g) => `<figure${g.span ? ` class="${g.span === 'tall' ? 'tall' : 'wide'}"` : ''}>${pictureTag(uploadsDir, prefix, g.file, { alt: g.alt ? t(g.alt) : t(cfg.intro.h1), sizes: '(max-width:560px) 100vw, (max-width:920px) 50vw, 33vw' })}
+        ${g.badge ? `<figcaption>${t(g.badge)}</figcaption>` : ''}
+      </figure>`).join('\n')}
+    </div>
+    ${cfg.photos.note ? `<p class="viz-all">${t(cfg.photos.note)}</p>` : ''}
+    <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"photos"}'>${s('cta.more')}</a></div>
+  </div>
+</section>`;
+
   // ── экран 7 ──
   const driveRows = (cfg.location.drive || []).map((d) =>
     `<tr><td>${t(d.to)}</td><td>${t(d.time)}</td></tr>`).join('\n');
@@ -1119,6 +1155,7 @@ ${counters}
     <a class="brand" href="${canonical}">${esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
     <nav>
       ${NO_UNITS ? '' : `<a href="#units">${s('nav.units')}</a>`}
+      ${photoItems.length ? `<a href="#photos">${t((cfg.photos && cfg.photos.nav) || cfg.photos.h2)}</a>` : ''}
       <a href="#about">${s('nav.about')}</a>
       <a href="#location">${s('nav.location')}</a>
       <a href="#faq">${s('nav.faq')}</a>
@@ -1225,6 +1262,8 @@ ${NO_UNITS ? '' : `<section id="units">
     <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"about"}'>${s('cta.more')}</a></div>
   </div>
 </section>
+
+${photosSection}
 
 <!-- экран 7: локация -->
 <section id="location" style="padding-top:0">
@@ -1376,6 +1415,7 @@ ${alt}
     if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
   }
   for (const g of cfg.about.images || []) add(g.file);
+  for (const g of (cfg.photos && cfg.photos.images) || []) add(g.file);
   // файлы своей типографики тоже уезжают в assets
   for (const f of ((cfg.site && cfg.site.fonts && cfg.site.fonts.files) || [])) images.add(f.file);
   for (const u of cfg.units || []) if (u.plan) images.add(u.plan);

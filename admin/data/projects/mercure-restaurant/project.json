@@ -558,6 +558,206 @@
       }
     ]
   },
+  "photos": {
+    "nav": {
+      "ru": "Фотографии",
+      "uz": "Fotosuratlar",
+      "en": "Photos"
+    },
+    "lbl": {
+      "ru": "Фотографии",
+      "uz": "Fotosuratlar",
+      "en": "Photographs"
+    },
+    "h2": {
+      "ru": "Помещение изнутри",
+      "uz": "Maydon ichkaridan",
+      "en": "Inside the space"
+    },
+    "sub": {
+      "ru": "Съёмка сделана в помещении. Мебель, светильники, посуда, бар и кухонное оборудование на снимках остаются новому арендатору.",
+      "uz": "Suratga olish maydonning o'zida qilingan. Suratlardagi mebel, chiroqlar, idishlar, bar va oshxona jihozlari yangi ijarachiga qoladi.",
+      "en": "The photographs were taken on site. The furniture, light fittings, tableware, bar and kitchen equipment shown remain for the new tenant."
+    },
+    "note": {
+      "ru": "Фотографии сделаны в помещении и не являются публичной офертой.",
+      "uz": "Fotosuratlar maydonning o'zida olingan va ommaviy oferta hisoblanmaydi.",
+      "en": "The photographs were taken on site and do not constitute a public offer."
+    },
+    "images": [
+      {
+        "file": "hall-wide.jpg",
+        "span": "wide",
+        "badge": {
+          "ru": "основной зал",
+          "uz": "asosiy zal",
+          "en": "main dining room"
+        },
+        "alt": {
+          "ru": "Основной зал ресторана: мраморный пол, люстры, диваны и столы на 279,7 м²",
+          "uz": "Restoranning asosiy zali: marmar pol, qandillar, divanlar va stollar",
+          "en": "The main dining room: marble floor, chandeliers, banquettes and tables"
+        }
+      },
+      {
+        "file": "bar.jpg",
+        "badge": {
+          "ru": "бар и раздача",
+          "uz": "bar va tarqatish",
+          "en": "bar and service counter"
+        },
+        "alt": {
+          "ru": "Бар и линия раздачи ресторана с чёрной столяркой и открытыми полками",
+          "uz": "Restoranning bari va tarqatish liniyasi, qora yog'och va ochiq javonlar bilan",
+          "en": "The bar and service line with black joinery and open shelving"
+        }
+      },
+      {
+        "file": "lounge-bay.jpg",
+        "badge": {
+          "ru": "диванная зона",
+          "uz": "divan zonasi",
+          "en": "lounge seating"
+        },
+        "alt": {
+          "ru": "Диванная зона ресторана у высоких окон с бордовыми шторами",
+          "uz": "Baland derazalar yonidagi divan zonasi, bordo pardalar bilan",
+          "en": "Lounge seating by tall windows with burgundy curtains"
+        }
+      },
+      {
+        "file": "lounge.jpg",
+        "badge": {
+          "ru": "зал у окон",
+          "uz": "deraza yonidagi zal",
+          "en": "window seating"
+        },
+        "alt": {
+          "ru": "Мягкие диваны и столы у окон, вид на второй зал ресторана",
+          "uz": "Deraza yonidagi yumshoq divanlar va stollar, ikkinchi zalga ko'rinish",
+          "en": "Upholstered banquettes and tables by the windows, looking into the second room"
+        }
+      },
+      {
+        "file": "hall-wood.jpg",
+        "badge": {
+          "ru": "второй зал",
+          "uz": "ikkinchi zal",
+          "en": "second room"
+        },
+        "alt": {
+          "ru": "Второй зал ресторана с деревянным полом ёлочкой и мягкими диванами",
+          "uz": "Yog'och polli ikkinchi zal, yumshoq divanlar bilan",
+          "en": "The second dining room with a herringbone wooden floor and soft banquettes"
+        }
+      },
+      {
+        "file": "kitchen.jpg",
+        "badge": {
+          "ru": "кухня",
+          "uz": "oshxona",
+          "en": "kitchen"
+        },
+        "alt": {
+          "ru": "Профессиональная кухня: вытяжной зонт, тепловое оборудование, производственные столы",
+          "uz": "Professional oshxona: so'rg'ich, issiqlik jihozlari, ishlab chiqarish stollari",
+          "en": "The professional kitchen: extraction hood, cooking line and prep counters"
+        }
+      },
+      {
+        "file": "terrace.jpg",
+        "span": "wide",
+        "badge": {
+          "ru": "терраса 47,7 м²",
+          "uz": "terrassa 47,7 m²",
+          "en": "terrace 47.7 m²"
+        },
+        "alt": {
+          "ru": "Остеклённая терраса с раздвижным навесом, столами и плетёными креслами",
+          "uz": "Suriladigan soyabonli oynali terrassa, stollar va to'qilgan kreslolar bilan",
+          "en": "The glazed terrace with a retractable canopy, tables and woven armchairs"
+        }
+      },
+      {
+        "file": "entrance.jpg",
+        "badge": {
+          "ru": "входная группа",
+          "uz": "kirish guruhi",
+          "en": "entrance"
+        },
+        "alt": {
+          "ru": "Входная группа ресторана: мраморный пол, латунная вывеска, люстра",
+          "uz": "Restoran kirish guruhi: marmar pol, latun peshlavha, qandil",
+          "en": "The restaurant entrance: marble floor, brass signage and a chandelier"
+        }
+      },
+      {
+        "file": "passage.jpg",
+        "badge": {
+          "ru": "проход к выходу",
+          "uz": "chiqishga o'tish",
+          "en": "passage to the exit"
+        },
+        "alt": {
+          "ru": "Проход между залами к отдельному выходу на улицу",
+          "uz": "Zallar orasidagi o'tish, ko'chaga alohida chiqish tomon",
+          "en": "The passage between the rooms leading to the separate street exit"
+        }
+      },
+      {
+        "file": "restroom.jpg",
+        "badge": {
+          "ru": "санузел",
+          "uz": "hojatxona",
+          "en": "restroom"
+        },
+        "alt": {
+          "ru": "Санузел для гостей: мрамор, мозаика, золотая фурнитура",
+          "uz": "Mehmonlar uchun hojatxona: marmar, mozaika, oltin rangli furnitura",
+          "en": "Guest restroom: marble, mosaic tiling and brass fittings"
+        }
+      },
+      {
+        "file": "lobby.jpg",
+        "badge": {
+          "ru": "лобби отеля",
+          "uz": "mehmonxona lobbisi",
+          "en": "hotel lobby"
+        },
+        "alt": {
+          "ru": "Лобби отеля Mercure: из него ведёт прямой вход в ресторан",
+          "uz": "Mercure mehmonxonasi lobbisi: undan restoranga to'g'ridan-to'g'ri kirish bor",
+          "en": "The Mercure hotel lobby, with a direct door into the restaurant"
+        }
+      },
+      {
+        "file": "facade.jpg",
+        "badge": {
+          "ru": "здание отеля",
+          "uz": "mehmonxona binosi",
+          "en": "the hotel building"
+        },
+        "alt": {
+          "ru": "Фасад здания отеля Mercure в центре Ташкента, где расположен ресторан",
+          "uz": "Toshkent markazidagi Mercure mehmonxonasi binosi fasadi, restoran shu yerda",
+          "en": "The facade of the Mercure hotel building in central Tashkent, home to the restaurant"
+        }
+      },
+      {
+        "file": "facade-terrace.jpg",
+        "badge": {
+          "ru": "вход с улицы",
+          "uz": "ko'chadan kirish",
+          "en": "street entrance"
+        },
+        "alt": {
+          "ru": "Отдельный вход с улицы и остеклённая терраса ресторана со стороны фасада",
+          "uz": "Ko'chadan alohida kirish va fasad tomondan restoranning oynali terrassasi",
+          "en": "The separate street entrance and the glazed terrace seen from the street"
+        }
+      }
+    ]
+  },
   "location": {
     "h2": {
       "ru": "Центр Ташкента, здание отеля Mercure",

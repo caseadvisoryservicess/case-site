@@ -49,9 +49,19 @@ const PLAN_PAGES = PRES.planPages || [{ id: 'b' }, { id: 'f1' }, { id: 'f2', tit
 // именованные менеджеры: если заданы, на странице контактов показываем их,
 // а не один обезличенный номер
 const PEOPLE = ((cfg.contacts || {}).people || []).filter((p) => p && p.phone);
+// страницы фотосетки: объект, который продаётся глазами, показываем целиком,
+// а не тремя кадрами. Источник - cfg.photos.images, по 6 снимков на лист.
+const GRID_IMGS = (PRES.gridImgs || ((cfg.photos && cfg.photos.images) || []).map((g) => g.file)).filter(Boolean);
+// подпись кадра в сетке: из cfg.photos.images[].badge, если задана
+const badgeOf2 = (file, lang) => {
+  const g = ((cfg.photos && cfg.photos.images) || []).find((x) => x.file === file);
+  return g && g.badge ? L(g.badge, lang) : '';
+};
+const GRID_PAGES = [];
+for (let i = 0; i < GRID_IMGS.length; i += 6) GRID_PAGES.push(GRID_IMGS.slice(i, i + 6));
 const AT = (cfg.site && cfg.site.assetType) || 'building';
 const LAND = AT === 'land' || AT === 'single';
-const TOTAL = LAND ? 7 : 8 + PLAN_PAGES.length;
+const TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];
   return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
@@ -126,6 +136,7 @@ const T = {
   c_legal: { ru: 'Информация справочная, не является публичной офертой', uz: 'Ma’lumot xarakteriga ega, ommaviy oferta emas', en: 'For reference only, not a public offer' },
   // подписи режима «земельный участок»
   lbl_land: { ru: 'Участок', uz: 'Uchastka', en: 'The plot' },
+  h_grid: { ru: 'Помещение изнутри', uz: 'Maydon ichkaridan', en: 'Inside the space' },
   th_param: { ru: 'Параметр', uz: 'Parametr', en: 'Parameter' },
   th_value: { ru: 'Значение', uz: 'Qiymat', en: 'Value' },
   land_deal: { ru: 'Стоимость и условия сделки - по запросу:', uz: 'Bitim narxi va shartlari - so‘rov bo‘yicha:', en: 'Price and deal terms on request:' },
@@ -141,6 +152,16 @@ const T = {
     uz: 'Barcha tasvirlar - qurilish konsepsiyasi vizualizatsiyalari, uchastka fotosuratlari emas. Ommaviy oferta hisoblanmaydi.',
     en: 'All images are visualisations of a development concept, not photographs of the site. They do not constitute a public offer.'
   }
+};
+
+// для мелких ячеек сетки полноразмерный вариант не нужен: 1280 на 79 мм это
+// больше 400 dpi, а вес PDF втрое меньше
+const img64grid = (name) => {
+  const ext0 = path.extname(name);
+  const base = name.slice(0, -ext0.length);
+  const pick = [base + '-1280' + ext0, base + '-640' + ext0, name].find((f) => fs.existsSync(path.join(UP, f))) || name;
+  const ext = path.extname(pick).slice(1);
+  return `data:image/${ext === 'png' ? 'png' : 'jpeg'};base64,${fs.readFileSync(path.join(UP, pick)).toString('base64')}`;
 };
 
 const img64 = (name) => {
@@ -542,6 +563,19 @@ function buildLandHtml(lang, qr) {
     </div>
     ${foot(6)}
   </div>
+
+  ${GRID_PAGES.map((files, i) => `
+  <div class="pg">
+    <span class="lbl">${t('lbl_viz')}</span>
+    <h2>${t('h_grid')}${GRID_PAGES.length > 1 ? ` ${i + 1}/${GRID_PAGES.length}` : ''}</h2>
+    <div style="display:grid;grid-template-columns:repeat(${Math.min(files.length, 3)},1fr);grid-auto-rows:1fr;gap:6mm;flex:1;min-height:0">
+      ${files.map((f) => `<div style="border-radius:4mm;overflow:hidden;position:relative">
+        <img src="${img64grid(f)}" style="width:100%;height:100%;object-fit:cover">
+        ${badgeOf2(f, lang) ? `<span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${esc(badgeOf2(f, lang))}</span>` : ''}
+      </div>`).join('')}
+    </div>
+    ${foot(7 + i)}
+  </div>`).join('')}
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">
     <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
