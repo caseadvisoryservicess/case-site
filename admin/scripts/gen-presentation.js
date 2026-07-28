@@ -157,10 +157,14 @@ const T = {
 
 // для мелких ячеек сетки полноразмерный вариант не нужен: 1280 на 79 мм это
 // больше 400 dpi, а вес PDF втрое меньше
-const img64grid = (name) => {
+const img64grid = (name, small) => {
   const ext0 = path.extname(name);
   const base = name.slice(0, -ext0.length);
-  const pick = [base + '-1280' + ext0, base + '-640' + ext0, name].find((f) => fs.existsSync(path.join(UP, f))) || name;
+  // в сетке 3x2 ячейка около 79 мм: 640 это больше 200 dpi и втрое легче.
+  // Одиночный кадр на всю страницу берём крупнее.
+  const order = small ? [base + '-640' + ext0, base + '-1280' + ext0, name]
+                      : [base + '-1280' + ext0, name];
+  const pick = order.find((f) => fs.existsSync(path.join(UP, f))) || name;
   const ext = path.extname(pick).slice(1);
   return `data:image/${ext === 'png' ? 'png' : 'jpeg'};base64,${fs.readFileSync(path.join(UP, pick)).toString('base64')}`;
 };
@@ -587,7 +591,7 @@ function buildLandHtml(lang, qr) {
     <h2>${t('h_grid')}${GRID_PAGES.length > 1 ? ` ${i + 1}/${GRID_PAGES.length}` : ''}</h2>
     <div style="display:grid;grid-template-columns:repeat(${Math.min(files.length, 3)},1fr);grid-auto-rows:1fr;gap:6mm;flex:1;min-height:0">
       ${files.map((f) => `<div style="border-radius:4mm;overflow:hidden;position:relative">
-        <img src="${img64grid(f)}" style="width:100%;height:100%;object-fit:cover">
+        <img src="${img64grid(f, files.length > 2)}" style="width:100%;height:100%;object-fit:cover">
         ${badgeOf2(f, lang) ? `<span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${esc(badgeOf2(f, lang))}</span>` : ''}
       </div>`).join('')}
     </div>
