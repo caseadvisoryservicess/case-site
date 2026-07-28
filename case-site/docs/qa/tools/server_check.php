@@ -158,7 +158,20 @@ foreach (['memory_limit','post_max_size','upload_max_filesize','max_execution_ti
 $pm = (int)preg_replace('/\D/', '', ini_get('post_max_size'));
 if ($pm && $pm < 16 && stripos(ini_get('post_max_size'), 'm') !== false)
   echo "!!  post_max_size = " . ini_get('post_max_size') . " — большое сохранение может обрываться. Нужно 32M и больше.\n";
-$free = @disk_free_space($OS); if ($free) echo '    свободно на диске: ' . human($free) . "\n";
+/* disk_free_space() показывает СВОБОДНОЕ МЕСТО ВСЕЙ ФАЙЛОВОЙ СИСТЕМЫ сервера, а не
+   квоту аккаунта. На шаред-хостинге это разные вещи: тут могут быть терабайты, пока
+   у аккаунта остаётся сотня мегабайт. Подписано честно, чтобы не успокаивать зря. */
+$free = @disk_free_space($OS);
+if ($free) {
+  echo '    свободно на диске сервера: ' . human($free) . "\n";
+  echo "    (это НЕ квота аккаунта! свою квоту смотрите в панели: «Дисковое пространство»)\n";
+}
+$osSize = 0;
+try {
+  $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($OS, FilesystemIterator::SKIP_DOTS));
+  foreach ($it as $f) { if ($f->isFile()) $osSize += $f->getSize(); }
+} catch (Throwable $e) {}
+if ($osSize) echo '    папка os занимает: ' . human($osSize) . "\n";
 echo '    папка os доступна на запись: ' . (is_writable($OS) ? 'да' : 'НЕТ') . "\n";
 
 /* ============ 3. БАЗА ДАННЫХ ============ */
