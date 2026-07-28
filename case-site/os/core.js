@@ -66,8 +66,37 @@ let CASE_WORKFLOW_SETTINGS={};
 let CASE_PORTFOLIO_PROJECTS=[];      /* historical and current CASE project portfolio, separate from operational OBJECTS */
 let CASE_PROPOSAL_CATALOG={};        /* editable packages, services and pricing defaults */
 async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date.now();const r=await fetch(u,{credentials:'same-origin',cache:'no-store',headers:{'Accept':'application/json'}});let j=null;try{j=await r.json();}catch(e){}if(j&&j.csrf)CSRF_TOKEN=j.csrf;if(!r.ok){if(r.status===401)try{sessionExpired();}catch(e){}const err=new Error((j&&j.error)||('HTTP '+r.status));err.status=r.status;throw err;}return j;}
+/* v4.50.0: объявлено ЗДЕСЬ, а не ниже по файлу: _stripUnsyncedEmpty читает эту карту,
+   и самое первое сохранение успевало сработать, пока let ещё во временной мёртвой зоне.
+   Обращение бросало ReferenceError, catch его глушил — и состояние уходило нефильтрованным. */
+let _syncedKeyJson={};
+/* v4.50.0: сервер вырезает из ответа GET разделы, закрытые для роли. Клиент их никогда
+   не получал и держит пустыми — и раньше эта пустота уходила при каждом сохранении из
+   всех тринадцати мест, где состояние отправляется. Сервер писал state_key_denied
+   и откатывал значение: на боевом сервере 400 ложных отказов за неделю (U — 167 раз),
+   за которыми не было видно настоящих. Пустой раздел, которого сервер нам не присылал,
+   не несёт информации — не отправляем его вовсе.
+   Фильтр стоит в одной точке (apiPOST), а не по местам вызова: так его не обойдёт
+   ни один существующий путь сохранения, ни будущий.
+   Удаление последней записи это НЕ ломает: такой раздел сервер уже присылал,
+   _syncedKeyJson[k] определён, и пустое значение уходит как обычно. */
+function _stripUnsyncedEmpty(data){
+ try{
+  if(!data||typeof data!=='object')return data;
+  const out={};
+  Object.keys(data).forEach(k=>{
+   if(_syncedKeyJson[k]===undefined){
+    const v=data[k];
+    if(Array.isArray(v)?v.length===0:(v&&typeof v==='object'&&Object.keys(v).length===0))return;
+   }
+   out[k]=data[k];});
+  return out;
+ }catch(e){return data;}
+}
 async function apiPOST(p,data){
  data=data||{};
+ if(String(p).indexOf('state.php')===0&&data&&data.data&&typeof data.data==='object')
+  data={...data,data:_stripUnsyncedEmpty(data.data)};
  async function ensureCsrf(){if(CSRF_TOKEN)return;try{const j=await apiGET('auth.php');if(j&&j.csrf)CSRF_TOKEN=j.csrf;}catch(e){}}
  async function once(){
   let d=data;
@@ -89,7 +118,6 @@ async function apiPOST(p,data){
 function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,OWNER_REPORTS,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
 let _lastServerUpdate=null,_serverRev=0,_lastLocalMutationAt=0;
 /* P1-6: слепок «что сервер уже знает» по каждому ключу состояния — для доменных сохранений */
-let _syncedKeyJson={};
 function _rememberSynced(data){try{if(data&&typeof data==='object')Object.keys(data).forEach(k=>{try{_syncedKeyJson[k]=JSON.stringify(data[k]);}catch(e){}});}catch(e){}}
 async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;if(j&&j.data)_rememberSynced(j.data);return (j&&j.data)||null;}catch(e){return null;}}
 /* ===== Автообновление: подтягиваем общие данные без ручного F5, аккуратно (не мешая активной работе) ===== */
@@ -114,12 +142,18 @@ if(typeof window!=='undefined')window.addEventListener('load',()=>setTimeout(cas
 let _saveT=null,_saveBusy=false,_savePend=false,_offlineDirty=false,_localSaveFailed=false,_saveConflict=false,_lastSavedAt=null,_localReduced=false;
 function apiSaveState(){if(!BACKEND)return;updateOfflineBadge();clearTimeout(_saveT);_saveT=setTimeout(_doSaveState,800);}
 const STATE_KEY_LABELS={BRANDS:'База брендов',GEO_DATA:'Геоаналитика',U:'Реестр помещений / ЛСР',OBJECTS:'Проекты',CHANGES:'Журнал реестра',PLANUP:'Планировки',PLANSVG:'Чертежи',PLAN_CODES:'Коды планировок',PLAN_STRUCT:'Структура чертежа',PLAN_LABELPOS:'Подписи чертежа',PLAN_IGNORED_CODES:'Исключённые коды',CASE_LAYOUT_VERSIONS:'Версии планировок',DOCREG:'Документы',DOC_CONTACTS:'Контакты',BENCH:'Бенчмарки',REFUSALS:'Отказы',BRAND_REQUESTS:'Заявки брендов',INVESTOR_REQUESTS:'Заявки инвесторов',SALES_ASSETS:'Продажи: активы',SALES_BUYERS:'Продажи: покупатели',CASE_TASKS:'Задачи',CASE_CLIENTS:'Клиенты',KPI_TARGETS:'KPI',MAPCFG:'Настройки карты',CASE_PORTFOLIO_PROJECTS:'Портфель проектов',OWNER_REPORTS:'Отчёты владельцу'};
-const _warnedRejected=new Set();
+/* v4.50.0: был Set навсегда — про раздел предупреждали один раз за сессию, и любой
+   следующий отказ по нему проходил молча. Теперь помним ВРЕМЯ предупреждения и через
+   10 минут говорим снова: повторная потеря правки не должна оставаться незамеченной. */
+const _warnedRejected=new Map();
+const _WARN_AGAIN_MS=600000;
 function _warnRejectedKeys(rsp){ /* v4.42.1: сервер не принял часть изменений — говорим об этом прямо, а не молчим */
  try{
   const list=rsp&&rsp.rejected_keys;if(!Array.isArray(list)||!list.length)return;
-  const fresh=list.filter(k=>!_warnedRejected.has(k));if(!fresh.length)return;
-  fresh.forEach(k=>_warnedRejected.add(k));
+  const _now=Date.now();
+  const fresh=list.filter(k=>{const t=_warnedRejected.get(k);return !t||(_now-t)>_WARN_AGAIN_MS;});
+  if(!fresh.length)return;
+  fresh.forEach(k=>_warnedRejected.set(k,_now));
   const units=fresh.filter(k=>/^U:/.test(k)).map(k=>k.slice(2));
   const keys=fresh.filter(k=>!/^U:/.test(k));
   if(keys.length){const names=keys.map(k=>STATE_KEY_LABELS[k]||k).join(', ');
@@ -139,6 +173,11 @@ async function _doSaveState(){
   const blob=stateBlob();
   const send={},dirty=[],pend={};
   Object.keys(blob).forEach(k=>{let s;try{s=JSON.stringify(blob[k]);}catch(e2){s=null;}
+   /* Тот же отбор, что и в _stripUnsyncedEmpty, нужен и здесь — и это не дубль.
+      Ниже успешное сохранение переносит ВЕСЬ pend в _syncedKeyJson. Если сюда попадёт
+      пустой раздел, который apiPOST потом выбросит, мы пометим как «сервер это знает»
+      то, чего сервер не получал, — и на следующем сохранении фильтр его уже пропустит. */
+   if(_syncedKeyJson[k]===undefined&&(s==='[]'||s==='{}'))return;
    if(s==null||_syncedKeyJson[k]!==s){send[k]=blob[k];dirty.push(k);pend[k]=s;}});
   if(dirty.length){
    try{
@@ -178,7 +217,10 @@ async function _doSaveState(){
   if(_savePend){_savePend=false;apiSaveState();}
  }
 }
-function flushState(){if(!BACKEND)return;try{const blob=new Blob([JSON.stringify({data:stateBlob(),revision:_serverRev||0,_csrf:CSRF_TOKEN||''})],{type:'application/json'});navigator.sendBeacon(apiURL('state.php'),blob);}catch(e){}}
+/* v4.50.0: дозаливка при уходе со страницы идёт через sendBeacon, минуя apiPOST, —
+   значит фильтр пустых неприсланных разделов нужно применить и здесь, иначе именно
+   этот путь и заливал на сервер всю пустоту. */
+function flushState(){if(!BACKEND)return;try{const blob=new Blob([JSON.stringify({data:_stripUnsyncedEmpty(stateBlob()),revision:_serverRev||0,_csrf:CSRF_TOKEN||''})],{type:'application/json'});navigator.sendBeacon(apiURL('state.php'),blob);}catch(e){}}
 /* ===== Офлайн: работаем локально при потере интернета, синхронизируем при восстановлении ===== */
 // Единый индикатор состояния сохранения (P1-04): раньше и локальный, и серверный сбой
 // сохранения проходили молча — пользователь мог продолжать работать и позже обнаружить,
@@ -3942,4 +3984,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.49.2';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.0';
