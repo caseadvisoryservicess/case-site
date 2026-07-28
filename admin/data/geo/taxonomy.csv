@@ -1,0 +1,50 @@
+﻿taxonomy_id,main_category,subcategory,queries_ru,queries_uz,queries_en,active
+TAX-001,Административное деление и государство,Городской район,городской район|район Ташкента,Toshkent tumani|shahar tumani,Tashkent district,1
+TAX-002,Административное деление и государство,Махалля,махалля|махаллинский комитет,mahalla|MFY,mahalla committee,1
+TAX-003,Административное деление и государство,Центр государственных услуг,центр государственных услуг|ЦГУ,davlat xizmatlari markazi,public service center,1
+TAX-004,Административное деление и государство,Государственное учреждение,хокимият|налоговая|кадастр|суд|полиция|почта,hokimiyat|soliq|kadastr|sud|IIB|pochta,government office|tax office|cadastre|court|police|post office,1
+TAX-005,Торговля и рынки,Торговый центр / ТРЦ,торговый центр|ТРЦ|молл|торговый комплекс,savdo markazi|savdo majmuasi,shopping mall|shopping center,1
+TAX-006,Торговля и рынки,Рынок / базар,рынок|базар|дехканский рынок|оптовый рынок,bozor|dehqon bozori|ulgurji bozor,market|bazaar|wholesale market,1
+TAX-007,Торговля и рынки,Супермаркет / гипермаркет,супермаркет|гипермаркет|дискаунтер|cash and carry,supermarket|gipermarket|diskounter,supermarket|hypermarket|discount grocery|cash and carry,1
+TAX-008,Торговля и рынки,Street retail,магазин одежды|обувь|электроника|мебель|косметика|ювелирный|книжный,kiyim doʻkoni|poyabzal|elektronika|mebel|kosmetika,fashion store|shoe store|electronics|furniture|cosmetics|jewelry|bookstore,1
+TAX-009,F&B,Ресторан,ресторан|семейный ресторан|национальная кухня|fine dining,restoran|oilaviy restoran|milliy taomlar,restaurant|family restaurant|fine dining,1
+TAX-010,F&B,Кафе / кофейня,кафе|кофейня|чайхана|кондитерская|пекарня,kafe|qahvaxona|choyxona|qandolat|novvoyxona,cafe|coffee shop|teahouse|confectionery|bakery,1
+TAX-011,F&B,Fast food / QSR,фастфуд|бургер|пицца|лаваш|донер|drive through,fast food|burger|pitsa|lavash|doner,fast food|QSR|burger|pizza|kebab|drive through,1
+TAX-012,Офисы и бизнес,Бизнес-центр,бизнес-центр|офисный центр|деловой центр,biznes markazi|ofis markazi,business center|office center,1
+TAX-013,Офисы и бизнес,Коворкинг / гибкий офис,коворкинг|гибкий офис|serviced office|бизнес инкубатор,kovorking|moslashuvchan ofis|biznes inkubator,coworking|flex office|serviced office|incubator,1
+TAX-014,Офисы и бизнес,IT / инновационный парк,IT парк|технопарк|инновационный центр,IT park|texnopark|innovatsion markaz,IT park|technology park|innovation hub,1
+TAX-015,Гостиницы и туризм,Гостиница,гостиница|отель|бутик-отель|бизнес-отель,mehmonxona|otel|butik otel,hotel|boutique hotel|business hotel,1
+TAX-016,Гостиницы и туризм,Апарт-отель / serviced apartments,апарт-отель|сервисные апартаменты|extended stay,apart-otel|servis apartamentlar,aparthotel|serviced apartments|extended stay,1
+TAX-017,Гостиницы и туризм,Хостел / гостевой дом,хостел|гостевой дом,xostel|mehmon uyi,hostel|guest house,1
+TAX-018,Гостиницы и туризм,Достопримечательность,достопримечательность|памятник|музей|туристический объект,diqqatga sazovor joy|yodgorlik|muzey,tourist attraction|landmark|museum,1
+TAX-019,Жилая недвижимость,Жилой комплекс,жилой комплекс|новостройка|апарт-комплекс,turar joy majmuasi|yangi qurilish,residential complex|new development|apartment complex,1
+TAX-020,Жилая недвижимость,Коттедж / виллы / таунхаусы,коттеджный поселок|виллы|таунхаусы,kottej shaharchasi|villalar|taunhaus,gated community|villas|townhouses,1
+TAX-021,Образование,Детский сад,детский сад|частный детский сад|Montessori,bolalar bogʻchasi|xususiy bogʻcha|Montessori,kindergarten|preschool|Montessori,1
+TAX-022,Образование,Школа,школа|частная школа|международная школа|лицей,maktab|xususiy maktab|xalqaro maktab|litsey,school|private school|international school|lyceum,1
+TAX-023,Образование,Университет / институт,университет|институт|академия|колледж,universitet|institut|akademiya|kollej,university|institute|academy|college,1
+TAX-024,Образование,Учебный центр,учебный центр|языковая школа|IT курсы|бизнес школа,oʻquv markazi|til maktabi|IT kurslari|biznes maktab,training center|language school|IT courses|business school,1
+TAX-025,Медицина и здоровье,Больница / клиника,больница|клиника|медицинский центр|поликлиника,shifoxona|klinika|tibbiyot markazi|poliklinika,hospital|clinic|medical center|polyclinic,1
+TAX-026,Медицина и здоровье,Стоматология,стоматология|зубная клиника,stomatologiya|tish klinikasi,dentist|dental clinic,1
+TAX-027,Медицина и здоровье,Лаборатория / диагностика,лаборатория|диагностический центр|МРТ|КТ,laboratoriya|diagnostika markazi|MRT|KT,laboratory|diagnostic center|MRI|CT,1
+TAX-028,Медицина и здоровье,Аптека,аптека|круглосуточная аптека,dorixona|24 soat dorixona,pharmacy|24 hour pharmacy,1
+TAX-029,Медицина и здоровье,Rehab / wellness,реабилитационный центр|санаторий|spa|wellness,reabilitatsiya markazi|sanatoriy|spa,rehabilitation|sanatorium|spa|wellness,1
+TAX-030,"Развлечения, спорт и культура",Кинотеатр / театр / концерт,кинотеатр|театр|концертный зал|амфитеатр,kinoteatr|teatr|konsert zali|amfiteatr,cinema|theatre|concert hall|amphitheatre,1
+TAX-031,"Развлечения, спорт и культура",Family entertainment,детский развлекательный центр|FEC|батутный парк|VR|боулинг|картинг,bolalar ko‘ngilochar markazi|batut|VR|bouling|karting,family entertainment center|trampoline|VR|bowling|karting,1
+TAX-032,"Развлечения, спорт и культура",Спорт / фитнес,фитнес клуб|спорткомплекс|стадион|бассейн|теннис|падел,fitnes klub|sport majmuasi|stadion|basseyn|tennis|padel,fitness club|sports complex|stadium|swimming pool|tennis|padel,1
+TAX-033,"Развлечения, спорт и культура",Музей / галерея / creative cluster,музей|галерея|креативный кластер|арт центр|выставочный зал,muzey|galereya|kreativ klaster|san’at markazi,museum|gallery|creative cluster|art center|exhibition hall,1
+TAX-034,Парки и общественные пространства,Парк / сквер / набережная,парк|сквер|набережная|ботанический сад|бульвар,park|xiyobon|sohil bo‘yi|botanika bog‘i|bulvar,park|square|promenade|botanical garden|boulevard,1
+TAX-035,Парки и общественные пространства,Детская площадка,детская площадка|indoor playground|outdoor playground,bolalar maydonchasi,playground|indoor playground|outdoor playground,1
+TAX-036,Транспорт и парковки,Метро / вокзал / автостанция,станция метро|вокзал|железнодорожная станция|автостанция,metro bekati|vokzal|temir yo‘l stansiyasi|avtovokzal,metro station|railway station|bus station,1
+TAX-037,Транспорт и парковки,Парковка,парковка|многоуровневый паркинг|подземная парковка,avtoturargoh|ko‘p qavatli parking|yer osti parking,parking|multi-storey parking|underground parking,1
+TAX-038,Транспорт и парковки,АЗС / EV charging,АЗС|заправка|зарядка электромобилей,AYoQSh|yoqilg‘i quyish|elektromobil quvvatlash,fuel station|gas station|EV charging,1
+TAX-039,Промышленность и логистика,Склад / логистический центр,склад|логистический центр|distribution center|cold storage,ombor|logistika markazi|sovutkich ombor,warehouse|logistics center|distribution center|cold storage,1
+TAX-040,Промышленность и логистика,Промышленная зона / завод,промышленная зона|завод|фабрика|производство,sanoat zonasi|zavod|fabrika|ishlab chiqarish,industrial zone|factory|manufacturing,1
+TAX-041,Девелопмент и земельные участки,Строящийся проект,строящийся объект|новый проект|планируемый ТРЦ|планируемый ЖК,qurilayotgan obyekt|yangi loyiha|rejalashtirilgan,under construction|planned development,1
+TAX-042,Девелопмент и земельные участки,Земельный участок,земельный участок|участок на продажу|greenfield|brownfield,yer uchastkasi|sotiladigan yer,land plot|site for sale|greenfield|brownfield,1
+TAX-043,Коммерческие и бытовые услуги,Банк / банкомат / обмен,банк|банкомат|обмен валюты|микрофинанс,bank|bankomat|valyuta ayirboshlash|mikromoliya,bank|ATM|currency exchange|microfinance,1
+TAX-044,Коммерческие и бытовые услуги,Пункт выдачи / почта / курьер,пункт выдачи|почта|курьерская служба,buyurtma topshirish punkti|pochta|kuryer,pickup point|post office|courier,1
+TAX-045,Коммерческие и бытовые услуги,Автосервис,автосервис|СТО|автомойка|шиномонтаж|автосалон,avtoservis|avtoyuvish|shina montaj|avtosalon,car service|car wash|tyre service|car dealer,1
+TAX-046,Коммерческие и бытовые услуги,Beauty / бытовые услуги,салон красоты|барбершоп|химчистка|прачечная|ателье,go‘zallik saloni|barbershop|kimyoviy tozalash|kir yuvish|atelye,beauty salon|barbershop|dry cleaning|laundry|tailor,1
+TAX-047,Аналитические слои,Население и домохозяйства,население|плотность населения|домохозяйства,aholi|aholi zichligi|uy xo‘jaliklari,population|population density|households,1
+TAX-048,Аналитические слои,Доходы и расходы,доходы|зарплата|расходы домохозяйств|покупательская способность,daromad|ish haqi|xarajat|xarid qobiliyati,income|salary|household spending|purchasing power,1
+TAX-049,Аналитические слои,Трафик и catchment,автомобильный трафик|пешеходный трафик|catchment area,avtomobil oqimi|piyoda oqimi|qamrov hududi,vehicle traffic|footfall|catchment area,1

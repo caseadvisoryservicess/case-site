@@ -1,0 +1,106 @@
+{
+  "version": "4.8.1",
+  "objects_total": 3292,
+  "seed_total": 3232,
+  "seed_matched": 3205,
+  "seed_unmatched": 27,
+  "valid_coordinate_records": 3292,
+  "zero_coordinate_records": 0,
+  "business_centers": 148,
+  "medicine": 1530,
+  "pharmacies": 1027,
+  "mahallas": 545,
+  "manual_verified": 0,
+  "needs_review": 3156,
+  "possible_duplicates": 118,
+  "category_breakdown": [
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Аптека",
+      "count": 1027
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Частный медицинский центр",
+      "count": 652
+    },
+    {
+      "main_category": "Административное деление и государство",
+      "subcategory": "Махаллинский комитет",
+      "count": 545
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Клиника",
+      "count": 240
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Врачебная практика",
+      "count": 222
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Больница",
+      "count": 219
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Стоматология",
+      "count": 166
+    },
+    {
+      "main_category": "Офисы и бизнес",
+      "subcategory": "Бизнес-центр",
+      "count": 148
+    },
+    {
+      "main_category": "F&B",
+      "subcategory": "Ресторан",
+      "count": 32
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Медицинский объект",
+      "count": 12
+    },
+    {
+      "main_category": "F&B",
+      "subcategory": "Кафе / кофейня",
+      "count": 10
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Реабилитационный центр",
+      "count": 8
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Лаборатория",
+      "count": 7
+    },
+    {
+      "main_category": "Медицина и здоровье",
+      "subcategory": "Родильный дом",
+      "count": 4
+    }
+  ],
+  "unmatched_seed_breakdown": {
+    "business_center": 1,
+    "mahallas": 26
+  },
+  "notes": [
+    "26 seed mahalla rows with 0,0 coordinates remain in research queue and are not plotted.",
+    "One alternate Trilliant source point was matched to the canonical record within 100 m.",
+    "32 Mirabad restaurants and 10 cafes/coffee shops added from client-supplied multi-source research.",
+    "Alcohol availability is stored as yes/no/unknown and remains unknown until supported by a menu, official source, phone confirmation, or field visit.",
+    "Cuisine sorting uses cuisine_primary; cuisine_tags supports multiple cuisine labels."
+  ],
+  "restaurants": 32,
+  "cafes": 10,
+  "fnb_total": 42,
+  "research_queue_total": 463,
+  "qa_issues_total": 1279,
+  "platform_version": "4.8.1",
+  "objects": 3292
+}
