@@ -77,12 +77,12 @@ CFG = {
                 "Bog'ishamol 151 dagi Botanica biznes-markazi - Toshkentda ofis ijarasi va sotuvi",
                 "Botanica business centre at 151 Bogishamol - offices for lease and sale in Tashkent"),
     "description": ml(
-      "Бизнес-центр класса B+ на улице Богишамол, 151, напротив Ботанического сада: 2 575,4 м² арендопригодной площади, подвал и 7 этажей, типовой этаж 337,9 м², высота этажа 3,3 м и 4,2 м на первом, лифт, свободная планировка. Аренда, покупка этажа или здания целиком, аренда с последующим выкупом.",
-      "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasidagi B+ toifali biznes-markaz: 2 575,4 m² ijaraga yaroqli maydon, podval va 7 qavat, tipik qavat 337,9 m², qavat balandligi 3,3 m, birinchi qavatda 4,2 m, lift, erkin planirovka. Ijara, qavat yoki butun binoni sotib olish, keyinchalik sotib olish sharti bilan ijara.",
-      "A class B+ business centre at 151 Bogishamol Street, opposite the Botanical Garden: 2,575.4 m² of leasable area, a basement and 7 floors, a 337.9 m² typical floor plate, 3.3 m floor height and 4.2 m on the ground floor, a lift and open-plan layouts. Available for lease, purchase of a floor or the whole building, and lease-to-own."),
+      "Бизнес-центр класса B/B+ на улице Богишамол, 151, напротив Ботанического сада: 2 575,4 м² арендопригодной площади, подвал и 7 этажей, типовой этаж 337,9 м², высота этажа 3,3 м и 4,2 м на первом, лифт, свободная планировка. Аренда, покупка этажа или здания целиком, аренда с последующим выкупом.",
+      "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasidagi B/B+ toifali biznes-markaz: 2 575,4 m² ijaraga yaroqli maydon, podval va 7 qavat, tipik qavat 337,9 m², qavat balandligi 3,3 m, birinchi qavatda 4,2 m, lift, erkin planirovka. Ijara, qavat yoki butun binoni sotib olish, keyinchalik sotib olish sharti bilan ijara.",
+      "A class B/B+ business centre at 151 Bogishamol Street, opposite the Botanical Garden: 2,575.4 m² of leasable area, a basement and 7 floors, a 337.9 m² typical floor plate, 3.3 m floor height and 4.2 m on the ground floor, a lift and open-plan layouts. Available for lease, purchase of a floor or the whole building, and lease-to-own."),
     "keywords": ", ".join([
       "бизнес-центр Ташкент", "аренда офиса Ташкент", "аренда офиса Юнусабад",
-      "офис класса B+ Ташкент", "продажа офиса Ташкент", "аренда этажа под офис Ташкент",
+      "офис класса B+ Ташкент", "бизнес-центр класса B Ташкент", "продажа офиса Ташкент", "аренда этажа под офис Ташкент",
       "бизнес-центр Богишамол", "офис у Ботанического сада Ташкент",
       "аренда офиса Мирзо-Улугбек", "покупка этажа в бизнес-центре Ташкент",
       "офис open space Ташкент", "коммерческая недвижимость Юнусабад",
@@ -101,9 +101,9 @@ CFG = {
     "h1": ml("Бизнес-центр Botanica на Богишамол, 151",
              "Bog'ishamol 151 dagi Botanica biznes-markazi",
              "Botanica business centre at 151 Bogishamol"),
-    "sub": ml("Класс B+, подвал и 7 этажей, типовой этаж 337,9 м². Аренда, покупка, аренда с выкупом",
-              "B+ toifa, podval va 7 qavat, tipik qavat 337,9 m². Ijara, sotib olish, keyinchalik sotib olish",
-              "Class B+, a basement and 7 floors, a 337.9 m² typical floor. Lease, purchase or lease-to-own"),
+    "sub": ml("Класс B/B+, подвал и 7 этажей, типовой этаж 337,9 м². Аренда, покупка, аренда с выкупом",
+              "B/B+ toifa, podval va 7 qavat, tipik qavat 337,9 m². Ijara, sotib olish, keyinchalik sotib olish",
+              "Class B/B+, a basement and 7 floors, a 337.9 m² typical floor. Lease, purchase or lease-to-own"),
     "facts": [
       {"n": ml("2 575,4", "2 575,4", "2,575.4"), "l": ml("м² арендопригодной площади (GLA)", "m² ijaraga yaroqli maydon (GLA)", "m² of leasable area (GLA)")},
       {"n": ml("4 133,4", "4 133,4", "4,133.4"), "l": ml("м² общей площади (GBA)", "m² umumiy maydon (GBA)", "m² of gross area (GBA)")},
@@ -117,7 +117,7 @@ CFG = {
     {"n": ml("4 133,4", "4 133,4", "4,133.4"), "l": ml("м² GBA", "m² GBA", "m² GBA")},
     {"n": "7", "l": ml("этажей и подвал", "qavat va podval", "floors plus basement")},
     {"n": ml("3,3-4,2", "3,3-4,2", "3.3-4.2"), "l": ml("м высота этажа", "m qavat balandligi", "m floor height")},
-    {"n": "", "l": ml("Лифт и две лестницы", "Lift va ikkita zinapoya", "A lift and two staircases")}
+    {"n": "~30", "l": ml("машиномест (ориентировочно)", "avtoturargoh joyi (taxminan)", "parking spaces (indicative)")}
   ],
 
   "unitsSection": {
@@ -206,7 +206,7 @@ CFG = {
                  "Bino loyihalanmoqda. Loyiha hujjatlari va planirovkalar so'rov bo'yicha, qavatlarni bron qilish allaqachon ochiq.",
                  "The building is at design stage. The design documentation and floor plans are available on request, and floors can already be reserved."),
     "specs": [
-      {"b": ml("Класс", "Toifa", "Class"), "s": ml("B+ (проектируемый)", "B+ (loyihalanayotgan)", "B+ (as designed)")},
+      {"b": ml("Класс", "Toifa", "Class"), "s": ml("B/B+ (проектируемый)", "B/B+ (loyihalanayotgan)", "B/B+ (as designed)")},
       {"b": ml("Общая площадь (GBA)", "Umumiy maydon (GBA)", "Gross area (GBA)"), "s": ml("4 133,4 м²", "4 133,4 m²", "4,133.4 m²")},
       {"b": ml("Арендопригодная площадь (GLA)", "Ijaraga yaroqli maydon (GLA)", "Leasable area (GLA)"), "s": ml("2 575,4 м²", "2 575,4 m²", "2,575.4 m²")},
       {"b": ml("Уровни", "Darajalar", "Levels"), "s": ml("подвал и 7 этажей", "podval va 7 qavat", "a basement and 7 floors")},
@@ -215,6 +215,10 @@ CFG = {
       {"b": ml("Сетка колонн", "Kolonnalar to'ri", "Column grid"), "s": ml("5-5-6-5-5 на 6-6-6 м, габарит 26 x 18 м", "5-5-6-5-5 ga 6-6-6 m, gabarit 26 x 18 m", "5-5-6-5-5 by 6-6-6 m, 26 x 18 m footprint")},
       {"b": ml("Вертикальная связь", "Vertikal aloqa", "Vertical circulation"), "s": ml("лифт и две лестницы, включая наружную эвакуационную", "lift va ikkita zinapoya, tashqi evakuatsiya zinapoyasi bilan", "a lift and two staircases, including an external escape stair")},
       {"b": ml("Высота здания", "Bino balandligi", "Building height"), "s": ml("до +26,700 м, лифтовая надстройка до +30,950 м", "+26,700 m gacha, lift ustqurmasi +30,950 m gacha", "up to +26.700 m, lift overrun to +30.950 m")},
+      {"b": ml("Парковка", "Avtoturargoh", "Parking"),
+       "s": ml("около 30 машиномест, точное количество уточняется",
+               "taxminan 30 ta avtoturargoh joyi, aniq soni aniqlashtirilmoqda",
+               "about 30 parking spaces, the exact number is being confirmed")},
       {"b": ml("Локация", "Joylashuvi", "Location"), "s": ml("ул. Богишамол, 151, напротив Ботанического сада", "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasida", "151 Bogishamol Street, opposite the Botanical Garden")}
     ],
     "images": [
@@ -309,9 +313,9 @@ CFG = {
     "vizImgs": ["render-aerial.jpg", "section.jpg"],
     "T": {
       "addr": ml("Богишамол 151 · Ташкент", "Bog'ishamol 151 · Toshkent", "151 Bogishamol St · Tashkent"),
-      "h_about": ml("Бизнес-центр класса B+ со свободной планировкой",
-                    "Erkin planirovkali B+ toifali biznes-markaz",
-                    "A class B+ business centre with open-plan floors"),
+      "h_about": ml("Бизнес-центр класса B/B+ со свободной планировкой",
+                    "Erkin planirovkali B/B+ toifali biznes-markaz",
+                    "A class B/B+ business centre with open-plan floors"),
       "card_lvl_n": ml("8 уровней", "8 daraja", "8 levels"),
       "card_lvl_s": ml("подвал + 7 этажей, лифт", "podval + 7 qavat, lift", "basement + 7 floors, lift"),
       "card_park_n": ml("26 x 18 м", "26 x 18 m", "26 x 18 m"),

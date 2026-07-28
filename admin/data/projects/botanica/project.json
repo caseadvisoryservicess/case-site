@@ -94,11 +94,11 @@
       "en": "Botanica business centre at 151 Bogishamol - offices for lease and sale in Tashkent"
     },
     "description": {
-      "ru": "Бизнес-центр класса B+ на улице Богишамол, 151, напротив Ботанического сада: 2 575,4 м² арендопригодной площади, подвал и 7 этажей, типовой этаж 337,9 м², высота этажа 3,3 м и 4,2 м на первом, лифт, свободная планировка. Аренда, покупка этажа или здания целиком, аренда с последующим выкупом.",
-      "uz": "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasidagi B+ toifali biznes-markaz: 2 575,4 m² ijaraga yaroqli maydon, podval va 7 qavat, tipik qavat 337,9 m², qavat balandligi 3,3 m, birinchi qavatda 4,2 m, lift, erkin planirovka. Ijara, qavat yoki butun binoni sotib olish, keyinchalik sotib olish sharti bilan ijara.",
-      "en": "A class B+ business centre at 151 Bogishamol Street, opposite the Botanical Garden: 2,575.4 m² of leasable area, a basement and 7 floors, a 337.9 m² typical floor plate, 3.3 m floor height and 4.2 m on the ground floor, a lift and open-plan layouts. Available for lease, purchase of a floor or the whole building, and lease-to-own."
+      "ru": "Бизнес-центр класса B/B+ на улице Богишамол, 151, напротив Ботанического сада: 2 575,4 м² арендопригодной площади, подвал и 7 этажей, типовой этаж 337,9 м², высота этажа 3,3 м и 4,2 м на первом, лифт, свободная планировка. Аренда, покупка этажа или здания целиком, аренда с последующим выкупом.",
+      "uz": "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasidagi B/B+ toifali biznes-markaz: 2 575,4 m² ijaraga yaroqli maydon, podval va 7 qavat, tipik qavat 337,9 m², qavat balandligi 3,3 m, birinchi qavatda 4,2 m, lift, erkin planirovka. Ijara, qavat yoki butun binoni sotib olish, keyinchalik sotib olish sharti bilan ijara.",
+      "en": "A class B/B+ business centre at 151 Bogishamol Street, opposite the Botanical Garden: 2,575.4 m² of leasable area, a basement and 7 floors, a 337.9 m² typical floor plate, 3.3 m floor height and 4.2 m on the ground floor, a lift and open-plan layouts. Available for lease, purchase of a floor or the whole building, and lease-to-own."
     },
-    "keywords": "бизнес-центр Ташкент, аренда офиса Ташкент, аренда офиса Юнусабад, офис класса B+ Ташкент, продажа офиса Ташкент, аренда этажа под офис Ташкент, бизнес-центр Богишамол, офис у Ботанического сада Ташкент, аренда офиса Мирзо-Улугбек, покупка этажа в бизнес-центре Ташкент, офис open space Ташкент, коммерческая недвижимость Юнусабад, аренда с последующим выкупом офис Ташкент, новый бизнес-центр Ташкент, ofis ijarasi Toshkent, biznes-markaz Toshkent, Yunusobod ofis ijarasi, office for rent Tashkent, business centre Tashkent, office space Yunusabad Tashkent, class B office Tashkent, office building for sale Tashkent",
+    "keywords": "бизнес-центр Ташкент, аренда офиса Ташкент, аренда офиса Юнусабад, офис класса B+ Ташкент, бизнес-центр класса B Ташкент, продажа офиса Ташкент, аренда этажа под офис Ташкент, бизнес-центр Богишамол, офис у Ботанического сада Ташкент, аренда офиса Мирзо-Улугбек, покупка этажа в бизнес-центре Ташкент, офис open space Ташкент, коммерческая недвижимость Юнусабад, аренда с последующим выкупом офис Ташкент, новый бизнес-центр Ташкент, ofis ijarasi Toshkent, biznes-markaz Toshkent, Yunusobod ofis ijarasi, office for rent Tashkent, business centre Tashkent, office space Yunusabad Tashkent, class B office Tashkent, office building for sale Tashkent",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -113,9 +113,9 @@
       "en": "Botanica business centre at 151 Bogishamol"
     },
     "sub": {
-      "ru": "Класс B+, подвал и 7 этажей, типовой этаж 337,9 м². Аренда, покупка, аренда с выкупом",
-      "uz": "B+ toifa, podval va 7 qavat, tipik qavat 337,9 m². Ijara, sotib olish, keyinchalik sotib olish",
-      "en": "Class B+, a basement and 7 floors, a 337.9 m² typical floor. Lease, purchase or lease-to-own"
+      "ru": "Класс B/B+, подвал и 7 этажей, типовой этаж 337,9 м². Аренда, покупка, аренда с выкупом",
+      "uz": "B/B+ toifa, podval va 7 qavat, tipik qavat 337,9 m². Ijara, sotib olish, keyinchalik sotib olish",
+      "en": "Class B/B+, a basement and 7 floors, a 337.9 m² typical floor. Lease, purchase or lease-to-own"
     },
     "facts": [
       {
@@ -210,11 +210,11 @@
       }
     },
     {
-      "n": "",
+      "n": "~30",
       "l": {
-        "ru": "Лифт и две лестницы",
-        "uz": "Lift va ikkita zinapoya",
-        "en": "A lift and two staircases"
+        "ru": "машиномест (ориентировочно)",
+        "uz": "avtoturargoh joyi (taxminan)",
+        "en": "parking spaces (indicative)"
       }
     }
   ],
@@ -552,9 +552,9 @@
           "en": "Class"
         },
         "s": {
-          "ru": "B+ (проектируемый)",
-          "uz": "B+ (loyihalanayotgan)",
-          "en": "B+ (as designed)"
+          "ru": "B/B+ (проектируемый)",
+          "uz": "B/B+ (loyihalanayotgan)",
+          "en": "B/B+ (as designed)"
         }
       },
       {
@@ -651,6 +651,18 @@
           "ru": "до +26,700 м, лифтовая надстройка до +30,950 м",
           "uz": "+26,700 m gacha, lift ustqurmasi +30,950 m gacha",
           "en": "up to +26.700 m, lift overrun to +30.950 m"
+        }
+      },
+      {
+        "b": {
+          "ru": "Парковка",
+          "uz": "Avtoturargoh",
+          "en": "Parking"
+        },
+        "s": {
+          "ru": "около 30 машиномест, точное количество уточняется",
+          "uz": "taxminan 30 ta avtoturargoh joyi, aniq soni aniqlashtirilmoqda",
+          "en": "about 30 parking spaces, the exact number is being confirmed"
         }
       },
       {
@@ -895,9 +907,9 @@
         "en": "151 Bogishamol St · Tashkent"
       },
       "h_about": {
-        "ru": "Бизнес-центр класса B+ со свободной планировкой",
-        "uz": "Erkin planirovkali B+ toifali biznes-markaz",
-        "en": "A class B+ business centre with open-plan floors"
+        "ru": "Бизнес-центр класса B/B+ со свободной планировкой",
+        "uz": "Erkin planirovkali B/B+ toifali biznes-markaz",
+        "en": "A class B/B+ business centre with open-plan floors"
       },
       "card_lvl_n": {
         "ru": "8 уровней",
