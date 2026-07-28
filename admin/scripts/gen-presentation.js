@@ -46,6 +46,9 @@ const PLAN_CAD = PRES.plans || { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2:
 // какие уровни показывать отдельными страницами планировок
 const PLAN_PAGES = PRES.planPages || [{ id: 'b' }, { id: 'f1' }, { id: 'f2', title: 'f23_title' }, { id: 'f4' }];
 // земельный участок: другой состав страниц, планировок и этажей у него нет
+// именованные менеджеры: если заданы, на странице контактов показываем их,
+// а не один обезличенный номер
+const PEOPLE = ((cfg.contacts || {}).people || []).filter((p) => p && p.phone);
 const AT = (cfg.site && cfg.site.assetType) || 'building';
 const LAND = AT === 'land' || AT === 'single';
 const TOTAL = LAND ? 7 : 8 + PLAN_PAGES.length;
@@ -209,6 +212,9 @@ const COVER = Object.assign({
     return lo[1] === hi[1] ? lo[1] : lo[1] + '-' + hi[1];
   })()
 }, PRES.cover || {});
+// чертёж на странице «Об объекте» нельзя обрезать по краям: у планов там
+// легенда с площадями. Для фотографии остаётся cover.
+const ABOUT_FIT = PRES.aboutImgFit || 'cover';
 const ABOUT_IMG = PRES.aboutImg
   || ((cfg.about.images || [])[0] || {}).file
   || cfg.intro.image;
@@ -390,7 +396,9 @@ function buildHtml(lang, qr) {
     <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
     <div style="font-size:26pt;font-weight:800;margin-bottom:3mm">${t('c_h')}</div>
     <div style="font-size:11pt;color:rgba(255,255,255,.7);margin-bottom:10mm">${t('c_s')}</div>
-    <div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>
+    ${PEOPLE.length
+      ? `<div style="display:flex;gap:16mm;justify-content:center;margin-bottom:3mm">${PEOPLE.map((p) => `<div><div style="font-size:9.5pt;color:rgba(255,255,255,.72);margin-bottom:1mm">${esc(L(p.name, lang))}</div><div style="font-size:15pt;font-weight:800">${esc(p.phone)}</div></div>`).join('')}</div>`
+      : `<div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>`}
     <div style="font-size:12pt;color:rgba(255,255,255,.85);margin-bottom:10mm">t.me/${esc(cfg.contacts.telegram)} · ${esc(siteShown)}</div>
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
@@ -464,7 +472,7 @@ function buildLandHtml(lang, qr) {
       </div>
       <div style="flex:.95;display:flex;flex-direction:column;gap:4mm;min-height:0">
         <div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;min-height:0">
-          <img src="${img64(ABOUT_IMG)}" style="width:100%;height:100%;object-fit:cover">
+          <img src="${img64(ABOUT_IMG)}" style="width:100%;height:100%;object-fit:${ABOUT_FIT};background:#fff">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(badgeOf(ABOUT_IMG))}</span>
         </div>
         <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10.5pt;line-height:1.5">${M(cfg.about.status)}</div>
@@ -502,10 +510,10 @@ function buildLandHtml(lang, qr) {
     <div style="display:flex;gap:12mm;flex:1">
       <div style="flex:1">
         <div style="font-size:12.5pt;font-weight:700;line-height:1.45;margin-bottom:6mm">${M(cfg.location.address)}</div>
-        <table style="background:none">
+        ${(cfg.location.pois || []).length ? `<table style="background:none">
           <tr><th colspan="2" style="padding-left:0">${t('loc_dist')}</th></tr>
-          ${(cfg.location.pois || []).map((p) => `<tr><td style="padding-left:0;background:none">${M(p.name)}</td><td style="text-align:right;font-weight:700;background:none">${M(p.dist)}</td></tr>`).join('')}
-        </table>
+          ${cfg.location.pois.map((p) => `<tr><td style="padding-left:0;background:none">${M(p.name)}</td><td style="text-align:right;font-weight:700;background:none">${M(p.dist)}</td></tr>`).join('')}
+        </table>` : ''}
         <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
       </div>
       <div style="flex:1;display:flex;flex-direction:column;gap:5mm;justify-content:center">
@@ -539,7 +547,9 @@ function buildLandHtml(lang, qr) {
     <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
     <div style="font-size:26pt;font-weight:800;margin-bottom:3mm">${t('c_h')}</div>
     <div style="font-size:11pt;color:rgba(255,255,255,.7);margin-bottom:10mm">${t('c_s')}</div>
-    <div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>
+    ${PEOPLE.length
+      ? `<div style="display:flex;gap:16mm;justify-content:center;margin-bottom:3mm">${PEOPLE.map((p) => `<div><div style="font-size:9.5pt;color:rgba(255,255,255,.72);margin-bottom:1mm">${esc(L(p.name, lang))}</div><div style="font-size:15pt;font-weight:800">${esc(p.phone)}</div></div>`).join('')}</div>`
+      : `<div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>`}
     <div style="font-size:12pt;color:rgba(255,255,255,.85);margin-bottom:10mm">t.me/${esc(cfg.contacts.telegram)} · ${esc(siteShown)}</div>
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>

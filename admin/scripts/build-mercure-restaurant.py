@@ -33,14 +33,33 @@ CFG = {
     },
     # палитра снята пипеткой с фотографий зала: кремовые стены, чёрная
     # столярка, латунные буквы вывески, бордовые шторы
-    "theme": {"bg": "#f7f3ea", "ink": "#1c1a17", "muted": "#6f665c",
-              "accent": "#a17c46", "accentD": "#7d5c30", "dark": "#3b2226"}
+    "theme": {"bg": "#faf7f0", "ink": "#24211d", "muted": "#6f665c",
+              "accent": "#9a7b43", "accentD": "#7a5c2e", "dark": "#3b2226"},
+    # типографика: антиква Cormorant Garamond на заголовках и цифрах.
+    # Файлы лежат в uploads проекта и уезжают в assets, сторонних запросов нет.
+    "fonts": {
+      "family": "Cormorant Garamond",
+      "scale": 64,
+      "tracking": ".004em",
+      "files": [
+        {"file": "cormorant-500-latin.woff2", "weight": 500,
+         "range": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"},
+        {"file": "cormorant-500-cyrillic.woff2", "weight": 500, "range": "U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116"},
+        {"file": "cormorant-600-latin.woff2", "weight": 600,
+         "range": "U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD"},
+        {"file": "cormorant-600-cyrillic.woff2", "weight": 600, "range": "U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116"}
+      ]
+    }
   },
 
   "brand": {"mark": "R", "logo": "",
             "name": ml("RESTAURANT", "RESTAURANT", "RESTAURANT"),
             "tag": ml("Аренда ресторана при отеле", "Mehmonxonadagi restoran ijarasi", "Restaurant space at a hotel")},
-  "contacts": {"phone": "+998 90 922 07 00", "telegram": "muhammadaxmadiy",
+  "contacts": {"phone": "+998 77 041 73 75", "telegram": "caseadvisory_leasing",
+               "people": [
+                 {"name": ml("Нодир Махмудходжизода", "Nodir Mahmudhojizoda", "Nodir Mahmudhojizoda"), "phone": "+998 77 041 73 75"},
+                 {"name": ml("Хилола Омонуллаева", "Hilola Omonullayeva", "Hilola Omonullayeva"), "phone": "+998 70 164 40 02"}
+               ],
                "email": "caseadvisoryservicess@gmail.com", "sheetsEndpoint": "",
                "smtpHost": "", "smtpPort": "", "smtpUser": "", "smtpPass": ""},
   "adminUrl": "", "leadEndpoint": "",
@@ -261,7 +280,38 @@ CFG = {
       "CASE Real Estate Advisory acts as the letting agent for the owner of the premises and is not a representative of the hotel operator. Information on this site is for reference only and does not constitute a public offer. © 2026 CASE Advisory")
   },
 
-  "settings": {"mapsApiKey": "", "metricaId": "", "ga4Id": "", "gtmId": ""}
+  "settings": {"mapsApiKey": "", "metricaId": "", "ga4Id": "", "gtmId": ""},
+
+  # брошюра: у режима «одно готовое помещение» те же 7 страниц, что у земли,
+  # но подписи свои - тут не участок, а действующий интерьер
+  "pres": {
+    "aboutImg": "plan-f1.jpg",
+    "aboutImgFit": "contain",
+    "vizImgs": ["terrace.jpg", "kitchen.jpg", "hall-wood.jpg"],
+    "T": {
+      "addr": ml("Центр Ташкента · отель Mercure", "Toshkent markazi · Mercure mehmonxonasi", "Central Tashkent · Mercure hotel"),
+      "lbl_land": ml("Помещение", "Maydon", "The space"),
+      "land_deal": ml("Ставка и условия - по запросу:", "Narx va shartlar - so'rov bo'yicha:", "Rent and terms on request:"),
+      "land_loc_zone": ml(
+        "Помещение занимает первый этаж действующего отеля: гости и делегации заходят прямо из лобби, городская публика - с улицы через собственный вход.",
+        "Maydon amaldagi mehmonxonaning birinchi qavatini egallaydi: mehmonlar va delegatsiyalar to'g'ridan-to'g'ri lobbidan, shahar auditoriyasi esa ko'chadan o'z kirishi orqali kiradi.",
+        "The space occupies the ground floor of an operating hotel: guests and delegations arrive straight from the lobby, while city visitors use the restaurant's own street entrance."),
+      "lbl_viz": ml("Фотографии", "Fotosuratlar", "Photographs"),
+      "h_viz": ml("Как выглядит помещение", "Maydon qanday ko'rinadi", "What the space looks like"),
+      "viz_p": ml(
+        "Два зала со стеклянными перегородками, остеклённая терраса с раздвижным навесом и профессиональная кухня с вытяжкой. Мебель, светильники, посуда, бар и раздача остаются новому арендатору: помещение можно открывать, а не строить.",
+        "Shisha to'siqli ikki zal, suriladigan soyabonli oynali terrassa va so'rg'ichli professional oshxona. Mebel, chiroqlar, idishlar, bar va tarqatish joyi yangi ijarachiga qoladi: maydonni qurish emas, ochish mumkin.",
+        "Two dining rooms with glazed partitions, a covered terrace with a retractable canopy and a professional kitchen with extraction. Furniture, light fittings, tableware, the bar and the service counter stay for the new tenant: the venue can be opened rather than built."),
+      "viz_all_concept": ml(
+        "Фотографии сделаны в помещении. Публичной офертой не являются.",
+        "Fotosuratlar maydonning o'zida olingan. Ommaviy oferta hisoblanmaydi.",
+        "The photographs were taken on site. They do not constitute a public offer."),
+      "c_h": ml("Обсудим помещение?", "Maydonni muhokama qilamizmi?", "Shall we discuss the space?"),
+      "c_s": ml("Ответим в течение дня - условия, перечень оборудования, осмотр.",
+                "Kun davomida javob beramiz - shartlar, jihozlar ro'yxati, ko'rik.",
+                "We reply within the day - terms, the equipment list and a viewing.")
+    }
+  }
 }
 
 OUT = '/home/user/case-site/admin/data/projects/mercure-restaurant/project.json'

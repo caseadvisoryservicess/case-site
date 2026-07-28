@@ -373,6 +373,12 @@ table.drive td:last-child{text-align:right;white-space:nowrap;font-weight:650}
 .enq-side{background:var(--bg);border-radius:var(--r);padding:28px}
 .enq-side .btn.tg{width:100%;margin:16px 0 10px}
 .enq-side .call{display:block;text-align:center;font:750 21px/1.3 system-ui;color:var(--ink);text-decoration:none;margin-top:14px}
+/* именованные менеджеры: по брифу в контактах должен стоять живой человек */
+.mgrs{margin-top:16px;display:flex;flex-direction:column;gap:12px}
+.mgr{text-align:center}
+.mgr span{display:block;font:600 13px/1.35 system-ui;color:var(--muted);margin-bottom:2px}
+.mgr a{font:750 19px/1.25 system-ui;color:var(--ink);text-decoration:none;white-space:nowrap}
+.mgr a:hover{color:var(--bronze-d)}
 /* акцентные CTA: мягкая пульсация + пробегающий блик */
 @keyframes ctaPulse{0%,100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.45)}55%{box-shadow:0 0 0 11px rgba(var(--acc-rgb),0)}}
 @keyframes ctaSheen{0%,55%{transform:translateX(-160%) skewX(-20deg)}90%,100%{transform:translateX(320%) skewX(-20deg)}}
@@ -916,6 +922,9 @@ function renderPage(cfg, lang, uploadsDir) {
   const phone = cfg.contacts.phone || '';
   const tg = String(cfg.contacts.telegram || '').replace(/^@/, '');
   const tgHref = tg ? `https://t.me/${tg}` : '';
+  // именованные менеджеры: если заданы, в блоке заявки показываем их вместо
+  // одного обезличенного номера (в шапке и подвале остаётся основной телефон)
+  const people = (cfg.contacts.people || []).filter((p) => p && p.phone);
   const mapsKey = (cfg.settings && cfg.settings.mapsApiKey || '').trim();
   const lat = Number(cfg.location.lat) || 41.338889;
   const lng = Number(cfg.location.lng) || 69.263403;
@@ -933,6 +942,28 @@ function renderPage(cfg, lang, uploadsDir) {
     : '')
     // точка кадрирования героя: нужна, когда рендер вертикальный, а экран широкий
     + (cfg.intro && cfg.intro.focus ? `\n.hero picture img{object-position:${String(cfg.intro.focus).replace(/[^0-9a-z%. ]/gi, '')}}` : '');
+
+  // Своя типографика проекта: файлы шрифта лежат в uploads и уезжают в assets,
+  // сторонних запросов нет. Задаётся блоком cfg.site.fonts:
+  //   { family, files: [{file, weight, range}], scale, tracking }
+  // Применяется только к заголовкам и цифрам, тело остаётся системным - так
+  // страница не теряет в скорости, но получает характер.
+  const FT = (cfg.site && cfg.site.fonts) || null;
+  const fontCss = !FT ? '' : `
+${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:normal;font-weight:${f.weight};font-display:swap;src:url(${prefix}assets/${f.file}) format('woff2')${f.range ? `;unicode-range:${f.range}` : ''}}`).join('\n')}
+.hero h1,.h2,.enq-side h3,.facts b,.params b,.cases h3,.scen h3,.faq-q,.plan-card b,.spec-name,.brand{font-family:'${FT.family}',Georgia,'Times New Roman',serif}
+.brand{letter-spacing:.14em;font-weight:600}
+.brand small{font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.14em}
+/* у антиквы цифры минускульные, поэтому в фактах их надо крупнее обычного */
+.facts b{font-size:30px}
+.params b{font-size:31px}
+.hero h1{font-weight:600;letter-spacing:${FT.tracking || '.005em'};font-size:clamp(34px,6vw,${FT.scale || 62}px);line-height:1.08}
+.h2{font-weight:600;letter-spacing:.005em;font-size:clamp(30px,4.6vw,44px);line-height:1.12}
+.facts b,.params b{font-weight:600;letter-spacing:.01em}
+.enq-side h3,.cases h3,.scen h3{font-weight:600;letter-spacing:.005em}
+.lbl{font-weight:700;letter-spacing:.18em}
+.btn{letter-spacing:.06em}
+.btn.primary{text-transform:uppercase;font-size:13px;letter-spacing:.1em}`;
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -1078,7 +1109,7 @@ ${ogImg ? `<meta name="twitter:image" content="${esc(ogImg)}">` : ''}
 ${heroPreload}
 ${jsonLd(cfg, lang, canonical, base)}
 ${counters}
-<style>${CSS}${themeCss}</style>
+<style>${CSS}${themeCss}${fontCss}</style>
 <script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim")}catch(e){}</script>
 </head>
 <body data-intent="lease">
@@ -1245,7 +1276,7 @@ ${NO_UNITS ? '' : `<section id="units">
           </div>
           <div class="f-row">
             <div class="fg"><label for="f-intent">${s('form.intent')}</label><select id="f-intent" name="intent">${intentOpts}</select></div>
-            <div class="fg"><label for="f-unit">${s('form.unit')}</label><select id="f-unit" name="unit">${unitOpts}</select></div>
+            ${(cfg.units || []).length ? `<div class="fg"><label for="f-unit">${s('form.unit')}</label><select id="f-unit" name="unit">${unitOpts}</select></div>` : ''}
           </div>
           <div class="fg"><label for="f-message">${s('form.msg')}</label><textarea id="f-message" name="message" rows="3"></textarea></div>
           <div class="hp" aria-hidden="true"><label>Company<input name="company" type="text" tabindex="-1" autocomplete="off"></label></div>
@@ -1261,7 +1292,9 @@ ${NO_UNITS ? '' : `<section id="units">
         <h3>${lang === 'en' ? 'Faster by phone or Telegram' : lang === 'uz' ? 'Telefon yoki Telegram orqali tezroq' : 'Быстрее — по телефону или в Telegram'}</h3>
         ${presFile ? `<a class="btn ghost" style="width:100%;margin-top:16px" href="${prefix}assets/${presFile}" download="${presName}" data-ev="pdf_download" data-evx='{"where":"form"}'>${s('pdf.btn')}</a>` : ''}
         ${tgHref ? `<a class="btn tg" href="${tgHref}" target="_blank" rel="noopener" data-ev="telegram_click" data-evx='{"where":"form"}'>${s('form.tg')}</a>` : ''}
-        <a class="call" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"form"}'>${esc(phone)}</a>
+        ${people.length
+          ? `<div class="mgrs">${people.map((p) => `<div class="mgr"><span>${t(p.name)}</span><a href="${telHref(p.phone)}" data-ev="phone_click" data-evx='{"where":"manager"}'>${esc(p.phone)}</a></div>`).join('')}</div>`
+          : `<a class="call" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"form"}'>${esc(phone)}</a>`}
       </div>
     </div>
   </div>
@@ -1343,6 +1376,8 @@ ${alt}
     if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
   }
   for (const g of cfg.about.images || []) add(g.file);
+  // файлы своей типографики тоже уезжают в assets
+  for (const f of ((cfg.site && cfg.site.fonts && cfg.site.fonts.files) || [])) images.add(f.file);
   for (const u of cfg.units || []) if (u.plan) images.add(u.plan);
 
   return { pages, images: [...images].filter((f) => fs.existsSync(path.join(uploadsDir, f))), sitemap };
