@@ -130,32 +130,40 @@ a{color:var(--red)}
    </div>
    <div class="mini">Население (0.5/1/1.5/2/3 км), БЦ, медицина, метро, район и быстрый скоринг - по клику в любой точке.</div></div>
   <div class="sect"><h3>Зона охвата (catchment)</h3><div id="rings"></div>
-   <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
+   <div class="styrow sub"><label for="ringW">толщина линий</label><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><label for="ringWc">цвет 5 км</label><input type="color" id="ringWc" value="#c0392b"></div>
    <div class="mini">1 · 3 · 5 км — каждая своим цветом.</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label><input type="color" id="bcNa" value="#0d7a6f" title="фикс. цвет"><input type="checkbox" id="bcLab" title="подписи" checked></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
+   <div class="styrow sub"><label for="bcNa">цвет</label><input type="color" id="bcNa" value="#0d7a6f"><label for="bcLab">подписи</label><input type="checkbox" id="bcLab" checked></div>
    <div class="styrow sub"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"><label>цвет по источнику</label><input type="checkbox" id="bcBySrc"><label>цвет по ставке</label><input type="checkbox" id="bcByRent"></div>
    <div class="styrow sub"><label>подписи с зума</label><input type="range" id="labZ" min="11" max="17" value="13"><span class="mini" id="labZv"></span></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lMetro"> Метро (линии+станции)</label><input type="checkbox" id="mLab" title="подписи станций" checked></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lMetro"> Метро (линии+станции)</label></div>
+   <div class="styrow sub"><label for="mLab">подписи станций</label><input type="checkbox" id="mLab" checked></div>
    <div class="styrow sub"><label>толщина</label><input type="range" id="mW" min="2" max="9" value="5"><label>прозр.</label><input type="range" id="mO" min="30" max="100" value="90"><label>цвет</label><input type="color" id="mC" value="#c0392b"><input type="checkbox" id="mByLine" checked title="цвет по линии"></div>
    <div class="mini" id="metroNote"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lRoad"> Транспортный коридор (въезд из области)</label><input type="checkbox" id="rByLine" checked title="цвет по маршруту"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lRoad"> Транспортный коридор (въезд из области)</label></div>
+   <div class="styrow sub"><label for="rByLine">цвет по маршруту</label><input type="checkbox" id="rByLine" checked></div>
    <div class="styrow sub"><label>толщина</label><input type="range" id="rW" min="2" max="12" value="6"><label>прозр.</label><input type="range" id="rO" min="30" max="100" value="85"><label>цвет</label><input type="color" id="rC" value="#e67e22"></div>
    <div class="mini" id="roadNote"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed" checked> Медицина (OSM + clinics.uz)</label><input type="color" id="medC" value="#16a085" title="фикс. цвет"><input type="range" id="medR" min="3" max="9" value="5" title="размер"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed" checked> Медицина (OSM + clinics.uz)</label></div>
+   <div class="styrow sub"><label for="medC">цвет</label><input type="color" id="medC" value="#16a085"><label for="medR">размер</label><input type="range" id="medR" min="3" max="9" value="5"></div>
       <div class="styrow sub"><label>тип</label><select id="medT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="comp">конкуренты клиники (больницы+клиники+частные+врачи+лаб.)</option><option value="hospital">больницы / стационары</option><option value="clinic">клиники / поликлиники</option><option value="private">частные клиники (clinics.uz)</option><option value="doctors">врачебные практики / кабинеты</option><option value="dentist">стоматологии</option><option value="lab">лаборатории / диагностика</option><option value="maternity">роддома / перинатальные</option><option value="rehab">реабилитация / санатории</option><option value="other">прочее</option></select><label>подписи</label><input type="checkbox" id="medLab" checked></div>
    <div class="styrow sub"><label>направление</label><select id="medSp" style="width:auto;font-size:11px"><option value="">все направления</option><option value="gen">Многопрофильные / общие</option><option value="polikl">Поликлиники / семейные / диспансеры</option><option value="hosp">Больницы / стационары / скорая</option><option value="stom">Стоматология</option><option value="lor">ЛОР / сурдология</option><option value="nevro">Неврология / нейрохирургия</option><option value="kardio">Кардиология / флебология</option><option value="oftalm">Офтальмология / оптика</option><option value="lab">Лаборатории / диагностика / МРТ</option><option value="pediatr">Педиатрия / детские</option><option value="gynec">Гинекология / роддома / ЭКО</option><option value="derma">Дерматология / косметология / пластика</option><option value="uro">Урология / нефрология</option><option value="travma">Травматология / ортопедия</option><option value="psih">Психиатрия / наркология / логопедия</option><option value="onko">Онкология / гематология</option><option value="infekt">Инфекции / туберкулёз / СЭС</option><option value="allerg">Аллергология / иммунология / пульмонология</option><option value="endo">Эндокринология / гастроэнтерология</option><option value="reabil">Реабилитация / физиотерапия / санатории</option></select></div>
    <div class="styrow sub"><label>раскраска</label><select id="medColBy" style="width:auto;font-size:11px"><option value="sp" selected>по направлению медицины</option><option value="t">по типу учреждения</option><option value="fix">один цвет</option></select></div>
    <div class="styrow sub"><label>подписи с зума</label><input type="range" id="medLabZ" min="11" max="18" value="13"><span class="mini" id="medLabZv"></span></div>
    <div class="mini" id="medLeg" style="line-height:1.7;margin:2px 0 4px"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label><input type="color" id="phC" value="#2ecc71"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label></div>
+   <div class="styrow sub"><label for="phC">цвет</label><input type="color" id="phC" value="#2ecc71"></div>
    <div class="mini" id="phNote"></div>
    <div class="mini" id="medNote"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lDist"> Районы (граница+заливка)</label><input type="checkbox" id="dLab" title="метки" checked></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lDist"> Районы (граница+заливка)</label></div>
+   <div class="styrow sub"><label for="dLab">метки районов</label><input type="checkbox" id="dLab" checked></div>
    <div class="styrow sub"><label>граница</label><input type="color" id="dC" value="#9E0000"><input type="range" id="dW" min="1" max="6" value="2"><label>заливка</label><input type="color" id="dF" value="#9E0000"><input type="range" id="dO" min="0" max="70" value="12"></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lReg"> + Ташкентская область (22 территории)</label></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lDens"> Плотность населения</label><input type="color" id="densC" value="#9E0000" title="цвет"><input type="range" id="densO" min="20" max="100" value="80" title="прозрачность"></div><div id="densLegend" class="mini" style="display:none;margin-top:3px"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lHeat"> Тепловая карта населения</label><input type="color" id="heatC" value="#c0392b" title="цвет"><input type="range" id="heatO" min="20" max="100" value="80" title="прозрачность"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lDens"> Плотность населения</label></div>
+   <div class="styrow sub"><label for="densC">цвет</label><input type="color" id="densC" value="#9E0000"><label for="densO">прозрачность</label><input type="range" id="densO" min="20" max="100" value="80"></div><div id="densLegend" class="mini" style="display:none;margin-top:3px"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lHeat"> Тепловая карта населения</label></div>
+   <div class="styrow sub"><label for="heatC">цвет</label><input type="color" id="heatC" value="#c0392b"><label for="heatO">прозрачность</label><input type="range" id="heatO" min="20" max="100" value="80"></div>
    <div class="styrow sub"><label>радиус</label><input type="range" id="heatR" min="10" max="60" value="28"><label>размытие</label><input type="range" id="heatB" min="5" max="40" value="20"></div>
    <div class="mini" id="heatNote"></div>
   </div>
