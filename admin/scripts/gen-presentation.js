@@ -203,6 +203,9 @@ table { border-collapse: collapse; width: 100%; background: #fff; border-radius:
 th { text-align: left; font-size: 8pt; letter-spacing: .08em; text-transform: uppercase; color: ${MUTED}; padding: 4mm 5mm 3mm; border-bottom: .5pt solid #ddd; }
 td { padding: 4.2mm 5mm; font-size: 10.5pt; border-bottom: .4pt solid #eee; vertical-align: middle; }
 tr:last-child td { border-bottom: none; }
+table.dense td { padding: 2.6mm 4mm; font-size: 9pt; }
+table.dense th { padding: 3mm 4mm 2.2mm; }
+table.dense .st { font-size: 7.5pt; padding: 1.1mm 3mm; }
 .st { display: inline-block; font-size: 8.5pt; font-weight: 700; padding: 1.6mm 4mm; border-radius: 99px; background: #e6f4e7; color: #2e7c39; }
 .st.off { background: #ececeb; color: #75787c; }
 `;
@@ -346,7 +349,7 @@ function buildHtml(lang, qr) {
   <div class="pg">
     <span class="lbl">${t('lbl_units')}</span>
     <h2>${t('h_units')}</h2>
-    <table>
+    <table class="${units.length > 5 ? 'dense' : ''}">
       <tr><th>${t('th_level')}</th><th>${t('th_elev')}</th><th>GBA</th><th>GLA</th><th>${t('th_ceil')}</th><th>${t('th_use')}</th><th>${t('th_status')}</th></tr>
       ${units.map(unitRow).join('')}
       <tr style="background:${BG}">

@@ -1,0 +1,1237 @@
+{
+  "slug": "botanica",
+  "name": "Бизнес-центр Botanica (Богишамол 151)",
+  "schemaVersion": 2,
+  "site": {
+    "code": "BOTANICA",
+    "title": "Botanica Business Centre",
+    "fileBase": "Botanica",
+    "planBase": "Botanica",
+    "favicon": "B",
+    "assetType": "building",
+    "intent": "both",
+    "addr": {
+      "headline": {
+        "ru": "Богишамол, 151 · Ташкент",
+        "uz": "Bog'ishamol 151 · Toshkent",
+        "en": "151 Bogishamol St · Tashkent"
+      },
+      "street": {
+        "ru": "ул. Богишамол, 151",
+        "uz": "Bog'ishamol ko'chasi, 151",
+        "en": "151 Bogishamol Street"
+      },
+      "locality": {
+        "ru": "Юнусабадский район",
+        "uz": "Yunusobod tumani",
+        "en": "Yunusabad district"
+      },
+      "region": {
+        "ru": "Ташкент",
+        "uz": "Toshkent",
+        "en": "Tashkent"
+      },
+      "streetLd": "Bog'ishamol ko'chasi 151",
+      "localityLd": "Tashkent",
+      "regionLd": "Yunusobod"
+    },
+    "theme": {
+      "bg": "#f7f4ed",
+      "ink": "#1c2a22",
+      "muted": "#5f6b62",
+      "accent": "#a3854c",
+      "accentD": "#7f6634",
+      "dark": "#1e362a"
+    }
+  },
+  "brand": {
+    "mark": "B",
+    "logo": "",
+    "name": {
+      "ru": "BOTANICA",
+      "uz": "BOTANICA",
+      "en": "BOTANICA"
+    },
+    "tag": {
+      "ru": "Бизнес-центр на Богишамол",
+      "uz": "Bog'ishamoldagi biznes-markaz",
+      "en": "Business centre on Bogishamol"
+    }
+  },
+  "contacts": {
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
+    "email": "caseadvisoryservicess@gmail.com",
+    "sheetsEndpoint": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtpUser": "",
+    "smtpPass": ""
+  },
+  "adminUrl": "",
+  "leadEndpoint": "",
+  "texts": {
+    "about.viz": {
+      "ru": "визуализация проекта",
+      "uz": "loyiha vizualizatsiyasi",
+      "en": "project visualisation"
+    },
+    "about.vizAll": {
+      "ru": "Изображения - визуализации проекта, планировки и разрез приведены по проектной документации.",
+      "uz": "Tasvirlar - loyiha vizualizatsiyalari, planirovkalar va kesim loyiha hujjatlari bo'yicha keltirilgan.",
+      "en": "The images are project visualisations; the floor plans and the section are taken from the design documentation."
+    },
+    "legal.area": {
+      "ru": "Площади и отметки приведены по проектной документации и подлежат уточнению по фактическим обмерам при вводе здания. Информация носит справочный характер и не является публичной офертой.",
+      "uz": "Maydonlar va belgilar loyiha hujjatlari bo'yicha keltirilgan va bino topshirilganda haqiqiy o'lchovlar bo'yicha aniqlashtiriladi. Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
+      "en": "Areas and levels are stated per the design documentation and will be confirmed by as-built measurements on completion. This information is for reference only and does not constitute a public offer."
+    }
+  },
+  "seo": {
+    "title": {
+      "ru": "Бизнес-центр Botanica на Богишамол 151 - аренда и продажа офисов в Ташкенте",
+      "uz": "Bog'ishamol 151 dagi Botanica biznes-markazi - Toshkentda ofis ijarasi va sotuvi",
+      "en": "Botanica business centre at 151 Bogishamol - offices for lease and sale in Tashkent"
+    },
+    "description": {
+      "ru": "Бизнес-центр класса B+ на улице Богишамол, 151, напротив Ботанического сада: 2 575,4 м² арендопригодной площади, подвал и 7 этажей, типовой этаж 337,9 м², высота этажа 3,3 м и 4,2 м на первом, лифт, свободная планировка. Аренда, покупка этажа или здания целиком, аренда с последующим выкупом.",
+      "uz": "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasidagi B+ toifali biznes-markaz: 2 575,4 m² ijaraga yaroqli maydon, podval va 7 qavat, tipik qavat 337,9 m², qavat balandligi 3,3 m, birinchi qavatda 4,2 m, lift, erkin planirovka. Ijara, qavat yoki butun binoni sotib olish, keyinchalik sotib olish sharti bilan ijara.",
+      "en": "A class B+ business centre at 151 Bogishamol Street, opposite the Botanical Garden: 2,575.4 m² of leasable area, a basement and 7 floors, a 337.9 m² typical floor plate, 3.3 m floor height and 4.2 m on the ground floor, a lift and open-plan layouts. Available for lease, purchase of a floor or the whole building, and lease-to-own."
+    },
+    "keywords": "бизнес-центр Ташкент, аренда офиса Ташкент, аренда офиса Юнусабад, офис класса B+ Ташкент, продажа офиса Ташкент, аренда этажа под офис Ташкент, бизнес-центр Богишамол, офис у Ботанического сада Ташкент, аренда офиса Мирзо-Улугбек, покупка этажа в бизнес-центре Ташкент, офис open space Ташкент, коммерческая недвижимость Юнусабад, аренда с последующим выкупом офис Ташкент, новый бизнес-центр Ташкент, ofis ijarasi Toshkent, biznes-markaz Toshkent, Yunusobod ofis ijarasi, office for rent Tashkent, business centre Tashkent, office space Yunusabad Tashkent, class B office Tashkent, office building for sale Tashkent",
+    "domain": "",
+    "googleVerification": "",
+    "yandexVerification": "",
+    "publicUrl": "https://caseadvisory.uz/botanica"
+  },
+  "intro": {
+    "image": "render-street.jpg",
+    "focus": "50% 50%",
+    "h1": {
+      "ru": "Бизнес-центр Botanica на Богишамол, 151",
+      "uz": "Bog'ishamol 151 dagi Botanica biznes-markazi",
+      "en": "Botanica business centre at 151 Bogishamol"
+    },
+    "sub": {
+      "ru": "Класс B+, подвал и 7 этажей, типовой этаж 337,9 м². Аренда, покупка, аренда с выкупом",
+      "uz": "B+ toifa, podval va 7 qavat, tipik qavat 337,9 m². Ijara, sotib olish, keyinchalik sotib olish",
+      "en": "Class B+, a basement and 7 floors, a 337.9 m² typical floor. Lease, purchase or lease-to-own"
+    },
+    "facts": [
+      {
+        "n": {
+          "ru": "2 575,4",
+          "uz": "2 575,4",
+          "en": "2,575.4"
+        },
+        "l": {
+          "ru": "м² арендопригодной площади (GLA)",
+          "uz": "m² ijaraga yaroqli maydon (GLA)",
+          "en": "m² of leasable area (GLA)"
+        }
+      },
+      {
+        "n": {
+          "ru": "4 133,4",
+          "uz": "4 133,4",
+          "en": "4,133.4"
+        },
+        "l": {
+          "ru": "м² общей площади (GBA)",
+          "uz": "m² umumiy maydon (GBA)",
+          "en": "m² of gross area (GBA)"
+        }
+      },
+      {
+        "n": "8",
+        "l": {
+          "ru": "уровней: подвал и 7 этажей",
+          "uz": "daraja: podval va 7 qavat",
+          "en": "levels: basement and 7 floors"
+        }
+      },
+      {
+        "n": {
+          "ru": "337,9",
+          "uz": "337,9",
+          "en": "337.9"
+        },
+        "l": {
+          "ru": "м² типовой этаж",
+          "uz": "m² tipik qavat",
+          "en": "m² typical floor plate"
+        }
+      }
+    ]
+  },
+  "params": [
+    {
+      "n": {
+        "ru": "2 575,4",
+        "uz": "2 575,4",
+        "en": "2,575.4"
+      },
+      "l": {
+        "ru": "м² GLA",
+        "uz": "m² GLA",
+        "en": "m² GLA"
+      }
+    },
+    {
+      "n": {
+        "ru": "4 133,4",
+        "uz": "4 133,4",
+        "en": "4,133.4"
+      },
+      "l": {
+        "ru": "м² GBA",
+        "uz": "m² GBA",
+        "en": "m² GBA"
+      }
+    },
+    {
+      "n": "7",
+      "l": {
+        "ru": "этажей и подвал",
+        "uz": "qavat va podval",
+        "en": "floors plus basement"
+      }
+    },
+    {
+      "n": {
+        "ru": "3,3-4,2",
+        "uz": "3,3-4,2",
+        "en": "3.3-4.2"
+      },
+      "l": {
+        "ru": "м высота этажа",
+        "uz": "m qavat balandligi",
+        "en": "m floor height"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Лифт и две лестницы",
+        "uz": "Lift va ikkita zinapoya",
+        "en": "A lift and two staircases"
+      }
+    }
+  ],
+  "unitsSection": {
+    "h2": {
+      "ru": "Помещения",
+      "uz": "Maydonlar",
+      "en": "Premises"
+    },
+    "note": {
+      "ru": "Этажи со свободной планировкой: сетка колонн 5-5-6-5-5 на 6-6-6 м, габарит здания 26 x 18 м. Санузлы на каждом этаже, лифт и две лестницы, включая наружную эвакуационную.",
+      "uz": "Erkin planirovkali qavatlar: kolonnalar to'ri 5-5-6-5-5 ga 6-6-6 m, bino gabariti 26 x 18 m. Har bir qavatda hojatxonalar, lift va ikkita zinapoya, shu jumladan tashqi evakuatsiya zinapoyasi.",
+      "en": "Open-plan floors on a 5-5-6-5-5 by 6-6-6 m column grid, with a 26 x 18 m building footprint. Restrooms on every floor, a lift and two staircases including an external escape stair."
+    }
+  },
+  "units": [
+    {
+      "id": "b",
+      "level": {
+        "ru": "Подвал",
+        "uz": "Podval",
+        "en": "Basement"
+      },
+      "gla": "253,9",
+      "gba": "485,7",
+      "ceil": "3,6",
+      "plan": "plan-b.jpg",
+      "elev": "-3.600",
+      "uses": {
+        "ru": "склад, архив, техническая зона, спортзал",
+        "uz": "ombor, arxiv, texnik zona, sport zali",
+        "en": "storage, archive, plant rooms, a gym"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f1",
+      "level": {
+        "ru": "1 этаж",
+        "uz": "1-qavat",
+        "en": "Ground floor"
+      },
+      "gla": "294,1",
+      "gba": "485,7",
+      "ceil": "4,2",
+      "plan": "plan-f1.jpg",
+      "elev": "0.000",
+      "uses": {
+        "ru": "банк, аптека, кофейня, клиентский офис, шоурум",
+        "uz": "bank, dorixona, qahvaxona, mijozlar ofisi, shou-rum",
+        "en": "a bank, pharmacy, coffee shop, client office or showroom"
+      },
+      "status": "available"
+    },
+    {
+      "id": "f2",
+      "level": {
+        "ru": "2 этаж",
+        "uz": "2-qavat",
+        "en": "Floor 2"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+4.200"
+    },
+    {
+      "id": "f3",
+      "level": {
+        "ru": "3 этаж",
+        "uz": "3-qavat",
+        "en": "Floor 3"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+7.800"
+    },
+    {
+      "id": "f4",
+      "level": {
+        "ru": "4 этаж",
+        "uz": "4-qavat",
+        "en": "Floor 4"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+11.400"
+    },
+    {
+      "id": "f5",
+      "level": {
+        "ru": "5 этаж",
+        "uz": "5-qavat",
+        "en": "Floor 5"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+15.000"
+    },
+    {
+      "id": "f6",
+      "level": {
+        "ru": "6 этаж",
+        "uz": "6-qavat",
+        "en": "Floor 6"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+18.600"
+    },
+    {
+      "id": "f7",
+      "level": {
+        "ru": "7 этаж",
+        "uz": "7-qavat",
+        "en": "Floor 7"
+      },
+      "gla": "337,9",
+      "gba": "527,0",
+      "ceil": "3,3",
+      "plan": "plan-f27.jpg",
+      "uses": {
+        "ru": "офисы, представительство, IT-компания",
+        "uz": "ofislar, vakolatxona, IT-kompaniya",
+        "en": "offices, a representative office, an IT company"
+      },
+      "status": "available",
+      "elev": "+22.200"
+    },
+    {
+      "id": "all",
+      "whole": true,
+      "level": {
+        "ru": "Здание целиком",
+        "uz": "Bino to'liq",
+        "en": "The whole building"
+      },
+      "gla": "2 575,4",
+      "gba": "4 133,4",
+      "ceil": "",
+      "uses": {
+        "ru": "штаб-квартира компании, ведомство, медицинский центр",
+        "uz": "kompaniya bosh qarorgohi, idora, tibbiyot markazi",
+        "en": "a corporate headquarters, an agency or a medical centre"
+      },
+      "status": "available"
+    }
+  ],
+  "useCases": {
+    "h2": {
+      "ru": "Кому подходит здание",
+      "uz": "Bino kimga mos keladi",
+      "en": "Who the building suits"
+    },
+    "cards": [
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Компания на один этаж",
+          "uz": "Bir qavatlik kompaniya",
+          "en": "A company on one floor"
+        },
+        "levels": {
+          "ru": "337,9 м², этажи 2-7",
+          "uz": "337,9 m², 2-7-qavatlar",
+          "en": "337.9 m², floors 2 to 7"
+        },
+        "p": {
+          "ru": "Типовой этаж без внутренних несущих стен: планировка собирается под структуру компании, от кабинетной до открытой. Санузлы и лифтовой холл на этаже, вход общий.",
+          "uz": "Ichki ko'taruvchi devorlarsiz tipik qavat: planirovka kompaniya tuzilmasiga moslanadi. Qavatda hojatxonalar va lift xolli, kirish umumiy.",
+          "en": "A typical floor with no internal load-bearing walls: the layout follows the company structure, from cellular to open plan. Restrooms and a lift lobby on the floor."
+        }
+      },
+      {
+        "icon": "clinic",
+        "h": {
+          "ru": "Первый этаж под поток",
+          "uz": "Birinchi qavat oqim uchun",
+          "en": "Ground floor for footfall"
+        },
+        "levels": {
+          "ru": "294,1 м², высота 4,2 м",
+          "uz": "294,1 m², balandligi 4,2 m",
+          "en": "294.1 m², 4.2 m height"
+        },
+        "p": {
+          "ru": "Отдельный вход с улицы и высота этажа 4,2 метра: банк, аптека, кофейня или клиентский офис, который работает и на арендаторов здания, и на прохожих.",
+          "uz": "Ko'chadan alohida kirish va 4,2 metr qavat balandligi: bank, dorixona, qahvaxona yoki mijozlar ofisi.",
+          "en": "A separate street entrance and 4.2 m floor height: a bank, pharmacy, coffee shop or client office serving both the building's tenants and passers-by."
+        }
+      },
+      {
+        "icon": "school",
+        "h": {
+          "ru": "Здание целиком",
+          "uz": "Bino to'liq",
+          "en": "The whole building"
+        },
+        "levels": {
+          "ru": "2 575,4 м² GLA",
+          "uz": "2 575,4 m² GLA",
+          "en": "2,575.4 m² GLA"
+        },
+        "p": {
+          "ru": "Восемь уровней под одну организацию: штаб-квартира, ведомство или медицинский центр с собственным входом, своей вывеской и полным контролем над зданием.",
+          "uz": "Sakkiz daraja bitta tashkilot uchun: bosh qarorgoh, idora yoki o'z kirishiga ega tibbiyot markazi.",
+          "en": "Eight levels for a single organisation: a headquarters, a government body or a medical centre with its own entrance, signage and full control of the building."
+        }
+      },
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Инвестор",
+          "uz": "Investor",
+          "en": "An investor"
+        },
+        "levels": {
+          "ru": "покупка этажа или здания",
+          "uz": "qavat yoki binoni sotib olish",
+          "en": "buy a floor or the building"
+        },
+        "p": {
+          "ru": "Здание проектируется под сдачу в аренду: типовые этажи одинаковой площади продаются и поэтажно, и целиком, с последующей сдачей арендаторам.",
+          "uz": "Bino ijaraga berish uchun loyihalanmoqda: bir xil maydonli tipik qavatlar qavatma-qavat ham, to'liq ham sotiladi.",
+          "en": "The building is designed for leasing: identical typical floors can be bought floor by floor or as a whole and then let to tenants."
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "h2": {
+      "ru": "Формат сделки",
+      "uz": "Bitim formati",
+      "en": "Deal structure"
+    },
+    "cols": [
+      {
+        "h": {
+          "ru": "Аренда",
+          "uz": "Ijara",
+          "en": "Lease"
+        },
+        "p": {
+          "ru": "Этаж целиком или несколько этажей. Ставка и условия обсуждаются индивидуально: оставьте контакты, и мы вышлем предложение.",
+          "uz": "Qavat to'liq yoki bir nechta qavat. Narx va shartlar alohida muhokama qilinadi.",
+          "en": "A whole floor or several floors. Rent and terms are discussed individually."
+        }
+      },
+      {
+        "h": {
+          "ru": "Покупка",
+          "uz": "Sotib olish",
+          "en": "Purchase"
+        },
+        "p": {
+          "ru": "Покупка отдельного этажа или здания целиком. Порядок оформления и график платежей обсуждаются под конкретную сделку.",
+          "uz": "Alohida qavatni yoki butun binoni sotib olish. Rasmiylashtirish tartibi va to'lov jadvali alohida muhokama qilinadi.",
+          "en": "Purchase of a single floor or the entire building. Documentation and the payment schedule are agreed deal by deal."
+        }
+      },
+      {
+        "h": {
+          "ru": "Аренда с последующим выкупом",
+          "uz": "Keyinchalik sotib olish sharti bilan ijara",
+          "en": "Lease with option to buy"
+        },
+        "p": {
+          "ru": "Арендатор заходит в помещение и выкупает его позже, часть платежей засчитывается в стоимость. Условия фиксируются в договоре.",
+          "uz": "Ijarachi maydonga kiradi va keyinroq uni sotib oladi, to'lovlarning bir qismi narxga hisoblanadi.",
+          "en": "A tenant moves in and buys the space later, with part of the payments credited against the price."
+        }
+      }
+    ]
+  },
+  "about": {
+    "h2": {
+      "ru": "О здании",
+      "uz": "Bino haqida",
+      "en": "About the building"
+    },
+    "sfbNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "status": {
+      "ru": "Здание проектируется. Проектная документация и планировки доступны по запросу, бронирование этажей уже открыто.",
+      "uz": "Bino loyihalanmoqda. Loyiha hujjatlari va planirovkalar so'rov bo'yicha, qavatlarni bron qilish allaqachon ochiq.",
+      "en": "The building is at design stage. The design documentation and floor plans are available on request, and floors can already be reserved."
+    },
+    "specs": [
+      {
+        "b": {
+          "ru": "Класс",
+          "uz": "Toifa",
+          "en": "Class"
+        },
+        "s": {
+          "ru": "B+ (проектируемый)",
+          "uz": "B+ (loyihalanayotgan)",
+          "en": "B+ (as designed)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Общая площадь (GBA)",
+          "uz": "Umumiy maydon (GBA)",
+          "en": "Gross area (GBA)"
+        },
+        "s": {
+          "ru": "4 133,4 м²",
+          "uz": "4 133,4 m²",
+          "en": "4,133.4 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Арендопригодная площадь (GLA)",
+          "uz": "Ijaraga yaroqli maydon (GLA)",
+          "en": "Leasable area (GLA)"
+        },
+        "s": {
+          "ru": "2 575,4 м²",
+          "uz": "2 575,4 m²",
+          "en": "2,575.4 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Уровни",
+          "uz": "Darajalar",
+          "en": "Levels"
+        },
+        "s": {
+          "ru": "подвал и 7 этажей",
+          "uz": "podval va 7 qavat",
+          "en": "a basement and 7 floors"
+        }
+      },
+      {
+        "b": {
+          "ru": "Типовой этаж",
+          "uz": "Tipik qavat",
+          "en": "Typical floor"
+        },
+        "s": {
+          "ru": "GBA 527,0 м², GLA 337,9 м² (этажи 2-7)",
+          "uz": "GBA 527,0 m², GLA 337,9 m² (2-7-qavatlar)",
+          "en": "GBA 527.0 m², GLA 337.9 m² (floors 2 to 7)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Высота этажа",
+          "uz": "Qavat balandligi",
+          "en": "Floor height"
+        },
+        "s": {
+          "ru": "4,2 м на первом, 3,3 м на 2-7, 3,6 м в подвале",
+          "uz": "birinchi qavatda 4,2 m, 2-7 da 3,3 m, podvalda 3,6 m",
+          "en": "4.2 m on the ground floor, 3.3 m on floors 2 to 7, 3.6 m in the basement"
+        }
+      },
+      {
+        "b": {
+          "ru": "Сетка колонн",
+          "uz": "Kolonnalar to'ri",
+          "en": "Column grid"
+        },
+        "s": {
+          "ru": "5-5-6-5-5 на 6-6-6 м, габарит 26 x 18 м",
+          "uz": "5-5-6-5-5 ga 6-6-6 m, gabarit 26 x 18 m",
+          "en": "5-5-6-5-5 by 6-6-6 m, 26 x 18 m footprint"
+        }
+      },
+      {
+        "b": {
+          "ru": "Вертикальная связь",
+          "uz": "Vertikal aloqa",
+          "en": "Vertical circulation"
+        },
+        "s": {
+          "ru": "лифт и две лестницы, включая наружную эвакуационную",
+          "uz": "lift va ikkita zinapoya, tashqi evakuatsiya zinapoyasi bilan",
+          "en": "a lift and two staircases, including an external escape stair"
+        }
+      },
+      {
+        "b": {
+          "ru": "Высота здания",
+          "uz": "Bino balandligi",
+          "en": "Building height"
+        },
+        "s": {
+          "ru": "до +26,700 м, лифтовая надстройка до +30,950 м",
+          "uz": "+26,700 m gacha, lift ustqurmasi +30,950 m gacha",
+          "en": "up to +26.700 m, lift overrun to +30.950 m"
+        }
+      },
+      {
+        "b": {
+          "ru": "Локация",
+          "uz": "Joylashuvi",
+          "en": "Location"
+        },
+        "s": {
+          "ru": "ул. Богишамол, 151, напротив Ботанического сада",
+          "uz": "Bog'ishamol ko'chasi 151, Botanika bog'i ro'parasida",
+          "en": "151 Bogishamol Street, opposite the Botanical Garden"
+        }
+      }
+    ],
+    "images": [
+      {
+        "file": "section.jpg",
+        "badge": {
+          "ru": "разрез 1-1",
+          "uz": "1-1 kesim",
+          "en": "section 1-1"
+        },
+        "alt": {
+          "ru": "Разрез 1-1 бизнес-центра Botanica: отметки этажей от -3,600 до +25,800",
+          "uz": "Botanica biznes-markazining 1-1 kesimi: qavat belgilari -3,600 dan +25,800 gacha",
+          "en": "Section 1-1 of the Botanica business centre with floor levels from -3.600 to +25.800"
+        }
+      },
+      {
+        "file": "render-corner.jpg",
+        "alt": {
+          "ru": "Бизнес-центр Botanica на Богишамол, угловой ракурс со стеклянным фасадом",
+          "uz": "Bog'ishamoldagi Botanica biznes-markazi, shisha fasadli burchak ko'rinish",
+          "en": "The Botanica business centre on Bogishamol, corner view with its glazed facade"
+        }
+      },
+      {
+        "file": "render-aerial.jpg",
+        "alt": {
+          "ru": "Бизнес-центр Botanica с высоты: парковка у входа и первая линия улицы",
+          "uz": "Botanica biznes-markazi yuqoridan: kiraverishdagi avtoturargoh va ko'chaning birinchi qatori",
+          "en": "The Botanica business centre from above: parking at the entrance and the street frontage"
+        }
+      }
+    ]
+  },
+  "location": {
+    "h2": {
+      "ru": "Богишамол, напротив Ботанического сада",
+      "uz": "Bog'ishamol, Botanika bog'i ro'parasida",
+      "en": "Bogishamol, opposite the Botanical Garden"
+    },
+    "sub": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "address": {
+      "ru": "Ташкент, Юнусабадский район, ул. Богишамол, 151",
+      "uz": "Toshkent, Yunusobod tumani, Bog'ishamol ko'chasi, 151",
+      "en": "Tashkent, Yunusabad district, 151 Bogishamol Street"
+    },
+    "addressNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "city": {
+      "ru": "Ташкент",
+      "uz": "Toshkent",
+      "en": "Tashkent"
+    },
+    "lat": "41.348614",
+    "lng": "69.316418",
+    "pois": [],
+    "drive": [],
+    "metroNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "around": {
+      "ru": "Здание выходит на улицу Богишамол напротив Ботанического сада. Вокруг сложившийся жилой массив Юнусабада: в пятнадцати минутах пешком живёт около 8 800 человек, а в двадцати - почти 18 000. Ближайшие махаллинские центры - Богибустон, Отчопар-2 и Обод.",
+      "uz": "Bino Botanika bog'i ro'parasida Bog'ishamol ko'chasiga chiqadi. Atrofda Yunusobodning shakllangan turar-joy massivi: piyoda o'n besh daqiqada 8 800 ga yaqin, yigirma daqiqada esa deyarli 18 000 kishi yashaydi. Eng yaqin mahalla markazlari - Bog'ibo'ston, Otchopar-2 va Obod.",
+      "en": "The building fronts Bogishamol Street opposite the Botanical Garden, inside an established residential part of Yunusabad: about 8,800 people live within a fifteen-minute walk and almost 18,000 within twenty. The nearest mahalla centres are Bogibuston, Otchopar-2 and Obod."
+    }
+  },
+  "faq": [
+    {
+      "q": {
+        "ru": "На какой стадии здание?",
+        "uz": "Bino qaysi bosqichda?",
+        "en": "What stage is the building at?"
+      },
+      "a": {
+        "ru": "Здание проектируется. Планировки, разрез и параметры конструктива уже определены и приведены на странице, полный комплект проектной документации высылаем по запросу. Бронирование этажей открыто.",
+        "uz": "Bino loyihalanmoqda. Planirovkalar, kesim va konstruktiv parametrlar aniqlangan va sahifada keltirilgan, loyiha hujjatlarining to'liq to'plamini so'rov bo'yicha yuboramiz. Qavatlarni bron qilish ochiq.",
+        "en": "The building is at design stage. The layouts, section and structural parameters are already defined and shown on this page; the full design documentation is sent on request. Floors can be reserved now."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли купить один этаж?",
+        "uz": "Bitta qavatni sotib olish mumkinmi?",
+        "en": "Can we buy a single floor?"
+      },
+      "a": {
+        "ru": "Да. Этажи со 2-го по 7-й одинаковы по площади - GLA 337,9 м² каждый, и продаются как поэтажно, так и целиком. Возможна аренда и аренда с последующим выкупом.",
+        "uz": "Ha. 2-dan 7-gacha qavatlar maydoni bo'yicha bir xil - har biri GLA 337,9 m², qavatma-qavat ham, to'liq ham sotiladi. Ijara va keyinchalik sotib olish sharti bilan ijara ham mumkin.",
+        "en": "Yes. Floors 2 to 7 are identical at 337.9 m² GLA each and can be bought floor by floor or as a whole. Lease and lease-to-own are also available."
+      }
+    },
+    {
+      "q": {
+        "ru": "Какая планировка на этажах?",
+        "uz": "Qavatlarda qanday planirovka?",
+        "en": "What are the floor layouts like?"
+      },
+      "a": {
+        "ru": "Свободная. Внутренних несущих стен нет, только колонны по сетке 5-5-6-5-5 на 6-6-6 метров, поэтому этаж собирается и в кабинеты, и в открытое пространство. Санузлы и лифтовой холл вынесены в ядро.",
+        "uz": "Erkin. Ichki ko'taruvchi devorlar yo'q, faqat 5-5-6-5-5 ga 6-6-6 metr to'rdagi kolonnalar, shuning uchun qavatni kabinetlarga ham, ochiq maydonga ham bo'lish mumkin.",
+        "en": "Open plan. There are no internal load-bearing walls, only columns on a 5-5-6-5-5 by 6-6-6 m grid, so a floor can be fitted out as cellular offices or as open space. Restrooms and the lift lobby sit in the core."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что с высотой потолков?",
+        "uz": "Shift balandligi qanday?",
+        "en": "What about ceiling heights?"
+      },
+      "a": {
+        "ru": "По разрезу высота этажа - 4,2 метра на первом, 3,3 метра на этажах со 2-го по 7-й и 3,6 метра в подвале. Это расстояние между отметками перекрытий; чистая высота в помещении будет меньше на толщину конструкции и подвесного потолка.",
+        "uz": "Kesim bo'yicha qavat balandligi - birinchi qavatda 4,2 metr, 2-7-qavatlarda 3,3 metr, podvalda 3,6 metr. Bu qoplamalar belgilari orasidagi masofa; xonadagi toza balandlik konstruksiya va osma shift qalinligiga kamroq bo'ladi.",
+        "en": "Per the section, the floor-to-floor height is 4.2 m on the ground floor, 3.3 m on floors 2 to 7 and 3.6 m in the basement. That is the distance between slab levels; the clear height in the space will be lower by the slab and suspended ceiling."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что находится вокруг?",
+        "uz": "Atrofda nima bor?",
+        "en": "What is around the building?"
+      },
+      "a": {
+        "ru": "Улица Богишамол напротив Ботанического сада, сложившийся жилой массив Юнусабада. В радиусе полутора километров наша геобаза насчитывает 14 медицинских учреждений, 5 аптек и 4 махаллинских центра, а население в пятнадцати минутах пешком - около 8 800 человек. Подробности в блоке «Локация в цифрах».",
+        "uz": "Botanika bog'i ro'parasidagi Bog'ishamol ko'chasi, Yunusobodning shakllangan turar-joy massivi. Bir yarim kilometr radiusda geobazamiz 14 ta tibbiyot muassasasi, 5 ta dorixona va 4 ta mahalla markazini hisoblaydi, piyoda o'n besh daqiqadagi aholi esa 8 800 ga yaqin.",
+        "en": "Bogishamol Street opposite the Botanical Garden, within an established residential area of Yunusabad. Within 1.5 km our geo database counts 14 medical facilities, 5 pharmacies and 4 mahalla centres, and about 8,800 people live within a fifteen-minute walk."
+      }
+    },
+    {
+      "q": {
+        "ru": "Какая цена?",
+        "uz": "Narxi qancha?",
+        "en": "What is the price?"
+      },
+      "a": {
+        "ru": "Ставка аренды и стоимость покупки обсуждаются индивидуально и зависят от площади, этажа и формата сделки. Оставьте контакты, и мы вышлем коммерческое предложение с планировками.",
+        "uz": "Ijara narxi va sotib olish qiymati alohida muhokama qilinadi hamda maydon, qavat va bitim formatiga bog'liq. Kontaktlaringizni qoldiring, planirovkalar bilan tijorat taklifini yuboramiz.",
+        "en": "Rent and purchase price are discussed individually and depend on the area, the floor and the deal format. Leave your contacts and we will send a proposal with the floor plans."
+      }
+    }
+  ],
+  "lead": {
+    "h2": {
+      "ru": "Забронировать этаж или запросить документы",
+      "uz": "Qavatni bron qilish yoki hujjatlarni so'rash",
+      "en": "Reserve a floor or request the documents"
+    },
+    "sub": {
+      "ru": "Оставьте контакты - вышлем планировки, проектные параметры и условия по вашему формату.",
+      "uz": "Kontaktlaringizni qoldiring - planirovkalar, loyiha parametrlari va formatingiz bo'yicha shartlarni yuboramiz.",
+      "en": "Leave your contacts and we will send the floor plans, design parameters and terms for your format."
+    }
+  },
+  "enquiry": {
+    "note": {
+      "ru": "Ответим в течение дня",
+      "uz": "Kun davomida javob beramiz",
+      "en": "We reply within the day"
+    }
+  },
+  "footer": {
+    "addr": {
+      "ru": "Ташкент, Юнусабадский район, ул. Богишамол, 151",
+      "uz": "Toshkent, Yunusobod tumani, Bog'ishamol ko'chasi, 151",
+      "en": "Tashkent, Yunusabad district, 151 Bogishamol Street"
+    },
+    "legal": {
+      "ru": "CASE Real Estate Advisory выступает агентом собственника по коммерциализации проекта. Информация на сайте носит справочный характер и не является публичной офертой. © 2026 CASE Advisory",
+      "uz": "CASE Real Estate Advisory loyihani tijoratlashtirish bo'yicha mulkdor agenti sifatida ish yuritadi. Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. © 2026 CASE Advisory",
+      "en": "CASE Real Estate Advisory acts as the owner's agent for the commercialisation of the project. Information on this site is for reference only and does not constitute a public offer. © 2026 CASE Advisory"
+    }
+  },
+  "settings": {
+    "mapsApiKey": "",
+    "metricaId": "",
+    "ga4Id": "",
+    "gtmId": ""
+  },
+  "pres": {
+    "elev": {
+      "b": "-3.600",
+      "f1": "±0.000",
+      "f2": "+4.200",
+      "f3": "+7.800",
+      "f4": "+11.400",
+      "f5": "+15.000",
+      "f6": "+18.600",
+      "f7": "+22.200"
+    },
+    "plans": {
+      "b": "plan-b.jpg",
+      "f1": "plan-f1.jpg",
+      "f2": "plan-f27.jpg",
+      "f3": "plan-f27.jpg",
+      "f4": "plan-f27.jpg",
+      "f5": "plan-f27.jpg",
+      "f6": "plan-f27.jpg",
+      "f7": "plan-f27.jpg"
+    },
+    "planPages": [
+      {
+        "id": "b"
+      },
+      {
+        "id": "f1"
+      },
+      {
+        "id": "f2",
+        "title": "f27_title"
+      }
+    ],
+    "aboutImg": "render-corner.jpg",
+    "vizImgs": [
+      "render-aerial.jpg",
+      "section.jpg"
+    ],
+    "T": {
+      "addr": {
+        "ru": "Богишамол 151 · Ташкент",
+        "uz": "Bog'ishamol 151 · Toshkent",
+        "en": "151 Bogishamol St · Tashkent"
+      },
+      "h_about": {
+        "ru": "Бизнес-центр класса B+ со свободной планировкой",
+        "uz": "Erkin planirovkali B+ toifali biznes-markaz",
+        "en": "A class B+ business centre with open-plan floors"
+      },
+      "card_lvl_n": {
+        "ru": "8 уровней",
+        "uz": "8 daraja",
+        "en": "8 levels"
+      },
+      "card_lvl_s": {
+        "ru": "подвал + 7 этажей, лифт",
+        "uz": "podval + 7 qavat, lift",
+        "en": "basement + 7 floors, lift"
+      },
+      "card_park_n": {
+        "ru": "26 x 18 м",
+        "uz": "26 x 18 m",
+        "en": "26 x 18 m"
+      },
+      "card_park_s": {
+        "ru": "габарит здания, сетка колонн 5-5-6-5-5 на 6-6-6 м",
+        "uz": "bino gabariti, kolonnalar to'ri 5-5-6-5-5 ga 6-6-6 m",
+        "en": "footprint, column grid 5-5-6-5-5 by 6-6-6 m"
+      },
+      "h_units": {
+        "ru": "Восемь уровней - от этажа до здания целиком",
+        "uz": "Sakkiz daraja - qavatdan butun binogacha",
+        "en": "Eight levels - from one floor to the whole building"
+      },
+      "f27_title": {
+        "ru": "Этажи 2-7 (типовой)",
+        "uz": "2-7-qavatlar (tipik)",
+        "en": "Floors 2 to 7 (typical)"
+      },
+      "th_ceil": {
+        "ru": "Высота этажа",
+        "uz": "Qavat balandligi",
+        "en": "Floor height"
+      },
+      "plan_ceil": {
+        "ru": "Высота этажа",
+        "uz": "Qavat balandligi",
+        "en": "Floor height"
+      },
+      "plan_note": {
+        "ru": "План по проектной документации. Свободная планировка: колонны 5-5-6-5-5 на 6-6-6 мм, санузлы и лифтовой холл в ядре.",
+        "uz": "Loyiha hujjatlari bo'yicha reja. Erkin planirovka: 5-5-6-5-5 ga 6-6-6 kolonnalar, hojatxonalar va lift xolli yadroda.",
+        "en": "Plan per the design documentation. Open plan with columns on a 5-5-6-5-5 by 6-6-6 grid; restrooms and lift lobby in the core."
+      },
+      "h_viz": {
+        "ru": "Внешний облик и разрез",
+        "uz": "Tashqi ko'rinish va kesim",
+        "en": "Exterior and section"
+      },
+      "viz_p": {
+        "ru": "Стеклянный фасад с бронзовыми пилонами, первый этаж высотой 4,2 метра под клиентские функции, входная группа с площадкой. Разрез показывает восемь уровней: подвал на отметке -3,600 и семь этажей до +25,800.",
+        "uz": "Bronza pilonli shisha fasad, mijozlar uchun 4,2 metr balandlikdagi birinchi qavat, maydonchali kirish guruhi. Kesim sakkiz darajani ko'rsatadi: -3,600 belgidagi podval va +25,800 gacha yetti qavat.",
+        "en": "A glazed facade with bronze piers, a 4.2 m ground floor for client-facing uses and an entrance forecourt. The section shows eight levels: a basement at -3.600 and seven floors up to +25.800."
+      },
+      "c_h": {
+        "ru": "Обсудим этаж?",
+        "uz": "Qavatni muhokama qilamizmi?",
+        "en": "Shall we discuss a floor?"
+      },
+      "c_s": {
+        "ru": "Ответим в течение дня - планировки, параметры, условия сделки.",
+        "uz": "Kun davomida javob beramiz - planirovkalar, parametrlar, bitim shartlari.",
+        "en": "We reply within the day - plans, parameters and deal terms."
+      }
+    }
+  },
+  "geo": {
+    "point": {
+      "lat": 41.348614,
+      "lng": 69.316418
+    },
+    "rings": [
+      500,
+      1000,
+      1500
+    ],
+    "points": [
+      {
+        "c": "med",
+        "x": 192,
+        "y": 129,
+        "d": 231,
+        "n": "Логопеды Узбекистана"
+      },
+      {
+        "c": "med",
+        "x": 291,
+        "y": 175,
+        "d": 340,
+        "n": "Kinder Med Plus"
+      },
+      {
+        "c": "med",
+        "x": 404,
+        "y": 454,
+        "d": 609,
+        "n": "ЛОР"
+      },
+      {
+        "c": "mh",
+        "x": 550,
+        "y": 303,
+        "d": 628,
+        "n": "BOGIBUSTON"
+      },
+      {
+        "c": "ph",
+        "x": 684,
+        "y": 286,
+        "d": 741,
+        "n": "Аптека без названия #1015"
+      },
+      {
+        "c": "mh",
+        "x": -594,
+        "y": 558,
+        "d": 817,
+        "n": "OTCHOPAR-2"
+      },
+      {
+        "c": "med",
+        "x": -453,
+        "y": 699,
+        "d": 836,
+        "n": "Neurolife"
+      },
+      {
+        "c": "mh",
+        "x": 560,
+        "y": 695,
+        "d": 895,
+        "n": "OBOD"
+      },
+      {
+        "c": "med",
+        "x": 792,
+        "y": -422,
+        "d": 898,
+        "n": "O'zkabel Shifoxonasi"
+      },
+      {
+        "c": "mh",
+        "x": 1018,
+        "y": -447,
+        "d": 1112,
+        "n": "OLIY KHIMMAT"
+      },
+      {
+        "c": "med",
+        "x": -1146,
+        "y": 363,
+        "d": 1202,
+        "n": "Семейная поликлиника №49"
+      },
+      {
+        "c": "bc",
+        "x": 1249,
+        "y": 251,
+        "d": 1273,
+        "n": "Бизнес Центр САМПИ"
+      },
+      {
+        "c": "ph",
+        "x": -754,
+        "y": 1026,
+        "d": 1278,
+        "n": "Аптека без названия #0470"
+      },
+      {
+        "c": "ph",
+        "x": -770,
+        "y": 1038,
+        "d": 1297,
+        "n": "Аптека без названия #0710"
+      },
+      {
+        "c": "med",
+        "x": -1302,
+        "y": 355,
+        "d": 1349,
+        "n": "поликлиника 49"
+      },
+      {
+        "c": "med",
+        "x": 489,
+        "y": -1287,
+        "d": 1384,
+        "n": "IX Med"
+      },
+      {
+        "c": "med",
+        "x": 492,
+        "y": -1295,
+        "d": 1392,
+        "n": "Siz Ona Bo'lasiz Eku Markazi"
+      },
+      {
+        "c": "med",
+        "x": 1316,
+        "y": 464,
+        "d": 1394,
+        "n": "Зубболит"
+      },
+      {
+        "c": "med",
+        "x": 495,
+        "y": -1297,
+        "d": 1395,
+        "n": "Siz Ona Bo'lasiz"
+      },
+      {
+        "c": "ph",
+        "x": 483,
+        "y": -1306,
+        "d": 1400,
+        "n": "Аптека без названия #0716"
+      },
+      {
+        "c": "med",
+        "x": 1386,
+        "y": 308,
+        "d": 1418,
+        "n": "Hakim Sino"
+      },
+      {
+        "c": "med",
+        "x": 1362,
+        "y": 426,
+        "d": 1427,
+        "n": "Республиканский скрининг-центр"
+      },
+      {
+        "c": "ph",
+        "x": 1469,
+        "y": 197,
+        "d": 1481,
+        "n": "Аптека без названия #0844"
+      },
+      {
+        "c": "med",
+        "x": 1099,
+        "y": -1015,
+        "d": 1499,
+        "n": "Mudofaa vazirligi Markaziy gospital"
+      }
+    ],
+    "iso": [
+      {
+        "min": 10,
+        "pop": 3977
+      },
+      {
+        "min": 15,
+        "pop": 8798
+      },
+      {
+        "min": 20,
+        "pop": 17927
+      }
+    ],
+    "demo": {
+      "youth": 22.2,
+      "women": 28.2,
+      "old": 5.3
+    },
+    "around": [
+      {
+        "k": "med",
+        "n1": 5,
+        "n15": 14,
+        "l": {
+          "ru": "медицинские учреждения",
+          "uz": "tibbiyot muassasalari",
+          "en": "medical facilities"
+        }
+      },
+      {
+        "k": "ph",
+        "n1": 1,
+        "n15": 5,
+        "l": {
+          "ru": "аптеки",
+          "uz": "dorixonalar",
+          "en": "pharmacies"
+        }
+      },
+      {
+        "k": "bc",
+        "n1": 0,
+        "n15": 1,
+        "l": {
+          "ru": "бизнес-центры",
+          "uz": "biznes-markazlar",
+          "en": "business centres"
+        }
+      },
+      {
+        "k": "mh",
+        "n1": 3,
+        "n15": 4,
+        "l": {
+          "ru": "махаллинские центры",
+          "uz": "mahalla markazlari",
+          "en": "mahalla centres"
+        }
+      }
+    ],
+    "nearest": {
+      "med": [
+        {
+          "n": "Логопеды Узбекистана",
+          "d": 231
+        },
+        {
+          "n": "Kinder Med Plus",
+          "d": 340
+        },
+        {
+          "n": "ЛОР",
+          "d": 609
+        },
+        {
+          "n": "Neurolife",
+          "d": 836
+        }
+      ],
+      "bc": [
+        {
+          "n": "Бизнес Центр САМПИ",
+          "d": 1273
+        }
+      ]
+    }
+  }
+}

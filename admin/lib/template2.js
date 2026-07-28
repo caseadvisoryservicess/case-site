@@ -117,6 +117,28 @@ const STR = {
   'st.leased': { ru: 'Сдано', uz: 'Ijaraga berilgan', en: 'Leased' },
   'st.sold': { ru: 'Продано', uz: 'Sotilgan', en: 'Sold' },
   'about.viz': { ru: 'визуализация', uz: 'vizualizatsiya', en: 'visualisation' },
+  'geo.nav': { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'Location in numbers' },
+  'geo.lbl': { ru: 'Геоаналитика', uz: 'Geotahlil', en: 'Geo analytics' },
+  'geo.h2': { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'The location in numbers' },
+  'geo.sub': {
+    ru: 'Схема показывает окружение объекта: каждая точка - реальное заведение из нашей базы по Ташкенту. Кольца - расстояние по прямой. Масштаб меняется кнопками.',
+    uz: 'Sxema obyekt atrofini ko\'rsatadi: har bir nuqta - Toshkent bo\'yicha bazamizdagi haqiqiy muassasa. Halqalar - to\'g\'ri chiziq bo\'yicha masofa. Masshtab tugmalar bilan o\'zgaradi.',
+    en: 'The diagram shows what surrounds the building: every dot is a real venue from our Tashkent database. The rings are straight-line distances. Use the buttons to change the scale.'
+  },
+  'geo.iso': { ru: 'человек в {m} минутах пешком', uz: 'piyoda {m} daqiqadagi aholi', en: 'people within a {m}-minute walk' },
+  'geo.in1': { ru: 'в 1 км', uz: '1 km ichida', en: 'within 1 km' },
+  'geo.in15': { ru: 'в 1,5 км', uz: '1,5 km ichida', en: 'within 1.5 km' },
+  'geo.km': { ru: 'км', uz: 'km', en: 'km' },
+  'geo.m': { ru: 'м', uz: 'm', en: 'm' },
+  'geo.med': { ru: 'медицина', uz: 'tibbiyot', en: 'medical' },
+  'geo.ph': { ru: 'аптеки', uz: 'dorixonalar', en: 'pharmacies' },
+  'geo.bc': { ru: 'бизнес-центры', uz: 'biznes-markazlar', en: 'business centres' },
+  'geo.mh': { ru: 'махалля', uz: 'mahalla', en: 'mahalla' },
+  'geo.note': {
+    ru: 'Окружение - собственная геобаза CASE (2ГИС и OpenStreetMap, сбор июль 2026). Население в пешей доступности - модель CASE OS Geo Analytics. Данные носят справочный характер и уточняются.',
+    uz: 'Atrof-muhit - CASE o\'z geobazasi (2GIS va OpenStreetMap, 2026 yil iyul). Piyoda yetib boriladigan aholi - CASE OS Geo Analytics modeli. Ma\'lumotlar ma\'lumot xarakteriga ega va aniqlashtiriladi.',
+    en: 'Surroundings come from the CASE geo database (2GIS and OpenStreetMap, collected July 2026). Walking-distance population is from the CASE OS Geo Analytics model. The figures are indicative and subject to refinement.'
+  },
   'about.vizAll': { ru: 'Все изображения — визуализации проекта.', uz: 'Barcha tasvirlar — loyiha vizualizatsiyalari.', en: 'All images are project visualisations.' },
   'loc.h2': { ru: 'Локация', uz: 'Manzil', en: 'Location' },
   'loc.open': { ru: 'Открыть карту', uz: 'Xaritani ochish', en: 'Open the map' },
@@ -245,6 +267,10 @@ header.top.scrolled .top-in{padding-top:13px;padding-bottom:13px}
 .top-in{display:flex;align-items:center;gap:26px;padding:22px 24px;max-width:1320px;margin:0 auto}
 .brand{color:#fff;font:800 27px/1 system-ui;letter-spacing:.06em;text-decoration:none}
 .brand small{display:block;font:600 12.5px/1.6 system-ui;letter-spacing:.16em;opacity:.8;text-transform:uppercase;white-space:nowrap}
+.brand.has-logo{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
+.brand .brow{display:flex;align-items:center;gap:11px}
+.brand.has-logo img{display:block;height:38px;width:auto}
+@media(max-width:560px){.brand.has-logo img{height:30px}}
 .top nav{display:flex;gap:8px;margin-left:auto}
 .top nav a{color:rgba(255,255,255,.9);text-decoration:none;font:650 18px/1 system-ui;padding:13px 18px;border-radius:11px;white-space:nowrap}
 .top nav a:hover{background:rgba(255,255,255,.12);color:#fff}
@@ -333,6 +359,27 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 .gallery figure:first-child{grid-column:1/-1}
 .gallery img{width:100%;height:100%;object-fit:cover;aspect-ratio:16/9}
 .gallery figcaption{position:absolute;right:10px;bottom:10px;background:rgba(15,16,18,.55);color:#fff;font:600 10.5px/1 system-ui;letter-spacing:.08em;text-transform:uppercase;padding:6px 10px;border-radius:7px}
+/* геоаналитика: схема окружения и плитки. Никакого редактирования, только
+   масштаб - решение владельца: лендинг показывает выводы, а не инструмент */
+.geo-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:start}
+.geo-map{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.geo-map svg{display:block;width:100%;height:auto}
+.geo-zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.geo-zoom button{width:36px;height:36px;border:1px solid var(--line);background:#fff;color:var(--ink);font:700 19px/1 system-ui;border-radius:9px;cursor:pointer}
+.geo-zoom button:hover{border-color:var(--bronze);color:var(--bronze-d)}
+.geo-zoom button:disabled{opacity:.4;cursor:default}
+.geo-scale{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:650 11.5px/1 system-ui;color:var(--muted)}
+.geo-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+.geo-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+.geo-tile b{display:block;font:750 26px/1.1 system-ui;letter-spacing:-.01em}
+.geo-tile span{display:block;margin-top:3px;font:500 12.5px/1.4 system-ui;color:var(--muted)}
+.geo-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.geo-row:first-child{border-top:0}
+.geo-row i{font-style:normal;color:var(--muted);font-size:13px;white-space:nowrap}
+.geo-leg{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;font:600 12px/1 system-ui;color:var(--muted)}
+.geo-leg span{display:inline-flex;align-items:center;gap:6px}
+.geo-leg i{width:9px;height:9px;border-radius:50%;display:inline-block}
+@media(max-width:920px){.geo-grid{grid-template-columns:1fr}.geo-tiles{grid-template-columns:1fr 1fr}}
 /* отдельная секция фотографий: нужна объектам, которые продаются глазами
    (ресторан, салон), где кадров больше, чем помещается в галерею «О ...» */
 .photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
@@ -505,6 +552,9 @@ function pageJs(cfg, lang) {
 'use strict';
 var LANG=${JSON.stringify(lang)};
 var LEAD=${JSON.stringify(leadEndpoint)};
+var GEO_RINGS=${JSON.stringify((cfg.geo && cfg.geo.rings) || [])};
+var GEO_R=${JSON.stringify(Math.max(0, ...((cfg.geo && cfg.geo.rings) || [0])))};
+var GEO_KM=${JSON.stringify(pick((cfg.texts && cfg.texts['geo.km']) || STR['geo.km'], lang))};
 var EV_URL=${JSON.stringify(analyticsEndpoint)};
 var MAPS_KEY=${JSON.stringify(mapsKey)};
 var LAT=${lat},LNG=${lng};
@@ -631,6 +681,23 @@ if(lb){
   function lbClose(){lb.hidden=true;lbImg.src='';document.body.style.overflow=''}
   lb.addEventListener('click',lbClose);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')lbClose()});
+  // геосхема: только масштаб, три ступени. Редактирования на лендинге нет.
+  (function(){
+    var svg=document.getElementById('geoSvg'); if(!svg)return;
+    var bi=document.getElementById('geoIn'),bo=document.getElementById('geoOut'),sc=document.getElementById('geoScale');
+    var vb=svg.getAttribute('viewBox').split(' ').map(Number), S=vb[2];
+    var R=GEO_R, steps=GEO_RINGS.slice().sort(function(a,b){return b-a}), i=0;
+    function draw(){
+      var f=steps[i]/R, w=S*f, o=(S-w)/2;
+      svg.setAttribute('viewBox', o+' '+o+' '+w+' '+w);
+      sc.textContent=(steps[i]>=1000?(steps[i]/1000).toString().replace('.',','):steps[i]/1000)+' '+GEO_KM;
+      bi.disabled=(i>=steps.length-1); bo.disabled=(i<=0);
+      ev('geo_zoom',{scale:steps[i]});
+    }
+    bi.addEventListener('click',function(){if(i<steps.length-1){i++;draw()}});
+    bo.addEventListener('click',function(){if(i>0){i--;draw()}});
+    draw();
+  })();
   document.querySelectorAll('.plan-card img,.gallery img,.photos-grid img').forEach(function(im){
     im.addEventListener('click',function(){lbOpen(im.dataset.full||im.currentSrc||im.src)});
   });
@@ -944,6 +1011,10 @@ function renderPage(cfg, lang, uploadsDir) {
 
   const caseLogo = ['case-logo.svg', 'case-logo.png', 'case-logo.webp']
     .find((f) => fs.existsSync(path.join(uploadsDir, f)));
+  // логотип самого объекта: если лежит в загрузках, в шапке он заменяет
+  // текстовый бренд (у CASE свой логотип, он остаётся отдельно)
+  const brandLogo = ['brand-logo.svg', 'brand-logo.png', 'brand-logo.webp']
+    .find((f) => fs.existsSync(path.join(uploadsDir, f)));
   // презентация на языке страницы (фолбэк - русская)
   const presFile = (lang === 'ru' ? ['presentation.pdf'] : ['presentation-' + lang + '.pdf', 'presentation.pdf'])
     .find((f) => fs.existsSync(path.join(uploadsDir, f))) || '';
@@ -1087,6 +1158,59 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
   </div>
 </section>`;
 
+  // ── геоаналитика (необязательная секция) ──
+  // Данные считает build-скрипт проекта и кладёт в cfg.geo, шаблон только
+  // рисует. Схема окружения - собственная SVG: ни тайлов, ни чужих карт,
+  // ни лицензий. Пользователю доступен только масштаб, редактирования нет.
+  const G = cfg.geo && cfg.geo.points ? cfg.geo : null;
+  const GEO_COL = { bc: '#2f6fb0', med: '#c0392b', ph: '#1e8f5e', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
+  const geoSection = !G ? '' : (() => {
+    const R = Math.max(...G.rings);
+    const S = 520;                       // сторона схемы в пикселях
+    const k = (S / 2 - 18) / R;          // метры -> пиксели
+    const cx = S / 2, cy = S / 2;
+    const dots = G.points.map((p) =>
+      `<circle cx="${(cx + p.x * k).toFixed(1)}" cy="${(cy - p.y * k).toFixed(1)}" r="4.2" fill="${GEO_COL[p.c] || GEO_COL.x}" opacity=".85"><title>${s('geo.' + p.c) || ''} · ${p.d} ${s('geo.m')}</title></circle>`).join('');
+    const rings = G.rings.map((m) =>
+      `<circle cx="${cx}" cy="${cy}" r="${(m * k).toFixed(1)}" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
+       <text x="${cx}" y="${(cy - m * k + 13).toFixed(1)}" text-anchor="middle" font="600 11px system-ui" fill="var(--muted)">${m >= 1000 ? (m / 1000).toString().replace('.', ',') + ' км' : m + ' м'}</text>`).join('');
+    const legend = [['med', s('geo.med')], ['ph', s('geo.ph')], ['bc', s('geo.bc')], ['mh', s('geo.mh')]]
+      .map(([c, l]) => `<span><i style="background:${GEO_COL[c]}"></i>${l}</span>`).join('');
+    const tiles = (G.iso || []).map((x) =>
+      `<div class="geo-tile"><b>${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</b><span>${s('geo.iso').replace('{m}', x.min)}</span></div>`).join('');
+    const rows = (G.around || []).map((a) =>
+      `<div class="geo-row"><span>${t(a.l)}</span><i>${a.n1} ${s('geo.in1')} · ${a.n15} ${s('geo.in15')}</i></div>`).join('');
+    return `
+<section id="geo" style="padding-top:0">
+  <div class="wrap">
+    <span class="lbl">${s('geo.lbl')}</span>
+    <h2 class="h2">${s('geo.h2')}</h2>
+    <p class="sub" style="max-width:780px;margin:0 0 24px">${s('geo.sub')}</p>
+    <div class="geo-grid">
+      <div class="geo-map">
+        <svg viewBox="0 0 ${S} ${S}" id="geoSvg" role="img" aria-label="${s('geo.h2')}">
+          ${rings}
+          ${dots}
+          <circle cx="${cx}" cy="${cy}" r="8" fill="var(--bronze)" stroke="#fff" stroke-width="2.5"/>
+        </svg>
+        <div class="geo-zoom">
+          <button type="button" id="geoIn" aria-label="+">+</button>
+          <button type="button" id="geoOut" aria-label="-">-</button>
+        </div>
+        <div class="geo-scale" id="geoScale">${(R / 1000).toString().replace('.', ',')} ${s('geo.km')}</div>
+      </div>
+      <div>
+        <div class="geo-tiles">${tiles}</div>
+        ${rows}
+        <div class="geo-leg">${legend}</div>
+        <p class="fineprint" style="margin-top:18px">${s('geo.note')}</p>
+      </div>
+    </div>
+    <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"geo"}'>${s('cta.more')}</a></div>
+  </div>
+</section>`;
+  })();
+
   // ── экран 7 ──
   const driveRows = (cfg.location.drive || []).map((d) =>
     `<tr><td>${t(d.to)}</td><td>${t(d.time)}</td></tr>`).join('\n');
@@ -1152,10 +1276,13 @@ ${counters}
 
 <header class="top">
   <div class="top-in">
-    <a class="brand" href="${canonical}">${esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
+    <a class="brand${brandLogo ? ' has-logo' : ''}" href="${canonical}">${brandLogo
+      ? `<span class="brow"><img src="${prefix}assets/${brandLogo}" alt="" width="60" height="60" loading="eager" decoding="async">${esc(SITE.code)}</span>`
+      : esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
     <nav>
       ${NO_UNITS ? '' : `<a href="#units">${s('nav.units')}</a>`}
       ${photoItems.length ? `<a href="#photos">${t((cfg.photos && cfg.photos.nav) || cfg.photos.h2)}</a>` : ''}
+      ${G ? `<a href="#geo">${s('geo.nav')}</a>` : ''}
       <a href="#about">${s('nav.about')}</a>
       <a href="#location">${s('nav.location')}</a>
       <a href="#faq">${s('nav.faq')}</a>
@@ -1264,6 +1391,8 @@ ${NO_UNITS ? '' : `<section id="units">
 </section>
 
 ${photosSection}
+
+${geoSection}
 
 <!-- экран 7: локация -->
 <section id="location" style="padding-top:0">
@@ -1411,7 +1540,7 @@ ${alt}
   };
   add(cfg.intro.image);
   add('og-cover.jpg');
-  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp', 'presentation.pdf', 'presentation-uz.pdf', 'presentation-en.pdf']) {
+  for (const f of ['case-logo.svg', 'case-logo.png', 'case-logo.webp', 'brand-logo.svg', 'brand-logo.png', 'brand-logo.webp', 'presentation.pdf', 'presentation-uz.pdf', 'presentation-en.pdf']) {
     if (fs.existsSync(path.join(uploadsDir, f))) images.add(f);
   }
   for (const g of cfg.about.images || []) add(g.file);

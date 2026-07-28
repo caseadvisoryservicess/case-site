@@ -24,10 +24,10 @@ const DIR = path.join(__dirname, '..', 'data', 'geo');
 const SOURCES = [
   { file: 'bc.json',          cat: 'bc',       keys: ['lat', 'lng', 'name', 'address'] },
   { file: 'medicine.json',    cat: 'med',      keys: ['la', 'ln', 'n', 'a'], subKey: 't' },
-  { file: 'pharmacies.json',  cat: 'pharmacy', keys: ['la', 'ln', 'n', 'a'] },
-  { file: 'restaurants.json', cat: 'food',     keys: ['la', 'ln', 'n', 'a'] },
-  { file: 'cafes.json',       cat: 'food',     keys: ['la', 'ln', 'n', 'a'] },
-  { file: 'mahallas.json',    cat: 'mahalla',  keys: ['la', 'ln', 'n', 'a'] }
+  { file: 'pharmacies.json',  cat: 'pharmacy', keys: ['lat', 'lng', 'name', 'address'] },
+  { file: 'restaurants.json', cat: 'food',     keys: ['lat', 'lng', 'name', 'address'] },
+  { file: 'cafes.json',       cat: 'food',     keys: ['lat', 'lng', 'name', 'address'] },
+  { file: 'mahallas.json',    cat: 'mahalla',  keys: ['lat', 'lng', 'name', 'address'], districtKey: 'district' }
 ];
 
 let CACHE = null;
@@ -55,6 +55,7 @@ function loadAll() {
         sub: src.subKey ? (x[src.subKey] || '') : '',
         name: String(x[src.keys[2]] || '').trim(),
         addr: String(x[src.keys[3]] || '').trim(),
+        district: src.districtKey ? String(x[src.districtKey] || '').trim() : '',
         lat, lng
       });
     }
