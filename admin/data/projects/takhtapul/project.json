@@ -16,32 +16,14 @@
     }
   },
   "contacts": {
-    "phone": "+998 77 041 73 75",
-    "telegram": "caseadvisory_leasing",
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
     "email": "taxtapul@caseadvisory.uz",
     "sheetsEndpoint": "",
     "smtpPass": "",
     "smtpHost": "",
     "smtpPort": "",
-    "smtpUser": "",
-    "people": [
-      {
-        "name": {
-          "ru": "Нодир Махмудходжизода",
-          "uz": "Nodir Mahmudhojizoda",
-          "en": "Nodir Mahmudhojizoda"
-        },
-        "phone": "+998 77 041 73 75"
-      },
-      {
-        "name": {
-          "ru": "Хилола Омонуллаева",
-          "uz": "Hilola Omonullayeva",
-          "en": "Hilola Omonullayeva"
-        },
-        "phone": "+998 70 164 40 02"
-      }
-    ]
+    "smtpUser": ""
   },
   "adminUrl": "/admin/",
   "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/takhtapul",
@@ -707,9 +689,9 @@
         "en": "How much do the units cost?"
       },
       "a": {
-        "ru": "Цену и условия продажи или аренды озвучиваем по запросу - оставьте заявку на сайте или позвоните <a href=\"tel:+998 77 041 73 75\">+998 77 041 73 75</a>. Стоимость фиксируется договором на этапе строительства.",
-        "uz": "Sotuv yoki ijara narxi va shartlarini so'rov bo'yicha aytamiz - saytda ariza qoldiring yoki <a href='tel:+998 77 041 73 75'>+998 77 041 73 75</a> raqamiga qo'ng'iroq qiling. Narx qurilish bosqichida shartnoma bilan belgilab qo'yiladi.",
-        "en": "We share the price and terms of sale or lease on request - leave a request on the site or call <a href='tel:+998 77 041 73 75'>+998 77 041 73 75</a>. The price is fixed by contract at the construction stage."
+        "ru": "Цену и условия продажи или аренды озвучиваем по запросу - оставьте заявку на сайте или позвоните <a href=\"tel:+998 90 922 07 00\">+998 90 922 07 00</a>. Стоимость фиксируется договором на этапе строительства.",
+        "uz": "Sotuv yoki ijara narxi va shartlarini so'rov bo'yicha aytamiz - saytda ariza qoldiring yoki <a href='tel:+998 90 922 07 00'>+998 90 922 07 00</a> raqamiga qo'ng'iroq qiling. Narx qurilish bosqichida shartnoma bilan belgilab qo'yiladi.",
+        "en": "We share the price and terms of sale or lease on request - leave a request on the site or call <a href='tel:+998 90 922 07 00'>+998 90 922 07 00</a>. The price is fixed by contract at the construction stage."
       }
     },
     {

@@ -59,32 +59,14 @@
     }
   },
   "contacts": {
-    "phone": "+998 77 041 73 75",
-    "telegram": "caseadvisory_leasing",
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
     "email": "caseadvisoryservicess@gmail.com",
     "sheetsEndpoint": "",
     "smtpHost": "",
     "smtpPort": "",
     "smtpUser": "",
-    "smtpPass": "",
-    "people": [
-      {
-        "name": {
-          "ru": "Нодир Махмудходжизода",
-          "uz": "Nodir Mahmudhojizoda",
-          "en": "Nodir Mahmudhojizoda"
-        },
-        "phone": "+998 77 041 73 75"
-      },
-      {
-        "name": {
-          "ru": "Хилола Омонуллаева",
-          "uz": "Hilola Omonullayeva",
-          "en": "Hilola Omonullayeva"
-        },
-        "phone": "+998 70 164 40 02"
-      }
-    ]
+    "smtpPass": ""
   },
   "adminUrl": "",
   "leadEndpoint": "",
