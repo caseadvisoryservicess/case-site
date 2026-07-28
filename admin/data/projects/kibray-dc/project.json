@@ -1,0 +1,655 @@
+{
+  "slug": "kibray-dc",
+  "name": "Площадка под дата-центр (Кибрай)",
+  "schemaVersion": 2,
+  "site": {
+    "code": "KIBRAY DC",
+    "title": "Kibray Data Center Site",
+    "fileBase": "Kibray-DC",
+    "planBase": "Kibray-DC",
+    "favicon": "K",
+    "assetType": "land",
+    "addr": {
+      "headline": {
+        "ru": "Кибрай · Ташкентская область",
+        "uz": "Qibray · Toshkent viloyati",
+        "en": "Kibray · Tashkent region"
+      },
+      "street": {
+        "ru": "ул. Шарк гули, 36",
+        "uz": "Sharq guli ko'chasi, 36",
+        "en": "36 Sharq Guli Street"
+      },
+      "locality": {
+        "ru": "Кибрайский район",
+        "uz": "Qibray tumani",
+        "en": "Kibray district"
+      },
+      "region": {
+        "ru": "Ташкентская область",
+        "uz": "Toshkent viloyati",
+        "en": "Tashkent region"
+      },
+      "streetLd": "Sharq guli ko'chasi 36",
+      "localityLd": "Qibray",
+      "regionLd": "Toshkent viloyati"
+    },
+    "theme": {
+      "bg": "#f4f6f8",
+      "ink": "#1b2530",
+      "muted": "#5b6672",
+      "accent": "#1f6f8b",
+      "accentD": "#175468",
+      "dark": "#101b26"
+    },
+    "intent": "none"
+  },
+  "brand": {
+    "mark": "K",
+    "logo": "",
+    "name": {
+      "ru": "KIBRAY DC",
+      "uz": "KIBRAY DC",
+      "en": "KIBRAY DC"
+    },
+    "tag": {
+      "ru": "Площадка под дата-центр",
+      "uz": "Data-markaz uchun maydon",
+      "en": "Data center site"
+    }
+  },
+  "contacts": {
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
+    "email": "caseadvisoryservicess@gmail.com",
+    "sheetsEndpoint": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtpUser": "",
+    "smtpPass": ""
+  },
+  "adminUrl": "",
+  "leadEndpoint": "",
+  "texts": {
+    "legal.area": {
+      "ru": "Площади и характеристики приведены по выписке из Государственного реестра прав на недвижимость от 05.02.2024. Информация носит справочный характер и не является публичной офертой.",
+      "uz": "Maydonlar va xususiyatlar Ko'chmas mulkka bo'lgan huquqlar Davlat reyestridan 05.02.2024 dagi ko'chirma bo'yicha keltirilgan. Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
+      "en": "Areas and characteristics are stated per the extract from the State Register of Real Property Rights dated 05.02.2024. This information is for reference only and does not constitute a public offer."
+    },
+    "nav.about": {
+      "ru": "Об участке",
+      "uz": "Uchastka haqida",
+      "en": "The site"
+    },
+    "hero.cta": {
+      "ru": "Запросить документы",
+      "uz": "Hujjatlarni so'rash",
+      "en": "Request documents"
+    },
+    "nav.units": {
+      "ru": "Участок",
+      "uz": "Uchastka",
+      "en": "Site"
+    }
+  },
+  "seo": {
+    "title": {
+      "ru": "Земельный участок 6,5 га под дата-центр - Кибрай, Ташкентская область",
+      "uz": "Data-markaz uchun 6,5 ga yer uchastkasi - Qibray, Toshkent viloyati",
+      "en": "6.5 ha data center site for sale - Kibray, Tashkent region"
+    },
+    "description": {
+      "ru": "Продажа подготовленной площадки 6,5 га под дата-центр в Кибрайском районе: две независимые линии оптоволокна, проектная документация под ЦОД, два капитальных строения 2 269,0 м², обременений нет. 25 км до Ташкента.",
+      "uz": "Qibray tumanida data-markaz uchun tayyorlangan 6,5 ga maydon sotiladi: ikkita mustaqil optik tolali liniya, ma'lumotlar markazi uchun loyiha hujjatlari, 2 269,0 m² ikkita kapital inshoot, cheklovlar yo'q. Toshkentgacha 25 km.",
+      "en": "A prepared 6.5 ha data center site for sale in Kibray district: two independent fibre routes, design documentation for a data center, two permanent buildings of 2,269.0 m², no encumbrances. 25 km from Tashkent."
+    },
+    "keywords": "земельный участок под дата-центр, участок под ЦОД Ташкент, земля под дата-центр Узбекистан, продажа земли Кибрайский район, промышленный участок Ташкентская область, площадка под ЦОД с оптоволокном, земля под IT инфраструктуру Узбекистан, инвестиции в цифровую инфраструктуру Узбекистан, участок 6,5 га Ташкентская область, data center land Uzbekistan, data centre site for sale Tashkent, yer uchastkasi data markaz uchun, Qibray tumani yer sotiladi",
+    "domain": "",
+    "googleVerification": "",
+    "yandexVerification": "",
+    "publicUrl": "https://caseadvisory.uz/kibray-dc"
+  },
+  "intro": {
+    "image": "",
+    "focus": "50% 50%",
+    "h1": {
+      "ru": "Земельный участок 6,5 га под дата-центр - Кибрай, Ташкентская область",
+      "uz": "Data-markaz uchun 6,5 ga yer uchastkasi - Qibray, Toshkent viloyati",
+      "en": "6.5 ha data center site - Kibray, Tashkent region"
+    },
+    "sub": {
+      "ru": "Продажа подготовленной инфраструктурной площадки",
+      "uz": "Tayyorlangan infratuzilma maydoni sotiladi",
+      "en": "A prepared infrastructure site for sale"
+    },
+    "facts": [
+      {
+        "n": {
+          "ru": "6,5",
+          "uz": "6,5",
+          "en": "6.5"
+        },
+        "l": {
+          "ru": "га, 65 000 м²",
+          "uz": "ga, 65 000 m²",
+          "en": "hectares, 65,000 m²"
+        }
+      },
+      {
+        "n": "2",
+        "l": {
+          "ru": "независимые линии оптоволокна",
+          "uz": "mustaqil optik tolali liniya",
+          "en": "independent fibre routes"
+        }
+      },
+      {
+        "n": {
+          "ru": "2 269,0",
+          "uz": "2 269,0",
+          "en": "2,269.0"
+        },
+        "l": {
+          "ru": "м² капитальных строений",
+          "uz": "m² kapital inshootlar",
+          "en": "m² of permanent buildings"
+        }
+      },
+      {
+        "n": "25",
+        "l": {
+          "ru": "км до Ташкента",
+          "uz": "km Toshkentgacha",
+          "en": "km to Tashkent"
+        }
+      }
+    ]
+  },
+  "params": [
+    {
+      "n": {
+        "ru": "65 000",
+        "uz": "65 000",
+        "en": "65,000"
+      },
+      "l": {
+        "ru": "м² площадь участка",
+        "uz": "m² uchastka maydoni",
+        "en": "m² site area"
+      }
+    },
+    {
+      "n": "2",
+      "l": {
+        "ru": "линии оптоволокна",
+        "uz": "optik tolali liniya",
+        "en": "fibre routes"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Проект под ЦОД разработан",
+        "uz": "Data-markaz loyihasi ishlab chiqilgan",
+        "en": "Data center design prepared"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Обременений нет",
+        "uz": "Cheklovlar yo'q",
+        "en": "No encumbrances"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Ровный рельеф",
+        "uz": "Tekis relyef",
+        "en": "Level terrain"
+      },
+      "icon": "lift"
+    }
+  ],
+  "unitsSection": {
+    "h2": {
+      "ru": "Участок",
+      "uz": "Uchastka",
+      "en": "The site"
+    },
+    "note": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    }
+  },
+  "units": [],
+  "useCases": {
+    "h2": {
+      "ru": "Кому подходит площадка",
+      "uz": "Maydon kimga mos keladi",
+      "en": "Who this site is for"
+    },
+    "cards": [
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Коммерческий ЦОД",
+          "uz": "Tijorat data-markazi",
+          "en": "Commercial data center"
+        },
+        "levels": {
+          "ru": "основной сценарий",
+          "uz": "asosiy stsenariy",
+          "en": "primary scenario"
+        },
+        "p": {
+          "ru": "Площадка готовилась под дата-центр: разработана проектная документация, подведены две независимые оптические линии. Это снимает с проекта годы согласований и первую стадию инженерной подготовки.",
+          "uz": "Maydon data-markaz uchun tayyorlangan: loyiha hujjatlari ishlab chiqilgan, ikkita mustaqil optik liniya olib kelingan. Bu loyihadan kelishuv yillarini va muhandislik tayyorgarligining birinchi bosqichini olib tashlaydi.",
+          "en": "The site was prepared for a data center: design documentation exists and two independent fibre routes are already in place. That removes years of approvals and the first stage of engineering works from the project."
+        }
+      },
+      {
+        "icon": "service",
+        "h": {
+          "ru": "Собственный ЦОД компании",
+          "uz": "Kompaniyaning o'z data-markazi",
+          "en": "Enterprise data center"
+        },
+        "levels": {
+          "ru": "банки, телеком, госсектор",
+          "uz": "banklar, telekom, davlat sektori",
+          "en": "banks, telecom, public sector"
+        },
+        "p": {
+          "ru": "6,5 гектара позволяют разместить машинные залы, энергоцентр и склад с запасом под расширение, не упираясь в границы участка на второй очереди.",
+          "uz": "6,5 gektar mashina zallari, energiya markazi va omborni kengaytirish zaxirasi bilan joylashtirish imkonini beradi.",
+          "en": "6.5 hectares allow data halls, a power centre and storage to be laid out with room for a second phase without hitting the site boundary."
+        }
+      },
+      {
+        "icon": "education",
+        "h": {
+          "ru": "IT-кампус",
+          "uz": "IT-kampus",
+          "en": "IT campus"
+        },
+        "levels": {
+          "ru": "два готовых строения",
+          "uz": "ikkita tayyor inshoot",
+          "en": "two existing buildings"
+        },
+        "p": {
+          "ru": "На участке два капитальных строения общей площадью 2 269,0 м². Их можно использовать под офис проекта, охрану и склад на время стройки, не возводя временные здания.",
+          "uz": "Uchastkada jami 2 269,0 m² ikkita kapital inshoot bor. Ularni qurilish davrida loyiha ofisi, qo'riqlash va ombor sifatida ishlatish mumkin.",
+          "en": "The site carries two permanent buildings totalling 2,269.0 m². They can serve as the project office, security and storage during construction instead of temporary structures."
+        }
+      },
+      {
+        "icon": "clinic",
+        "h": {
+          "ru": "Промышленная площадка",
+          "uz": "Sanoat maydoni",
+          "en": "Industrial site"
+        },
+        "levels": {
+          "ru": "альтернативный сценарий",
+          "uz": "muqobil stsenariy",
+          "en": "alternative scenario"
+        },
+        "p": {
+          "ru": "Участок примыкает к дороге, рядом действующее производство. Подходит под производственно-складской комплекс, если инвестор рассматривает не только цифровую инфраструктуру.",
+          "uz": "Uchastka yo'lga tutashgan, yonida amaldagi ishlab chiqarish bor. Investor faqat raqamli infratuzilmani ko'rib chiqmasa, ishlab chiqarish-ombor majmuasi uchun mos keladi.",
+          "en": "The site adjoins a road with an operating industrial facility next door. It suits a production and warehouse complex if the investor is looking beyond digital infrastructure."
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "h2": {
+      "ru": "Формат сделки",
+      "uz": "Bitim formati",
+      "en": "Deal structure"
+    },
+    "cols": [
+      {
+        "h": {
+          "ru": "Продажа",
+          "uz": "Sotuv",
+          "en": "Sale"
+        },
+        "p": {
+          "ru": "Участок продаётся целиком, вместе с двумя капитальными строениями. Обременений по данным Государственного реестра нет. Условия обсуждаются индивидуально.",
+          "uz": "Uchastka ikkita kapital inshoot bilan birga to'liq sotiladi. Davlat reyestri ma'lumotlariga ko'ra cheklovlar yo'q. Shartlar alohida muhokama qilinadi.",
+          "en": "The site is sold as a whole together with the two permanent buildings. Per the State Register there are no encumbrances. Terms are discussed individually."
+        }
+      },
+      {
+        "h": {
+          "ru": "Что передаётся покупателю",
+          "uz": "Xaridorga nima o'tadi",
+          "en": "What the buyer receives"
+        },
+        "p": {
+          "ru": "Право постоянного пользования земельным участком 65 000 м² и право собственности на строения. Состав передаваемой проектной документации и договоров на связь уточняется при сделке.",
+          "uz": "65 000 m² yer uchastkasidan doimiy foydalanish huquqi va inshootlarga mulk huquqi. Loyiha hujjatlari va aloqa shartnomalari tarkibi bitim vaqtida aniqlanadi.",
+          "en": "Permanent use rights to the 65,000 m² land plot and ownership of the buildings. The exact scope of design documentation and connectivity contracts is confirmed during the transaction."
+        }
+      },
+      {
+        "h": {
+          "ru": "Технические параметры",
+          "uz": "Texnik parametrlar",
+          "en": "Technical parameters"
+        },
+        "p": {
+          "ru": "Параметры подключения к сетям, состав проектной документации и результаты изысканий предоставляем по запросу вместе с пакетом документов.",
+          "uz": "Tarmoqlarga ulanish parametrlari, loyiha hujjatlari tarkibi va izlanish natijalarini hujjatlar to'plami bilan birga so'rov bo'yicha taqdim etamiz.",
+          "en": "Utility connection parameters, the scope of design documentation and survey results are provided on request together with the document pack."
+        }
+      }
+    ]
+  },
+  "about": {
+    "h2": {
+      "ru": "Об участке",
+      "uz": "Uchastka haqida",
+      "en": "About the site"
+    },
+    "sfbNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "status": {
+      "ru": "Участок свободен и готов к сделке. Осмотр возможен по договорённости.",
+      "uz": "Uchastka bo'sh va bitimga tayyor. Ko'rikni kelishuv asosida tashkil etamiz.",
+      "en": "The site is vacant and ready for a transaction. Site visits by arrangement."
+    },
+    "specs": [
+      {
+        "b": {
+          "ru": "Площадь участка",
+          "uz": "Uchastka maydoni",
+          "en": "Site area"
+        },
+        "s": {
+          "ru": "65 000 м² (6,5 га)",
+          "uz": "65 000 m² (6,5 ga)",
+          "en": "65,000 m² (6.5 ha)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Кадастровый номер",
+          "uz": "Kadastr raqami",
+          "en": "Cadastral number"
+        },
+        "s": {
+          "ru": "11:05:41:01:02:0105",
+          "uz": "11:05:41:01:02:0105",
+          "en": "11:05:41:01:02:0105"
+        }
+      },
+      {
+        "b": {
+          "ru": "Право на землю",
+          "uz": "Yerga bo'lgan huquq",
+          "en": "Land tenure"
+        },
+        "s": {
+          "ru": "постоянное пользование",
+          "uz": "doimiy foydalanish",
+          "en": "permanent use right"
+        }
+      },
+      {
+        "b": {
+          "ru": "Строения",
+          "uz": "Inshootlar",
+          "en": "Buildings"
+        },
+        "s": {
+          "ru": "• 767,8 м² (полезная 690,9)\n• 1 501,3 м² (полезная 1 428,9)\n• всего 2 269,0 м², в собственности",
+          "uz": "• 767,8 m² (foydali 690,9)\n• 1 501,3 m² (foydali 1 428,9)\n• jami 2 269,0 m², mulk huquqida",
+          "en": "• 767.8 m² (usable 690.9)\n• 1,501.3 m² (usable 1,428.9)\n• total 2,269.0 m², freehold"
+        }
+      },
+      {
+        "b": {
+          "ru": "Связь",
+          "uz": "Aloqa",
+          "en": "Connectivity"
+        },
+        "s": {
+          "ru": "две независимые линии оптоволокна",
+          "uz": "ikkita mustaqil optik tolali liniya",
+          "en": "two independent fibre routes"
+        }
+      },
+      {
+        "b": {
+          "ru": "Проектная документация",
+          "uz": "Loyiha hujjatlari",
+          "en": "Design documentation"
+        },
+        "s": {
+          "ru": "концепция и проект под дата-центр разработаны",
+          "uz": "data-markaz uchun konsepsiya va loyiha ishlab chiqilgan",
+          "en": "concept and design for a data center prepared"
+        }
+      },
+      {
+        "b": {
+          "ru": "Обременения",
+          "uz": "Cheklovlar",
+          "en": "Encumbrances"
+        },
+        "s": {
+          "ru": "по данным Государственного реестра отсутствуют",
+          "uz": "Davlat reyestri ma'lumotlariga ko'ra mavjud emas",
+          "en": "none per the State Register"
+        }
+      },
+      {
+        "b": {
+          "ru": "Высота над уровнем моря",
+          "uz": "Dengiz sathidan balandlik",
+          "en": "Elevation"
+        },
+        "s": {
+          "ru": "606 м",
+          "uz": "606 m",
+          "en": "606 m"
+        }
+      }
+    ],
+    "images": []
+  },
+  "location": {
+    "h2": {
+      "ru": "Кибрайский район, 25 км от Ташкента",
+      "uz": "Qibray tumani, Toshkentdan 25 km",
+      "en": "Kibray district, 25 km from Tashkent"
+    },
+    "sub": {
+      "ru": "Промышленное окружение за пределами городской застройки: рядом действующее производство, при этом до центра Ташкента менее получаса по трассе.",
+      "uz": "Shahar qurilishidan tashqarida sanoat muhiti: yonida amaldagi ishlab chiqarish, ayni paytda Toshkent markazigacha trassa bo'ylab yarim soatdan kam.",
+      "en": "An industrial setting outside the city fabric: an operating production facility next door, yet under half an hour to central Tashkent by road."
+    },
+    "address": {
+      "ru": "ул. Шарк гули, 36, МФЙ «Шарк», Кибрайский район, Ташкентская область",
+      "uz": "Sharq guli ko'chasi 36, Sharq MFY, Qibray tumani, Toshkent viloyati",
+      "en": "36 Sharq Guli Street, Sharq MFY, Kibray district, Tashkent region"
+    },
+    "addressNote": {
+      "ru": "Кибрайский район · 41.452066, 69.507195",
+      "uz": "Qibray tumani · 41.452066, 69.507195",
+      "en": "Kibray district · 41.452066, 69.507195"
+    },
+    "city": "Ташкент",
+    "lat": 41.452066,
+    "lng": 69.507195,
+    "pois": [
+      {
+        "name": {
+          "ru": "Центр Ташкента",
+          "uz": "Toshkent markazi",
+          "en": "Central Tashkent"
+        },
+        "dist": {
+          "ru": "≈ 25 км",
+          "uz": "≈ 25 km",
+          "en": "≈ 25 km"
+        }
+      },
+      {
+        "name": {
+          "ru": "Аэропорт им. Каримова",
+          "uz": "Islom Karimov nomidagi aeroport",
+          "en": "Islam Karimov airport"
+        },
+        "dist": {
+          "ru": "≈ 29 км",
+          "uz": "≈ 29 km",
+          "en": "≈ 29 km"
+        }
+      },
+      {
+        "name": {
+          "ru": "Кибрай, центр района",
+          "uz": "Qibray, tuman markazi",
+          "en": "Kibray district centre"
+        },
+        "dist": {
+          "ru": "≈ 9 км",
+          "uz": "≈ 9 km",
+          "en": "≈ 9 km"
+        }
+      }
+    ],
+    "drive": [],
+    "metroNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "around": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    }
+  },
+  "lead": {
+    "h2": {
+      "ru": "Запросить документы и параметры площадки",
+      "uz": "Hujjatlar va maydon parametrlarini so'rash",
+      "en": "Request the documents and site parameters"
+    },
+    "sub": {
+      "ru": "Оставьте контакты - вышлем выписку, проектную документацию и параметры подключения к сетям.",
+      "uz": "Kontaktlaringizni qoldiring - ko'chirma, loyiha hujjatlari va tarmoqlarga ulanish parametrlarini yuboramiz.",
+      "en": "Leave your contacts and we will send the register extract, design documentation and utility connection parameters."
+    }
+  },
+  "enquiry": {
+    "note": {
+      "ru": "Ответим в течение дня",
+      "uz": "Kun davomida javob beramiz",
+      "en": "We reply within the day"
+    }
+  },
+  "faq": [
+    {
+      "q": {
+        "ru": "Какая электрическая мощность на площадке?",
+        "uz": "Maydonda elektr quvvati qanday?",
+        "en": "What power capacity does the site have?"
+      },
+      "a": {
+        "ru": "Параметры подключения к электрическим сетям предоставляем по запросу вместе с технической документацией: это данные, которые уточняются под конкретный проект и его очередность.",
+        "uz": "Elektr tarmoqlariga ulanish parametrlarini texnik hujjatlar bilan birga so'rov bo'yicha taqdim etamiz: bu aniq loyiha va uning bosqichlariga qarab aniqlanadigan ma'lumotlar.",
+        "en": "Electrical connection parameters are provided on request together with the technical documentation: these figures are confirmed against a specific project and its phasing."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что именно продаётся?",
+        "uz": "Aynan nima sotiladi?",
+        "en": "What exactly is being sold?"
+      },
+      "a": {
+        "ru": "Земельный участок 65 000 м² с правом постоянного пользования и два капитальных строения общей площадью 2 269,0 м², находящиеся в собственности. Всё зарегистрировано в Государственном реестре, кадастровый номер участка 11:05:41:01:02:0105.",
+        "uz": "Doimiy foydalanish huquqidagi 65 000 m² yer uchastkasi va mulk huquqidagi jami 2 269,0 m² ikkita kapital inshoot. Barchasi Davlat reyestrida ro'yxatdan o'tgan, uchastka kadastr raqami 11:05:41:01:02:0105.",
+        "en": "A 65,000 m² land plot held under a permanent use right and two permanent buildings totalling 2,269.0 m² held freehold. All of it is registered in the State Register; the plot's cadastral number is 11:05:41:01:02:0105."
+      }
+    },
+    {
+      "q": {
+        "ru": "Есть ли обременения или залоги?",
+        "uz": "Cheklovlar yoki garovlar bormi?",
+        "en": "Are there any encumbrances?"
+      },
+      "a": {
+        "ru": "По выписке из Государственного реестра от 05.02.2024 ипотека, аренда, сервитуты и запреты не зарегистрированы. Актуальную выписку предоставляем по запросу.",
+        "uz": "05.02.2024 dagi Davlat reyestridan ko'chirmaga ko'ra ipoteka, ijara, servitutlar va taqiqlar ro'yxatdan o'tkazilmagan. Dolzarb ko'chirmani so'rov bo'yicha taqdim etamiz.",
+        "en": "Per the State Register extract dated 05.02.2024, no mortgage, lease, easement or restriction is registered. A current extract is provided on request."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что уже вложено в площадку?",
+        "uz": "Maydonga nima allaqachon investitsiya qilingan?",
+        "en": "What has already been invested in the site?"
+      },
+      "a": {
+        "ru": "К объекту подведены две независимые линии оптоволокна, а также разработаны концепция и проектная документация под размещение дата-центра. Это сокращает срок запуска проекта и снимает первую стадию инженерной подготовки.",
+        "uz": "Obyektga ikkita mustaqil optik tolali liniya olib kelingan, shuningdek data-markaz joylashtirish uchun konsepsiya va loyiha hujjatlari ishlab chiqilgan. Bu loyihani ishga tushirish muddatini qisqartiradi.",
+        "en": "Two independent fibre routes have been brought to the site, and a concept and design documentation for a data center have been prepared. This shortens the project timeline and removes the first stage of engineering works."
+      }
+    },
+    {
+      "q": {
+        "ru": "Какая цена?",
+        "uz": "Narxi qancha?",
+        "en": "What is the price?"
+      },
+      "a": {
+        "ru": "Стоимость и условия сделки обсуждаются индивидуально. Оставьте контакты, и мы вышлем коммерческое предложение вместе с пакетом документов.",
+        "uz": "Narx va bitim shartlari alohida muhokama qilinadi. Kontaktlaringizni qoldiring, hujjatlar to'plami bilan birga tijorat taklifini yuboramiz.",
+        "en": "Price and deal terms are discussed individually. Leave your contacts and we will send a commercial proposal together with the document pack."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли осмотреть участок?",
+        "uz": "Uchastkani ko'rish mumkinmi?",
+        "en": "Can I visit the site?"
+      },
+      "a": {
+        "ru": "Да, осмотр по договорённости. Оставьте контакты в форме, и мы согласуем удобное время.",
+        "uz": "Ha, ko'rik kelishuv asosida. Formada kontaktlaringizni qoldiring, qulay vaqtni kelishamiz.",
+        "en": "Yes, visits are by arrangement. Leave your contacts in the form and we will agree on a convenient time."
+      }
+    }
+  ],
+  "footer": {
+    "addr": {
+      "ru": "Ташкентская область, Кибрайский район, ул. Шарк гули, 36",
+      "uz": "Toshkent viloyati, Qibray tumani, Sharq guli ko'chasi, 36",
+      "en": "36 Sharq Guli Street, Kibray district, Tashkent region"
+    },
+    "legal": {
+      "ru": "CASE Real Estate Advisory выступает эксклюзивным агентом собственника по продаже объекта. Информация на сайте носит справочный характер и не является публичной офертой. © 2026 CASE Advisory",
+      "uz": "CASE Real Estate Advisory obyektni sotish bo'yicha mulkdorning eksklyuziv agenti sifatida ish yuritadi. Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. © 2026 CASE Advisory",
+      "en": "CASE Real Estate Advisory acts as the owner's exclusive agent for the sale of this asset. Information on this site is for reference only and does not constitute a public offer. © 2026 CASE Advisory"
+    }
+  },
+  "settings": {
+    "mapsApiKey": "",
+    "metricaId": "",
+    "ga4Id": "",
+    "gtmId": ""
+  }
+}

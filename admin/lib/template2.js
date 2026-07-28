@@ -64,6 +64,8 @@ function siteOf(cfg) {
     fileBase: s.fileBase || 'Taxtapul-31',
     planBase: s.planBase || 'Taxtapul',
     favicon: s.favicon || 'T',
+    assetType: s.assetType || 'building',   // building | land
+    intent: s.intent || 'both',             // both | none (объект только продаётся или только сдаётся)
     headline: a.headline || { ru: 'Тахтапул, 31 · Ташкент', uz: "Taxtapul ko'chasi 31 · Toshkent", en: '31 Taxtapul St · Tashkent' },
     street: a.street || { ru: 'ул. Тахтапул, 31', uz: "Taxtapul ko'chasi 31", en: "Taxtapul ko'chasi 31" },
     locality: a.locality || { ru: 'Ташкент', uz: 'Toshkent', en: 'Toshkent' },
@@ -1071,7 +1073,7 @@ ${counters}
   <div class="top-in">
     <a class="brand" href="${canonical}">${esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
     <nav>
-      <a href="#units">${s('nav.units')}</a>
+      ${SITE.assetType === 'land' ? '' : `<a href="#units">${s('nav.units')}</a>`}
       <a href="#about">${s('nav.about')}</a>
       <a href="#location">${s('nav.location')}</a>
       <a href="#faq">${s('nav.faq')}</a>
@@ -1089,15 +1091,15 @@ ${counters}
   <div class="hero-in">
     <h1>${t(cfg.intro.h1)}</h1>
     <p class="tagline">${t(cfg.intro.sub)}</p>
-    <div class="intent" role="tablist">
+    ${SITE.intent === 'none' ? '' : `<div class="intent" role="tablist">
       <button type="button" data-i="lease">${s('intent.lease')}</button>
       <button type="button" data-i="buy">${s('intent.buy')}</button>
-    </div>
+    </div>`}
     <div class="facts">
       ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(pick(f.n, lang))}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <a class="btn primary" href="#units" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
+      <a class="btn primary" href="${SITE.assetType === 'land' ? '#enquiry' : '#units'}" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
       ${presFile ? `<a class="btn ghost" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff" href="${prefix}assets/${presFile}" download="${presName}" data-ev="pdf_download" data-evx='{"where":"hero"}'>${s('pdf.btn')}</a>` : ''}
     </div>
   </div>
@@ -1110,8 +1112,8 @@ ${counters}
   </div>
 </div>
 
-<!-- экран 3: юниты -->
-<section id="units">
+<!-- экран 3: юниты (у земельных участков не выводится) -->
+${SITE.assetType === 'land' ? '' : `<section id="units">
   <div class="wrap">
     <span class="lbl">${s('nav.units')}</span>
     <h2 class="h2">${t(cfg.unitsSection.h2)}</h2>
@@ -1137,7 +1139,7 @@ ${counters}
     <p class="units-note">${t(cfg.unitsSection.note)}</p>
     <p class="fineprint">${s('legal.area')}</p>
   </div>
-</section>
+</section>`}
 
 <!-- экран 4: сценарии использования -->
 <section style="padding-top:0">
