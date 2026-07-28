@@ -110,6 +110,7 @@ const T = {
   lbl_cases: { ru: 'Сценарии использования', uz: 'Foydalanish stsenariylari', en: 'Use cases' },
   deal_note: { ru: 'Цены и условия - по запросу:', uz: 'Narxlar va shartlar - so‘rov bo‘yicha:', en: 'Prices and terms on request:' },
   lbl_loc: { ru: 'Локация', uz: 'Lokatsiya', en: 'Location' },
+  map_badge: { ru: 'на карте', uz: 'xaritada', en: 'on the map' },
   loc_car: { ru: 'На автомобиле', uz: 'Avtomobilda', en: 'By car' },
   loc_coord: { ru: 'Координаты', uz: 'Koordinatalar', en: 'Coordinates' },
   loc_first: {
@@ -235,6 +236,13 @@ const COVER = Object.assign({
 }, PRES.cover || {});
 // чертёж на странице «Об объекте» нельзя обрезать по краям: у планов там
 // легенда с площадями. Для фотографии остаётся cover.
+// картинка карты для страницы локации: cfg.pres.mapImg или map.jpg в uploads.
+// Тайлы карт из панели не тянем: это чужой сервис и чужие условия, картинку
+// готовит человек скриншотом и кладёт в загрузки проекта.
+const MAP_IMG = (() => {
+  const f = PRES.mapImg || 'map.jpg';
+  return fs.existsSync(path.join(UP, f)) ? f : null;
+})();
 const ABOUT_FIT = PRES.aboutImgFit || 'cover';
 const ABOUT_IMG = PRES.aboutImg
   || ((cfg.about.images || [])[0] || {}).file
@@ -386,7 +394,11 @@ function buildHtml(lang, qr) {
         </table>
         <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${M(cfg.location.metroNote)} · ${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:5mm">
+      <div style="flex:1;display:flex;flex-direction:column;gap:5mm;min-height:0">
+        ${MAP_IMG ? `<div style="height:72mm;flex:none;border-radius:4mm;overflow:hidden;position:relative">
+          <img src="${img64(MAP_IMG)}" style="width:100%;height:100%;object-fit:cover">
+          <span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${t('map_badge')}</span>
+        </div>` : ''}
         <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>
         <div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>
       </div>
@@ -536,11 +548,16 @@ function buildLandHtml(lang, qr) {
           ${cfg.location.pois.map((p) => `<tr><td style="padding-left:0;background:none">${M(p.name)}</td><td style="text-align:right;font-weight:700;background:none">${M(p.dist)}</td></tr>`).join('')}
         </table>` : ''}
         <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
+        ${MAP_IMG && L(cfg.location.around, lang) ? `<div style="margin-top:6mm;font-size:10pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
       </div>
-      <div style="flex:1;display:flex;flex-direction:column;gap:5mm;justify-content:center">
+      <div style="flex:1;display:flex;flex-direction:column;gap:5mm;justify-content:center;min-height:0">
+        ${MAP_IMG ? `<div style="height:72mm;flex:none;border-radius:4mm;overflow:hidden;position:relative">
+          <img src="${img64(MAP_IMG)}" style="width:100%;height:100%;object-fit:cover">
+          <span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${t('map_badge')}</span>
+        </div>` : ''}
         <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.sub)}</div>
         <div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('land_loc_zone')}</div>
-        ${L(cfg.location.around, lang) ? `<div style="background:#fff;border-radius:4mm;padding:6mm;font-size:10pt;line-height:1.55;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
+        ${!MAP_IMG && L(cfg.location.around, lang) ? `<div style="background:#fff;border-radius:4mm;padding:6mm;font-size:10pt;line-height:1.55;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
       </div>
     </div>
     ${foot(5)}
