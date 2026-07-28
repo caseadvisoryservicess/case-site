@@ -117,7 +117,7 @@ const STR = {
   'st.leased': { ru: 'Сдано', uz: 'Ijaraga berilgan', en: 'Leased' },
   'st.sold': { ru: 'Продано', uz: 'Sotilgan', en: 'Sold' },
   'about.viz': { ru: 'визуализация', uz: 'vizualizatsiya', en: 'visualisation' },
-  'geo.nav': { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'Location in numbers' },
+  'geo.nav': { ru: 'Геоаналитика', uz: 'Geotahlil', en: 'Geo analytics' },
   'geo.lbl': { ru: 'Геоаналитика', uz: 'Geotahlil', en: 'Geo analytics' },
   'geo.h2': { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'The location in numbers' },
   'geo.sub': {
@@ -261,18 +261,21 @@ header.top{position:fixed;inset:0 0 auto;z-index:50;transition:background .25s,b
 header.top.scrolled{background:rgba(15,16,18,.93);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 26px rgba(0,0,0,.3)}
 header.top.scrolled .top-in{padding-top:13px;padding-bottom:13px}
 .top-in{transition:padding .25s}
-.case-link{display:flex;align-items:center}
+.case-link{display:flex;align-items:center;flex:none}
 .case-link img{height:30px;width:auto;display:block}
-@media(max-width:560px){.case-link{display:none}}
-.top-in{display:flex;align-items:center;gap:26px;padding:22px 24px;max-width:1320px;margin:0 auto}
+/* на узких экранах в шапке уже тесно от навигации: знак остаётся в подвале */
+@media(max-width:1400px){.case-link{display:none}}
+.foot-case{display:inline-flex;align-items:center;gap:10px;margin-top:10px;opacity:.95}
+.foot-case img{height:34px;width:auto;display:block}
+.top-in{display:flex;align-items:center;gap:18px;padding:22px 24px;max-width:1500px;margin:0 auto}
 .brand{color:#fff;font:800 27px/1 system-ui;letter-spacing:.06em;text-decoration:none}
 .brand small{display:block;font:600 12.5px/1.6 system-ui;letter-spacing:.16em;opacity:.8;text-transform:uppercase;white-space:nowrap}
 .brand.has-logo{display:flex;flex-direction:column;gap:2px;align-items:flex-start}
 .brand .brow{display:flex;align-items:center;gap:11px}
 .brand.has-logo img{display:block;height:38px;width:auto}
 @media(max-width:560px){.brand.has-logo img{height:30px}}
-.top nav{display:flex;gap:8px;margin-left:auto}
-.top nav a{color:rgba(255,255,255,.9);text-decoration:none;font:650 18px/1 system-ui;padding:13px 18px;border-radius:11px;white-space:nowrap}
+.top nav{display:flex;gap:2px;margin-left:auto}
+.top nav a{color:rgba(255,255,255,.9);text-decoration:none;font:650 17px/1 system-ui;padding:12px 13px;border-radius:11px;white-space:nowrap}
 .top nav a:hover{background:rgba(255,255,255,.12);color:#fff}
 .langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:10px;padding:3px}
 .langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 15px/1 system-ui;padding:10px 13px;border-radius:8px}
@@ -1491,6 +1494,7 @@ ${geoSection}
     <span>${t(cfg.footer.legal)}</span>
     <span>${s('legal.area')}</span>
     <span>${s('about.vizAll')}</span>
+    ${caseLogo ? `<a class="foot-case" href="https://caseadvisory.uz" target="_blank" rel="noopener" data-ev="cta_click" data-evx='{"cta":"case_logo_footer"}'><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory" loading="lazy" decoding="async"></a>` : ''}
   </div>
 </footer>
 
