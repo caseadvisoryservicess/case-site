@@ -64,13 +64,18 @@ function siteOf(cfg) {
     fileBase: s.fileBase || 'Taxtapul-31',
     planBase: s.planBase || 'Taxtapul',
     favicon: s.favicon || 'T',
-    assetType: s.assetType || 'building',   // building | land
+    // building - есть таблица уровней и планировки; land - земельный участок;
+    // single - одно готовое помещение целиком (ресторан, салон): уровней нет,
+    // площади живут в блоке «Об объекте», как у земли
+    assetType: s.assetType || 'building',   // building | land | single
     intent: s.intent || 'both',             // both | none (объект только продаётся или только сдаётся)
     headline: a.headline || { ru: 'Тахтапул, 31 · Ташкент', uz: "Taxtapul ko'chasi 31 · Toshkent", en: '31 Taxtapul St · Tashkent' },
     street: a.street || { ru: 'ул. Тахтапул, 31', uz: "Taxtapul ko'chasi 31", en: "Taxtapul ko'chasi 31" },
     locality: a.locality || { ru: 'Ташкент', uz: 'Toshkent', en: 'Toshkent' },
     region: a.region || { ru: 'Шайхантахурский район', uz: 'Shayxontohur', en: 'Shayxontohur' },
-    streetLd: a.streetLd || "Taxtapul ko'chasi 31",
+    // пустая строка здесь осмысленна: у объекта может не быть подтверждённого
+    // уличного адреса, и тогда в разметке лучше не писать никакого, чем чужой
+    streetLd: a.streetLd === undefined ? "Taxtapul ko'chasi 31" : a.streetLd,
     localityLd: a.localityLd || 'Toshkent',
     regionLd: a.regionLd || 'Shayxontohur',
     theme,
@@ -842,12 +847,16 @@ function jsonLd(cfg, lang, canonical, base) {
   };
   const addr = {
     '@type': 'PostalAddress',
-    streetAddress: SITE.streetLd,
+    // улицу выводим только если она есть: пустое поле в разметке лучше выдумки
+    ...(SITE.streetLd ? { streetAddress: SITE.streetLd } : {}),
     addressLocality: SITE.localityLd,
     addressRegion: SITE.regionLd,
     addressCountry: 'UZ'
   };
-  const geo = { '@type': 'GeoCoordinates', latitude: Number(cfg.location.lat) || 41.338889, longitude: Number(cfg.location.lng) || 69.263403 };
+  // координаты в разметку идут, только если они заданы: подставлять центр
+  // города за объект, у которого адрес ещё не подтверждён, нельзя
+  const hasGeo = Number(cfg.location.lat) && Number(cfg.location.lng);
+  const geo = hasGeo ? { '@type': 'GeoCoordinates', latitude: Number(cfg.location.lat), longitude: Number(cfg.location.lng) } : null;
   const org = {
     '@context': 'https://schema.org', '@type': 'Organization',
     name: 'CASE Advisory',
@@ -860,7 +869,8 @@ function jsonLd(cfg, lang, canonical, base) {
     name: pick(cfg.intro.h1, lang),
     url: canonical,
     description: pick(cfg.seo.description, lang),
-    address: addr, geo,
+    address: addr,
+    ...(geo ? { geo } : {}),
     offers: (cfg.units || []).map((u) => ({
       '@type': 'Offer',
       name: pick(u.level, lang),
@@ -894,6 +904,8 @@ function jsonLd(cfg, lang, canonical, base) {
 // ── страница одного языка ──
 function renderPage(cfg, lang, uploadsDir) {
   const SITE = siteOf(cfg);
+  // у земли и у одного готового помещения таблицы уровней нет
+  const NO_UNITS = SITE.assetType === 'land' || SITE.assetType === 'single';
   // строку можно переопределить в конфиге (вкладка «Кнопки и тексты»)
   const s = (k) => pick((cfg.texts && cfg.texts[k]) || STR[k], lang);
   const t = (v) => esc(pick(v, lang));
@@ -1075,7 +1087,7 @@ ${counters}
   <div class="top-in">
     <a class="brand" href="${canonical}">${esc(SITE.code)}<small>${esc(pick(SITE.headline, lang))}</small></a>
     <nav>
-      ${SITE.assetType === 'land' ? '' : `<a href="#units">${s('nav.units')}</a>`}
+      ${NO_UNITS ? '' : `<a href="#units">${s('nav.units')}</a>`}
       <a href="#about">${s('nav.about')}</a>
       <a href="#location">${s('nav.location')}</a>
       <a href="#faq">${s('nav.faq')}</a>
@@ -1101,7 +1113,7 @@ ${counters}
       ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(pick(f.n, lang))}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}
     </div>
     <div style="display:flex;gap:12px;flex-wrap:wrap">
-      <a class="btn primary" href="${SITE.assetType === 'land' ? '#enquiry' : '#units'}" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
+      <a class="btn primary" href="${NO_UNITS ? '#enquiry' : '#units'}" data-ev="cta_click" data-evx='{"cta":"hero"}'>${s('hero.cta')}</a>
       ${presFile ? `<a class="btn ghost" style="background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.35);color:#fff" href="${prefix}assets/${presFile}" download="${presName}" data-ev="pdf_download" data-evx='{"where":"hero"}'>${s('pdf.btn')}</a>` : ''}
     </div>
   </div>
@@ -1115,7 +1127,7 @@ ${counters}
 </div>
 
 <!-- экран 3: юниты (у земельных участков не выводится) -->
-${SITE.assetType === 'land' ? '' : `<section id="units">
+${NO_UNITS ? '' : `<section id="units">
   <div class="wrap">
     <span class="lbl">${s('nav.units')}</span>
     <h2 class="h2">${t(cfg.unitsSection.h2)}</h2>
@@ -1199,7 +1211,7 @@ ${SITE.assetType === 'land' ? '' : `<section id="units">
           <a class="btn ghost" target="_blank" rel="noopener" href="${yaRoute}" data-ev="route_click" data-evx='{"svc":"yandex"}'>${s('loc.route.ya')}</a>
           <a class="btn ghost" target="_blank" rel="noopener" href="${gRoute}" data-ev="route_click" data-evx='{"svc":"google"}'>${s('loc.route.g')}</a>
         </div>
-        <table class="drive"><caption style="text-align:left;font:700 11px/1 system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-bottom:10px">${s('loc.drive')}</caption>${driveRows}</table>
+        ${driveRows ? `<table class="drive"><caption style="text-align:left;font:700 11px/1 system-ui;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-bottom:10px">${s('loc.drive')}</caption>${driveRows}</table>` : ''}
         <p class="around">${t(cfg.location.around)}</p>
         <p class="metro-note">${t(cfg.location.metroNote)}</p>
         <div class="sec-cta" style="text-align:left"><a class="btn primary" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"location"}'>${s('cta.request')}</a></div>

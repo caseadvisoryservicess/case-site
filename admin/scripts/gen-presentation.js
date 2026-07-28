@@ -46,7 +46,8 @@ const PLAN_CAD = PRES.plans || { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2:
 // какие уровни показывать отдельными страницами планировок
 const PLAN_PAGES = PRES.planPages || [{ id: 'b' }, { id: 'f1' }, { id: 'f2', title: 'f23_title' }, { id: 'f4' }];
 // земельный участок: другой состав страниц, планировок и этажей у него нет
-const LAND = ((cfg.site && cfg.site.assetType) || 'building') === 'land';
+const AT = (cfg.site && cfg.site.assetType) || 'building';
+const LAND = AT === 'land' || AT === 'single';
 const TOTAL = LAND ? 7 : 8 + PLAN_PAGES.length;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];

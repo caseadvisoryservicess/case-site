@@ -1,0 +1,680 @@
+{
+  "slug": "mercure-restaurant",
+  "name": "Ресторан при отеле Mercure (аренда)",
+  "schemaVersion": 2,
+  "site": {
+    "code": "RESTAURANT",
+    "title": "Restaurant space at Mercure Tashkent",
+    "fileBase": "Restaurant-Mercure",
+    "planBase": "Restaurant-Mercure",
+    "favicon": "R",
+    "assetType": "single",
+    "intent": "none",
+    "addr": {
+      "headline": {
+        "ru": "Центр Ташкента · отель Mercure",
+        "uz": "Toshkent markazi · Mercure mehmonxonasi",
+        "en": "Central Tashkent · Mercure hotel"
+      },
+      "street": {
+        "ru": "здание отеля Mercure",
+        "uz": "Mercure mehmonxonasi binosi",
+        "en": "the Mercure hotel building"
+      },
+      "locality": {
+        "ru": "Ташкент",
+        "uz": "Toshkent",
+        "en": "Tashkent"
+      },
+      "region": {
+        "ru": "Ташкент",
+        "uz": "Toshkent",
+        "en": "Tashkent"
+      },
+      "streetLd": "",
+      "localityLd": "Tashkent",
+      "regionLd": "Toshkent"
+    },
+    "theme": {
+      "bg": "#f7f3ea",
+      "ink": "#1c1a17",
+      "muted": "#6f665c",
+      "accent": "#a17c46",
+      "accentD": "#7d5c30",
+      "dark": "#3b2226"
+    }
+  },
+  "brand": {
+    "mark": "R",
+    "logo": "",
+    "name": {
+      "ru": "RESTAURANT",
+      "uz": "RESTAURANT",
+      "en": "RESTAURANT"
+    },
+    "tag": {
+      "ru": "Аренда ресторана при отеле",
+      "uz": "Mehmonxonadagi restoran ijarasi",
+      "en": "Restaurant space at a hotel"
+    }
+  },
+  "contacts": {
+    "phone": "+998 90 922 07 00",
+    "telegram": "muhammadaxmadiy",
+    "email": "caseadvisoryservicess@gmail.com",
+    "sheetsEndpoint": "",
+    "smtpHost": "",
+    "smtpPort": "",
+    "smtpUser": "",
+    "smtpPass": ""
+  },
+  "adminUrl": "",
+  "leadEndpoint": "",
+  "texts": {
+    "nav.about": {
+      "ru": "О помещении",
+      "uz": "Maydon haqida",
+      "en": "The space"
+    },
+    "hero.cta": {
+      "ru": "Запросить условия",
+      "uz": "Shartlarni so'rash",
+      "en": "Request terms"
+    },
+    "about.viz": {
+      "ru": "фотография помещения",
+      "uz": "maydon fotosurati",
+      "en": "photo of the space"
+    },
+    "about.vizAll": {
+      "ru": "Фотографии сделаны в помещении. Мебель, свет и оборудование на снимках остаются новому арендатору.",
+      "uz": "Fotosuratlar maydonning o'zida olingan. Suratlardagi mebel, yoritish va jihozlar yangi ijarachiga qoladi.",
+      "en": "The photographs were taken on site. The furniture, lighting and equipment shown remain for the new tenant."
+    },
+    "legal.area": {
+      "ru": "Площади приведены по обмерному плану: общая площадь 303,8 м², арендопригодная 279,7 м², терраса 47,7 м². Информация носит справочный характер и не является публичной офертой.",
+      "uz": "Maydonlar o'lchov rejasi bo'yicha keltirilgan: umumiy maydon 303,8 m², ijaraga yaroqli 279,7 m², terrassa 47,7 m². Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
+      "en": "Areas are stated per the measured plan: 303.8 m² gross, 279.7 m² leasable and a 47.7 m² terrace. This information is for reference only and does not constitute a public offer."
+    }
+  },
+  "seo": {
+    "title": {
+      "ru": "Аренда готового ресторана 279,7 м² с террасой в центре Ташкента",
+      "uz": "Toshkent markazida terrassali 279,7 m² tayyor restoran ijarasi",
+      "en": "Fully fitted 279.7 m² restaurant with a terrace for lease in central Tashkent"
+    },
+    "description": {
+      "ru": "Аренда помещения работавшего ресторана в здании отеля в центре Ташкента: 279,7 м² зала и кухни, остеклённая терраса 47,7 м², профессиональная кухня с вытяжкой, мебель, свет и посуда на месте. Два входа: из лобби отеля и с улицы. Ставка по запросу.",
+      "uz": "Toshkent markazidagi mehmonxona binosida ishlagan restoran maydoni ijaraga beriladi: 279,7 m² zal va oshxona, 47,7 m² oynali terrassa, so'rg'ichli professional oshxona, mebel, yoritish va idishlar joyida. Ikkita kirish: mehmonxona lobbisidan va ko'chadan. Narxi so'rov bo'yicha.",
+      "en": "A fully fitted restaurant for lease inside a hotel building in central Tashkent: 279.7 m² of dining rooms and kitchen, a 47.7 m² glazed terrace, a professional kitchen with extraction, plus furniture, lighting and tableware in place. Two entrances: from the hotel lobby and from the street. Rent on request."
+    },
+    "keywords": "аренда ресторана Ташкент, аренда готового ресторана, ресторан с оборудованием аренда Ташкент, помещение под ресторан Ташкент, аренда кафе Ташкент, аренда помещения с кухней Ташкент, ресторан при отеле аренда, аренда ресторана с террасой, помещение под кофейню Ташкент, аренда банкетного зала Ташкент, ресторан под ключ аренда Ташкент, готовый бизнес ресторан Ташкент аренда, аренда помещения общепит Ташкент, restoran ijaraga Toshkent, tayyor restoran ijarasi, oshxonali maydon ijarasi Toshkent, restaurant for lease Tashkent, fully fitted restaurant Tashkent, turnkey restaurant space Uzbekistan, hotel restaurant lease Tashkent, F&B space for rent Tashkent",
+    "domain": "",
+    "googleVerification": "",
+    "yandexVerification": "",
+    "publicUrl": "https://caseadvisory.uz/restaurant"
+  },
+  "intro": {
+    "image": "hall.jpg",
+    "focus": "50% 55%",
+    "h1": {
+      "ru": "Готовый ресторан 279,7 м² с террасой в здании отеля Mercure",
+      "uz": "Mercure mehmonxonasi binosida terrassali 279,7 m² tayyor restoran",
+      "en": "A fully fitted 279.7 m² restaurant with a terrace inside the Mercure hotel"
+    },
+    "sub": {
+      "ru": "Аренда помещения с мебелью, светом и работающей кухней",
+      "uz": "Mebel, yoritish va ishlaydigan oshxona bilan maydon ijarasi",
+      "en": "Space for lease with furniture, lighting and a working kitchen"
+    },
+    "facts": [
+      {
+        "n": {
+          "ru": "279,7",
+          "uz": "279,7",
+          "en": "279.7"
+        },
+        "l": {
+          "ru": "м² арендопригодной площади (GLA)",
+          "uz": "m² ijaraga yaroqli maydon (GLA)",
+          "en": "m² of leasable area (GLA)"
+        }
+      },
+      {
+        "n": {
+          "ru": "47,7",
+          "uz": "47,7",
+          "en": "47.7"
+        },
+        "l": {
+          "ru": "м² остеклённая терраса",
+          "uz": "m² oynali terrassa",
+          "en": "m² glazed terrace"
+        }
+      },
+      {
+        "n": "2",
+        "l": {
+          "ru": "входа: из лобби отеля и с улицы",
+          "uz": "kirish: mehmonxona lobbisidan va ko'chadan",
+          "en": "entrances: hotel lobby and street"
+        }
+      }
+    ]
+  },
+  "params": [
+    {
+      "n": {
+        "ru": "303,8",
+        "uz": "303,8",
+        "en": "303.8"
+      },
+      "l": {
+        "ru": "м² общая площадь (GBA)",
+        "uz": "m² umumiy maydon (GBA)",
+        "en": "m² gross area (GBA)"
+      }
+    },
+    {
+      "n": {
+        "ru": "279,7",
+        "uz": "279,7",
+        "en": "279.7"
+      },
+      "l": {
+        "ru": "м² залы и кухня",
+        "uz": "m² zallar va oshxona",
+        "en": "m² dining rooms and kitchen"
+      }
+    },
+    {
+      "n": {
+        "ru": "47,7",
+        "uz": "47,7",
+        "en": "47.7"
+      },
+      "l": {
+        "ru": "м² терраса",
+        "uz": "m² terrassa",
+        "en": "m² terrace"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Мебель и оборудование остаются",
+        "uz": "Mebel va jihozlar qoladi",
+        "en": "Furniture and equipment stay"
+      }
+    },
+    {
+      "n": "",
+      "l": {
+        "ru": "Только аренда",
+        "uz": "Faqat ijara",
+        "en": "Lease only"
+      }
+    }
+  ],
+  "unitsSection": {
+    "h2": {
+      "ru": "Помещение",
+      "uz": "Maydon",
+      "en": "The space"
+    },
+    "note": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    }
+  },
+  "units": [],
+  "useCases": {
+    "h2": {
+      "ru": "Кому подходит помещение",
+      "uz": "Maydon kimga mos keladi",
+      "en": "Who this space suits"
+    },
+    "cards": [
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Ресторан городского формата",
+          "uz": "Shahar formatidagi restoran",
+          "en": "A city restaurant"
+        },
+        "levels": {
+          "ru": "основной сценарий",
+          "uz": "asosiy stsenariy",
+          "en": "primary scenario"
+        },
+        "p": {
+          "ru": "Залы, кухня, санузлы и терраса уже собраны в рабочую конфигурацию. Оператор заходит со своей концепцией и командой, не тратя полгода на стройку и согласования.",
+          "uz": "Zallar, oshxona, hojatxonalar va terrassa allaqachon ishchi holatga keltirilgan. Operator o'z konsepsiyasi va jamoasi bilan kiradi, qurilish va kelishuvlarga yarim yil sarflamaydi.",
+          "en": "Dining rooms, kitchen, restrooms and terrace are already a working set-up. An operator walks in with a concept and a team instead of spending half a year on fit-out and approvals."
+        }
+      },
+      {
+        "icon": "clinic",
+        "h": {
+          "ru": "Кофейня, бистро, кондитерская",
+          "uz": "Qahvaxona, bistro, qandolatxona",
+          "en": "Cafe, bistro or patisserie"
+        },
+        "levels": {
+          "ru": "дневной трафик",
+          "uz": "kunduzgi tirbandlik",
+          "en": "daytime traffic"
+        },
+        "p": {
+          "ru": "Терраса с раздвижным навесом и отдельный вход с улицы дают дневную посадку и витрину, независимую от режима отеля.",
+          "uz": "Suriladigan soyabonli terrassa va ko'chadan alohida kirish mehmonxona rejimidan mustaqil kunduzgi o'tirish joyi va vitrina beradi.",
+          "en": "The terrace with a retractable canopy and its own street entrance give daytime seating and a shopfront independent of the hotel's rhythm."
+        }
+      },
+      {
+        "icon": "school",
+        "h": {
+          "ru": "Банкеты и мероприятия",
+          "uz": "Banketlar va tadbirlar",
+          "en": "Banquets and events"
+        },
+        "levels": {
+          "ru": "вечерняя загрузка",
+          "uz": "kechki yuklama",
+          "en": "evening utilisation"
+        },
+        "p": {
+          "ru": "Два зала разделены стеклянными перегородками: можно закрыть один под мероприятие, оставив второй в общем режиме.",
+          "uz": "Ikki zal shisha to'siqlar bilan ajratilgan: bittasini tadbir uchun yopib, ikkinchisini umumiy rejimda qoldirish mumkin.",
+          "en": "Two rooms are separated by glazed partitions, so one can be closed for a private event while the other keeps trading."
+        }
+      },
+      {
+        "icon": "office",
+        "h": {
+          "ru": "Работа с гостями отеля",
+          "uz": "Mehmonxona mehmonlari bilan ishlash",
+          "en": "Working with hotel guests"
+        },
+        "levels": {
+          "ru": "по договорённости с отелем",
+          "uz": "mehmonxona bilan kelishuv bo'yicha",
+          "en": "subject to agreement with the hotel"
+        },
+        "p": {
+          "ru": "Вход прямо из лобби даёт постоянный поток проживающих и делегаций. Формат участия в завтраках и обслуживании номеров обсуждается отдельно с отелем.",
+          "uz": "Lobbidan to'g'ridan-to'g'ri kirish yashovchilar va delegatsiyalarning doimiy oqimini beradi. Nonushta va xonalarga xizmat ko'rsatishda ishtirok etish formati mehmonxona bilan alohida muhokama qilinadi.",
+          "en": "A direct door from the lobby brings a steady flow of in-house guests and delegations. Participation in breakfasts and room service is agreed separately with the hotel."
+        }
+      }
+    ]
+  },
+  "scenarios": {
+    "h2": {
+      "ru": "Формат сделки",
+      "uz": "Bitim formati",
+      "en": "Deal structure"
+    },
+    "cols": [
+      {
+        "h": {
+          "ru": "Аренда",
+          "uz": "Ijara",
+          "en": "Lease"
+        },
+        "p": {
+          "ru": "Помещение только сдаётся в аренду, целиком. Ставка и срок договора обсуждаются индивидуально: оставьте контакты, и мы вышлем условия.",
+          "uz": "Maydon faqat to'liq holda ijaraga beriladi. Narx va shartnoma muddati alohida muhokama qilinadi: kontaktlaringizni qoldiring, shartlarni yuboramiz.",
+          "en": "The space is available for lease only, as a whole. Rent and lease term are discussed individually: leave your contacts and we will send the terms."
+        }
+      },
+      {
+        "h": {
+          "ru": "Что уже есть в помещении",
+          "uz": "Maydonda nima bor",
+          "en": "What is already in place"
+        },
+        "p": {
+          "ru": "Мебель залов и террасы, светильники, посуда, бар и раздача, профессиональная кухня с вытяжной вентиляцией, санузлы для гостей. Точный перечень оборудования передаём по запросу.",
+          "uz": "Zallar va terrassa mebeli, chiroqlar, idishlar, bar va tarqatish joyi, so'rg'ich ventilyatsiyali professional oshxona, mehmonlar uchun hojatxonalar. Jihozlarning aniq ro'yxatini so'rov bo'yicha beramiz.",
+          "en": "Furniture for the rooms and terrace, light fittings, tableware, the bar and service counter, a professional kitchen with extraction, and guest restrooms. A detailed equipment list is provided on request."
+        }
+      },
+      {
+        "h": {
+          "ru": "Условия на старт",
+          "uz": "Ishga tushirish shartlari",
+          "en": "Terms at launch"
+        },
+        "p": {
+          "ru": "Собственник готов обсуждать арендные каникулы на период запуска и раскрутки. Порядок оплаты коммунальных услуг и участие в маркетинге фиксируются в договоре.",
+          "uz": "Mulkdor ishga tushirish va targ'ib qilish davriga ijara ta'tilini muhokama qilishga tayyor. Kommunal to'lovlar tartibi va marketingda ishtirok shartnomada belgilanadi.",
+          "en": "The landlord is open to discussing a rent-free period while the venue opens and builds traffic. Utility payments and marketing contributions are fixed in the lease."
+        }
+      }
+    ]
+  },
+  "about": {
+    "h2": {
+      "ru": "О помещении",
+      "uz": "Maydon haqida",
+      "en": "About the space"
+    },
+    "sfbNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "status": {
+      "ru": "Ресторан не работает, помещение свободно и готово к передаче новому оператору. Осмотр по договорённости.",
+      "uz": "Restoran ishlamayapti, maydon bo'sh va yangi operatorga topshirishga tayyor. Ko'rik kelishuv bo'yicha.",
+      "en": "The restaurant is closed; the space is vacant and ready to hand over to a new operator. Viewings by appointment."
+    },
+    "specs": [
+      {
+        "b": {
+          "ru": "Общая площадь (GBA)",
+          "uz": "Umumiy maydon (GBA)",
+          "en": "Gross area (GBA)"
+        },
+        "s": {
+          "ru": "303,8 м²",
+          "uz": "303,8 m²",
+          "en": "303.8 m²"
+        }
+      },
+      {
+        "b": {
+          "ru": "Арендопригодная площадь (GLA)",
+          "uz": "Ijaraga yaroqli maydon (GLA)",
+          "en": "Leasable area (GLA)"
+        },
+        "s": {
+          "ru": "279,7 м² - залы, кухня, санузлы",
+          "uz": "279,7 m² - zallar, oshxona, hojatxonalar",
+          "en": "279.7 m² - dining rooms, kitchen, restrooms"
+        }
+      },
+      {
+        "b": {
+          "ru": "Терраса",
+          "uz": "Terrassa",
+          "en": "Terrace"
+        },
+        "s": {
+          "ru": "47,7 м², остеклённая, с раздвижным навесом",
+          "uz": "47,7 m², oynali, suriladigan soyabonli",
+          "en": "47.7 m², glazed, with a retractable canopy"
+        }
+      },
+      {
+        "b": {
+          "ru": "Расположение",
+          "uz": "Joylashuvi",
+          "en": "Location"
+        },
+        "s": {
+          "ru": "первый этаж здания отеля Mercure, центр Ташкента",
+          "uz": "Mercure mehmonxonasi binosining birinchi qavati, Toshkent markazi",
+          "en": "ground floor of the Mercure hotel building, central Tashkent"
+        }
+      },
+      {
+        "b": {
+          "ru": "Входы",
+          "uz": "Kirishlar",
+          "en": "Entrances"
+        },
+        "s": {
+          "ru": "из лобби отеля и отдельный с улицы",
+          "uz": "mehmonxona lobbisidan va ko'chadan alohida",
+          "en": "from the hotel lobby and a separate street entrance"
+        }
+      },
+      {
+        "b": {
+          "ru": "Кухня",
+          "uz": "Oshxona",
+          "en": "Kitchen"
+        },
+        "s": {
+          "ru": "профессиональная, с вытяжной вентиляцией и холодильным оборудованием",
+          "uz": "professional, so'rg'ich ventilyatsiya va sovutish jihozlari bilan",
+          "en": "professional, with extraction and refrigeration"
+        }
+      },
+      {
+        "b": {
+          "ru": "Залы",
+          "uz": "Zallar",
+          "en": "Dining rooms"
+        },
+        "s": {
+          "ru": "два зала, разделены стеклянными перегородками",
+          "uz": "ikki zal, shisha to'siqlar bilan ajratilgan",
+          "en": "two rooms, separated by glazed partitions"
+        }
+      },
+      {
+        "b": {
+          "ru": "Что остаётся арендатору",
+          "uz": "Ijarachiga nima qoladi",
+          "en": "What stays for the tenant"
+        },
+        "s": {
+          "ru": "мебель, светильники, посуда, бар и раздача",
+          "uz": "mebel, chiroqlar, idishlar, bar va tarqatish joyi",
+          "en": "furniture, light fittings, tableware, bar and service counter"
+        }
+      },
+      {
+        "b": {
+          "ru": "Формат сделки",
+          "uz": "Bitim formati",
+          "en": "Deal type"
+        },
+        "s": {
+          "ru": "только аренда, помещение целиком",
+          "uz": "faqat ijara, maydon to'liq",
+          "en": "lease only, the whole space"
+        }
+      }
+    ],
+    "images": [
+      {
+        "file": "plan-f1.jpg",
+        "badge": {
+          "ru": "план помещения",
+          "uz": "maydon rejasi",
+          "en": "floor plan"
+        },
+        "alt": {
+          "ru": "План первого этажа ресторана: 279,7 м² залов и кухни и терраса 47,7 м²",
+          "uz": "Restoranning birinchi qavat rejasi: 279,7 m² zallar va oshxona hamda 47,7 m² terrassa",
+          "en": "Ground floor plan of the restaurant: 279.7 m² of rooms and kitchen plus a 47.7 m² terrace"
+        }
+      },
+      {
+        "file": "terrace.jpg",
+        "alt": {
+          "ru": "Остеклённая терраса ресторана 47,7 м² с раздвижным навесом и уличной мебелью",
+          "uz": "Restoranning 47,7 m² oynali terrassasi, suriladigan soyabon va ko'cha mebeli bilan",
+          "en": "The 47.7 m² glazed restaurant terrace with a retractable canopy and outdoor furniture"
+        }
+      },
+      {
+        "file": "kitchen.jpg",
+        "alt": {
+          "ru": "Профессиональная кухня ресторана с вытяжкой, плитой и холодильными столами",
+          "uz": "Restoranning professional oshxonasi: so'rg'ich, plita va sovutgichli stollar",
+          "en": "The professional restaurant kitchen with extraction, range and refrigerated counters"
+        }
+      }
+    ]
+  },
+  "location": {
+    "h2": {
+      "ru": "Центр Ташкента, здание отеля Mercure",
+      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
+      "en": "Central Tashkent, the Mercure hotel building"
+    },
+    "sub": {
+      "ru": "Ресторан занимает первый этаж действующего отеля: поток проживающих гостей и делегаций дополняется городской публикой с улицы.",
+      "uz": "Restoran amaldagi mehmonxonaning birinchi qavatini egallaydi: yashovchi mehmonlar va delegatsiyalar oqimi ko'chadagi shahar auditoriyasi bilan to'ldiriladi.",
+      "en": "The restaurant occupies the ground floor of an operating hotel: a flow of resident guests and delegations, complemented by city footfall from the street."
+    },
+    "address": {
+      "ru": "Центр Ташкента, здание отеля Mercure",
+      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
+      "en": "Central Tashkent, the Mercure hotel building"
+    },
+    "addressNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "city": {
+      "ru": "Ташкент",
+      "uz": "Toshkent",
+      "en": "Tashkent"
+    },
+    "lat": "41.2727553",
+    "lng": "69.2418485",
+    "pois": [],
+    "drive": [],
+    "metroNote": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    },
+    "around": {
+      "ru": "",
+      "uz": "",
+      "en": ""
+    }
+  },
+  "faq": [
+    {
+      "q": {
+        "ru": "Что входит в аренду?",
+        "uz": "Ijaraga nima kiradi?",
+        "en": "What is included in the lease?"
+      },
+      "a": {
+        "ru": "Помещение целиком: два зала, кухня, санузлы и остеклённая терраса, а также мебель, светильники, посуда, бар и раздача. Подробный перечень оборудования высылаем по запросу вместе с условиями.",
+        "uz": "Maydon to'liq: ikki zal, oshxona, hojatxonalar va oynali terrassa, shuningdek mebel, chiroqlar, idishlar, bar va tarqatish joyi. Jihozlarning batafsil ro'yxatini shartlar bilan birga so'rov bo'yicha yuboramiz.",
+        "en": "The entire space: two dining rooms, the kitchen, restrooms and the glazed terrace, plus furniture, light fittings, tableware, the bar and the service counter. A detailed equipment list is sent on request together with the terms."
+      }
+    },
+    {
+      "q": {
+        "ru": "Есть ли отдельный вход с улицы?",
+        "uz": "Ko'chadan alohida kirish bormi?",
+        "en": "Is there a separate street entrance?"
+      },
+      "a": {
+        "ru": "Да. Гости заходят как из лобби отеля, так и с улицы через собственную входную группу. Оператор не зависит от режима работы стойки регистрации и может работать по своему графику.",
+        "uz": "Ha. Mehmonlar mehmonxona lobbisidan ham, ko'chadan o'z kirish guruhi orqali ham kiradi. Operator qabul stolining ish rejimiga bog'liq emas va o'z jadvali bo'yicha ishlashi mumkin.",
+        "en": "Yes. Guests can enter both from the hotel lobby and from the street through the restaurant's own entrance, so the operator is not tied to the front desk hours and can keep its own schedule."
+      }
+    },
+    {
+      "q": {
+        "ru": "В каком состоянии кухня?",
+        "uz": "Oshxona qanday holatda?",
+        "en": "What condition is the kitchen in?"
+      },
+      "a": {
+        "ru": "Кухня рабочая: вытяжная вентиляция, тепловое и холодильное оборудование, производственные столы и мойки на местах. Состав оборудования фиксируется в акте передачи.",
+        "uz": "Oshxona ishchi holatda: so'rg'ich ventilyatsiya, issiqlik va sovutish jihozlari, ishlab chiqarish stollari va yuvish joylari o'z o'rnida. Jihozlar tarkibi topshirish dalolatnomasida qayd etiladi.",
+        "en": "The kitchen is operational: extraction, cooking and refrigeration equipment, prep counters and sinks are all in place. The exact inventory is recorded in the handover schedule."
+      }
+    },
+    {
+      "q": {
+        "ru": "Возможны ли арендные каникулы?",
+        "uz": "Ijara ta'tili mumkinmi?",
+        "en": "Is a rent-free period possible?"
+      },
+      "a": {
+        "ru": "Собственник готов обсуждать каникулы на период запуска: новому оператору нужно время на команду, меню и первую аудиторию. Длительность зависит от срока договора и концепции.",
+        "uz": "Mulkdor ishga tushirish davriga ta'til muhokama qilishga tayyor: yangi operatorga jamoa, menyu va birinchi auditoriya uchun vaqt kerak. Muddati shartnoma muddati va konsepsiyaga bog'liq.",
+        "en": "The landlord is open to a rent-free period at launch: a new operator needs time for the team, the menu and the first audience. Its length depends on the lease term and the concept."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли работать с гостями отеля?",
+        "uz": "Mehmonxona mehmonlari bilan ishlash mumkinmi?",
+        "en": "Can we serve the hotel guests?"
+      },
+      "a": {
+        "ru": "Это одна из сильных сторон объекта: проживающие и делегации заходят прямо из лобби. Формат участия в завтраках и обслуживании номеров обсуждается с отелем отдельно и фиксируется договором.",
+        "uz": "Bu obyektning kuchli tomonlaridan biri: yashovchilar va delegatsiyalar to'g'ridan-to'g'ri lobbidan kiradi. Nonushta va xonalarga xizmat ko'rsatishda ishtirok etish formati mehmonxona bilan alohida muhokama qilinadi va shartnomada belgilanadi.",
+        "en": "This is one of the strengths of the asset: in-house guests and delegations walk in straight from the lobby. Participation in breakfasts and room service is agreed with the hotel separately and fixed in the contract."
+      }
+    },
+    {
+      "q": {
+        "ru": "Какая ставка аренды?",
+        "uz": "Ijara narxi qancha?",
+        "en": "What is the rent?"
+      },
+      "a": {
+        "ru": "Ставка и условия обсуждаются индивидуально и зависят от срока договора, концепции и объёма каникул. Оставьте контакты, и мы вышлем коммерческое предложение.",
+        "uz": "Narx va shartlar alohida muhokama qilinadi hamda shartnoma muddati, konsepsiya va ta'til hajmiga bog'liq. Kontaktlaringizni qoldiring, tijorat taklifini yuboramiz.",
+        "en": "Rent and terms are discussed individually and depend on the lease length, the concept and the rent-free period. Leave your contacts and we will send a proposal."
+      }
+    },
+    {
+      "q": {
+        "ru": "Можно ли посмотреть помещение?",
+        "uz": "Maydonni ko'rish mumkinmi?",
+        "en": "Can we view the space?"
+      },
+      "a": {
+        "ru": "Да, осмотр по договорённости. Оставьте контакты в форме, и мы согласуем удобное время.",
+        "uz": "Ha, ko'rik kelishuv bo'yicha. Shakl orqali kontaktlaringizni qoldiring, qulay vaqtni kelishamiz.",
+        "en": "Yes, viewings are by appointment. Leave your contacts in the form and we will arrange a convenient time."
+      }
+    }
+  ],
+  "lead": {
+    "h2": {
+      "ru": "Запросить условия аренды",
+      "uz": "Ijara shartlarini so'rash",
+      "en": "Request the lease terms"
+    },
+    "sub": {
+      "ru": "Оставьте контакты - вышлем условия, перечень оборудования и согласуем осмотр.",
+      "uz": "Kontaktlaringizni qoldiring - shartlar, jihozlar ro'yxatini yuboramiz va ko'rikni kelishamiz.",
+      "en": "Leave your contacts and we will send the terms and the equipment list, and arrange a viewing."
+    }
+  },
+  "enquiry": {
+    "note": {
+      "ru": "Ответим в течение дня",
+      "uz": "Kun davomida javob beramiz",
+      "en": "We reply within the day"
+    }
+  },
+  "footer": {
+    "addr": {
+      "ru": "Центр Ташкента, здание отеля Mercure",
+      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
+      "en": "Central Tashkent, the Mercure hotel building"
+    },
+    "legal": {
+      "ru": "CASE Real Estate Advisory выступает агентом собственника помещения по сдаче в аренду и не является представителем гостиничного оператора. Информация на сайте носит справочный характер и не является публичной офертой. © 2026 CASE Advisory",
+      "uz": "CASE Real Estate Advisory maydon mulkdorining ijaraga berish bo'yicha agenti sifatida ish yuritadi va mehmonxona operatorining vakili emas. Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. © 2026 CASE Advisory",
+      "en": "CASE Real Estate Advisory acts as the letting agent for the owner of the premises and is not a representative of the hotel operator. Information on this site is for reference only and does not constitute a public offer. © 2026 CASE Advisory"
+    }
+  },
+  "settings": {
+    "mapsApiKey": "",
+    "metricaId": "",
+    "ga4Id": "",
+    "gtmId": ""
+  }
+}
