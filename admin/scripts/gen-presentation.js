@@ -414,6 +414,12 @@ function buildLandHtml(lang, qr) {
   const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
   // подпись картинок: у концепт-визуализаций своя, чтобы не выдать их за фото
   const vizBadge = (cfg.texts && cfg.texts['about.viz']) ? L(cfg.texts['about.viz'], lang) : t('viz_concept');
+  // у отдельной картинки может быть своя подпись (например, реальный снимок
+  // с границами участка рядом с визуализациями застройки)
+  const badgeOf = (file) => {
+    const g = (cfg.about.images || []).find((x) => x.file === file);
+    return (g && g.badge) ? L(g.badge, lang) : vizBadge;
+  };
   const legal = (cfg.texts && cfg.texts['legal.area']) ? L(cfg.texts['legal.area'], lang) : '';
   const facts = (cfg.intro.facts || []).slice(0, 4);
   const specs = (cfg.about.specs || []);
@@ -458,7 +464,7 @@ function buildLandHtml(lang, qr) {
       <div style="flex:.95;display:flex;flex-direction:column;gap:4mm;min-height:0">
         <div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;min-height:0">
           <img src="${img64(ABOUT_IMG)}" style="width:100%;height:100%;object-fit:cover">
-          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(vizBadge)}</span>
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(badgeOf(ABOUT_IMG))}</span>
         </div>
         <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10.5pt;line-height:1.5">${M(cfg.about.status)}</div>
         <div style="font-size:8pt;color:${MUTED};line-height:1.5">${esc(legal)}</div>
@@ -521,7 +527,7 @@ function buildLandHtml(lang, qr) {
       <div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
         ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
           <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
-          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(vizBadge)}</span>
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(badgeOf(f))}</span>
         </div>`).join('')}
       </div>
     </div>

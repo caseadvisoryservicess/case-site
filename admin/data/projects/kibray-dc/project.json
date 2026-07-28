@@ -95,6 +95,11 @@
       "ru": "визуализация концепции",
       "uz": "konsepsiya vizualizatsiyasi",
       "en": "concept visualisation"
+    },
+    "about.vizAll": {
+      "ru": "Первое изображение - спутниковый снимок участка с обозначенными границами, остальные - визуализации концепции застройки.",
+      "uz": "Birinchi tasvir - chegaralari belgilangan uchastkaning sun'iy yo'ldosh tasviri, qolganlari - qurilish konsepsiyasi vizualizatsiyalari.",
+      "en": "The first image is a satellite view of the plot with its boundaries marked; the others are visualisations of a development concept."
     }
   },
   "seo": {
@@ -507,6 +512,19 @@
     ],
     "images": [
       {
+        "file": "plot-borders.jpg",
+        "badge": {
+          "ru": "границы участка",
+          "uz": "uchastka chegaralari",
+          "en": "plot boundaries"
+        },
+        "alt": {
+          "ru": "Спутниковый снимок участка 6,5 га в Кибрае с обозначенными границами, первая линия дороги",
+          "uz": "Qibraydagi 6,5 ga uchastkaning chegaralari belgilangan sun'iy yo'ldosh tasviri, yo'lning birinchi qatori",
+          "en": "Satellite view of the 6.5 ha plot in Kibray with its boundaries marked, fronting the road"
+        }
+      },
+      {
         "file": "gate.jpg",
         "alt": {
           "ru": "Визуализация въездной группы дата-центра на участке в Кибрае, охраняемый периметр и КПП",
@@ -601,9 +619,9 @@
       "en": ""
     },
     "around": {
-      "ru": "",
-      "uz": "",
-      "en": ""
+      "ru": "Северная граница участка выходит на асфальтированную дорогу - заезд прямо с неё. С востока промышленная застройка и действующее предприятие, с запада жилой массив махалли, вдоль юго-западной границы проходит канал. Внутри контура участок ровный, свободный, с двумя существующими строениями.",
+      "uz": "Uchastkaning shimoliy chegarasi asfaltlangan yo'lga chiqadi - kirish bevosita undan. Sharqdan sanoat qurilishi va ishlayotgan korxona, g'arbdan mahalla turar-joy massivi, janubi-g'arbiy chegara bo'ylab kanal o'tadi. Kontur ichida uchastka tekis, bo'sh, ikkita mavjud inshoot bilan.",
+      "en": "The northern boundary fronts a paved road, with access directly from it. To the east there is industrial development and an operating plant, to the west a residential mahalla, and a canal runs along the south-western boundary. Inside the outline the plot is level and clear, with the two existing structures."
     }
   },
   "lead": {
@@ -648,6 +666,18 @@
         "ru": "Земельный участок 65 000 м² (6,5 га) с правом постоянного пользования, подготовленный под размещение дата-центра: подведены две независимые линии оптоволокна, разработаны концепция и проектная документация. Всё зарегистрировано в Государственном реестре, кадастровый номер 11:05:41:01:02:0105. В сделку также входят два капитальных строения на участке.",
         "uz": "65 000 m² (6,5 ga) yer uchastkasi doimiy foydalanish huquqi bilan, data-markaz joylashtirish uchun tayyorlangan: ikkita mustaqil optik tolali liniya tortilgan, konsepsiya va loyiha hujjatlari ishlab chiqilgan. Barchasi Davlat reyestrida ro'yxatdan o'tgan, kadastr raqami 11:05:41:01:02:0105. Bitimga uchastkadagi ikkita kapital inshoot ham kiradi.",
         "en": "A 65,000 m² (6.5 ha) land plot held under permanent use, prepared for a data center: two independent fibre routes are already in place and the concept and design documentation have been completed. Everything is registered in the State Register, cadastral number 11:05:41:01:02:0105. Two permanent structures on the plot are included in the deal."
+      }
+    },
+    {
+      "q": {
+        "ru": "Где проходят границы участка?",
+        "uz": "Uchastka chegaralari qayerdan o'tadi?",
+        "en": "Where do the plot boundaries run?"
+      },
+      "a": {
+        "ru": "Контур участка показан на снимке в блоке «Об участке»: это четырёхугольник с выходом на дорогу по северной границе. Точные координаты поворотных точек и кадастровый план предоставляем по запросу вместе с выпиской из Государственного реестра, а на осмотре показываем границы на местности.",
+        "uz": "Uchastka konturi «Uchastka haqida» blokidagi tasvirda ko'rsatilgan: bu shimoliy chegarasi yo'lga chiqadigan to'rtburchak. Burilish nuqtalarining aniq koordinatalari va kadastr rejasini Davlat reyestridan ko'chirma bilan birga so'rov bo'yicha beramiz, ko'rikda esa chegaralarni joyida ko'rsatamiz.",
+        "en": "The outline is shown on the image in the About the site section: a quadrilateral fronting the road along its northern edge. Exact turning-point coordinates and the cadastral plan are provided on request together with the State Register extract, and the boundaries are walked with you during a site visit."
       }
     },
     {
@@ -742,8 +772,9 @@
     "gtmId": ""
   },
   "pres": {
-    "aboutImg": "gate.jpg",
+    "aboutImg": "plot-borders.jpg",
     "vizImgs": [
+      "gate.jpg",
       "hall.jpg",
       "power.jpg"
     ],

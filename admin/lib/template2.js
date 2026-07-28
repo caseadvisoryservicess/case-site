@@ -1001,9 +1001,11 @@ function renderPage(cfg, lang, uploadsDir) {
   // ── экран 6 ──
   const specRows = (cfg.about.specs || []).filter((r) => pick(r.s, lang).trim()).map((r) =>
     `<tr><td>${t(r.b)}</td><td>${t(r.s)}</td></tr>`).join('\n');
+  // у картинки может быть своя плашка: на одном экране могут стоять и
+  // визуализация концепции, и реальный снимок с границами участка
   const gallery = (cfg.about.images || []).filter((g) => g.file).map((g) => `
     <figure>${pictureTag(uploadsDir, prefix, g.file, { alt: g.alt ? t(g.alt) : t(cfg.intro.h1), sizes: '(max-width:920px) 100vw, 640px' })}
-      <figcaption>${s('about.viz')}</figcaption>
+      <figcaption>${g.badge ? t(g.badge) : s('about.viz')}</figcaption>
     </figure>`).join('');
 
   // ── экран 7 ──
