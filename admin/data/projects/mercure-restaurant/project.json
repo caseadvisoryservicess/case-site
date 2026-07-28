@@ -765,9 +765,9 @@
       "en": "Yakkasaray district, by the Small Ring Road"
     },
     "sub": {
-      "ru": "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel, то есть постоянный поток приезжих, у которых нет своей кухни.",
-      "uz": "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel, ya'ni o'z oshxonasi yo'q mehmonlarning doimiy oqimi.",
-      "en": "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are all neighbours - which means a steady flow of visitors with no kitchen of their own."
+      "ru": "Первый этаж действующего отеля: свой поток гостей плюс городская публика с улицы.",
+      "uz": "Amaldagi mehmonxonaning birinchi qavati: o'z mehmonlari oqimi va ko'chadan shahar auditoriyasi.",
+      "en": "The ground floor of an operating hotel: its own guest flow plus city visitors from the street."
     },
     "address": {
       "ru": "Ташкент, Яккасарайский район, здание отеля Mercure Tashkent South",
@@ -794,9 +794,9 @@
       "en": ""
     },
     "around": {
-      "ru": "",
-      "uz": "",
-      "en": ""
+      "ru": "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel - постоянный поток приезжих, у которых нет своей кухни. Выезд на Малую кольцевую дорогу рядом.",
+      "uz": "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel - o'z oshxonasi yo'q mehmonlarning doimiy oqimi. Kichik halqa yo'liga chiqish yaqin.",
+      "en": "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are neighbours - a steady flow of visitors with no kitchen of their own. The Small Ring Road access is close by."
     }
   },
   "faq": [
@@ -941,6 +941,11 @@
         "ru": "Помещение",
         "uz": "Maydon",
         "en": "The space"
+      },
+      "map_badge": {
+        "ru": "карта: Google",
+        "uz": "xarita: Google",
+        "en": "map: Google"
       },
       "land_deal": {
         "ru": "Ставка и условия - по запросу:",

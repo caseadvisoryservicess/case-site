@@ -302,10 +302,9 @@ CFG = {
     "h2": ml("Яккасарайский район, у Малой кольцевой дороги",
              "Yakkasaroy tumani, Kichik halqa yo'li yonida",
              "Yakkasaray district, by the Small Ring Road"),
-    "sub": ml(
-      "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel, то есть постоянный поток приезжих, у которых нет своей кухни.",
-      "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel, ya'ni o'z oshxonasi yo'q mehmonlarning doimiy oqimi.",
-      "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are all neighbours - which means a steady flow of visitors with no kitchen of their own."),
+    "sub": ml("Первый этаж действующего отеля: свой поток гостей плюс городская публика с улицы.",
+              "Amaldagi mehmonxonaning birinchi qavati: o'z mehmonlari oqimi va ko'chadan shahar auditoriyasi.",
+              "The ground floor of an operating hotel: its own guest flow plus city visitors from the street."),
     "address": ml("Ташкент, Яккасарайский район, здание отеля Mercure Tashkent South",
                   "Toshkent, Yakkasaroy tumani, Mercure Tashkent South mehmonxonasi binosi",
                   "Tashkent, Yakkasaray district, the Mercure Tashkent South hotel building"),
@@ -315,7 +314,10 @@ CFG = {
     "pois": [],
     "drive": [],
     "metroNote": ml("", "", ""),
-    "around": ml("", "", "")
+    "around": ml(
+      "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel - постоянный поток приезжих, у которых нет своей кухни. Выезд на Малую кольцевую дорогу рядом.",
+      "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel - o'z oshxonasi yo'q mehmonlarning doimiy oqimi. Kichik halqa yo'liga chiqish yaqin.",
+      "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are neighbours - a steady flow of visitors with no kitchen of their own. The Small Ring Road access is close by.")
   },
 
   "faq": [
@@ -377,6 +379,7 @@ CFG = {
     "T": {
       "addr": ml("Яккасарай · отель Mercure", "Yakkasaroy · Mercure mehmonxonasi", "Yakkasaray · Mercure hotel"),
       "lbl_land": ml("Помещение", "Maydon", "The space"),
+      "map_badge": ml("карта: Google", "xarita: Google", "map: Google"),
       "land_deal": ml("Ставка и условия - по запросу:", "Narx va shartlar - so'rov bo'yicha:", "Rent and terms on request:"),
       "land_loc_zone": ml(
         "Гости и делегации отеля заходят прямо из лобби, городская публика - с улицы через собственный вход. Выезд на Малую кольцевую дорогу рядом.",
