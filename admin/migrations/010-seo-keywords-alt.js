@@ -86,6 +86,40 @@ const DATA = {
          'Birinchi qatorda vitrinali birinchi qavat va stilobat arklari, dorixona yoki kafe uchun maydon',
          'Ground floor with street-front shopfronts and stylobate arches, suitable for a pharmacy or cafe')
     ]
+  },
+  // Кибрай: класс актива - земля, запросы другие, покупатель часто международный,
+  // поэтому английских и отраслевых формулировок здесь заметно больше.
+  // В alt обязательно слово «визуализация»: это концепт-рендеры, а не фото участка.
+  'kibray-dc': {
+    keywords: [
+      'земельный участок под дата-центр', 'участок под ЦОД Ташкент', 'земля под дата-центр Узбекистан',
+      'продажа земли Кибрайский район', 'промышленный участок Ташкентская область',
+      'площадка под ЦОД с оптоволокном', 'земля под IT инфраструктуру Узбекистан',
+      'инвестиции в цифровую инфраструктуру Узбекистан', 'участок 6,5 га Ташкентская область',
+      'промышленная зона Кибрай', 'купить землю под строительство Ташкентская область',
+      'земельный участок промышленного назначения Узбекистан', 'площадка под серверный центр',
+      'земля под логистический комплекс Ташкент', 'участок под производство Кибрай',
+      'data center land Uzbekistan', 'data centre site for sale Tashkent',
+      'industrial land for sale Uzbekistan', 'greenfield data center site Central Asia',
+      'land plot with fibre connectivity Uzbekistan', 'IT park land Tashkent region',
+      'yer uchastkasi data markaz uchun', 'Qibray tumani yer sotiladi',
+      'sanoat yer uchastkasi Toshkent viloyati', 'data-markaz uchun maydon O\'zbekiston'
+    ].join(', '),
+    desc: ml(
+      'Продажа земельного участка 6,5 га (65 000 м²) под дата-центр в Кибрайском районе Ташкентской области: зона технологической промышленности по генплану, две независимые линии оптоволокна, разработанная проектная документация под ЦОД, обременений нет. 25 км до Ташкента. Стоимость по запросу.',
+      'Toshkent viloyati Qibray tumanida data-markaz uchun 6,5 ga (65 000 m²) yer uchastkasi sotiladi: bosh reja bo\'yicha texnologik sanoat hududi, ikkita mustaqil optik tolali liniya, data-markaz uchun ishlab chiqilgan loyiha hujjatlari, cheklovlar yo\'q. Toshkentgacha 25 km. Narxi so\'rov bo\'yicha.',
+      'A 6.5 ha (65,000 m²) land plot for a data center in Kibray district, Tashkent region: zoned as a technological industry area under the master plan, two independent fibre routes, design documentation for a data center already prepared, no encumbrances. 25 km from Tashkent. Price on request.'),
+    alts: [
+      ml('Визуализация въездной группы дата-центра на участке в Кибрае, охраняемый периметр и КПП',
+         'Qibraydagi uchastkada data-markaz kirish guruhi vizualizatsiyasi, qo\'riqlanadigan perimetr va nazorat punkti',
+         'Visualisation of the data center entrance on the Kibray plot, secured perimeter and checkpoint'),
+      ml('Визуализация машинного зала дата-центра: ряды стоек, холодный коридор, фальшпол',
+         'Data-markaz mashina zali vizualizatsiyasi: tokchalar qatorlari, sovuq koridor, falshpol',
+         'Visualisation of a data center hall: rows of racks, a cold aisle and a raised floor'),
+      ml('Визуализация энергоцентра и чиллеров дата-центра на участке 6,5 га в Ташкентской области',
+         'Toshkent viloyatidagi 6,5 ga uchastkada data-markaz energiya markazi va chillerlari vizualizatsiyasi',
+         'Visualisation of the power yard and chillers of a data center on the 6.5 ha plot in Tashkent region')
+    ]
   }
 };
 

@@ -1,12 +1,19 @@
 /**
- * Генерация PDF-презентаций проекта Taxtapul на трёх языках (12 страниц, A4 альбомная).
+ * Генерация PDF-презентаций проекта на трёх языках (A4 альбомная).
  *
  * Контент берётся из project.json (переводы полей - те же, что на лендинге),
- * служебные подписи - из словаря T ниже. GBA по уровням - из рабочей
- * документации (публикуется только в брошюре, на сайте - GLA).
+ * служебные подписи - из словаря T ниже, проектные переопределения - в cfg.pres.
+ *
+ * Два режима, выбор по cfg.site.assetType:
+ *   building (по умолчанию) - здание: обложка, о проекте, таблица помещений,
+ *     страницы планировок, сценарии, формат сделки, локация, визуализации,
+ *     контакты. Всего 8 + число страниц планировок.
+ *   land - земельный участок: у него нет этажей, GLA и планировок, поэтому
+ *     набор другой: обложка, об участке (таблица параметров), кому подходит,
+ *     формат сделки, локация, визуализации, контакты. Всего 7 страниц.
  *
  * Запуск (локально, нужен Playwright+Chromium):
- *   node scripts/gen-presentation.js
+ *   node scripts/gen-presentation.js [slug]
  * Результат: uploads/presentation.pdf (RU), presentation-uz.pdf, presentation-en.pdf
  */
 'use strict';
@@ -38,7 +45,9 @@ const ELEV = PRES.elev || { b: '-', f1: '±0.000', f2: '+4.300', f3: '+8.200', f
 const PLAN_CAD = PRES.plans || { b: 'plan-cad-b.jpg', f1: 'plan-cad-f1.jpg', f2: 'plan-cad-f23.jpg', f3: 'plan-cad-f23.jpg', f4: 'plan-cad-f4.jpg' };
 // какие уровни показывать отдельными страницами планировок
 const PLAN_PAGES = PRES.planPages || [{ id: 'b' }, { id: 'f1' }, { id: 'f2', title: 'f23_title' }, { id: 'f4' }];
-const TOTAL = 8 + PLAN_PAGES.length;
+// земельный участок: другой состав страниц, планировок и этажей у него нет
+const LAND = ((cfg.site && cfg.site.assetType) || 'building') === 'land';
+const TOTAL = LAND ? 7 : 8 + PLAN_PAGES.length;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];
   return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
@@ -110,7 +119,24 @@ const T = {
   c_h: { ru: 'Обсудим ваш формат?', uz: 'Formatingizni muhokama qilamizmi?', en: 'Shall we discuss your format?' },
   c_s: { ru: 'Ответим в течение дня - площадь, срок, порядок входа.', uz: 'Kun davomida javob beramiz - maydon, muddat, kirish tartibi.', en: 'We reply within the day - area, term, entry terms.' },
   c_qr: { ru: 'Наведите камеру - откроется сайт проекта', uz: 'Kamerani yo‘naltiring - loyiha sayti ochiladi', en: 'Point your camera to open the project website' },
-  c_legal: { ru: 'Информация справочная, не является публичной офертой', uz: 'Ma’lumot xarakteriga ega, ommaviy oferta emas', en: 'For reference only, not a public offer' }
+  c_legal: { ru: 'Информация справочная, не является публичной офертой', uz: 'Ma’lumot xarakteriga ega, ommaviy oferta emas', en: 'For reference only, not a public offer' },
+  // подписи режима «земельный участок»
+  lbl_land: { ru: 'Участок', uz: 'Uchastka', en: 'The plot' },
+  th_param: { ru: 'Параметр', uz: 'Parametr', en: 'Parameter' },
+  th_value: { ru: 'Значение', uz: 'Qiymat', en: 'Value' },
+  land_deal: { ru: 'Стоимость и условия сделки - по запросу:', uz: 'Bitim narxi va shartlari - so‘rov bo‘yicha:', en: 'Price and deal terms on request:' },
+  land_loc_zone: {
+    ru: 'По генеральному плану площадка относится к территориям технологической промышленности: окружение профильное, а не жилой квартал. Границы, подъезд и соседей показываем на осмотре.',
+    uz: 'Bosh reja bo‘yicha maydon texnologik sanoat hududlariga kiradi: atrof-muhit ixtisoslashgan, turar-joy kvartali emas. Chegaralar, kirish yo‘li va qo‘shnilarni ko‘rikda ko‘rsatamiz.',
+    en: 'Under the master plan the site sits within a technological industry area: the surroundings are industrial rather than residential. Boundaries, access and neighbours are shown during a site visit.'
+  },
+  loc_dist: { ru: 'Расстояния', uz: 'Masofalar', en: 'Distances' },
+  viz_concept: { ru: 'визуализация концепции', uz: 'konsepsiya vizualizatsiyasi', en: 'concept visualisation' },
+  viz_all_concept: {
+    ru: 'Все изображения - визуализации концепции застройки, а не фотографии участка. Публичной офертой не являются.',
+    uz: 'Barcha tasvirlar - qurilish konsepsiyasi vizualizatsiyalari, uchastka fotosuratlari emas. Ommaviy oferta hisoblanmaydi.',
+    en: 'All images are visualisations of a development concept, not photographs of the site. They do not constitute a public offer.'
+  }
 };
 
 const img64 = (name) => {
@@ -189,6 +215,7 @@ const VIZ_IMGS = PRES.vizImgs
   || (cfg.about.images || []).slice(1, 3).map((x) => x.file).filter(Boolean);
 
 function buildHtml(lang, qr) {
+  if (LAND) return buildLandHtml(lang, qr);
   const t = (k) => T[k][lang];
   const M = (v) => esc(L(v, lang));
   const units = cfg.units.filter((u) => !u.whole);
@@ -356,6 +383,149 @@ function buildHtml(lang, qr) {
       </div>
     </div>
     ${foot(7 + PLAN_PAGES.length)}
+  </div>
+
+  <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">
+    <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
+    <div style="font-size:26pt;font-weight:800;margin-bottom:3mm">${t('c_h')}</div>
+    <div style="font-size:11pt;color:rgba(255,255,255,.7);margin-bottom:10mm">${t('c_s')}</div>
+    <div style="font-size:17pt;font-weight:800;margin-bottom:2.5mm">${esc(cfg.contacts.phone)}</div>
+    <div style="font-size:12pt;color:rgba(255,255,255,.85);margin-bottom:10mm">t.me/${esc(cfg.contacts.telegram)} · ${esc(siteShown)}</div>
+    <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
+    <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
+    <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${TOTAL} / ${TOTAL}</span>
+    </div>
+  </div>
+
+  </body></html>`;
+}
+
+/**
+ * Брошюра земельного участка: 7 страниц.
+ * У земли нет этажей, GLA и планировок, поэтому вместо таблицы помещений -
+ * таблица параметров участка из cfg.about.specs, а вместо страниц планировок
+ * сразу сценарии использования.
+ */
+function buildLandHtml(lang, qr) {
+  const t = (k) => T[k][lang];
+  const M = (v) => esc(L(v, lang));
+  const siteShown = SITE.replace('https://', '') + (lang === 'ru' ? '' : lang + '/');
+  const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
+  // подпись картинок: у концепт-визуализаций своя, чтобы не выдать их за фото
+  const vizBadge = (cfg.texts && cfg.texts['about.viz']) ? L(cfg.texts['about.viz'], lang) : t('viz_concept');
+  const legal = (cfg.texts && cfg.texts['legal.area']) ? L(cfg.texts['legal.area'], lang) : '';
+  const facts = (cfg.intro.facts || []).slice(0, 4);
+  const specs = (cfg.about.specs || []);
+  const caseCard = (c) => `<div style="background:#fff;border-radius:4mm;padding:6.5mm">
+    <div style="font-size:13pt;font-weight:800;margin-bottom:1.5mm">${M(c.h)}</div>
+    <div style="font-size:9pt;font-weight:700;color:${BRONZE};margin-bottom:3mm">${M(c.levels)}</div>
+    <div style="font-size:9.5pt;line-height:1.55;color:${MUTED}">${M(c.p)}</div>
+  </div>`;
+
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><style>${CSS}
+  /* у участка параметров много (12 строк), поэтому строки плотнее обычных */
+  .spec td { padding: 2.3mm 4.5mm; font-size: 8.8pt; line-height: 1.3; }
+  .spec td:first-child { width: 40%; font-weight: 700; }
+  .spec td:last-child { color: ${MUTED}; white-space: pre-line; }
+  .pg.land h2 { margin-bottom: 5mm; }
+</style></head><body>
+
+  <div class="pg" style="padding:0;background:${DARK}">
+    <img src="${img64(cfg.intro.image)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(15,16,18,.35),rgba(15,16,18,.85))"></div>
+    <div style="position:relative;margin-top:auto;padding:0 18mm 20mm;color:#fff">
+      <div style="font-size:11pt;font-weight:800;letter-spacing:.2em;margin-bottom:6mm">${esc(CODE)}</div>
+      <div style="font-size:30pt;font-weight:800;letter-spacing:-.01em;line-height:1.14;max-width:215mm">${M(cfg.intro.h1)}</div>
+      <div style="font-size:13pt;margin-top:6mm;opacity:.9">${M(cfg.intro.sub)}</div>
+      <div style="font-size:10.5pt;margin-top:3mm;opacity:.75">${M(cfg.location.address)}</div>
+      <div style="display:flex;gap:14mm;margin-top:10mm;font-size:10pt">
+        ${facts.map((f) => `<span><b style="font-size:16pt">${M(f.n)}</b><br><span style="opacity:.75">${M(f.l)}</span></span>`).join('')}
+      </div>
+    </div>
+    <div style="position:absolute;right:18mm;bottom:20mm;color:#fff;font-size:9pt;opacity:.8">CASE Real Estate Advisory</div>
+  </div>
+
+  <div class="pg land">
+    <span class="lbl">${t('lbl_land')}</span>
+    <h2>${M(cfg.about.h2)}</h2>
+    <div style="display:flex;gap:10mm;flex:1;min-height:0">
+      <div style="flex:1.05;min-height:0">
+        <table class="spec">
+          ${specs.map((s) => `<tr><td>${M(s.b)}</td><td>${M(s.s)}</td></tr>`).join('')}
+        </table>
+      </div>
+      <div style="flex:.95;display:flex;flex-direction:column;gap:4mm;min-height:0">
+        <div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;min-height:0">
+          <img src="${img64(ABOUT_IMG)}" style="width:100%;height:100%;object-fit:cover">
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(vizBadge)}</span>
+        </div>
+        <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10.5pt;line-height:1.5">${M(cfg.about.status)}</div>
+        <div style="font-size:8pt;color:${MUTED};line-height:1.5">${esc(legal)}</div>
+      </div>
+    </div>
+    ${foot(2)}
+  </div>
+
+  <div class="pg">
+    <span class="lbl">${t('lbl_cases')}</span>
+    <h2>${M(cfg.useCases.h2)}</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;flex:1;align-content:start">
+      ${cfg.useCases.cards.map(caseCard).join('')}
+    </div>
+    ${foot(3)}
+  </div>
+
+  <div class="pg" style="background:${DARK};color:#fff">
+    <span class="lbl">${M(cfg.scenarios.h2)}</span>
+    <h2 style="color:#fff">${M(cfg.scenarios.h2)}</h2>
+    <div style="display:flex;gap:6mm;align-items:flex-start">
+      ${cfg.scenarios.cols.map((c) => `<div style="flex:1;background:rgba(255,255,255,.06);border:.4pt solid rgba(255,255,255,.18);border-radius:4mm;padding:8mm">
+        <div style="font-size:14pt;font-weight:800;margin-bottom:4mm">${M(c.h)}</div>
+        <div style="font-size:10pt;line-height:1.6;color:rgba(255,255,255,.78)">${M(c.p)}</div>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:8mm;font-size:10pt;color:rgba(255,255,255,.65)">${t('land_deal')} ${esc(cfg.contacts.phone)} · t.me/${esc(cfg.contacts.telegram)}</div>
+    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>4 / ${TOTAL}</span></div>
+  </div>
+
+  <div class="pg">
+    <span class="lbl">${t('lbl_loc')}</span>
+    <h2>${M(cfg.location.h2)}</h2>
+    <div style="display:flex;gap:12mm;flex:1">
+      <div style="flex:1">
+        <div style="font-size:12.5pt;font-weight:700;line-height:1.45;margin-bottom:6mm">${M(cfg.location.address)}</div>
+        <table style="background:none">
+          <tr><th colspan="2" style="padding-left:0">${t('loc_dist')}</th></tr>
+          ${(cfg.location.pois || []).map((p) => `<tr><td style="padding-left:0;background:none">${M(p.name)}</td><td style="text-align:right;font-weight:700;background:none">${M(p.dist)}</td></tr>`).join('')}
+        </table>
+        <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;gap:5mm;justify-content:center">
+        <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.sub)}</div>
+        <div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('land_loc_zone')}</div>
+        ${L(cfg.location.around, lang) ? `<div style="background:#fff;border-radius:4mm;padding:6mm;font-size:10pt;line-height:1.55;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
+      </div>
+    </div>
+    ${foot(5)}
+  </div>
+
+  <div class="pg">
+    <span class="lbl">${t('lbl_viz')}</span>
+    <h2>${t('h_viz')}</h2>
+    <div style="display:flex;gap:10mm;flex:1;min-height:0">
+      <div style="flex:.8;display:flex;flex-direction:column;gap:5mm;justify-content:center">
+        <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:11pt;line-height:1.65">${t('viz_p')}</div>
+        <div style="font-size:8.5pt;color:${MUTED};line-height:1.5">${t('viz_all_concept')}</div>
+      </div>
+      <div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
+        ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
+          <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(vizBadge)}</span>
+        </div>`).join('')}
+      </div>
+    </div>
+    ${foot(6)}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">

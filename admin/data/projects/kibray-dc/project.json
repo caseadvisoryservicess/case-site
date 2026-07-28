@@ -104,11 +104,11 @@
       "en": "6.5 ha data center site for sale - Kibray, Tashkent region"
     },
     "description": {
-      "ru": "Продажа подготовленной площадки 6,5 га под дата-центр в Кибрайском районе: две независимые линии оптоволокна, проектная документация под ЦОД, два капитальных строения 2 269,0 м², обременений нет. 25 км до Ташкента.",
-      "uz": "Qibray tumanida data-markaz uchun tayyorlangan 6,5 ga maydon sotiladi: ikkita mustaqil optik tolali liniya, ma'lumotlar markazi uchun loyiha hujjatlari, 2 269,0 m² ikkita kapital inshoot, cheklovlar yo'q. Toshkentgacha 25 km.",
-      "en": "A prepared 6.5 ha data center site for sale in Kibray district: two independent fibre routes, design documentation for a data center, two permanent buildings of 2,269.0 m², no encumbrances. 25 km from Tashkent."
+      "ru": "Продажа земельного участка 6,5 га (65 000 м²) под дата-центр в Кибрайском районе Ташкентской области: зона технологической промышленности по генплану, две независимые линии оптоволокна, разработанная проектная документация под ЦОД, обременений нет. 25 км до Ташкента. Стоимость по запросу.",
+      "uz": "Toshkent viloyati Qibray tumanida data-markaz uchun 6,5 ga (65 000 m²) yer uchastkasi sotiladi: bosh reja bo'yicha texnologik sanoat hududi, ikkita mustaqil optik tolali liniya, data-markaz uchun ishlab chiqilgan loyiha hujjatlari, cheklovlar yo'q. Toshkentgacha 25 km. Narxi so'rov bo'yicha.",
+      "en": "A 6.5 ha (65,000 m²) land plot for a data center in Kibray district, Tashkent region: zoned as a technological industry area under the master plan, two independent fibre routes, design documentation for a data center already prepared, no encumbrances. 25 km from Tashkent. Price on request."
     },
-    "keywords": "земельный участок под дата-центр, участок под ЦОД Ташкент, земля под дата-центр Узбекистан, продажа земли Кибрайский район, промышленный участок Ташкентская область, площадка под ЦОД с оптоволокном, земля под IT инфраструктуру Узбекистан, инвестиции в цифровую инфраструктуру Узбекистан, участок 6,5 га Ташкентская область, data center land Uzbekistan, data centre site for sale Tashkent, yer uchastkasi data markaz uchun, Qibray tumani yer sotiladi, промышленная зона Кибрай",
+    "keywords": "земельный участок под дата-центр, участок под ЦОД Ташкент, земля под дата-центр Узбекистан, продажа земли Кибрайский район, промышленный участок Ташкентская область, площадка под ЦОД с оптоволокном, земля под IT инфраструктуру Узбекистан, инвестиции в цифровую инфраструктуру Узбекистан, участок 6,5 га Ташкентская область, промышленная зона Кибрай, купить землю под строительство Ташкентская область, земельный участок промышленного назначения Узбекистан, площадка под серверный центр, земля под логистический комплекс Ташкент, участок под производство Кибрай, data center land Uzbekistan, data centre site for sale Tashkent, industrial land for sale Uzbekistan, greenfield data center site Central Asia, land plot with fibre connectivity Uzbekistan, IT park land Tashkent region, yer uchastkasi data markaz uchun, Qibray tumani yer sotiladi, sanoat yer uchastkasi Toshkent viloyati, data-markaz uchun maydon O'zbekiston",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -273,9 +273,9 @@
           "en": "existing buildings"
         },
         "p": {
-          "ru": "На участке два капитальных строения общей площадью 2 269,0 м², оформленные в собственность. Их можно задействовать под офис стройки, охрану и склад на период работ либо снести под новую планировку - решение за проектом покупателя.",
-          "uz": "Uchastkada mulk huquqida rasmiylashtirilgan, jami 2 269,0 m² ikkita kapital inshoot bor. Ularni ish davrida qurilish ofisi, qo'riqlash va ombor sifatida ishlatish yoki yangi planirovka uchun buzish mumkin - qaror xaridor loyihasiga bog'liq.",
-          "en": "The site carries two permanent buildings totalling 2,269.0 m², held freehold. They can be used as a construction office, security post and storage during works, or demolished to free the layout - that is a decision for the buyer's design."
+          "ru": "На участке есть два капитальных строения, оформленные в собственность. Их можно задействовать под офис стройки, охрану и склад на период работ либо снести под новую планировку - решение за проектом покупателя.",
+          "uz": "Uchastkada mulk huquqida rasmiylashtirilgan ikkita kapital inshoot bor. Ularni ish davrida qurilish ofisi, qo'riqxona va ombor sifatida ishlatish yoki yangi planirovka uchun buzib tashlash mumkin - qaror xaridor loyihasiga bog'liq.",
+          "en": "There are two permanent structures on the plot, both held freehold. They can serve as a site office, security post and storage during construction, or be demolished to free the layout - that is for the buyer's design to decide."
         }
       },
       {
@@ -509,25 +509,25 @@
       {
         "file": "gate.jpg",
         "alt": {
-          "ru": "Концепция дата-центра на участке в Кибрайском районе: въездная группа с КПП и охраняемым периметром",
-          "uz": "Qibray tumanidagi uchastkada data-markaz konsepsiyasi: nazorat-o'tkazish punkti va qo'riqlanadigan perimetr",
-          "en": "Data center concept on the Kibray site: entrance group with a checkpoint and secured perimeter"
+          "ru": "Визуализация въездной группы дата-центра на участке в Кибрае, охраняемый периметр и КПП",
+          "uz": "Qibraydagi uchastkada data-markaz kirish guruhi vizualizatsiyasi, qo'riqlanadigan perimetr va nazorat punkti",
+          "en": "Visualisation of the data center entrance on the Kibray plot, secured perimeter and checkpoint"
         }
       },
       {
         "file": "hall.jpg",
         "alt": {
-          "ru": "Концепция машинного зала дата-центра: ряды серверных стоек с изолированным холодным коридором",
-          "uz": "Data-markaz mashina zali konsepsiyasi: izolyatsiyalangan sovuq yo'lakli server tokchalari qatorlari",
-          "en": "Data hall concept: rows of server racks with a contained cold aisle"
+          "ru": "Визуализация машинного зала дата-центра: ряды стоек, холодный коридор, фальшпол",
+          "uz": "Data-markaz mashina zali vizualizatsiyasi: tokchalar qatorlari, sovuq koridor, falshpol",
+          "en": "Visualisation of a data center hall: rows of racks, a cold aisle and a raised floor"
         }
       },
       {
         "file": "power.jpg",
         "alt": {
-          "ru": "Концепция энергоцентра и системы охлаждения дата-центра: чиллеры, дизель-генераторы и подстанция",
-          "uz": "Data-markaz energiya markazi va sovutish tizimi konsepsiyasi: chillerlar, dizel-generatorlar va podstansiya",
-          "en": "Power and cooling yard concept: chillers, diesel generators and a substation"
+          "ru": "Визуализация энергоцентра и чиллеров дата-центра на участке 6,5 га в Ташкентской области",
+          "uz": "Toshkent viloyatidagi 6,5 ga uchastkada data-markaz energiya markazi va chillerlari vizualizatsiyasi",
+          "en": "Visualisation of the power yard and chillers of a data center on the 6.5 ha plot in Tashkent region"
         }
       }
     ]
@@ -740,5 +740,39 @@
     "metricaId": "",
     "ga4Id": "",
     "gtmId": ""
+  },
+  "pres": {
+    "aboutImg": "gate.jpg",
+    "vizImgs": [
+      "hall.jpg",
+      "power.jpg"
+    ],
+    "T": {
+      "addr": {
+        "ru": "Кибрай · Ташкентская область",
+        "uz": "Qibray · Toshkent viloyati",
+        "en": "Kibray · Tashkent region"
+      },
+      "h_viz": {
+        "ru": "Концепция застройки",
+        "uz": "Qurilish konsepsiyasi",
+        "en": "Development concept"
+      },
+      "viz_p": {
+        "ru": "Изображения показывают, как площадка может выглядеть после застройки: охраняемый периметр с КПП, машинные залы, энергоцентр и внешние чиллеры. Это концепция, а не текущее состояние участка: сегодня продаётся подготовленная земля с оптоволокном и проектной документацией.",
+        "uz": "Tasvirlar maydon qurilishdan keyin qanday ko'rinishi mumkinligini ko'rsatadi: nazorat punktli qo'riqlanadigan perimetr, mashina zallari, energiya markazi va tashqi chillerlar. Bu konsepsiya, uchastkaning hozirgi holati emas: bugun optik tola va loyiha hujjatlari bilan tayyorlangan yer sotiladi.",
+        "en": "The images show how the site could look once developed: a secured perimeter with a checkpoint, data halls, a power yard and external chillers. This is a concept, not the current state of the plot: what is for sale today is prepared land with fibre and design documentation."
+      },
+      "c_h": {
+        "ru": "Обсудим участок?",
+        "uz": "Uchastkani muhokama qilamizmi?",
+        "en": "Shall we discuss the plot?"
+      },
+      "c_s": {
+        "ru": "Ответим в течение дня - документы, параметры сетей, осмотр.",
+        "uz": "Kun davomida javob beramiz - hujjatlar, tarmoq parametrlari, ko'rik.",
+        "en": "We reply within the day - documents, utility parameters, a site visit."
+      }
+    }
   }
 }

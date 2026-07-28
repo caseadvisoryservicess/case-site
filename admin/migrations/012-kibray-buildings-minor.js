@@ -85,6 +85,20 @@ if (q1) {
   }
 }
 
+// 4) карточка сценария: метраж строений оттуда тоже убираем
+const cards = (cfg.useCases && cfg.useCases.cards) || [];
+const cIT = cards.find((c) => /строени/i.test(ruOf(c.p)));
+if (cIT) {
+  const want = ml(
+    'На участке есть два капитальных строения, оформленные в собственность. Их можно задействовать под офис стройки, охрану и склад на период работ либо снести под новую планировку - решение за проектом покупателя.',
+    'Uchastkada mulk huquqida rasmiylashtirilgan ikkita kapital inshoot bor. Ularni ish davrida qurilish ofisi, qo\'riqxona va ombor sifatida ishlatish yoki yangi planirovka uchun buzib tashlash mumkin - qaror xaridor loyihasiga bog\'liq.',
+    'There are two permanent structures on the plot, both held freehold. They can serve as a site office, security post and storage during construction, or be demolished to free the layout - that is for the buyer\'s design to decide.');
+  if (JSON.stringify(cIT.p) !== JSON.stringify(want)) {
+    cIT.p = want; changes++;
+    console.log('✓ карточка сценария: метраж строений убран');
+  }
+}
+
 if (changes) {
   fs.writeFileSync(FILE, JSON.stringify(cfg, null, 2));
   console.log('Готово:', FILE);
