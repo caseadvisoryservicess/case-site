@@ -508,11 +508,11 @@ document.querySelectorAll('.intent button').forEach(function(b){
 var UTM=null;
 try{
   UTM=JSON.parse(localStorage.getItem('tx_utm')||'null');
-  if(!UTM){
-    var p=new URLSearchParams(location.search),u={};
-    ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(function(k){if(p.get(k))u[k]=p.get(k)});
-    if(Object.keys(u).length){UTM=u;localStorage.setItem('tx_utm',JSON.stringify(u))}
-  }
+  /* метки текущего перехода важнее сохранённых: за этот клик мы платим сейчас,
+     он и должен попасть в заявку. gclid и yclid нужны для сверки с Ads и Директом */
+  var p=new URLSearchParams(location.search),u={};
+  ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','yclid'].forEach(function(k){if(p.get(k))u[k]=p.get(k)});
+  if(Object.keys(u).length){UTM=u;localStorage.setItem('tx_utm',JSON.stringify(u))}
 }catch(e){}
 
 /* ── аналитика: батчи через sendBeacon; уважение DNT ── */

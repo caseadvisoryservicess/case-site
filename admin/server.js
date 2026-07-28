@@ -583,7 +583,7 @@ router.post('/api/e/:slug', (req, res) => {
         }
         if (e.utm && typeof e.utm === 'object') {
           out.utm = {};
-          for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+          for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'yclid']) {
             if (e.utm[k]) out.utm[k] = String(e.utm[k]).slice(0, 200);
           }
         }
@@ -629,7 +629,7 @@ router.post('/api/lead/:slug', (req, res) => {
   if (b.unit) lead.unit = String(b.unit).slice(0, 20);
   if (b.utm && typeof b.utm === 'object') {
     lead.utm = {};
-    for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']) {
+    for (const k of ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'gclid', 'yclid']) {
       if (b.utm[k]) lead.utm[k] = String(b.utm[k]).slice(0, 200);
     }
   }
