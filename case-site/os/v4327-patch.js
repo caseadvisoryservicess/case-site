@@ -30,10 +30,15 @@
   }
   window.CASE_UNIT_PATCH_BUSY=queueBusy;
 
-  function unitPatch(id,delta,immediate){
+  function unitPatch(id,delta,immediate,prevSrc){
     if(!delta||!hasKeys(delta))return;
     if(typeof BACKEND==='undefined'||!BACKEND){try{persist();}catch(_){}return;}
-    var rec=unitQueue[id]||(unitQueue[id]={changes:{},timer:0,inflight:false});
+    var rec=unitQueue[id]||(unitQueue[id]={changes:{},prev:{},timer:0,inflight:false});
+    if(!rec.prev)rec.prev={};
+    /* v4.50.1: запоминаем ЗНАЧЕНИЕ ДО правки. Если сервер откажет (403), только по нему
+       можно вернуть поле обратно — иначе на экране остаётся несохранённое значение,
+       и сотрудник узнаёт о потере лишь после обновления страницы. */
+    if(prevSrc)Object.keys(delta).forEach(function(k){if(!(k in rec.prev))rec.prev[k]=clone(prevSrc[k]);});
     Object.assign(rec.changes,clone(delta)||delta);
     cacheLocalCore();
     clearTimeout(rec.timer);
@@ -53,7 +58,24 @@
       if(!rec.cancelled)rec.changes=Object.assign({},snapshot,rec.changes||{});
       if(st===403){ /* v4.44: нет прав — повторять бессмысленно, честно бьём тревогу */
         rec.cancelled=true;rec.changes={};
-        try{toast('⛔ Сервер отклонил правку помещения: '+((e&&e.message)||'нет прав')+'. Правка НЕ сохранена — сообщите администратору.',10000);}catch(_){}
+        /* v4.50.1: возвращаем поля к прежним значениям. Раньше правка оставалась на
+           экране, хотя сервер её не принял: сотрудник видел «сохранилось», обновлял
+           страницу — и значение исчезало. Именно так выглядела жалоба «данные пропадают». */
+        var back=[];
+        try{
+          var uu=unitById(id);
+          if(uu&&rec.prev)Object.keys(snapshot).forEach(function(k){
+            if(k in rec.prev){uu[k]=clone(rec.prev[k]);back.push(k);}
+          });
+        }catch(_){}
+        rec.prev={};
+        try{cacheLocalCore();}catch(_){}
+        try{
+          if(back.length&&typeof S!=='undefined'&&(S.view==='registry'||S.view==='reg')&&typeof renderRegistry==='function')renderRegistry();
+        }catch(_){}
+        try{toast('⛔ Сервер отклонил правку помещения: '+((e&&e.message)||'нет прав')
+          +(back.length?'. Значение возвращено к прежнему':'. Правка НЕ сохранена')
+          +' — сообщите администратору.',10000);}catch(_){}
       }else if(st===401){ /* v4.44: сессия истекла — правка ждёт повторного входа (дозальётся автоматически) */
         try{if(!window._case401Toast){window._case401Toast=1;toast('⚠ Сеанс истёк. Войдите заново — несохранённые правки будут отправлены автоматически.',9000);}}catch(_){}
       }else{
@@ -127,12 +149,12 @@
 
   function wrapOne(name,idPos,delay){
     var orig=window[name];if(typeof orig!=='function'||orig._case4322)return;
-    var fn=function(){var id=arguments[idPos],u=unitById(id),before=clone(u),r=orig.apply(this,arguments),after=unitById(id),d=changes(before,after);stopWholeStateSave();if(hasKeys(d))unitPatch(id,d,!delay);return r;};
+    var fn=function(){var id=arguments[idPos],u=unitById(id),before=clone(u),r=orig.apply(this,arguments),after=unitById(id),d=changes(before,after);stopWholeStateSave();if(hasKeys(d))unitPatch(id,d,!delay,before);return r;};
     fn._case4322=true;fn._original=orig;window[name]=fn;
   }
   function wrapBulk(name){
     var orig=window[name];if(typeof orig!=='function'||orig._case4322)return;
-    var fn=function(){var before={};try{U.forEach(function(u){before[u.id]=clone(u);});}catch(_){}var r=orig.apply(this,arguments);stopWholeStateSave();try{U.forEach(function(u){var d=changes(before[u.id],u);if(hasKeys(d))unitPatch(u.id,d,true);});}catch(_){}return r;};
+    var fn=function(){var before={};try{U.forEach(function(u){before[u.id]=clone(u);});}catch(_){}var r=orig.apply(this,arguments);stopWholeStateSave();try{U.forEach(function(u){var d=changes(before[u.id],u);if(hasKeys(d))unitPatch(u.id,d,true,before[u.id]);});}catch(_){}return r;};
     fn._case4322=true;fn._original=orig;window[name]=fn;
   }
   function installAtomicWrappers(){
@@ -319,4 +341,4 @@
   window.CASE_PATCH_4322={version:PATCH_VERSION,flush:function(){Object.keys(unitQueue).forEach(flushUnit);flushUnitBatch();},busy:queueBusy,adaptive:installAdaptiveActions};
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4327-patch']='4.47.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4327-patch']='4.50.1';
