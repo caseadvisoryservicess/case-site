@@ -25,8 +25,8 @@ CFG = {
     "assetType": "single",   # одно готовое помещение: таблицы уровней нет
     "intent": "none",        # только аренда
     "addr": {
-      "headline": ml("Центр Ташкента · отель Mercure", "Toshkent markazi · Mercure mehmonxonasi", "Central Tashkent · Mercure hotel"),
-      "street": ml("здание отеля Mercure", "Mercure mehmonxonasi binosi", "the Mercure hotel building"),
+      "headline": ml("Яккасарай · отель Mercure", "Yakkasaroy · Mercure mehmonxonasi", "Yakkasaray · Mercure hotel"),
+      "street": ml("здание отеля Mercure Tashkent South", "Mercure Tashkent South mehmonxonasi binosi", "the Mercure Tashkent South hotel building"),
       "locality": ml("Ташкент", "Toshkent", "Tashkent"),
       "region": ml("Ташкент", "Toshkent", "Tashkent"),
       "streetLd": "", "localityLd": "Tashkent", "regionLd": "Toshkent"
@@ -79,13 +79,13 @@ CFG = {
   },
 
   "seo": {
-    "title": ml("Аренда готового ресторана 279,7 м² с террасой в центре Ташкента",
-                "Toshkent markazida terrassali 279,7 m² tayyor restoran ijarasi",
-                "Fully fitted 279.7 m² restaurant with a terrace for lease in central Tashkent"),
+    "title": ml("Аренда готового ресторана 279,7 м² с террасой в Ташкенте, Яккасарай",
+                "Toshkentda, Yakkasaroyda terrassali 279,7 m² tayyor restoran ijarasi",
+                "Fully fitted 279.7 m² restaurant with a terrace for lease in Tashkent, Yakkasaray"),
     "description": ml(
-      "Аренда помещения работавшего ресторана в здании отеля в центре Ташкента: 279,7 м² зала и кухни, остеклённая терраса 47,7 м², профессиональная кухня с вытяжкой, мебель, свет и посуда на месте. Два входа: из лобби отеля и с улицы. Ставка по запросу.",
-      "Toshkent markazidagi mehmonxona binosida ishlagan restoran maydoni ijaraga beriladi: 279,7 m² zal va oshxona, 47,7 m² oynali terrassa, so'rg'ichli professional oshxona, mebel, yoritish va idishlar joyida. Ikkita kirish: mehmonxona lobbisidan va ko'chadan. Narxi so'rov bo'yicha.",
-      "A fully fitted restaurant for lease inside a hotel building in central Tashkent: 279.7 m² of dining rooms and kitchen, a 47.7 m² glazed terrace, a professional kitchen with extraction, plus furniture, lighting and tableware in place. Two entrances: from the hotel lobby and from the street. Rent on request."),
+      "Аренда помещения работавшего ресторана в здании отеля Mercure Tashkent South, Яккасарайский район: 279,7 м² зала и кухни, остеклённая терраса 47,7 м², профессиональная кухня с вытяжкой, мебель, свет и посуда на месте. Два входа: из лобби отеля и с улицы. Ставка по запросу.",
+      "Mercure Tashkent South mehmonxonasi binosida ishlagan restoran maydoni ijaraga beriladi, Yakkasaroy tumani: 279,7 m² zal va oshxona, 47,7 m² oynali terrassa, so'rg'ichli professional oshxona, mebel, yoritish va idishlar joyida. Ikkita kirish: mehmonxona lobbisidan va ko'chadan. Narxi so'rov bo'yicha.",
+      "A fully fitted restaurant for lease inside the Mercure Tashkent South hotel in Yakkasaray, Tashkent: 279.7 m² of dining rooms and kitchen, a 47.7 m² glazed terrace, a professional kitchen with extraction, plus furniture, lighting and tableware in place. Two entrances: from the hotel lobby and from the street. Rent on request."),
     "keywords": ", ".join([
       "аренда ресторана Ташкент", "аренда готового ресторана", "ресторан с оборудованием аренда Ташкент",
       "помещение под ресторан Ташкент", "аренда кафе Ташкент", "аренда помещения с кухней Ташкент",
@@ -189,7 +189,7 @@ CFG = {
       {"b": ml("Терраса", "Terrassa", "Terrace"),
        "s": ml("47,7 м², остеклённая, с раздвижным навесом", "47,7 m², oynali, suriladigan soyabonli", "47.7 m², glazed, with a retractable canopy")},
       {"b": ml("Расположение", "Joylashuvi", "Location"),
-       "s": ml("первый этаж здания отеля Mercure, центр Ташкента", "Mercure mehmonxonasi binosining birinchi qavati, Toshkent markazi", "ground floor of the Mercure hotel building, central Tashkent")},
+       "s": ml("первый этаж отеля Mercure Tashkent South, Яккасарайский район", "Mercure Tashkent South mehmonxonasining birinchi qavati, Yakkasaroy tumani", "ground floor of the Mercure Tashkent South hotel, Yakkasaray district")},
       {"b": ml("Входы", "Kirishlar", "Entrances"),
        "s": ml("из лобби отеля и отдельный с улицы", "mehmonxona lobbisidan va ko'chadan alohida", "from the hotel lobby and a separate street entrance")},
       {"b": ml("Кухня", "Oshxona", "Kitchen"),
@@ -287,9 +287,9 @@ CFG = {
                  "The Mercure hotel lobby, with a direct door into the restaurant")},
       {"file": "facade.jpg",
        "badge": ml("здание отеля", "mehmonxona binosi", "the hotel building"),
-       "alt": ml("Фасад здания отеля Mercure в центре Ташкента, где расположен ресторан",
-                 "Toshkent markazidagi Mercure mehmonxonasi binosi fasadi, restoran shu yerda",
-                 "The facade of the Mercure hotel building in central Tashkent, home to the restaurant")},
+       "alt": ml("Фасад отеля Mercure Tashkent South в Яккасарайском районе, где расположен ресторан",
+                 "Yakkasaroy tumanidagi Mercure Tashkent South mehmonxonasi fasadi, restoran shu yerda",
+                 "The facade of the Mercure Tashkent South hotel in Yakkasaray district, home to the restaurant")},
       {"file": "facade-terrace.jpg",
        "badge": ml("вход с улицы", "ko'chadan kirish", "street entrance"),
        "alt": ml("Отдельный вход с улицы и остеклённая терраса ресторана со стороны фасада",
@@ -299,11 +299,16 @@ CFG = {
   },
 
   "location": {
-    "h2": ml("Центр Ташкента, здание отеля Mercure", "Toshkent markazi, Mercure mehmonxonasi binosi", "Central Tashkent, the Mercure hotel building"),
-    "sub": ml("Ресторан занимает первый этаж действующего отеля: поток проживающих гостей и делегаций дополняется городской публикой с улицы.",
-              "Restoran amaldagi mehmonxonaning birinchi qavatini egallaydi: yashovchi mehmonlar va delegatsiyalar oqimi ko'chadagi shahar auditoriyasi bilan to'ldiriladi.",
-              "The restaurant occupies the ground floor of an operating hotel: a flow of resident guests and delegations, complemented by city footfall from the street."),
-    "address": ml("Центр Ташкента, здание отеля Mercure", "Toshkent markazi, Mercure mehmonxonasi binosi", "Central Tashkent, the Mercure hotel building"),
+    "h2": ml("Яккасарайский район, у Малой кольцевой дороги",
+             "Yakkasaroy tumani, Kichik halqa yo'li yonida",
+             "Yakkasaray district, by the Small Ring Road"),
+    "sub": ml(
+      "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel, то есть постоянный поток приезжих, у которых нет своей кухни.",
+      "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel, ya'ni o'z oshxonasi yo'q mehmonlarning doimiy oqimi.",
+      "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are all neighbours - which means a steady flow of visitors with no kitchen of their own."),
+    "address": ml("Ташкент, Яккасарайский район, здание отеля Mercure Tashkent South",
+                  "Toshkent, Yakkasaroy tumani, Mercure Tashkent South mehmonxonasi binosi",
+                  "Tashkent, Yakkasaray district, the Mercure Tashkent South hotel building"),
     "addressNote": ml("", "", ""),
     "city": ml("Ташкент", "Toshkent", "Tashkent"),
     "lat": "41.2727553", "lng": "69.2418485",
@@ -353,7 +358,7 @@ CFG = {
   "enquiry": {"note": ml("Ответим в течение дня", "Kun davomida javob beramiz", "We reply within the day")},
 
   "footer": {
-    "addr": ml("Центр Ташкента, здание отеля Mercure", "Toshkent markazi, Mercure mehmonxonasi binosi", "Central Tashkent, the Mercure hotel building"),
+    "addr": ml("Яккасарайский район, у Малой кольцевой дороги", "Yakkasaroy tumani, Kichik halqa yo'li yonida", "Yakkasaray district, by the Small Ring Road"),
     "legal": ml(
       "CASE Real Estate Advisory выступает агентом собственника помещения по сдаче в аренду и не является представителем гостиничного оператора. Информация на сайте носит справочный характер и не является публичной офертой. © 2026 CASE Advisory",
       "CASE Real Estate Advisory maydon mulkdorining ijaraga berish bo'yicha agenti sifatida ish yuritadi va mehmonxona operatorining vakili emas. Saytdagi ma'lumotlar ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi. © 2026 CASE Advisory",
@@ -367,15 +372,16 @@ CFG = {
   "pres": {
     "aboutImg": "plan-f1.jpg",
     "aboutImgFit": "contain",
+    "mapImg": "map.jpg",
     "vizImgs": ["terrace.jpg", "kitchen.jpg", "hall-wood.jpg"],
     "T": {
-      "addr": ml("Центр Ташкента · отель Mercure", "Toshkent markazi · Mercure mehmonxonasi", "Central Tashkent · Mercure hotel"),
+      "addr": ml("Яккасарай · отель Mercure", "Yakkasaroy · Mercure mehmonxonasi", "Yakkasaray · Mercure hotel"),
       "lbl_land": ml("Помещение", "Maydon", "The space"),
       "land_deal": ml("Ставка и условия - по запросу:", "Narx va shartlar - so'rov bo'yicha:", "Rent and terms on request:"),
       "land_loc_zone": ml(
-        "Помещение занимает первый этаж действующего отеля: гости и делегации заходят прямо из лобби, городская публика - с улицы через собственный вход.",
-        "Maydon amaldagi mehmonxonaning birinchi qavatini egallaydi: mehmonlar va delegatsiyalar to'g'ridan-to'g'ri lobbidan, shahar auditoriyasi esa ko'chadan o'z kirishi orqali kiradi.",
-        "The space occupies the ground floor of an operating hotel: guests and delegations arrive straight from the lobby, while city visitors use the restaurant's own street entrance."),
+        "Гости и делегации отеля заходят прямо из лобби, городская публика - с улицы через собственный вход. Выезд на Малую кольцевую дорогу рядом.",
+        "Mehmonxona mehmonlari va delegatsiyalari to'g'ridan-to'g'ri lobbidan, shahar auditoriyasi esa ko'chadan o'z kirishi orqali kiradi. Kichik halqa yo'liga chiqish yonginasida.",
+        "Hotel guests and delegations arrive straight from the lobby, while city visitors use the restaurant's own street entrance. The Small Ring Road access is close by."),
       "lbl_viz": ml("Фотографии", "Fotosuratlar", "Photographs"),
       "h_viz": ml("Как выглядит помещение", "Maydon qanday ko'rinadi", "What the space looks like"),
       "viz_p": ml(

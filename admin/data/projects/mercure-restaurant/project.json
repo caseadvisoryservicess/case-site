@@ -12,14 +12,14 @@
     "intent": "none",
     "addr": {
       "headline": {
-        "ru": "Центр Ташкента · отель Mercure",
-        "uz": "Toshkent markazi · Mercure mehmonxonasi",
-        "en": "Central Tashkent · Mercure hotel"
+        "ru": "Яккасарай · отель Mercure",
+        "uz": "Yakkasaroy · Mercure mehmonxonasi",
+        "en": "Yakkasaray · Mercure hotel"
       },
       "street": {
-        "ru": "здание отеля Mercure",
-        "uz": "Mercure mehmonxonasi binosi",
-        "en": "the Mercure hotel building"
+        "ru": "здание отеля Mercure Tashkent South",
+        "uz": "Mercure Tashkent South mehmonxonasi binosi",
+        "en": "the Mercure Tashkent South hotel building"
       },
       "locality": {
         "ru": "Ташкент",
@@ -144,14 +144,14 @@
   },
   "seo": {
     "title": {
-      "ru": "Аренда готового ресторана 279,7 м² с террасой в центре Ташкента",
-      "uz": "Toshkent markazida terrassali 279,7 m² tayyor restoran ijarasi",
-      "en": "Fully fitted 279.7 m² restaurant with a terrace for lease in central Tashkent"
+      "ru": "Аренда готового ресторана 279,7 м² с террасой в Ташкенте, Яккасарай",
+      "uz": "Toshkentda, Yakkasaroyda terrassali 279,7 m² tayyor restoran ijarasi",
+      "en": "Fully fitted 279.7 m² restaurant with a terrace for lease in Tashkent, Yakkasaray"
     },
     "description": {
-      "ru": "Аренда помещения работавшего ресторана в здании отеля в центре Ташкента: 279,7 м² зала и кухни, остеклённая терраса 47,7 м², профессиональная кухня с вытяжкой, мебель, свет и посуда на месте. Два входа: из лобби отеля и с улицы. Ставка по запросу.",
-      "uz": "Toshkent markazidagi mehmonxona binosida ishlagan restoran maydoni ijaraga beriladi: 279,7 m² zal va oshxona, 47,7 m² oynali terrassa, so'rg'ichli professional oshxona, mebel, yoritish va idishlar joyida. Ikkita kirish: mehmonxona lobbisidan va ko'chadan. Narxi so'rov bo'yicha.",
-      "en": "A fully fitted restaurant for lease inside a hotel building in central Tashkent: 279.7 m² of dining rooms and kitchen, a 47.7 m² glazed terrace, a professional kitchen with extraction, plus furniture, lighting and tableware in place. Two entrances: from the hotel lobby and from the street. Rent on request."
+      "ru": "Аренда помещения работавшего ресторана в здании отеля Mercure Tashkent South, Яккасарайский район: 279,7 м² зала и кухни, остеклённая терраса 47,7 м², профессиональная кухня с вытяжкой, мебель, свет и посуда на месте. Два входа: из лобби отеля и с улицы. Ставка по запросу.",
+      "uz": "Mercure Tashkent South mehmonxonasi binosida ishlagan restoran maydoni ijaraga beriladi, Yakkasaroy tumani: 279,7 m² zal va oshxona, 47,7 m² oynali terrassa, so'rg'ichli professional oshxona, mebel, yoritish va idishlar joyida. Ikkita kirish: mehmonxona lobbisidan va ko'chadan. Narxi so'rov bo'yicha.",
+      "en": "A fully fitted restaurant for lease inside the Mercure Tashkent South hotel in Yakkasaray, Tashkent: 279.7 m² of dining rooms and kitchen, a 47.7 m² glazed terrace, a professional kitchen with extraction, plus furniture, lighting and tableware in place. Two entrances: from the hotel lobby and from the street. Rent on request."
     },
     "keywords": "аренда ресторана Ташкент, аренда готового ресторана, ресторан с оборудованием аренда Ташкент, помещение под ресторан Ташкент, аренда кафе Ташкент, аренда помещения с кухней Ташкент, ресторан при отеле аренда, аренда ресторана с террасой, помещение под кофейню Ташкент, аренда банкетного зала Ташкент, ресторан под ключ аренда Ташкент, готовый бизнес ресторан Ташкент аренда, аренда помещения общепит Ташкент, restoran ijaraga Toshkent, tayyor restoran ijarasi, oshxonali maydon ijarasi Toshkent, restaurant for lease Tashkent, fully fitted restaurant Tashkent, turnkey restaurant space Uzbekistan, hotel restaurant lease Tashkent, F&B space for rent Tashkent",
     "domain": "",
@@ -460,9 +460,9 @@
           "en": "Location"
         },
         "s": {
-          "ru": "первый этаж здания отеля Mercure, центр Ташкента",
-          "uz": "Mercure mehmonxonasi binosining birinchi qavati, Toshkent markazi",
-          "en": "ground floor of the Mercure hotel building, central Tashkent"
+          "ru": "первый этаж отеля Mercure Tashkent South, Яккасарайский район",
+          "uz": "Mercure Tashkent South mehmonxonasining birinchi qavati, Yakkasaroy tumani",
+          "en": "ground floor of the Mercure Tashkent South hotel, Yakkasaray district"
         }
       },
       {
@@ -738,9 +738,9 @@
           "en": "the hotel building"
         },
         "alt": {
-          "ru": "Фасад здания отеля Mercure в центре Ташкента, где расположен ресторан",
-          "uz": "Toshkent markazidagi Mercure mehmonxonasi binosi fasadi, restoran shu yerda",
-          "en": "The facade of the Mercure hotel building in central Tashkent, home to the restaurant"
+          "ru": "Фасад отеля Mercure Tashkent South в Яккасарайском районе, где расположен ресторан",
+          "uz": "Yakkasaroy tumanidagi Mercure Tashkent South mehmonxonasi fasadi, restoran shu yerda",
+          "en": "The facade of the Mercure Tashkent South hotel in Yakkasaray district, home to the restaurant"
         }
       },
       {
@@ -760,19 +760,19 @@
   },
   "location": {
     "h2": {
-      "ru": "Центр Ташкента, здание отеля Mercure",
-      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
-      "en": "Central Tashkent, the Mercure hotel building"
+      "ru": "Яккасарайский район, у Малой кольцевой дороги",
+      "uz": "Yakkasaroy tumani, Kichik halqa yo'li yonida",
+      "en": "Yakkasaray district, by the Small Ring Road"
     },
     "sub": {
-      "ru": "Ресторан занимает первый этаж действующего отеля: поток проживающих гостей и делегаций дополняется городской публикой с улицы.",
-      "uz": "Restoran amaldagi mehmonxonaning birinchi qavatini egallaydi: yashovchi mehmonlar va delegatsiyalar oqimi ko'chadagi shahar auditoriyasi bilan to'ldiriladi.",
-      "en": "The restaurant occupies the ground floor of an operating hotel: a flow of resident guests and delegations, complemented by city footfall from the street."
+      "ru": "Ресторан занимает первый этаж действующего отеля Mercure Tashkent South. Вокруг сложился гостиничный куст: по соседству Wyndham Garden, Royal Mezbon, Praga и Europe Hotel, то есть постоянный поток приезжих, у которых нет своей кухни.",
+      "uz": "Restoran amaldagi Mercure Tashkent South mehmonxonasining birinchi qavatini egallaydi. Atrofda mehmonxonalar to'plami shakllangan: yonginasida Wyndham Garden, Royal Mezbon, Praga va Europe Hotel, ya'ni o'z oshxonasi yo'q mehmonlarning doimiy oqimi.",
+      "en": "The restaurant occupies the ground floor of the operating Mercure Tashkent South hotel. A cluster of hotels has formed around it - Wyndham Garden, Royal Mezbon, Praga and Europe Hotel are all neighbours - which means a steady flow of visitors with no kitchen of their own."
     },
     "address": {
-      "ru": "Центр Ташкента, здание отеля Mercure",
-      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
-      "en": "Central Tashkent, the Mercure hotel building"
+      "ru": "Ташкент, Яккасарайский район, здание отеля Mercure Tashkent South",
+      "uz": "Toshkent, Yakkasaroy tumani, Mercure Tashkent South mehmonxonasi binosi",
+      "en": "Tashkent, Yakkasaray district, the Mercure Tashkent South hotel building"
     },
     "addressNote": {
       "ru": "",
@@ -906,9 +906,9 @@
   },
   "footer": {
     "addr": {
-      "ru": "Центр Ташкента, здание отеля Mercure",
-      "uz": "Toshkent markazi, Mercure mehmonxonasi binosi",
-      "en": "Central Tashkent, the Mercure hotel building"
+      "ru": "Яккасарайский район, у Малой кольцевой дороги",
+      "uz": "Yakkasaroy tumani, Kichik halqa yo'li yonida",
+      "en": "Yakkasaray district, by the Small Ring Road"
     },
     "legal": {
       "ru": "CASE Real Estate Advisory выступает агентом собственника помещения по сдаче в аренду и не является представителем гостиничного оператора. Информация на сайте носит справочный характер и не является публичной офертой. © 2026 CASE Advisory",
@@ -925,6 +925,7 @@
   "pres": {
     "aboutImg": "plan-f1.jpg",
     "aboutImgFit": "contain",
+    "mapImg": "map.jpg",
     "vizImgs": [
       "terrace.jpg",
       "kitchen.jpg",
@@ -932,9 +933,9 @@
     ],
     "T": {
       "addr": {
-        "ru": "Центр Ташкента · отель Mercure",
-        "uz": "Toshkent markazi · Mercure mehmonxonasi",
-        "en": "Central Tashkent · Mercure hotel"
+        "ru": "Яккасарай · отель Mercure",
+        "uz": "Yakkasaroy · Mercure mehmonxonasi",
+        "en": "Yakkasaray · Mercure hotel"
       },
       "lbl_land": {
         "ru": "Помещение",
@@ -947,9 +948,9 @@
         "en": "Rent and terms on request:"
       },
       "land_loc_zone": {
-        "ru": "Помещение занимает первый этаж действующего отеля: гости и делегации заходят прямо из лобби, городская публика - с улицы через собственный вход.",
-        "uz": "Maydon amaldagi mehmonxonaning birinchi qavatini egallaydi: mehmonlar va delegatsiyalar to'g'ridan-to'g'ri lobbidan, shahar auditoriyasi esa ko'chadan o'z kirishi orqali kiradi.",
-        "en": "The space occupies the ground floor of an operating hotel: guests and delegations arrive straight from the lobby, while city visitors use the restaurant's own street entrance."
+        "ru": "Гости и делегации отеля заходят прямо из лобби, городская публика - с улицы через собственный вход. Выезд на Малую кольцевую дорогу рядом.",
+        "uz": "Mehmonxona mehmonlari va delegatsiyalari to'g'ridan-to'g'ri lobbidan, shahar auditoriyasi esa ko'chadan o'z kirishi orqali kiradi. Kichik halqa yo'liga chiqish yonginasida.",
+        "en": "Hotel guests and delegations arrive straight from the lobby, while city visitors use the restaurant's own street entrance. The Small Ring Road access is close by."
       },
       "lbl_viz": {
         "ru": "Фотографии",
