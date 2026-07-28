@@ -90,6 +90,11 @@
       "ru": "Участок",
       "uz": "Uchastka",
       "en": "Site"
+    },
+    "about.viz": {
+      "ru": "визуализация концепции",
+      "uz": "konsepsiya vizualizatsiyasi",
+      "en": "concept visualisation"
     }
   },
   "seo": {
@@ -110,8 +115,8 @@
     "publicUrl": "https://caseadvisory.uz/kibray-dc"
   },
   "intro": {
-    "image": "",
-    "focus": "50% 50%",
+    "image": "hero-dc.jpg",
+    "focus": "50% 45%",
     "h1": {
       "ru": "Земельный участок 6,5 га под дата-центр - Кибрай, Ташкентская область",
       "uz": "Data-markaz uchun 6,5 ga yer uchastkasi - Qibray, Toshkent viloyati",
@@ -150,9 +155,9 @@
           "en": "2,269.0"
         },
         "l": {
-          "ru": "м² капитальных строений",
-          "uz": "m² kapital inshootlar",
-          "en": "m² of permanent buildings"
+          "ru": "м² строений в собственности",
+          "uz": "m² mulk huquqidagi inshootlar",
+          "en": "m² of buildings held freehold"
         }
       },
       {
@@ -276,14 +281,14 @@
           "en": "IT campus"
         },
         "levels": {
-          "ru": "два готовых строения",
-          "uz": "ikkita tayyor inshoot",
-          "en": "two existing buildings"
+          "ru": "строения на участке",
+          "uz": "uchastkadagi inshootlar",
+          "en": "existing buildings"
         },
         "p": {
-          "ru": "На участке два капитальных строения общей площадью 2 269,0 м². Их можно использовать под офис проекта, охрану и склад на время стройки, не возводя временные здания.",
-          "uz": "Uchastkada jami 2 269,0 m² ikkita kapital inshoot bor. Ularni qurilish davrida loyiha ofisi, qo'riqlash va ombor sifatida ishlatish mumkin.",
-          "en": "The site carries two permanent buildings totalling 2,269.0 m². They can serve as the project office, security and storage during construction instead of temporary structures."
+          "ru": "На участке два капитальных строения общей площадью 2 269,0 м², оформленные в собственность. Их можно задействовать под офис стройки, охрану и склад на период работ либо снести под новую планировку - решение за проектом покупателя.",
+          "uz": "Uchastkada mulk huquqida rasmiylashtirilgan, jami 2 269,0 m² ikkita kapital inshoot bor. Ularni ish davrida qurilish ofisi, qo'riqlash va ombor sifatida ishlatish yoki yangi planirovka uchun buzish mumkin - qaror xaridor loyihasiga bog'liq.",
+          "en": "The site carries two permanent buildings totalling 2,269.0 m², held freehold. They can be used as a construction office, security post and storage during works, or demolished to free the layout - that is a decision for the buyer's design."
         }
       },
       {
@@ -411,9 +416,9 @@
           "en": "Buildings"
         },
         "s": {
-          "ru": "• 767,8 м² (полезная 690,9)\n• 1 501,3 м² (полезная 1 428,9)\n• всего 2 269,0 м², в собственности",
-          "uz": "• 767,8 m² (foydali 690,9)\n• 1 501,3 m² (foydali 1 428,9)\n• jami 2 269,0 m², mulk huquqida",
-          "en": "• 767.8 m² (usable 690.9)\n• 1,501.3 m² (usable 1,428.9)\n• total 2,269.0 m², freehold"
+          "ru": "• 767,8 м² и 1 501,3 м²\n• всего 2 269,0 м², в собственности\n• могут быть снесены под новый проект",
+          "uz": "• 767,8 m² va 1 501,3 m²\n• jami 2 269,0 m², mulk huquqida\n• yangi loyiha uchun buzilishi mumkin",
+          "en": "• 767.8 m² and 1,501.3 m²\n• total 2,269.0 m², freehold\n• may be demolished for a new layout"
         }
       },
       {
@@ -465,7 +470,32 @@
         }
       }
     ],
-    "images": []
+    "images": [
+      {
+        "file": "gate.jpg",
+        "alt": {
+          "ru": "Концепция дата-центра на участке в Кибрайском районе: въездная группа с КПП и охраняемым периметром",
+          "uz": "Qibray tumanidagi uchastkada data-markaz konsepsiyasi: nazorat-o'tkazish punkti va qo'riqlanadigan perimetr",
+          "en": "Data center concept on the Kibray site: entrance group with a checkpoint and secured perimeter"
+        }
+      },
+      {
+        "file": "hall.jpg",
+        "alt": {
+          "ru": "Концепция машинного зала дата-центра: ряды серверных стоек с изолированным холодным коридором",
+          "uz": "Data-markaz mashina zali konsepsiyasi: izolyatsiyalangan sovuq yo'lakli server tokchalari qatorlari",
+          "en": "Data hall concept: rows of server racks with a contained cold aisle"
+        }
+      },
+      {
+        "file": "power.jpg",
+        "alt": {
+          "ru": "Концепция энергоцентра и системы охлаждения дата-центра: чиллеры, дизель-генераторы и подстанция",
+          "uz": "Data-markaz energiya markazi va sovutish tizimi konsepsiyasi: chillerlar, dizel-generatorlar va podstansiya",
+          "en": "Power and cooling yard concept: chillers, diesel generators and a substation"
+        }
+      }
+    ]
   },
   "location": {
     "h2": {
@@ -595,6 +625,18 @@
         "ru": "По выписке из Государственного реестра от 05.02.2024 ипотека, аренда, сервитуты и запреты не зарегистрированы. Актуальную выписку предоставляем по запросу.",
         "uz": "05.02.2024 dagi Davlat reyestridan ko'chirmaga ko'ra ipoteka, ijara, servitutlar va taqiqlar ro'yxatdan o'tkazilmagan. Dolzarb ko'chirmani so'rov bo'yicha taqdim etamiz.",
         "en": "Per the State Register extract dated 05.02.2024, no mortgage, lease, easement or restriction is registered. A current extract is provided on request."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что со строениями на участке?",
+        "uz": "Uchastkadagi inshootlar-chi?",
+        "en": "What about the buildings on the site?"
+      },
+      "a": {
+        "ru": "На участке два капитальных строения общей площадью 2 269,0 м², они оформлены в собственность и входят в сделку. Использовать их или снести под новую планировку - решение покупателя: под дата-центр площадка, как правило, застраивается заново.",
+        "uz": "Uchastkada jami 2 269,0 m² ikkita kapital inshoot bor, ular mulk huquqida rasmiylashtirilgan va bitimga kiradi. Ulardan foydalanish yoki yangi planirovka uchun buzish - xaridor qarori: data-markaz uchun maydon odatda qaytadan quriladi.",
+        "en": "The site carries two permanent buildings totalling 2,269.0 m², held freehold and included in the transaction. Whether to use or demolish them is the buyer's decision: a data center site is normally built out from scratch."
       }
     },
     {
