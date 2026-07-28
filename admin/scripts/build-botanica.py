@@ -251,9 +251,9 @@ CFG = {
     "drive": [],
     "metroNote": ml("", "", ""),
     "around": ml(
-      "Здание выходит на улицу Богишамол напротив Ботанического сада. Вокруг сложившийся жилой массив Юнусабада: в пятнадцати минутах пешком живёт около 8 800 человек, а в двадцати - почти 18 000. Ближайшие махаллинские центры - Богибустон, Отчопар-2 и Обод.",
-      "Bino Botanika bog'i ro'parasida Bog'ishamol ko'chasiga chiqadi. Atrofda Yunusobodning shakllangan turar-joy massivi: piyoda o'n besh daqiqada 8 800 ga yaqin, yigirma daqiqada esa deyarli 18 000 kishi yashaydi. Eng yaqin mahalla markazlari - Bog'ibo'ston, Otchopar-2 va Obod.",
-      "The building fronts Bogishamol Street opposite the Botanical Garden, inside an established residential part of Yunusabad: about 8,800 people live within a fifteen-minute walk and almost 18,000 within twenty. The nearest mahalla centres are Bogibuston, Otchopar-2 and Obod.")
+      "Здание выходит на улицу Богишамол напротив Ботанического сада, рядом Ташкентский зоопарк и парк. По соседству IT Park Uzbekistan, Государственный институт искусств и культуры, санаторий Чинобод и торговый центр High Town Mall. Вокруг сложившийся жилой массив Юнусабада: в пятнадцати минутах пешком живёт около 8 800 человек, в двадцати - почти 18 000.",
+      "Bino Botanika bog'i ro'parasida Bog'ishamol ko'chasiga chiqadi, yonida Toshkent hayvonot bog'i va park. Qo'shnida IT Park Uzbekistan, Davlat san'at va madaniyat instituti, Chinobod sanatoriysi va High Town Mall savdo markazi. Atrofda Yunusobodning shakllangan turar-joy massivi: piyoda o'n besh daqiqada 8 800 ga yaqin, yigirma daqiqada deyarli 18 000 kishi yashaydi.",
+      "The building fronts Bogishamol Street opposite the Botanical Garden, next to Tashkent Zoo and the park. IT Park Uzbekistan, the State Institute of Arts and Culture, the Chinobod sanatorium and High Town Mall are all neighbours. Around it lies an established residential part of Yunusabad: about 8,800 people live within a fifteen-minute walk and almost 18,000 within twenty.")
   },
 
   "faq": [
@@ -310,6 +310,7 @@ CFG = {
               "f4": "plan-f27.jpg", "f5": "plan-f27.jpg", "f6": "plan-f27.jpg", "f7": "plan-f27.jpg"},
     "planPages": [{"id": "b"}, {"id": "f1"}, {"id": "f2", "title": "f27_title"}],
     "aboutImg": "render-corner.jpg",
+    "mapImg": "map.jpg",
     "vizImgs": ["render-aerial.jpg", "section.jpg"],
     "T": {
       "addr": ml("Богишамол 151 · Ташкент", "Bog'ishamol 151 · Toshkent", "151 Bogishamol St · Tashkent"),
@@ -337,6 +338,11 @@ CFG = {
         "Стеклянный фасад с бронзовыми пилонами, первый этаж высотой 4,2 метра под клиентские функции, входная группа с площадкой. Разрез показывает восемь уровней: подвал на отметке -3,600 и семь этажей до +25,800.",
         "Bronza pilonli shisha fasad, mijozlar uchun 4,2 metr balandlikdagi birinchi qavat, maydonchali kirish guruhi. Kesim sakkiz darajani ko'rsatadi: -3,600 belgidagi podval va +25,800 gacha yetti qavat.",
         "A glazed facade with bronze piers, a 4.2 m ground floor for client-facing uses and an entrance forecourt. The section shows eight levels: a basement at -3.600 and seven floors up to +25.800."),
+      "map_badge": ml("карта: Google", "xarita: Google", "map: Google"),
+      "loc_first": ml(
+        "Первая линия улицы Богишамол, напротив Ботанического сада. Рядом IT Park Uzbekistan и Государственный институт искусств и культуры - сотрудники и партнёры добираются без пересадок, парковка у входа.",
+        "Bog'ishamol ko'chasining birinchi qatori, Botanika bog'i ro'parasida. Yonida IT Park Uzbekistan va Davlat san'at va madaniyat instituti - xodimlar va hamkorlar to'g'ridan-to'g'ri yetib keladi, kiraverishda avtoturargoh.",
+        "First line of Bogishamol Street, opposite the Botanical Garden. IT Park Uzbekistan and the State Institute of Arts and Culture are close by, so staff and partners get here directly; parking is at the entrance."),
       "c_h": ml("Обсудим этаж?", "Qavatni muhokama qilamizmi?", "Shall we discuss a floor?"),
       "c_s": ml("Ответим в течение дня - планировки, параметры, условия сделки.",
                 "Kun davomida javob beramiz - planirovkalar, parametrlar, bitim shartlari.",

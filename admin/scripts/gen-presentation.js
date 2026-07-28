@@ -395,19 +395,20 @@ function buildHtml(lang, qr) {
     <div style="display:flex;gap:12mm;flex:1">
       <div style="flex:1">
         <div style="font-size:13pt;font-weight:700;margin-bottom:6mm">${M(cfg.location.address)}</div>
-        <table style="background:none">
+        ${(cfg.location.drive || []).length ? `<table style="background:none">
           <tr><th colspan="2" style="padding-left:0">${t('loc_car')}</th></tr>
           ${cfg.location.drive.map((d) => `<tr><td style="padding-left:0;background:none">${M(d.to)}</td><td style="text-align:right;font-weight:700;background:none">${M(d.time)}</td></tr>`).join('')}
-        </table>
-        <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${M(cfg.location.metroNote)} · ${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}</div>
+        </table>` : ''}
+        <div style="margin-top:5mm;font-size:8.5pt;color:${MUTED}">${[M(cfg.location.metroNote), `${t('loc_coord')}: ${esc(cfg.location.lat)}, ${esc(cfg.location.lng)}`].filter(Boolean).join(' · ')}</div>
+        ${MAP_IMG && L(cfg.location.around, lang) ? `<div style="margin-top:6mm;font-size:10pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
       </div>
       <div style="flex:1;display:flex;flex-direction:column;gap:5mm;min-height:0">
         ${MAP_IMG ? `<div style="height:72mm;flex:none;border-radius:4mm;overflow:hidden;position:relative">
           <img src="${img64(MAP_IMG)}" style="width:100%;height:100%;object-fit:cover">
           <span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${t('map_badge')}</span>
         </div>` : ''}
-        <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>
-        <div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>
+        ${!MAP_IMG ? `<div style="background:#fff;border-radius:4mm;padding:7mm;font-size:10.5pt;line-height:1.6;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
+        ${(PRES.T && PRES.T.loc_first) || SLUG === 'takhtapul' ? `<div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>` : ''}
       </div>
     </div>
     ${foot(6 + PLAN_PAGES.length)}
