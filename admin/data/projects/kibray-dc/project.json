@@ -72,9 +72,9 @@
   "leadEndpoint": "",
   "texts": {
     "legal.area": {
-      "ru": "Площади и характеристики приведены по выписке из Государственного реестра прав на недвижимость от 05.02.2024. Информация носит справочный характер и не является публичной офертой.",
-      "uz": "Maydonlar va xususiyatlar Ko'chmas mulkka bo'lgan huquqlar Davlat reyestridan 05.02.2024 dagi ko'chirma bo'yicha keltirilgan. Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
-      "en": "Areas and characteristics are stated per the extract from the State Register of Real Property Rights dated 05.02.2024. This information is for reference only and does not constitute a public offer."
+      "ru": "Площади и характеристики приведены по выписке из Государственного реестра прав на недвижимость от 05.02.2024, зонирование и сейсмичность - по карточке объекта портала «Шаффоф қурилиш». Информация носит справочный характер и не является публичной офертой.",
+      "uz": "Maydonlar va xususiyatlar Ko'chmas mulkka bo'lgan huquqlar Davlat reyestridan 05.02.2024 dagi ko'chirma bo'yicha, zonalashtirish va seysmiklik - «Shaffof qurilish» portali obyekt kartochkasi bo'yicha keltirilgan. Ma'lumot ma'lumot xarakteriga ega va ommaviy oferta hisoblanmaydi.",
+      "en": "Areas and characteristics are stated per the extract from the State Register of Real Property Rights dated 05.02.2024; zoning and the seismic figure come from the object record on the Shaffof Qurilish portal. This information is for reference only and does not constitute a public offer."
     },
     "nav.about": {
       "ru": "Об участке",
@@ -108,7 +108,7 @@
       "uz": "Qibray tumanida data-markaz uchun tayyorlangan 6,5 ga maydon sotiladi: ikkita mustaqil optik tolali liniya, ma'lumotlar markazi uchun loyiha hujjatlari, 2 269,0 m² ikkita kapital inshoot, cheklovlar yo'q. Toshkentgacha 25 km.",
       "en": "A prepared 6.5 ha data center site for sale in Kibray district: two independent fibre routes, design documentation for a data center, two permanent buildings of 2,269.0 m², no encumbrances. 25 km from Tashkent."
     },
-    "keywords": "земельный участок под дата-центр, участок под ЦОД Ташкент, земля под дата-центр Узбекистан, продажа земли Кибрайский район, промышленный участок Ташкентская область, площадка под ЦОД с оптоволокном, земля под IT инфраструктуру Узбекистан, инвестиции в цифровую инфраструктуру Узбекистан, участок 6,5 га Ташкентская область, data center land Uzbekistan, data centre site for sale Tashkent, yer uchastkasi data markaz uchun, Qibray tumani yer sotiladi",
+    "keywords": "земельный участок под дата-центр, участок под ЦОД Ташкент, земля под дата-центр Узбекистан, продажа земли Кибрайский район, промышленный участок Ташкентская область, площадка под ЦОД с оптоволокном, земля под IT инфраструктуру Узбекистан, инвестиции в цифровую инфраструктуру Узбекистан, участок 6,5 га Ташкентская область, data center land Uzbekistan, data centre site for sale Tashkent, yer uchastkasi data markaz uchun, Qibray tumani yer sotiladi, промышленная зона Кибрай",
     "domain": "",
     "googleVerification": "",
     "yandexVerification": "",
@@ -135,9 +135,9 @@
           "en": "6.5"
         },
         "l": {
-          "ru": "га, 65 000 м²",
-          "uz": "ga, 65 000 m²",
-          "en": "hectares, 65,000 m²"
+          "ru": "га земли, 65 000 м²",
+          "uz": "ga yer, 65 000 m²",
+          "en": "hectares of land, 65,000 m²"
         }
       },
       {
@@ -146,18 +146,6 @@
           "ru": "независимые линии оптоволокна",
           "uz": "mustaqil optik tolali liniya",
           "en": "independent fibre routes"
-        }
-      },
-      {
-        "n": {
-          "ru": "2 269,0",
-          "uz": "2 269,0",
-          "en": "2,269.0"
-        },
-        "l": {
-          "ru": "м² строений в собственности",
-          "uz": "m² mulk huquqidagi inshootlar",
-          "en": "m² of buildings held freehold"
         }
       },
       {
@@ -194,6 +182,14 @@
     {
       "n": "",
       "l": {
+        "ru": "Зона технологической промышленности",
+        "uz": "Texnologik sanoat hududi",
+        "en": "Technological industry zone"
+      }
+    },
+    {
+      "n": "",
+      "l": {
         "ru": "Проект под ЦОД разработан",
         "uz": "Data-markaz loyihasi ishlab chiqilgan",
         "en": "Data center design prepared"
@@ -206,15 +202,6 @@
         "uz": "Cheklovlar yo'q",
         "en": "No encumbrances"
       }
-    },
-    {
-      "n": "",
-      "l": {
-        "ru": "Ровный рельеф",
-        "uz": "Tekis relyef",
-        "en": "Level terrain"
-      },
-      "icon": "lift"
     }
   ],
   "unitsSection": {
@@ -387,6 +374,54 @@
       },
       {
         "b": {
+          "ru": "Назначение проекта",
+          "uz": "Loyiha maqsadi",
+          "en": "Intended use"
+        },
+        "s": {
+          "ru": "площадка под дата-центр: концепция и проектная документация разработаны",
+          "uz": "data-markaz uchun maydon: konsepsiya va loyiha hujjatlari ishlab chiqilgan",
+          "en": "a data center site: concept and design documentation prepared"
+        }
+      },
+      {
+        "b": {
+          "ru": "Зона по генеральному плану",
+          "uz": "Bosh reja bo'yicha zona",
+          "en": "Master plan zoning"
+        },
+        "s": {
+          "ru": "территория технологической промышленности (Texnologik sanoat hududlari)",
+          "uz": "texnologik sanoat hududlari",
+          "en": "technological industry area (Texnologik sanoat hududlari)"
+        }
+      },
+      {
+        "b": {
+          "ru": "Разрешённая этажность",
+          "uz": "Ruxsat etilgan qavatlilik",
+          "en": "Permitted height"
+        },
+        "s": {
+          "ru": "до 3 этажей",
+          "uz": "3 qavatgacha",
+          "en": "up to 3 floors"
+        }
+      },
+      {
+        "b": {
+          "ru": "Сейсмичность",
+          "uz": "Seysmiklik",
+          "en": "Seismic zone"
+        },
+        "s": {
+          "ru": "8 баллов",
+          "uz": "8 ball",
+          "en": "8 points"
+        }
+      },
+      {
+        "b": {
           "ru": "Кадастровый номер",
           "uz": "Kadastr raqami",
           "en": "Cadastral number"
@@ -407,18 +442,6 @@
           "ru": "постоянное пользование",
           "uz": "doimiy foydalanish",
           "en": "permanent use right"
-        }
-      },
-      {
-        "b": {
-          "ru": "Строения",
-          "uz": "Inshootlar",
-          "en": "Buildings"
-        },
-        "s": {
-          "ru": "• 767,8 м² и 1 501,3 м²\n• всего 2 269,0 м², в собственности\n• могут быть снесены под новый проект",
-          "uz": "• 767,8 m² va 1 501,3 m²\n• jami 2 269,0 m², mulk huquqida\n• yangi loyiha uchun buzilishi mumkin",
-          "en": "• 767.8 m² and 1,501.3 m²\n• total 2,269.0 m², freehold\n• may be demolished for a new layout"
         }
       },
       {
@@ -467,6 +490,18 @@
           "ru": "606 м",
           "uz": "606 m",
           "en": "606 m"
+        }
+      },
+      {
+        "b": {
+          "ru": "Строения",
+          "uz": "Inshootlar",
+          "en": "Buildings"
+        },
+        "s": {
+          "ru": "два капитальных строения, в собственности, входят в сделку",
+          "uz": "ikkita kapital inshoot, mulk huquqida, bitimga kiradi",
+          "en": "two permanent structures, held freehold, included in the deal"
         }
       }
     ],
@@ -610,9 +645,9 @@
         "en": "What exactly is being sold?"
       },
       "a": {
-        "ru": "Земельный участок 65 000 м² с правом постоянного пользования и два капитальных строения общей площадью 2 269,0 м², находящиеся в собственности. Всё зарегистрировано в Государственном реестре, кадастровый номер участка 11:05:41:01:02:0105.",
-        "uz": "Doimiy foydalanish huquqidagi 65 000 m² yer uchastkasi va mulk huquqidagi jami 2 269,0 m² ikkita kapital inshoot. Barchasi Davlat reyestrida ro'yxatdan o'tgan, uchastka kadastr raqami 11:05:41:01:02:0105.",
-        "en": "A 65,000 m² land plot held under a permanent use right and two permanent buildings totalling 2,269.0 m² held freehold. All of it is registered in the State Register; the plot's cadastral number is 11:05:41:01:02:0105."
+        "ru": "Земельный участок 65 000 м² (6,5 га) с правом постоянного пользования, подготовленный под размещение дата-центра: подведены две независимые линии оптоволокна, разработаны концепция и проектная документация. Всё зарегистрировано в Государственном реестре, кадастровый номер 11:05:41:01:02:0105. В сделку также входят два капитальных строения на участке.",
+        "uz": "65 000 m² (6,5 ga) yer uchastkasi doimiy foydalanish huquqi bilan, data-markaz joylashtirish uchun tayyorlangan: ikkita mustaqil optik tolali liniya tortilgan, konsepsiya va loyiha hujjatlari ishlab chiqilgan. Barchasi Davlat reyestrida ro'yxatdan o'tgan, kadastr raqami 11:05:41:01:02:0105. Bitimga uchastkadagi ikkita kapital inshoot ham kiradi.",
+        "en": "A 65,000 m² (6.5 ha) land plot held under permanent use, prepared for a data center: two independent fibre routes are already in place and the concept and design documentation have been completed. Everything is registered in the State Register, cadastral number 11:05:41:01:02:0105. Two permanent structures on the plot are included in the deal."
       }
     },
     {
@@ -625,6 +660,18 @@
         "ru": "По выписке из Государственного реестра от 05.02.2024 ипотека, аренда, сервитуты и запреты не зарегистрированы. Актуальную выписку предоставляем по запросу.",
         "uz": "05.02.2024 dagi Davlat reyestridan ko'chirmaga ko'ra ipoteka, ijara, servitutlar va taqiqlar ro'yxatdan o'tkazilmagan. Dolzarb ko'chirmani so'rov bo'yicha taqdim etamiz.",
         "en": "Per the State Register extract dated 05.02.2024, no mortgage, lease, easement or restriction is registered. A current extract is provided on request."
+      }
+    },
+    {
+      "q": {
+        "ru": "Что разрешает генеральный план?",
+        "uz": "Bosh reja nimaga ruxsat beradi?",
+        "en": "What does the master plan allow?"
+      },
+      "a": {
+        "ru": "По карточке объекта на портале «Шаффоф қурилиш» участок относится к территориям технологической промышленности (Texnologik sanoat hududlari), Кибрайский район, махалля Шарк. Разрешённая этажность - до 3 этажей: для дата-центра это не ограничение, машинные залы строятся в один-два уровня. Сейсмическая зона - 8 баллов, стандартная величина для ташкентской агломерации, которая учитывается в конструктивных решениях. Карточку генплана и документы по участку высылаем по запросу.",
+        "uz": "«Shaffof qurilish» portalidagi obyekt kartochkasiga ko'ra uchastka texnologik sanoat hududlariga kiradi, Qibray tumani, Sharq MFY. Ruxsat etilgan qavatlilik - 3 qavatgacha: data-markaz uchun bu cheklov emas, mashina zallari bir-ikki darajada quriladi. Seysmik zona - 8 ball, Toshkent aglomeratsiyasi uchun odatiy ko'rsatkich va konstruktiv yechimlarda hisobga olinadi. Bosh reja kartochkasi va uchastka hujjatlarini so'rov bo'yicha yuboramiz.",
+        "en": "According to the object record on the Shaffof Qurilish portal, the plot sits within a technological industry area (Texnologik sanoat hududlari), Kibray district, Sharq mahalla. The permitted height is up to 3 floors, which is no constraint for a data center: data halls are normally built on one or two levels. The seismic zone is 8 points, a standard figure for the Tashkent agglomeration that is accounted for in the structural design. The master plan record and the plot documents are available on request."
       }
     },
     {
