@@ -63,6 +63,9 @@ const AT = (cfg.site && cfg.site.assetType) || 'building';
 const LAND = AT === 'land' || AT === 'single';
 // страница геоаналитики есть только у проектов с посчитанным блоком cfg.geo
 const GEO = (cfg.geo && (cfg.geo.points || []).length) ? cfg.geo : null;
+// настоящая карта района для страницы геоаналитики: кладётся в uploads проекта
+// и указывается в cfg.pres.geoMap. Если её нет, рисуется своя схема
+const GEO_MAP = (PRES.geoMap && fs.existsSync(path.join(UP, PRES.geoMap))) ? PRES.geoMap : '';
 const GEO_PG = GEO ? 1 : 0;
 const TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length + GEO_PG;
 const planImg = (u) => {
@@ -136,6 +139,15 @@ const T = {
   h_around: { ru: 'Что находится вокруг', uz: 'Atrofda nima bor', en: 'What is around' },
   geo_walk: { ru: 'Пешком', uz: 'Piyoda', en: 'On foot' },
   geo_walkItem: { ru: '{n} за {m} минут', uz: '{m} daqiqada {n}', en: '{n} within {m} minutes' },
+  th_what: { ru: 'Что рядом', uz: 'Yaqin atrofda', en: 'Nearby' },
+  r_1: { ru: '1 км', uz: '1 km', en: '1 km' },
+  r_15: { ru: '1,5 км', uz: '1,5 km', en: '1.5 km' },
+  r_3: { ru: '3 км', uz: '3 km', en: '3 km' },
+  geo_map_cap: {
+    ru: 'Карта окружения: объект и кольца 1, 3 и 5 км, точками отмечены бизнес-центры Ташкента. Источник: CASE OS Geo Analytics, подложка OpenStreetMap.',
+    uz: 'Atrof xaritasi: obyekt va 1, 3 va 5 km halqalar, nuqtalar - Toshkent biznes-markazlari. Manba: CASE OS Geo Analytics, asos - OpenStreetMap.',
+    en: 'Surroundings map: the property with 1, 3 and 5 km rings; dots are Tashkent business centres. Source: CASE OS Geo Analytics, base map OpenStreetMap.'
+  },
   geo_scheme: { ru: 'Кольца - расстояние по прямой от здания', uz: 'Halqalar - binodan to‘g‘ri chiziq bo‘yicha masofa', en: 'Rings are straight-line distances from the building' },
   geo_notePop: {
     ru: 'Жители в радиусе - сетка Kontur H3, откалиброванная на официальное население района.',
@@ -369,9 +381,15 @@ function buildHtml(lang, qr) {
     const walk = (pop && (GEO.iso || []).length)
       ? `<div style="font-size:8.5pt;color:${MUTED};line-height:1.5">${t('geo_walk')}: ${GEO.iso.map((x) => t('geo_walkItem').replace('{n}', gn(x.pop)).replace('{m}', x.min)).join(' · ')}</div>`
       : '';
+    // таблица с колонками по радиусам: строкой «5 в 1 км · 14 в 1,5 км» цифры
+    // читаются тяжело, особенно в узбекской версии
     const rows = (GEO.around || []).filter((a) => a.k !== 'pop' || !pop).map((a) =>
       `<tr><td style="padding-left:0;background:none">${M(a.l)}</td>
-        <td style="text-align:right;font-weight:700;background:none;white-space:nowrap">${gn(a.n1)} ${t('geo_in1')} · ${gn(a.n15)} ${t('geo_in15')}${a.n3 == null ? '' : ` · ${gn(a.n3)} ${t('geo_in3')}`}</td></tr>`).join('');
+        <td style="text-align:right;font-weight:700;background:none">${gn(a.n1)}</td>
+        <td style="text-align:right;font-weight:700;background:none">${gn(a.n15)}</td>
+        <td style="text-align:right;font-weight:700;background:none">${a.n3 == null ? '-' : gn(a.n3)}</td></tr>`).join('');
+    const rowsHead = `<tr><th style="padding-left:0"></th>
+        <th style="text-align:right">${t('r_1')}</th><th style="text-align:right">${t('r_15')}</th><th style="text-align:right">${t('r_3')}</th></tr>`;
     const hasPop = !!pop;
     const legend = [['med', 'geo_med'], ['ph', 'geo_ph'], ['bc', 'geo_bc'], ['mh', 'geo_mh']].map(([c2, key]) =>
       `<span style="display:inline-flex;align-items:center;gap:1.5mm;margin-right:5mm"><i style="width:2.2mm;height:2.2mm;border-radius:50%;background:${GEO_COL[c2]};display:inline-block"></i>${t(key)}</span>`).join('');
@@ -380,21 +398,26 @@ function buildHtml(lang, qr) {
     <span class="lbl">${t('lbl_geo')}</span>
     <h2>${t('h_geo')}</h2>
     <div style="display:flex;gap:10mm;flex:1;min-height:0">
-      <div style="flex:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:4mm;padding:5mm">
+      ${GEO_MAP ? `<div style="flex:1;display:flex;flex-direction:column;min-height:0">
+        <div style="flex:1;border-radius:4mm;overflow:hidden;position:relative;min-height:0">
+          <img src="${img64(GEO_MAP)}" style="width:100%;height:100%;object-fit:cover">
+        </div>
+        <div style="margin-top:2.5mm;font-size:7.5pt;color:${MUTED};line-height:1.45">${t('geo_map_cap')}</div>
+      </div>` : `<div style="flex:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:4mm;padding:5mm">
         <svg viewBox="0 0 ${S} ${S}" style="width:100%;max-width:112mm;height:auto">
           ${ringSvg}
           ${dots}
           <circle cx="${c}" cy="${c}" r="5" fill="${BRONZE}" stroke="#fff" stroke-width="2"/>
         </svg>
         <div style="margin-top:3mm;font-size:8pt;color:${MUTED};text-align:center">${t('geo_scheme')}</div>
-      </div>
+      </div>`}
       <div style="flex:1.1;display:flex;flex-direction:column;gap:3mm">
         <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE}">${hasPop ? t('h_pop') : t('geo_walk')}</div>
         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm">${tiles}</div>
         ${walk}
         <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE};margin-top:2mm">${t('h_around')}</div>
-        <table style="background:none;font-size:10pt">${rows}</table>
-        <div style="font-size:8.5pt;color:${MUTED}">${legend}</div>
+        <table style="background:none;font-size:10pt">${rowsHead}${rows}</table>
+        ${GEO_MAP ? '' : `<div style="font-size:8.5pt;color:${MUTED}">${legend}</div>`}
         <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}${hasPop ? ' ' + t('geo_notePop') : ''}</div>
       </div>
     </div>
@@ -554,19 +577,23 @@ function buildHtml(lang, qr) {
     <span class="lbl">${t('lbl_viz')}</span>
     <h2>${t('h_viz')}</h2>
     <div style="display:flex;gap:10mm;flex:1;min-height:0">
-      <div style="flex:${VIZ_TALL.length ? '.7' : '.8'};display:flex;flex-direction:column;gap:5mm;justify-content:center">
-        <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:11pt;line-height:1.65">${t('viz_p')}</div>
-        <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10pt;line-height:1.5">${M(cfg.about.status)}</div>
+      <div style="flex:${VIZ_TALL.length ? '1' : '.8'};display:flex;flex-direction:column;gap:5mm;min-height:0;justify-content:${VIZ_TALL.length ? 'flex-start' : 'center'}">
+        <div style="background:#fff;border-radius:4mm;padding:${VIZ_TALL.length ? '6mm' : '7mm'};font-size:${VIZ_TALL.length ? '10pt' : '11pt'};line-height:1.6">${t('viz_p')}</div>
+        <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:${VIZ_TALL.length ? '9.5pt' : '10pt'};line-height:1.5">${M(cfg.about.status)}</div>
+        ${VIZ_TALL.length ? VIZ_WIDE.map((f) => `<div style="flex:1;min-height:0;border-radius:5mm;overflow:hidden;position:relative">
+          <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
+        </div>`).join('') : ''}
         <div style="font-size:8.5pt;color:${MUTED}">${t('viz_all')}</div>
       </div>
-      <div style="flex:${VIZ_TALL.length ? '1.05' : '1.2'};display:flex;flex-direction:column;gap:5mm">
+      ${VIZ_TALL.length ? '' : `<div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
         ${VIZ_WIDE.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
           <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
         </div>`).join('')}
-      </div>
-      ${VIZ_TALL.length ? `<div style="flex:.95;display:flex;flex-direction:column;gap:5mm">
-        ${VIZ_TALL.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;background:#fff;padding:3mm">
+      </div>`}
+      ${VIZ_TALL.length ? `<div style="flex:1.15;display:flex;flex-direction:column;gap:5mm;min-height:0">
+        ${VIZ_TALL.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;background:#fff;padding:4mm">
           <img src="${img64(f)}" style="width:100%;height:100%;object-fit:contain">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_cut')}</span>
         </div>`).join('')}

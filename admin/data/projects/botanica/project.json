@@ -995,7 +995,8 @@
         "uz": "Kun davomida javob beramiz - planirovkalar, parametrlar, bitim shartlari.",
         "en": "We reply within the day - plans, parameters and deal terms."
       }
-    }
+    },
+    "geoMap": "geo-map.jpg"
   },
   "geo": {
     "point": {
