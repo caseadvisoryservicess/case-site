@@ -361,7 +361,7 @@ function defaults(){
   return {
     project:{ name:'Taxtapul 31', location:'Ташкент, ул. Тахтапул, 31', symbol:'$',
       startYear:2025, constructionYears:2, operationYears:10, discountRate:12, escalation:5,
-      siteArea:645, footprint:440, slug:'takhtapul' },
+      siteArea:645, footprint:440, slug:'takhtapul', panelSlug:'', biz:'office' },
     retail:{ enabled:false, gla:25000, rent:25, occStart:70, occStab:92, rampYears:3, otherIncomePct:10, opexPct:25 },
     hotel:{ enabled:false, keys:150, adr:110, occStart:45, occStab:68, rampYears:3, otherRevPct:45, gopMargin:38, baseFeePct:3, incFeePct:8, ffeReservePct:4 },
     office:{ enabled:true, nla:1855, rent:20, occStart:70, occStab:90, rampYears:2, otherIncomePct:0, opexPct:15, opexMode:'sqm', opexSqm:3 },
@@ -377,6 +377,93 @@ function defaults(){
 }
 let S = defaults();
 
+/* ─── проекты панели и типы бизнеса ───
+   Модель работает с любым проектом: список тянется из панели, площади и адрес
+   подставляются, дальше всё правится руками. Тип бизнеса - это набор типовых
+   предпосылок, а не жёсткая настройка: после применения любое поле открыто. */
+let PANEL = [];
+let PANEL_OPTS = [['', '- проект не выбран -']];
+const BIZ_OPTS = [
+  ['office', 'Бизнес-центр: аренда офисов'],
+  ['clinic', 'Клиника: один арендатор на всё здание'],
+  ['edu', 'Учебный центр: один арендатор'],
+  ['retail', 'Ритейл: торговые площади'],
+  ['hotel', 'Отель'],
+  ['sale', 'Продажа помещений'],
+  ['mixed', 'Смешанный: аренда плюс продажа']
+];
+
+function panelById(slug){ return PANEL.find(p => p.slug === slug) || null; }
+
+/* подставить в модель данные выбранного проекта */
+function applyPanelProject(slug){
+  const p = panelById(slug);
+  if(p){
+    S.project.name = p.name;
+    S.project.location = p.addr || S.project.location;
+    S.project.slug = p.slug;
+    // ноль означает «в проекте такой цифры нет»: подставляем именно ноль,
+    // иначе в модели останется площадь предыдущего проекта и расчёт соврёт
+    S.project.siteArea = p.siteArea || 0;
+    S.project.footprint = p.footprint || 0;
+    S.office.nla = p.gla || 0;
+    S.sales.area = p.gla || 0;
+    S.retail.gla = p.gla || 0;
+    S.budget.officeGba = p.gba || 0;
+    // подсказка, если в панели у проекта нет части цифр: их придётся ввести
+    const miss = [];
+    if(!p.gla) miss.push('арендопригодная площадь');
+    if(!p.gba) miss.push('общая площадь');
+    if(!p.siteArea) miss.push('участок');
+    SECTIONS[0].note = miss.length
+      ? 'В проекте нет части цифр (' + miss.join(', ') + '). Введите их вручную: модель считает по тому, что стоит в полях.'
+      : '';
+    applyBiz(S.project.biz, true);
+    return;
+  }
+  rebuildAll();
+}
+
+/* типовые предпосылки под выбранный формат бизнеса */
+function applyBiz(type, silent){
+  const gla = Number(S.office.nla) || 0;
+  const off = (o, on) => { o.enabled = !!on; };
+  off(S.retail, false); off(S.hotel, false); off(S.office, false); off(S.sales, false);
+  if(type === 'office'){
+    off(S.office, true);
+    Object.assign(S.office, { rent:20, occStart:70, occStab:90, rampYears:2, opexMode:'sqm', opexSqm:3, opexPct:15 });
+  } else if(type === 'clinic' || type === 'edu'){
+    off(S.office, true);
+    Object.assign(S.office, { rent:12.5, occStart:100, occStab:100, rampYears:1, opexMode:'sqm', opexSqm:0.9, opexPct:7 });
+  } else if(type === 'retail'){
+    off(S.retail, true);
+    Object.assign(S.retail, { gla: gla || S.retail.gla, rent:25, occStart:70, occStab:92, rampYears:3, opexPct:25 });
+  } else if(type === 'hotel'){
+    off(S.hotel, true);
+  } else if(type === 'sale'){
+    off(S.sales, true);
+    Object.assign(S.sales, { area: gla || S.sales.area, price:1400, startAt:2, years:2, sellPct:2 });
+  } else if(type === 'mixed'){
+    off(S.office, true); off(S.sales, true);
+    Object.assign(S.office, { rent:20, occStart:70, occStab:90, rampYears:2, opexMode:'sqm', opexSqm:3 });
+    Object.assign(S.sales, { area: Math.round((gla || S.sales.area) / 2), price:1400, startAt:3, years:3, sellPct:2 });
+  }
+  rebuildAll();
+  if(!silent) {} /* тихий режим нужен, когда шаблон применяется вслед за выбором проекта */
+}
+
+/* список проектов панели: грузится один раз при открытии модели */
+async function loadPanelProjects(){
+  try{
+    const r = await fetch('api/feasibility/projects', { credentials:'same-origin' });
+    if(!r.ok) return;
+    const d = await r.json();
+    PANEL = d.projects || [];
+    PANEL_OPTS = [['', '- проект не выбран -']].concat(PANEL.map(p => [p.slug, p.name]));
+    buildSidebar();
+  }catch(e){}
+}
+
 /* deep-merge imported/saved data over defaults so old files stay compatible */
 function mergeState(base, over){
   for(const k in base){
@@ -389,6 +476,8 @@ function mergeState(base, over){
 /* ─── 2. INPUT SCHEMA (drives the sidebar UI) ─── */
 const SECTIONS = [
   { id:'project', num:'01', title:'Проект', open:true, fields:[
+    {k:'project.panelSlug', label:'Проект из панели <span class="u">(подставит название, адрес и площади)</span>', type:'select', options:()=>PANEL_OPTS, onChange:applyPanelProject},
+    {k:'project.biz', label:'Тип бизнеса <span class="u">(подставит типовые предпосылки, всё можно править)</span>', type:'select', options:()=>BIZ_OPTS, onChange:applyBiz},
     {k:'project.name', label:'Название проекта', type:'text'},
     {k:'project.location', label:'Локация / адрес', type:'text'},
     {k:'project.symbol', label:'Символ валюты', type:'text'},
@@ -746,9 +835,14 @@ function buildSidebar(){
         let input;
         if(f.type==='select'){
           input=document.createElement('select');
-          f.options.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;input.appendChild(o);});
+          const opts=(typeof f.options==='function')?f.options():f.options;
+          opts.forEach(([v,t])=>{const o=document.createElement('option');o.value=v;o.textContent=t;input.appendChild(o);});
           input.value=getPath(S,f.k);
-          input.addEventListener('change',()=>{ setPath(S,f.k,input.value); refresh(); });
+          input.addEventListener('change',()=>{
+            setPath(S,f.k,input.value);
+            if(f.onChange){ f.onChange(input.value); return; }
+            refresh();
+          });
         } else if(f.type==='text'){
           input=document.createElement('input'); input.type='text'; input.value=getPath(S,f.k);
           input.addEventListener('input',()=>{ setPath(S,f.k,input.value); refresh(); });
@@ -1795,6 +1889,7 @@ window.addEventListener('beforeprint',()=>refresh());
   buildSidebar();
   renderScenSelect();
   refresh();
+  loadPanelProjects();
 })();
 </script>
 </body>

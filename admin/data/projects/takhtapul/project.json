@@ -1241,5 +1241,11 @@
     "metricaId": "111115481",
     "ga4Id": "G-X9Y8MHCP9L",
     "gtmId": ""
+  },
+  "fin": {
+    "siteArea": 645,
+    "footprint": 440,
+    "gba": 2299,
+    "gla": 1855
   }
 }

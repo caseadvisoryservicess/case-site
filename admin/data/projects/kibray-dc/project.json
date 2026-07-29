@@ -806,5 +806,11 @@
       }
     },
     "mapImg": "plot-borders.jpg"
+  },
+  "fin": {
+    "siteArea": 65000,
+    "footprint": 0,
+    "gba": 2269,
+    "gla": 0
   }
 }

@@ -305,6 +305,44 @@ router.get('/uploads/:slug/:file', (req, res) => {
   res.sendFile(full);
 });
 
+// ─── API фин-модели: краткая карточка каждого проекта ───
+// Модель подставляет отсюда название, адрес и площади, чтобы не вводить их
+// руками. Числа берём из блока fin (миграция 023), а если его нет - считаем по
+// юнитам: у зданий там уже есть строка «здание целиком».
+router.get('/api/feasibility/projects', auth, adminOnly, (req, res) => {
+  const num = (v) => {
+    const n = parseFloat(String(v == null ? '' : v).replace(/[\s  ]/g, '').replace(',', '.'));
+    return Number.isFinite(n) ? n : 0;
+  };
+  const ru = (v) => (v && typeof v === 'object' ? (v.ru || '') : (v || ''));
+  const list = [];
+  for (const slug of fs.readdirSync(PROJECTS)) {
+    if (!SLUG_RE.test(slug)) continue;
+    const f = projectFile(slug);
+    if (!fs.existsSync(f)) continue;
+    let cfg;
+    try { cfg = JSON.parse(fs.readFileSync(f, 'utf8')); } catch { continue; }
+    const units = (cfg.units || []).filter((u) => !u.whole);
+    const whole = (cfg.units || []).find((u) => u.whole);
+    const fin = cfg.fin || {};
+    const gba = num(fin.gba) || num(whole && whole.gba) || units.reduce((s, u) => s + num(u.gba), 0);
+    const gla = num(fin.gla) || num(whole && whole.gla) || units.reduce((s, u) => s + num(u.gla), 0);
+    list.push({
+      slug,
+      name: cfg.name || slug,
+      addr: ru((cfg.site && cfg.site.addr && cfg.site.addr.headline)) || ru(cfg.location && cfg.location.address),
+      assetType: (cfg.site && cfg.site.assetType) || 'building',
+      intent: (cfg.site && cfg.site.intent) || 'both',
+      levels: units.length,
+      siteArea: num(fin.siteArea),
+      footprint: num(fin.footprint),
+      gba, gla
+    });
+  }
+  list.sort((a, b) => a.name.localeCompare(b.name, 'ru'));
+  res.json({ projects: list });
+});
+
 // ─── Фин-модель (Feasibility Studio): страница только для администратора ───
 router.get('/feasibility', (req, res) => {
   const p = verify(getCookie(req, 'sfb_session'));

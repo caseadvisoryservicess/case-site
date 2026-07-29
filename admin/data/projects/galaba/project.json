@@ -889,5 +889,11 @@
     "cover": {
       "gba": "2 000,0"
     }
+  },
+  "fin": {
+    "siteArea": 500,
+    "footprint": 400,
+    "gba": 2400,
+    "gla": 1436.5
   }
 }

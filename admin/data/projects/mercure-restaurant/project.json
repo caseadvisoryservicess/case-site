@@ -988,5 +988,11 @@
         "en": "We reply within the day - terms, the equipment list and a viewing."
       }
     }
+  },
+  "fin": {
+    "siteArea": 0,
+    "footprint": 0,
+    "gba": 303.8,
+    "gla": 279.7
   }
 }
