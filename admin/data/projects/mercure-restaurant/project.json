@@ -9,7 +9,7 @@
     "planBase": "Restaurant-Mercure",
     "favicon": "R",
     "assetType": "single",
-    "intent": "none",
+    "intent": "lease",
     "addr": {
       "headline": {
         "ru": "Яккасарай · отель Mercure",
@@ -114,7 +114,7 @@
     "smtpPass": ""
   },
   "adminUrl": "",
-  "leadEndpoint": "",
+  "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/mercure-restaurant",
   "texts": {
     "nav.about": {
       "ru": "О помещении",
@@ -919,7 +919,7 @@
   "settings": {
     "mapsApiKey": "",
     "metricaId": "111115481",
-    "ga4Id": "",
+    "ga4Id": "G-X9Y8MHCP9L",
     "gtmId": ""
   },
   "pres": {

@@ -69,7 +69,7 @@
     "smtpPass": ""
   },
   "adminUrl": "",
-  "leadEndpoint": "",
+  "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/botanica",
   "texts": {
     "about.viz": {
       "ru": "визуализация проекта",
@@ -867,7 +867,7 @@
   "settings": {
     "mapsApiKey": "",
     "metricaId": "111115481",
-    "ga4Id": "",
+    "ga4Id": "G-X9Y8MHCP9L",
     "gtmId": ""
   },
   "pres": {

@@ -273,6 +273,15 @@ for (const k of Object.keys(PRES.T || {})) T[k] = Object.assign({}, T[k], PRES.T
 
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
 
+// заголовок документа: он уходит в свойства PDF (что видно во вкладке браузера
+// и в почтовом клиенте), поэтому там должно стоять название объекта, а не имя
+// временного файла генератора
+const DOC_KIND = { ru: 'презентация', uz: 'taqdimot', en: 'presentation' };
+function docTitle(lang) {
+  const name = L(cfg.seo && cfg.seo.title, lang) || CODE;
+  return `${String(name).split(' - ')[0].trim()} - ${DOC_KIND[lang] || DOC_KIND.ru}`;
+}
+
 // цифры обложки и картинки: из конфига, с возможностью переопределить в cfg.pres
 const factN = (re) => {
   // ищем и в фактах героя, и в ленте параметров: у разных проектов цифра лежит по-разному
@@ -429,7 +438,7 @@ function buildHtml(lang, qr) {
     <div style="font-size:9.5pt;line-height:1.55;color:${MUTED}">${M(c.p)}</div>
   </div>`;
 
-  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><style>${CSS}</style></head><body>
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(docTitle(lang))}</title><style>${CSS}</style></head><body>
 
   <div class="pg" style="padding:0;background:${DARK}">
     <img src="${img64(cfg.intro.image)}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
@@ -612,7 +621,7 @@ function buildLandHtml(lang, qr) {
     <div style="font-size:9.5pt;line-height:1.55;color:${MUTED}">${M(c.p)}</div>
   </div>`;
 
-  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><style>${CSS}
+  return `<!DOCTYPE html><html lang="${lang}"><head><meta charset="utf-8"><title>${esc(docTitle(lang))}</title><style>${CSS}
   /* у участка параметров много (12 строк), поэтому строки плотнее обычных */
   .spec td { padding: 2.3mm 4.5mm; font-size: 8.8pt; line-height: 1.3; }
   .spec td:first-child { width: 40%; font-weight: 700; }
@@ -755,26 +764,32 @@ function buildLandHtml(lang, qr) {
 
 async function main() {
   const QR = require('qrcode');
+  const os = require('os');
   let chromium;
   try { ({ chromium } = require('playwright')); }
   catch { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
   const browser = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
-  const page = await browser.newPage();
-
-  for (const lang of ['ru', 'uz', 'en']) {
-    const url = SITE + (lang === 'ru' ? '' : lang + '/');
-    const qr = await QR.toDataURL(url, { width: 380, margin: 1, color: { dark: DARK, light: BG } });
-    // типографика: никаких длинных/средних тире
-    const html = buildHtml(lang, qr).replace(/[—–]/g, '-');
-    const htmlPath = path.join(ROOT, 'tmp-presentation.html');
-    fs.writeFileSync(htmlPath, html);
-    const out = path.join(UP, lang === 'ru' ? 'presentation.pdf' : `presentation-${lang}.pdf`);
-    await page.goto('file://' + htmlPath, { waitUntil: 'networkidle' });
-    await page.pdf({ path: out, format: 'A4', landscape: true, printBackground: true });
-    fs.unlinkSync(htmlPath);
-    console.log(lang.toUpperCase() + ':', path.basename(out), (fs.statSync(out).size / 1024 / 1024).toFixed(1) + ' МБ');
+  // своя временная папка на запуск: иначе две одновременные сборки разных
+  // проектов пишут в один файл и могут смешать содержимое брошюр
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-pres-'));
+  try {
+    const page = await browser.newPage();
+    for (const lang of ['ru', 'uz', 'en']) {
+      const url = SITE + (lang === 'ru' ? '' : lang + '/');
+      const qr = await QR.toDataURL(url, { width: 380, margin: 1, color: { dark: DARK, light: BG } });
+      // типографика: никаких длинных/средних тире
+      const html = buildHtml(lang, qr).replace(/[—–]/g, '-');
+      const htmlPath = path.join(tmpDir, `${SLUG}-${lang}.html`);
+      fs.writeFileSync(htmlPath, html);
+      const out = path.join(UP, lang === 'ru' ? 'presentation.pdf' : `presentation-${lang}.pdf`);
+      await page.goto('file://' + htmlPath, { waitUntil: 'networkidle' });
+      await page.pdf({ path: out, format: 'A4', landscape: true, printBackground: true });
+      console.log(lang.toUpperCase() + ':', path.basename(out), (fs.statSync(out).size / 1024 / 1024).toFixed(1) + ' МБ');
+    }
+  } finally {
+    await browser.close();
+    fs.rmSync(tmpDir, { recursive: true, force: true });
   }
-  await browser.close();
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

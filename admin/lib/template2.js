@@ -68,7 +68,9 @@ function siteOf(cfg) {
     // single - одно готовое помещение целиком (ресторан, салон): уровней нет,
     // площади живут в блоке «Об объекте», как у земли
     assetType: s.assetType || 'building',   // building | land | single
-    intent: s.intent || 'both',             // both | none (объект только продаётся или только сдаётся)
+    // both - переключатель аренда/покупка; none - переключателя нет;
+    // lease или buy - формат сделки один, он и уходит в заявку
+    intent: s.intent || 'both',
     headline: a.headline || { ru: 'Тахтапул, 31 · Ташкент', uz: "Taxtapul ko'chasi 31 · Toshkent", en: '31 Taxtapul St · Tashkent' },
     street: a.street || { ru: 'ул. Тахтапул, 31', uz: "Taxtapul ko'chasi 31", en: "Taxtapul ko'chasi 31" },
     locality: a.locality || { ru: 'Ташкент', uz: 'Toshkent', en: 'Toshkent' },
@@ -311,7 +313,7 @@ html.anim .case-mark img{animation:caseGlow 6s ease-in-out infinite}
 .top nav a{color:rgba(255,255,255,.9);text-decoration:none;font:650 17px/1 system-ui;padding:12px 13px;border-radius:11px;white-space:nowrap}
 .top nav a:hover{background:rgba(255,255,255,.12);color:#fff}
 .langs{display:flex;gap:2px;background:rgba(255,255,255,.14);border-radius:10px;padding:3px}
-.langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 15px/1 system-ui;padding:10px 13px;border-radius:8px}
+.langs a{display:inline-flex;align-items:center;min-height:40px;color:rgba(255,255,255,.8);text-decoration:none;font:700 15px/1 system-ui;padding:0 13px;border-radius:8px}
 .langs a.on{background:#fff;color:var(--ink)}
 .top-phone{color:#fff;text-decoration:none;font:750 18px/1 system-ui;white-space:nowrap}
 /* Строка шапки не переносится, поэтому на средних экранах она ужимается по
@@ -330,7 +332,7 @@ html.anim .case-mark img{animation:caseGlow 6s ease-in-out infinite}
 .hero h1{font-size:clamp(30px,5.4vw,54px);max-width:820px;text-wrap:balance}
 .hero .tagline{margin:14px 0 22px;font:500 17px/1.5 system-ui;opacity:.92}
 .intent{display:inline-flex;background:rgba(255,255,255,.16);backdrop-filter:blur(8px);border-radius:12px;padding:4px;margin-bottom:26px}
-.intent button{border:0;background:none;color:rgba(255,255,255,.85);font:700 14px/1 system-ui;padding:11px 22px;border-radius:9px;cursor:pointer}
+.intent button{min-height:42px;border:0;background:none;color:rgba(255,255,255,.85);font:700 14px/1 system-ui;padding:0 22px;border-radius:9px;cursor:pointer}
 body[data-intent="lease"] .intent button[data-i="lease"],body[data-intent="buy"] .intent button[data-i="buy"]{background:#fff;color:var(--ink)}
 .facts{display:flex;gap:34px;flex-wrap:wrap;margin:0 0 30px}
 .facts div{border-left:2px solid rgba(255,255,255,.4);padding-left:14px}
@@ -426,7 +428,7 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 /* переключатель масштаба: подписан километрами, а не значками + и -,
    чтобы было видно, что именно показывает схема */
 .geo-steps{position:absolute;right:12px;top:12px;z-index:3;display:flex;gap:3px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:11px;padding:4px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
-.geo-steps button{border:0;background:none;color:var(--muted);font:650 12px/1 system-ui;padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.geo-steps button{min-height:40px;border:0;background:none;color:var(--muted);font:650 12px/1 system-ui;padding:0 12px;border-radius:8px;cursor:pointer;white-space:nowrap}
 .geo-steps button:hover{color:var(--bronze-d)}
 .geo-steps button.on{background:var(--bronze);color:#fff}
 .geo-h{margin:0 0 10px;font:700 11px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-d)}
@@ -606,7 +608,12 @@ html.anim .hero picture img{animation:kbZoom 6.5s cubic-bezier(.25,.6,.35,1) bot
 
 // ── клиентский JS ──
 function pageJs(cfg, lang) {
-  const leadEndpoint = cfg.leadEndpoint || '';
+  // Приём заявок. Если поле проекта пустое, берём адрес панели на том же
+  // домене: пустая строка означала бы отправку формы на саму страницу, то есть
+  // молча потерянные заявки (и заодно потерянную аналитику - её адрес
+  // получается из этого же).
+  const leadEndpoint = (cfg.leadEndpoint || '').trim()
+    || `/admin/api/lead/${String(cfg.slug || '').replace(/[^a-z0-9_-]/gi, '')}`;
   const analyticsEndpoint = leadEndpoint.replace('/api/lead/', '/api/e/');
   const mapsKey = (cfg.settings && cfg.settings.mapsApiKey || '').trim();
   const lat = Number(cfg.location.lat), lng = Number(cfg.location.lng);
@@ -629,21 +636,34 @@ var GEO_LBL=${JSON.stringify(['med', 'ph', 'bc', 'mh', 'food'].reduce((o, k) => 
   }, {}))};
 var GEO_COL=${JSON.stringify(GEO_COL)};
 var EV_URL=${JSON.stringify(analyticsEndpoint)};
+var SLUG=${JSON.stringify(String(cfg.slug || ''))};
+var INTENT_FIX=${JSON.stringify(['lease', 'buy'].includes((cfg.site && cfg.site.intent) || '') ? cfg.site.intent : '')};
+var YM_ID=${JSON.stringify(Number((cfg.settings && cfg.settings.metricaId || '').trim()) || 0)};
 var MAPS_KEY=${JSON.stringify(mapsKey)};
 var LAT=${lat},LNG=${lng};
 var DNT=(navigator.doNotTrack=='1'||window.doNotTrack=='1');
 
-/* ── intent (lease|buy): URL ?intent → localStorage → default lease ── */
+/* ── intent (lease|buy): URL ?intent → localStorage → значение по умолчанию ──
+   Выбор хранится отдельно для каждого проекта: домен один на все лендинги, и
+   общий ключ переносил бы «покупку» с одного объекта на другой, где продажи
+   нет. У объектов с одним форматом сделки значение зафиксировано. */
+var INTENT_KEY='tx_intent:'+SLUG;
 function getIntent(){
+  if(INTENT_FIX)return INTENT_FIX;
   var q=new URLSearchParams(location.search).get('intent');
   if(q==='lease'||q==='buy')return q;
-  try{var s=localStorage.getItem('tx_intent');if(s==='lease'||s==='buy')return s}catch(e){}
+  try{var s=localStorage.getItem(INTENT_KEY);if(s==='lease'||s==='buy')return s}catch(e){}
   return 'lease';
 }
 function setIntent(v,fire){
   document.body.setAttribute('data-intent',v);
-  try{localStorage.setItem('tx_intent',v)}catch(e){}
-  var u=new URL(location.href);u.searchParams.set('intent',v);history.replaceState(null,'',u);
+  document.querySelectorAll('.intent button').forEach(function(b){
+    b.setAttribute('aria-selected',b.dataset.i===v?'true':'false');
+  });
+  if(!INTENT_FIX){
+    try{localStorage.setItem(INTENT_KEY,v)}catch(e){}
+    var u=new URL(location.href);u.searchParams.set('intent',v);history.replaceState(null,'',u);
+  }
   var sel=document.getElementById('f-intent');
   if(sel&&(sel.value==='lease'||sel.value==='buy'))sel.value=v;
   if(fire)ev('intent_switch',{intent:v});
@@ -680,6 +700,8 @@ function ev(name,data){
   Q.push(Object.assign({t:name,ts:Date.now(),intent:document.body.getAttribute('data-intent')},data||{}));
   if(Q.length>=10)flush();
   if(window.gtag)try{gtag('event',name,data||{})}catch(e){}
+  /* те же события уходят целями в Метрику: иначе она видит только просмотры */
+  if(window.ym&&YM_ID)try{ym(YM_ID,'reachGoal',name,data||{})}catch(e){}
 }
 document.addEventListener('visibilitychange',function(){if(document.visibilityState==='hidden')flush()});
 window.addEventListener('pagehide',flush);
@@ -1385,11 +1407,16 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
     <details><summary>${t(f.q)}</summary><div class="a">${pick(f.a, lang)}</div></details>`).join('');
 
   // ── экран 9: селекты формы ──
-  const intentOpts = [
-    `<option value="lease" data-ru="${esc(STR['intent.lease'].ru)}">${s('intent.lease')}</option>`,
-    `<option value="buy" data-ru="${esc(STR['intent.buy'].ru)}">${s('intent.buy')}</option>`,
-    `<option value="lease_to_own" data-ru="${esc(STR['form.intent.both'].ru)}">${s('form.intent.both')}</option>`
-  ].join('');
+  // у объекта с одним форматом сделки в форме остаётся только он: иначе
+  // заявка на аренду приходит с объекта, который только продаётся
+  const intentOpt = {
+    lease: `<option value="lease" data-ru="${esc(STR['intent.lease'].ru)}">${s('intent.lease')}</option>`,
+    buy: `<option value="buy" data-ru="${esc(STR['intent.buy'].ru)}">${s('intent.buy')}</option>`,
+    lease_to_own: `<option value="lease_to_own" data-ru="${esc(STR['form.intent.both'].ru)}">${s('form.intent.both')}</option>`
+  };
+  const intentOpts = (SITE.intent === 'lease' || SITE.intent === 'buy')
+    ? intentOpt[SITE.intent]
+    : intentOpt.lease + intentOpt.buy + intentOpt.lease_to_own;
   const unitOpts = [`<option value="">${s('form.unit.none')}</option>`]
     .concat((cfg.units || []).map((u) => `<option value="${esc(u.id)}">${t(u.level)} · ${esc(u.gla)} м²</option>`)).join('');
 
@@ -1435,7 +1462,7 @@ ${counters}
 <style>${CSS}${themeCss}${fontCss}${caseCss}</style>
 <script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim")}catch(e){}</script>
 </head>
-<body data-intent="lease">
+<body data-intent="${SITE.intent === 'buy' ? 'buy' : 'lease'}">
 
 <header class="top">
   <div class="top-in">
@@ -1463,9 +1490,9 @@ ${counters}
   <div class="hero-in">
     <h1>${t(cfg.intro.h1)}</h1>
     <p class="tagline">${t(cfg.intro.sub)}</p>
-    ${SITE.intent === 'none' ? '' : `<div class="intent" role="tablist">
-      <button type="button" data-i="lease">${s('intent.lease')}</button>
-      <button type="button" data-i="buy">${s('intent.buy')}</button>
+    ${SITE.intent !== 'both' ? '' : `<div class="intent" role="tablist" aria-label="${s('form.intent')}">
+      <button type="button" role="tab" data-i="lease" aria-selected="true">${s('intent.lease')}</button>
+      <button type="button" role="tab" data-i="buy" aria-selected="false">${s('intent.buy')}</button>
     </div>`}
     <div class="facts">
       ${(cfg.intro.facts || []).map((f) => `<div>${f.n ? `<b>${esc(pick(f.n, lang))}</b>` : ''}<span>${t(f.l)}</span></div>`).join('\n')}

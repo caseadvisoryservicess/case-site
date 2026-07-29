@@ -42,7 +42,7 @@
       "accentD": "#175468",
       "dark": "#101b26"
     },
-    "intent": "none"
+    "intent": "buy"
   },
   "brand": {
     "mark": "K",
@@ -69,7 +69,7 @@
     "smtpPass": ""
   },
   "adminUrl": "",
-  "leadEndpoint": "",
+  "leadEndpoint": "https://caseadvisory.uz/admin/api/lead/kibray-dc",
   "texts": {
     "legal.area": {
       "ru": "Площади и характеристики приведены по выписке из Государственного реестра прав на недвижимость от 05.02.2024, зонирование и сейсмичность - по карточке объекта портала «Шаффоф қурилиш». Информация носит справочный характер и не является публичной офертой.",
@@ -768,7 +768,7 @@
   "settings": {
     "mapsApiKey": "",
     "metricaId": "111115481",
-    "ga4Id": "",
+    "ga4Id": "G-X9Y8MHCP9L",
     "gtmId": ""
   },
   "pres": {
