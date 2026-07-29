@@ -92,6 +92,35 @@ a{color:var(--red)}
 .mlgd .li b{margin-left:auto}
 .mlgd .grp2{margin-top:6px;padding-top:5px;border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:10px}
 .mlgd .ln{display:inline-block;width:14px;height:3px;border-radius:2px}
+.map-static{height:100%;min-height:420px;background:linear-gradient(180deg,#fff 0,#f8fafc 100%);display:flex;flex-direction:column}
+.map-static .mh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.92)}
+.map-static .mh b{font-size:13px}.map-static .mh span{color:var(--muted);font-size:11px}
+.map-static .svgwrap{flex:1;min-height:320px;padding:12px}
+.map-static svg{width:100%;height:100%;min-height:320px;display:block}
+.map-static .legend{display:flex;gap:10px;flex-wrap:wrap;padding:0 14px 12px;color:var(--muted);font-size:11px}
+.map-static .sw{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:-1px}
+.map-static .static-note{padding:0 14px 12px;color:var(--muted);font-size:11px;line-height:1.45}
+.map-static .static-label{font-size:12px;font-weight:700;fill:#34495e}
+.map-static .static-small{font-size:10px;fill:#6b7280}
+.map-static .static-point{cursor:pointer;stroke:#fff;stroke-width:1.5}
+.map-static .static-point:hover{stroke:#1c1f26;stroke-width:2.5}
+.map-static .static-project{fill:var(--red);stroke:#fff;stroke-width:4}
+@media (max-width:760px){
+ html,body{height:auto;min-height:100%}.app{height:auto;min-height:100vh}.top{flex-wrap:wrap}.top .tag{max-width:100%}
+ .tabs{overflow-x:auto;flex-wrap:nowrap;padding:4px 8px 0}.tabs button{flex:0 0 auto;white-space:nowrap}
+ .wrap{display:flex;flex-direction:column;min-height:0}.left{width:100%;max-height:52vh;border-right:0;border-bottom:1px solid var(--line)}
+ #map{min-height:46vh;flex:0 0 46vh}.page{padding:12px;overflow:auto}.card{width:100%;max-width:none}
+ .styrow{grid-template-columns:1fr;gap:6px}.styrow.sub{align-items:flex-start}.styrow.sub select,.styrow.sub input[type=text]{max-width:100%;width:100%!important}
+ .styrow.sub input[type=range]{width:120px!important}.btn{min-height:34px}.pnav{position:static}.mlgd{max-width:220px}
+ table{font-size:11px;min-width:620px}.page{max-width:100%;overflow:auto}.insight{padding:10px 12px}.kpi{margin:2px;padding:5px 8px}.kpi b{font-size:15px}
+ #dataT>div:first-child{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#dq{width:min(100%,260px)!important}#dataT .btn{float:none!important}
+}
+@media (max-width:460px){
+ header.top{gap:8px;padding:8px 10px}.tag{font-size:9px}.left{max-height:58vh}#map{min-height:42vh;flex-basis:42vh}
+ .sect h3{font-size:10px;padding:9px 10px}.sect .sbody{padding:6px 10px 10px}.lrow{align-items:flex-start}
+ .styrow.sub{display:grid;grid-template-columns:1fr 1fr}.styrow.sub label{white-space:normal}.styrow.sub input[type=range]{width:100%!important}
+ .map-static .mh{padding:10px}.map-static .svgwrap{padding:8px}.map-static .legend{padding:0 10px 10px}
+}
 </style></head><body>
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Geo Analytics · Tashkent Office/BC Benchmark · 2026</span><span style="flex:1"></span><span class="tag" id="hdrCount"></span></header>
@@ -102,7 +131,7 @@ a{color:var(--red)}
   <div class="sect"><h3>🎯 Анализ локации (как в гео-платформах)</h3>
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
-   <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">▱ Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
+   <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
    <div class="mini" id="zoneNote">Инфо в зоне: население, БЦ, медицина, аптеки внутри нарисованного полигона.</div>
    <div class="styrow"><label>Изохрона авто</label><select id="isoMin" style="width:auto;font-size:11px"><option>5</option><option selected>10</option><option>15</option><option>20</option></select><button class="btn sec" id="btnIso" style="font-size:11px">▶ От проекта</button></div>
    <div class="mini" id="isoNote">Реальная изохрона по дорожной сети (OSRM). Требует интернета.</div>
@@ -124,7 +153,7 @@ a{color:var(--red)}
     <div class="styrow sub"><label>лучших зон</label><select id="sZTop" style="width:auto;font-size:11px">
       <option>0</option><option>3</option><option selected>5</option><option>8</option></select>
       <label>прозрачность</label><input type="range" id="sZO" min="20" max="95" value="72" style="width:70px"></div>
-    <div class="styrow"><button class="btn" id="btnZones" style="font-size:11px">◧ Построить карту</button><button class="btn sec" id="btnZonesCsv" style="font-size:11px">⤓ CSV</button><button class="btn sec" id="btnZonesClr" style="font-size:11px">✕</button></div>
+    <div class="styrow"><button class="btn" id="btnZones" style="font-size:11px">Построить карту</button><button class="btn sec" id="btnZonesCsv" style="font-size:11px">CSV</button><button class="btn sec" id="btnZonesClr" style="font-size:11px">✕</button></div>
     <div class="mini" id="zonesNote">Спрос (жители в радиусе) × свобода от конкуренции → где формат работает. Все параметры редактируемые.</div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
    </div>
@@ -223,12 +252,42 @@ CANV=L.canvas({padding:0.25});
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
 gBC=L.layerGroup().addTo(map);gRing=L.layerGroup().addTo(map);gProj=L.layerGroup().addTo(map);gMetro=L.layerGroup();gDist=L.layerGroup();gDens=L.layerGroup();gRoad=L.layerGroup();gMed=L.layerGroup().addTo(map);gPharm=L.layerGroup();
 }else{
-document.getElementById('map').innerHTML='<div style="display:flex;height:100%;align-items:center;justify-content:center;color:#6b7280;font-size:14px;text-align:center;padding:20px">Не удалось загрузить библиотеку карты (CDN недоступен).<br>Вкладки «Аналитика», «Сравнение стран» и «Данные (БЦ)» работают без карты.</div>';
+renderStaticMap();
 }
 let RADII=[{km:1,on:true},{km:3,on:true},{km:5,on:true}],metroRaw=null,DISTGEO=null,REGGEO=null,ZONES=null;
 function hav(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const s=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return R*2*Math.asin(Math.sqrt(s));}
 function proj(){return PROJECTS[$('proj').value];}
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function renderStaticMap(){
+ const box=$('map');if(!box)return;
+ const p=proj(),rows=BC.map(eff).filter(b=>b.lat!=null&&!isNaN(+b.lat)&&!isNaN(+b.lng));
+ const all=rows.concat([{lat:p.lat,lng:p.lng,name:p.name,provider:'CASE (owner)',district:p.district}]);
+ const lat=all.map(x=>+x.lat),lng=all.map(x=>+x.lng),pad=.025;
+ const minLat=Math.min(...lat)-pad,maxLat=Math.max(...lat)+pad,minLng=Math.min(...lng)-pad,maxLng=Math.max(...lng)+pad;
+ const W=1000,H=620,P=46;
+ const xy=(la,ln)=>[P+(+ln-minLng)/(maxLng-minLng)*(W-P*2),P+(maxLat-+la)/(maxLat-minLat)*(H-P*2)];
+ const near=rows.map(b=>({b,d:hav(p.lat,p.lng,+b.lat,+b.lng)})).filter(x=>x.d>0.1).sort((a,b)=>a.d-b.d).slice(0,8);
+ const top=near.map(x=>x.b.id);
+ const pts=rows.map(b=>{const q=xy(b.lat,b.lng),c=PROVCOL[b.provider]||'#6b7280',r=top.includes(b.id)?5.6:3.6;
+  return `<circle class="static-point" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}" fill="${c}" onclick="openCard(${b.id})"><title>${esc(b.name)} · ${esc(b.district||'')} · ${esc(b.provider||'')}</title></circle>`;
+ }).join('');
+ const road=ROADS.slice(0,2).map(r=>`<polyline points="${r.p.map(x=>xy(x[0],x[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${r.c}" stroke-width="2.2" stroke-opacity=".42"><title>${esc(r.n)}</title></polyline>`).join('');
+ const metro=METRO.map(m=>`<polyline points="${m.s.map(x=>xy(x[0],x[1]).map(v=>v.toFixed(1)).join(',')).join(' ')}" fill="none" stroke="${m.c}" stroke-width="2" stroke-opacity=".48"><title>${esc(m.n)}</title></polyline>`).join('');
+ const nearestText=near.slice(0,5).map((x,i)=>`${i+1}. ${esc(x.b.name).slice(0,34)} (${x.d.toFixed(1)} км)`).join(' · ');
+ const pq=xy(p.lat,p.lng);
+ box.innerHTML=`<div class="map-static">
+  <div class="mh"><b>Схема координат без CDN</b><span>Leaflet недоступен, но база БЦ, проект, метро и основные коридоры показаны по встроенным координатам.</span></div>
+  <div class="svgwrap"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Схема расположения БЦ и проекта ${esc(p.name)}">
+   <rect x="1" y="1" width="${W-2}" height="${H-2}" fill="#fff" stroke="#e3e6ec"/>
+   <path d="M ${P} ${H-P} H ${W-P} M ${P} ${P} V ${H-P}" stroke="#e3e6ec" stroke-width="1"/>
+   ${road}${metro}${pts}
+   <circle class="static-project" cx="${pq[0].toFixed(1)}" cy="${pq[1].toFixed(1)}" r="10"><title>${esc(p.name)} · ${esc(p.district)}</title></circle>
+   <text class="static-label" x="${Math.min(W-210,pq[0]+14).toFixed(1)}" y="${Math.max(22,pq[1]-12).toFixed(1)}">${esc(p.name)}</text>
+  </svg></div>
+  <div class="legend"><span><span class="sw" style="background:#9E0000"></span>проект</span><span><span class="sw" style="background:#0d7a6f"></span>2ГИС</span><span><span class="sw" style="background:#2f77b6"></span>Google</span><span><span class="sw" style="background:#c47f00"></span>GoldenPages</span><span>${rows.length} БЦ с координатами</span></div>
+  <div class="static-note">Ближайшие БЦ: ${nearestText}. Для полной интерактивной карты нужен доступ к Leaflet CDN и тайлам OpenStreetMap; аналитические вкладки работают с локальными данными.</div>
+ </div>`;
+}
 function socialLinks(s){if(!s)return '';return String(s).split(' | ').map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.replace(/https?:\/\/(www\.)?/,'').split('/')[0])}</a>`).join(' · ');}
 function popContent(e,dkm){const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google':'',e.inyandex?'Yandex':'',e.ingp?'GP':''].filter(Boolean).join(', ');
  return `<b>${esc(e.name)}</b><br><span style="color:#6b7280">${esc(e.district)||''} · ${esc(e.provider)}</span><br>${e.address?esc(e.address)+'<br>':''}${e['class']?'Класс: <b>'+esc(e['class'])+'</b><br>':''}${e.gla?'GLA: '+esc(e.gla)+' м²<br>':''}${e.floors?'Этажей: '+esc(e.floors)+'<br>':''}${e.parking?'Парковка: '+esc(e.parking)+'<br>':''}${e.rent?'<b style="color:#9E0000">Аренда: '+esc(e.rent)+' $/м²/мес</b><br>':''}${e.avail?'Свободно: '+esc(e.avail)+' м²<br>':''}${e.sale?'Продажа: '+esc(e.sale)+' $/м²<br>':''}${e.rating?'★ '+esc(e.rating)+' ('+esc(e.reviews)+')<br>':''}<small>Есть в: ${fl||'—'}${dkm!=null?' · '+dkm.toFixed(2)+' км от проекта':''}</small><br><span style="color:#9E0000;font-weight:600">клик → карточка (редакт.)</span>`;}
@@ -274,14 +333,14 @@ function openCard(id){const b=BC.find(x=>x.id===id);if(!b)return;const e=eff(b);
  CARDG.forEach(([g,fs])=>{h+=`<div class="grp">${g}</div>`;fs.forEach(([lab,k,t])=>{const v=esc(e[k]==null?'':e[k]);h+=`<div class="fld"><label>${lab}</label>${t==='ta'?`<textarea data-k="${k}">${v}</textarea>`:`<input type="text" data-k="${k}" value="${v}">`}</div>`;});});
  const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google':'',e.inyandex?'Yandex':'',e.ingp?'GoldenPages':''].filter(Boolean).join(', ');
  h+=`<div class="grp">Присутствие в источниках</div><div class="note">${fl||'—'}</div></div>`;
- h+=`<div class="savemsg" id="savemsg"></div><div class="cbtns"><button class="btn pri" onclick="saveCard(${id})">💾 Сохранить</button><button class="btn sec" onclick="closeCard()">Закрыть</button><button class="btn sec" onclick="exportDB()" title="скачать всю базу с правками (CSV)">⤓ База</button>${EDITS[id]?`<button class="btn sec" onclick="resetCard(${id})" title="сбросить правки этого БЦ">↺</button>`:''}</div>`;
+ h+=`<div class="savemsg" id="savemsg"></div><div class="cbtns"><button class="btn pri" onclick="saveCard(${id})">Сохранить</button><button class="btn sec" onclick="closeCard()">Закрыть</button><button class="btn sec" onclick="exportDB()" title="скачать всю базу с правками (CSV)">Выгрузить базу</button>${EDITS[id]?`<button class="btn sec" onclick="resetCard(${id})" title="сбросить правки этого БЦ">↺</button>`:''}</div>`;
  $('card').innerHTML=h;$('card').classList.add('open');$('cardbg').classList.add('open');}
 function closeCard(){$('card').classList.remove('open');$('cardbg').classList.remove('open');if(gSel){map.removeLayer(gSel);gSel=null;}}
 function saveCard(id){const b=BC.find(x=>x.id===id);const ov=Object.assign({},EDITS[id]||{});
  $('card').querySelectorAll('[data-k]').forEach(el=>{const k=el.dataset.k,v=el.value.trim();const base=(b[k]==null?'':String(b[k]));if(v!==base)ov[k]=v;else delete ov[k];});
  if(Object.keys(ov).length)EDITS[id]=ov;else delete EDITS[id];
  localStorage.setItem('caseos_bc_edits',JSON.stringify(EDITS));
- $('savemsg').textContent='Сохранено ✓ (в этом браузере). «⤓ База» — выгрузить CSV с правками для команды.';
+ $('savemsg').textContent='Сохранено ✓ (в этом браузере). «Выгрузить базу» — скачать CSV с правками для команды.';
  renderBC();catchSummary();analytics();dataTab();}
 function resetCard(id){delete EDITS[id];localStorage.setItem('caseos_bc_edits',JSON.stringify(EDITS));renderBC();openCard(id);}
 function exportDB(){const keys=['name','district','provider','status','address','lat','lng','class','floors','gla','gba','parking','year','website','socials','phone','rating','reviews','comment','in2gis','ingoogle','inyandex','ingp'];
@@ -290,7 +349,7 @@ function exportDB(){const keys=['name','district','provider','status','address',
 function renderRings(){if(!map)return;gRing.clearLayers();const p=proj();const w=+$('ringW').value;
  RADII.filter(r=>r.on).sort((a,b)=>b.km-a.km).forEach((r)=>{const idx=[1,3,5].indexOf(r.km);const col=idx===2?$('ringWc').value:RINGC[idx>=0?idx:2];
    L.circle([p.lat,p.lng],{radius:r.km*1000,color:col,weight:w,opacity:.95,fillColor:col,fillOpacity:.06}).addTo(gRing).bindTooltip(r.km+' км',{sticky:true});});}
-function renderProj(){const p=proj();$('projInfo').innerHTML=`${p.name}<br>Район: <b>${p.district}</b><br>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;renderRings();catchSummary();if(!map)return;gProj.clearLayers();const ic=L.divIcon({className:'',html:'<div style="background:#9E0000;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
+function renderProj(){const p=proj();$('projInfo').innerHTML=`${p.name}<br>Район: <b>${p.district}</b><br>${p.lat.toFixed(5)}, ${p.lng.toFixed(5)}`;renderRings();catchSummary();if(!map){renderStaticMap();return;}gProj.clearLayers();const ic=L.divIcon({className:'',html:'<div style="background:#9E0000;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
  L.marker([p.lat,p.lng],{icon:ic}).addTo(gProj).bindTooltip('★ '+p.name,{permanent:true,direction:'top',className:'dlab'});
  map.setView([p.lat,p.lng],13);}
 function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
@@ -403,13 +462,13 @@ function pip(x,y,poly){let c=false;for(let i=0,j=poly.length-1;i<poly.length;j=i
  if(((yi>y)!==(yj>y))&&(x<(xj-xi)*(y-yi)/(yj-yi)+xi))c=!c;}return c;}
 
 /* ---- зона (полигон) ---- */
-function zoneClr(){ZPTS=[];ZMODE=false;if(gZone)gZone.clearLayers();$('btnZone').textContent='▱ Зона: рисовать';$('btnZoneDone').disabled=true;
+function zoneClr(){ZPTS=[];ZMODE=false;if(gZone)gZone.clearLayers();$('btnZone').textContent='Зона: рисовать';$('btnZoneDone').disabled=true;
  $('zoneNote').textContent='Инфо в зоне: население, БЦ, медицина, аптеки внутри нарисованного полигона.';}
 function zoneDraw(){if(!map)return;if(!gZone)gZone=L.layerGroup().addTo(map);gZone.clearLayers();
  if(ZPTS.length)L.polyline(ZPTS,{color:'#9E0000',weight:2,dashArray:'5'}).addTo(gZone);
  ZPTS.forEach(p=>L.circleMarker(p,{radius:3,color:'#9E0000',fillColor:'#fff',fillOpacity:1,weight:2}).addTo(gZone));}
 function zoneDone(){if(ZPTS.length<3){$('zoneNote').textContent='Нужно минимум 3 точки.';return;}
- ZMODE=false;$('btnZone').textContent='▱ Зона: рисовать';
+ ZMODE=false;$('btnZone').textContent='Зона: рисовать';
  if(!gZone)gZone=L.layerGroup().addTo(map);gZone.clearLayers();
  L.polygon(ZPTS,{color:'#9E0000',weight:2,fillColor:'#9E0000',fillOpacity:.08}).addTo(gZone);
  let pop=0;if(POP)POP.forEach(h=>{if(pip(h[1],h[0],ZPTS))pop+=h[2];});
@@ -971,7 +1030,7 @@ function analytics(){
  (eBC.filter(b=>b.rent||b.sale).length?eBC.filter(b=>b.rent||b.sale).sort((a,b)=>(parseFloat(b.rent)||0)-(parseFloat(a.rent)||0)).map(b=>`<tr><td><b>${esc(b.name)}</b></td><td>${esc(b.district)}</td><td>${b.rent?esc(b.rent):'-'}</td><td>${b.avail?esc(b.avail):'-'}</td><td>${b.sale?esc(b.sale):'-'}</td><td class="mini">${esc(b.psrc||'')}</td></tr>`).join('')
  :'<tr><td colspan=6 class="note">Пока нет БЦ с ценой - заполняйте через карточку (клик по точке).</td></tr>')+
  `</tbody></table>
- <p class="note">Источник рынка: ${MARKET.src}. Метод: объявления отфильтрованы по признаку «офис» (склады/контейнеры/магазины исключены); цена на досках публикуется то за м², то за объект - разведено по правдоподобию ставки ($2-60/м² аренда, $200-4000/м² продажа). Цены по конкретным БЦ заполняются командой в карточке и выгружаются кнопкой «⤓ База».</p>
+ <p class="note">Источник рынка: ${MARKET.src}. Метод: объявления отфильтрованы по признаку «офис» (склады/контейнеры/магазины исключены); цена на досках публикуется то за м², то за объект - разведено по правдоподобию ставки ($2-60/м² аренда, $200-4000/м² продажа). Цены по конкретным БЦ заполняются командой в карточке и выгружаются кнопкой «Выгрузить базу».</p>
  <h3 style="margin:16px 0 8px">G. Население: калибровка источника</h3>
  ${CAL?`<p class="note">Пространственное распределение - Kontur H3 (0.87 км², 2023, моделируемые данные). Суммы приведены к офиц. населению Toshstat 01.01.2026 по каждому району. Коэффициент = офиц./Kontur; сильное отклонение от 1 = источник в этом районе ненадёжен.</p>
  <table><thead><tr><th>Район</th><th>Kontur, чел.</th><th>Офиц. 2026</th><th>Коэф.</th></tr></thead><tbody>`+
@@ -1031,7 +1090,7 @@ async function probeAt(la,ln){
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
  LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed};
- h+=`</div><div class="cbtns"><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
+h+=`</div><div class="cbtns"><button class="btn" onclick="exportProbe()">Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
 }
 function siteTab(){
@@ -1117,7 +1176,7 @@ function siteTab(){
    return t;})()}
  <div class="insight"><b>Синтез CASE.</b> По данным лидируют микс и апарт, но с малым отрывом. Мы добавили два факта, меняющих картину: <b>(1) офисных конкурентов рядом нет вообще</b> - это плюс к БЦ, которого в скоринге не было; <b>(2) целевая ставка B+ втрое выше медианы района, а метро в 2.4 км</b> - это минусы, которых в скоринге тоже не было. Итог: решение по-прежнему стратегическое, но теперь обе чаши весов оцифрованы. Следующий шаг - финмодель по 1-2 финалистам (микс vs БЦ B+) и градостроительные ограничения участка.</div>`;
  $('siteT').innerHTML=h;}
-function dataTab(){$('dataT').innerHTML=`<div style="margin-bottom:8px"><input id="dq" type="text" placeholder="Поиск…" style="width:220px;display:inline-block"> <span class="note" id="dcount"></span> <button class="btn sec" style="float:right" onclick="exportDB()">⤓ Экспорт CSV (с правками)</button></div><table><thead><tr><th>Название</th><th>Район</th><th>Источник</th><th>Класс</th><th>Карты</th><th>Коорд.</th></tr></thead><tbody id="dbody"></tbody></table>`;
+function dataTab(){$('dataT').innerHTML=`<div style="margin-bottom:8px"><input id="dq" type="text" placeholder="Поиск…" style="width:220px;display:inline-block"> <span class="note" id="dcount"></span> <button class="btn sec" style="float:right" onclick="exportDB()">Экспорт CSV (с правками)</button></div><table><thead><tr><th>Название</th><th>Район</th><th>Источник</th><th>Класс</th><th>Карты</th><th>Коорд.</th></tr></thead><tbody id="dbody"></tbody></table>`;
  const draw=()=>{const q=($('dq').value||'').toLowerCase();const rows=BC.map(eff).filter(b=>!q||b.name.toLowerCase().includes(q)||(b.district||'').toLowerCase().includes(q));$('dcount').textContent=rows.length+' из '+BC.length;
   $('dbody').innerHTML=rows.map(b=>`<tr onclick="openCard(${b.id})" style="cursor:pointer"><td><b>${esc(b.name)}</b>${EDITS[b.id]?' <span class="pill" style="background:#e6a700">ред</span>':''}</td><td>${esc(b.district)}</td><td><span class="pill" style="background:${PROVCOL[b.provider]||'#666'}">${esc(b.provider)}</span></td><td>${esc(b['class']||'')}</td><td style="font-size:10px">${[b.in2gis?'2ГИС':'',b.ingoogle?'G':'',b.inyandex?'Y':'',b.ingp?'GP':''].filter(Boolean).join(' ')}</td><td>${b.lat!=null?'✓':'—'}</td></tr>`).join('');};
  $('dq').oninput=draw;draw();}
@@ -1128,7 +1187,7 @@ $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);
 $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm);renderPharm();}else map.removeLayer(gPharm);};
 $('phC').addEventListener('input',renderPharm);
 
-$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
+$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'Кликайте по карте…':'Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
 $('btnZoneDone').onclick=zoneDone;
 $('btnZoneClr').onclick=zoneClr;
 $('btnIso').onclick=()=>{const p=proj();isochrone(p.lat,p.lng,+$('isoMin').value);};
