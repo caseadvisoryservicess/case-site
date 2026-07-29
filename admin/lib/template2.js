@@ -141,6 +141,11 @@ const STR = {
   'geo.ph': { ru: 'аптеки', uz: 'dorixonalar', en: 'pharmacies' },
   'geo.bc': { ru: 'бизнес-центры', uz: 'biznes-markazlar', en: 'business centres' },
   'geo.mh': { ru: 'махалля', uz: 'mahalla', en: 'mahalla' },
+  'geo.notePop': {
+    ru: 'Жители в радиусе - сетка Kontur H3, откалиброванная на официальное население района.',
+    uz: 'Radius ichidagi aholi - tuman rasmiy aholisiga moslangan Kontur H3 to\'ri.',
+    en: 'Residents within the radius come from the Kontur H3 grid calibrated to the official district population.'
+  },
   'geo.note': {
     ru: 'Окружение - собственная геобаза CASE (2ГИС и OpenStreetMap, сбор июль 2026). Население в пешей доступности - модель CASE OS Geo Analytics. Данные носят справочный характер и уточняются.',
     uz: 'Atrof-muhit - CASE o\'z geobazasi (2GIS va OpenStreetMap, 2026 yil iyul). Piyoda yetib boriladigan aholi - CASE OS Geo Analytics modeli. Ma\'lumotlar ma\'lumot xarakteriga ega va aniqlashtiriladi.',
@@ -1290,8 +1295,11 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
       .map(([c, l]) => `<span><i style="background:${GEO_COL[c]}"></i>${l}</span>`).join('');
     const tiles = (G.iso || []).map((x) =>
       `<div class="geo-tile"><b>${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</b><span>${s('geo.iso').replace('{m}', x.min)}</span></div>`).join('');
+    // тысячи разбиваем пробелом: в строке жителей числа шестизначные
+    const gn = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const rows = (G.around || []).map((a) =>
-      `<div class="geo-row"><span>${t(a.l)}</span><i>${a.n1} ${s('geo.in1')} · ${a.n15} ${s('geo.in15')}${a.n3 == null ? '' : ` · ${a.n3} ${s('geo.in3')}`}</i></div>`).join('');
+      `<div class="geo-row"><span>${t(a.l)}</span><i>${gn(a.n1)} ${s('geo.in1')} · ${gn(a.n15)} ${s('geo.in15')}${a.n3 == null ? '' : ` · ${gn(a.n3)} ${s('geo.in3')}`}</i></div>`).join('');
+    const hasPop = (G.around || []).some((a) => a.k === 'pop');
     return `
 <section id="geo" style="padding-top:0">
   <div class="wrap">
@@ -1322,7 +1330,7 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
         <div class="geo-tiles">${tiles}</div>
         ${rows}
         <div class="geo-leg">${legend}</div>
-        <p class="fineprint" style="margin-top:18px">${s('geo.note')}</p>
+        <p class="fineprint" style="margin-top:18px">${s('geo.note')}${hasPop ? ' ' + s('geo.notePop') : ''}</p>
       </div>
     </div>
     <div class="sec-cta"><a class="btn ghost" href="#enquiry" data-ev="cta_click" data-evx='{"cta":"geo"}'>${s('cta.more')}</a></div>

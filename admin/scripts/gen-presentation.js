@@ -133,6 +133,11 @@ const T = {
   geo_bc: { ru: 'бизнес-центры', uz: 'biznes-markazlar', en: 'business centres' },
   geo_mh: { ru: 'махалля', uz: 'mahalla', en: 'mahalla' },
   geo_scheme: { ru: 'Кольца - расстояние по прямой от здания', uz: 'Halqalar - binodan to‘g‘ri chiziq bo‘yicha masofa', en: 'Rings are straight-line distances from the building' },
+  geo_notePop: {
+    ru: 'Жители в радиусе - сетка Kontur H3, откалиброванная на официальное население района.',
+    uz: 'Radius ichidagi aholi - tuman rasmiy aholisiga moslangan Kontur H3 to‘ri.',
+    en: 'Residents within the radius come from the Kontur H3 grid calibrated to the official district population.'
+  },
   geo_note: {
     ru: 'Окружение - собственная геобаза CASE (2ГИС и OpenStreetMap, сбор июль 2026). Население в пешей доступности - модель CASE OS Geo Analytics. Данные носят справочный характер и уточняются.',
     uz: 'Atrof-muhit - CASE o‘z geobazasi (2GIS va OpenStreetMap, 2026 yil iyul). Piyoda yetib boriladigan aholi - CASE OS Geo Analytics modeli. Ma’lumotlar ma’lumot xarakteriga ega va aniqlashtiriladi.',
@@ -308,9 +313,11 @@ function buildHtml(lang, qr) {
         <div style="font-size:17pt;font-weight:800;letter-spacing:-.01em">${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</div>
         <div style="font-size:8.5pt;color:${MUTED};margin-top:.5mm">${esc(t('geo_iso').replace('{m}', x.min))}</div>
       </div>`).join('');
+    const gn = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     const rows = (GEO.around || []).map((a) =>
       `<tr><td style="padding-left:0;background:none">${M(a.l)}</td>
-        <td style="text-align:right;font-weight:700;background:none;white-space:nowrap">${a.n1} ${t('geo_in1')} · ${a.n15} ${t('geo_in15')}${a.n3 == null ? '' : ` · ${a.n3} ${t('geo_in3')}`}</td></tr>`).join('');
+        <td style="text-align:right;font-weight:700;background:none;white-space:nowrap">${gn(a.n1)} ${t('geo_in1')} · ${gn(a.n15)} ${t('geo_in15')}${a.n3 == null ? '' : ` · ${gn(a.n3)} ${t('geo_in3')}`}</td></tr>`).join('');
+    const hasPop = (GEO.around || []).some((a) => a.k === 'pop');
     const legend = [['med', 'geo_med'], ['ph', 'geo_ph'], ['bc', 'geo_bc'], ['mh', 'geo_mh']].map(([c2, key]) =>
       `<span style="display:inline-flex;align-items:center;gap:1.5mm;margin-right:5mm"><i style="width:2.2mm;height:2.2mm;border-radius:50%;background:${GEO_COL[c2]};display:inline-block"></i>${t(key)}</span>`).join('');
     return `
@@ -330,7 +337,7 @@ function buildHtml(lang, qr) {
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${tiles}</div>
         <table style="background:none;font-size:10pt">${rows}</table>
         <div style="font-size:8.5pt;color:${MUTED}">${legend}</div>
-        <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}</div>
+        <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}${hasPop ? ' ' + t('geo_notePop') : ''}</div>
       </div>
     </div>
     ${foot(7 + PLAN_PAGES.length)}
