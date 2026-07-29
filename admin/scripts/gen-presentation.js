@@ -132,6 +132,10 @@ const T = {
   geo_ph: { ru: 'аптеки', uz: 'dorixonalar', en: 'pharmacies' },
   geo_bc: { ru: 'бизнес-центры', uz: 'biznes-markazlar', en: 'business centres' },
   geo_mh: { ru: 'махалля', uz: 'mahalla', en: 'mahalla' },
+  h_pop: { ru: 'Сколько людей живёт рядом', uz: 'Yaqin atrofda qancha odam yashaydi', en: 'How many people live nearby' },
+  h_around: { ru: 'Что находится вокруг', uz: 'Atrofda nima bor', en: 'What is around' },
+  geo_walk: { ru: 'Пешком', uz: 'Piyoda', en: 'On foot' },
+  geo_walkItem: { ru: '{n} за {m} минут', uz: '{m} daqiqada {n}', en: '{n} within {m} minutes' },
   geo_scheme: { ru: 'Кольца - расстояние по прямой от здания', uz: 'Halqalar - binodan to‘g‘ri chiziq bo‘yicha masofa', en: 'Rings are straight-line distances from the building' },
   geo_notePop: {
     ru: 'Жители в радиусе - сетка Kontur H3, откалиброванная на официальное население района.',
@@ -146,6 +150,7 @@ const T = {
   lbl_viz: { ru: 'Визуализации', uz: 'Vizualizatsiyalar', en: 'Visualisations' },
   h_viz: { ru: 'Внешний облик', uz: 'Tashqi ko‘rinish', en: 'Exterior' },
   viz_one: { ru: 'визуализация', uz: 'vizualizatsiya', en: 'visualisation' },
+  viz_cut: { ru: 'разрез', uz: 'kesim', en: 'section' },
   viz_p: {
     ru: 'Витражное остекление по всему периметру, кровельная терраса с перголой и вечерняя архитектурная подсветка. На фасаде предусмотрено место под вывеску арендатора - здание работает на узнаваемость вашего бренда.',
     uz: 'Butun perimetr bo‘ylab vitraj oynalar, pergolali tom terrasasi va kechki arxitektura yoritilishi. Fasadda ijarachi peshlavhasi uchun joy ko‘zda tutilgan - bino brendingiz tanilishiga xizmat qiladi.',
@@ -178,6 +183,34 @@ const T = {
     uz: 'Barcha tasvirlar - qurilish konsepsiyasi vizualizatsiyalari, uchastka fotosuratlari emas. Ommaviy oferta hisoblanmaydi.',
     en: 'All images are visualisations of a development concept, not photographs of the site. They do not constitute a public offer.'
   }
+};
+
+// Размер картинки по заголовку файла, без библиотек: нужен, чтобы вертикальные
+// кадры (например разрез здания) не обрезались в горизонтальных слотах.
+const imgSize = (name) => {
+  const p = path.join(UP, name);
+  if (!fs.existsSync(p)) return null;
+  const b = fs.readFileSync(p);
+  if (b.length > 24 && b[0] === 0x89 && b[1] === 0x50) {          // PNG
+    return { w: b.readUInt32BE(16), h: b.readUInt32BE(20) };
+  }
+  if (b.length > 4 && b[0] === 0xff && b[1] === 0xd8) {           // JPEG
+    let i = 2;
+    while (i + 9 < b.length) {
+      if (b[i] !== 0xff) { i++; continue; }
+      const m = b[i + 1];
+      if (m >= 0xc0 && m <= 0xcf && m !== 0xc4 && m !== 0xc8 && m !== 0xcc) {
+        return { h: b.readUInt16BE(i + 5), w: b.readUInt16BE(i + 7) };
+      }
+      i += 2 + b.readUInt16BE(i + 2);
+    }
+  }
+  return null;
+};
+// вертикальным считаем кадр, который заметно выше своей ширины
+const isTall = (name) => {
+  const s = imgSize(name);
+  return !!s && s.w / s.h < 0.95;
 };
 
 // для мелких ячеек сетки полноразмерный вариант не нужен: 1280 на 79 мм это
@@ -281,6 +314,10 @@ const ABOUT_IMG = PRES.aboutImg
   || cfg.intro.image;
 const VIZ_IMGS = PRES.vizImgs
   || (cfg.about.images || []).slice(1, 3).map((x) => x.file).filter(Boolean);
+// вертикальные кадры (разрез здания) идут отдельной узкой колонкой и целиком:
+// в горизонтальном слоте кадрирование срезает им верх и низ
+const VIZ_TALL = VIZ_IMGS.filter(isTall);
+const VIZ_WIDE = VIZ_IMGS.filter((f) => !isTall(f));
 
 function buildHtml(lang, qr) {
   if (LAND) return buildLandHtml(lang, qr);
@@ -308,16 +345,25 @@ function buildHtml(lang, qr) {
     const ringSvg = rings.map((m) =>
       `<circle cx="${c}" cy="${c}" r="${(m * k).toFixed(1)}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="0.7" stroke-dasharray="3 3"/>
        <text x="${c}" y="${(c - m * k + 9).toFixed(1)}" text-anchor="middle" font-size="7.5" font-family="system-ui" fill="#555">${mLbl(m)}</text>`).join('');
-    const tiles = (GEO.iso || []).map((x) =>
-      `<div style="background:#fff;border-radius:3mm;padding:4mm 5mm">
-        <div style="font-size:17pt;font-weight:800;letter-spacing:-.01em">${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</div>
-        <div style="font-size:8.5pt;color:${MUTED};margin-top:.5mm">${esc(t('geo_iso').replace('{m}', x.min))}</div>
-      </div>`).join('');
     const gn = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    const rows = (GEO.around || []).map((a) =>
+    // плитки - жители в тех же радиусах, что и кольца слева; пешая доступность
+    // это другая метрика, она идёт строкой под плитками
+    const pop = (GEO.around || []).find((a) => a.k === 'pop');
+    const tile = (n, l) => `<div style="background:#fff;border-radius:3mm;padding:4mm 5mm">
+        <div style="font-size:16pt;font-weight:800;letter-spacing:-.01em">${esc(gn(n))}</div>
+        <div style="font-size:8.5pt;color:${MUTED};margin-top:.5mm">${esc(l)}</div>
+      </div>`;
+    const tiles = pop
+      ? [[pop.n1, t('geo_in1')], [pop.n15, t('geo_in15')], [pop.n3, t('geo_in3')]]
+        .filter((x) => x[0] != null).map(([n, l]) => tile(n, l)).join('')
+      : (GEO.iso || []).map((x) => tile(x.pop, t('geo_iso').replace('{m}', x.min))).join('');
+    const walk = (pop && (GEO.iso || []).length)
+      ? `<div style="font-size:8.5pt;color:${MUTED};line-height:1.5">${t('geo_walk')}: ${GEO.iso.map((x) => t('geo_walkItem').replace('{n}', gn(x.pop)).replace('{m}', x.min)).join(' · ')}</div>`
+      : '';
+    const rows = (GEO.around || []).filter((a) => a.k !== 'pop' || !pop).map((a) =>
       `<tr><td style="padding-left:0;background:none">${M(a.l)}</td>
         <td style="text-align:right;font-weight:700;background:none;white-space:nowrap">${gn(a.n1)} ${t('geo_in1')} · ${gn(a.n15)} ${t('geo_in15')}${a.n3 == null ? '' : ` · ${gn(a.n3)} ${t('geo_in3')}`}</td></tr>`).join('');
-    const hasPop = (GEO.around || []).some((a) => a.k === 'pop');
+    const hasPop = !!pop;
     const legend = [['med', 'geo_med'], ['ph', 'geo_ph'], ['bc', 'geo_bc'], ['mh', 'geo_mh']].map(([c2, key]) =>
       `<span style="display:inline-flex;align-items:center;gap:1.5mm;margin-right:5mm"><i style="width:2.2mm;height:2.2mm;border-radius:50%;background:${GEO_COL[c2]};display:inline-block"></i>${t(key)}</span>`).join('');
     return `
@@ -326,15 +372,18 @@ function buildHtml(lang, qr) {
     <h2>${t('h_geo')}</h2>
     <div style="display:flex;gap:10mm;flex:1;min-height:0">
       <div style="flex:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:4mm;padding:5mm">
-        <svg viewBox="0 0 ${S} ${S}" style="width:100%;max-width:95mm;height:auto">
+        <svg viewBox="0 0 ${S} ${S}" style="width:100%;max-width:112mm;height:auto">
           ${ringSvg}
           ${dots}
           <circle cx="${c}" cy="${c}" r="5" fill="${BRONZE}" stroke="#fff" stroke-width="2"/>
         </svg>
         <div style="margin-top:3mm;font-size:8pt;color:${MUTED};text-align:center">${t('geo_scheme')}</div>
       </div>
-      <div style="flex:1.1;display:flex;flex-direction:column;gap:4mm">
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${tiles}</div>
+      <div style="flex:1.1;display:flex;flex-direction:column;gap:3mm">
+        <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE}">${hasPop ? t('h_pop') : t('geo_walk')}</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:3mm">${tiles}</div>
+        ${walk}
+        <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE};margin-top:2mm">${t('h_around')}</div>
         <table style="background:none;font-size:10pt">${rows}</table>
         <div style="font-size:8.5pt;color:${MUTED}">${legend}</div>
         <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}${hasPop ? ' ' + t('geo_notePop') : ''}</div>
@@ -496,17 +545,23 @@ function buildHtml(lang, qr) {
     <span class="lbl">${t('lbl_viz')}</span>
     <h2>${t('h_viz')}</h2>
     <div style="display:flex;gap:10mm;flex:1;min-height:0">
-      <div style="flex:.8;display:flex;flex-direction:column;gap:5mm;justify-content:center">
+      <div style="flex:${VIZ_TALL.length ? '.7' : '.8'};display:flex;flex-direction:column;gap:5mm;justify-content:center">
         <div style="background:#fff;border-radius:4mm;padding:7mm;font-size:11pt;line-height:1.65">${t('viz_p')}</div>
         <div style="background:rgba(${ACC_RGB},.1);border-left:1.2mm solid ${BRONZE};border-radius:0 3mm 3mm 0;padding:5mm 6mm;font-size:10pt;line-height:1.5">${M(cfg.about.status)}</div>
         <div style="font-size:8.5pt;color:${MUTED}">${t('viz_all')}</div>
       </div>
-      <div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
-        ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
+      <div style="flex:${VIZ_TALL.length ? '1.05' : '1.2'};display:flex;flex-direction:column;gap:5mm">
+        ${VIZ_WIDE.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
           <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
         </div>`).join('')}
       </div>
+      ${VIZ_TALL.length ? `<div style="flex:.95;display:flex;flex-direction:column;gap:5mm">
+        ${VIZ_TALL.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative;background:#fff;padding:3mm">
+          <img src="${img64(f)}" style="width:100%;height:100%;object-fit:contain">
+          <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_cut')}</span>
+        </div>`).join('')}
+      </div>` : ''}
     </div>
     ${foot(7 + PLAN_PAGES.length + GEO_PG)}
   </div>
@@ -658,8 +713,8 @@ function buildLandHtml(lang, qr) {
         <div style="font-size:8.5pt;color:${MUTED};line-height:1.5">${t('viz_all_concept')}</div>
       </div>
       <div style="flex:1.2;display:flex;flex-direction:column;gap:5mm">
-        ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative">
-          <img src="${img64(f)}" style="width:100%;height:100%;object-fit:cover">
+        ${VIZ_IMGS.map((f) => `<div style="flex:1;border-radius:5mm;overflow:hidden;position:relative${isTall(f) ? ';background:#fff;padding:3mm' : ''}">
+          <img src="${img64(f)}" style="width:100%;height:100%;object-fit:${isTall(f) ? 'contain' : 'cover'}">
           <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.62);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${esc(badgeOf(f))}</span>
         </div>`).join('')}
       </div>

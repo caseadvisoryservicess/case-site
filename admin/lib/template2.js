@@ -135,6 +135,12 @@ const STR = {
     en: 'Base map - Google Maps.'
   },
   'geo.open': { ru: 'Открыть карту района', uz: 'Tuman xaritasini ochish', en: 'Open the area map' },
+  'geo.scale': { ru: 'Масштаб схемы', uz: 'Sxema masshtabi', en: 'Diagram scale' },
+  'geo.hPop': { ru: 'Сколько людей живёт рядом', uz: 'Yaqin atrofda qancha odam yashaydi', en: 'How many people live nearby' },
+  'geo.hWalk': { ru: 'Пешая доступность', uz: 'Piyoda yetib borish', en: 'Within walking distance' },
+  'geo.hAround': { ru: 'Что находится вокруг', uz: 'Atrofda nima bor', en: 'What is around' },
+  'geo.walk': { ru: 'Пешком', uz: 'Piyoda', en: 'On foot' },
+  'geo.walkItem': { ru: '{n} за {m} минут', uz: '{m} daqiqada {n}', en: '{n} within {m} minutes' },
   'geo.km': { ru: 'км', uz: 'km', en: 'km' },
   'geo.m': { ru: 'м', uz: 'm', en: 'm' },
   'geo.med': { ru: 'медицина', uz: 'tibbiyot', en: 'medical' },
@@ -400,10 +406,15 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 /* геоаналитика: схема окружения и плитки. Никакого редактирования, только
    масштаб - решение владельца: лендинг показывает выводы, а не инструмент */
 .geo-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:start}
-.geo-map{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;aspect-ratio:1/1}
+.geo-map{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;aspect-ratio:4/3}
 /* подложка - официальный виджет карт; поверх неё наша схема. Перетаскивание
    и зум внутри виджета перекрыты щитом, иначе схема разъедется с картой */
-.geo-frame,.geo-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+/* виджет намеренно больше блока и обрезается рамкой: так за кадром остаются
+   его собственные кнопки (пробки, линейка, зум, геолокация) - иначе рядом с
+   нашими кнопками масштаба оказывается второй, чужой набор органов управления.
+   Центр карты при этом остаётся центром блока: отступы одинаковые со всех сторон */
+.geo-frame{position:absolute;inset:-190px}
+.geo-frame iframe{width:100%;height:100%;border:0;display:block}
 .geo-shield{position:absolute;inset:0;background:rgba(255,255,255,.42)}
 .geo-ov{position:absolute;inset:0;pointer-events:none}
 .geo-ov svg{display:block;width:100%;height:100%}
@@ -412,22 +423,27 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 .geo-dot{pointer-events:auto;stroke:#fff;stroke-width:1.5}
 .geo-me{fill:var(--bronze);stroke:#fff;stroke-width:3}
 .geo-src{margin-top:8px;font:500 12px/1.4 system-ui;color:var(--muted)}
-.geo-zoom{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
-.geo-zoom button{width:36px;height:36px;border:1px solid var(--line);background:#fff;color:var(--ink);font:700 19px/1 system-ui;border-radius:9px;cursor:pointer}
-.geo-zoom button:hover{border-color:var(--bronze);color:var(--bronze-d)}
-.geo-zoom button:disabled{opacity:.4;cursor:default}
-.geo-scale{position:absolute;left:12px;bottom:12px;z-index:3;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:650 11.5px/1 system-ui;color:var(--muted)}
-.geo-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
-.geo-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.geo-tile b{display:block;font:750 26px/1.1 system-ui;letter-spacing:-.01em}
-.geo-tile span{display:block;margin-top:3px;font:500 12.5px/1.4 system-ui;color:var(--muted)}
+/* переключатель масштаба: подписан километрами, а не значками + и -,
+   чтобы было видно, что именно показывает схема */
+.geo-steps{position:absolute;right:12px;top:12px;z-index:3;display:flex;gap:3px;background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:11px;padding:4px;box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.geo-steps button{border:0;background:none;color:var(--muted);font:650 12px/1 system-ui;padding:8px 10px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.geo-steps button:hover{color:var(--bronze-d)}
+.geo-steps button.on{background:var(--bronze);color:#fff}
+.geo-h{margin:0 0 10px;font:700 11px/1 system-ui;letter-spacing:.1em;text-transform:uppercase;color:var(--bronze-d)}
+.geo-h+.geo-tiles{margin-bottom:10px}
+.geo-walk{margin:0 0 22px;font:500 12.5px/1.55 system-ui;color:var(--muted)}
+.geo-tiles{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+.geo-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 15px}
+.geo-tile b{display:block;font:750 23px/1.1 system-ui;letter-spacing:-.015em}
+.geo-tile span{display:block;margin-top:3px;font:500 12px/1.35 system-ui;color:var(--muted)}
 .geo-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
 .geo-row:first-child{border-top:0}
 .geo-row i{font-style:normal;color:var(--muted);font-size:13px;white-space:nowrap}
 .geo-leg{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;font:600 12px/1 system-ui;color:var(--muted)}
 .geo-leg span{display:inline-flex;align-items:center;gap:6px}
 .geo-leg i{width:9px;height:9px;border-radius:50%;display:inline-block}
-@media(max-width:920px){.geo-grid{grid-template-columns:1fr}.geo-tiles{grid-template-columns:1fr 1fr}}
+@media(max-width:920px){.geo-grid{grid-template-columns:1fr}.geo-map{aspect-ratio:1/1}.geo-frame{inset:-120px}}
+@media(max-width:560px){.geo-tiles{grid-template-columns:1fr 1fr}.geo-steps{right:8px;top:8px}.geo-steps button{padding:7px 8px;font-size:11.5px}}
 /* отдельная секция фотографий: нужна объектам, которые продаются глазами
    (ресторан, салон), где кадров больше, чем помещается в галерею «О ...» */
 .photos-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
@@ -744,7 +760,8 @@ if(lb){
   (function(){
     var box=document.getElementById('geoMap'); if(!box||!GEO_RINGS.length)return;
     var ov=document.getElementById('geoOv'),frame=document.getElementById('geoFrame');
-    var bi=document.getElementById('geoIn'),bo=document.getElementById('geoOut'),sc=document.getElementById('geoScale');
+    var steps_el=document.getElementById('geoSteps');
+    var btns=steps_el?[].slice.call(steps_el.querySelectorAll('button')):[];
     var base=GEO_RINGS.slice().sort(function(a,b){return a-b});
     var steps=[base.map(function(m){return m/2}),base,base.map(function(m){return m*2})];
     var i=1,zNow=null,live=false;
@@ -781,12 +798,15 @@ if(lb){
       });
       o+='<circle class="geo-me" cx="'+cx+'" cy="'+cy+'" r="8"/>';
       ov.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img">'+o+'</svg>';
-      sc.textContent=mLbl(max);
-      bi.disabled=(i<=0); bo.disabled=(i>=steps.length-1);
+      btns.forEach(function(b,n){b.className=(n===i)?'on':'';b.setAttribute('aria-pressed',n===i)});
       loadFrame(z);
     }
-    bi.addEventListener('click',function(){if(i>0){i--;draw();ev('geo_zoom',{scale:steps[i][steps[i].length-1]})}});
-    bo.addEventListener('click',function(){if(i<steps.length-1){i++;draw();ev('geo_zoom',{scale:steps[i][steps[i].length-1]})}});
+    btns.forEach(function(b,n){
+      b.addEventListener('click',function(){
+        if(n===i)return;
+        i=n;draw();ev('geo_zoom',{scale:steps[i][steps[i].length-1]});
+      });
+    });
     if('ResizeObserver' in window)new ResizeObserver(draw).observe(box);
     else window.addEventListener('resize',draw);
     draw();
@@ -1293,13 +1313,26 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
       : `https://yandex.com/maps/?ll=${lng}%2C${lat}&z=14&pt=${lng}%2C${lat}%2Cpm2rdm`;
     const legend = [['med', s('geo.med')], ['ph', s('geo.ph')], ['bc', s('geo.bc')], ['mh', s('geo.mh')]]
       .map(([c, l]) => `<span><i style="background:${GEO_COL[c]}"></i>${l}</span>`).join('');
-    const tiles = (G.iso || []).map((x) =>
-      `<div class="geo-tile"><b>${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</b><span>${s('geo.iso').replace('{m}', x.min)}</span></div>`).join('');
     // тысячи разбиваем пробелом: в строке жителей числа шестизначные
     const gn = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
-    const rows = (G.around || []).map((a) =>
+    // Плитки - жители в тех же радиусах, что и кольца на карте: так плитки,
+    // кольца и таблица говорят об одном и том же, а не о трёх разных вещах.
+    // Пешая доступность - другая метрика, она ушла одной строкой под плитки.
+    const pop = (G.around || []).find((a) => a.k === 'pop');
+    const tiles = pop
+      ? [[pop.n1, s('geo.in1')], [pop.n15, s('geo.in15')], [pop.n3, s('geo.in3')]]
+        .filter((x) => x[0] != null)
+        .map(([n, l]) => `<div class="geo-tile"><b>${gn(n)}</b><span>${l}</span></div>`).join('')
+      : (G.iso || []).map((x) =>
+        `<div class="geo-tile"><b>${gn(x.pop)}</b><span>${s('geo.iso').replace('{m}', x.min)}</span></div>`).join('');
+    const walk = (pop && (G.iso || []).length)
+      ? `<p class="geo-walk">${s('geo.walk')}: ${G.iso.map((x) => s('geo.walkItem').replace('{n}', gn(x.pop)).replace('{m}', x.min)).join(' · ')}</p>`
+      : '';
+    const rows = (G.around || []).filter((a) => a.k !== 'pop' || !pop).map((a) =>
       `<div class="geo-row"><span>${t(a.l)}</span><i>${gn(a.n1)} ${s('geo.in1')} · ${gn(a.n15)} ${s('geo.in15')}${a.n3 == null ? '' : ` · ${gn(a.n3)} ${s('geo.in3')}`}</i></div>`).join('');
-    const hasPop = (G.around || []).some((a) => a.k === 'pop');
+    const hasPop = !!pop;
+    // подписи ступеней масштаба: 750 м / 1,5 км / 3 км
+    const stepLbls = [0.5, 1, 2].map((f) => mLbl(Math.round(R * f)));
     return `
 <section id="geo" style="padding-top:0">
   <div class="wrap">
@@ -1318,16 +1351,17 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
               <circle class="geo-me" cx="${cx}" cy="${cy}" r="8"/>
             </svg>
           </div>
-          <div class="geo-zoom">
-            <button type="button" id="geoIn" aria-label="+">+</button>
-            <button type="button" id="geoOut" aria-label="-">-</button>
+          <div class="geo-steps" id="geoSteps" role="group" aria-label="${s('geo.scale')}">
+            ${stepLbls.map((l, i) => `<button type="button" data-i="${i}"${i === 1 ? ' class="on"' : ''}>${l}</button>`).join('')}
           </div>
-          <div class="geo-scale" id="geoScale">${mLbl(R)}</div>
         </div>
         <div class="geo-src">${s('geo.base')} <a href="${mapHref}" target="_blank" rel="noopener" data-ev="map_open" data-evx='{"src":"geo"}'>${s('geo.open')}</a></div>
       </div>
       <div>
+        <p class="geo-h">${hasPop ? s('geo.hPop') : s('geo.hWalk')}</p>
         <div class="geo-tiles">${tiles}</div>
+        ${walk}
+        <p class="geo-h">${s('geo.hAround')}</p>
         ${rows}
         <div class="geo-leg">${legend}</div>
         <p class="fineprint" style="margin-top:18px">${s('geo.note')}${hasPop ? ' ' + s('geo.notePop') : ''}</p>
