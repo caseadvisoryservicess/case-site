@@ -61,7 +61,10 @@ const GRID_PAGES = [];
 for (let i = 0; i < GRID_IMGS.length; i += 6) GRID_PAGES.push(GRID_IMGS.slice(i, i + 6));
 const AT = (cfg.site && cfg.site.assetType) || 'building';
 const LAND = AT === 'land' || AT === 'single';
-const TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length;
+// страница геоаналитики есть только у проектов с посчитанным блоком cfg.geo
+const GEO = (cfg.geo && (cfg.geo.points || []).length) ? cfg.geo : null;
+const GEO_PG = GEO ? 1 : 0;
+const TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length + GEO_PG;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];
   return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
@@ -117,6 +120,23 @@ const T = {
     ru: 'Первая линия улицы Тахтапул, выезд на Малую кольцевую - рядом. Объект для клиентов, приезжающих на автомобиле: паркинг у входа и подземный уровень.',
     uz: 'Taxtapul ko‘chasining birinchi qatori, Kichik halqa yo‘liga chiqish - yonida. Avtomobilda keladigan mijozlar uchun obyekt: kiraverishda va yer osti qavatida avtoturargoh.',
     en: 'First line of Taxtapul Street, the Small Ring Road access is adjacent. Built for clients arriving by car: parking at the door and an underground level.'
+  },
+  // страница геоаналитики: появляется, только если в проекте есть блок cfg.geo
+  lbl_geo: { ru: 'Геоаналитика', uz: 'Geotahlil', en: 'Geo analytics' },
+  h_geo: { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'The location in numbers' },
+  geo_iso: { ru: 'человек в {m} минутах пешком', uz: 'piyoda {m} daqiqadagi aholi', en: 'people within a {m}-minute walk' },
+  geo_in1: { ru: 'в 1 км', uz: '1 km ichida', en: 'within 1 km' },
+  geo_in15: { ru: 'в 1,5 км', uz: '1,5 km ichida', en: 'within 1.5 km' },
+  geo_in3: { ru: 'в 3 км', uz: '3 km ichida', en: 'within 3 km' },
+  geo_med: { ru: 'медицина', uz: 'tibbiyot', en: 'medical' },
+  geo_ph: { ru: 'аптеки', uz: 'dorixonalar', en: 'pharmacies' },
+  geo_bc: { ru: 'бизнес-центры', uz: 'biznes-markazlar', en: 'business centres' },
+  geo_mh: { ru: 'махалля', uz: 'mahalla', en: 'mahalla' },
+  geo_scheme: { ru: 'Кольца - расстояние по прямой от здания', uz: 'Halqalar - binodan to‘g‘ri chiziq bo‘yicha masofa', en: 'Rings are straight-line distances from the building' },
+  geo_note: {
+    ru: 'Окружение - собственная геобаза CASE (2ГИС и OpenStreetMap, сбор июль 2026). Население в пешей доступности - модель CASE OS Geo Analytics. Данные носят справочный характер и уточняются.',
+    uz: 'Atrof-muhit - CASE o‘z geobazasi (2GIS va OpenStreetMap, 2026 yil iyul). Piyoda yetib boriladigan aholi - CASE OS Geo Analytics modeli. Ma’lumotlar ma’lumot xarakteriga ega va aniqlashtiriladi.',
+    en: 'Surroundings come from the CASE geo database (2GIS and OpenStreetMap, collected July 2026). Walking-distance population is from the CASE OS Geo Analytics model. The figures are indicative and subject to refinement.'
   },
   lbl_viz: { ru: 'Визуализации', uz: 'Vizualizatsiyalar', en: 'Visualisations' },
   h_viz: { ru: 'Внешний облик', uz: 'Tashqi ko‘rinish', en: 'Exterior' },
@@ -268,6 +288,55 @@ function buildHtml(lang, qr) {
 
   const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
 
+  // ── страница геоаналитики ──
+  // Схема рисуется своей SVG по тем же данным, что и на лендинге: кольца
+  // 500/1000/1500 м и точки окружения. Счёт в таблице справа - до 3 км.
+  const GEO_COL = { bc: '#2f6fb0', med: '#c0392b', ph: '#1e8f5e', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
+  const geoPage = () => {
+    const rings = GEO.rings || [500, 1000, 1500];
+    const R = Math.max(...rings);
+    const S = 300, k = (S / 2 - 12) / R, c = S / 2;
+    const dec = (v) => String(v).replace('.', lang === 'en' ? '.' : ',');
+    const mLbl = (m) => (m >= 1000 ? dec(m / 1000) + (lang === 'ru' ? ' км' : ' km') : m + (lang === 'ru' ? ' м' : ' m'));
+    const dots = (GEO.points || []).filter((p) => p.d <= R).map((p) =>
+      `<circle cx="${(c + p.x * k).toFixed(1)}" cy="${(c - p.y * k).toFixed(1)}" r="2.8" fill="${GEO_COL[p.c] || GEO_COL.x}" stroke="#fff" stroke-width="0.8"/>`).join('');
+    const ringSvg = rings.map((m) =>
+      `<circle cx="${c}" cy="${c}" r="${(m * k).toFixed(1)}" fill="none" stroke="rgba(0,0,0,.28)" stroke-width="0.7" stroke-dasharray="3 3"/>
+       <text x="${c}" y="${(c - m * k + 9).toFixed(1)}" text-anchor="middle" font-size="7.5" font-family="system-ui" fill="#555">${mLbl(m)}</text>`).join('');
+    const tiles = (GEO.iso || []).map((x) =>
+      `<div style="background:#fff;border-radius:3mm;padding:4mm 5mm">
+        <div style="font-size:17pt;font-weight:800;letter-spacing:-.01em">${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</div>
+        <div style="font-size:8.5pt;color:${MUTED};margin-top:.5mm">${esc(t('geo_iso').replace('{m}', x.min))}</div>
+      </div>`).join('');
+    const rows = (GEO.around || []).map((a) =>
+      `<tr><td style="padding-left:0;background:none">${M(a.l)}</td>
+        <td style="text-align:right;font-weight:700;background:none;white-space:nowrap">${a.n1} ${t('geo_in1')} · ${a.n15} ${t('geo_in15')}${a.n3 == null ? '' : ` · ${a.n3} ${t('geo_in3')}`}</td></tr>`).join('');
+    const legend = [['med', 'geo_med'], ['ph', 'geo_ph'], ['bc', 'geo_bc'], ['mh', 'geo_mh']].map(([c2, key]) =>
+      `<span style="display:inline-flex;align-items:center;gap:1.5mm;margin-right:5mm"><i style="width:2.2mm;height:2.2mm;border-radius:50%;background:${GEO_COL[c2]};display:inline-block"></i>${t(key)}</span>`).join('');
+    return `
+  <div class="pg">
+    <span class="lbl">${t('lbl_geo')}</span>
+    <h2>${t('h_geo')}</h2>
+    <div style="display:flex;gap:10mm;flex:1;min-height:0">
+      <div style="flex:.9;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#fff;border-radius:4mm;padding:5mm">
+        <svg viewBox="0 0 ${S} ${S}" style="width:100%;max-width:95mm;height:auto">
+          ${ringSvg}
+          ${dots}
+          <circle cx="${c}" cy="${c}" r="5" fill="${BRONZE}" stroke="#fff" stroke-width="2"/>
+        </svg>
+        <div style="margin-top:3mm;font-size:8pt;color:${MUTED};text-align:center">${t('geo_scheme')}</div>
+      </div>
+      <div style="flex:1.1;display:flex;flex-direction:column;gap:4mm">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4mm">${tiles}</div>
+        <table style="background:none;font-size:10pt">${rows}</table>
+        <div style="font-size:8.5pt;color:${MUTED}">${legend}</div>
+        <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}</div>
+      </div>
+    </div>
+    ${foot(7 + PLAN_PAGES.length)}
+  </div>`;
+  };
+
   const unitRow = (u) => `<tr>
     <td><b>${M(u.level)}</b></td>
     <td>${ELEV[u.id] || ''}</td>
@@ -414,6 +483,8 @@ function buildHtml(lang, qr) {
     ${foot(6 + PLAN_PAGES.length)}
   </div>
 
+  ${GEO ? geoPage(lang) : ''}
+
   <div class="pg">
     <span class="lbl">${t('lbl_viz')}</span>
     <h2>${t('h_viz')}</h2>
@@ -430,7 +501,7 @@ function buildHtml(lang, qr) {
         </div>`).join('')}
       </div>
     </div>
-    ${foot(7 + PLAN_PAGES.length)}
+    ${foot(7 + PLAN_PAGES.length + GEO_PG)}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">

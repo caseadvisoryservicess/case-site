@@ -121,13 +121,20 @@ const STR = {
   'geo.lbl': { ru: 'Геоаналитика', uz: 'Geotahlil', en: 'Geo analytics' },
   'geo.h2': { ru: 'Локация в цифрах', uz: 'Lokatsiya raqamlarda', en: 'The location in numbers' },
   'geo.sub': {
-    ru: 'Схема показывает окружение объекта: каждая точка - реальное заведение из нашей базы по Ташкенту. Кольца - расстояние по прямой. Масштаб меняется кнопками.',
-    uz: 'Sxema obyekt atrofini ko\'rsatadi: har bir nuqta - Toshkent bo\'yicha bazamizdagi haqiqiy muassasa. Halqalar - to\'g\'ri chiziq bo\'yicha masofa. Masshtab tugmalar bilan o\'zgaradi.',
-    en: 'The diagram shows what surrounds the building: every dot is a real venue from our Tashkent database. The rings are straight-line distances. Use the buttons to change the scale.'
+    ru: 'Окружение объекта на карте района: каждая точка - реальное заведение из нашей базы по Ташкенту. Кольца - расстояние по прямой от здания. Масштаб меняется кнопками, до 3 км.',
+    uz: 'Obyekt atrofi tuman xaritasida: har bir nuqta - Toshkent bo\'yicha bazamizdagi haqiqiy muassasa. Halqalar - binodan to\'g\'ri chiziq bo\'yicha masofa. Masshtab tugmalar bilan o\'zgaradi, 3 km gacha.',
+    en: 'The surroundings on the area map: every dot is a real venue from our Tashkent database. The rings are straight-line distances from the building. Use the buttons to change the scale, up to 3 km.'
   },
   'geo.iso': { ru: 'человек в {m} минутах пешком', uz: 'piyoda {m} daqiqadagi aholi', en: 'people within a {m}-minute walk' },
   'geo.in1': { ru: 'в 1 км', uz: '1 km ichida', en: 'within 1 km' },
   'geo.in15': { ru: 'в 1,5 км', uz: '1,5 km ichida', en: 'within 1.5 km' },
+  'geo.in3': { ru: 'в 3 км', uz: '3 km ichida', en: 'within 3 km' },
+  'geo.base': {
+    ru: 'Подложка - Яндекс Карты.',
+    uz: 'Xarita asosi - Yandex Xaritalar.',
+    en: 'Base map - Google Maps.'
+  },
+  'geo.open': { ru: 'Открыть карту района', uz: 'Tuman xaritasini ochish', en: 'Open the area map' },
   'geo.km': { ru: 'км', uz: 'km', en: 'km' },
   'geo.m': { ru: 'м', uz: 'm', en: 'm' },
   'geo.med': { ru: 'медицина', uz: 'tibbiyot', en: 'medical' },
@@ -199,6 +206,9 @@ function pictureTag(uploadsDir, prefix, file, { cls = '', alt = '', eager = fals
 </picture>`;
 }
 
+// цвета точек геосхемы: используются и при отрисовке на сервере, и в клиентском JS
+const GEO_COL = { bc: '#2f6fb0', med: '#c0392b', ph: '#1e8f5e', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
+
 // ── интерактивный вертикальный разрез здания (SVG) ──
 // Этажи кликабельны и синхронизированы с кнопками уровней (selectUnit в клиентском JS).
 // Высоты полос пропорциональны потолкам, подвал рисуется под линией земли.
@@ -261,12 +271,24 @@ header.top{position:fixed;inset:0 0 auto;z-index:50;transition:background .25s,b
 header.top.scrolled{background:rgba(15,16,18,.93);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 2px 26px rgba(0,0,0,.3)}
 header.top.scrolled .top-in{padding-top:13px;padding-bottom:13px}
 .top-in{transition:padding .25s}
+/* знак CASE: одинаковая высота в шапке и в подвале, блик по маске логотипа */
 .case-link{display:flex;align-items:center;flex:none}
-.case-link img{height:30px;width:auto;display:block}
-/* на узких экранах в шапке уже тесно от навигации: знак остаётся в подвале */
-@media(max-width:1400px){.case-link{display:none}}
+.case-mark{position:relative;display:block;line-height:0}
+.case-mark img{height:44px;width:auto;display:block}
+/* блик идёт цветом акцента проекта: сам знак белый, белым по белому его не
+   видно, а бронзовая волна по буквам читается и на тёмной шапке, и в подвале */
+.case-mark i{position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:linear-gradient(100deg,transparent 40%,rgba(var(--acc-rgb),.95) 50%,transparent 60%);
+  background-size:280% 100%;background-position:170% 0}
+html.anim .case-mark i{opacity:1;animation:caseShine 6s ease-in-out infinite}
+/* мягкое свечение по контуру знака идёт в такт с волной: маска изображения
+   не работает при открытии файла с диска, а свечение видно всегда */
+html.anim .case-mark img{animation:caseGlow 6s ease-in-out infinite}
+.case-link:hover .case-mark i,.foot-case:hover .case-mark i,
+.case-link:hover .case-mark img,.foot-case:hover .case-mark img{animation-duration:1.6s}
+@keyframes caseShine{0%,70%{background-position:170% 0}100%{background-position:-70% 0}}
+@keyframes caseGlow{0%,66%,100%{filter:none}84%{filter:drop-shadow(0 0 5px rgba(var(--acc-rgb),.6))}}
 .foot-case{display:inline-flex;align-items:center;gap:10px;margin-top:10px;opacity:.95}
-.foot-case img{height:34px;width:auto;display:block}
 .top-in{display:flex;align-items:center;gap:18px;padding:22px 24px;max-width:1500px;margin:0 auto}
 .brand{color:#fff;font:800 27px/1 system-ui;letter-spacing:.06em;text-decoration:none}
 .brand small{display:block;font:600 12.5px/1.6 system-ui;letter-spacing:.16em;opacity:.8;text-transform:uppercase;white-space:nowrap}
@@ -281,6 +303,14 @@ header.top.scrolled .top-in{padding-top:13px;padding-bottom:13px}
 .langs a{color:rgba(255,255,255,.8);text-decoration:none;font:700 15px/1 system-ui;padding:10px 13px;border-radius:8px}
 .langs a.on{background:#fff;color:var(--ink)}
 .top-phone{color:#fff;text-decoration:none;font:750 18px/1 system-ui;white-space:nowrap}
+/* Строка шапки не переносится, поэтому на средних экранах она ужимается по
+   шагам: сперва отступы и навигация, затем адрес под названием, затем знак
+   CASE (он всё равно остаётся в подвале). Правила стоят после базовых, иначе
+   их перебьёт кассад: у медиазапроса нет дополнительной специфичности. */
+@media(max-width:1600px){.top-in{gap:12px;padding-left:16px;padding-right:16px}.top nav a{padding:12px 9px;font-size:16.5px}.langs a{padding:10px 11px}.case-link .case-mark img{height:38px}}
+@media(max-width:1400px){.top-in{gap:8px}.top nav a{padding:11px 7px;font-size:16px}.langs a{padding:9px 9px;font-size:13.5px}.case-link .case-mark img{height:34px}}
+@media(max-width:1340px){.brand small{display:none}}
+@media(max-width:1240px){.case-link{display:none}.top nav a{padding:10px 6px;font-size:15px}}
 /* hero */
 .hero{position:relative;min-height:92svh;display:flex;align-items:flex-end;color:#fff;overflow:hidden}
 .hero picture,.hero picture img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
@@ -365,18 +395,28 @@ table.specs td:last-child{color:var(--muted);white-space:pre-line}
 /* геоаналитика: схема окружения и плитки. Никакого редактирования, только
    масштаб - решение владельца: лендинг показывает выводы, а не инструмент */
 .geo-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:26px;align-items:start}
-.geo-map{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
-.geo-map svg{display:block;width:100%;height:auto}
-.geo-zoom{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:6px}
+.geo-map{position:relative;background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;aspect-ratio:1/1}
+/* подложка - официальный виджет карт; поверх неё наша схема. Перетаскивание
+   и зум внутри виджета перекрыты щитом, иначе схема разъедется с картой */
+.geo-frame,.geo-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.geo-shield{position:absolute;inset:0;background:rgba(255,255,255,.42)}
+.geo-ov{position:absolute;inset:0;pointer-events:none}
+.geo-ov svg{display:block;width:100%;height:100%}
+.geo-ring{fill:none;stroke:rgba(var(--dark-rgb),.5);stroke-width:1.2;stroke-dasharray:5 5}
+.geo-rlbl{font:650 11.5px system-ui;fill:var(--ink);paint-order:stroke;stroke:rgba(255,255,255,.85);stroke-width:3.5px}
+.geo-dot{pointer-events:auto;stroke:#fff;stroke-width:1.5}
+.geo-me{fill:var(--bronze);stroke:#fff;stroke-width:3}
+.geo-src{margin-top:8px;font:500 12px/1.4 system-ui;color:var(--muted)}
+.geo-zoom{position:absolute;right:12px;top:12px;z-index:3;display:flex;flex-direction:column;gap:6px}
 .geo-zoom button{width:36px;height:36px;border:1px solid var(--line);background:#fff;color:var(--ink);font:700 19px/1 system-ui;border-radius:9px;cursor:pointer}
 .geo-zoom button:hover{border-color:var(--bronze);color:var(--bronze-d)}
 .geo-zoom button:disabled{opacity:.4;cursor:default}
-.geo-scale{position:absolute;left:12px;bottom:12px;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:650 11.5px/1 system-ui;color:var(--muted)}
+.geo-scale{position:absolute;left:12px;bottom:12px;z-index:3;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:8px;padding:5px 10px;font:650 11.5px/1 system-ui;color:var(--muted)}
 .geo-tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
 .geo-tile{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px}
 .geo-tile b{display:block;font:750 26px/1.1 system-ui;letter-spacing:-.01em}
 .geo-tile span{display:block;margin-top:3px;font:500 12.5px/1.4 system-ui;color:var(--muted)}
-.geo-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
+.geo-row{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;padding:9px 0;border-top:1px solid var(--line);font-size:14.5px}
 .geo-row:first-child{border-top:0}
 .geo-row i{font-style:normal;color:var(--muted);font-size:13px;white-space:nowrap}
 .geo-leg{display:flex;flex-wrap:wrap;gap:10px 16px;margin-top:14px;font:600 12px/1 system-ui;color:var(--muted)}
@@ -556,8 +596,17 @@ function pageJs(cfg, lang) {
 var LANG=${JSON.stringify(lang)};
 var LEAD=${JSON.stringify(leadEndpoint)};
 var GEO_RINGS=${JSON.stringify((cfg.geo && cfg.geo.rings) || [])};
-var GEO_R=${JSON.stringify(Math.max(0, ...((cfg.geo && cfg.geo.rings) || [0])))};
+var GEO_PT=${JSON.stringify(((cfg.geo && cfg.geo.points) || []).map((p) =>
+    // названия объектов в геобазе русские: на uz/en страницах в подсказке
+    // остаются только категория и расстояние, чтобы не было чужого языка
+    (lang === 'ru' ? p : { c: p.c, x: p.x, y: p.y, d: p.d })))};
 var GEO_KM=${JSON.stringify(pick((cfg.texts && cfg.texts['geo.km']) || STR['geo.km'], lang))};
+var GEO_M=${JSON.stringify(pick((cfg.texts && cfg.texts['geo.m']) || STR['geo.m'], lang))};
+var GEO_LBL=${JSON.stringify(['med', 'ph', 'bc', 'mh', 'food'].reduce((o, k) => {
+    if (STR['geo.' + k]) o[k] = pick((cfg.texts && cfg.texts['geo.' + k]) || STR['geo.' + k], lang);
+    return o;
+  }, {}))};
+var GEO_COL=${JSON.stringify(GEO_COL)};
 var EV_URL=${JSON.stringify(analyticsEndpoint)};
 var MAPS_KEY=${JSON.stringify(mapsKey)};
 var LAT=${lat},LNG=${lng};
@@ -684,22 +733,63 @@ if(lb){
   function lbClose(){lb.hidden=true;lbImg.src='';document.body.style.overflow=''}
   lb.addEventListener('click',lbClose);
   document.addEventListener('keydown',function(e){if(e.key==='Escape')lbClose()});
-  // геосхема: только масштаб, три ступени. Редактирования на лендинге нет.
+  /* геосхема: карта района подложкой, поверх - наши кольца и точки.
+     Пользователю доступен только масштаб (три ступени), редактирования нет.
+     Кольца считаются от разрешения тайлов, поэтому совпадают с картой метр в метр. */
   (function(){
-    var svg=document.getElementById('geoSvg'); if(!svg)return;
+    var box=document.getElementById('geoMap'); if(!box||!GEO_RINGS.length)return;
+    var ov=document.getElementById('geoOv'),frame=document.getElementById('geoFrame');
     var bi=document.getElementById('geoIn'),bo=document.getElementById('geoOut'),sc=document.getElementById('geoScale');
-    var vb=svg.getAttribute('viewBox').split(' ').map(Number), S=vb[2];
-    var R=GEO_R, steps=GEO_RINGS.slice().sort(function(a,b){return b-a}), i=0;
-    function draw(){
-      var f=steps[i]/R, w=S*f, o=(S-w)/2;
-      svg.setAttribute('viewBox', o+' '+o+' '+w+' '+w);
-      sc.textContent=(steps[i]>=1000?(steps[i]/1000).toString().replace('.',','):steps[i]/1000)+' '+GEO_KM;
-      bi.disabled=(i>=steps.length-1); bo.disabled=(i<=0);
-      ev('geo_zoom',{scale:steps[i]});
+    var base=GEO_RINGS.slice().sort(function(a,b){return a-b});
+    var steps=[base.map(function(m){return m/2}),base,base.map(function(m){return m*2})];
+    var i=1,zNow=null,live=false;
+    var MPP0=156543.03392*Math.cos(LAT*Math.PI/180); /* метров на пиксель при zoom 0 */
+    var DEC=(LANG==='en')?'.':',';
+    function num(v){return String(v).replace('.',DEC)}
+    function mLbl(m){return m>=1000?num(m/1000)+' '+GEO_KM:m+' '+GEO_M}
+    function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+    function loadFrame(z){
+      if(!live||zNow===z)return; zNow=z;
+      var src=(LANG==='en')
+        ? 'https://maps.google.com/maps?q='+LAT+','+LNG+'&z='+z+'&hl=en&output=embed'
+        : 'https://yandex.com/map-widget/v1/?ll='+LNG+'%2C'+LAT+'&z='+z;
+      frame.innerHTML='<iframe src="'+src+'" title="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>';
     }
-    bi.addEventListener('click',function(){if(i<steps.length-1){i++;draw()}});
-    bo.addEventListener('click',function(){if(i>0){i--;draw()}});
+    function draw(){
+      var w=box.clientWidth,h=box.clientHeight; if(!w||!h)return;
+      var set=steps[i],max=set[set.length-1],half=Math.min(w,h)/2;
+      /* целый zoom, при котором самое большое кольцо помещается в схему */
+      var z=Math.floor(Math.log(MPP0*(half-16)/max)/Math.LN2);
+      z=Math.max(9,Math.min(17,z));
+      var mpp=MPP0/Math.pow(2,z),cx=w/2,cy=h/2,o='';
+      set.forEach(function(m){
+        var r=m/mpp;
+        o+='<circle class="geo-ring" cx="'+cx+'" cy="'+cy+'" r="'+r.toFixed(1)+'"/>';
+        o+='<text class="geo-rlbl" x="'+cx+'" y="'+(cy-r+14).toFixed(1)+'" text-anchor="middle">'+mLbl(m)+'</text>';
+      });
+      GEO_PT.forEach(function(p){
+        if(p.d>max)return;
+        var x=cx+p.x/mpp,y=cy-p.y/mpp;
+        if(x<5||y<5||x>w-5||y>h-5)return;
+        var tip=[p.n,GEO_LBL[p.c],p.d+' '+GEO_M].filter(Boolean).join(' · ');
+        o+='<circle class="geo-dot" cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="4.6" fill="'+(GEO_COL[p.c]||GEO_COL.x)+'"><title>'+esc(tip)+'</title></circle>';
+      });
+      o+='<circle class="geo-me" cx="'+cx+'" cy="'+cy+'" r="8"/>';
+      ov.innerHTML='<svg viewBox="0 0 '+w+' '+h+'" role="img">'+o+'</svg>';
+      sc.textContent=mLbl(max);
+      bi.disabled=(i<=0); bo.disabled=(i>=steps.length-1);
+      loadFrame(z);
+    }
+    bi.addEventListener('click',function(){if(i>0){i--;draw();ev('geo_zoom',{scale:steps[i][steps[i].length-1]})}});
+    bo.addEventListener('click',function(){if(i<steps.length-1){i++;draw();ev('geo_zoom',{scale:steps[i][steps[i].length-1]})}});
+    if('ResizeObserver' in window)new ResizeObserver(draw).observe(box);
+    else window.addEventListener('resize',draw);
     draw();
+    /* подложка грузится только при подходе к блоку: она третья сторона и вес */
+    function go(){if(live)return;live=true;zNow=null;draw();ev('map_open',{src:'geo'})}
+    if('IntersectionObserver' in window){
+      new IntersectionObserver(function(en,obs){if(en[0].isIntersecting){obs.disconnect();go()}},{rootMargin:'500px'}).observe(box);
+    }else go();
   })();
   document.querySelectorAll('.plan-card img,.gallery img,.photos-grid img').forEach(function(im){
     im.addEventListener('click',function(){lbOpen(im.dataset.full||im.currentSrc||im.src)});
@@ -1053,6 +1143,11 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
 .lbl{font-weight:700;letter-spacing:.18em}
 .btn{letter-spacing:.06em}
 .btn.primary{text-transform:uppercase;font-size:13px;letter-spacing:.1em}`;
+
+  // блик знака CASE идёт по маске самого файла логотипа, поэтому путь к нему
+  // подставляется на каждую языковую страницу отдельно (у uz/en свой префикс)
+  const caseCss = !caseLogo ? '' : `
+.case-mark i{-webkit-mask:url(${prefix}assets/${caseLogo}) center/contain no-repeat;mask:url(${prefix}assets/${caseLogo}) center/contain no-repeat}`;
   const ogFile = fs.existsSync(path.join(uploadsDir, 'og-cover.jpg')) ? 'og-cover.jpg' : cfg.intro.image;
   const ogImg = ogFile ? `${base}/assets/${ogFile}` : '';
 
@@ -1100,8 +1195,16 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
     </tr>`;
   }).join('\n');
 
+  // подпись на кнопке уровня: короткий номер этажа. Если в данных проекта его
+  // нет, вытаскиваем число из названия уровня, иначе кнопка осталась бы пустой
+  const lvlTag = (u) => {
+    const s0 = String(u.lvlShort || '').trim();
+    if (s0) return s0;
+    const m = String(pick(u.level, 'ru') || '').match(/-?\d+/);
+    return m ? m[0] : String(pick(u.level, lang) || '').slice(0, 3);
+  };
   const lvlButtons = (cfg.units || []).filter((u) => !u.whole).map((u) =>
-    `<button type="button" id="lvl-${esc(u.id)}" aria-label="${t(u.level)}">${esc(u.lvlShort)}</button>`
+    `<button type="button" id="lvl-${esc(u.id)}" aria-label="${t(u.level)}">${esc(lvlTag(u))}</button>`
   ).join('');
 
   const planImgs = (cfg.units || []).filter((u) => u.plan).map((u) =>
@@ -1166,23 +1269,29 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
   // рисует. Схема окружения - собственная SVG: ни тайлов, ни чужих карт,
   // ни лицензий. Пользователю доступен только масштаб, редактирования нет.
   const G = cfg.geo && cfg.geo.points ? cfg.geo : null;
-  const GEO_COL = { bc: '#2f6fb0', med: '#c0392b', ph: '#1e8f5e', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
   const geoSection = !G ? '' : (() => {
     const R = Math.max(...G.rings);
-    const S = 520;                       // сторона схемы в пикселях
+    const S = 520;                       // сторона схемы в пикселях (стартовая отрисовка)
     const k = (S / 2 - 18) / R;          // метры -> пиксели
     const cx = S / 2, cy = S / 2;
-    const dots = G.points.map((p) =>
-      `<circle cx="${(cx + p.x * k).toFixed(1)}" cy="${(cy - p.y * k).toFixed(1)}" r="4.2" fill="${GEO_COL[p.c] || GEO_COL.x}" opacity=".85"><title>${s('geo.' + p.c) || ''} · ${p.d} ${s('geo.m')}</title></circle>`).join('');
+    const dec = (v) => String(v).replace('.', lang === 'en' ? '.' : ',');
+    const mLbl = (m) => (m >= 1000 ? dec(m / 1000) + ' ' + s('geo.km') : m + ' ' + s('geo.m'));
+    const dots = G.points.filter((p) => p.d <= R).map((p) =>
+      `<circle class="geo-dot" cx="${(cx + p.x * k).toFixed(1)}" cy="${(cy - p.y * k).toFixed(1)}" r="4.6" fill="${GEO_COL[p.c] || GEO_COL.x}"><title>${esc([lang === 'ru' ? p.n : '', s('geo.' + p.c), p.d + ' ' + s('geo.m')].filter(Boolean).join(' · '))}</title></circle>`).join('');
     const rings = G.rings.map((m) =>
-      `<circle cx="${cx}" cy="${cy}" r="${(m * k).toFixed(1)}" fill="none" stroke="var(--line)" stroke-width="1" stroke-dasharray="4 4"/>
-       <text x="${cx}" y="${(cy - m * k + 13).toFixed(1)}" text-anchor="middle" font="600 11px system-ui" fill="var(--muted)">${m >= 1000 ? (m / 1000).toString().replace('.', ',') + ' км' : m + ' м'}</text>`).join('');
+      `<circle class="geo-ring" cx="${cx}" cy="${cy}" r="${(m * k).toFixed(1)}"/>
+       <text class="geo-rlbl" x="${cx}" y="${(cy - m * k + 14).toFixed(1)}" text-anchor="middle">${mLbl(m)}</text>`).join('');
+    // ссылка на полноценную карту: и как атрибуция подложки, и как возможность
+    // разглядеть район самому - внутри блока карта намеренно зафиксирована
+    const mapHref = lang === 'en'
+      ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`
+      : `https://yandex.com/maps/?ll=${lng}%2C${lat}&z=14&pt=${lng}%2C${lat}%2Cpm2rdm`;
     const legend = [['med', s('geo.med')], ['ph', s('geo.ph')], ['bc', s('geo.bc')], ['mh', s('geo.mh')]]
       .map(([c, l]) => `<span><i style="background:${GEO_COL[c]}"></i>${l}</span>`).join('');
     const tiles = (G.iso || []).map((x) =>
       `<div class="geo-tile"><b>${esc(String(x.pop).replace(/\B(?=(\d{3})+(?!\d))/g, ' '))}</b><span>${s('geo.iso').replace('{m}', x.min)}</span></div>`).join('');
     const rows = (G.around || []).map((a) =>
-      `<div class="geo-row"><span>${t(a.l)}</span><i>${a.n1} ${s('geo.in1')} · ${a.n15} ${s('geo.in15')}</i></div>`).join('');
+      `<div class="geo-row"><span>${t(a.l)}</span><i>${a.n1} ${s('geo.in1')} · ${a.n15} ${s('geo.in15')}${a.n3 == null ? '' : ` · ${a.n3} ${s('geo.in3')}`}</i></div>`).join('');
     return `
 <section id="geo" style="padding-top:0">
   <div class="wrap">
@@ -1190,17 +1299,24 @@ ${(FT.files || []).map((f) => `@font-face{font-family:'${FT.family}';font-style:
     <h2 class="h2">${s('geo.h2')}</h2>
     <p class="sub" style="max-width:780px;margin:0 0 24px">${s('geo.sub')}</p>
     <div class="geo-grid">
-      <div class="geo-map">
-        <svg viewBox="0 0 ${S} ${S}" id="geoSvg" role="img" aria-label="${s('geo.h2')}">
-          ${rings}
-          ${dots}
-          <circle cx="${cx}" cy="${cy}" r="8" fill="var(--bronze)" stroke="#fff" stroke-width="2.5"/>
-        </svg>
-        <div class="geo-zoom">
-          <button type="button" id="geoIn" aria-label="+">+</button>
-          <button type="button" id="geoOut" aria-label="-">-</button>
+      <div>
+        <div class="geo-map" id="geoMap">
+          <div class="geo-frame" id="geoFrame"></div>
+          <div class="geo-shield"></div>
+          <div class="geo-ov" id="geoOv">
+            <svg viewBox="0 0 ${S} ${S}" role="img" aria-label="${s('geo.h2')}">
+              ${rings}
+              ${dots}
+              <circle class="geo-me" cx="${cx}" cy="${cy}" r="8"/>
+            </svg>
+          </div>
+          <div class="geo-zoom">
+            <button type="button" id="geoIn" aria-label="+">+</button>
+            <button type="button" id="geoOut" aria-label="-">-</button>
+          </div>
+          <div class="geo-scale" id="geoScale">${mLbl(R)}</div>
         </div>
-        <div class="geo-scale" id="geoScale">${(R / 1000).toString().replace('.', ',')} ${s('geo.km')}</div>
+        <div class="geo-src">${s('geo.base')} <a href="${mapHref}" target="_blank" rel="noopener" data-ev="map_open" data-evx='{"src":"geo"}'>${s('geo.open')}</a></div>
       </div>
       <div>
         <div class="geo-tiles">${tiles}</div>
@@ -1272,7 +1388,7 @@ ${ogImg ? `<meta name="twitter:image" content="${esc(ogImg)}">` : ''}
 ${heroPreload}
 ${jsonLd(cfg, lang, canonical, base)}
 ${counters}
-<style>${CSS}${themeCss}${fontCss}</style>
+<style>${CSS}${themeCss}${fontCss}${caseCss}</style>
 <script>try{if(!matchMedia("(prefers-reduced-motion: reduce)").matches)document.documentElement.classList.add("anim")}catch(e){}</script>
 </head>
 <body data-intent="lease">
@@ -1292,7 +1408,7 @@ ${counters}
     </nav>
     <div class="langs">${langSwitch}</div>
     <a class="top-phone" href="${telHref(phone)}" data-ev="phone_click" data-evx='{"where":"header"}'>${esc(phone)}</a>
-    ${caseLogo ? `<a class="case-link" href="https://caseadvisory.uz" target="_blank" rel="noopener" title="CASE Real Estate Advisory" data-ev="cta_click" data-evx='{"cta":"case_logo"}'><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory"></a>` : ''}
+    ${caseLogo ? `<a class="case-link" href="https://caseadvisory.uz" target="_blank" rel="noopener" title="CASE Real Estate Advisory" data-ev="cta_click" data-evx='{"cta":"case_logo"}'><span class="case-mark"><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory"><i aria-hidden="true"></i></span></a>` : ''}
   </div>
   <div class="sprog" aria-hidden="true"><i id="sprog-i"></i></div>
 </header>
@@ -1494,7 +1610,7 @@ ${geoSection}
     <span>${t(cfg.footer.legal)}</span>
     <span>${s('legal.area')}</span>
     <span>${s('about.vizAll')}</span>
-    ${caseLogo ? `<a class="foot-case" href="https://caseadvisory.uz" target="_blank" rel="noopener" data-ev="cta_click" data-evx='{"cta":"case_logo_footer"}'><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory" loading="lazy" decoding="async"></a>` : ''}
+    ${caseLogo ? `<a class="foot-case" href="https://caseadvisory.uz" target="_blank" rel="noopener" data-ev="cta_click" data-evx='{"cta":"case_logo_footer"}'><span class="case-mark"><img src="${prefix}assets/${caseLogo}" alt="CASE Real Estate Advisory" loading="lazy" decoding="async"><i aria-hidden="true"></i></span></a>` : ''}
   </div>
 </footer>
 

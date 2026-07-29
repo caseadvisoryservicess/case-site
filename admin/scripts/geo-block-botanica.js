@@ -12,19 +12,20 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { analyze } = require('/home/user/case-site/admin/lib/geo');
+const { analyze } = require(path.join(__dirname, '..', 'lib', 'geo'));
 
 const LAT = 41.348614, LNG = 69.316418;
-const FILE = '/home/user/case-site/admin/data/projects/botanica/project.json';
+const FILE = path.join(__dirname, '..', 'data', 'projects', 'botanica', 'project.json');
+const MAX = 3000;   // самое широкое кольцо схемы на лендинге
 
 const ml = (ru, uz, en) => ({ ru, uz, en });
-const res = analyze({ lat: LAT, lng: LNG, radii: [500, 1000, 1500], nearest: 6 });
+const res = analyze({ lat: LAT, lng: LNG, radii: [500, 1000, 1500, MAX], nearest: 6 });
 
 // точки для схемы: смещения в метрах от объекта
 const M_LAT = 110540, M_LNG = 111320 * Math.cos((LAT * Math.PI) / 180);
 const CAT = { bc: 'bc', med: 'med', pharmacy: 'ph', food: 'food', mahalla: 'mh' };
 const points = res.points
-  .filter((p) => p.d <= 1500)
+  .filter((p) => p.d <= MAX)
   .map((p) => ({
     c: CAT[p.cat] || 'x',
     x: Math.round((p.lng - LNG) * M_LNG),
@@ -33,7 +34,7 @@ const points = res.points
     n: p.name || ''
   }));
 
-const c1000 = res.counts[1000], c1500 = res.counts[1500];
+const c1000 = res.counts[1000], c1500 = res.counts[1500], c3000 = res.counts[MAX];
 const geo = {
   point: { lat: LAT, lng: LNG },
   rings: [500, 1000, 1500],
@@ -47,13 +48,13 @@ const geo = {
   demo: { youth: 22.2, women: 28.2, old: 5.3 },
   // окружение - собственная геобаза CASE
   around: [
-    { k: 'med', n1: c1000.med || 0, n15: c1500.med || 0,
+    { k: 'med', n1: c1000.med || 0, n15: c1500.med || 0, n3: c3000.med || 0,
       l: ml('медицинские учреждения', 'tibbiyot muassasalari', 'medical facilities') },
-    { k: 'ph', n1: c1000.pharmacy || 0, n15: c1500.pharmacy || 0,
+    { k: 'ph', n1: c1000.pharmacy || 0, n15: c1500.pharmacy || 0, n3: c3000.pharmacy || 0,
       l: ml('аптеки', 'dorixonalar', 'pharmacies') },
-    { k: 'bc', n1: c1000.bc || 0, n15: c1500.bc || 0,
+    { k: 'bc', n1: c1000.bc || 0, n15: c1500.bc || 0, n3: c3000.bc || 0,
       l: ml('бизнес-центры', 'biznes-markazlar', 'business centres') },
-    { k: 'mh', n1: c1000.mahalla || 0, n15: c1500.mahalla || 0,
+    { k: 'mh', n1: c1000.mahalla || 0, n15: c1500.mahalla || 0, n3: c3000.mahalla || 0,
       l: ml('махаллинские центры', 'mahalla markazlari', 'mahalla centres') }
   ],
   nearest: {
@@ -68,3 +69,4 @@ fs.writeFileSync(FILE, JSON.stringify(cfg, null, 2));
 console.log('точек на схеме:', points.length);
 console.log('в 1 км: медицина', c1000.med || 0, 'аптеки', c1000.pharmacy || 0, 'БЦ', c1000.bc || 0, 'махалли', c1000.mahalla || 0);
 console.log('в 1,5 км: медицина', c1500.med || 0, 'аптеки', c1500.pharmacy || 0, 'БЦ', c1500.bc || 0, 'махалли', c1500.mahalla || 0);
+console.log('в 3 км: медицина', c3000.med || 0, 'аптеки', c3000.pharmacy || 0, 'БЦ', c3000.bc || 0, 'махалли', c3000.mahalla || 0);

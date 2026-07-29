@@ -97,7 +97,7 @@ CFG = {
       "hotel restaurant lease Tashkent", "F&B space for rent Tashkent"
     ]),
     "domain": "", "googleVerification": "", "yandexVerification": "",
-    "publicUrl": "https://caseadvisory.uz/mercure.restaurant"
+    "publicUrl": "https://caseadvisory.uz/mercure-restaurant"
   },
 
   "intro": {
