@@ -21,13 +21,47 @@ if (!$viaCron || in_array($action, ['list','download','restore'], true)) {
   if (!can('admin')) fail('Только администратор', 403);
 }
 
-$dir = __DIR__.'/../sql/backups';
-if (!is_dir($dir)) @mkdir($dir, 0755, true);
+/* v4.50.3: дампы базы уходят ЗА пределы публичной папки.
+   Раньше они лежали в os/sql/backups — внутри веб-корня. Имена предсказуемы
+   с точностью до секунды (caseos_ГГГГ-ММ-ДД_ЧЧММСС.sql.gz), а запрет на отдачу
+   .sql.gz стоял только в /api и на эту папку не распространялся. Кто угадал имя,
+   скачивал всю базу мимо этого эндпоинта и мимо проверки прав. */
+$legacyDir = __DIR__.'/../sql/backups';
+$dir = $legacyDir;
+$outside = realpath(__DIR__.'/../../..');          // на уровень выше public_html
+if ($outside !== false) {
+  $cand = $outside.'/caseos_backups';
+  if (!is_dir($cand)) @mkdir($cand, 0700, true);
+  if (is_dir($cand) && is_writable($cand)) {
+    $dir = $cand;
+    // одноразовый переезд копий, сделанных до обновления
+    foreach (glob($legacyDir.'/*.sql.gz') ?: [] as $f) { @rename($f, $cand.'/'.basename($f)); }
+  }
+}
+if (!is_dir($dir)) @mkdir($dir, 0700, true);
+
+/** Рабочая папка плюс старая — на случай, если переезд не удался (нет прав на запись выше). */
+function caseos_backup_dirs(): array {
+  global $dir, $legacyDir;
+  $out = [$dir];
+  $rl = realpath($legacyDir); $rd = realpath($dir);
+  if ($rl !== false && $rl !== $rd) $out[] = $legacyDir;
+  return $out;
+}
+function caseos_find_backup(string $name): ?string {
+  foreach (caseos_backup_dirs() as $d) { $p = $d.'/'.$name; if (is_file($p)) return $p; }
+  return null;
+}
 
 function backupList(string $dir): array {
-  $out = [];
-  foreach (glob($dir.'/*.sql.gz') ?: [] as $f) {
-    $out[] = ['name'=>basename($f), 'size'=>filesize($f), 'time'=>filemtime($f)];
+  $out = []; $seen = [];
+  foreach (caseos_backup_dirs() as $d) {
+    foreach (glob($d.'/*.sql.gz') ?: [] as $f) {
+      $n = basename($f);
+      if (isset($seen[$n])) continue;
+      $seen[$n] = 1;
+      $out[] = ['name'=>$n, 'size'=>filesize($f), 'time'=>filemtime($f)];
+    }
   }
   usort($out, function($a,$b){ return $b['time']<=>$a['time']; });
   return $out;
@@ -76,7 +110,9 @@ function caseos_write_backup(string $dir, string $sql, string $prefix='caseos'):
 
 function caseos_prune(string $dir): void {
   $cutoff = time() - 30*86400;
-  foreach (glob($dir.'/*.sql.gz') ?: [] as $f) { if (filemtime($f) < $cutoff) @unlink($f); }
+  foreach (caseos_backup_dirs() as $d) {
+    foreach (glob($d.'/*.sql.gz') ?: [] as $f) { if (filemtime($f) < $cutoff) @unlink($f); }
+  }
 }
 
 if ($action === 'list') {
@@ -84,8 +120,8 @@ if ($action === 'list') {
 }
 if ($action === 'download') {
   $name = basename((string)($_GET['name'] ?? ''));
-  $path = $dir.'/'.$name;
-  if ($name === '' || !preg_match('/^[\w.\-]+\.sql\.gz$/', $name) || !is_file($path)) fail('Файл не найден', 404);
+  $path = preg_match('/^[\w.\-]+\.sql\.gz$/', $name) ? caseos_find_backup($name) : null;
+  if ($name === '' || $path === null) fail('Файл не найден', 404);
   header('Content-Type: application/gzip');
   header('Content-Disposition: attachment; filename="'.$name.'"');
   header('X-Content-Type-Options: nosniff');
@@ -101,8 +137,8 @@ $driver = $cfg['driver'] ?? 'mysql';
 if ($action === 'restore') {
   if ($method !== 'POST') fail('Восстановление выполняется только методом POST', 405);
   $name = basename((string)($_POST['name'] ?? $_GET['name'] ?? ''));
-  $path = $dir.'/'.$name;
-  if ($name === '' || !preg_match('/^[\w.\-]+\.sql\.gz$/', $name) || !is_file($path)) fail('Файл резервной копии не найден', 404);
+  $path = preg_match('/^[\w.\-]+\.sql\.gz$/', $name) ? caseos_find_backup($name) : null;
+  if ($name === '' || $path === null) fail('Файл резервной копии не найден', 404);
   $blob = @file_get_contents($path);
   if ($blob === false) fail('Не удалось прочитать файл резервной копии', 500);
   $sql = @gzdecode($blob);

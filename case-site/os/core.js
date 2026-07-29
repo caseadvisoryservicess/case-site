@@ -993,7 +993,13 @@ async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false)
  /* Синхронно выставляем нужный вид входа ДО запроса к серверу, чтобы старая панель
     (выбор роли) не мелькала пару секунд, пока идёт проверка auth.php. */
  if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked('');}
- try{const j=await apiGET('auth.php');BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
+ try{const j=await apiGET('auth.php');
+  /* v4.50.3: раньше здесь стояло просто BACKEND=true. apiGET глотает ошибку разбора
+     и возвращает null, поэтому на статичном или неверно настроенном сервере, который
+     отдаёт исходник auth.php с кодом 200, платформа считала бэкенд живым и показывала
+     нерабочий вход вместо честного отказа. Требуем осмысленный ответ. */
+  if(!j||typeof j.auth!=='boolean')throw new Error('backend-invalid');
+  BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
  catch(e){BACKEND=false;if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked('Сервер авторизации недоступен. Обновите страницу и войдите по рабочему email и паролю. Вход по выбору роли отключён в целях безопасности.');}}}
 function setLoginLocked(errMsg){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
  show('l_user',false);show('luser',false);show('l_email',true);show('lemail',true);
@@ -3984,4 +3990,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.3';

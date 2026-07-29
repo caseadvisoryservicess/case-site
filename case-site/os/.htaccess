@@ -26,7 +26,17 @@
   # inline-скриптами и onclick-обработчиками, jszip использует Function. Политика всё равно
   # закрывает главное: чужие домены скриптов, form-action, base-uri, встраивание в чужие фреймы.
   # Карт-тайлы (img) и внешние API — только https.
-  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data:; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  # v4.50.3: политика запрещала ровно то, что страница грузит сама — PptxGenJS с jsDelivr
+  # и шрифты Google. Из-за этого выгрузка в PPTX на боевом Apache падала, а типографика
+  # откатывалась на запасной шрифт. Перечислены ровно эти источники, не https: целиком.
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 </IfModule>
 
 Options -Indexes
+
+# v4.50.3: дампы базы и схему нельзя забирать по прямой ссылке. Запрет на .sql.gz стоял
+# только в /api, а сами копии лежали в /sql/backups — то есть были доступны любому, кто
+# угадает имя. Имена предсказуемы с точностью до секунды, так что это не теория.
+<FilesMatch "\.(sql|sql\.gz|sqlite|sqlite3|log|env)$">
+  Require all denied
+</FilesMatch>

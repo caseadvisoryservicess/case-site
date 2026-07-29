@@ -52,7 +52,10 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .profile-menu .pm-item{display:block;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px;font-size:12.5px;font-weight:700;cursor:pointer;color:var(--ink)}
 .profile-menu .pm-item:hover{background:#f5f5f5}
 .profile-menu .pm-out{color:var(--red-d,#9E0000);border-top:1px solid var(--border);margin-top:4px}
-.ph-help{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:10px;width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--muted);font-weight:800;font-size:12px;cursor:pointer;line-height:1}
+.ph-help{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;margin-left:10px;width:24px;height:24px;border-radius:50%;border:1px solid var(--border);background:#fff;color:var(--muted);font-weight:800;font-size:12px;cursor:pointer;line-height:1;position:relative}
+/* v4.50.3: кружок остаётся 24px, но на сенсорном экране палец попадает по области 40×40 —
+   раньше в него было трудно попасть, а сама подсказка на мобильном нужнее всего. */
+@media (pointer:coarse){.ph-help::after{content:'';position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%)}}
 .ph-help:hover{border-color:var(--red);color:var(--red-d,#9E0000)}
 .shell{display:block;min-height:calc(100vh - var(--topbar-h,55px))}
 .side{position:fixed;top:var(--topbar-h,55px);bottom:0;left:0;width:58px;background:#fff;border-right:1px solid var(--border);padding:8px 6px;z-index:39;overflow-x:hidden;overflow-y:auto;transition:width .18s ease,box-shadow .18s ease}
@@ -445,11 +448,11 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js?v=4.50.2" defer></script>
-<script>const APP_VERSION='4.50.2';
+<script>const APP_VERSION='4.50.3';
 /* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
    менялось при каждом обновлении любого модуля и не кэшировалось */
-const CASE_EXPECTED_MODULES={'core':'4.50.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.47.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.48.4','v4450-owner-report':'4.47.0'};    /* версия платформы — повышается с каждым обновлением */</script>
-<script src="core.js?v=4.50.0"></script>
+const CASE_EXPECTED_MODULES={'core':'4.50.3','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.47.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.48.4','v4450-owner-report':'4.47.0'};    /* версия платформы — повышается с каждым обновлением */</script>
+<script src="core.js?v=4.50.3"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.49.2" defer></script>
