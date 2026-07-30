@@ -540,7 +540,47 @@ const CATTYPES={
  'Спортивная одежда и товары':['Спортивная одежда','Экипировка','Спортивное питание','Спецспорт'],
  'Автозапчасти и аксессуары':['Автозапчасти','Автоаксессуары','Автохимия']};
 const CATALCO=['Места общественного питания','Супермаркет / гипермаркет'];
-function catHasAlcohol(cat){return CATALCO.indexOf(cat)>=0;}
+/* v4.50.4: CATTYPES и CATALCO остались на названиях категорий ДО таксономии v3.5.7,
+   а форма бренда спрашивает их по КАНОНИЧЕСКИМ именам. Вдобавок объявление через const
+   в window не попадает, а v35-stable читает именно window.CATTYPES. Итог: поле «Тип»
+   было пустым для ВСЕХ 16 категорий, галочка алкоголя не появлялась даже у F&B,
+   а «Оператор связи» лежал в коде и был недостижим — именно на это и жаловались.
+   Раскладываем явной таблицей, а не догадками по псевдонимам: соответствие
+   проверяемо глазами и не зависит от правил нечёткого сравнения. */
+const CATTYPES_TO_CANON={
+ 'Места общественного питания':'F&B / рестораны и кафе',
+ 'Мода и стиль':'Мода и одежда',
+ 'Обувь и аксессуары':'Мода и одежда',
+ 'Услуги, киоски, спец. магазин':'Услуги и сервисы',
+ 'Парфюмерия и косметика':'Красота и здоровье',
+ 'Игрушки, книги, канцтовары и хобби':'Дети и образование',
+ 'Ювелирные изделия, очки и бижутерия':'Ювелирные изделия и аксессуары',
+ 'Развлечение':'Развлечения',
+ 'Супермаркет / гипермаркет':'Супермаркет / продукты',
+ 'Электроника, бытовая техника':'Электроника и техника',
+ 'Мебель и товары для дома':'Дом и интерьер',
+ 'Спортивная одежда и товары':'Спорт и фитнес',
+ 'Автозапчасти и аксессуары':'Авто'
+};
+/* «Мода и стиль» и «Обувь и аксессуары» сходятся в одну «Мода и одежда» — списки
+   объединяем, дубликаты отбрасываем. */
+const CANON_CATTYPES=(function(){
+ const out={};
+ Object.keys(CATTYPES).forEach(function(k){
+  const c=CATTYPES_TO_CANON[k]||k;
+  out[c]=out[c]||[];
+  CATTYPES[k].forEach(function(t){if(out[c].indexOf(t)<0)out[c].push(t);});
+ });
+ Object.keys(out).forEach(function(c){out[c].sort(function(a,b){return String(a).localeCompare(String(b),'ru');});});
+ return out;
+})();
+const CANON_CATALCO=CATALCO.map(function(k){return CATTYPES_TO_CANON[k]||k;});
+const ALL_CATTYPES=(function(){var a=[];Object.keys(CANON_CATTYPES).forEach(function(c){a=a.concat(CANON_CATTYPES[c]);});
+ return a.filter(function(x,i){return a.indexOf(x)===i;}).sort(function(x,y){return String(x).localeCompare(String(y),'ru');});})();
+window.CANON_CATTYPES=CANON_CATTYPES;
+window.ALL_CATTYPES=ALL_CATTYPES;
+window.CATTYPES=CATTYPES;                 /* старые ключи — для прежних мест вызова */
+function catHasAlcohol(cat){return CATALCO.indexOf(cat)>=0||CANON_CATALCO.indexOf(cat)>=0;}
 function typesDatalist(cat){const list=(cat&&CATTYPES[cat])?CATTYPES[cat]:Object.values(CATTYPES).flat();return `<datalist id="typeDL">${list.map(s=>`<option value="${esc(s)}">`).join('')}</datalist>`;}
 function brandTypeLabel(b){if(!b)return '';let t=b.type||'';if(b.alcohol)t=t?t+' (Алкоголь)':'Алкоголь';return t;}
 function bindSubDL(){const ec=$('e_cat');if(!ec)return;ec.addEventListener('change',()=>{const dl=$('subDL');if(dl)dl.innerHTML=((CATSUBS[ec.value]||Object.values(CATSUBS).flat())).map(s=>`<option value="${esc(s)}">`).join('');const td=$('typeDL');if(td)td.innerHTML=((CATTYPES[ec.value]||Object.values(CATTYPES).flat())).map(s=>`<option value="${esc(s)}">`).join('');const aw=$('e_alco_wrap');if(aw)aw.style.display=catHasAlcohol(ec.value)?'':'none';});} /* подсказки подкатегорий и типа зависят от выбранной категории */
@@ -3990,4 +4030,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.3';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.4';
