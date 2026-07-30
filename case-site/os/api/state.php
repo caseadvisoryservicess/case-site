@@ -324,7 +324,18 @@ if ($m === 'GET') {
       $data['MODULE_FLAGS'] = $visibleCfg['MODULE_FLAGS'];
     }
   }
-  json_out(['data'=>$data, 'updated_at'=>$row['updated_at'] ?? null, 'updated_by'=>$row['updated_by'] ?? null, 'revision'=>(int)($row['revision'] ?? 0)]);
+  /* v4.50.5: сообщаем клиенту, какие разделы он всё равно не сможет записать.
+     Раньше клиент этого не знал и отправлял ВСТРОЕННЫЕ значения по умолчанию для
+     разделов, которых ему на чтение даже не дали (USERS, ROLES, AUDIT, BENCH…).
+     Сервер их честно отклонял, а сотрудник видел «НЕ сохранено: …» при каждом
+     сохранении и делал вывод, что не сохраняется вообще ничего. Список считаем
+     ровно так же, как ветка отказа в POST ниже, — чтобы они не разъехались. */
+  $restrictedOut = [];
+  $allowedOut = role_allowed_state_keys($u, $fullData);
+  if ($allowedOut !== null) {
+    $restrictedOut = array_values(array_diff(all_shared_state_keys(), $allowedOut, ['ROLE_WORKSPACES','USER_WORKSPACES','MODULE_FLAGS']));
+  }
+  json_out(['data'=>$data, 'updated_at'=>$row['updated_at'] ?? null, 'updated_by'=>$row['updated_by'] ?? null, 'revision'=>(int)($row['revision'] ?? 0), 'restricted_keys'=>$restrictedOut]);
 }
 
 if ($m === 'POST') {

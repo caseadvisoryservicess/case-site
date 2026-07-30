@@ -70,6 +70,17 @@ async function apiGET(p){const u=apiURL(p)+(p.indexOf('?')>=0?'&':'?')+'_='+Date
    и самое первое сохранение успевало сработать, пока let ещё во временной мёртвой зоне.
    Обращение бросало ReferenceError, catch его глушил — и состояние уходило нефильтрованным. */
 let _syncedKeyJson={};
+/* v4.50.5: разделы, которые сервер всё равно не примет от этой роли (он присылает их
+   в restricted_keys при чтении). У клиента для многих из них есть ВСТРОЕННЫЕ значения
+   по умолчанию — непустые, поэтому фильтр пустых разделов их не отсекал, они уходили
+   на сервер и честно отклонялись. Сотрудник видел «НЕ сохранено: USERS, Бенчмарки…»
+   при каждом сохранении и делал вывод, что не сохраняется ничего. Своя правка при этом
+   сохранялась: сервер пишет разрешённые разделы и лишь возвращает закрытые как были. */
+let _restrictedKeys=null;
+function _setRestrictedKeys(j){
+ try{ if(j&&Array.isArray(j.restricted_keys)) _restrictedKeys=j.restricted_keys.slice(); }catch(e){}
+}
+function _isRestricted(k){ return !!(_restrictedKeys && _restrictedKeys.indexOf(k)>=0); }
 /* v4.50.0: сервер вырезает из ответа GET разделы, закрытые для роли. Клиент их никогда
    не получал и держит пустыми — и раньше эта пустота уходила при каждом сохранении из
    всех тринадцати мест, где состояние отправляется. Сервер писал state_key_denied
@@ -85,6 +96,7 @@ function _stripUnsyncedEmpty(data){
   if(!data||typeof data!=='object')return data;
   const out={};
   Object.keys(data).forEach(k=>{
+   if(_isRestricted(k))return;                 /* v4.50.5: сервер это всё равно отклонит */
    if(_syncedKeyJson[k]===undefined){
     const v=data[k];
     if(Array.isArray(v)?v.length===0:(v&&typeof v==='object'&&Object.keys(v).length===0))return;
@@ -119,14 +131,14 @@ function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANU
 let _lastServerUpdate=null,_serverRev=0,_lastLocalMutationAt=0;
 /* P1-6: слепок «что сервер уже знает» по каждому ключу состояния — для доменных сохранений */
 function _rememberSynced(data){try{if(data&&typeof data==='object')Object.keys(data).forEach(k=>{try{_syncedKeyJson[k]=JSON.stringify(data[k]);}catch(e){}});}catch(e){}}
-async function apiLoadState(){try{const j=await apiGET('state.php');if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;if(j&&j.data)_rememberSynced(j.data);return (j&&j.data)||null;}catch(e){return null;}}
+async function apiLoadState(){try{const j=await apiGET('state.php');_setRestrictedKeys(j);if(j&&j.updated_at)_lastServerUpdate=j.updated_at;if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||0;if(j&&j.data)_rememberSynced(j.data);return (j&&j.data)||null;}catch(e){return null;}}
 /* ===== Автообновление: подтягиваем общие данные без ручного F5, аккуратно (не мешая активной работе) ===== */
 function toast(msg,ms){let box=document.getElementById('toastBox');if(!box){box=document.createElement('div');box.id='toastBox';box.style.cssText='position:fixed;left:50%;bottom:22px;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;align-items:center';document.body.appendChild(box);}
  const el=document.createElement('div');el.textContent=msg;el.style.cssText='background:#222;color:#fff;padding:9px 16px;border-radius:20px;font-size:12.5px;box-shadow:0 4px 14px rgba(0,0,0,.2);opacity:0;transition:opacity .25s';box.appendChild(el);requestAnimationFrame(()=>el.style.opacity='1');
  setTimeout(()=>{el.style.opacity='0';setTimeout(()=>el.remove(),300);},ms||3200);}
 function isUserBusy(){const dr=$('drawer');if(dr&&dr.classList.contains('open'))return true;if(_saveBusy||_savePend||_offlineDirty||(Date.now()-_lastLocalMutationAt<2500))return true;if(S.regEdit)return true;if(document.querySelector('.modal.open,.rmodal.open,[role=dialog][aria-modal=true]'))return true;if(S&&['advisory_portfolio_map','leasing_portfolio_map','advisory_proposal_builder'].indexOf(S.view)>=0)return true;const ae=document.activeElement;if(ae&&['INPUT','TEXTAREA','SELECT'].indexOf(ae.tagName)>=0)return true;return false;}
 function _serverChangedKeys(data){const out=[];try{Object.keys(data||{}).forEach(k=>{let v=null;try{v=JSON.stringify(data[k]);}catch(e){}if(v!==_syncedKeyJson[k])out.push(k);});}catch(e){}return out;}
-async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length&&!(j.updated_by&&S.user&&j.updated_by===S.user.name))toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
+async function pollServerState(){if(!BACKEND||!S.user||document.hidden||isUserBusy())return;try{const j=await apiGET('state.php');_setRestrictedKeys(j);if(j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;if(j&&j.updated_at&&j.updated_at!==_lastServerUpdate&&j.data){const changed=_serverChangedKeys(j.data);_lastServerUpdate=j.updated_at;applyState(j.data);_rememberSynced(j.data);if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.refreshAfterServer==='function')CASE_LIVE_SYNC.refreshAfterServer(changed);else if(!document.querySelector('#main #geoFrame, #main #feasFrame'))go(S.view);if(changed.length&&!(j.updated_by&&S.user&&j.updated_by===S.user.name))toast('Данные обновлены'+(j.updated_by?' ('+j.updated_by+')':''));try{chatNews();if(_chatW.open)chatRenderW();}catch(e){}if(window._mapkeyGuard){window._mapkeyGuard=0;clearTimeout(_saveT);apiPOST('state.php',{data:stateBlob()}).catch(()=>{});}}}catch(e){}}
 if(typeof window!=='undefined')setInterval(pollServerState,20000);
 /* v4.46.4: сверка версий модулей — ловит «залил не все файлы» и застрявший кэш на хостинге */
 
@@ -177,6 +189,7 @@ async function _doSaveState(){
       Ниже успешное сохранение переносит ВЕСЬ pend в _syncedKeyJson. Если сюда попадёт
       пустой раздел, который apiPOST потом выбросит, мы пометим как «сервер это знает»
       то, чего сервер не получал, — и на следующем сохранении фильтр его уже пропустит. */
+   if(_isRestricted(k))return;                  /* v4.50.5: закрытый раздел не шлём вовсе */
    if(_syncedKeyJson[k]===undefined&&(s==='[]'||s==='{}'))return;
    if(s==null||_syncedKeyJson[k]!==s){send[k]=blob[k];dirty.push(k);pend[k]=s;}});
   if(dirty.length){
@@ -189,7 +202,7 @@ async function _doSaveState(){
        поверх свои изменённые домены и сохраняем повторно с новой ревизией. Границы честные:
        конфликт ВНУТРИ одного домена решается «наш домен победил» (точечные правки юнитов
        дополнительно защищает серверный splice по updatedAt из unit_patch). */
-    const fresh=await apiGET('state.php');
+    const fresh=await apiGET('state.php');_setRestrictedKeys(fresh);
     if(!fresh||!fresh.data)throw e;
     const mine={};dirty.forEach(k=>{if(k in send)mine[k]=send[k];});
     applyState(fresh.data);_rememberSynced(fresh.data);
@@ -4030,4 +4043,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.4';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.5';

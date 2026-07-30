@@ -50,13 +50,24 @@ function createMockServer(OS_DIR, opts) {
         const b = await readBody(req); state.prefs = b.data || {}; json(rsp, 200, { ok: true }); return;
       }
       if (ep === 'state.php') {
-        if (req.method === 'GET') { json(rsp, 200, { data: state.appState.data, revision: state.appState.revision, updated_at: state.appState.updatedAt, updated_by: state.updatedBy || 'mock' }); return; }
+        if (req.method === 'GET') { json(rsp, 200, { data: state.appState.data, revision: state.appState.revision, updated_at: state.appState.updatedAt, updated_by: state.updatedBy || 'mock',
+          restricted_keys: state.restrictedKeys || [] }); return; }   /* как настоящий state.php: список закрытых для роли разделов */
         const b = await readBody(req);
         if (state.failMode === 'state-conflict') { json(rsp, 409, { error: 'Данные уже изменены другим пользователем. Обновите страницу и повторите действие.' }); return; }
         const incoming = b.data || {};
         state.statePosts.push(Object.keys(incoming));
         const rejected = [];
         if (state.failMode === 'reject-brands' && incoming.BRANDS) { rejected.push('BRANDS'); delete incoming.BRANDS; }
+        /* Боевой state.php закрытые разделы не пишет, возвращает прежние и перечисляет
+           в rejected_keys. Мок обязан вести себя так же, иначе тест на лишние отправки
+           ничего не поймает. */
+        (state.restrictedKeys || []).forEach(k => {
+          if (Object.prototype.hasOwnProperty.call(incoming, k)) {
+            const cur = JSON.stringify(state.appState.data[k]);
+            if (cur !== JSON.stringify(incoming[k])) rejected.push(k);
+            delete incoming[k];
+          }
+        });
         Object.assign(state.appState.data, incoming);
         state.appState.revision++;
         json(rsp, 200, Object.assign({ ok: true, revision: state.appState.revision, updated_at: '2026-07-24 12:00:01' }, rejected.length ? { rejected_keys: rejected } : {})); return;
