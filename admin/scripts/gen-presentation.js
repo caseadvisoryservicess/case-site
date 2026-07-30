@@ -265,14 +265,21 @@ const rgbOf = (hex) => { const h = String(hex).replace('#',''); const n = h.leng
   return [0,2,4].map(i=>parseInt(n.slice(i,i+2),16)||0).join(','); };
 const ACC_RGB = rgbOf(BRONZE);
 
+// Сквозной счётчик страниц. Номера больше не пишутся руками: любая вставка
+// (например, титульный лист раздела) сдвигает нумерацию сама. Обложка это
+// страница 1, её подвала нет, поэтому счётчик стартует с единицы и каждый
+// следующий подвал забирает очередной номер.
+let PGN = 1;
+const nextPg = () => ++PGN;
+
 // контекст для модуля дополнительных страниц: те же помощники и та же палитра,
 // что у основной брошюры, плюс подвал с продолжением нумерации
 const extraCtx = (lang) => ({
   lang, cfg, esc, L, img64, BRONZE, INK, MUTED, BG, DARK, ACC_RGB, CODE,
-  addr: T.addr[lang], BASE_TOTAL, TOTAL,
-  foot: (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${T.addr[lang]}</span>`
+  addr: T.addr[lang], BASE_TOTAL, TOTAL, nextPg,
+  foot: () => `<div class="foot"><span><b>${esc(CODE)}</b> · ${T.addr[lang]}</span>`
     + `<span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span>`
-    + `<span>${n} / ${TOTAL}</span></div>`
+    + `<span>${nextPg()} / ${TOTAL}</span></div>`
 });
 
 const CSS = `
@@ -358,6 +365,7 @@ const VIZ_WIDE = VIZ_IMGS.filter((f) => !isTall(f));
 
 function buildHtml(lang, qr) {
   if (LAND) return buildLandHtml(lang, qr);
+  PGN = 1;
   const t = (k) => T[k][lang];
   const M = (v) => esc(L(v, lang));
   const units = cfg.units.filter((u) => !u.whole);
@@ -365,7 +373,9 @@ function buildHtml(lang, qr) {
   const siteShown = SITE.replace('https://', '') + (lang === 'ru' ? '' : lang + '/');
   const stLabel = (st) => t('st_' + (st || 'available')) || t('st_available');
 
-  const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
+  const foot = () => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${nextPg()} / ${TOTAL}</span></div>`;
+  // титульный лист раздела, если подключён модуль дополнительных страниц
+  const DIV = (key) => (EXTRA && EXTRA.divider) ? EXTRA.divider(key, extraCtx(lang)) : '';
 
   // ── страница геоаналитики ──
   // Схема рисуется своей SVG по тем же данным, что и на лендинге: кольца
@@ -437,7 +447,7 @@ function buildHtml(lang, qr) {
         <div style="font-size:8pt;color:${MUTED};line-height:1.5;margin-top:auto">${t('geo_note')}${hasPop ? ' ' + t('geo_notePop') : ''}</div>
       </div>
     </div>
-    ${foot(7 + PLAN_PAGES.length)}
+    ${foot()}
   </div>`;
   };
 
@@ -451,7 +461,7 @@ function buildHtml(lang, qr) {
     <td><span class="st${u.status === 'available' ? '' : ' off'}">${stLabel(u.status)}</span></td>
   </tr>`;
 
-  const planPage = (n, u, extraTitle) => `
+  const planPage = (u, extraTitle) => `
   <div class="pg">
     <span class="lbl">${t('lbl_plan')}</span>
     <h2>${extraTitle ? esc(extraTitle) : M(u.level)}</h2>
@@ -468,7 +478,7 @@ function buildHtml(lang, qr) {
         <div style="font-size:8pt;color:${MUTED};margin-top:1mm">${t('plan_note')}</div>
       </div>
     </div>
-    ${foot(n)}
+    ${foot()}
   </div>`;
 
   const caseCard = (c) => `<div style="background:#fff;border-radius:4mm;padding:7mm;flex:1">
@@ -497,6 +507,8 @@ function buildHtml(lang, qr) {
     <div style="position:absolute;right:18mm;bottom:20mm;color:#fff;font-size:9pt;opacity:.8">CASE Real Estate Advisory</div>
   </div>
 
+  ${DIV('about')}
+
   <div class="pg">
     <span class="lbl">${t('lbl_about')}</span>
     <h2>${t('h_about')}</h2>
@@ -516,7 +528,7 @@ function buildHtml(lang, qr) {
         <span style="position:absolute;right:4mm;bottom:4mm;background:rgba(15,16,18,.6);color:#fff;font-size:7pt;letter-spacing:.1em;text-transform:uppercase;padding:2mm 3.5mm;border-radius:2mm">${t('viz_one')}</span>
       </div>
     </div>
-    ${foot(2)}
+    ${foot()}
   </div>
 
   <div class="pg">
@@ -532,13 +544,15 @@ function buildHtml(lang, qr) {
       </tr>
     </table>
     <div style="margin-top:5mm;font-size:9pt;color:${MUTED}">${t('units_note')}</div>
-    ${foot(3)}
+    ${foot()}
   </div>
 
   ${PLAN_PAGES.map((pp, i) => {
       const u = units.find((x) => x.id === pp.id);
-      return u ? planPage(4 + i, u, pp.title ? t(pp.title) : '') : '';
+      return u ? planPage(u, pp.title ? t(pp.title) : '') : '';
     }).join('')}
+
+  ${DIV('cases')}
 
   <div class="pg">
     <span class="lbl">${t('lbl_cases')}</span>
@@ -546,7 +560,7 @@ function buildHtml(lang, qr) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:6mm;flex:1;align-content:start">
       ${cfg.useCases.cards.map(caseCard).join('')}
     </div>
-    ${foot(4 + PLAN_PAGES.length)}
+    ${foot()}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff">
@@ -559,8 +573,10 @@ function buildHtml(lang, qr) {
       </div>`).join('')}
     </div>
     <div style="margin-top:6mm;font-size:10pt;color:rgba(255,255,255,.65)">${t('deal_note')} ${esc(cfg.contacts.phone)} · t.me/${esc(cfg.contacts.telegram)}</div>
-    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>${5 + PLAN_PAGES.length} / ${TOTAL}</span></div>
+    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>${nextPg()} / ${TOTAL}</span></div>
   </div>
+
+  ${DIV('loc')}
 
   <div class="pg">
     <span class="lbl">${t('lbl_loc')}</span>
@@ -584,10 +600,12 @@ function buildHtml(lang, qr) {
         ${(PRES.T && PRES.T.loc_first) || SLUG === 'takhtapul' ? `<div style="background:rgba(${ACC_RGB},.1);border-radius:4mm;padding:6mm;font-size:10.5pt;line-height:1.5">${t('loc_first')}</div>` : ''}
       </div>
     </div>
-    ${foot(6 + PLAN_PAGES.length)}
+    ${foot()}
   </div>
 
   ${GEO ? geoPage(lang) : ''}
+
+  ${DIV('viz')}
 
   <div class="pg">
     <span class="lbl">${t('lbl_viz')}</span>
@@ -615,8 +633,10 @@ function buildHtml(lang, qr) {
         </div>`).join('')}
       </div>` : ''}
     </div>
-    ${foot(7 + PLAN_PAGES.length + GEO_PG)}
+    ${foot()}
   </div>
+
+  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">
     <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
@@ -629,11 +649,9 @@ function buildHtml(lang, qr) {
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
     <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
-      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${BASE_TOTAL} / ${TOTAL}</span>
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${nextPg()} / ${TOTAL}</span>
     </div>
   </div>
-
-  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
   </body></html>`;
 }
 
@@ -644,10 +662,13 @@ function buildHtml(lang, qr) {
  * сразу сценарии использования.
  */
 function buildLandHtml(lang, qr) {
+  PGN = 1;
   const t = (k) => T[k][lang];
   const M = (v) => esc(L(v, lang));
   const siteShown = SITE.replace('https://', '') + (lang === 'ru' ? '' : lang + '/');
-  const foot = (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${n} / ${TOTAL}</span></div>`;
+  const foot = () => `<div class="foot"><span><b>${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span><span>${nextPg()} / ${TOTAL}</span></div>`;
+  // титульный лист раздела, если подключён модуль дополнительных страниц
+  const DIV = (key) => (EXTRA && EXTRA.divider) ? EXTRA.divider(key, extraCtx(lang)) : '';
   // подпись картинок: у концепт-визуализаций своя, чтобы не выдать их за фото
   const vizBadge = (cfg.texts && cfg.texts['about.viz']) ? L(cfg.texts['about.viz'], lang) : t('viz_concept');
   // у отдельной картинки может быть своя подпись (например, реальный снимок
@@ -706,7 +727,7 @@ function buildLandHtml(lang, qr) {
         <div style="font-size:8pt;color:${MUTED};line-height:1.5">${esc(legal)}</div>
       </div>
     </div>
-    ${foot(2)}
+    ${foot()}
   </div>
 
   <div class="pg">
@@ -715,7 +736,7 @@ function buildLandHtml(lang, qr) {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;flex:1;align-content:start">
       ${cfg.useCases.cards.map(caseCard).join('')}
     </div>
-    ${foot(3)}
+    ${foot()}
   </div>
 
   <div class="pg" style="background:${DARK};color:#fff">
@@ -728,7 +749,7 @@ function buildLandHtml(lang, qr) {
       </div>`).join('')}
     </div>
     <div style="margin-top:8mm;font-size:10pt;color:rgba(255,255,255,.65)">${t('land_deal')} ${esc(cfg.contacts.phone)} · t.me/${esc(cfg.contacts.telegram)}</div>
-    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>4 / ${TOTAL}</span></div>
+    <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${t('addr')}</span><span>CASE Real Estate Advisory</span><span>${nextPg()} / ${TOTAL}</span></div>
   </div>
 
   <div class="pg">
@@ -754,7 +775,7 @@ function buildLandHtml(lang, qr) {
         ${!MAP_IMG && L(cfg.location.around, lang) ? `<div style="background:#fff;border-radius:4mm;padding:6mm;font-size:10pt;line-height:1.55;color:${MUTED}">${M(cfg.location.around)}</div>` : ''}
       </div>
     </div>
-    ${foot(5)}
+    ${foot()}
   </div>
 
   <div class="pg">
@@ -772,7 +793,7 @@ function buildLandHtml(lang, qr) {
         </div>`).join('')}
       </div>
     </div>
-    ${foot(6)}
+    ${foot()}
   </div>
 
   ${GRID_PAGES.map((files, i) => `
@@ -785,8 +806,10 @@ function buildLandHtml(lang, qr) {
         ${badgeOf2(f, lang) ? `<span style="position:absolute;left:3mm;bottom:3mm;background:rgba(15,16,18,.62);color:#fff;font-size:6.5pt;letter-spacing:.09em;text-transform:uppercase;padding:1.6mm 3mm;border-radius:1.6mm">${esc(badgeOf2(f, lang))}</span>` : ''}
       </div>`).join('')}
     </div>
-    ${foot(7 + i)}
+    ${foot()}
   </div>`).join('')}
+
+  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
 
   <div class="pg" style="background:${DARK};color:#fff;align-items:center;justify-content:center;text-align:center">
     <div style="font-size:10pt;font-weight:800;letter-spacing:.2em;margin-bottom:8mm">${esc(CODE)}</div>
@@ -799,11 +822,9 @@ function buildLandHtml(lang, qr) {
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
     <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
-      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${BASE_TOTAL} / ${TOTAL}</span>
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${nextPg()} / ${TOTAL}</span>
     </div>
   </div>
-
-  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
   </body></html>`;
 }
 

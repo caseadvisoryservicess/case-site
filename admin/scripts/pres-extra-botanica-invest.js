@@ -112,11 +112,71 @@ const STAKE = [
   ['Управляющая компания', 'эксплуатация, OPEX около 3 $/м²']
 ];
 
-const count = 10;
+// ── титульные листы разделов ──
+// Ключи about/cases/loc/viz вызывает сам gen-presentation.js в нужных местах
+// основной брошюры, разделы 05 и 06 модуль ставит сам в своей части.
+const SECTIONS = {
+  about: {
+    n: '01', h: 'Здание', s: 'Что это за объект и что в нём есть', img: 'render-corner.jpg',
+    list: ['Бизнес-центр класса B/B+ со свободной планировкой', 'Восемь уровней: от отдельного этажа до здания целиком', 'Планировки подвала, первого этажа и типового этажа']
+  },
+  cases: {
+    n: '02', h: 'Формат сделки', s: 'Кому подходит здание и на каких условиях', img: 'render-street.jpg',
+    list: ['Сценарии использования: под кого нарезается здание', 'Аренда, покупка, аренда с последующим выкупом']
+  },
+  loc: {
+    n: '03', h: 'Локация', s: 'Где стоит здание и кто живёт вокруг', img: 'map.jpg',
+    list: ['Богишамол напротив Ботанического сада', 'Доступность на автомобиле и метро', 'Локация в цифрах: жители и окружение в радиусе до 3 км']
+  },
+  viz: {
+    n: '04', h: 'Облик здания', s: 'Как объект будет выглядеть', img: 'render-aerial.jpg',
+    list: ['Визуализации фасада и окружения', 'Разрез здания по отметкам']
+  },
+  invest: {
+    n: '05', h: 'Инвестиционная модель', s: 'Экономика проекта, рынок Ташкента и две стратегии заработка на активе', img: '',
+    list: ['Инвестиционный профиль и макроконтекст рынка', 'Капитализация: вход на стройке, выход после ввода', 'Арендный бизнес: валютный поток и защита капитала', 'Синергия для стратегического партнёра']
+  },
+  eco: {
+    n: '06', h: 'Экосистема девелопмента', s: 'Как создаётся стоимость коммерческого объекта в Ташкенте', img: '',
+    list: ['Жизненный цикл проекта и множитель стоимости', 'Ключевые стейкхолдеры и их роли', 'Игровое поле: сорок клеток пути от идеи до выхода']
+  }
+};
+
+// 4 титульных листа основной брошюры + 11 страниц инвестиционной части
+const count = 4 + 11;
+
+// один шаблон на все титульные листы: слева номер и содержание раздела,
+// справа кадр проекта либо своя вставка
+function dividerPage(ctx, key, right) {
+  const { esc, img64, BRONZE, DARK, CODE, nextPg, TOTAL } = ctx;
+  const S = SECTIONS[key];
+  const rightHtml = right || (S.img
+    ? `<img src="${img64(S.img)}" style="width:100%;height:100%;object-fit:cover">`
+    : '');
+  return `
+<div class="pg" style="padding:0;background:${DARK};color:#fff;flex-direction:row">
+  <div style="flex:1.15;padding:20mm 14mm 16mm 18mm;display:flex;flex-direction:column;justify-content:center;position:relative">
+    <div style="font-size:44pt;font-weight:800;letter-spacing:-.03em;color:${BRONZE};line-height:1">${S.n}</div>
+    <div style="font-size:30pt;font-weight:800;letter-spacing:-.02em;line-height:1.1;margin-top:4mm">${esc(S.h)}</div>
+    <div style="font-size:12pt;color:rgba(255,255,255,.72);margin-top:4mm;line-height:1.45;max-width:120mm">${esc(S.s)}</div>
+    <div style="height:.5pt;background:rgba(255,255,255,.22);margin:9mm 0 7mm;max-width:120mm"></div>
+    ${S.list.map((x) => `<div style="font-size:10pt;line-height:1.5;color:rgba(255,255,255,.82);padding-left:5mm;position:relative;margin-bottom:3mm;max-width:120mm">
+      <span style="position:absolute;left:0;top:1.9mm;width:2mm;height:2mm;border-radius:50%;background:${BRONZE};display:block"></span>${esc(x)}</div>`).join('')}
+    <div style="position:absolute;left:18mm;right:14mm;bottom:8mm;display:flex;justify-content:space-between;gap:6mm;font-size:8pt;color:rgba(255,255,255,.45)">
+      <span><b style="color:#fff;letter-spacing:.08em">${esc(CODE)}</b> · ${esc(ctx.addr)}</span>
+      <span>${nextPg()} / ${TOTAL}</span>
+    </div>
+  </div>
+  <div style="flex:.85;position:relative;overflow:hidden;background:rgba(255,255,255,.05)">${rightHtml}</div>
+</div>`;
+}
+
+function divider(key, ctx) {
+  return SECTIONS[key] ? dividerPage(ctx, key) : '';
+}
 
 function html(ctx) {
-  const { esc, img64, BRONZE, INK, MUTED, BG, DARK, ACC_RGB, CODE, cfg, foot, BASE_TOTAL } = ctx;
-  const P = (n) => BASE_TOTAL + n;            // сквозная нумерация страниц
+  const { esc, img64, BRONZE, INK, MUTED, BG, DARK, ACC_RGB, CODE, cfg, foot } = ctx;
   const PHONE = (cfg.contacts && cfg.contacts.phone) || '';
   const TG = (cfg.contacts && cfg.contacts.telegram) || '';
 
@@ -210,30 +270,17 @@ function html(ctx) {
 
   return `${CSS}
 
-<!-- ${P(1)} раздел: инвестиционная часть -->
-<div class="pg idark" style="justify-content:center">
-  <img src="${img64('case-logo.png')}" style="position:absolute;left:18mm;top:14mm;height:11mm">
-  <div style="position:absolute;right:18mm;top:15mm;font-size:7.5pt;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5)">конфиденциально</div>
-  <div style="font-size:9pt;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:${BRONZE};margin-bottom:6mm">Часть вторая</div>
-  <div style="font-size:38pt;font-weight:800;letter-spacing:-.02em;line-height:1.05">Инвестиционный меморандум</div>
-  <div style="font-size:13pt;color:rgba(255,255,255,.75);margin-top:4mm">Экономика проекта, рынок Ташкента и две стратегии заработка на активе</div>
-  <div style="display:flex;gap:7mm;margin-top:11mm">
-    ${[['1 360 $/м²', 'цена входа на этапе строительства, с НДС'],
-       ['2 500 $/м²', 'ориентир цены после ввода, 3 кв. 2027'],
-       ['22,05%', 'валовая доходность аренды при 25 $/м² в месяц']]
-      .map(([v, s]) => `<div style="flex:1" class="ibox">
-        <div style="font-size:19pt;font-weight:800;letter-spacing:-.02em">${v}</div>
-        <div style="font-size:8.5pt;color:rgba(255,255,255,.7);margin-top:2mm;line-height:1.4">${s}</div></div>`).join('')}
-  </div>
-  <div style="margin-top:9mm;font-size:9pt;color:rgba(255,255,255,.55);line-height:1.5">
-    Раздел подготовлен CASE Real Estate Advisory для переговоров со стратегическим инвестором.<br>
-    Цифры доходности - расчёт собственника. Не является публичной офертой и инвестиционной рекомендацией.
-  </div>
-  <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${esc(ctx.addr)}</span>
-    <span>Конфиденциально</span><span>${P(1)} / ${ctx.TOTAL}</span></div>
-</div>
+${dividerPage(ctx, 'invest', `<div style="height:100%;padding:16mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:5mm">
+  ${[['1 360 $/м²', 'цена входа на этапе строительства, с НДС'],
+     ['2 500 $/м²', 'ориентир цены после ввода, 3 кв. 2027'],
+     ['22,05%', 'валовая доходность аренды при 25 $/м² в месяц']]
+    .map(([v, s2]) => `<div style="background:rgba(255,255,255,.07);border:.4pt solid rgba(255,255,255,.18);border-radius:4mm;padding:5.5mm 6mm">
+      <div style="font-size:18pt;font-weight:800;letter-spacing:-.02em">${v}</div>
+      <div style="font-size:8.5pt;color:rgba(255,255,255,.7);margin-top:2mm;line-height:1.4">${s2}</div></div>`).join('')}
+  <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5;margin-top:2mm">Цифры доходности - расчёт собственника. Не является публичной офертой и инвестиционной рекомендацией.</div>
+</div>`)}
 
-<!-- ${P(2)} executive summary -->
+<!-- executive summary -->
 <div class="pg">
   <span class="ilbl">Executive summary</span>
   <div class="ih">Инвестиционный профиль проекта</div>
@@ -258,10 +305,10 @@ function html(ctx) {
             'Вход по цене этапа строительства фиксирует стоимость в валюте до ввода объекта.'])}
     </div>
   </div>
-  ${foot(P(2))}
+  ${foot()}
 </div>
 
-<!-- ${P(3)} макроконтекст рынка -->
+<!-- макроконтекст рынка -->
 <div class="pg">
   <span class="ilbl">Макроконтекст рынка Ташкента</span>
   <div class="ih">Эволюция офисного рынка: от дефицита к качеству, 2021-2026</div>
@@ -296,10 +343,10 @@ function html(ctx) {
       </div>
     </div>
   </div>
-  ${foot(P(3))}
+  ${foot()}
 </div>
 
-<!-- ${P(4)} требования арендаторов -->
+<!-- требования арендаторов -->
 <div class="pg">
   <span class="ilbl">Рыночные требования и продукт</span>
   <div class="ih">Чего требуют корпоративные арендаторы и чем отвечает Botanica</div>
@@ -320,10 +367,10 @@ function html(ctx) {
             'Стандарты качества, опережающие ожидания топ-менеджмента и резидентов.'])}
     </div>
   </div>
-  ${foot(P(4))}
+  ${foot()}
 </div>
 
-<!-- ${P(5)} стратегия 1 -->
+<!-- стратегия 1 -->
 <div class="pg">
   <span class="ilbl">Стратегия 1: капитализация (buy and sell)</span>
   <div class="ih">Заработок на росте стоимости актива до ввода в эксплуатацию</div>
@@ -358,10 +405,10 @@ function html(ctx) {
       </div>
     </div>
   </div>
-  ${foot(P(5))}
+  ${foot()}
 </div>
 
-<!-- ${P(6)} стратегия 2 -->
+<!-- стратегия 2 -->
 <div class="pg">
   <span class="ilbl">Стратегия 2: арендный бизнес (buy and hold)</span>
   <div class="ih">Сохранение капитала и высокодоходный валютный поток</div>
@@ -395,10 +442,10 @@ function html(ctx) {
       </div>
     </div>
   </div>
-  ${foot(P(6))}
+  ${foot()}
 </div>
 
-<!-- ${P(7)} синергия для стратегического партнёра -->
+<!-- синергия для стратегического партнёра -->
 <div class="pg idark">
   <span class="ilbl">Синергия для стратегического партнёра</span>
   <div class="ih">Зачем Botanica крупному федеральному игроку</div>
@@ -426,10 +473,17 @@ function html(ctx) {
     </div>
   </div>
   <div class="foot" style="color:rgba(255,255,255,.5)"><span><b style="color:#fff">${esc(CODE)}</b> · ${esc(ctx.addr)}</span>
-    <span>Конфиденциально</span><span>${P(7)} / ${ctx.TOTAL}</span></div>
+    <span>Конфиденциально</span><span>${ctx.nextPg()} / ${ctx.TOTAL}</span></div>
 </div>
 
-<!-- ${P(8)} жизненный цикл и стейкхолдеры -->
+${dividerPage(ctx, 'eco', `<div style="height:100%;padding:18mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:4mm">
+  ${[1, 2, 3, 4].map((k) => `<div style="display:flex;align-items:center;gap:4mm">
+    <span style="width:14mm;height:3mm;border-radius:1.5mm;background:${PH[k].c};display:block;flex:none"></span>
+    <span style="font-size:9.5pt;color:rgba(255,255,255,.85)">${PH[k].n}</span></div>`).join('')}
+  <div style="font-size:8.5pt;color:rgba(255,255,255,.5);line-height:1.5;margin-top:4mm">Четыре фазы жизненного цикла - четыре стороны игрового поля в конце раздела.</div>
+</div>`)}
+
+<!-- жизненный цикл и стейкхолдеры -->
 <div class="pg">
   <span class="ilbl">Экосистема девелопмента</span>
   <div class="ih">Жизненный цикл проекта и множитель стоимости</div>
@@ -457,10 +511,10 @@ function html(ctx) {
       </div>
     </div>
   </div>
-  ${foot(P(8))}
+  ${foot()}
 </div>
 
-<!-- ${P(9)} как читать поле -->
+<!-- как читать поле -->
 <div class="pg">
   <span class="ilbl">Приложение</span>
   <div class="ih">Стратегия девелопмента: как читать поле на следующей странице</div>
@@ -482,10 +536,10 @@ function html(ctx) {
   <div class="icard acc" style="margin-top:5mm;font-size:9.5pt;line-height:1.5">
     <b>Где сейчас Botanica.</b> Здание проходит верхнюю сторону поля: конструктив готов, впереди фасад, инженерия и кадастр. Инвестор, который заходит на этой клетке, покупает по цене стройки, а выходит на клетках ЗАПУСК и СТАБИЛИЗАЦИЯ, где актив стоит дороже всего.
   </div>
-  ${foot(P(9))}
+  ${foot()}
 </div>
 
-<!-- ${P(10)} игровое поле целиком -->
+<!-- игровое поле целиком -->
 <div class="pg" style="padding:8mm 8mm 7mm">
   <div class="board">
     ${corner('tl', 1, 1)}
@@ -535,10 +589,10 @@ function html(ctx) {
   <div style="display:flex;justify-content:space-between;font-size:7.5pt;color:${MUTED};margin-top:3mm">
     <span><b style="color:${INK};letter-spacing:.08em">${esc(CODE)}</b> · ${esc(ctx.addr)}</span>
     <span>CASE Real Estate Advisory · ${esc(PHONE)} · caseadvisory.uz</span>
-    <span>${P(10)} / ${ctx.TOTAL}</span>
+    <span>${ctx.nextPg()} / ${ctx.TOTAL}</span>
   </div>
 </div>
 `;
 }
 
-module.exports = { count, html };
+module.exports = { count, html, divider };
