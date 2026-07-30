@@ -67,7 +67,13 @@ const GEO = (cfg.geo && (cfg.geo.points || []).length) ? cfg.geo : null;
 // и указывается в cfg.pres.geoMap. Если её нет, рисуется своя схема
 const GEO_MAP = (PRES.geoMap && fs.existsSync(path.join(UP, PRES.geoMap))) ? PRES.geoMap : '';
 const GEO_PG = GEO ? 1 : 0;
-const TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length + GEO_PG;
+// Дополнительные страницы брошюры. Модуль подключается переменной окружения
+// CASE_PRES_EXTRA и дописывается в конец документа, сквозная нумерация страниц
+// продолжается. Без переменной поведение прежнее, байт в байт.
+const EXTRA = process.env.CASE_PRES_EXTRA ? require(path.resolve(process.env.CASE_PRES_EXTRA)) : null;
+const EXTRA_PG = EXTRA ? EXTRA.count : 0;
+const BASE_TOTAL = LAND ? 7 + GRID_PAGES.length : 8 + PLAN_PAGES.length + GEO_PG;
+const TOTAL = BASE_TOTAL + EXTRA_PG;
 const planImg = (u) => {
   const cad = PLAN_CAD[u.id];
   return (cad && fs.existsSync(path.join(UP, cad))) ? cad : u.plan;
@@ -258,6 +264,16 @@ const CODE = (cfg.site && cfg.site.code) || 'TAXTAPUL';
 const rgbOf = (hex) => { const h = String(hex).replace('#',''); const n = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
   return [0,2,4].map(i=>parseInt(n.slice(i,i+2),16)||0).join(','); };
 const ACC_RGB = rgbOf(BRONZE);
+
+// контекст для модуля дополнительных страниц: те же помощники и та же палитра,
+// что у основной брошюры, плюс подвал с продолжением нумерации
+const extraCtx = (lang) => ({
+  lang, cfg, esc, L, img64, BRONZE, INK, MUTED, BG, DARK, ACC_RGB, CODE,
+  addr: T.addr[lang], BASE_TOTAL, TOTAL,
+  foot: (n) => `<div class="foot"><span><b>${esc(CODE)}</b> · ${T.addr[lang]}</span>`
+    + `<span>CASE Real Estate Advisory · ${esc(cfg.contacts.phone)} · caseadvisory.uz</span>`
+    + `<span>${n} / ${TOTAL}</span></div>`
+});
 
 const CSS = `
 @page { size: A4 landscape; margin: 0; }
@@ -613,10 +629,11 @@ function buildHtml(lang, qr) {
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
     <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
-      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${TOTAL} / ${TOTAL}</span>
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${BASE_TOTAL} / ${TOTAL}</span>
     </div>
   </div>
 
+  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
   </body></html>`;
 }
 
@@ -782,10 +799,11 @@ function buildLandHtml(lang, qr) {
     <img src="${qr}" style="width:34mm;height:34mm;border-radius:3mm">
     <div style="font-size:8.5pt;color:rgba(255,255,255,.55);margin-top:3mm">${t('c_qr')}</div>
     <div style="position:absolute;left:18mm;right:18mm;bottom:8mm;display:flex;justify-content:space-between;font-size:8pt;color:rgba(255,255,255,.45)">
-      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${TOTAL} / ${TOTAL}</span>
+      <span>CASE Real Estate Advisory · caseadvisory.uz</span><span>${t('c_legal')}</span><span>${BASE_TOTAL} / ${TOTAL}</span>
     </div>
   </div>
 
+  ${EXTRA ? EXTRA.html(extraCtx(lang)) : ''}
   </body></html>`;
 }
 
@@ -801,15 +819,26 @@ async function main() {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'case-pres-'));
   try {
     const page = await browser.newPage();
-    for (const lang of ['ru', 'uz', 'en']) {
+    // по умолчанию собираем все три языка в presentation*.pdf; переменные
+    // CASE_PRES_LANGS и CASE_PRES_OUT нужны только для отдельных сборок
+    // (например, расширенного русского меморандума)
+    const LANGS = (process.env.CASE_PRES_LANGS || 'ru,uz,en').split(',').map((x) => x.trim()).filter(Boolean);
+    for (const lang of LANGS) {
       const url = SITE + (lang === 'ru' ? '' : lang + '/');
       const qr = await QR.toDataURL(url, { width: 380, margin: 1, color: { dark: DARK, light: BG } });
       // типографика: никаких длинных/средних тире
       const html = buildHtml(lang, qr).replace(/[—–]/g, '-');
       const htmlPath = path.join(tmpDir, `${SLUG}-${lang}.html`);
       fs.writeFileSync(htmlPath, html);
-      const out = path.join(UP, lang === 'ru' ? 'presentation.pdf' : `presentation-${lang}.pdf`);
+      const out = process.env.CASE_PRES_OUT
+        ? path.join(UP, process.env.CASE_PRES_OUT.replace('{lang}', lang))
+        : path.join(UP, lang === 'ru' ? 'presentation.pdf' : `presentation-${lang}.pdf`);
       await page.goto('file://' + htmlPath, { waitUntil: 'networkidle' });
+      // ждём картинки и шрифты явно: без этого печать иногда стартует раньше
+      // раскладки и в PDF попадают не все страницы (ловилось на 22-страничном
+      // меморандуме: выходило 11 листов вместо 22)
+      await page.waitForFunction(() => document.fonts.status === 'loaded'
+        && Array.from(document.images).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 60000 });
       await page.pdf({ path: out, format: 'A4', landscape: true, printBackground: true });
       console.log(lang.toUpperCase() + ':', path.basename(out), (fs.statSync(out).size / 1024 / 1024).toFixed(1) + ' МБ');
     }
