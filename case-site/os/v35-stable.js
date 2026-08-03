@@ -197,6 +197,10 @@
     if(el.id)selector='#'+cssEsc(el.id);
     else if(el.name)selector=(el.tagName||'input').toLowerCase()+'[name="'+cssEsc(el.name)+'"]';
     else if(el.getAttribute('data-bf'))selector='[data-bf="'+cssEsc(el.getAttribute('data-bf'))+'"]';
+    /* v4.50.7: поле комментария реестра. Раньше падало в ветку placeholder ниже, а
+       placeholder у ВСЕХ строк одинаковый — значение восстанавливалось в ПЕРВУЮ
+       попавшуюся строку, и текст перепрыгивал в комментарий чужого помещения. */
+    else if(el.getAttribute('data-qc'))selector='input[data-qc="'+cssEsc(el.getAttribute('data-qc'))+'"]';
     else if(el.getAttribute('placeholder'))selector=(el.tagName||'input').toLowerCase()+'[placeholder="'+cssEsc(el.getAttribute('placeholder'))+'"]';
     else if(el.getAttribute('oninput'))selector=(el.tagName||'input').toLowerCase()+'[oninput="'+cssEsc(el.getAttribute('oninput'))+'"]';
     if(!selector)return null;
@@ -209,7 +213,10 @@
     try{el=info.id?$(info.id):document.querySelector(info.selector);}catch(e){}
     if(el&&el.focus){
       try{el.focus({preventScroll:true});
-        if('value' in el && info.value!=null && el.value!==info.value && (el.tagName||'').toUpperCase()!=='SELECT') el.value=info.value;
+        /* v4.50.7: у полей с черновиком (data-qc) значение НЕ трогаем — им управляет
+           REG_CDRAFT в core.js. Иначе после Enter эта строка заливала только что
+           сохранённый текст обратно в очищенное поле. */
+        if('value' in el && info.value!=null && el.value!==info.value && !el.hasAttribute('data-qc') && (el.tagName||'').toUpperCase()!=='SELECT') el.value=info.value;
         if(el.setSelectionRange && typeof el.value==='string'){var pos=Math.min(info.start,el.value.length), end=Math.min(info.end,el.value.length);el.setSelectionRange(pos,end);}
       }catch(e){}
       return;

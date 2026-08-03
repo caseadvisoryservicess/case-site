@@ -1538,7 +1538,7 @@ function renderRegistry(){
   ${lcrBudVis().map(c=>`<td data-colkey="${c.k}" class="num grp-bud">${lcrCellVal(u,c,fin)}</td>`).join('')}${lcrFacVis().map(c=>`<td data-colkey="${c.k}" class="num grp-fac">${lcrCellVal(u,c,fin)}</td>`).join('')}
   <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
   <td${canEdit?` title="2× клик — изменить" onclick="event.stopPropagation()" ondblclick="editCell('${u.id}','broker',this)"`:''}>${u.broker||'-'}</td>
-  <td onclick="event.stopPropagation()" style="min-width:150px">${(()=>{const lc=(u.comments&&u.comments.length)?u.comments[u.comments.length-1]:null;return `${lc?`<div style="font-size:10.5px;color:#555" title="${esc(lc[1])} · ${esc(lc[0])}">${esc(String(lc[2]).slice(0,48))}${String(lc[2]).length>48?'…':''}</div>`:''}${canEdit?`<input placeholder="+ комментарий…" style="width:100%;font-family:inherit;font-size:10.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;margin-top:2px" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" onblur="if(this.value.trim()){regQuickComment('${u.id}',this.value);this.value='';}">`:''}`;})()}</td>
+  <td onclick="event.stopPropagation()" style="min-width:150px">${(()=>{const lc=(u.comments&&u.comments.length)?u.comments[u.comments.length-1]:null;return `${lc?`<div style="font-size:10.5px;color:#555" title="${esc(lc[1])} · ${esc(lc[0])}">${esc(String(lc[2]).slice(0,48))}${String(lc[2]).length>48?'…':''}</div>`:''}${canEdit?`<input placeholder="+ комментарий…" style="width:100%;font-family:inherit;font-size:10.5px;padding:3px 6px;border:1px solid var(--border);border-radius:6px;margin-top:2px" data-qc="${u.id}" value="${esc(REG_CDRAFT[u.id]||'')}" oninput="REG_CDRAFT['${u.id}']=this.value" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" title="Enter — сохранить">`:''}`;})()}</td>
    <td onclick="event.stopPropagation()">${canEdit?`<select onchange="saveCell('${u.id}','status',this.value)" class="st-sel st-sel-${STCLS[u.status]}" style="font-family:inherit;font-size:11px;font-weight:700;padding:4px 6px;border:1px solid var(--border);border-radius:7px;width:100%;max-width:150px;box-sizing:border-box">${Object.keys(STAT).map(k=>`<option value="${k}"${u.status===k?' selected':''}>${stT(k)}</option>`).join('')}</select>`:`<span class="st ${STCLS[u.status]}">${stT(u.status)}</span>`}${reservationBadge(u)}</td></tr>`;}).join('');
  const allSel=fus.length&&fus.every(u=>selSet.indexOf(u.id)>=0);
  const selN=selSet.filter(id=>fus.some(u=>u.id===id)).length;
@@ -1673,10 +1673,31 @@ function regEditRow(u,showBlk,allObj,ch){const inS='font-family:inherit;font-siz
  c+=`<td ${stp}>${R().external?'<span style="font-size:11px;color:#6d6d6d">скрыто</span>':`<input list="brandsDL" value="${esc((u.vars||[]).join(', '))}" placeholder="бренд из базы / через запятую" title="Начните вводить — появится выпадающий список брендов из базы. Несколько брендов — через запятую." onchange="saveVarsLive('${u.id}',this.value)" onfocus="ensureBrandsDL()" style="${inS}">`}</td>`;
  const bopts=brokerNames(),bcur=u.broker||'',blist=(bcur&&bopts.indexOf(bcur)<0)?[bcur,...bopts]:bopts;
  c+=`<td ${stp}><select onchange="saveCellLive('${u.id}','broker',this.value)" style="${inS}"><option value="">-</option>${blist.map(n=>`<option value="${esc(n)}"${n===bcur?' selected':''}>${esc(n)}</option>`).join('')}</select></td>`;
- c+=`<td ${stp}><input placeholder="+ комментарий…" style="${inS}" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}"></td>`;
+ c+=`<td ${stp}><input placeholder="+ комментарий…" style="${inS}" data-qc="${u.id}" value="${esc(REG_CDRAFT[u.id]||'')}" oninput="REG_CDRAFT['${u.id}']=this.value" onkeydown="if(event.key==='Enter'){regQuickComment('${u.id}',this.value);this.value='';}" title="Enter — сохранить"></td>`;
  c+=`<td ${stp}>${statusSel} <button class="btn ghost sm" title="Удалить помещение" style="padding:2px 6px" onclick="deleteUnit('${u.id}')">🗑</button></td>`;
  c+='</tr>';return c;}
-function regQuickComment(id,v){const u=U.find(x=>x.id===id);if(!u||!R().edit)return;const txt=(v||'').trim();if(!txt)return;u.comments=u.comments||[];u.comments.push([iso(TODAY),S.user.name,txt]);u.hist.push([iso(TODAY),'Комментарий из реестра ('+S.user.name+')']);audit('Комментарий (реестр)',u.code);persist();toast('Комментарий добавлен');renderRegistry();}
+/* v4.50.7: комментарий в реестре страдал от трёх наложенных проблем:
+   (1) onblur сохранял НЕДОПИСАННЫЙ текст при любой потере фокуса;
+   (2) сохранение и правка любой другой ячейки перерисовывали всю таблицу — поле
+       уничтожалось прямо во время набора, а его уничтожение вызывало тот самый blur,
+       и огрызок текста улетал в комментарии;
+   (3) комментарии только добавляются, поэтому случайный огрызок нельзя исправить.
+   Теперь: текст живёт в черновике и переживает любую перерисовку; сохранение — только
+   по Enter; фокус и позиция курсора восстанавливаются после перерисовки. */
+window.REG_CDRAFT=window.REG_CDRAFT||{};
+function regQuickComment(id,v){try{delete REG_CDRAFT[id];}catch(e){}const u=U.find(x=>x.id===id);if(!u||!R().edit)return;const txt=(v||'').trim();if(!txt)return;u.comments=u.comments||[];u.comments.push([iso(TODAY),S.user.name,txt]);u.hist.push([iso(TODAY),'Комментарий из реестра ('+S.user.name+')']);audit('Комментарий (реестр)',u.code);persist();toast('Комментарий добавлен');renderRegistry();}
+/* v4.50.7: перерисовка реестра возвращает фокус в поле комментария, из которого печатали.
+   Без этого каждая перерисовка (сохранение соседней ячейки, фильтр, Enter) выбрасывала
+   из поля, и продолжить набор можно было только новым кликом мыши. */
+(function(){var orig=renderRegistry;window.renderRegistry=function(){
+  var ae=document.activeElement,qc=null;
+  try{if(ae&&ae.tagName==='INPUT'&&ae.getAttribute('data-qc')!=null)qc={id:ae.getAttribute('data-qc'),pos:ae.selectionStart};}catch(e){}
+  var r=orig.apply(this,arguments);
+  if(qc){try{
+    var el=document.querySelector('input[data-qc="'+qc.id.replace(/"/g,'\\"')+'"]');
+    if(el){el.focus();var p=Math.min(qc.pos==null?el.value.length:qc.pos,el.value.length);el.setSelectionRange(p,p);}
+  }catch(e){}}
+  return r;};})();
 function addUnit(){if(typeof caseCanEditRegistry==='function'&&!caseCanEditRegistry())return;if(!R().edit)return;if(S.obj==='ALL'){alert('Выберите конкретный объект в шапке (сейчас выбрано «Все объекты») — помещение создаётся в выбранном объекте.');return;}const nu=unit(S.obj,'NEW-'+(_u+1),'1 этаж',0,0,'Услуги','',0,0,0,'vac','',[],[],'');U.push(nu);nu.hist.push([iso(TODAY),'Создано помещение ('+S.user.name+')']);persist();go('registry');setTimeout(()=>unitForm(nu.id),60);}
 function regBulkKP(){const ids=(S.regSel||[]).slice();if(!ids.length){alert('Сначала выберите помещения галочками.');return;}const sel=ids.map(i=>U.find(u=>u.id===i)).filter(Boolean);if(!sel.length)return;const codes=sel.map(u=>u.code).join(', ');const area=Math.round(sel.reduce((s,u)=>s+u.area,0));const rate=sel[0].rate||20;const obj=sel[0].obj;DOC.t='kp';DOC.uid=null;go('docs');setTimeout(()=>{if($('f_obj')){$('f_obj').value=obj;kCfg();}if($('f_unit'))$('f_unit').value=codes;if($('f_area'))$('f_area').value=area;if($('f_rate'))$('f_rate').value=rate;rebuildUnitSel();},90);}
 function bulkStatus(st){if(!R().edit)return;const ids=(S.regSel||[]).slice();if(!ids.length)return;let n=0;ids.forEach(id=>{const u=U.find(x=>x.id===id);if(!u)return;const _ps=u.status;u.status=st;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);commTrack(u,u.broker,_ps);u.hist.push([iso(TODAY),'Статус → '+stT(st)+' (масс., '+S.user.name+')']);n++;});audit('Массовая смена статуса',n+' пом. → '+stT(st));persist();renderRegistry();}
@@ -4043,4 +4064,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.5';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.7';
