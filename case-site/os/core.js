@@ -127,7 +127,7 @@ async function apiPOST(p,data){
  if(p==='state.php'&&j&&typeof j.revision!=='undefined')_serverRev=+j.revision||_serverRev;
  return j;
 }
-function stateBlob(){return {OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,OWNER_REPORTS,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
+function stateBlob(){return {TAXO,OBJECTS,U,BRANDS,USERS,CHANGES,BENCH,REFUSALS,PLANUP,PLANSVG,PLAN_LABELPOS,PLAN_CODES,PLAN_SNAPSHOT_SVGS,PLAN_STRUCT,PLAN_IGNORED_CODES,DOCREG,DOC_CONTACTS,AGENTS,ROLES,KPSEQ,ACTLOG,AUDIT,MAPCFG,PROJECT_PPT,QUIZLOG,QUIZSTATS,KB,KBPROG,HRPROF,CHAT,KPI_TARGETS,ROLE_WORKSPACES,USER_WORKSPACES,MODULE_FLAGS,GEO_DATA,TRASH,COMMCFG,COMMLOST,OWNER_REPORTS,CASE_CLIENTS,CASE_OPPORTUNITIES,CASE_PROPOSALS,CASE_CONTRACTS,CASE_SCOPE_ITEMS,CASE_SCOPE_CHANGES,CASE_TASKS,CASE_DELIVERABLES,CASE_LAYOUT_VERSIONS,CASE_DECISIONS,CASE_DOCUMENT_TEMPLATES,CASE_WORKFLOW_SETTINGS,CASE_PORTFOLIO_PROJECTS,CASE_PROPOSAL_CATALOG};}
 let _lastServerUpdate=null,_serverRev=0,_lastLocalMutationAt=0;
 /* P1-6: слепок «что сервер уже знает» по каждому ключу состояния — для доменных сохранений */
 function _rememberSynced(data){try{if(data&&typeof data==='object')Object.keys(data).forEach(k=>{try{_syncedKeyJson[k]=JSON.stringify(data[k]);}catch(e){}});}catch(e){}}
@@ -539,7 +539,7 @@ function subsDatalist(cat){const list=(cat&&CATSUBS[cat])?CATSUBS[cat]:Object.va
 /* Тип бренда — уточнение внутри категории (например кухня для общепита). Для еды/супермаркета
    дополнительно фиксируем наличие алкоголя. Список зависит от категории; где уточнения нет — свободный ввод. */
 const CATTYPES={
- 'Места общественного питания':['Итальянская','Японская / суши','Паназиатская','Узбекская','Кавказская / грузинская','Турецкая','Американская / бургеры','Fast food / QSR','Пиццерия','Кофейня','Пекарня / кондитерская','Стейк-хаус','Морепродукты','Вегетарианская / веган','Fine dining','Бар / паб','Восточная','Европейская','Смешанная кухня'],
+ 'Места общественного питания':['Итальянская','Японская / суши','Паназиатская','Узбекская','Кавказская / грузинская','Турецкая','Американская / бургеры','Fast food / QSR','Пиццерия','Кофейня','Пекарня / кондитерская','Стейк-хаус','Морепродукты','Вегетарианская / веган','Fine dining','Бар / паб','Восточная','Европейская','Смешанная кухня','Славянская / русская','Корейская','Китайская','Индийская','Тайская','Мексиканская','Арабская / ливанская','Средиземноморская','Французская','Немецкая / баварская','Халяль','Здоровое питание'],
  'Мода и стиль':['Люкс','Премиум','Средний сегмент','Масс-маркет','Спортивный casual','Джинсовая','Верхняя одежда','Вечерняя / нарядная'],
  'Обувь и аксессуары':['Обувь люкс','Обувь масс-маркет','Спортивная обувь','Сумки / кожгалантерея','Аксессуары'],
  'Услуги, киоски, спец. магазин':['Банк','Обмен валют','Оператор связи','Салон красоты','Барбершоп','Аптека','Оптика','Химчистка / ателье','Пункт выдачи','Цветы','Зоотовары'],
@@ -917,7 +917,12 @@ function persist(){
  try{apiSaveState();}catch(e){}
 }
 function loadPersist(){try{const raw=localStorage.getItem(STORAGE_KEY);if(!raw)return;applyState(JSON.parse(raw));}catch(e){console.warn('Autosave skipped',e);}}
-function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(d.PLAN_SNAPSHOT_SVGS&&typeof d.PLAN_SNAPSHOT_SVGS==='object')Object.assign(PLAN_SNAPSHOT_SVGS,d.PLAN_SNAPSHOT_SVGS);if(d.PLAN_IGNORED_CODES&&typeof d.PLAN_IGNORED_CODES==='object'&&!Array.isArray(d.PLAN_IGNORED_CODES))Object.keys(d.PLAN_IGNORED_CODES).forEach(k=>{const v=d.PLAN_IGNORED_CODES[k];if(v&&typeof v==='object'&&!Array.isArray(v))PLAN_IGNORED_CODES[k]=Object.assign(PLAN_IGNORED_CODES[k]||{},v);});if(d.PLAN_STRUCT&&typeof d.PLAN_STRUCT==='object')Object.keys(d.PLAN_STRUCT).forEach(k=>{const v=d.PLAN_STRUCT[k];if(v&&typeof v==='object')PLAN_STRUCT[k]={blocks:Array.isArray(v.blocks)?v.blocks.slice():[],floors:(v.floors&&typeof v.floors==='object')?JSON.parse(JSON.stringify(v.floors)):{}};});if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.MAPCFG&&typeof d.MAPCFG==='object'&&!Array.isArray(d.MAPCFG)){const _hadKey=MAPCFG.apikey;Object.assign(MAPCFG,d.MAPCFG);if(_hadKey&&!MAPCFG.apikey){MAPCFG.apikey=_hadKey;window._mapkeyGuard=1;}} /* пустой входящий ключ карт не затирает сохранённый (защита от старых вкладок) */if(d.PROJECT_PPT&&typeof d.PROJECT_PPT==='object')Object.assign(PROJECT_PPT,d.PROJECT_PPT);if(Array.isArray(d.QUIZLOG))QUIZLOG=d.QUIZLOG;
+function applyState(d){try{if(!d||typeof d!=='object')return;if(Array.isArray(d.U)){U.splice(0,U.length,...d.U);_u=U.reduce((m,u)=>Math.max(m,+String(u.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.BRANDS)){BRANDS.splice(0,BRANDS.length,...d.BRANDS);_b=BRANDS.reduce((m,b)=>Math.max(m,+String(b.id||'').replace(/\D/g,'')),0);}if(Array.isArray(d.USERS))USERS.splice(0,USERS.length,...d.USERS);if(Array.isArray(d.CHANGES))CHANGES.splice(0,CHANGES.length,...d.CHANGES);if(Array.isArray(d.BENCH))BENCH.splice(0,BENCH.length,...d.BENCH);if(d.REFUSALS&&typeof d.REFUSALS==='object')Object.keys(d.REFUSALS).forEach(k=>{if(Array.isArray(d.REFUSALS[k]))REFUSALS[k]=d.REFUSALS[k];});if(d.PLANUP)Object.assign(PLANUP,d.PLANUP);if(d.PLANSVG&&typeof d.PLANSVG==='object')Object.assign(PLANSVG,d.PLANSVG);if(d.PLAN_LABELPOS&&typeof d.PLAN_LABELPOS==='object')Object.assign(PLAN_LABELPOS,d.PLAN_LABELPOS);if(d.PLAN_CODES&&typeof d.PLAN_CODES==='object')Object.assign(PLAN_CODES,d.PLAN_CODES);if(d.PLAN_SNAPSHOT_SVGS&&typeof d.PLAN_SNAPSHOT_SVGS==='object')Object.assign(PLAN_SNAPSHOT_SVGS,d.PLAN_SNAPSHOT_SVGS);if(d.PLAN_IGNORED_CODES&&typeof d.PLAN_IGNORED_CODES==='object'&&!Array.isArray(d.PLAN_IGNORED_CODES))Object.keys(d.PLAN_IGNORED_CODES).forEach(k=>{const v=d.PLAN_IGNORED_CODES[k];if(v&&typeof v==='object'&&!Array.isArray(v))PLAN_IGNORED_CODES[k]=Object.assign(PLAN_IGNORED_CODES[k]||{},v);});if(d.PLAN_STRUCT&&typeof d.PLAN_STRUCT==='object')Object.keys(d.PLAN_STRUCT).forEach(k=>{const v=d.PLAN_STRUCT[k];if(v&&typeof v==='object')PLAN_STRUCT[k]={blocks:Array.isArray(v.blocks)?v.blocks.slice():[],floors:(v.floors&&typeof v.floors==='object')?JSON.parse(JSON.stringify(v.floors)):{}};});if(Array.isArray(d.DOCREG)){DOCREG.splice(0,DOCREG.length,...d.DOCREG);_doc=DOCREG.reduce((m,x)=>Math.max(m,+String(x.id||'').replace(/\D/g,'')||0),0);}if(Array.isArray(d.AGENTS))AGENTS.splice(0,AGENTS.length,...d.AGENTS);if(Array.isArray(d.OBJECTS)&&d.OBJECTS.length)OBJECTS.splice(0,OBJECTS.length,...d.OBJECTS);if(Array.isArray(d.DOC_CONTACTS)&&d.DOC_CONTACTS.length)DOC_CONTACTS=d.DOC_CONTACTS;if(d.ROLES&&typeof d.ROLES==='object')Object.keys(d.ROLES).forEach(k=>{if(ROLES[k])Object.assign(ROLES[k],d.ROLES[k]);});if(d.KPSEQ&&typeof d.KPSEQ==='object')KPSEQ=d.KPSEQ;if(Array.isArray(d.ACTLOG))ACTLOG=d.ACTLOG;if(Array.isArray(d.AUDIT))AUDIT=d.AUDIT;if(d.TAXO&&typeof d.TAXO==='object'&&!Array.isArray(d.TAXO)){
+  TAXO.cats=Array.isArray(d.TAXO.cats)?d.TAXO.cats:[];
+  TAXO.subs=(d.TAXO.subs&&typeof d.TAXO.subs==='object')?d.TAXO.subs:{};
+  TAXO.types=(d.TAXO.types&&typeof d.TAXO.types==='object')?d.TAXO.types:{};
+ }
+ if(d.MAPCFG&&typeof d.MAPCFG==='object'&&!Array.isArray(d.MAPCFG)){const _hadKey=MAPCFG.apikey;Object.assign(MAPCFG,d.MAPCFG);if(_hadKey&&!MAPCFG.apikey){MAPCFG.apikey=_hadKey;window._mapkeyGuard=1;}} /* пустой входящий ключ карт не затирает сохранённый (защита от старых вкладок) */if(d.PROJECT_PPT&&typeof d.PROJECT_PPT==='object')Object.assign(PROJECT_PPT,d.PROJECT_PPT);if(Array.isArray(d.QUIZLOG))QUIZLOG=d.QUIZLOG;
 /* PHP превращает пустой объект {} в массив [] при пересохранении: словарные поля принудительно приводим к объекту, иначе строковые ключи молча теряются при JSON.stringify */
 const _asMap=x=>(x&&typeof x==='object'&&!Array.isArray(x))?x:(Array.isArray(x)&&x.length===0?{}:(x&&typeof x==='object'?Object.assign({},x):{}));
 if(d.QUIZSTATS!=null)QUIZSTATS=_asMap(d.QUIZSTATS);if(Array.isArray(d.KB))KB.splice(0,KB.length,...d.KB);if(d.KBPROG!=null)KBPROG=_asMap(d.KBPROG);if(d.HRPROF!=null)HRPROF=_asMap(d.HRPROF);if(d.KPSEQ!=null&&Array.isArray(d.KPSEQ))KPSEQ={};if(Array.isArray(d.CHAT))CHAT=d.CHAT;if(d.KPI_TARGETS!=null)KPI_TARGETS=_asMap(d.KPI_TARGETS);if(d.ROLE_WORKSPACES!=null)ROLE_WORKSPACES=_asMap(d.ROLE_WORKSPACES);if(d.USER_WORKSPACES!=null)USER_WORKSPACES=_asMap(d.USER_WORKSPACES);if(d.MODULE_FLAGS!=null)MODULE_FLAGS=_asMap(d.MODULE_FLAGS);if(d.GEO_DATA&&typeof d.GEO_DATA==='object'&&!Array.isArray(d.GEO_DATA))GEO_DATA=d.GEO_DATA;if(Array.isArray(d.TRASH))TRASH=d.TRASH;if(d.COMMCFG!=null){COMMCFG=_asMap(d.COMMCFG);if(COMMCFG.agentPct==null)COMMCFG.agentPct=30;}if(Array.isArray(d.COMMLOST))COMMLOST=d.COMMLOST;if(Array.isArray(d.OWNER_REPORTS))OWNER_REPORTS=d.OWNER_REPORTS;
@@ -2117,6 +2122,10 @@ function quizStatsCardHTML(){
 const PLANUP={};
 const PLANSVG={}; /* ключ objId::этаж -> {kind:'svg'|'img', data, by, date} - чертёж этажа */
 const PLAN_LABELPOS={}; /* ключ objId::этаж -> {код: {dx,dy}} - сдвиги подписей (перетаскивание) */
+/* v4.51.0: справочник категорий/подкатегорий/типов, который ведёт администратор.
+   Дополняет встроенные списки, не заменяет их: встроенное остаётся, сверху ложится
+   добавленное. Читают все роли, меняет только администратор (см. api/state.php). */
+let TAXO={cats:[],subs:{},types:{}};
 let MAPCFG={apikey:''}; /* общий на всю компанию ключ Яндекс.Карт (admin вводит один раз) */
 const PLAN_STRUCT={}; /* #4: персистентная иерархия планировок { [objId]:{blocks:[name...],floors:{[block||'']:[name...]}} } - блоки/этажи как отдельные записи, новый блок не затирает предыдущий */
 function planStruct(objId){if(!PLAN_STRUCT[objId])PLAN_STRUCT[objId]={blocks:[],floors:{}};const s=PLAN_STRUCT[objId];if(!Array.isArray(s.blocks))s.blocks=[];if(!s.floors||typeof s.floors!=='object')s.floors={};return s;}
@@ -3327,7 +3336,84 @@ function renderUsers(){
  if(preRole){const el=$('nu_name');if(el)el.focus();}
 }
 function renderAdminModules(){if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}$('main').innerHTML=`<div class="ph"><h1>Управление модулями</h1></div>${footNote()}`;localize();/* карточка флагов монтируется модулем v410 (наблюдатель за #main) */}
-function renderAdminSystem(){if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}$('main').innerHTML=`<div class="ph"><h1>Система</h1></div>${migrationsCard()}${backupCard()}${trashCard()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;localize();}
+function renderAdminSystem(){if(!R().admin){$('main').innerHTML=`<div class="card"><div class="lock"><div class="em">🔒</div><h2>Только для администратора</h2></div></div>`;return;}$('main').innerHTML=`<div class="ph"><h1>Система</h1></div>${taxonomyCard()}${migrationsCard()}${backupCard()}${trashCard()}${renderDangerZone()}${renderAuditCard()}${footNote()}`;localize();}
+
+/* ===== v4.51.0: справочник категорий брендов, который ведёт администратор =====
+   Встроенные значения показываем, но удалять не даём: на них уже ссылаются заведённые
+   бренды, и удаление увело бы их в «Прочее». Добавленное вручную убирается свободно. */
+let _taxoCat='';
+function _taxoBag(kind){TAXO[kind]=TAXO[kind]||(kind==='cats'?[]:{});return TAXO[kind];}
+function _taxoCustom(kind,cat){
+ if(kind==='cats')return (_taxoBag('cats')||[]).slice();
+ const bag=_taxoBag(kind);return (bag[cat]||[]).slice();
+}
+function _taxoBuiltin(kind,cat){
+ try{
+  if(kind==='cats')return window.CASE_TAXO.builtinCats();
+  if(kind==='subs')return window.CASE_TAXO.builtinSubs(cat);
+  return window.CASE_TAXO.builtinTypes(cat);
+ }catch(e){return [];}
+}
+function taxoAdd(kind,inputId){
+ if(!R().admin)return;
+ const el=$(inputId);if(!el)return;
+ const v=String(el.value||'').trim();
+ if(!v){toast('Введите название');return;}
+ const cat=kind==='cats'?'':_taxoCat;
+ if(kind!=='cats'&&!cat){toast('Сначала выберите категорию');return;}
+ const low=x=>String(x).trim().toLowerCase();
+ const exists=_taxoBuiltin(kind,cat).concat(_taxoCustom(kind,cat)).some(x=>low(x)===low(v));
+ if(exists){toast('Такое значение уже есть');return;}
+ if(kind==='cats'){_taxoBag('cats').push(v);}
+ else{const bag=_taxoBag(kind);bag[cat]=(bag[cat]||[]).concat([v]);}
+ el.value='';
+ audit('Справочник: добавлено',kind+' · '+(cat||'—')+' · '+v);
+ persist();toast('Добавлено: '+v);renderAdminSystem();
+}
+function taxoDel(kind,cat,v){
+ if(!R().admin)return;
+ if(!confirm('Убрать «'+v+'» из справочника?\n\nУже заведённые бренды с этим значением не меняются — просто исчезнет подсказка при вводе.'))return;
+ if(kind==='cats'){TAXO.cats=(TAXO.cats||[]).filter(x=>x!==v);}
+ else{const bag=_taxoBag(kind);bag[cat]=(bag[cat]||[]).filter(x=>x!==v);if(!bag[cat].length)delete bag[cat];}
+ audit('Справочник: убрано',kind+' · '+(cat||'—')+' · '+v);
+ persist();toast('Убрано: '+v);renderAdminSystem();
+}
+function taxoPickCat(v){_taxoCat=v;renderAdminSystem();}
+function _taxoChips(kind,cat){
+ const built=_taxoBuiltin(kind,cat),custom=_taxoCustom(kind,cat);
+ const chip=(t,own)=>`<span class="chip" style="${own?'background:#eef2ff;border-color:#c7d2fe':'opacity:.65'}">${esc(t)}${own?` <a href="#" onclick="event.preventDefault();taxoDel('${kind}','${esc(cat).replace(/'/g,"&#39;")}','${esc(t).replace(/'/g,"&#39;")}')" title="убрать" style="text-decoration:none;color:#9E0000">&times;</a>`:''}</span>`;
+ const all=built.map(t=>chip(t,false)).concat(custom.map(t=>chip(t,true)));
+ return all.length?`<div class="chips" style="display:flex;flex-wrap:wrap;gap:5px;margin:6px 0">${all.join('')}</div>`
+   :`<div style="color:var(--muted);font-size:11px;margin:6px 0">пока пусто</div>`;
+}
+function taxonomyCard(){
+ if(!R().admin)return '';
+ let cats=[];try{cats=window.CASE_TAXO.cats();}catch(e){cats=[];}
+ if(!_taxoCat&&cats.length)_taxoCat=cats[0];
+ const customCats=_taxoCustom('cats');
+ return `<div class="card"><h3>Справочник категорий брендов</h3>
+ <div class="mini" style="color:var(--muted);margin-bottom:8px">Добавленное здесь появляется в подсказках при заведении бренда — у всех сотрудников. Встроенные значения показаны бледным и не удаляются: на них уже ссылаются заведённые бренды.</div>
+ <div style="margin-bottom:10px"><b style="font-size:12px">Категории</b>
+  ${_taxoChips('cats','')}
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="taxo_new_cat" placeholder="новая категория" style="flex:1;min-width:180px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px" onkeydown="if(event.key==='Enter')taxoAdd('cats','taxo_new_cat')"><button class="btn sm" onclick="taxoAdd('cats','taxo_new_cat')">Добавить</button></div>
+ </div>
+ <div style="border-top:1px solid var(--border);padding-top:10px">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:6px">
+   <b style="font-size:12px">Категория:</b>
+   <select onchange="taxoPickCat(this.value)" style="padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px;max-width:280px">
+    ${cats.map(c=>`<option value="${esc(c)}" ${c===_taxoCat?'selected':''}>${esc(c)}</option>`).join('')}
+   </select>
+  </div>
+  <div style="font-size:12px;margin-top:8px"><b>Подкатегории</b> <span style="color:var(--muted);font-weight:400">— формат: ресторан, кафе, салон</span></div>
+  ${_taxoChips('subs',_taxoCat)}
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="taxo_new_sub" placeholder="новая подкатегория" style="flex:1;min-width:180px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px" onkeydown="if(event.key==='Enter')taxoAdd('subs','taxo_new_sub')"><button class="btn sm" onclick="taxoAdd('subs','taxo_new_sub')">Добавить</button></div>
+  <div style="font-size:12px;margin-top:12px"><b>Типы</b> <span style="color:var(--muted);font-weight:400">— уточнение: кухня, сегмент, специализация</span></div>
+  ${_taxoChips('types',_taxoCat)}
+  <div style="display:flex;gap:6px;flex-wrap:wrap"><input id="taxo_new_type" placeholder="новый тип" style="flex:1;min-width:180px;padding:5px 8px;border:1px solid var(--border);border-radius:6px;font-size:12px" onkeydown="if(event.key==='Enter')taxoAdd('types','taxo_new_type')"><button class="btn sm" onclick="taxoAdd('types','taxo_new_type')">Добавить</button></div>
+ </div>
+ ${customCats.length?`<div class="mini" style="margin-top:10px;color:var(--muted)">Добавлено вручную категорий: ${customCats.length}</div>`:''}
+ </div>`;
+}
 let SRV_USERS=null,_prefillRole=null;
 function addPersonToRole(rk){if(!R().admin)return;_prefillRole=rk;go('users');}
 function _rerenderUsersOrOrg(){if(S.view==='org')renderOrg();else if(S.view==='registry')renderRegistry();else if(S.view==='admin_system')renderAdminSystem();else if(S.view==='admin_modules')renderAdminModules();else renderUsers();}
@@ -4064,4 +4150,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.50.7';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.51.0';

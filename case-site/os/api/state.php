@@ -45,7 +45,7 @@ function redact_shared_state(array $data, array $u): array {
 // os/v32-upgrade.js и os/v326-commission-engines.js DATA_KEYS). До миграции каждого модуля
 // на собственную ACL'd таблицу — единственная граница между ролями здесь, на сервере.
 function all_shared_state_keys(): array {
-  return ['OBJECTS','U','BRANDS','USERS','CHANGES','BENCH','REFUSALS','PLANUP','PLANSVG',
+  return ['TAXO','OBJECTS','U','BRANDS','USERS','CHANGES','BENCH','REFUSALS','PLANUP','PLANSVG',
     'PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT','PLAN_IGNORED_CODES','DOCREG','DOC_CONTACTS','AGENTS','ROLES','KPSEQ','ACTLOG','AUDIT',
     'MAPCFG','PROJECT_PPT','QUIZLOG','QUIZSTATS','KB','KBPROG','HRPROF','CHAT','KPI_TARGETS',
     'ROLE_WORKSPACES','USER_WORKSPACES','MODULE_FLAGS','GEO_DATA','TRASH','COMMCFG','COMMLOST',
@@ -139,7 +139,10 @@ function workspace_view_keys(): array {
 }
 // Универсальные, низкочувствительные ключи, доступные всем вошедшим редакторам (иначе откат
 // ломал бы UX): чат и корзина по разделам, служебные заметки.
-function baseline_state_keys(): array { return ['CHAT','TRASH','V32_NOTES']; }
+/* v4.51.0: TAXO — пользовательские категории/подкатегории/типы брендов.
+   Читать должны ВСЕ (иначе у сотрудника пустеют списки), менять — только
+   администратор: ниже ключ вычитается из разрешённых на запись, как USERS и ROLES. */
+function baseline_state_keys(): array { return ['CHAT','TRASH','V32_NOTES','TAXO']; }
 
 
 // Серверная валидация геослоя. Клиентская форма удобна, но не является защитой:
@@ -246,7 +249,7 @@ function role_allowed_state_keys(array $u, ?array $oldData=null): ?array {
   $allowed = baseline_state_keys();
   foreach ($views as $v) { foreach (($map[$v] ?? []) as $k) { if (!in_array($k, $allowed, true)) $allowed[] = $k; } }
   // системные ключи под запретом для любой не-админской роли
-  $allowed = array_values(array_diff($allowed, ['USERS','ROLES','ACTLOG','AUDIT','ROLE_WORKSPACES','USER_WORKSPACES']));
+  $allowed = array_values(array_diff($allowed, ['USERS','ROLES','ACTLOG','AUDIT','ROLE_WORKSPACES','USER_WORKSPACES','TAXO']));
   // Просмотр геоаналитики не равен праву редактировать мастер-базу. BA/BSH/HM могут
   // видеть карту могут пользователи с модулем; GEO_DATA меняют только пользователи с edit/finance/admin rights.
   if (!asaas_geo_can_edit($u)) $allowed = array_values(array_diff($allowed, ['GEO_DATA']));

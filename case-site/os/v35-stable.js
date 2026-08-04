@@ -135,7 +135,12 @@
     return 'Прочее';
   }
   function sameCat(a,b){if(!a||!b)return false; return catNorm(a)===catNorm(b);}
-  function cats(){return CANON_CATEGORIES.slice();}
+  /* v4.51.0: к встроенным спискам добавляем то, что завёл администратор (TAXO).
+     Встроенное НИКОГДА не удаляем: иначе уже заведённые бренды потеряют свою
+     категорию и уедут в «Прочее». Добавленное просто ложится сверху. */
+  function taxo(){try{return (typeof TAXO!=='undefined'&&TAXO)?TAXO:{cats:[],subs:{},types:{}};}catch(e){return {cats:[],subs:{},types:{}};}}
+  function taxoList(bag,cat){try{var t=taxo()[bag];if(!t)return [];var v=cat?t[cat]:t;return Array.isArray(v)?v.filter(function(x){return x&&String(x).trim();}):[];}catch(e){return [];}}
+  function cats(){return uniq(CANON_CATEGORIES.concat(taxoList('cats')));}
   function subNorm(v,cat){
     var s=String(v||'').trim(); if(!s)return '';
     var canonCat=catNorm(cat);
@@ -149,13 +154,24 @@
     var c=catNorm(cat||'');
     var out=[];
     if(cat){
-      out=(CANON_SUBS[c]||[]).slice();
+      out=(CANON_SUBS[c]||[]).slice().concat(taxoList('subs',c),taxoList('subs',cat));
       brands().forEach(function(b){if(sameCat(b.cat,cat) && b.sub)out.push(subNorm(b.sub,cat));});
     }else{
       Object.keys(CANON_SUBS).forEach(function(k){out=out.concat(CANON_SUBS[k]||[]);});
+      var ts=taxo().subs||{};Object.keys(ts).forEach(function(k){out=out.concat(taxoList('subs',k));});
     }
     return uniq(out).sort(function(a,b){return String(a).localeCompare(String(b),'ru');});
   }
+  /* v4.51.0: наружу для экрана администратора в «Системе» — ему нужно показать,
+     что встроено (удалять нельзя), а что добавлено вручную (можно убрать). */
+  window.CASE_TAXO={
+    cats:function(){return cats();},
+    subs:function(c){return allSubs(c);},
+    builtinCats:function(){return CANON_CATEGORIES.slice();},
+    builtinSubs:function(c){return (CANON_SUBS[catNorm(c)]||[]).slice();},
+    builtinTypes:function(c){var cc=catNorm(c);return ((window.CANON_CATTYPES&&window.CANON_CATTYPES[cc])||[]).slice();},
+    norm:function(c){return catNorm(c);}
+  };
   function statuses(){return {target:['Потенциальный','Пот'],contacted:['Был контакт','Конт'],active:['Активный','Акт'],inactive:['Неактивный','Неакт'],refused:['Отказ','Отказ']};}
   function statusFull(k){var s=statuses()[k];return s?s[0]:(k||'');}
   function statusShort(k){var s=statuses()[k];return s?s[1]:(k||'');}
@@ -357,7 +373,9 @@
        псевдоним («Услуги» вместо «Услуги и сервисы»). Нормализуем перед поиском, иначе
        список типов остаётся пустым. Пустая категория — показываем все типы. */
     var td=$('brandTypeDL'); if(cat&&td){var cc=catNorm(cat.value);
-      var tl=cat.value?((window.CANON_CATTYPES&&window.CANON_CATTYPES[cc])||[]):(window.ALL_CATTYPES||[]); td.innerHTML=tl.map(function(x){return '<option value="'+h(x)+'">';}).join('');}
+      var tl=cat.value?((window.CANON_CATTYPES&&window.CANON_CATTYPES[cc])||[]):(window.ALL_CATTYPES||[]);
+      /* v4.51.0: типы, добавленные администратором для этой категории */
+      tl=uniq(tl.concat(taxoList('types',cc),cat.value?[]:(function(){var a=[],tt=taxo().types||{};Object.keys(tt).forEach(function(k){a=a.concat(taxoList('types',k));});return a;})())); td.innerHTML=tl.map(function(x){return '<option value="'+h(x)+'">';}).join('');}
     var aw=$('bd_alco_wrap'); if(cat&&aw){aw.style.display=(window.catHasAlcohol&&window.catHasAlcohol(catNorm(cat.value)))?'':'none';}}
   function brandCompanyValue(b,d){return d.bd_group!==undefined?d.bd_group:(b.group||b.company||b.holding||b.ownerCompany||b.franchiseOwner||'');}
   function contactListFromBrand(b,d){
