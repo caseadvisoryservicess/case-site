@@ -994,11 +994,6 @@
         "ru": "Ответим в течение дня - планировки, параметры, условия сделки.",
         "uz": "Kun davomida javob beramiz - planirovkalar, parametrlar, bitim shartlari.",
         "en": "We reply within the day - plans, parameters and deal terms."
-      },
-      "cover_ceil": {
-        "ru": "высота этажа",
-        "uz": "qavat balandligi",
-        "en": "floor height"
       }
     },
     "geoMap": "geo-map.jpg"
