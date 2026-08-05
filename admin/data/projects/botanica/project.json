@@ -961,7 +961,7 @@
         "en": "Floor height"
       },
       "plan_note": {
-        "ru": "План по проектной документации. Свободная планировка: колонны 5-5-6-5-5 на 6-6-6 мм, санузлы и лифтовой холл в ядре.",
+        "ru": "План по проектной документации. Свободная планировка: колонны 5-5-6-5-5 на 6-6-6 м, санузлы и лифтовой холл в ядре.",
         "uz": "Loyiha hujjatlari bo'yicha reja. Erkin planirovka: 5-5-6-5-5 ga 6-6-6 kolonnalar, hojatxonalar va lift xolli yadroda.",
         "en": "Plan per the design documentation. Open plan with columns on a 5-5-6-5-5 by 6-6-6 grid; restrooms and lift lobby in the core."
       },
@@ -994,6 +994,11 @@
         "ru": "Ответим в течение дня - планировки, параметры, условия сделки.",
         "uz": "Kun davomida javob beramiz - planirovkalar, parametrlar, bitim shartlari.",
         "en": "We reply within the day - plans, parameters and deal terms."
+      },
+      "cover_ceil": {
+        "ru": "высота этажа",
+        "uz": "qavat balandligi",
+        "en": "floor height"
       }
     },
     "geoMap": "geo-map.jpg"
