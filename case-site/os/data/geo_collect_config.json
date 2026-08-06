@@ -6,8 +6,16 @@
   },
   "city": {
     "name": "Tashkent",
-    "center": { "lat": 41.3111, "lng": 69.2797 },
-    "bbox": { "south": 41.15, "west": 69.10, "north": 41.42, "east": 69.48 }
+    "center": {
+      "lat": 41.3111,
+      "lng": 69.2797
+    },
+    "bbox": {
+      "south": 41.15,
+      "west": 69.1,
+      "north": 41.42,
+      "east": 69.48
+    }
   },
   "grid": {
     "cell_km": 1.5,
@@ -16,87 +24,696 @@
   },
   "dedup": {
     "name_distance_m": 60,
-    "coord_confidence": { "high_m": 20, "ok_m": 50, "review_m": 100 },
+    "coord_confidence": {
+      "high_m": 20,
+      "ok_m": 50,
+      "review_m": 100
+    },
     "note": "Записи из разных источников объединяются по общему id/телефону/сайту ИЛИ по нормализованному имени в пределах name_distance_m. Расхождение canonical-координат по таблице уверенности."
   },
   "sources": {
-    "osm":    { "enabled": true,  "endpoint": "https://overpass-api.de/api/interpreter", "key": null,            "rate_ms": 1500 },
-    "google": { "enabled": true,  "endpoint": "https://places.googleapis.com/v1/places:searchText", "key": "google_maps_key", "rate_ms": 250 },
-    "yandex": { "enabled": true,  "endpoint": "https://search-maps.yandex.ru/v1/", "key": "yandex_search_key",  "rate_ms": 300 },
-    "dgis":   { "enabled": true,  "endpoint": "https://catalog.api.2gis.com/3.0/items", "key": "dgis_key",       "rate_ms": 300 }
+    "osm": {
+      "enabled": true,
+      "endpoint": "https://overpass-api.de/api/interpreter",
+      "key": null,
+      "rate_ms": 1500
+    },
+    "google": {
+      "enabled": true,
+      "endpoint": "https://places.googleapis.com/v1/places:searchText",
+      "key": "google_maps_key",
+      "rate_ms": 250
+    },
+    "yandex": {
+      "enabled": true,
+      "endpoint": "https://search-maps.yandex.ru/v1/",
+      "key": "yandex_search_key",
+      "rate_ms": 300
+    },
+    "dgis": {
+      "enabled": true,
+      "endpoint": "https://catalog.api.2gis.com/3.0/items",
+      "key": "dgis_key",
+      "rate_ms": 300
+    }
   },
   "categories": [
-    { "key": "hotels", "label": "Гостиницы и апарт-отели",
-      "queries": { "ru": ["гостиница","отель","апарт-отель","хостел"], "uz": ["mehmonxona","hotel"], "en": ["hotel","hostel","apart hotel"] },
-      "google_type": "lodging", "osm": ["tourism=hotel","tourism=hostel","tourism=apartment","tourism=guest_house"] },
-    { "key": "restaurants", "label": "Рестораны",
-      "queries": { "ru": ["ресторан","чайхана"], "uz": ["restoran","choyxona"], "en": ["restaurant"] },
-      "google_type": "restaurant", "osm": ["amenity=restaurant"] },
-    { "key": "cafes", "label": "Кафе и кофейни",
-      "queries": { "ru": ["кафе","кофейня","кондитерская"], "uz": ["kafe","qahvaxona"], "en": ["cafe","coffee shop"] },
-      "google_type": "cafe", "osm": ["amenity=cafe"] },
-    { "key": "fast_food", "label": "Фастфуд и QSR",
-      "queries": { "ru": ["фастфуд","бургер","пицца","шаурма","лаваш"], "uz": ["fast food","lavash","shaurma"], "en": ["fast food","burger","pizza"] },
-      "google_type": "fast_food_restaurant", "osm": ["amenity=fast_food"] },
-    { "key": "shopping", "label": "ТРЦ и торговые центры",
-      "queries": { "ru": ["торговый центр","ТРЦ","молл"], "uz": ["savdo markazi"], "en": ["shopping mall","mall"] },
-      "google_type": "shopping_mall", "osm": ["shop=mall","shop=department_store"] },
-    { "key": "supermarkets", "label": "Супермаркеты и продуктовый ритейл",
-      "queries": { "ru": ["супермаркет","гипермаркет","продукты"], "uz": ["supermarket","oziq-ovqat"], "en": ["supermarket","hypermarket","grocery"] },
-      "google_type": "supermarket", "osm": ["shop=supermarket","shop=convenience"] },
-    { "key": "markets", "label": "Рынки и базары",
-      "queries": { "ru": ["рынок","базар","дехканский рынок"], "uz": ["bozor","dehqon bozori"], "en": ["market","bazaar"] },
-      "google_type": "market", "osm": ["amenity=marketplace","shop=wholesale"] },
-    { "key": "street_retail", "label": "Стрит-ритейл",
-      "queries": { "ru": ["магазин","бутик","салон"], "uz": ["do'kon","salon"], "en": ["shop","store","boutique"] },
-      "google_type": "store", "osm": ["shop=clothes","shop=shoes","shop=jewelry","shop=electronics","shop=cosmetics","shop=furniture","shop=books","shop=mobile_phone","shop=optician","shop=gift","shop=toys","shop=florist","shop=bag","shop=watches","shop=sports"] },
-    { "key": "parks", "label": "Парки и зелёные зоны",
-      "queries": { "ru": ["парк","сквер","набережная"], "uz": ["bog'","xiyobon"], "en": ["park"] },
-      "google_type": "park", "osm": ["leisure=park","leisure=garden"] },
-    { "key": "playgrounds", "label": "Детские площадки",
-      "queries": { "ru": ["детская площадка"], "uz": ["bolalar maydonchasi"], "en": ["playground"] },
-      "google_type": "playground", "osm": ["leisure=playground"] },
-    { "key": "entertainment", "label": "Развлечения и досуг",
-      "queries": { "ru": ["развлекательный центр","боулинг","кинотеатр","аквапарк"], "uz": ["ko'ngilochar markaz","kino"], "en": ["entertainment","cinema","bowling"] },
-      "google_type": "movie_theater", "osm": ["amenity=cinema","leisure=amusement_arcade","leisure=water_park","leisure=bowling_alley"] },
-    { "key": "sports", "label": "Спортивные объекты",
-      "queries": { "ru": ["фитнес","спортзал","бассейн","стадион"], "uz": ["fitnes","stadion","basseyn"], "en": ["gym","fitness","stadium","swimming pool"] },
-      "google_type": "gym", "osm": ["leisure=fitness_centre","leisure=sports_centre","leisure=stadium","leisure=pitch","leisure=swimming_pool"] },
-    { "key": "culture", "label": "Культурные объекты",
-      "queries": { "ru": ["музей","театр","галерея","концертный зал"], "uz": ["muzey","teatr","galereya"], "en": ["museum","theatre","gallery"] },
-      "google_type": "museum", "osm": ["tourism=museum","amenity=theatre","tourism=gallery","amenity=arts_centre"] },
-    { "key": "tourism", "label": "Туристические объекты",
-      "queries": { "ru": ["достопримечательность","мечеть","медресе","мавзолей"], "uz": ["diqqatga sazovor joy","masjid","madrasa"], "en": ["tourist attraction","mosque","landmark"] },
-      "google_type": "tourist_attraction", "osm": ["tourism=attraction","historic=monument","amenity=place_of_worship","historic=memorial"] },
-    { "key": "education", "label": "Образование",
-      "queries": { "ru": ["школа","университет","колледж","детский сад","учебный центр"], "uz": ["maktab","universitet","kollej","bog'cha"], "en": ["school","university","college","kindergarten"] },
-      "google_type": "school", "osm": ["amenity=school","amenity=university","amenity=college","amenity=kindergarten","amenity=language_school"] },
-    { "key": "medicine", "label": "Медицина",
-      "queries": { "ru": ["клиника","больница","поликлиника","медцентр","стоматология"], "uz": ["klinika","kasalxona","shifoxona"], "en": ["clinic","hospital","medical center"] },
-      "google_type": "hospital", "osm": ["amenity=hospital","amenity=clinic","amenity=doctors","healthcare=clinic","amenity=dentist"] },
-    { "key": "pharmacy", "label": "Аптеки",
-      "queries": { "ru": ["аптека"], "uz": ["dorixona"], "en": ["pharmacy"] },
-      "google_type": "pharmacy", "osm": ["amenity=pharmacy"] },
-    { "key": "residential", "label": "Жилые комплексы",
-      "queries": { "ru": ["жилой комплекс","новостройка","ЖК"], "uz": ["turar joy majmuasi"], "en": ["residential complex"] },
-      "google_type": null, "osm": ["building=apartments","landuse=residential"] },
-    { "key": "warehouses", "label": "Склады и логистика",
-      "queries": { "ru": ["склад","логистический центр"], "uz": ["ombor"], "en": ["warehouse","logistics"] },
-      "google_type": "storage", "osm": ["building=warehouse","landuse=industrial"] },
-    { "key": "parking", "label": "Паркинги и стоянки",
-      "queries": { "ru": ["парковка","паркинг","автостоянка"], "uz": ["avtoturargoh"], "en": ["parking"] },
-      "google_type": "parking", "osm": ["amenity=parking"] },
-    { "key": "transport_hubs", "label": "Транспортные узлы",
-      "queries": { "ru": ["станция метро","вокзал","автовокзал","автостанция"], "uz": ["metro bekati","vokzal"], "en": ["metro station","bus station","railway station"] },
-      "google_type": "transit_station", "osm": ["railway=station","railway=subway_entrance","amenity=bus_station"] },
-    { "key": "finance", "label": "Банки и финансы",
-      "queries": { "ru": ["банк","банкомат","обмен валюты"], "uz": ["bank","bankomat"], "en": ["bank","atm","currency exchange"] },
-      "google_type": "bank", "osm": ["amenity=bank","amenity=atm","amenity=bureau_de_change"] },
-    { "key": "government", "label": "Госучреждения и услуги",
-      "queries": { "ru": ["центр государственных услуг","хокимият","налоговая"], "uz": ["davlat xizmatlari markazi","hokimlik"], "en": ["government office","public services"] },
-      "google_type": "local_government_office", "osm": ["office=government","amenity=townhall"] },
-    { "key": "fuel_auto", "label": "АЗС и автосервисы",
-      "queries": { "ru": ["АЗС","заправка","автомойка","СТО","автосалон"], "uz": ["yoqilg'i shoxobchasi","avtomoyka"], "en": ["gas station","car wash","car repair","car dealer"] },
-      "google_type": "gas_station", "osm": ["amenity=fuel","shop=car_repair","amenity=car_wash","shop=car"] }
+    {
+      "key": "hotels",
+      "label": "Гостиницы и апарт-отели",
+      "queries": {
+        "ru": [
+          "гостиница",
+          "отель",
+          "апарт-отель",
+          "хостел"
+        ],
+        "uz": [
+          "mehmonxona",
+          "hotel"
+        ],
+        "en": [
+          "hotel",
+          "hostel",
+          "apart hotel"
+        ]
+      },
+      "google_type": "lodging",
+      "osm": [
+        "tourism=hotel",
+        "tourism=hostel",
+        "tourism=apartment",
+        "tourism=guest_house"
+      ]
+    },
+    {
+      "key": "restaurants",
+      "label": "Рестораны",
+      "queries": {
+        "ru": [
+          "ресторан",
+          "чайхана"
+        ],
+        "uz": [
+          "restoran",
+          "choyxona"
+        ],
+        "en": [
+          "restaurant"
+        ]
+      },
+      "google_type": "restaurant",
+      "osm": [
+        "amenity=restaurant"
+      ]
+    },
+    {
+      "key": "cafes",
+      "label": "Кафе и кофейни",
+      "queries": {
+        "ru": [
+          "кафе",
+          "кофейня",
+          "кондитерская"
+        ],
+        "uz": [
+          "kafe",
+          "qahvaxona"
+        ],
+        "en": [
+          "cafe",
+          "coffee shop"
+        ]
+      },
+      "google_type": "cafe",
+      "osm": [
+        "amenity=cafe"
+      ]
+    },
+    {
+      "key": "fast_food",
+      "label": "Фастфуд и QSR",
+      "queries": {
+        "ru": [
+          "фастфуд",
+          "бургер",
+          "пицца",
+          "шаурма",
+          "лаваш"
+        ],
+        "uz": [
+          "fast food",
+          "lavash",
+          "shaurma"
+        ],
+        "en": [
+          "fast food",
+          "burger",
+          "pizza"
+        ]
+      },
+      "google_type": "fast_food_restaurant",
+      "osm": [
+        "amenity=fast_food"
+      ]
+    },
+    {
+      "key": "shopping",
+      "label": "ТРЦ и торговые центры",
+      "queries": {
+        "ru": [
+          "торговый центр",
+          "ТРЦ",
+          "молл"
+        ],
+        "uz": [
+          "savdo markazi"
+        ],
+        "en": [
+          "shopping mall",
+          "mall"
+        ]
+      },
+      "google_type": "shopping_mall",
+      "osm": [
+        "shop=mall",
+        "shop=department_store"
+      ]
+    },
+    {
+      "key": "supermarkets",
+      "label": "Супермаркеты и продуктовый ритейл",
+      "queries": {
+        "ru": [
+          "супермаркет",
+          "гипермаркет",
+          "продукты"
+        ],
+        "uz": [
+          "supermarket",
+          "oziq-ovqat"
+        ],
+        "en": [
+          "supermarket",
+          "hypermarket",
+          "grocery"
+        ]
+      },
+      "google_type": "supermarket",
+      "osm": [
+        "shop=supermarket",
+        "shop=convenience"
+      ]
+    },
+    {
+      "key": "markets",
+      "label": "Рынки и базары",
+      "queries": {
+        "ru": [
+          "рынок",
+          "базар",
+          "дехканский рынок"
+        ],
+        "uz": [
+          "bozor",
+          "dehqon bozori"
+        ],
+        "en": [
+          "market",
+          "bazaar"
+        ]
+      },
+      "google_type": "market",
+      "osm": [
+        "amenity=marketplace",
+        "shop=wholesale"
+      ]
+    },
+    {
+      "key": "street_retail",
+      "label": "Стрит-ритейл",
+      "queries": {
+        "ru": [
+          "магазин",
+          "бутик",
+          "салон"
+        ],
+        "uz": [
+          "do'kon",
+          "salon"
+        ],
+        "en": [
+          "shop",
+          "store",
+          "boutique"
+        ]
+      },
+      "google_type": "store",
+      "osm": [
+        "shop=clothes",
+        "shop=shoes",
+        "shop=jewelry",
+        "shop=electronics",
+        "shop=cosmetics",
+        "shop=furniture",
+        "shop=books",
+        "shop=mobile_phone",
+        "shop=optician",
+        "shop=gift",
+        "shop=toys",
+        "shop=florist",
+        "shop=bag",
+        "shop=watches",
+        "shop=sports"
+      ]
+    },
+    {
+      "key": "parks",
+      "label": "Парки и зелёные зоны",
+      "queries": {
+        "ru": [
+          "парк",
+          "сквер",
+          "набережная"
+        ],
+        "uz": [
+          "bog'",
+          "xiyobon"
+        ],
+        "en": [
+          "park"
+        ]
+      },
+      "google_type": "park",
+      "osm": [
+        "leisure=park",
+        "leisure=garden"
+      ]
+    },
+    {
+      "key": "playgrounds",
+      "label": "Детские площадки",
+      "queries": {
+        "ru": [
+          "детская площадка"
+        ],
+        "uz": [
+          "bolalar maydonchasi"
+        ],
+        "en": [
+          "playground"
+        ]
+      },
+      "google_type": "playground",
+      "osm": [
+        "leisure=playground"
+      ]
+    },
+    {
+      "key": "entertainment",
+      "label": "Развлечения и досуг",
+      "queries": {
+        "ru": [
+          "развлекательный центр",
+          "боулинг",
+          "кинотеатр",
+          "аквапарк"
+        ],
+        "uz": [
+          "ko'ngilochar markaz",
+          "kino"
+        ],
+        "en": [
+          "entertainment",
+          "cinema",
+          "bowling"
+        ]
+      },
+      "google_type": "movie_theater",
+      "osm": [
+        "amenity=cinema",
+        "leisure=amusement_arcade",
+        "leisure=water_park",
+        "leisure=bowling_alley"
+      ]
+    },
+    {
+      "key": "sports",
+      "label": "Спортивные объекты",
+      "queries": {
+        "ru": [
+          "фитнес",
+          "спортзал",
+          "бассейн",
+          "стадион"
+        ],
+        "uz": [
+          "fitnes",
+          "stadion",
+          "basseyn"
+        ],
+        "en": [
+          "gym",
+          "fitness",
+          "stadium",
+          "swimming pool"
+        ]
+      },
+      "google_type": "gym",
+      "osm": [
+        "leisure=fitness_centre",
+        "leisure=sports_centre",
+        "leisure=stadium",
+        "leisure=pitch",
+        "leisure=swimming_pool"
+      ]
+    },
+    {
+      "key": "culture",
+      "label": "Культурные объекты",
+      "queries": {
+        "ru": [
+          "музей",
+          "театр",
+          "галерея",
+          "концертный зал"
+        ],
+        "uz": [
+          "muzey",
+          "teatr",
+          "galereya"
+        ],
+        "en": [
+          "museum",
+          "theatre",
+          "gallery"
+        ]
+      },
+      "google_type": "museum",
+      "osm": [
+        "tourism=museum",
+        "amenity=theatre",
+        "tourism=gallery",
+        "amenity=arts_centre"
+      ]
+    },
+    {
+      "key": "tourism",
+      "label": "Туристические объекты",
+      "queries": {
+        "ru": [
+          "достопримечательность",
+          "мечеть",
+          "медресе",
+          "мавзолей"
+        ],
+        "uz": [
+          "diqqatga sazovor joy",
+          "masjid",
+          "madrasa"
+        ],
+        "en": [
+          "tourist attraction",
+          "mosque",
+          "landmark"
+        ]
+      },
+      "google_type": "tourist_attraction",
+      "osm": [
+        "tourism=attraction",
+        "historic=monument",
+        "amenity=place_of_worship",
+        "historic=memorial"
+      ]
+    },
+    {
+      "key": "education",
+      "label": "Образование: школы, вузы, курсы и учебные центры",
+      "queries": {
+        "ru": [
+          "школа",
+          "гимназия",
+          "лицей",
+          "университет",
+          "институт",
+          "колледж",
+          "детский сад",
+          "учебный центр",
+          "курсы",
+          "языковые курсы",
+          "репетиторский центр",
+          "IT-школа",
+          "музыкальная школа",
+          "художественная школа",
+          "автошкола",
+          "подготовка к IELTS"
+        ],
+        "uz": [
+          "maktab",
+          "gimnaziya",
+          "litsey",
+          "universitet",
+          "institut",
+          "kollej",
+          "bog'cha",
+          "o'quv markazi",
+          "kurslar",
+          "til kurslari",
+          "IT maktab",
+          "musiqa maktabi",
+          "avtomaktab"
+        ],
+        "en": [
+          "school",
+          "gymnasium",
+          "university",
+          "institute",
+          "college",
+          "kindergarten",
+          "training center",
+          "courses",
+          "language school",
+          "IT school",
+          "driving school",
+          "tutoring"
+        ]
+      },
+      "google_type": "school",
+      "osm": [
+        "amenity=school",
+        "amenity=university",
+        "amenity=college",
+        "amenity=kindergarten",
+        "amenity=language_school",
+        "amenity=driving_school",
+        "amenity=music_school",
+        "amenity=prep_school",
+        "amenity=training",
+        "office=educational_institution"
+      ],
+      "note": "Курсы и учебные центры в OSM часто помечены office=educational_institution или amenity=training — без них выпадает весь коммерческий сегмент, а он для аренды важнее школ."
+    },
+    {
+      "key": "medicine",
+      "label": "Медицина",
+      "queries": {
+        "ru": [
+          "клиника",
+          "больница",
+          "поликлиника",
+          "медцентр",
+          "стоматология"
+        ],
+        "uz": [
+          "klinika",
+          "kasalxona",
+          "shifoxona"
+        ],
+        "en": [
+          "clinic",
+          "hospital",
+          "medical center"
+        ]
+      },
+      "google_type": "hospital",
+      "osm": [
+        "amenity=hospital",
+        "amenity=clinic",
+        "amenity=doctors",
+        "healthcare=clinic",
+        "amenity=dentist"
+      ]
+    },
+    {
+      "key": "pharmacy",
+      "label": "Аптеки",
+      "queries": {
+        "ru": [
+          "аптека"
+        ],
+        "uz": [
+          "dorixona"
+        ],
+        "en": [
+          "pharmacy"
+        ]
+      },
+      "google_type": "pharmacy",
+      "osm": [
+        "amenity=pharmacy"
+      ]
+    },
+    {
+      "key": "residential",
+      "label": "Жилые комплексы",
+      "queries": {
+        "ru": [
+          "жилой комплекс",
+          "новостройка",
+          "ЖК"
+        ],
+        "uz": [
+          "turar joy majmuasi"
+        ],
+        "en": [
+          "residential complex"
+        ]
+      },
+      "google_type": null,
+      "osm": [
+        "building=apartments",
+        "landuse=residential"
+      ]
+    },
+    {
+      "key": "warehouses",
+      "label": "Склады и логистика",
+      "queries": {
+        "ru": [
+          "склад",
+          "логистический центр"
+        ],
+        "uz": [
+          "ombor"
+        ],
+        "en": [
+          "warehouse",
+          "logistics"
+        ]
+      },
+      "google_type": "storage",
+      "osm": [
+        "building=warehouse",
+        "landuse=industrial"
+      ]
+    },
+    {
+      "key": "parking",
+      "label": "Паркинги и стоянки",
+      "queries": {
+        "ru": [
+          "парковка",
+          "паркинг",
+          "автостоянка"
+        ],
+        "uz": [
+          "avtoturargoh"
+        ],
+        "en": [
+          "parking"
+        ]
+      },
+      "google_type": "parking",
+      "osm": [
+        "amenity=parking"
+      ]
+    },
+    {
+      "key": "transport_hubs",
+      "label": "Транспортные узлы",
+      "queries": {
+        "ru": [
+          "станция метро",
+          "вокзал",
+          "автовокзал",
+          "автостанция"
+        ],
+        "uz": [
+          "metro bekati",
+          "vokzal"
+        ],
+        "en": [
+          "metro station",
+          "bus station",
+          "railway station"
+        ]
+      },
+      "google_type": "transit_station",
+      "osm": [
+        "railway=station",
+        "railway=subway_entrance",
+        "amenity=bus_station"
+      ]
+    },
+    {
+      "key": "finance",
+      "label": "Банки и финансы",
+      "queries": {
+        "ru": [
+          "банк",
+          "банкомат",
+          "обмен валюты"
+        ],
+        "uz": [
+          "bank",
+          "bankomat"
+        ],
+        "en": [
+          "bank",
+          "atm",
+          "currency exchange"
+        ]
+      },
+      "google_type": "bank",
+      "osm": [
+        "amenity=bank",
+        "amenity=atm",
+        "amenity=bureau_de_change"
+      ]
+    },
+    {
+      "key": "government",
+      "label": "Госучреждения и услуги",
+      "queries": {
+        "ru": [
+          "центр государственных услуг",
+          "хокимият",
+          "налоговая"
+        ],
+        "uz": [
+          "davlat xizmatlari markazi",
+          "hokimlik"
+        ],
+        "en": [
+          "government office",
+          "public services"
+        ]
+      },
+      "google_type": "local_government_office",
+      "osm": [
+        "office=government",
+        "amenity=townhall"
+      ]
+    },
+    {
+      "key": "fuel_auto",
+      "label": "АЗС и автосервисы",
+      "queries": {
+        "ru": [
+          "АЗС",
+          "заправка",
+          "автомойка",
+          "СТО",
+          "автосалон"
+        ],
+        "uz": [
+          "yoqilg'i shoxobchasi",
+          "avtomoyka"
+        ],
+        "en": [
+          "gas station",
+          "car wash",
+          "car repair",
+          "car dealer"
+        ]
+      },
+      "google_type": "gas_station",
+      "osm": [
+        "amenity=fuel",
+        "shop=car_repair",
+        "amenity=car_wash",
+        "shop=car"
+      ]
+    }
   ]
 }

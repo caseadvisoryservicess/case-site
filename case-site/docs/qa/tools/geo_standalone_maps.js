@@ -87,7 +87,8 @@ function check(name, cond, detail) {
 
   /* Данные не тронуты */
   const bc = await pg.evaluate(() => ({ n: BC.length, first: BC[0].name }));
-  check('список БЦ на месте', bc.n === 150 && bc.first === 'Botanica BC', `${bc.n} шт., первый «${bc.first}»`);
+  /* 151 = 150 бенчмарков + наш проект Samsung BC, добавленный в конец списка */
+  check('список БЦ на месте', bc.n === 151 && bc.first === 'Botanica BC', `${bc.n} шт., первый «${bc.first}»`);
 
   await pg.screenshot({ path: path.join(__dirname, 'maps_switcher.png'), clip: { x: 900, y: 0, width: 500, height: 420 } });
 
