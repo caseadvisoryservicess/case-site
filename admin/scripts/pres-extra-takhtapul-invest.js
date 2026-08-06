@@ -115,6 +115,23 @@ const PRIORITY = [
   { n: 3, h: 'Офис целиком под одну компанию', key: 'bc' }
 ];
 
+// ── карты из приложения CASE OS ──
+// Подложку с улицами из среды сборки не снять: тайлы OSM, 2ГИС и Яндекса
+// закрыты прокси (проверено, CONNECT отдаёт 403). Поэтому карты кладём
+// картинками: владелец делает скриншот в приложении и кладёт файл в uploads
+// проекта. Как только файл появился - страница карты собирается сама, без
+// правок кода. Пока файлов нет, работает наша SVG-схема.
+const UP_DIR = path.join(__dirname, '..', 'data', 'projects', 'takhtapul', 'uploads');
+const MAP_DEFS = [
+  { file: 'caseos-map.jpg', h: 'Окружение объекта на карте',
+    c: 'Медицина и бизнес-центры вокруг Тахтапула, кольца 1, 3 и 5 км. Экспорт из приложения CASE OS Geo Analytics.' },
+  { file: 'caseos-heat-bc.jpg', h: 'Зоны пригодности: офис',
+    c: 'Модель зон пригодности приложения, сетка 400 м. Зелёное - людей много, конкурентов мало; красное - наоборот. Балл площадки 78 из 100.' },
+  { file: 'caseos-heat-med.jpg', h: 'Зоны пригодности: клиника',
+    c: 'Та же модель для медицинского формата. Балл площадки 55 из 100 при медиане города 55.' }
+];
+const MAPS = MAP_DEFS.filter((m) => fs.existsSync(path.join(UP_DIR, m.file)));
+
 const GEO_COL = { med: '#c0392b', medx: '#e08a80', bc: '#2f6fb0', ph: '#1e8f5e', mh: '#8a6bbf', x: '#9aa0a6' };
 // Показываем только те слои, которые действительно конкурируют с оцениваемыми
 // форматами. Аптеки и махаллинские центры владелец попросил убрать: они не
@@ -145,8 +162,9 @@ const SECTIONS = {
   }
 };
 
-// 4 титульных листа основной брошюры + 5 страниц инвесторской части
-const count = 4 + 5;
+// 4 титульных листа основной брошюры + 5 страниц инвесторской части + карты,
+// если владелец положил скриншоты приложения в uploads
+const count = 4 + 5 + MAPS.length;
 
 function dividerPage(ctx, key, right) {
   const { esc, img64, BRONZE, DARK, CODE, nextPg, TOTAL } = ctx;
@@ -292,6 +310,18 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
       <div style="font-size:8.5pt;color:rgba(255,255,255,.6);margin-top:1mm">${s3}</div></div>`).join('')}
   <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5">Жителей в радиусе 1 км - ${gnum(OS.pop1km)}. Спрос упирается в верхнюю границу модели, поэтому разницу между форматами задаёт только конкуренция.</div>
 </div>`)}
+
+${MAPS.map((m) => `
+<!-- карта из приложения: ${m.file} -->
+<div class="pg">
+  <span class="ilbl">Геоаналитика</span>
+  <div class="ih">${esc(m.h)}</div>
+  <div style="flex:1;min-height:0;border-radius:4mm;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center">
+    <img src="${ctx.img64(m.file)}" style="width:100%;height:100%;object-fit:contain">
+  </div>
+  <div class="inote" style="margin-top:4mm">${esc(m.c)}</div>
+  ${foot()}
+</div>`).join('')}
 
 <!-- окружение в цифрах -->
 <div class="pg">
