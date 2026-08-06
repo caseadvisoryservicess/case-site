@@ -700,7 +700,9 @@ a{color:var(--red)}
 .styrow .sub{display:flex;gap:6px;align-items:center;grid-column:1/4;padding-left:4px;flex-wrap:wrap}
 .styrow .sub label{font-size:10px;color:var(--muted);white-space:nowrap}
 .mini{font-size:10px;color:var(--muted)}
-.leaflet-tooltip.bclab{background:rgba(255,255,255,.82);border:none;box-shadow:none;color:#1c1f26;font-size:9px;font-weight:600;padding:0 2px}
+.leaflet-tooltip.leaflet-tooltip.lab-draggable{pointer-events:auto;cursor:grab}
+.leaflet-tooltip.lab-dragging{cursor:grabbing;z-index:1000;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+.bclab{background:rgba(255,255,255,.82);border:none;box-shadow:none;color:#1c1f26;font-size:9px;font-weight:600;padding:0 2px}
 .leaflet-tooltip.dlab{background:rgba(255,255,255,.85);border:1px solid var(--red);font-weight:600;font-size:10px;text-align:center}
 .leaflet-tooltip.mlab{background:rgba(28,31,38,.82);color:#fff;border:none;font-size:9px;font-weight:600}
 /* edit card */
@@ -929,6 +931,83 @@ const HASMAP=typeof L!=='undefined';
 let map=null,CANV=null,gBC=null,gRing=null,gProj=null,gMetro=null,gDist=null,gDens=null,gRoad=null,gMed=null,gPharm=null,gEdu=null;
 if(HASMAP){
 map=L.map('map',{preferCanvas:true,zoomAnimation:false,markerZoomAnimation:false}).setView([41.3485,69.3166],12);
+/* ===== Перетаскивание подписей =====
+   Подписи в плотной застройке налезают друг на друга, и раздвинуть их нечем.
+   Теперь любую постоянную подпись — БЦ, медицины, аптек, образования, метро,
+   районов и наших проектов — можно оттащить мышью.
+
+   Как это устроено: Leaflet сам ставит подпись через transform и переписывает его
+   на каждом сдвиге карты. Поэтому смещение храним ОТДЕЛЬНО, в margin — его Leaflet
+   не трогает, и подпись остаётся сдвинутой при любом зуме и панораме.
+   Смещение запоминается по объекту (координаты + текст) и переживает перезагрузку. */
+const LABOFF_LS='caseos_laboff';
+let LABOFF={};
+try{LABOFF=JSON.parse(localStorage.getItem(LABOFF_LS)||'{}')||{};}catch(e){LABOFF={};}
+function labKey(tt){
+  try{
+    const src=tt&&tt._source, ll=src&&src.getLatLng?src.getLatLng():null;
+    const txt=String(tt&&tt._content||'').replace(/<[^>]*>/g,'').slice(0,40);
+    return ll?(ll.lat.toFixed(5)+','+ll.lng.toFixed(5)+'|'+txt):txt;
+  }catch(e){return '';}
+}
+function labApply(el,key){
+  const o=LABOFF[key];
+  if(o){el.style.marginLeft=o[0]+'px';el.style.marginTop=o[1]+'px';}
+}
+function labSave(){try{localStorage.setItem(LABOFF_LS,JSON.stringify(LABOFF));}catch(e){}}
+map.on('tooltipopen',function(e){
+  const tt=e.tooltip, el=tt&&tt.getElement&&tt.getElement();
+  if(!el||!el.classList.contains('leaflet-tooltip'))return;
+  const key=labKey(tt); if(!key)return;
+  el.dataset.labkey=key;
+  el.classList.add('lab-draggable');
+  labApply(el,key);
+});
+(function(){
+  let cur=null,sx=0,sy=0,mx=0,my=0,moved=false;
+  function start(ev){
+    const el=ev.target&&ev.target.closest&&ev.target.closest('.leaflet-tooltip');
+    if(!el||!el.dataset.labkey)return;
+    const t=ev.touches?ev.touches[0]:ev;
+    cur=el; sx=t.clientX; sy=t.clientY; moved=false;
+    mx=parseFloat(el.style.marginLeft)||0; my=parseFloat(el.style.marginTop)||0;
+    el.classList.add('lab-dragging');
+    try{map.dragging.disable();}catch(e){}
+    ev.preventDefault(); ev.stopPropagation();
+  }
+  function move(ev){
+    if(!cur)return;
+    const t=ev.touches?ev.touches[0]:ev;
+    const dx=t.clientX-sx, dy=t.clientY-sy;
+    if(Math.abs(dx)>2||Math.abs(dy)>2)moved=true;
+    cur.style.marginLeft=(mx+dx)+'px'; cur.style.marginTop=(my+dy)+'px';
+    ev.preventDefault();
+  }
+  function end(){
+    if(!cur)return;
+    if(moved){
+      LABOFF[cur.dataset.labkey]=[parseFloat(cur.style.marginLeft)||0,parseFloat(cur.style.marginTop)||0];
+      labSave();
+    }
+    cur.classList.remove('lab-dragging'); cur=null;
+    try{map.dragging.enable();}catch(e){}
+  }
+  const pane=map.getPane('tooltipPane')||document;
+  pane.addEventListener('mousedown',start);
+  pane.addEventListener('touchstart',start,{passive:false});
+  document.addEventListener('mousemove',move);
+  document.addEventListener('touchmove',move,{passive:false});
+  document.addEventListener('mouseup',end);
+  document.addEventListener('touchend',end);
+})();
+/* Сброс всех сдвигов — на случай, если подписи растащили и хочется начать заново */
+window.labReset=function(){
+  if(!confirm('Вернуть все сдвинутые подписи на место?'))return;
+  LABOFF={}; labSave();
+  document.querySelectorAll('.leaflet-tooltip[data-labkey]').forEach(function(el){
+    el.style.marginLeft=''; el.style.marginTop='';
+  });
+};
 CANV=L.canvas({padding:0.25});
 /* Подложки как в CASE OS: переключатель в правом верхнем углу карты.
    Часть провайдеров в Узбекистане отдаёт тайлы через раз, поэтому ниже —
@@ -1262,8 +1341,12 @@ function renderEdu(){
     if(VB&&!VB.contains([la,ln]))return;
     n++; byType[t]=(byType[t]||0)+1;
     const pm=L.circleMarker([la,ln],{renderer:CANV,radius:r,color:c,weight:1,fillColor:c,fillOpacity:.65});
-    pm.bindTooltip('<b>'+esc(p.n||'Учебное заведение')+'</b><br>'+esc(EDU_TYPES[t])+(p.s?'<br><span style="color:#888">'+esc(p.s)+'</span>':''),
-      lab?{permanent:true,direction:'top',className:'dlab'}:{sticky:true});
+    /* Подпись на карте — только название и тем же классом, что у БЦ: класс dlab
+       предназначен для районов, он крупный и с рамкой, из-за него подписи
+       перекрывали всю карту. Тип и источник остаются во всплывающей подсказке. */
+    pm.bindTooltip(lab?esc(p.n||'Учебное заведение')
+      :('<b>'+esc(p.n||'Учебное заведение')+'</b><br>'+esc(EDU_TYPES[t])+(p.s?'<br><span style="color:#888">'+esc(p.s)+'</span>':'')),
+      lab?{permanent:true,direction:'top',className:'bclab',opacity:.95}:{sticky:true});
     pm.addTo(gEdu);
   });
   VIS.edu=n; updateLegend();
