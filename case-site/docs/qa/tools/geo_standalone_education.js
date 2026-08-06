@@ -46,7 +46,8 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
             layers:(function(){try{return gEdu.getLayers().length;}catch(e){return -1;}})()};
   });
   ck('без данных слой пуст и не падает',empty.layers===0,'слоёв: '+empty.layers);
-  ck('подсказка объясняет, как собрать',/geo_collector|соберите/i.test(empty.note),empty.note.slice(0,80));
+    /* Подсказка теперь ведёт к кнопке скачивания, а не к командам на сервере */
+  ck('подсказка ведёт к кнопке скачивания', /Скачать из OpenStreetMap/i.test(empty.note), empty.note.slice(0, 80));
 
   /* 2. Файл появился — точки рисуются */
   serveData=true;
@@ -197,6 +198,44 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
     comm: /educational_institution/.test(EDU_OVERPASS || ''), copy: typeof eduCopyQuery === 'function' }));
   ck('готовый запрос к OpenStreetMap внутри файла', q.has && q.copy);
   ck('запрос охватывает курсы и учебные центры', q.comm);
+
+
+  /* ===== Кнопка «Скачать из OpenStreetMap»: запрос, разбор, отказ сервера ===== */
+  /* Настоящего интернета в проверке нет — подставляем ответ Overpass и следим за тем,
+     что именно страница отправляет и как переживает отказ первого сервера. */
+  const seen = [];
+  await pg.route('**/api/interpreter', async route => {
+    const req = route.request();
+    seen.push({ url: req.url(), method: req.method(), body: (req.postData() || '') });
+    if (seen.length === 1) return route.fulfill({ status: 429, body: 'too many requests' });  /* первый сервер отказал */
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ elements: [
+      { type:'node', id:1, lat:41.3200, lon:69.2800, tags:{ name:'Школа №110', amenity:'school' } },
+      { type:'way',  id:2, center:{lat:41.3450, lon:69.2870}, tags:{ name:'Inha University', amenity:'university' } },
+      { type:'node', id:3, lat:41.3480, lon:69.2880, tags:{ name:"Najot Ta'lim", office:'educational_institution' } },
+      { type:'node', id:4, lat:41.3000, lon:69.2700, tags:{ amenity:'driving_school' } },
+      { type:'node', id:5, tags:{ amenity:'school', name:'Без координат' } }
+    ]}) });
+  });
+  const osm = await pg.evaluate(async () => {
+    EDU = []; EDU_SRC = ''; localStorage.removeItem('caseos_edu');
+    await eduFetchOsm();
+    return { n: EDU.length, src: EDU_SRC, types: EDU.map(x => x.t), names: EDU.map(x => x.n),
+             saved: !!localStorage.getItem('caseos_edu'),
+             layers: (()=>{try{return gEdu.getLayers().length;}catch(e){return -1;}})() };
+  });
+  ck('страница сама скачала данные из OpenStreetMap', osm.n === 4, 'точек: ' + osm.n + ' (' + osm.src + ')');
+  ck('отказ первого сервера пережит — взят следующий', seen.length === 2,
+    'обращений к серверам: ' + seen.length);
+  ck('запрос уходит методом POST с телом', seen[0].method === 'POST' && /amenity/.test(seen[0].body),
+    seen[0].method + ', ' + seen[0].body.slice(0, 60));
+  ck('запрос включает учебные центры', /educational_institution/.test(decodeURIComponent(seen[0].body)));
+  ck('контур (way) взят по центру', osm.names.indexOf('Inha University') >= 0);
+  ck('объект без координат пропущен', osm.names.indexOf('Без координат') < 0, osm.names.join(' | '));
+  ck('типы разобраны из тегов',
+    osm.types.indexOf('school') >= 0 && osm.types.indexOf('university') >= 0
+    && osm.types.indexOf('courses') >= 0 && osm.types.indexOf('driving') >= 0, osm.types.join(', '));
+  ck('точки сразу на карте', osm.layers === 4, 'на карте: ' + osm.layers);
+  ck('загруженное запомнено в браузере', osm.saved);
 
   ck('ошибок за весь прогон нет',errs.length===0,errs[0]||'ошибок нет');
   await pg.screenshot({path:__dirname+'/edu_map.png',clip:{x:0,y:0,width:430,height:760}});
