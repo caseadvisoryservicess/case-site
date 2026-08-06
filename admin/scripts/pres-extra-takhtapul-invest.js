@@ -66,6 +66,24 @@ const MED_MIX = [
   ['роддом', C1.medBreak.maternity]
 ].filter((x) => x[1] > 0).map(([l, n]) => [l, n, pct(n, C1.med)]);
 
+// ── выгрузка приложения CASE OS Geo Analytics по точке (владелец, 2026-08-06) ──
+// Авторитетный источник по скорингу: приложение считает по своей модели зон
+// пригодности (сетка 400 м, 2 579 ячеек) и по своему слою медицины (OSM +
+// clinics.uz), который чуть шире нашей геобазы.
+// Формула: 0,55 x min(1, население 1 км / 25 000) + 0,45 x max(0, 1 - конкуренты / 8).
+// Сверено вручную: 4 конкурента -> 78 баллов, 33 -> 55 баллов, сходится ровно.
+// ГЛАВНОЕ: отсюда откалиброванное население по точке - 32 375 человек в 1 км.
+// Раньше его не было, и абсолютные баллы посчитать было не на чем.
+const OS = {
+  pop1km: 32375,
+  benchPop: 25000,
+  benchComp: 8,
+  bc: { score: 78, median: 84, comp: 4 },
+  med: { score: 55, median: 55, comp: 33 }
+};
+const GAP = OS.bc.score - OS.med.score;
+const gnum = (v) => String(v).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+
 // ── образовательный слой ──
 // В геобазе CASE его нет: категории TAX-021..024 объявлены, но объекты не
 // выгружены. Собрано вручную по открытым справочникам 2026-08-06 через
@@ -260,17 +278,18 @@ function html(ctx) {
 
   return `${CSS}
 
-${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:6mm">
-  <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE}">Насыщение ниши в радиусе 1 км</div>
-  ${[[`${LOAD_BC}%`, 'офисы: занято 3 места из 6 по эталону', 'свободно'],
-     [`${LOAD_MED}%`, 'медицина: 25 профильных центров при эталоне 8', 'кластер']]
-    .map(([v, s2, tag]) => `<div class="ibox">
-      <div style="display:flex;align-items:baseline;gap:3mm">
-        <div style="font-size:26pt;font-weight:800;letter-spacing:-.02em">${v}</div>
-        <div style="font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${BRONZE}">${tag}</div>
+${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:5mm">
+  <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE}">Балл площадки, CASE OS Geo Analytics</div>
+  ${[[`${OS.bc.score}`, 'Офис, бизнес-центр', `медиана города ${OS.bc.median}`],
+     [`${OS.med.score}`, 'Клиника, медцентр', `медиана города ${OS.med.median}`]]
+    .map(([v, s2, s3]) => `<div class="ibox">
+      <div style="display:flex;align-items:baseline;gap:2.5mm">
+        <div style="font-size:30pt;font-weight:800;letter-spacing:-.02em">${v}</div>
+        <div style="font-size:11pt;color:rgba(255,255,255,.55)">/ 100</div>
       </div>
-      <div style="font-size:8.5pt;color:rgba(255,255,255,.7);margin-top:2mm;line-height:1.4">${s2}</div></div>`).join('')}
-  <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5">Для офиса свободная ниша - плюс. Для медицины плотность работает наоборот: рядом больницы и роддом, они дают поток.</div>
+      <div style="font-size:10pt;font-weight:700;margin-top:1.5mm">${s2}</div>
+      <div style="font-size:8.5pt;color:rgba(255,255,255,.6);margin-top:1mm">${s3}</div></div>`).join('')}
+  <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5">Жителей в радиусе 1 км - ${gnum(OS.pop1km)}. Спрос упирается в верхнюю границу модели, поэтому разницу между форматами задаёт только конкуренция.</div>
 </div>`)}
 
 <!-- окружение в цифрах -->
@@ -292,7 +311,7 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
         ${radRow('Бизнес-центры', 'bc')}
       </table>
       <div class="icard acc" style="font-size:9.5pt;line-height:1.5">
-        <b>Что это за место.</b> Тахтапул стоит в плотной центральной застройке Шайхантахура: в одном километре ${C1.med} медицинских объектов и ${C1.bc} бизнес-центра. Это сложившийся, обжитой район, а не окраина под застройку: медицинская ниша здесь давно занята, офисная - нет.
+        <b>Что это за место.</b> В радиусе одного километра живёт ${gn(OS.pop1km)} человек - это выше верхней границы модели CASE OS (${gn(OS.benchPop)}), то есть спроса на площадке заведомо достаточно под любой из форматов. Плотная центральная застройка Шайхантахура: ${C1.med} медицинских объектов и ${C1.bc} бизнес-центра в том же километре.
       </div>
       <div class="inote">Источник: геобаза CASE Tashkent Geo Master (3 292 объекта по Ташкенту, из них 148 бизнес-центров и 1 530 медучреждений), сбор 2026 год. На схеме и в таблице - только медицина и бизнес-центры, то есть форматы, с которыми объект конкурирует: ${SHOWN_TOTAL} объекта в радиусе 3 км.</div>
     </div>
@@ -348,41 +367,39 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
 <!-- сравнение форматов -->
 <div class="pg">
   <span class="ilbl">Выбор формата</span>
-  <div class="ih">Насыщение ниши и что мы рекомендуем</div>
+  <div class="ih">Балл площадки и что мы рекомендуем</div>
   <table class="itab">
-    <tr><th>Формат</th><th class="n">Конкурентов в 1 км</th><th class="n">Эталон</th><th class="n">Ниша занята</th><th>Рекомендация</th></tr>
+    <tr><th>Формат</th><th class="n">Балл площадки</th><th class="n">Медиана города</th><th class="n">Конкурентов в 1 км</th><th>Рекомендация</th></tr>
     <tr>
-      <td><b>Офис, бизнес-центр</b></td><td class="n">${C1.bc}</td><td class="n">${BENCH.bc}</td>
-      <td class="n" style="color:#2f6fb0">${LOAD_BC}%</td>
+      <td><b>Офис, бизнес-центр</b></td>
+      <td class="n" style="color:#2f6fb0">${OS.bc.score} / 100</td><td class="n">${OS.bc.median}</td><td class="n">${OS.bc.comp}</td>
       <td style="color:#2f6fb0;font-weight:700">Рекомендуем</td>
     </tr>
     <tr>
-      <td><b>Клиника, медцентр</b></td><td class="n">${C1.medCore}</td><td class="n">${BENCH.med}</td>
-      <td class="n" style="color:#c0392b">${LOAD_MED}%</td>
+      <td><b>Клиника, медцентр</b></td>
+      <td class="n">${OS.med.score} / 100</td><td class="n">${OS.med.median}</td><td class="n">${OS.med.comp}</td>
       <td style="color:#2f6fb0;font-weight:700">Рекомендуем: кластер даёт поток</td>
     </tr>
     <tr>
       <td><b>Учебный центр, курсы</b></td>
-      <td class="n">${EDU.districtCentres.gp} по району</td><td class="n">-</td>
-      <td class="n" style="color:${MUTED}">срез</td>
+      <td class="n" style="color:${MUTED}">модели нет</td><td class="n">-</td><td class="n">${EDU.districtCentres.gp} по району</td>
       <td style="color:#2f6fb0;font-weight:700">Рекомендуем</td>
     </tr>
     <tr>
       <td><b>Небольшая школа</b></td>
-      <td class="n">${EDU.schools.length} рядом</td><td class="n">-</td>
-      <td class="n" style="color:${MUTED}">-</td>
+      <td class="n" style="color:${MUTED}">модели нет</td><td class="n">-</td><td class="n">${EDU.schools.length} школы рядом</td>
       <td style="font-weight:700">Ограничен участком</td>
     </tr>
   </table>
   <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-top:6mm;flex:1;min-height:0;align-content:start">
     <div class="why" style="border-top:1.4mm solid #2f6fb0">
       <h4>Зачем офис</h4>
-      <p>Единственный формат со свободным местом: ниша занята на ${LOAD_BC}%.</p>
+      <p>Лучший балл на этой площадке: ${OS.bc.score} из 100 против ${OS.med.score} у клиники, разрыв ${GAP} балла.</p>
       <p>Здание целиком под одного арендатора - соседние БЦ нарезаны на мелкие блоки и запрос на штаб-квартиру не закрывают.</p>
     </div>
     <div class="why" style="border-top:1.4mm solid #c0392b">
       <h4>Зачем клиника</h4>
-      <p>Насыщение ${LOAD_MED}% здесь читается как плюс: ${C1.medBreak.hospital} больниц и роддом рядом - постоянный поток пациентов, направления, диагностика, послеоперационное наблюдение.</p>
+      <p>Балл ${OS.med.score} равен медиане города, а ${OS.med.comp} медобъекта рядом здесь плюс: больницы и роддом дают постоянный поток пациентов, направления и диагностику.</p>
       <p>Пациент едет в медицинский район, а не в конкретный дом. Место уже известно людям как место, куда ходят лечиться - новому центру не надо формировать поток с нуля.</p>
     </div>
     <div class="why" style="border-top:1.4mm solid #7a6a3f">
@@ -396,7 +413,7 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
       <p>Плюс школа №20 в соседнем доме: полноценная школа здесь конкурирует в упор, а курсы и центр - дополняют её.</p>
     </div>
   </div>
-  <div class="inote" style="margin-top:5mm">Эталон насыщения - из приложения CASE OS Geo Analytics: ${BENCH.bc} бизнес-центров и ${BENCH.med} клиник на радиус 1 км. Доля «ниша занята» = конкуренты / эталон. Для офиса показатель читается прямо, для медицины - с поправкой на кластерный эффект, он описан в карточке.</div>
+  <div class="inote" style="margin-top:5mm">Балл считает приложение CASE OS Geo Analytics по сетке 400 м: 0,55 x спрос + 0,45 x (1 - конкуренты / ${OS.benchComp}), спрос = жители 1 км / ${gnum(OS.benchPop)}. Жителей здесь ${gnum(OS.pop1km)}, то есть спрос упирается в потолок модели у обоих форматов и разницу задаёт только конкуренция. Образовательных форматов в модели нет - для них приведён адресный срез по справочникам.</div>
   ${foot()}
 </div>
 
@@ -405,21 +422,20 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
   <span class="ilbl">Вывод</span>
   <div class="ih">Что данные говорят о Тахтапуле</div>
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5mm">
-    ${kpi('Офис', `${FREE_BC}%`, 'свободной ниши в радиусе 1 км, расчёт по формуле')}
-    ${kpi('Клиника', `${C1.medCore} + ${C1.medBreak.hospital}`, 'профильных центров и больниц в 1 км: сложившийся кластер')}
+    ${kpi('Офис', `${OS.bc.score} / 100`, `балл CASE OS, медиана города ${OS.bc.median}`)}
+    ${kpi('Клиника', `${OS.med.score} / 100`, `балл CASE OS, ровно медиана города`)}
     ${kpi('Образование', 'школа рядом', `${EDU.districtCentres.gp} учебных центров по району, школа №20 на той же улице`)}
   </div>
   <div class="itwo" style="margin-top:7mm">
     <div class="icard">
       <div class="ih3">Два рабочих формата, разная логика</div>
-      ${ul([`<b>Офис.</b> Ниша объективно свободна: ${C1.bc} бизнес-центра в километре при эталоне ${BENCH.bc}. Здесь работает прямой расчёт, и здание целиком под одного арендатора усиливает позицию.`,
-            `<b>Медцентр.</b> Работает обратная логика: ${C1.medCore} профильных соседей, ${C1.medBreak.hospital} больниц и роддом означают, что поток пациентов в район уже идёт. Формула такое соседство штрафует, практика - наоборот.`,
+      ${ul([`<b>Офис.</b> ${OS.bc.score} баллов против ${OS.med.score} у клиники, разрыв ${GAP} балла. Весь он от конкуренции: ${OS.bc.comp} бизнес-центра в километре против ${OS.med.comp} медобъектов.`,
+            `<b>Медцентр.</b> ${OS.med.score} баллов - ровно медиана города. Модель штрафует за ${OS.med.comp} соседей, но на практике больницы и роддом рядом дают поток пациентов и направления.`,
             '<b>Учебный центр и курсы.</b> Школа №20 на той же улице, детские сады рядом, жилой массив вокруг - поток учеников уже здесь. Здание режется на аудитории без переделки конструктива.'])}
     </div>
     <div class="icard acc">
       <div class="ih3">Чего не хватает для полной картины</div>
       ${ul(['<b>Точный счёт по образованию.</b> Объекты собраны вручную по 2ГИС, Яндекс.Картам, Golden Pages, Yellow Pages и Top.uz - это адресный срез. Геокодированную выгрузку по радиусу 3 км даст прогон коллектора CASE OS по категории education с ключами карт.',
-            '<b>Население по точке.</b> Откалиброванных цифр по Шайхантахуру нет. Собственная сетка помечена источником как непроверенная по единицам и на другом объекте занижала в пять раз, поэтому в документ не попала.',
             '<b>Ставки аренды соседних БЦ.</b> Адреса и расстояния в базе есть, условия - нет. Это следующий шаг, если формат офиса подтверждается.'])}
     </div>
   </div>
