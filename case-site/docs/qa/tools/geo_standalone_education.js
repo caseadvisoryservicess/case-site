@@ -68,6 +68,56 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   });
   ck('фильтр «школы» оставляет только школы',filt===1,'на карте: '+filt);
 
+
+  /* ===== Аналитика: образование должно считаться так же, как БЦ и медицина ===== */
+  const anal = await pg.evaluate(async () => {
+    /* точка в гуще наших тестовых объектов */
+    document.getElementById('eduT').value = '';        /* фильтр сбрасываем: он влияет на счёт */
+    const la = 41.3400, ln = 69.2870;
+    const cnt1 = eduR(la, ln, 1000), cnt3 = eduR(la, ln, 3000);
+    document.getElementById('eduT').value = 'school';
+    const onlySchools = eduR(la, ln, 3000);
+    document.getElementById('eduT').value = '';
+    const bizOpts = [...document.querySelectorAll('#sZBiz option')].map(o => o.value);
+    const zc = (typeof zCompCount === 'function') ? zCompCount(la, ln, 1000, 'edu') : -1;
+    return { cnt1, cnt3, onlySchools, bizOpts, zc };
+  });
+  ck('счёт образования в радиусе работает', anal.cnt3 > 0 && anal.cnt3 >= anal.cnt1,
+    `1 км: ${anal.cnt1}, 3 км: ${anal.cnt3}`);
+  ck('фильтр типа влияет на счёт конкурентов', anal.onlySchools < anal.cnt3,
+    `все: ${anal.cnt3}, только школы: ${anal.onlySchools}`);
+  ck('образование есть в модели зон пригодности', anal.bizOpts.indexOf('edu') >= 0,
+    anal.bizOpts.join(', '));
+  ck('модель зон считает образование конкурентами', anal.zc === anal.cnt1,
+    `zCompCount: ${anal.zc}, прямой счёт: ${anal.cnt1}`);
+
+  /* Отчёт по клику должен показать блок и потенциал учебного центра */
+  const rep = await pg.evaluate(async () => {
+    document.getElementById('eduT').value = '';
+    await probeAt(41.3400, 69.2870);
+    await new Promise(r => setTimeout(r, 1200));
+    /* Отчёт рисуется в отдельную панель #probe, а не в общий поток страницы */
+    const panel = document.getElementById('probe');
+    const t = panel ? panel.innerText : '';
+    return {
+      hasBlock: /Образование \(конкуренция\)/i.test(t),   /* .grp — uppercase через CSS */
+      hasScore: /Потенциал учебного центра/.test(t),
+      scoreEdu: (typeof LASTPROBE === 'object' && LASTPROBE) ? LASTPROBE.scoreEdu : undefined,
+      scoreMed: (typeof LASTPROBE === 'object' && LASTPROBE) ? LASTPROBE.scoreMed : undefined,
+      byType: /В 1 км:/.test(t),
+      counts: (t.match(/Образование \(конкуренция\)[\s\S]{0,120}/i) || [''])[0].replace(/\n/g, ' ')
+    };
+  });
+  ck('в отчёте по точке есть блок образования', rep.hasBlock);
+  ck('блок показывает счёт по радиусам', /\d/.test(rep.counts), rep.counts.slice(0, 90));
+  ck('в отчёте есть разбивка по типам', rep.byType);
+  ck('в отчёте есть потенциал учебного центра', rep.hasScore);
+  /* Без данных о населении спрос неизвестен, поэтому оценка пустая — и у клиники тоже.
+     Проверяем именно это: образование считается по тем же правилам, что медицина. */
+  ck('оценка образования ведёт себя как оценка клиники',
+    (rep.scoreEdu === null) === (rep.scoreMed === null),
+    `учебный центр: ${rep.scoreEdu}, клиника: ${rep.scoreMed}`);
+
   ck('ошибок за весь прогон нет',errs.length===0,errs[0]||'ошибок нет');
   await pg.screenshot({path:__dirname+'/edu_map.png',clip:{x:0,y:0,width:430,height:760}});
   await b.close(); srv.close();

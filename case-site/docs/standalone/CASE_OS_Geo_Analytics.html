@@ -140,7 +140,8 @@ a{color:var(--red)}
       <option value="med">клиника (мед-конкуренты)</option>
       <option value="bc">бизнес-центр</option>
       <option value="ret">ритейл / стрит</option>
-      <option value="sp">выбранное направление медицины</option></select></div>
+      <option value="sp">выбранное направление медицины</option>
+      <option value="edu">образование (школы, курсы, центры)</option></select></div>
     <div class="styrow sub"><label>радиус спроса</label><select id="sZR" style="width:auto;font-size:11px">
       <option value="500">500 м</option><option value="1000" selected>1 км</option>
       <option value="1500">1.5 км</option><option value="2000">2 км</option></select>
@@ -185,6 +186,7 @@ a{color:var(--red)}
    <div class="styrow"><label class="ck"><input type="checkbox" id="lEdu"> Образование: школы, курсы, учебные центры</label></div>
    <div class="styrow sub"><label for="eduC">цвет</label><input type="color" id="eduC" value="#7b3fa0"><label for="eduR">размер</label><input type="range" id="eduR" min="2" max="9" value="4"><label for="eduLab">подписи</label><input type="checkbox" id="eduLab"></div>
    <div class="styrow sub"><label for="eduT">тип</label><select id="eduT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="school">школы</option><option value="university">университеты / вузы</option><option value="college">колледжи / лицеи</option><option value="kindergarten">детские сады</option><option value="language">языковые школы</option><option value="courses">курсы / учебные центры</option><option value="music">музыкальные / художественные</option><option value="driving">автошколы</option></select></div>
+   <div class="styrow sub"><label for="eduFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="eduFile" accept=".json,application/json" style="display:none" onchange="eduLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные образования?')){localStorage.removeItem('caseos_edu');EDU=[];EDU_SRC='';renderEdu();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
    <div class="mini" id="eduNote"></div>
    <div class="styrow sub"><label for="phC">цвет</label><input type="color" id="phC" value="#2ecc71"></div>
    <div class="mini" id="phNote"></div>
@@ -341,17 +343,45 @@ let EDU=[],EDU_SRC='',EDU_TRIED=false;
 const EDU_TYPES={school:'Школа',university:'Университет / вуз',college:'Колледж / лицей',
   kindergarten:'Детский сад',language:'Языковая школа',courses:'Курсы / учебный центр',
   music:'Музыкальная / художественная',driving:'Автошкола',other:'Другое'};
+/* Файл, открытый С ДИСКА (file://), НЕ МОЖЕТ прочитать соседний файл — браузер это
+   запрещает. Проверено: fetch падает с «Failed to fetch». Поэтому основной способ для
+   автономной версии — выбрать файл вручную, а загруженное запомнить в браузере,
+   чтобы не выбирать каждый раз. Сетевой путь остаётся для случая, когда страницу
+   отдаёт сервер. */
+const EDU_LS='caseos_edu';
+function eduAdopt(j,src){
+  const arr=Array.isArray(j)?j:(Array.isArray(j&&j.points)?j.points:(Array.isArray(j&&j.data)?j.data:null));
+  if(!arr||!arr.length)return 0;
+  EDU=arr.filter(x=>x&&isFinite(+x.la)&&isFinite(+x.ln));
+  EDU_SRC=(j&&j.src)||src||'файл';
+  return EDU.length;
+}
+function eduRemember(){
+  try{localStorage.setItem(EDU_LS,JSON.stringify({src:EDU_SRC,points:EDU}));}catch(e){}
+}
+function eduLoadFile(input){
+  const f=input&&input.files&&input.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=function(){
+    try{
+      const n=eduAdopt(JSON.parse(rd.result),f.name);
+      if(!n){alert('В файле нет точек с координатами.');return;}
+      eduRemember(); EDU_TRIED=true;
+      if($('lEdu')&&!$('lEdu').checked){$('lEdu').checked=true;if(map)map.addLayer(gEdu);}
+      renderEdu();
+    }catch(e){alert('Не удалось прочитать файл: '+e.message);}
+  };
+  rd.readAsText(f);
+}
 async function ensureEdu(){
   if(EDU_TRIED)return; EDU_TRIED=true;
+  try{const saved=localStorage.getItem(EDU_LS);
+    if(saved){const j=JSON.parse(saved); if(eduAdopt(j,'сохранено в браузере'))return;}
+  }catch(e){}
   for(const u of ['data/tashkent_education.json','data/geo_collect_out/education.json']){
     try{
       const r=await fetch(u,{cache:'no-store'}); if(!r.ok)continue;
-      const j=await r.json();
-      const arr=Array.isArray(j)?j:(Array.isArray(j.points)?j.points:(Array.isArray(j.data)?j.data:null));
-      if(!arr||!arr.length)continue;
-      EDU=arr.filter(x=>x&&isFinite(+x.la)&&isFinite(+x.ln));
-      EDU_SRC=(j&&j.src)||u;
-      break;
+      if(eduAdopt(await r.json(),u)){eduRemember();break;}
     }catch(e){}
   }
 }
@@ -361,7 +391,7 @@ function renderEdu(){
   const on=$('lEdu')&&$('lEdu').checked; const note=$('eduNote');
   if(!on){if(note)note.textContent='';return;}
   if(!EDU.length){
-    if(note)note.innerHTML='Данных пока нет. Соберите их коллектором на сервере:<br><code style="font-size:10px">php api/geo_collector.php --category=education --sources=osm,google,yandex,dgis</code><br>и положите результат в <code style="font-size:10px">data/tashkent_education.json</code>.';
+    if(note)note.innerHTML='Данных пока нет — нажмите «Загрузить данные» и выберите файл.<br>Получить файл (на сервере, где есть интернет):<br><code style="font-size:10px">php api/geo_collector.php --category=education --sources=osm,google,yandex,dgis</code><br><code style="font-size:10px">php api/geo_education_export.php</code>';
     VIS.edu=0; updateLegend(); return;
   }
   const c=$('eduC').value, r=+$('eduR').value, want=$('eduT').value, lab=$('eduLab').checked;
@@ -645,7 +675,17 @@ function zLegend(){
  box.innerHTML='<b>Шкала балла</b><br>'+[30,40,50,60,70,80].map(v=>
    '<span style="display:inline-block;margin:2px 5px 0 0"><span class="dot" style="background:'+zcol(v)+'"></span> '+v+'</span>').join('')
   +'<br><span style="color:#6b7280">зелёное - людей много, конкурентов мало · красное - либо мало людей, либо ниша занята</span>';}
+/* Образование в радиусе (метры). Учитывает фильтр по типу: если в панели выбраны
+   «курсы», конкурентами считаются курсы, а не школы — у них разные арендаторы. */
+function eduR(la,ln,r){
+  if(!EDU.length)return 0;
+  const want=($('eduT')&&$('eduT').value)||'';
+  const km=r/1000; let n=0;
+  EDU.forEach(p=>{ if(want&&eduType(p)!==want)return; if(hav(la,ln,+p.la,+p.ln)<=km)n++; });
+  return n;
+}
 function zCompCount(la,ln,r,biz){
+ if(biz==='edu')return eduR(la,ln,r);
  if(biz==='bc')return bcR(la,ln,r);
  if(biz==='ret')return medR(la,ln,Math.round(r*0.6),false)+bcR(la,ln,Math.round(r*0.6));
  if(biz==='sp'){const sp=$('medSp').value;
@@ -737,7 +777,7 @@ function exportProbe(){
  c+='Ближайшее метро;'+(p.metro?p.metro.n+' ('+Math.round(p.metro.d*1000)+' м)':'-')+'\n\n';
  c+='Радиус, м;Население;БЦ;Мед-объекты;в т.ч. профильные;Аптеки\n';
  R.forEach(r=>{c+=r+';'+(popR(p.la,p.ln,r)||'')+';'+bcR(p.la,p.ln,r)+';'+medR(p.la,p.ln,r,false)+';'+medR(p.la,p.ln,r,true)+';'+phR(p.la,p.ln,r)+'\n';});
- c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+'\n';
+ c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+';учебный центр;'+(p.scoreEdu==null?'-':p.scoreEdu)+'\n';
  c+='Формула;0.55*min(1,население_1км/25000) + 0.45*max(0,1-конкуренты/эталон)\n';
  c+='Источники;население - Kontur H3 (калибровка Toshstat 2026); БЦ - CASE DB; медицина - OpenStreetMap + clinics.uz\n';
  dl('CASE_OS_geo_report_'+p.la.toFixed(4)+'_'+p.ln.toFixed(4)+'.csv',c);}
@@ -1156,12 +1196,18 @@ async function probeAt(la,ln){
  const d=distAt(la,ln);
  const RAD=($('probeR').value||'500,1000,1500,2000,3000').split(',').map(x=>parseInt(x.trim(),10)).filter(x=>x>0);
  const pop1=popIn(1000),bc1=bcIn(1000),med1=medIn(1000);
+ const eduIn=r=>EDU.length?eduR(la,ln,r):null;
+ const edu1=eduIn(1000);
  // быстрый скоринг (прозрачная формула, не ML)
  const demand=pop1==null?null:Math.min(1,pop1/25000);           // спрос: население 1 км / эталон 25к
  const compBC=Math.max(0,1-bc1/6);                               // офис: чем меньше БЦ рядом, тем лучше (эталон 6)
  const compMed=med1==null?null:Math.max(0,1-med1/8);            // клиника: эталон 8
  const scoreBC=demand==null?null:Math.round((0.55*demand+0.45*compBC)*100);
  const scoreMed=(demand==null||compMed==null)?null:Math.round((0.55*demand+0.45*compMed)*100);
+ /* Учебный центр: эталон конкуренции 5 на километр — их в среднем меньше, чем клиник,
+    и порог насыщения наступает раньше. Формула та же и так же прозрачна. */
+ const compEdu=edu1==null?null:Math.max(0,1-edu1/5);
+ const scoreEdu=(demand==null||compEdu==null)?null:Math.round((0.55*demand+0.45*compEdu)*100);
  const fmt=v=>v==null?'-':v.toLocaleString('ru');
  let h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`;
  h+=`<div class="grp">Локация</div><div class="note">${la.toFixed(5)}, ${ln.toFixed(5)}${d?' · район <b>'+d+'</b>':''}${nearMetro?'<br>метро <b>'+esc(nearMetro.n)+'</b> - '+(nearMetro.d*1000).toFixed(0)+' м':''}</div>`;
@@ -1172,15 +1218,27 @@ async function probeAt(la,ln){
    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${bcIn(r)}</b></td></tr>`).join('')+`</tbody></table>`;
  h+=`<div class="mini">Ближайшие: `+nearBC.map(x=>esc(x.b.name)+' ('+(x.d*1000).toFixed(0)+'м'+(x.b['class']?', кл.'+esc(x.b['class']):'')+(x.b.rent?', $'+esc(x.b.rent):'')+')').join('; ')+`</div>`;
  h+=`<div class="grp">Медицина (конкуренция)</div>`;
+ /* Тот же разрез, что у медицины: сколько объектов в каждом радиусе и разбивка по типам. */
+ if(EDU.length){
+  const byT={};
+  EDU.forEach(pp=>{ if(hav(la,ln,+pp.la,+pp.ln)<=1){const t=eduType(pp);byT[t]=(byT[t]||0)+1;} });
+  const tl=Object.keys(byT).sort((a,b)=>byT[b]-byT[a]).map(t=>EDU_TYPES[t]+': '+byT[t]).join(', ');
+  h+=`<div class="grp">Образование (конкуренция)</div><table><tbody>`+
+    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${fmt(eduIn(r))}</b></td></tr>`).join('')+
+    `</tbody></table>`+(tl?`<p class="mini">В 1 км: ${esc(tl)}</p>`:'');
+ }else{
+  h+=`<div class="grp">Образование</div><p class="mini">Данные не загружены — включите слой «Образование» и нажмите «Загрузить данные».</p>`;
+ }
  h+=`<table><thead><tr><th>Радиус</th><th>Все</th><th>Профильные</th><th>Аптеки</th></tr></thead><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td><b>${medR(la,ln,r,false)}</b></td><td>${medR(la,ln,r,true)}</td><td>${phR(la,ln,r)}</td></tr>`).join('')+`</tbody></table>`;
  h+=`<div class="grp">Быстрый скоринг (0-100)</div>
    <table><tbody>
    <tr><td>Потенциал БЦ</td><td style="text-align:right"><b style="color:${scoreBC>=55?'#1a7f37':scoreBC>=40?'#e67e22':'#9E0000'}">${scoreBC==null?'-':scoreBC}</b></td></tr>
    <tr><td>Потенциал клиники</td><td style="text-align:right"><b style="color:${scoreMed>=55?'#1a7f37':scoreMed>=40?'#e67e22':'#9E0000'}">${scoreMed==null?'загрузите медицину':scoreMed}</b></td></tr>
+   <tr><td>Потенциал учебного центра</td><td style="text-align:right"><b style="color:${scoreEdu>=55?'#1a7f37':scoreEdu>=40?'#e67e22':'#9E0000'}">${scoreEdu==null?'загрузите образование':scoreEdu}</b></td></tr>
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
- LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed};
+ LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreEdu:scoreEdu};
 h+=`</div><div class="cbtns"><button class="btn" onclick="exportProbe()">Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
 }
