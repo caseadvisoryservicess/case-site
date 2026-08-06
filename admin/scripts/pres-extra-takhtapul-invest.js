@@ -66,6 +66,36 @@ const MED_MIX = [
   ['роддом', C1.medBreak.maternity]
 ].filter((x) => x[1] > 0).map(([l, n]) => [l, n, pct(n, C1.med)]);
 
+// ── образовательный слой ──
+// В геобазе CASE его нет: категории TAX-021..024 объявлены, но объекты не
+// выгружены. Собрано вручную по открытым справочникам 2026-08-06 через
+// веб-поиск: 2ГИС, Яндекс.Карты, Golden Pages, Yellow Pages, Top.uz.
+// ВАЖНО: это первый срез по адресам, а не геокодированная выгрузка. Точные
+// счётчики по радиусу 3 км даст только прогон коллектора CASE OS
+// (os/api/geo_collector.php, категория education) с ключами карт.
+const EDU = {
+  schools: [
+    ['Средняя школа №20', 'ул. Тахтапул, 26', 'соседнее здание'],
+    ['Средняя школа №34', 'ж/м Бешагач, 10Б', ''],
+    ['Средняя школа №10', 'ул. Лабзак, 105', ''],
+    ['Invento The Uzbek International School', 'Малая кольцевая, 2', '']
+  ],
+  kinder: [
+    ['Детский сад', 'ул. Заркайнар, 17'],
+    ['Детский сад №76', 'Лабзакский проезд, 21а'],
+    ['Детский сад', 'ул. Курганча, 7']
+  ],
+  centres: [
+    ['NOBELIS', 'ул. Зульфияхонум, 14'],
+    ['ALPHA EDUCATION', 'ул. Зульфияхонум, 12'],
+    ['PDP Academy', 'проспект Беруни, 3А'],
+    ['Free Study', 'ул. Алишера Навои, 24'],
+    ['Everest', 'ул. Бирлик, 78'],
+    ['101%', 'Жангох даха, 26']
+  ],
+  districtCentres: { gp: 63, dgis: 160 }
+};
+
 const GEO_COL = { med: '#c0392b', ph: '#1e8f5e', bc: '#2f6fb0', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
 // Показываем только те слои, которые действительно конкурируют с оцениваемыми
 // форматами. Аптеки и махаллинские центры владелец попросил убрать: они не
@@ -230,14 +260,17 @@ function html(ctx) {
 
   return `${CSS}
 
-${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:5mm">
-  ${[[String(SHOWN_TOTAL), 'медицинских объектов и бизнес-центров в радиусе 3 км'],
-     [String(C1.bc), 'бизнес-центра в радиусе 1 км'],
-     [String(C1.medCore), 'профильных медцентров и клиник в радиусе 1 км']]
-    .map(([v, s2]) => `<div class="ibox">
-      <div style="font-size:22pt;font-weight:800;letter-spacing:-.02em">${v}</div>
+${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:flex;flex-direction:column;justify-content:center;gap:6mm">
+  <div style="font-size:8pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:${BRONZE}">Насыщение ниши в радиусе 1 км</div>
+  ${[[`${LOAD_BC}%`, 'офисы: занято 3 места из 6 по эталону', 'свободно'],
+     [`${LOAD_MED}%`, 'медицина: 25 профильных центров при эталоне 8', 'кластер']]
+    .map(([v, s2, tag]) => `<div class="ibox">
+      <div style="display:flex;align-items:baseline;gap:3mm">
+        <div style="font-size:26pt;font-weight:800;letter-spacing:-.02em">${v}</div>
+        <div style="font-size:7.5pt;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:${BRONZE}">${tag}</div>
+      </div>
       <div style="font-size:8.5pt;color:rgba(255,255,255,.7);margin-top:2mm;line-height:1.4">${s2}</div></div>`).join('')}
-  <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5;margin-top:1mm">Геобаза CASE Tashkent Geo Master, сбор 2026 год.</div>
+  <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5">Для офиса свободная ниша - плюс. Для медицины плотность работает наоборот: рядом больницы и роддом, они дают поток.</div>
 </div>`)}
 
 <!-- окружение в цифрах -->
@@ -276,9 +309,9 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
       <div class="icard">
         <div class="ih3">Офисы: ниша не занята</div>
         <table class="itab" style="background:transparent">
-          ${GEO.nearestBc.slice(0, 6).map((b) => `<tr><td style="padding:2.4mm 0">${esc(b.n)}</td><td class="n" style="padding:2.4mm 0">${gn(b.d)} м</td></tr>`).join('')}
+          ${GEO.nearestBc.slice(0, 5).map((b) => `<tr><td style="padding:2.4mm 0">${esc(b.n)}</td><td class="n" style="padding:2.4mm 0">${gn(b.d)} м</td></tr>`).join('')}
         </table>
-        <div class="inote" style="margin-top:3mm">Ближайшие бизнес-центры по геобазе CASE. В радиусе 1 км их ${C1.bc}, в 3 км - ${GEO.counts[3000].bc}.</div>
+        <div class="inote" style="margin-top:2.5mm">По геобазе CASE. В радиусе 1 км ${C1.bc}, в 3 км ${GEO.counts[3000].bc}.</div>
       </div>
       <div class="icard acc">
         <div class="ih3">Медицина: структура ${C1.med} объектов в 1 км</div>
@@ -288,20 +321,24 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
             <td class="n" style="padding:2.2mm 0">${n}</td>
             <td class="n" style="padding:2.2mm 0;color:${BRONZE};width:16mm">${p}%</td></tr>`).join('')}
         </table>
-        <div class="inote" style="margin-top:3mm">Профильные конкуренты медцентра - частные центры и клиники, вместе ${C1.medCore} объекта, это ${pct(C1.medCore, C1.med)}% всей медицины. Больницы и роддом конкурентами не являются: они дают направления.</div>
+        <div class="inote" style="margin-top:2.5mm">Профильные конкуренты - ${C1.medCore} объекта, ${pct(C1.medCore, C1.med)}% медицины. Больницы и роддом дают направления, а не конкуренцию.</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:5mm;min-height:0">
       <div class="icard">
-        <div class="ih3">Образование: данных нет</div>
-        ${ul(['В геобазе CASE есть медицина, аптеки, бизнес-центры, махалли и общепит. Школ, колледжей и учебных центров в ней нет ни одного объекта.',
-              'Поэтому по учебному центру и школе мы не считаем конкуренцию той же формулой: подставить ноль вместо отсутствующих данных значит выдать пустую базу за пустой рынок.',
-              'Что нужно, чтобы посчитать: выгрузка образовательных учреждений по Шайхантахуру. Собирается тем же способом, что и остальные слои базы.'])}
+        <div class="ih3">Образование: что рядом</div>
+        <table class="itab" style="background:transparent">
+          ${EDU.schools.map(([n, a, tag]) => `<tr>
+            <td style="padding:1.8mm 0;font-size:9pt">${esc(n)}${tag ? ` <b style="color:${BRONZE}">- ${tag}</b>` : ''}</td>
+            <td class="n" style="padding:1.8mm 0;font-size:9pt;font-weight:400;color:${MUTED}">${esc(a)}</td></tr>`).join('')}
+        </table>
+        <div class="inote" style="margin-top:2.5mm">Учебные центры рядом: ${EDU.centres.map(([n]) => esc(n)).join(', ')}. Детские сады: ${EDU.kinder.length} в шаговой доступности.</div>
       </div>
       <div class="icard acc">
         <div class="ih3">Как читать эти числа</div>
-        ${ul(['Считаем объекты, а не их выручку и загрузку: геобаза знает, что объект есть, но не знает, насколько он успешен.',
-              'Близость конкурента - не всегда минус: медицинский кластер притягивает поток пациентов, и часть его достаётся новым игрокам. Но входить в него дороже.'])}
+        ${ul(['Медицина и бизнес-центры - из геобазы CASE, счёт по радиусам точный.',
+              `Образование собрано вручную по 2ГИС, Яндекс.Картам, Golden Pages, Yellow Pages и Top.uz: по району ${EDU.districtCentres.gp} учебных центров по Golden Pages и ${EDU.districtCentres.dgis} организаций категории по 2ГИС. Это адресный срез, а не геокодированная выгрузка - точный счёт по 3 км даст прогон коллектора CASE OS.`,
+              'Считаем объекты, а не их выручку: справочник знает, что объект есть, но не знает, насколько он загружен.'])}
       </div>
     </div>
   </div>
@@ -322,14 +359,18 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
     <tr>
       <td><b>Клиника, медцентр</b></td><td class="n">${C1.medCore}</td><td class="n">${BENCH.med}</td>
       <td class="n" style="color:#c0392b">${LOAD_MED}%</td>
-      <td style="color:#c0392b;font-weight:700">Возможна, но иначе</td>
+      <td style="color:#2f6fb0;font-weight:700">Рекомендуем: кластер даёт поток</td>
     </tr>
     <tr>
-      <td><b>Учебный центр, курсы</b></td><td class="n">нет данных</td><td class="n">-</td><td class="n">-</td>
-      <td style="font-weight:700">Нужен замер</td>
+      <td><b>Учебный центр, курсы</b></td>
+      <td class="n">${EDU.districtCentres.gp} по району</td><td class="n">-</td>
+      <td class="n" style="color:${MUTED}">срез</td>
+      <td style="color:#2f6fb0;font-weight:700">Рекомендуем</td>
     </tr>
     <tr>
-      <td><b>Небольшая школа</b></td><td class="n">нет данных</td><td class="n">-</td><td class="n">-</td>
+      <td><b>Небольшая школа</b></td>
+      <td class="n">${EDU.schools.length} рядом</td><td class="n">-</td>
+      <td class="n" style="color:${MUTED}">-</td>
       <td style="font-weight:700">Ограничен участком</td>
     </tr>
   </table>
@@ -341,18 +382,18 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
     </div>
     <div class="why" style="border-top:1.4mm solid #c0392b">
       <h4>Зачем клиника</h4>
-      <p>Формально перегружено: ${LOAD_MED}% от эталона. Но рядом ${C1.medBreak.hospital} больниц и роддом - источник направлений и диагностики.</p>
-      <p>Кластер работает на приток: пациент едет в район. Оправдана при узкой специализации, а не как ещё один общий медцентр.</p>
+      <p>Насыщение ${LOAD_MED}% здесь читается как плюс: ${C1.medBreak.hospital} больниц и роддом рядом - постоянный поток пациентов, направления, диагностика, послеоперационное наблюдение.</p>
+      <p>Пациент едет в медицинский район, а не в конкретный дом. Место уже известно людям как место, куда ходят лечиться - новому центру не надо формировать поток с нуля.</p>
     </div>
     <div class="why" style="border-top:1.4mm solid #7a6a3f">
       <h4>Зачем курсы и учебный центр</h4>
+      <p>Школа №20 стоит на той же улице Тахтапул, рядом детские сады и жилой массив - готовый поток учеников и родителей, которым удобно рядом с домом и школой.</p>
       <p>Этажи 371,5 м² без несущих стен, потолки 3,6 м, отдельный вход - режется на аудитории без переделки конструктива.</p>
-      <p>Вокруг жилой массив: спрос от живущих рядом. Замера рынка нет, слой образования не собран.</p>
     </div>
     <div class="why" style="border-top:1.4mm solid #7a6a3f">
       <h4>Почему не школа</h4>
-      <p>Участок 645 м², пятно 440 м². Свободно около 205 м².</p>
-      <p>На спортивную и игровую зоны не хватает. Ограничение в земле, а не в конкуренции.</p>
+      <p>Участок 645 м², пятно 440 м². Свободно около 205 м² - на спортивную и игровую зоны не хватает.</p>
+      <p>Плюс школа №20 в соседнем доме: полноценная школа здесь конкурирует в упор, а курсы и центр - дополняют её.</p>
     </div>
   </div>
   <div class="inote" style="margin-top:5mm">Эталон насыщения - из приложения CASE OS Geo Analytics: ${BENCH.bc} бизнес-центров и ${BENCH.med} клиник на радиус 1 км. Доля «ниша занята» = конкуренты / эталон. Для офиса показатель читается прямо, для медицины - с поправкой на кластерный эффект, он описан в карточке.</div>
@@ -366,18 +407,18 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
   <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5mm">
     ${kpi('Офис', `${FREE_BC}%`, 'свободной ниши в радиусе 1 км, расчёт по формуле')}
     ${kpi('Клиника', `${C1.medCore} + ${C1.medBreak.hospital}`, 'профильных центров и больниц в 1 км: сложившийся кластер')}
-    ${kpi('Образование', 'нет замера', 'слой учебных заведений в геобазе не собран')}
+    ${kpi('Образование', 'школа рядом', `${EDU.districtCentres.gp} учебных центров по району, школа №20 на той же улице`)}
   </div>
   <div class="itwo" style="margin-top:7mm">
     <div class="icard">
       <div class="ih3">Два рабочих формата, разная логика</div>
       ${ul([`<b>Офис.</b> Ниша объективно свободна: ${C1.bc} бизнес-центра в километре при эталоне ${BENCH.bc}. Здесь работает прямой расчёт, и здание целиком под одного арендатора усиливает позицию.`,
             `<b>Медцентр.</b> Работает обратная логика: ${C1.medCore} профильных соседей, ${C1.medBreak.hospital} больниц и роддом означают, что поток пациентов в район уже идёт. Формула такое соседство штрафует, практика - наоборот.`,
-            '<b>Учебный центр.</b> Здание подходит, окружение жилое, но рынок не замерен - вывод пока на характеристиках объекта, а не на данных.'])}
+            '<b>Учебный центр и курсы.</b> Школа №20 на той же улице, детские сады рядом, жилой массив вокруг - поток учеников уже здесь. Здание режется на аудитории без переделки конструктива.'])}
     </div>
     <div class="icard acc">
       <div class="ih3">Чего не хватает для полной картины</div>
-      ${ul(['<b>Слой образования.</b> В классификаторе геобазы школы, детские сады, вузы и учебные центры заведены, но объекты по ним не собраны. Без этого учебный центр и школу нельзя поставить в один ряд с офисом и клиникой.',
+      ${ul(['<b>Точный счёт по образованию.</b> Объекты собраны вручную по 2ГИС, Яндекс.Картам, Golden Pages, Yellow Pages и Top.uz - это адресный срез. Геокодированную выгрузку по радиусу 3 км даст прогон коллектора CASE OS по категории education с ключами карт.',
             '<b>Население по точке.</b> Откалиброванных цифр по Шайхантахуру нет. Собственная сетка помечена источником как непроверенная по единицам и на другом объекте занижала в пять раз, поэтому в документ не попала.',
             '<b>Ставки аренды соседних БЦ.</b> Адреса и расстояния в базе есть, условия - нет. Это следующий шаг, если формат офиса подтверждается.'])}
     </div>
