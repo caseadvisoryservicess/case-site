@@ -46,7 +46,7 @@
     "publicUrl": "https://caseadvisory.uz/taxtapul"
   },
   "hero": {
-    "image": "hero.jpg",
+    "image": "hero-dusk.jpg",
     "badges": [
       {
         "ru": "Продано 75% здания",
@@ -398,10 +398,7 @@
       "uz": "<b>Tabiiy kulrang ohanglardagi fasad:</b> to'q granit tsokol, yuqorida - och suvoq va och-kulrang travertin uslubidagi qoplama, grafit profillardagi panoramik oynalar va kechki arxitektura yoritilishi.",
       "en": "<b>A facade in natural grey tones:</b> a dark granite base, light plaster and light-grey travertine-style cladding above, panoramic glazing in graphite frames and evening architectural lighting."
     },
-    "images": [
-      "facade-angle.jpg",
-      "facade-evening.jpg"
-    ]
+    "images": []
   },
   "invest": {
     "enabled": true,

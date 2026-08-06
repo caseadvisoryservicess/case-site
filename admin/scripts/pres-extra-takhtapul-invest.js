@@ -52,6 +52,19 @@ const C1 = GEO.counts[1000];
 const free = (n, bench) => Math.max(0, Math.round((1 - n / bench) * 100));
 const FREE_BC = free(C1.bc, BENCH.bc);
 const FREE_MED = free(C1.medCore, BENCH.med);
+// насыщение ниши в процентах от эталона: сколько мест уже занято
+const load = (n, bench) => Math.round((n / bench) * 100);
+const LOAD_BC = load(C1.bc, BENCH.bc);
+const LOAD_MED = load(C1.medCore, BENCH.med);
+// структура медицины в 1 км, в процентах от всех медобъектов
+const pct = (n, total) => Math.round((n / total) * 100);
+const MED_MIX = [
+  ['частные медцентры', C1.medBreak.private],
+  ['клиники', C1.medBreak.clinic],
+  ['больницы', C1.medBreak.hospital],
+  ['врачебные практики', C1.medBreak.doctors],
+  ['роддом', C1.medBreak.maternity]
+].filter((x) => x[1] > 0).map(([l, n]) => [l, n, pct(n, C1.med)]);
 
 const GEO_COL = { med: '#c0392b', ph: '#1e8f5e', bc: '#2f6fb0', mh: '#8a6bbf', food: '#d08a1e', x: '#9aa0a6' };
 // Показываем только те слои, которые действительно конкурируют с оцениваемыми
@@ -62,11 +75,11 @@ const SHOWN_TOTAL = GEO.points.filter((p) => SHOW.includes(p.c)).length;
 
 const SECTIONS = {
   about: {
-    n: '01', h: 'Здание', s: 'Что это за объект и что в нём есть', img: 'facade-angle.jpg',
+    n: '01', h: 'Здание', s: 'Что это за объект и что в нём есть', img: 'facade-vertical-dusk.jpg',
     list: ['Пять уровней: подвал и четыре этажа', 'Площади по государственному кадастру', 'Планировки всех уровней']
   },
   cases: {
-    n: '02', h: 'Формат сделки', s: 'Кому подходит здание и на каких условиях', img: 'facade-evening.jpg',
+    n: '02', h: 'Формат сделки', s: 'Кому подходит здание и на каких условиях', img: 'hero-dusk.jpg',
     list: ['Сценарии использования: под кого нарезается здание', 'Аренда, покупка, аренда с последующим выкупом']
   },
   loc: {
@@ -207,6 +220,10 @@ function html(ctx) {
   .idark .ih{color:#fff}
   .ibox{background:rgba(255,255,255,.07);border:.4pt solid rgba(255,255,255,.18);border-radius:4mm;padding:5.5mm 6.5mm}
   .fmt{background:#fff;border-radius:4mm;padding:5mm 5.5mm;display:flex;flex-direction:column;gap:2.5mm}
+  .why{background:#fff;border-radius:3mm;padding:4mm 4.2mm}
+  .why h4{font-size:9.5pt;font-weight:800;margin-bottom:2.2mm}
+  .why p{font-size:8pt;line-height:1.4;color:${MUTED};margin-bottom:2mm}
+  .why p:last-child{margin-bottom:0}
   .fmt h4{font-size:11pt;font-weight:800}
   .fmt .m{font-size:8.5pt;color:${MUTED};line-height:1.45}
   </style>`;
@@ -264,10 +281,14 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
         <div class="inote" style="margin-top:3mm">Ближайшие бизнес-центры по геобазе CASE. В радиусе 1 км их ${C1.bc}, в 3 км - ${GEO.counts[3000].bc}.</div>
       </div>
       <div class="icard acc">
-        <div class="ih3">Медицина: ниша плотно занята</div>
-        ${ul([`В одном километре ${C1.medCore} профильных конкурентов: ${C1.medBreak.private} частных медцентров и ${C1.medBreak.clinic} клиник.`,
-              `Плюс ${C1.medBreak.hospital} больниц, ${C1.medBreak.doctors} врачебных практик и роддом - каждый со своим потоком пациентов.`,
-              'Медицинский трафик здесь давно сформирован и поделён между действующими игроками.'])}
+        <div class="ih3">Медицина: структура ${C1.med} объектов в 1 км</div>
+        <table class="itab" style="background:transparent">
+          ${MED_MIX.map(([l, n, p]) => `<tr>
+            <td style="padding:2.2mm 0">${l}</td>
+            <td class="n" style="padding:2.2mm 0">${n}</td>
+            <td class="n" style="padding:2.2mm 0;color:${BRONZE};width:16mm">${p}%</td></tr>`).join('')}
+        </table>
+        <div class="inote" style="margin-top:3mm">Профильные конкуренты медцентра - частные центры и клиники, вместе ${C1.medCore} объекта, это ${pct(C1.medCore, C1.med)}% всей медицины. Больницы и роддом конкурентами не являются: они дают направления.</div>
       </div>
     </div>
     <div style="display:flex;flex-direction:column;gap:5mm;min-height:0">
@@ -290,26 +311,51 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:16mm 12mm;display:fle
 <!-- сравнение форматов -->
 <div class="pg">
   <span class="ilbl">Выбор формата</span>
-  <div class="ih">Что данные говорят по каждому формату</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:5mm;flex:1;min-height:0;align-content:start">
-    ${fmtCard('#2f6fb0', 'Офис, бизнес-центр',
-      chip('ниша не занята', '#2f6fb0', true),
-      `${C1.bc} бизнес-центра в радиусе 1 км при эталоне насыщения ${BENCH.bc}. Ближайший - ${esc(GEO.nearestBc[0].n)} в ${gn(GEO.nearestBc[0].d)} м.`,
-      'Единственный формат, где расчёт по формуле работает прямо: чем меньше офисов рядом, тем свободнее ниша. Свободного места больше, чем занятого, а здание целиком под одного арендатора закрывает запрос на штаб-квартиру, которого мелкие БЦ рядом не закрывают.')}
-    ${fmtCard('#c0392b', 'Клиника, медцентр',
-      chip('медицинский кластер', '#c0392b', true),
-      `${C1.medCore} профильных медцентров и клиник, ${C1.medBreak.hospital} больниц, роддом и ${C1.medBreak.doctors} врачебные практики в радиусе 1 км.`,
-      'Формула штрафует за соседей и даёт ноль, но для медицины она здесь не работает: пациентский поток в район уже сформирован, а государственная больница и роддом рядом дают направления, диагностику и послеоперационное наблюдение. Для медцентра такое соседство чаще плюс, чем минус - модель насыщения этого не учитывает.')}
-    ${fmtCard('#7a6a3f', 'Учебный центр',
-      chip('нужен сбор данных', '', false),
-      'Здание подходит: этажи по 371,5 м² без несущих стен режутся на аудитории, потолки 3,6 м на 2-3 этажах, отдельный вход. Вокруг жилой массив.',
-      'Конкурентов посчитать не на чем: слой образования в геобазе объявлен, но не собран - ни одного объекта. Оценка формата держится на характеристиках здания и на жилом окружении, а не на замере рынка.')}
-    ${fmtCard('#7a6a3f', 'Небольшая школа',
-      chip('ограничение участка', '', false),
-      'Участок 645 м², пятно застройки 440 м². Свободной территории остаётся около 205 м².',
-      'Формат упирается не в конкуренцию, а в размер участка: на спортивную и игровую зоны 205 м² не хватает. Школа возможна только в формате без собственной территории, и это надо согласовывать отдельно.')}
+  <div class="ih">Насыщение ниши и что мы рекомендуем</div>
+  <table class="itab">
+    <tr><th>Формат</th><th class="n">Конкурентов в 1 км</th><th class="n">Эталон</th><th class="n">Ниша занята</th><th>Рекомендация</th></tr>
+    <tr>
+      <td><b>Офис, бизнес-центр</b></td><td class="n">${C1.bc}</td><td class="n">${BENCH.bc}</td>
+      <td class="n" style="color:#2f6fb0">${LOAD_BC}%</td>
+      <td style="color:#2f6fb0;font-weight:700">Рекомендуем</td>
+    </tr>
+    <tr>
+      <td><b>Клиника, медцентр</b></td><td class="n">${C1.medCore}</td><td class="n">${BENCH.med}</td>
+      <td class="n" style="color:#c0392b">${LOAD_MED}%</td>
+      <td style="color:#c0392b;font-weight:700">Возможна, но иначе</td>
+    </tr>
+    <tr>
+      <td><b>Учебный центр, курсы</b></td><td class="n">нет данных</td><td class="n">-</td><td class="n">-</td>
+      <td style="font-weight:700">Нужен замер</td>
+    </tr>
+    <tr>
+      <td><b>Небольшая школа</b></td><td class="n">нет данных</td><td class="n">-</td><td class="n">-</td>
+      <td style="font-weight:700">Ограничен участком</td>
+    </tr>
+  </table>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:4mm;margin-top:6mm;flex:1;min-height:0;align-content:start">
+    <div class="why" style="border-top:1.4mm solid #2f6fb0">
+      <h4>Зачем офис</h4>
+      <p>Единственный формат со свободным местом: ниша занята на ${LOAD_BC}%.</p>
+      <p>Здание целиком под одного арендатора - соседние БЦ нарезаны на мелкие блоки и запрос на штаб-квартиру не закрывают.</p>
+    </div>
+    <div class="why" style="border-top:1.4mm solid #c0392b">
+      <h4>Зачем клиника</h4>
+      <p>Формально перегружено: ${LOAD_MED}% от эталона. Но рядом ${C1.medBreak.hospital} больниц и роддом - источник направлений и диагностики.</p>
+      <p>Кластер работает на приток: пациент едет в район. Оправдана при узкой специализации, а не как ещё один общий медцентр.</p>
+    </div>
+    <div class="why" style="border-top:1.4mm solid #7a6a3f">
+      <h4>Зачем курсы и учебный центр</h4>
+      <p>Этажи 371,5 м² без несущих стен, потолки 3,6 м, отдельный вход - режется на аудитории без переделки конструктива.</p>
+      <p>Вокруг жилой массив: спрос от живущих рядом. Замера рынка нет, слой образования не собран.</p>
+    </div>
+    <div class="why" style="border-top:1.4mm solid #7a6a3f">
+      <h4>Почему не школа</h4>
+      <p>Участок 645 м², пятно 440 м². Свободно около 205 м².</p>
+      <p>На спортивную и игровую зоны не хватает. Ограничение в земле, а не в конкуренции.</p>
+    </div>
   </div>
-  <div class="inote" style="margin-top:5mm">Эталоны насыщения из приложения CASE OS Geo Analytics: ${BENCH.bc} бизнес-центров и ${BENCH.med} клиник в радиусе 1 км. Формула балла: 0,55 x спрос + 0,45 x (1 - конкуренты / эталон). Она одинаково штрафует за любое соседство, поэтому применима к офису и не применима к медицине - об этом сказано в карточке.</div>
+  <div class="inote" style="margin-top:5mm">Эталон насыщения - из приложения CASE OS Geo Analytics: ${BENCH.bc} бизнес-центров и ${BENCH.med} клиник на радиус 1 км. Доля «ниша занята» = конкуренты / эталон. Для офиса показатель читается прямо, для медицины - с поправкой на кластерный эффект, он описан в карточке.</div>
   ${foot()}
 </div>
 
