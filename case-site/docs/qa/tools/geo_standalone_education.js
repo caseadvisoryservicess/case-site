@@ -118,6 +118,46 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
     (rep.scoreEdu === null) === (rep.scoreMed === null),
     `учебный центр: ${rep.scoreEdu}, клиника: ${rep.scoreMed}`);
 
+
+  /* ===== Загрузка файла вручную: PHP-скрипт, мусор и master-CSV коллектора ===== */
+  const picks = await pg.evaluate(async () => {
+    const msgs = []; const realAlert = window.alert; window.alert = m => msgs.push(String(m));
+    function feed(name, text) {
+      const inp = document.getElementById('eduFile');
+      const f = new File([text], name, { type: 'text/plain' });
+      const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files;
+      return new Promise(res => { eduLoadFile(inp); setTimeout(res, 400); });
+    }
+    EDU = []; EDU_SRC = '';
+    await feed('geo_education_export.php', '<?php\n/* CASE OS */\nexit;');
+    const afterPhp = { n: EDU.length, msg: msgs[msgs.length - 1] || '' };
+    await feed('readme.txt', 'просто текст, не данные');
+    const afterJunk = { n: EDU.length, msg: msgs[msgs.length - 1] || '' };
+    /* master-CSV коллектора: две строки образования и одна аптека */
+    const csv = 'object_id,canonical_name,main_category,subcategory,canonical_lat,canonical_lng,primary_source\n'
+      + 'S1,"Академический лицей при ТУИТ",education,,41.3450,69.2870,2GIS\n'
+      + 'S2,"Школа №110, корпус А",education,школа,41.3200,69.2800,OSM\n'
+      + 'S3,"Аптека",pharmacy,,41.31,69.26,OSM\n';
+    await feed('seed_master.csv', csv);
+    const afterCsv = { n: EDU.length, types: EDU.map(x => x.t), names: EDU.map(x => x.n), src: EDU_SRC };
+    window.alert = realAlert;
+    return { afterPhp, afterJunk, afterCsv };
+  });
+  ck('PHP-скрипт отвергается с понятным объяснением',
+    picks.afterPhp.n === 0 && /скрипт для сервера/i.test(picks.afterPhp.msg),
+    picks.afterPhp.msg.split('\n')[0]);
+  ck('посторонний файл отвергается', picks.afterJunk.n === 0 && /JSON|CSV/i.test(picks.afterJunk.msg),
+    picks.afterJunk.msg.split('\n')[0]);
+  ck('master-CSV коллектора читается напрямую', picks.afterCsv.n === 2,
+    'объектов: ' + picks.afterCsv.n + ' (' + picks.afterCsv.src + ')');
+  ck('аптека из CSV не попала в образование', picks.afterCsv.names.every(n => !/Аптека/.test(n)),
+    picks.afterCsv.names.join(' | '));
+  ck('лицей определён колледжем, а не школой',
+    picks.afterCsv.types[0] === 'college' && picks.afterCsv.types[1] === 'school',
+    picks.afterCsv.types.join(', '));
+  ck('запятая внутри кавычек не порвала строку', /Школа №110, корпус А/.test(picks.afterCsv.names.join('|')),
+    picks.afterCsv.names[1]);
+
   ck('ошибок за весь прогон нет',errs.length===0,errs[0]||'ошибок нет');
   await pg.screenshot({path:__dirname+'/edu_map.png',clip:{x:0,y:0,width:430,height:760}});
   await b.close(); srv.close();

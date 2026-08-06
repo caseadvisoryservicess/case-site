@@ -186,7 +186,7 @@ a{color:var(--red)}
    <div class="styrow"><label class="ck"><input type="checkbox" id="lEdu"> Образование: школы, курсы, учебные центры</label></div>
    <div class="styrow sub"><label for="eduC">цвет</label><input type="color" id="eduC" value="#7b3fa0"><label for="eduR">размер</label><input type="range" id="eduR" min="2" max="9" value="4"><label for="eduLab">подписи</label><input type="checkbox" id="eduLab"></div>
    <div class="styrow sub"><label for="eduT">тип</label><select id="eduT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="school">школы</option><option value="university">университеты / вузы</option><option value="college">колледжи / лицеи</option><option value="kindergarten">детские сады</option><option value="language">языковые школы</option><option value="courses">курсы / учебные центры</option><option value="music">музыкальные / художественные</option><option value="driving">автошколы</option></select></div>
-   <div class="styrow sub"><label for="eduFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="eduFile" accept=".json,application/json" style="display:none" onchange="eduLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные образования?')){localStorage.removeItem('caseos_edu');EDU=[];EDU_SRC='';renderEdu();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
+   <div class="styrow sub"><label for="eduFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="eduFile" accept=".json,.csv,application/json,text/csv" style="display:none" onchange="eduLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные образования?')){localStorage.removeItem('caseos_edu');EDU=[];EDU_SRC='';renderEdu();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
    <div class="mini" id="eduNote"></div>
    <div class="styrow sub"><label for="phC">цвет</label><input type="color" id="phC" value="#2ecc71"></div>
    <div class="mini" id="phNote"></div>
@@ -359,17 +359,88 @@ function eduAdopt(j,src){
 function eduRemember(){
   try{localStorage.setItem(EDU_LS,JSON.stringify({src:EDU_SRC,points:EDU}));}catch(e){}
 }
+/* Разбор CSV с кавычками: строки вида "улица Фараби, 463" не должны рваться по запятой. */
+function csvRows(text){
+  const rows=[];let row=[],cur='',q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; continue; }
+    if(c==='"'){q=true;continue;}
+    if(c===','){row.push(cur);cur='';continue;}
+    if(c==='\n'){row.push(cur);cur='';if(row.length>1||row[0]!=='')rows.push(row);row=[];continue;}
+    if(c!=='\r')cur+=c;
+  }
+  row.push(cur); if(row.length>1||row[0]!=='')rows.push(row);
+  return rows;
+}
+/* Те же правила, что в api/geo_education_export.php. Порядок важен: «лицей» и «колледж»
+   проверяются РАНЬШЕ «школы», иначе академический лицей уедет в школы. */
+const EDU_RULES=[
+  ['driving',['автошкол','driving','avtomaktab']],
+  ['music',['музыкальн','художествен','music school','musiqa','искусств']],
+  ['kindergarten',['детский сад','детсад','kindergarten',"bog'cha",'bogcha','ясли','nursery']],
+  ['university',['университет','university','universitet','институт','institute','академия','academy']],
+  ['college',['колледж','kollej','college','лицей','litsey','техникум']],
+  ['language',['язык','language','til kurs','english','ielts','лингв']],
+  ['courses',['курс','kurs','учебный центр',"o'quv markaz",'oquv markaz','training','образовательный центр','it school','it-школа','репетитор','подготов','tutoring']],
+  ['school',['школа','maktab','school','гимназия','gimnaziya']]
+];
+function eduDetect(sub,name){
+  const h=String((sub||'')+' '+(name||'')).toLowerCase();
+  if(!h.trim())return 'other';
+  for(const [t,ns] of EDU_RULES){ for(const n of ns){ if(h.indexOf(n)>=0)return t; } }
+  return 'other';
+}
+/* Принимаем и master-CSV коллектора: тогда шаг с php-экспортом не нужен вовсе. */
+function eduFromCsv(text){
+  const rows=csvRows(text); if(rows.length<2)return null;
+  const head=rows[0].map(x=>String(x).replace(/^\uFEFF/,'').trim());
+  const ix={}; head.forEach((h,i)=>ix[h]=i);
+  if(ix.main_category==null||ix.canonical_lat==null)return null;
+  const pts=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    if(String(r[ix.main_category]||'').trim()!=='education')continue;
+    const la=parseFloat(r[ix.canonical_lat]),ln=parseFloat(r[ix.canonical_lng]);
+    if(!isFinite(la)||!isFinite(ln))continue;
+    const name=String(r[ix.canonical_name]||'').trim();
+    const sub=ix.subcategory!=null?String(r[ix.subcategory]||'').trim():'';
+    const p={n:name,la:+la.toFixed(5),ln:+ln.toFixed(5),t:eduDetect(sub,name)};
+    const src=ix.primary_source!=null?String(r[ix.primary_source]||'').trim():'';
+    if(src)p.s=src;
+    pts.push(p);
+  }
+  return pts.length?{src:'master CSV коллектора',points:pts}:null;
+}
 function eduLoadFile(input){
   const f=input&&input.files&&input.files[0]; if(!f)return;
   const rd=new FileReader();
   rd.onload=function(){
-    try{
-      const n=eduAdopt(JSON.parse(rd.result),f.name);
-      if(!n){alert('В файле нет точек с координатами.');return;}
-      eduRemember(); EDU_TRIED=true;
-      if($('lEdu')&&!$('lEdu').checked){$('lEdu').checked=true;if(map)map.addLayer(gEdu);}
-      renderEdu();
-    }catch(e){alert('Не удалось прочитать файл: '+e.message);}
+    const txt=String(rd.result||'');
+    const head=txt.slice(0,400).trim();
+    /* Частая ошибка: выбирают сам скрипт-экспортёр вместо данных, которые он создаёт. */
+    if(/^<\?php/i.test(head)){
+      alert('Это скрипт для сервера (PHP), а не данные.\n\nЗапустите на сервере:\n'
+        +'  php api/geo_collector.php --category=education --sources=osm\n'
+        +'  php api/geo_education_export.php\n\n'
+        +'и выберите созданный файл data/tashkent_education.json\n'
+        +'(либо сразу data/geo_collect_out/seed_master.csv — его тоже понимаю).');
+      input.value=''; return;
+    }
+    let j=null;
+    try{ j=JSON.parse(txt); }
+    catch(e){ j=eduFromCsv(txt); }
+    if(!j){
+      alert('Не похоже ни на JSON, ни на master-CSV коллектора.\n\nНужен один из файлов:\n'
+        +'  data/tashkent_education.json\n  data/geo_collect_out/seed_master.csv');
+      input.value=''; return;
+    }
+    const n=eduAdopt(j,f.name);
+    if(!n){ alert('Файл прочитан, но в нём нет объектов образования с координатами.'); input.value=''; return; }
+    eduRemember(); EDU_TRIED=true;
+    if($('lEdu')&&!$('lEdu').checked){$('lEdu').checked=true;if(map)map.addLayer(gEdu);}
+    renderEdu();
+    input.value='';
   };
   rd.readAsText(f);
 }
@@ -391,7 +462,10 @@ function renderEdu(){
   const on=$('lEdu')&&$('lEdu').checked; const note=$('eduNote');
   if(!on){if(note)note.textContent='';return;}
   if(!EDU.length){
-    if(note)note.innerHTML='Данных пока нет — нажмите «Загрузить данные» и выберите файл.<br>Получить файл (на сервере, где есть интернет):<br><code style="font-size:10px">php api/geo_collector.php --category=education --sources=osm,google,yandex,dgis</code><br><code style="font-size:10px">php api/geo_education_export.php</code>';
+    if(note)note.innerHTML='Данных пока нет. Их собирают <b>на сервере</b> — одной командой:<br>'
+      +'<code style="font-size:10px">php api/geo_collector.php --category=education --sources=osm</code><br>'
+      +'затем нажмите «Загрузить данные» и выберите <b>data/geo_collect_out/seed_master.csv</b><br>'
+      +'<span style="color:#9E0000">Файл <code>.php</code> выбирать не нужно — это скрипт, а не данные.</span>';
     VIS.edu=0; updateLegend(); return;
   }
   const c=$('eduC').value, r=+$('eduR').value, want=$('eduT').value, lab=$('eduLab').checked;
