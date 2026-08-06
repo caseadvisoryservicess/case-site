@@ -158,6 +158,46 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   ck('запятая внутри кавычек не порвала строку', /Школа №110, корпус А/.test(picks.afterCsv.names.join('|')),
     picks.afterCsv.names[1]);
 
+
+  /* ===== GeoJSON из overpass-turbo: точки, контуры зданий, теги OSM ===== */
+  const gj = await pg.evaluate(async () => {
+    const realAlert = window.alert; const msgs=[]; window.alert = m => msgs.push(String(m));
+    const fc = { type:'FeatureCollection', features:[
+      { type:'Feature', properties:{ name:'Школа №110', amenity:'school' },
+        geometry:{ type:'Point', coordinates:[69.2800, 41.3200] } },
+      { type:'Feature', properties:{ name:'Najot Talim', office:'educational_institution' },
+        geometry:{ type:'Point', coordinates:[69.2880, 41.3480] } },
+      /* вуз нарисован контуром здания — должен превратиться в точку по центру */
+      { type:'Feature', properties:{ name:'Inha University', amenity:'university' },
+        geometry:{ type:'Polygon', coordinates:[[[69.2860,41.3440],[69.2880,41.3440],[69.2880,41.3460],[69.2860,41.3460],[69.2860,41.3440]]] } },
+      { type:'Feature', properties:{ name:'Автошкола', amenity:'driving_school' },
+        geometry:{ type:'Point', coordinates:[69.2700, 41.3000] } },
+      { type:'Feature', properties:{ name:'Без геометрии', amenity:'school' }, geometry:null }
+    ]};
+    const inp = document.getElementById('eduFile');
+    const f = new File([JSON.stringify(fc)], 'export.geojson', { type:'application/geo+json' });
+    const dt = new DataTransfer(); dt.items.add(f); inp.files = dt.files;
+    EDU = []; EDU_SRC = '';
+    await new Promise(res => { eduLoadFile(inp); setTimeout(res, 500); });
+    window.alert = realAlert;
+    const uni = EDU.find(x => /Inha/.test(x.n));
+    return { n: EDU.length, src: EDU_SRC, types: EDU.map(x => x.t),
+             uniLat: uni ? uni.la : null, uniLng: uni ? uni.ln : null, msgs };
+  });
+  ck('GeoJSON из overpass читается', gj.n === 4, 'точек: ' + gj.n + ' (' + gj.src + ')');
+  ck('объект без геометрии пропущен', gj.n === 4, 'из 5 записей взято ' + gj.n);
+  ck('тип берётся из тегов OSM',
+    gj.types.indexOf('school') >= 0 && gj.types.indexOf('university') >= 0
+    && gj.types.indexOf('courses') >= 0 && gj.types.indexOf('driving') >= 0,
+    gj.types.join(', '));
+  ck('контур здания превращён в точку по центру',
+    Math.abs(gj.uniLat - 41.3450) < 0.001 && Math.abs(gj.uniLng - 69.2870) < 0.001,
+    `${gj.uniLat}, ${gj.uniLng}`);
+  const q = await pg.evaluate(() => ({ has: typeof EDU_OVERPASS === 'string',
+    comm: /educational_institution/.test(EDU_OVERPASS || ''), copy: typeof eduCopyQuery === 'function' }));
+  ck('готовый запрос к OpenStreetMap внутри файла', q.has && q.copy);
+  ck('запрос охватывает курсы и учебные центры', q.comm);
+
   ck('ошибок за весь прогон нет',errs.length===0,errs[0]||'ошибок нет');
   await pg.screenshot({path:__dirname+'/edu_map.png',clip:{x:0,y:0,width:430,height:760}});
   await b.close(); srv.close();
