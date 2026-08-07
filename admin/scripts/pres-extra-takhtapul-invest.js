@@ -143,7 +143,7 @@ const EDU = {
 const UP_DIR = path.join(__dirname, '..', 'data', 'projects', 'takhtapul', 'uploads');
 const MAP_DEFS = [
   { file: 'caseos-map.jpg', h: 'Окружение объекта на карте',
-    c: 'В кольце радиусом километр живёт 32 375 человек и работают 34 медицинских учреждения - от районных поликлиник до стационаров, роддома и онкодиспансера. Ближайший бизнес-центр NEXUS в 358 метрах, следующие уже за километром. Это обжитой центр Шайхантахура, а не деловой коридор: поток здесь ежедневный и местный.' },
+    c: 'В кольце радиусом километр живёт 32 375 человек и работают 34 медицинских учреждения. Ближайший бизнес-центр NEXUS в 358 метрах, следующие уже за километром: это обжитой центр Шайхантахура, а не деловой коридор.' },
   { file: 'caseos-heat-bc.jpg', h: 'Зоны пригодности: офис',
     c: 'Зелёным отмечены зоны, где людей много, а офисов мало. Наша точка попадает в такую зону и получает лучший из трёх баллов - 78 из 100. Но офисный спрос города стягивается восточнее, в деловые коридоры, поэтому сильный сценарий здесь один: здание целиком под одну компанию.' },
   { file: 'caseos-heat-med.jpg', h: 'Зоны пригодности: клиника',
@@ -205,7 +205,7 @@ function dividerPage(ctx, key, right) {
     <div style="height:.5pt;background:rgba(255,255,255,.22);margin:9mm 0 7mm;max-width:120mm"></div>
     ${S.list.map((x) => `<div style="font-size:10pt;line-height:1.5;color:rgba(255,255,255,.82);padding-left:5mm;position:relative;margin-bottom:3mm;max-width:120mm">
       <span style="position:absolute;left:0;top:1.9mm;width:2mm;height:2mm;border-radius:50%;background:${BRONZE};display:block"></span>${esc(x)}</div>`).join('')}
-    <div style="position:absolute;left:18mm;right:14mm;bottom:8mm;display:flex;justify-content:space-between;gap:6mm;font-size:8pt;color:rgba(255,255,255,.45)">
+    <div class="foot-dark" style="position:absolute;left:18mm;right:14mm;bottom:8mm;display:flex;justify-content:space-between;gap:6mm;font-size:8pt;color:rgba(255,255,255,.45)">
       <span><b style="color:#fff;letter-spacing:.08em">${esc(CODE)}</b> · ${esc(ctx.addr)}</span>
       <span>${nextPg()} / ${TOTAL}</span>
     </div>

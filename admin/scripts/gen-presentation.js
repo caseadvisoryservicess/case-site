@@ -860,6 +860,47 @@ async function main() {
       // меморандуме: выходило 11 листов вместо 22)
       await page.waitForFunction(() => document.fonts.status === 'loaded'
         && Array.from(document.images).every((i) => i.complete && i.naturalWidth > 0), null, { timeout: 60000 });
+      // СТРАЖ РАСКЛАДКИ. Владелец несколько раз ловил одно и то же: текст внизу
+      // страницы налезал на колонтитул. На глаз это видно не всегда, поэтому
+      // проверяем в браузере: ни один элемент не должен заходить на подвал и
+      // выходить за границу листа. Ошибка печатается в консоль сборки.
+      const guard = await page.evaluate(() => {
+        const bad = [];
+        let pages = 0, seen = 0;
+        document.querySelectorAll('.pg').forEach((pg, i) => {
+          pages++;
+          const foot = pg.querySelector('.foot, .foot-dark');
+          if (!foot) return;
+          seen++;
+          const fb = foot.getBoundingClientRect();
+          const limit = fb.top;
+          pg.querySelectorAll('*').forEach((el) => {
+            if (el === foot || foot.contains(el) || el.contains(foot)) return;
+            // только листья с собственным текстом: контейнеры дают ложные срабатывания
+            const own = Array.from(el.childNodes).some((n) => n.nodeType === 3 && n.textContent.trim());
+            if (!own) return;
+            const r = el.getBoundingClientRect();
+            if (!r.height) return;
+            // и только то, что стоит над подвалом по горизонтали: полновысотная
+            // соседняя колонка законно тянется ниже, она подвалу не мешает
+            if (r.right < fb.left || r.left > fb.right) return;
+            // зазор до подвала. 8 px это примерно 2 мм на листе: меньше уже
+            // читается как слипшийся текст, именно на этом ловил владелец
+            const gap = limit - r.bottom;
+            if (gap < 8) bad.push({ page: i + 1, gap: Math.round(gap), text: el.textContent.trim().slice(0, 55) });
+          });
+        });
+        const worst = {};
+        for (const b of bad) if (!worst[b.page] || b.gap < worst[b.page].gap) worst[b.page] = b;
+        return { pages, seen, bad: Object.values(worst) };
+      });
+      if (guard.seen !== guard.pages) console.log(`  страж: подвал найден на ${guard.seen} из ${guard.pages} страниц`);
+      if (guard.bad.length) {
+        console.log('ВНИМАНИЕ, текст упирается в подвал:');
+        for (const c of guard.bad) console.log(`  стр. ${c.page}: зазор ${c.gap}px  "${c.text}"`);
+      } else {
+        console.log(`  страж раскладки: ${guard.pages} страниц, налезаний нет`);
+      }
       await page.pdf({ path: out, format: 'A4', landscape: true, printBackground: true });
       console.log(lang.toUpperCase() + ':', path.basename(out), (fs.statSync(out).size / 1024 / 1024).toFixed(1) + ' МБ');
     }
