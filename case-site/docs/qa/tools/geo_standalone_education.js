@@ -3,11 +3,25 @@
 const { chromium } = require('playwright-core');
 const http = require('http'); const fs = require('fs'); const path = require('path');
 const FILE = '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
-const LJS = fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8');
-const LCSS = fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8');
+/* Leaflet вшит в саму страницу, подменять его не нужно. Заглушки остаются на случай
+   запуска против старой сборки, где библиотека грузилась из сети: если рядом лежат
+   leaflet.js/leaflet.css — подставим их, если нет — просто не мешаем. */
+const LJS  = fs.existsSync(path.join(__dirname,'leaflet.js'))  ? fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8')  : null;
+const LCSS = fs.existsSync(path.join(__dirname,'leaflet.css')) ? fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8') : null;
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==','base64');
-/* Небольшой правдоподобный набор ТОЛЬКО для теста — в поставку не входит */
-const SAMPLE = JSON.parse(fs.readFileSync(path.join(__dirname,'edu_out.json'),'utf8'));
+/* Небольшой правдоподобный набор ТОЛЬКО для теста — в поставку не входит.
+   По одному объекту каждого типа: так проверяется и фильтр, и разбивка. */
+const SAMPLE = {"src":"CASE OS collector · тест","total":8,
+ "by_type":{"school":1,"college":1,"university":1,"kindergarten":1,"language":1,"courses":1,"driving":1,"music":1},
+ "min_conf":"C","points":[
+  {"n":"Школа №110","la":41.32,"ln":69.28,"t":"school","s":"OSM"},
+  {"n":"Академический лицей при ТУИТ","la":41.34,"ln":69.29,"t":"college","s":"2GIS"},
+  {"n":"Ташкентский университет информационных технологий","la":41.345,"ln":69.287,"t":"university","s":"Google"},
+  {"n":"Детский сад №5","la":41.325,"ln":69.27,"t":"kindergarten","s":"OSM"},
+  {"n":"English First","la":41.335,"ln":69.282,"t":"language","s":"Google"},
+  {"n":"O'quv markazi Najot Ta'lim","la":41.348,"ln":69.288,"t":"courses","s":"2GIS"},
+  {"n":"Автошкола Лидер","la":41.3,"ln":69.25,"t":"driving","s":"Яндекс"},
+  {"n":"Музыкальная школа №3","la":41.31,"ln":69.26,"t":"music","s":"OSM"}]};
 let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' — '+d)); if(!c)failed++;};
 (async()=>{
   const html=fs.readFileSync(FILE,'utf8');
@@ -27,8 +41,8 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   const errs=[]; pg.on('pageerror',e=>errs.push(e.message));
   await pg.route('**/*',r=>{const u=r.request().url();
     if(u.startsWith(base))return r.continue();
-    if(/leaflet.*\.js/i.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:LJS});
-    if(/leaflet.*\.css/i.test(u))return r.fulfill({status:200,contentType:'text/css',body:LCSS});
+    if(LJS&&/leaflet.*\.js/i.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:LJS});
+    if(LCSS&&/leaflet.*\.css/i.test(u))return r.fulfill({status:200,contentType:'text/css',body:LCSS});
     return r.fulfill({status:200,contentType:'image/png',body:TILE});});
 
   await pg.goto(base+'/',{waitUntil:'domcontentloaded'}); await pg.waitForTimeout(3500);

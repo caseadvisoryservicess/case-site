@@ -853,6 +853,7 @@ a{color:var(--red)}
    <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lEdu"> Образование: школы, курсы, учебные центры</label></div>
    <div class="styrow sub"><label for="eduC">цвет</label><input type="color" id="eduC" value="#7b3fa0"><label for="eduR">размер</label><input type="range" id="eduR" min="2" max="9" value="4"><label for="eduLab">подписи</label><input type="checkbox" id="eduLab"></div>
+   <div class="styrow sub"><label for="eduColBy">раскраска</label><select id="eduColBy" style="width:auto;font-size:11px"><option value="t" selected>по типу</option><option value="fix">один цвет</option></select></div>
    <div class="styrow sub"><label for="eduT">тип</label><select id="eduT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="school">школы</option><option value="university">университеты / вузы</option><option value="college">колледжи / лицеи</option><option value="kindergarten">детские сады</option><option value="language">языковые школы</option><option value="courses">курсы / учебные центры</option><option value="music">музыкальные / художественные</option><option value="driving">автошколы</option></select></div>
    <div class="styrow sub"><button onclick="eduFetchOsm()" style="font-size:11px;padding:3px 8px;cursor:pointer">⤓ Скачать из OpenStreetMap</button></div>
    <div class="styrow sub"><label for="eduFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="eduFile" accept=".json,.geojson,.csv,application/json,application/geo+json,text/csv" style="display:none" onchange="eduLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные образования?')){localStorage.removeItem('caseos_edu');EDU=[];EDU_SRC='';renderEdu();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
@@ -1094,6 +1095,10 @@ function popContent(e,dkm){const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google':'
    Пока файла нет, слой честно говорит об этом и остаётся пустым: придумывать
    координаты учебных заведений для аналитики недопустимо. */
 let EDU=[],EDU_SRC='',EDU_TRIED=false;
+/* Цвета по типам — как у медицины: одним цветом полторы тысячи точек не читаются,
+   а школа и коммерческие курсы для аренды означают совсем разное. */
+const EDU_COL={school:'#7b3fa0',university:'#1f6fb2',college:'#2e9e6b',kindergarten:'#e8a33d',
+  language:'#c0392b',courses:'#d4457f',music:'#16a085',driving:'#7f8c8d',other:'#95a5a6'};
 const EDU_TYPES={school:'Школа',university:'Университет / вуз',college:'Колледж / лицей',
   kindergarten:'Детский сад',language:'Языковая школа',courses:'Курсы / учебный центр',
   music:'Музыкальная / художественная',driving:'Автошкола',other:'Другое'};
@@ -1326,13 +1331,16 @@ function eduType(p){const t=String(p.t||'').toLowerCase();return EDU_TYPES[t]?t:
 function renderEdu(){
   if(!map||!gEdu)return; gEdu.clearLayers();
   const on=$('lEdu')&&$('lEdu').checked; const note=$('eduNote');
-  if(!on){if(note)note.textContent='';return;}
+  /* Слой выключили — легенду надо перерисовать, иначе на ней остаётся блок
+     образования со старыми числами, хотя точек на карте уже нет. */
+  if(!on){if(note)note.textContent='';VIS.edu=0;VIS.eduByType={};updateLegend();return;}
   if(!EDU.length){
     if(note)note.innerHTML='Данных пока нет. Нажмите <b>«⤓ Скачать из OpenStreetMap»</b> — страница загрузит их сама, ничего устанавливать не нужно.<br>'
       +'<span style="color:var(--muted)">Займёт 10–60 секунд. Загруженное запомнится в этом браузере.</span>';
     VIS.edu=0; updateLegend(); return;
   }
   const c=$('eduC').value, r=+$('eduR').value, want=$('eduT').value, lab=$('eduLab').checked;
+  const byT=!$('eduColBy')||$('eduColBy').value==='t';
   const VB=vbox(); let n=0, byType={};
   EDU.forEach(p=>{
     const t=eduType(p);
@@ -1340,7 +1348,8 @@ function renderEdu(){
     const la=+p.la, ln=+p.ln;
     if(VB&&!VB.contains([la,ln]))return;
     n++; byType[t]=(byType[t]||0)+1;
-    const pm=L.circleMarker([la,ln],{renderer:CANV,radius:r,color:c,weight:1,fillColor:c,fillOpacity:.65});
+    const cc=byT?(EDU_COL[t]||c):c;
+    const pm=L.circleMarker([la,ln],{renderer:CANV,radius:r,color:cc,weight:1,fillColor:cc,fillOpacity:.65});
     /* Подпись на карте — только название и тем же классом, что у БЦ: класс dlab
        предназначен для районов, он крупный и с рамкой, из-за него подписи
        перекрывали всю карту. Тип и источник остаются во всплывающей подсказке. */
@@ -1349,7 +1358,8 @@ function renderEdu(){
       lab?{permanent:true,direction:'top',className:'bclab',opacity:.95}:{sticky:true});
     pm.addTo(gEdu);
   });
-  VIS.edu=n; updateLegend();
+  VIS.edu=n; VIS.eduByType=byType; VIS.eduByT=byT;   /* легенда берёт готовую разбивку — она гарантированно совпадает с картой */
+  updateLegend();
   const parts=Object.keys(byType).sort((a,b)=>byType[b]-byType[a]).map(t=>EDU_TYPES[t]+': '+byType[t]);
   if(note)note.textContent=EDU.length+' объектов'+(EDU_SRC?' ('+EDU_SRC+')':'')+', на экране '+n+(parts.length?' — '+parts.join(', '):'');
 }
@@ -1791,7 +1801,7 @@ function openPh(la,ln){
 
 
 /* ================= живая легенда карты ================= */
-let VIS={med:[],bc:0,ph:0}, LGD=null, LGDMIN=false;
+let VIS={med:[],bc:0,ph:0,edu:0,eduByType:{},eduByT:true}, LGD=null, LGDMIN=false;
 function initLegend(){
  if(!map||LGD)return;
  const C=L.Control.extend({options:{position:'bottomleft'},
@@ -1802,6 +1812,10 @@ function initLegend(){
  updateLegend();
 }
 function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
+/* Клик по строке легенды образования = фильтр по типу, как у медицины:
+   на карте полторы тысячи точек, и «оставить только вузы» удобнее делать
+   прямо в легенде, а не искать выпадающий список в панели. */
+function lgdFilterEdu(t){const e=$('eduT');if(!e)return;e.value=t;renderEdu();}
 function updateLegend(){
  const el=document.getElementById('mlgd'); if(!el)return;
  let n=0, h2='';
@@ -1819,6 +1833,19 @@ function updateLegend(){
  if($('lBC').checked){n+=VIS.bc;
   h2+='<div class="grp2">Бизнес-центры</div>'
     +'<div class="li"><span class="dot" style="background:'+$('bcNa').value+'"></span>на экране<b>'+VIS.bc+'</b></div>';}
+ // --- образование ---
+ if($('lEdu')&&$('lEdu').checked&&VIS.edu){
+  const bt=VIS.eduByType||{}, ek=Object.keys(bt).sort((a,b)=>bt[b]-bt[a]);
+  n+=VIS.edu;
+  h2+='<div class="grp2">Образование · '+VIS.edu+'</div>';
+  /* Если раскраска «один цвет» — в легенде тоже один цвет, иначе легенда врала бы:
+     на карте все точки одинаковые, а в легенде разноцветные. */
+  const fix=$('eduC')?$('eduC').value:'#7b3fa0';
+  h2+=ek.map(k=>'<div class="li" onclick="lgdFilterEdu(\''+k+'\')" title="фильтровать по типу">'
+    +'<span class="dot" style="background:'+(VIS.eduByT?(EDU_COL[k]||fix):fix)+'"></span>'
+    +esc(EDU_TYPES[k]||k)+'<b>'+bt[k]+'</b></div>').join('');
+  if($('eduT')&&$('eduT').value)h2+='<div class="li" onclick="lgdFilterEdu(\'\')" style="color:#9E0000">↺ снять фильтр типа</div>';
+ }
  // --- аптеки ---
  if($('lPharm').checked){n+=VIS.ph;
   h2+='<div class="grp2">Аптеки</div>'
@@ -2283,8 +2310,8 @@ $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);
 $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm);renderPharm();}else map.removeLayer(gPharm);};
  /* Данные образования подгружаются при первом включении слоя, а не при старте:
     файла может не быть вовсе, и незачем дёргать сеть на каждом открытии карты. */
- $('lEdu').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gEdu);loadEdu();}else map.removeLayer(gEdu);};
- ['eduC','eduR','eduT','eduLab'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',renderEdu);});
+ $('lEdu').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gEdu);loadEdu();}else{map.removeLayer(gEdu);renderEdu();}};
+ ['eduC','eduR','eduT','eduLab','eduColBy'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',renderEdu);});
 $('phC').addEventListener('input',renderPharm);
 
 $('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'Кликайте по карте…':'Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};

@@ -10,10 +10,12 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const FILE = process.argv[2] || path.join(__dirname, 'geo2.html');
+const FILE = process.argv[2] || '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
 const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
-const LJS = fs.readFileSync(path.join(__dirname, 'leaflet.js'), 'utf8');
-const LCSS = fs.readFileSync(path.join(__dirname, 'leaflet.css'), 'utf8');
+/* Leaflet вшит в саму страницу, подменять его не нужно. Заглушки остаются на случай
+   запуска против старой сборки, где библиотека грузилась из сети. */
+const LJS  = fs.existsSync(path.join(__dirname,'leaflet.js'))  ? fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8')  : null;
+const LCSS = fs.existsSync(path.join(__dirname,'leaflet.css')) ? fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8') : null;
 /* 1×1 прозрачный PNG — вместо настоящих тайлов */
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
@@ -41,8 +43,8 @@ function check(name, cond, detail) {
   await pg.route('**/*', route => {
     const u = route.request().url();
     if (u.startsWith(base)) return route.continue();
-    if (/leaflet.*\.js/i.test(u)) return route.fulfill({ status: 200, contentType: 'application/javascript', body: LJS });
-    if (/leaflet.*\.css/i.test(u)) return route.fulfill({ status: 200, contentType: 'text/css', body: LCSS });
+    if (LJS && /leaflet.*\.js/i.test(u)) return route.fulfill({ status: 200, contentType: 'application/javascript', body: LJS });
+    if (LCSS && /leaflet.*\.css/i.test(u)) return route.fulfill({ status: 200, contentType: 'text/css', body: LCSS });
     if (/\.png|tiles?\?|\/vt\/|MapServer/i.test(u)) { try { tileHosts.add(new URL(u).host); } catch (_) {} return route.fulfill({ status: 200, contentType: 'image/png', body: TILE }); }
     return route.fulfill({ status: 200, contentType: 'text/plain', body: '' });
   });

@@ -4,8 +4,10 @@
 const { chromium } = require('playwright-core');
 const http = require('http'); const fs = require('fs'); const path = require('path');
 const FILE = '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
-const LJS = fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8');
-const LCSS = fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8');
+/* Leaflet вшит в саму страницу, подменять его не нужно. Заглушки остаются на случай
+   запуска против старой сборки, где библиотека грузилась из сети. */
+const LJS  = fs.existsSync(path.join(__dirname,'leaflet.js'))  ? fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8')  : null;
+const LCSS = fs.existsSync(path.join(__dirname,'leaflet.css')) ? fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8') : null;
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==','base64');
 let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' — '+d)); if(!c)failed++;};
 (async()=>{
@@ -18,8 +20,8 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   const errs=[]; pg.on('pageerror',e=>errs.push(e.message));
   await pg.route('**/*',r=>{const u=r.request().url();
     if(u.startsWith(base))return r.continue();
-    if(/leaflet.*\.js/i.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:LJS});
-    if(/leaflet.*\.css/i.test(u))return r.fulfill({status:200,contentType:'text/css',body:LCSS});
+    if(LJS&&/leaflet.*\.js/i.test(u))return r.fulfill({status:200,contentType:'application/javascript',body:LJS});
+    if(LCSS&&/leaflet.*\.css/i.test(u))return r.fulfill({status:200,contentType:'text/css',body:LCSS});
     return r.fulfill({status:200,contentType:'image/png',body:TILE});});
   /* «старые» правки пользователя: первый и восьмой БЦ */
   await pg.addInitScript(()=>localStorage.setItem('caseos_bc_edits',JSON.stringify({0:{comment:'МЕТКА-0'},7:{comment:'МЕТКА-7'}})));

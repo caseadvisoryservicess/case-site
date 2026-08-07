@@ -11,7 +11,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
-const FILE = process.argv[2] || path.join(__dirname, 'geo.html');
+const FILE = process.argv[2] || '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
 const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
 let failed = 0;
