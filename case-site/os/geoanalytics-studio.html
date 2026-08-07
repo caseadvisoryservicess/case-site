@@ -744,9 +744,12 @@ a{color:var(--red)}
 .pnav button:hover{background:#f2f4f7;color:var(--ink)}
 
 /* ---- живая легенда на карте ---- */
+/* Прокручивается ТЕЛО легенды, а не вся коробка: иначе заголовок с ручкой размера
+   уезжает вверх вместе со списком, и до него не дотянуться. */
 .mlgd{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;
  box-shadow:0 2px 10px rgba(0,0,0,.12);padding:8px 10px;font-size:11px;line-height:1.55;
- max-width:260px;max-height:52vh;overflow:auto}
+ max-width:260px;overflow:hidden}
+.mlgd .body{overflow-y:auto;overflow-x:hidden;max-height:46vh}
 .mlgd h4{margin:0 0 5px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--slate);
  display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
 .mlgd h4 span.c{margin-left:auto;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0}
@@ -756,6 +759,15 @@ a{color:var(--red)}
 .mlgd .li b{margin-left:auto}
 .mlgd .grp2{margin-top:6px;padding-top:5px;border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:10px}
 .mlgd .ln{display:inline-block;width:14px;height:3px;border-radius:2px}
+/* Ручка размера: легенда прижата к левому нижнему углу, поэтому тянем за правый верхний */
+.mlgd h4 .rsz{margin-left:6px;cursor:nesw-resize;color:var(--muted);font-size:13px;line-height:1;
+ padding:0 2px;transform:scaleY(-1);display:inline-block}
+.mlgd h4 .rsz:hover{color:var(--ink)}
+.mlgd .body::-webkit-scrollbar{width:10px;height:10px}
+.mlgd .body::-webkit-scrollbar-thumb{background:#c2c8d0;border-radius:6px;border:2px solid rgba(255,255,255,.9)}
+.mlgd .body::-webkit-scrollbar-thumb:hover{background:#9aa3ae}
+.mlgd .body::-webkit-scrollbar-track{background:transparent}
+.mlgd .body{scrollbar-width:thin;scrollbar-color:#c2c8d0 transparent}
 
 /* CASE OS v4.2 — universal workspace, compact enough for a laptop screen */
 body.geo-auth-pending>*{visibility:hidden}
@@ -1324,7 +1336,20 @@ function zLegend(){
  box.innerHTML='<b>Шкала балла</b><br>'+[30,40,50,60,70,80].map(v=>
    '<span style="display:inline-block;margin:2px 5px 0 0"><span class="dot" style="background:'+zcol(v)+'"></span> '+v+'</span>').join('')
   +'<br><span style="color:#6b7280">зелёное - людей много, конкурентов мало · красное - либо мало людей, либо ниша занята</span>';}
+/* Категории городских объектов, которые считаем конкурентами для каждого сценария.
+   Общепит и образование теперь берутся из собственных слоёв OS, а не приравниваются
+   к медицине с БЦ, как было раньше. */
+const ZPOI={fnb:['restaurants','cafes','fast_food'],resto:['restaurants'],cafe:['cafes'],
+  fastfood:['fast_food'],edu:['education'],hotel:['hotels'],super:['supermarkets'],
+  mall:['shopping'],street:['street_retail']};
+function poiCompCount(la,ln,r,biz){
+  const api=window.CASE_GEO_POI, cats=ZPOI[biz];
+  if(!api||!cats||!api.has(cats))return null;      /* слой не загружен — считаем по-старому */
+  return api.countIn(cats,la,ln,r/1000);
+}
 function zCompCount(la,ln,r,biz){
+ const poi=poiCompCount(la,ln,r,biz);
+ if(poi!==null)return poi;
  if(biz==='bc'||biz==='hotel')return bcR(la,ln,r);
  if(biz==='ret'||biz==='mall'||biz==='community'||biz==='super'||biz==='street'||biz==='resto'||biz==='cafe'||biz==='fastfood'||biz==='park'){
    const k=(biz==='park')?0.4:0.6;
@@ -1418,7 +1443,7 @@ function exportProbe(){
  c+='Ближайшее метро;'+(p.metro?p.metro.n+' ('+Math.round(p.metro.d*1000)+' м)':'-')+'\n\n';
  c+='Радиус, м;Население;БЦ;Мед-объекты;в т.ч. профильные;Аптеки\n';
  R.forEach(r=>{c+=r+';'+(popR(p.la,p.ln,r)||'')+';'+bcR(p.la,p.ln,r)+';'+medR(p.la,p.ln,r,false)+';'+medR(p.la,p.ln,r,true)+';'+phR(p.la,p.ln,r)+'\n';});
- c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+'\n';
+ c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+';F&B;'+(p.scoreFnb==null?'-':p.scoreFnb)+';учебный центр;'+(p.scoreEdu==null?'-':p.scoreEdu)+'\n';
  c+='Формула;0.55*min(1,население_1км/25000) + 0.45*max(0,1-конкуренты/эталон)\n';
  c+='Источники;население - Kontur H3 (калибровка Toshstat 2026); БЦ - CASE DB; медицина - OpenStreetMap + clinics.uz\n';
  dl('CASE_OS_geo_report_'+p.la.toFixed(4)+'_'+p.ln.toFixed(4)+'.csv',c);}
@@ -1496,11 +1521,56 @@ function initLegend(){
  const C=L.Control.extend({options:{position:'bottomleft'},
   onAdd:function(){const d=L.DomUtil.create('div','mlgd');d.id='mlgd';
    L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+   /* disableClickPropagation ставит на элемент лишь признак для карты и не глушит сам
+      click — из-за этого клик по строке легенды доходил до карты и вдобавок открывал
+      отчёт по точке. Гасим события у контейнера: наши обработчики на строках срабатывают
+      раньше (всплытие), карта не получает ничего. */
+   ['click','dblclick','mousedown','mouseup','wheel','contextmenu']
+     .forEach(t=>L.DomEvent.on(d,t,L.DomEvent.stopPropagation));
    return d;}});
  LGD=new C();map.addControl(LGD);
  updateLegend();
 }
+/* ---- размер легенды: тянется мышью за уголок, размер запоминается ----
+   Легенда прижата к левому нижнему углу карты, поэтому ручка стоит СПРАВА СВЕРХУ:
+   тянешь вверх — выше, вправо — шире. */
+const LGDSZ_LS='caseos_lgdsize';
+let LGDSZ=(function(){try{const v=JSON.parse(localStorage.getItem(LGDSZ_LS)||'null');
+  return (v&&(v.w||v.h))?v:null;}catch(e){return null;}})();
+function lgdApplySize(){
+ const el=document.getElementById('mlgd'); if(!el)return;
+ const bd=el.querySelector('.body');
+ el.style.width    = LGDSZ&&LGDSZ.w ? LGDSZ.w+'px' : '';
+ el.style.maxWidth = LGDSZ&&LGDSZ.w ? 'none' : '';
+ if(bd)bd.style.maxHeight = LGDSZ&&LGDSZ.h ? LGDSZ.h+'px' : '';
+}
+window.lgdResize=function(ev){
+ ev.preventDefault(); ev.stopPropagation();
+ const el=document.getElementById('mlgd'); if(!el)return;
+ const bd=el.querySelector('.body'); if(!bd)return;
+ const r=el.getBoundingClientRect(), rb=bd.getBoundingClientRect();
+ const x0=ev.clientX, y0=ev.clientY, w0=r.width, h0=rb.height;
+ const maxH=(map?map.getSize().y:window.innerHeight)-90, maxW=Math.min(560,window.innerWidth-80);
+ const mv=e=>{
+   const h=Math.max(60,Math.min(maxH, h0+(y0-e.clientY)));
+   const w=Math.max(170,Math.min(maxW, w0+(e.clientX-x0)));
+   LGDSZ={w:Math.round(w),h:Math.round(h)}; lgdApplySize();
+ };
+ /* Слушаем на перехвате: сама легенда гасит всплытие мыши, и обычный обработчик
+    на document до отпускания кнопки просто не дожил бы. */
+ const up=()=>{document.removeEventListener('mousemove',mv,true);document.removeEventListener('mouseup',up,true);
+   try{localStorage.setItem(LGDSZ_LS,JSON.stringify(LGDSZ));}catch(e){}};
+ document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
+};
+window.lgdSizeReset=function(ev){ev.preventDefault();ev.stopPropagation();LGDSZ=null;
+ try{localStorage.removeItem(LGDSZ_LS);}catch(e){}
+ const el=document.getElementById('mlgd'); if(!el)return;
+ el.style.width='';el.style.maxWidth='';
+ const bd=el.querySelector('.body'); if(bd)bd.style.maxHeight='';};
 function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
+/* Клик по строке городского объекта в легенде убирает и возвращает слой:
+   фильтровать там нечего — у каждой категории свой переключатель в панели. */
+function lgdTogglePoi(k){if(window.CASE_GEO_POI)window.CASE_GEO_POI.toggle(k);}
 function updateLegend(){
  const el=document.getElementById('mlgd'); if(!el)return;
  let n=0, h2='';
@@ -1522,6 +1592,26 @@ function updateLegend(){
  if($('lPharm')&&$('lPharm').checked){n+=VIS.ph;
   h2+='<div class="grp2">Аптеки</div>'
     +'<div class="li"><span class="dot" style="background:'+$('phC').value+'"></span>на экране<b>'+VIS.ph+'</b></div>';}
+ // --- городские объекты: F&B, образование, ритейл и остальные категории ---
+ /* Раньше в легенде были только медицина, БЦ и аптеки, а полтора десятка слоёв
+    городских объектов на ней не отражались вовсе. Числа берём те, что реально
+    нарисованы на экране, — из модуля слоёв, а не из длины массива. */
+ const POIAPI=window.CASE_GEO_POI;
+ if(POIAPI){
+  const vis=POIAPI.visible(), gr=POIAPI.groups(), GRLBL={horeca:'HoReCa',retail:'Ритейл',
+    leisure:'Досуг, спорт и культура',education:'Образование',residential:'Жильё',
+    services:'Услуги',infrastructure:'Инфраструктура',boundaries:'Границы'};
+  Object.keys(gr).forEach(g=>{
+   const ks=gr[g].filter(k=>vis[k]);
+   if(!ks.length)return;
+   const sum=ks.reduce((x,k)=>x+vis[k],0); n+=sum;
+   h2+='<div class="grp2">'+esc(GRLBL[g]||g)+' · '+sum+'</div>';
+   h2+=ks.sort((a,b)=>vis[b]-vis[a]).map(k=>
+     '<div class="li" onclick="lgdTogglePoi(\''+k+'\')" title="показать / скрыть слой">'
+     +'<span class="dot" style="background:'+POIAPI.color(k)+'"></span>'
+     +esc(POIAPI.label(k))+'<b>'+vis[k]+'</b></div>').join('');
+  });
+ }
  // --- линии ---
  let lines='';
  if($('lMetro')&&$('lMetro').checked)lines+='<div class="li"><span class="ln" style="background:'+$('mC').value+'"></span>линии метро</div>';
@@ -1535,10 +1625,20 @@ function updateLegend(){
       +'<span class="dot" style="background:'+zcol(v)+'"></span>'+v+'</span>').join('')
     +'</div><div style="color:#6b7280;margin-top:2px">наш проект: <b>'+ZGRID.site.s+'/100</b> · медиана '+ZGRID.site.med+'</div>';}
  if(!h2)h2='<div style="color:#6b7280">Слои выключены.</div>';
- el.className='mlgd'+(LGDMIN?' min':'');
+ /* className НЕ перезаписываем: Leaflet вешает на элемент свой класс leaflet-control,
+    и именно он включает мышь (у контейнера углов карты pointer-events:none). Стирая
+    класс, легенда становилась «сквозной»: ползунок не схватить, колесо уходило в зум. */
+ el.classList.add('mlgd','leaflet-control');
+ el.classList.toggle('min',LGDMIN);
+ /* Прокрутку сохраняем: легенда перерисовывается на каждый сдвиг карты. */
+ const bd0=el.querySelector('.body'), sc=bd0?bd0.scrollTop:0;
  el.innerHTML='<h4 onclick="LGDMIN=!LGDMIN;updateLegend();">'+(LGDMIN?'▸':'▾')
-   +' На экране <span class="c">'+(n?n.toLocaleString('ru')+' объектов · z'+map.getZoom():'z'+map.getZoom())+'</span></h4>'
+   +' На экране <span class="c">'+(n?n.toLocaleString('ru')+' объектов · z'+map.getZoom():'z'+map.getZoom())+'</span>'
+   +'<span class="rsz" title="потянуть — изменить размер легенды, двойной клик — вернуть как было"'
+   +' onmousedown="lgdResize(event)" ondblclick="lgdSizeReset(event)" onclick="event.stopPropagation()">⤡</span></h4>'
    +'<div class="body">'+h2+'</div>';
+ lgdApplySize();
+ const bd=el.querySelector('.body'); if(bd)bd.scrollTop=sc;
 }
 
 function renderRoad(){if(!map)return;gRoad.clearLayers();if(!$('lRoad')||!$('lRoad').checked)return;
@@ -1865,13 +1965,44 @@ async function probeAt(la,ln){
  h+=`<div class="grp">Медицина (конкуренция)</div>`;
  h+=`<table><thead><tr><th>Радиус</th><th>Все</th><th>Профильные</th><th>Аптеки</th></tr></thead><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td><b>${medR(la,ln,r,false)}</b></td><td>${medR(la,ln,r,true)}</td><td>${phR(la,ln,r)}</td></tr>`).join('')+`</tbody></table>`;
+ /* F&B и образование — из городских объектов OS. Если слой ни разу не загружали,
+    честно пишем об этом, а не показываем ноль как факт. */
+ const POIP=window.CASE_GEO_POI;
+ const FNBC=['restaurants','cafes','fast_food'], EDUC=['education'];
+ const poiIn=(cats,r)=>POIP?POIP.countIn(cats,la,ln,km(r)):null;
+ const fnb1=(POIP&&POIP.has(FNBC))?poiIn(FNBC,1000):null;
+ const edu1=(POIP&&POIP.has(EDUC))?poiIn(EDUC,1000):null;
+ if(POIP&&POIP.has(FNBC)){
+  const bd=POIP.breakdown(FNBC,la,ln,1);
+  const bl=Object.keys(bd).map(k=>POIP.label(k)+': '+bd[k]).join(', ');
+  h+=`<div class="grp">F&B (конкуренция)</div><table><tbody>`+
+    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${fmt(poiIn(FNBC,r))}</b></td></tr>`).join('')+
+    `</tbody></table>`+(bl?`<p class="mini">В 1 км: ${esc(bl)}</p>`:'');
+ }else{
+  h+=`<div class="grp">F&B</div><p class="mini">Слои общепита не загружены — включите «Рестораны», «Кафе», «Фастфуд» в разделе «Слои и стиль».</p>`;
+ }
+ if(POIP&&POIP.has(EDUC)){
+  h+=`<div class="grp">Образование (конкуренция)</div><table><tbody>`+
+    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${fmt(poiIn(EDUC,r))}</b></td></tr>`).join('')+
+    `</tbody></table>`;
+ }else{
+  h+=`<div class="grp">Образование</div><p class="mini">Слой образования не загружен — включите «Образование» в разделе «Слои и стиль».</p>`;
+ }
+ /* Эталоны конкуренции: общепита в городе на порядок больше, чем клиник (25 на км),
+    учебных центров — меньше (5 на км). Формула та же, что у БЦ и клиники. */
+ const compFnb=fnb1==null?null:Math.max(0,1-fnb1/25);
+ const compEdu=edu1==null?null:Math.max(0,1-edu1/5);
+ const scoreFnb=(demand==null||compFnb==null)?null:Math.round((0.55*demand+0.45*compFnb)*100);
+ const scoreEdu=(demand==null||compEdu==null)?null:Math.round((0.55*demand+0.45*compEdu)*100);
  h+=`<div class="grp">Быстрый скоринг (0-100)</div>
    <table><tbody>
    <tr><td>Потенциал БЦ</td><td style="text-align:right"><b style="color:${scoreBC>=55?'#1a7f37':scoreBC>=40?'#e67e22':'#9E0000'}">${scoreBC==null?'-':scoreBC}</b></td></tr>
    <tr><td>Потенциал клиники</td><td style="text-align:right"><b style="color:${scoreMed>=55?'#1a7f37':scoreMed>=40?'#e67e22':'#9E0000'}">${scoreMed==null?'загрузите медицину':scoreMed}</b></td></tr>
+   <tr><td>Потенциал заведения F&B</td><td style="text-align:right"><b style="color:${scoreFnb>=55?'#1a7f37':scoreFnb>=40?'#e67e22':'#9E0000'}">${scoreFnb==null?'загрузите слои общепита':scoreFnb}</b></td></tr>
+   <tr><td>Потенциал учебного центра</td><td style="text-align:right"><b style="color:${scoreEdu>=55?'#1a7f37':scoreEdu>=40?'#e67e22':'#9E0000'}">${scoreEdu==null?'загрузите образование':scoreEdu}</b></td></tr>
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
- LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,html:h};
+ LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreFnb:scoreFnb,scoreEdu:scoreEdu,html:h};
  h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`+h+
    `</div><div class="cbtns"><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="exportProbePdf()">⤓ Скачать PDF</button><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
@@ -2134,5 +2265,5 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.46.1"></script>
+<script src="v420-geo-studio.js?v=4.52.0"></script>
 </body></html>

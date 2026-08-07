@@ -8,6 +8,9 @@
   var CENTER={lat:41.31110,lng:69.27970};
   var GEO_POI={hotels:[],shopping:[],street_retail:[],supermarkets:[],markets:[],restaurants:[],cafes:[],fast_food:[],parks:[],playgrounds:[],entertainment:[],sports:[],education:[],residential:[],warehouses:[],parking:[],transport_hubs:[],culture:[],tourism:[],finance:[],government:[],fuel_auto:[],mahallas:[]};
   var GEO_POI_LAYERS={},GEO_POI_RENDERER=null,GEO_POI_LOADING={},GEO_POI_LABSTYLE={};
+  // Сколько точек слоя реально нарисовано на экране — это и показывает легенда карты.
+  // Держим отдельно от длины массива: в массиве весь город, на экране — только видимое.
+  var GEO_POI_VIS={};
   var POI_DEFS={
     hotels:{label:'Гостиницы и апарт-отели',short:'Гостиница',icon:'H',color:'#7B4BA1',fields:[['category','Категория / звёзды','text'],['keys','Номерной фонд / keys','number'],['operator','Оператор / бренд','text'],['adr','ADR','number'],['occupancy','Загрузка, %','number'],['revpar','RevPAR','number'],['facilities','F&B, SPA, MICE и сервисы','textarea']]},
     shopping:{label:'ТРЦ и торговые центры',short:'ТРЦ / ТЦ',icon:'Т',color:'#C55A11',fields:[['format','Формат / класс центра','text'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['floors','Этажей','number'],['anchors','Якорные арендаторы','textarea'],['tenants','Арендаторы / tenant mix','textarea'],['rentRange','Ставки аренды по этажам','textarea'],['occupancy','Заполняемость, %','number'],['parkingSpaces','Парковочных мест','number'],['annualFootfall','Посещаемость в год','number'],['floorPlans','Планировки / ссылки','textarea']]},
@@ -630,7 +633,8 @@
    if(!g){g=GEO_POI_LAYERS[k]=(_wantClu
        ?L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:17,maxClusterRadius:48,spiderfyOnMaxZoom:true,showCoverageOnHover:false})
        :L.layerGroup()).addTo(map);g._geoClu=_wantClu;}
-   g.clearLayers();var cb=document.getElementById('geoLayer-'+k),count=document.getElementById('geoLayerCount-'+k);if(count)count.textContent=GEO_POI[k].length;if(!cb||!cb.checked)return;
+   g.clearLayers();var cb=document.getElementById('geoLayer-'+k),count=document.getElementById('geoLayerCount-'+k);if(count)count.textContent=GEO_POI[k].length;
+   if(!cb||!cb.checked){if(GEO_POI_VIS[k]){GEO_POI_VIS[k]=0;geoLegendRefresh();}return;}
    var d=POI_DEFS[k],VB=typeof vbox==='function'?vbox():null;
    var radius=(d.radius!=null?d.radius:6),op=(d.opacity!=null?d.opacity:92)/100,showLab=!!d.labels;
    // Размер подписи регулируется по слою (ползунок «размер подписи»). Значение из настройки —
@@ -642,6 +646,7 @@
    GEO_POI_LABSTYLE[k]=fs;
    var st=document.getElementById('geoPoiLabStyle');if(!st){st=document.createElement('style');st.id='geoPoiLabStyle';document.head.appendChild(st);}
    st.textContent=Object.keys(GEO_POI_LABSTYLE).map(function(kk){return '.leaflet-tooltip.geo-poi-lab-'+kk+'{font-size:'+(+GEO_POI_LABSTYLE[kk]).toFixed(1)+'px}';}).join('');
+   var nvis=0;
    GEO_POI[k].forEach(function(x,i){var la=+x.lat,ln=+x.lng;if(!Number.isFinite(la)||!Number.isFinite(ln)||VB&&!VB.contains([la,ln]))return;
     // подкатегории стрит-ритейла переключаются независимо от родительского слоя
     // (независимый разбор категорий: "каждая категория и подкатегория индивидуально редактируемая").
@@ -657,7 +662,10 @@
    // SVG-рендерер (не canvas) - у маркера есть настоящий DOM-элемент, поэтому можно дать ему
    // доступное имя для скринридеров (независимый аудит: "map marker accessibility-name issues").
    try{var el=m.getElement&&m.getElement();if(el){el.setAttribute('role','img');el.setAttribute('aria-label',(x.name||d.short||'точка')+' - '+(d.short||k));}}catch(e){}
-  });}
+    nvis++;
+  });
+   GEO_POI_VIS[k]=nvis;geoLegendRefresh();}
+  function geoLegendRefresh(){try{if(typeof window.updateLegend==='function')window.updateLegend();}catch(e){}}
   function renderPoiLayers(){ensurePoiLayerControls();Object.keys(POI_DEFS).forEach(renderPoiLayer);}
   function geoFetchPoiLayer(k){
     if(GEO_POI_LOADING[k])return Promise.resolve();
@@ -956,6 +964,30 @@
   /* Ускорение первой загрузки: НЕ держим готовность на 2.5-МБ мастер-наборе. Сначала грузим
      оболочку и карту (boot → готовность прячет загрузчик), а тяжёлую мастер-базу (медицина/аптеки)
      тянем в фоне и до-рисовываем, когда пришла. Так карта появляется за ~1с, а не за 4-5с. */
+  /* Мост для карты: легенда, отчёт по точке и модель зон живут в geoanalytics-studio.html,
+     а точки городских объектов — здесь. Наружу отдаём только чтение. */
+  window.CASE_GEO_POI={
+    label:function(k){return (POI_DEFS[k]||{}).label||k;},
+    color:function(k){return (POI_DEFS[k]||{}).color||'#888';},
+    keys:function(){return Object.keys(POI_DEFS);},
+    groups:function(){return POI_CATEGORY_GROUPS;},
+    total:function(k){return (GEO_POI[k]||[]).length;},
+    visible:function(){var o={};Object.keys(GEO_POI_VIS).forEach(function(k){if(GEO_POI_VIS[k])o[k]=GEO_POI_VIS[k];});return o;},
+    on:function(k){var cb=document.getElementById('geoLayer-'+k);return !!(cb&&cb.checked);},
+    toggle:function(k){var cb=document.getElementById('geoLayer-'+k);if(!cb)return;
+      cb.checked=!cb.checked;cb.dispatchEvent(new Event('change',{bubbles:true}));},
+    countIn:function(cats,la,ln,km){
+      var n=0;(cats||[]).forEach(function(k){(GEO_POI[k]||[]).forEach(function(x){
+        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
+        if(typeof hav==='function'&&hav(la,ln,a,b)<=km)n++;});});
+      return n;},
+    breakdown:function(cats,la,ln,km){
+      var o={};(cats||[]).forEach(function(k){var c=0;(GEO_POI[k]||[]).forEach(function(x){
+        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
+        if(typeof hav==='function'&&hav(la,ln,a,b)<=km)c++;});if(c)o[k]=c;});
+      return o;},
+    has:function(cats){return (cats||[]).some(function(k){return (GEO_POI[k]||[]).length>0;});}
+  };
   function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
   auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});
 })();
