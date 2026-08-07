@@ -748,9 +748,12 @@ a{color:var(--red)}
 .pnav button:hover{background:#f2f4f7;color:var(--ink)}
 
 /* ---- живая легенда на карте ---- */
+/* Прокручивается ТЕЛО легенды, а не вся коробка: иначе заголовок с ручкой размера
+   уезжает вверх вместе со списком, и до него не дотянуться. */
 .mlgd{background:rgba(255,255,255,.94);border:1px solid var(--line);border-radius:8px;
  box-shadow:0 2px 10px rgba(0,0,0,.12);padding:8px 10px;font-size:11px;line-height:1.55;
- max-width:260px;max-height:52vh;overflow:auto}
+ max-width:260px;overflow:hidden}
+.mlgd .body{overflow-y:auto;overflow-x:hidden;max-height:46vh}
 .mlgd h4{margin:0 0 5px;font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--slate);
  display:flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
 .mlgd h4 span.c{margin-left:auto;color:var(--muted);font-weight:400;text-transform:none;letter-spacing:0}
@@ -760,6 +763,16 @@ a{color:var(--red)}
 .mlgd .li b{margin-left:auto}
 .mlgd .grp2{margin-top:6px;padding-top:5px;border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:10px}
 .mlgd .ln{display:inline-block;width:14px;height:3px;border-radius:2px}
+/* Ручка размера: легенда прижата к левому нижнему углу, поэтому тянем за правый верхний */
+.mlgd h4 .rsz{margin-left:6px;cursor:nesw-resize;color:var(--muted);font-size:13px;line-height:1;
+ padding:0 2px;transform:scaleY(-1);display:inline-block}
+.mlgd h4 .rsz:hover{color:var(--ink)}
+/* Полоса прокрутки видимая и достаточно широкая, чтобы попасть по ней мышью */
+.mlgd .body::-webkit-scrollbar{width:10px;height:10px}
+.mlgd .body::-webkit-scrollbar-thumb{background:#c2c8d0;border-radius:6px;border:2px solid rgba(255,255,255,.9)}
+.mlgd .body::-webkit-scrollbar-thumb:hover{background:#9aa3ae}
+.mlgd .body::-webkit-scrollbar-track{background:transparent}
+.mlgd .body{scrollbar-width:thin;scrollbar-color:#c2c8d0 transparent}
 .map-static{height:100%;min-height:420px;background:linear-gradient(180deg,#fff 0,#f8fafc 100%);display:flex;flex-direction:column}
 .map-static .mh{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(255,255,255,.92)}
 .map-static .mh b{font-size:13px}.map-static .mh span{color:var(--muted);font-size:11px}
@@ -809,7 +822,8 @@ a{color:var(--red)}
       <option value="bc">бизнес-центр</option>
       <option value="ret">ритейл / стрит</option>
       <option value="sp">выбранное направление медицины</option>
-      <option value="edu">образование (школы, курсы, центры)</option></select></div>
+      <option value="edu">образование (школы, курсы, центры)</option>
+      <option value="fnb">F&amp;B (рестораны, кафе, фастфуд)</option></select></div>
     <div class="styrow sub"><label>радиус спроса</label><select id="sZR" style="width:auto;font-size:11px">
       <option value="500">500 м</option><option value="1000" selected>1 км</option>
       <option value="1500">1.5 км</option><option value="2000">2 км</option></select>
@@ -858,6 +872,13 @@ a{color:var(--red)}
    <div class="styrow sub"><button onclick="eduFetchOsm()" style="font-size:11px;padding:3px 8px;cursor:pointer">⤓ Скачать из OpenStreetMap</button></div>
    <div class="styrow sub"><label for="eduFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="eduFile" accept=".json,.geojson,.csv,application/json,application/geo+json,text/csv" style="display:none" onchange="eduLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные образования?')){localStorage.removeItem('caseos_edu');EDU=[];EDU_SRC='';renderEdu();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
    <div class="mini" id="eduNote"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lFnb"> F&amp;B: рестораны, кафе, фастфуд, чайханы</label></div>
+   <div class="styrow sub"><label for="fnbC">цвет</label><input type="color" id="fnbC" value="#c0392b"><label for="fnbR">размер</label><input type="range" id="fnbR" min="2" max="9" value="4"><label for="fnbLab">подписи</label><input type="checkbox" id="fnbLab"></div>
+   <div class="styrow sub"><label for="fnbColBy">раскраска</label><select id="fnbColBy" style="width:auto;font-size:11px"><option value="t" selected>по типу</option><option value="fix">один цвет</option></select></div>
+   <div class="styrow sub"><label for="fnbT">тип</label><select id="fnbT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="restaurant">рестораны</option><option value="cafe">кафе / кофейни</option><option value="fast_food">фастфуд / QSR</option><option value="teahouse">чайханы / национальные</option><option value="bar">бары / пабы</option><option value="bakery">пекарни / кондитерские</option><option value="canteen">столовые</option></select></div>
+   <div class="styrow sub"><button onclick="fnbFetchOsm()" style="font-size:11px;padding:3px 8px;cursor:pointer">⤓ Скачать из OpenStreetMap</button></div>
+   <div class="styrow sub"><label for="fnbFile" style="cursor:pointer;text-decoration:underline">Загрузить данные</label><input type="file" id="fnbFile" accept=".json,.geojson,.csv,application/json,application/geo+json,text/csv" style="display:none" onchange="fnbLoadFile(this)"><a href="#" onclick="event.preventDefault();if(confirm('Убрать загруженные данные F&amp;B?')){localStorage.removeItem('caseos_fnb');FNB=[];FNB_SRC='';renderFnb();}" style="font-size:10px;color:var(--muted)">очистить</a></div>
+   <div class="mini" id="fnbNote"></div>
    <div class="styrow sub"><label for="phC">цвет</label><input type="color" id="phC" value="#2ecc71"></div>
    <div class="mini" id="phNote"></div>
    <div class="mini" id="medNote"></div>
@@ -929,7 +950,7 @@ const PROVCOL={'2GIS':'#0d7a6f','Google Maps':'#2f77b6','GoldenPages':'#c47f00',
 const RINGC=['#27ae60','#e67e22','#c0392b'];
 const $=id=>document.getElementById(id);
 const HASMAP=typeof L!=='undefined';
-let map=null,CANV=null,gBC=null,gRing=null,gProj=null,gMetro=null,gDist=null,gDens=null,gRoad=null,gMed=null,gPharm=null,gEdu=null;
+let map=null,CANV=null,gBC=null,gRing=null,gProj=null,gMetro=null,gDist=null,gDens=null,gRoad=null,gMed=null,gPharm=null,gEdu=null,gFnb=null;
 if(HASMAP){
 map=L.map('map',{preferCanvas:true,zoomAnimation:false,markerZoomAnimation:false}).setView([41.3485,69.3166],12);
 /* ===== Перетаскивание подписей =====
@@ -1048,7 +1069,7 @@ CANV=L.canvas({padding:0.25});
    setTimeout(function(){if(!done&&ok===0&&!userPicked){fin();next();}},6000);}
   function next(){idx++;if(idx>=order.length||userPicked)return;var nl=window.BASES[order[idx]];if(!nl)return next();if(cur){try{map.removeLayer(cur);}catch(e){}}cur=nl;nl.addTo(map);watch(nl);}
   watch(cur);})();
-gBC=L.layerGroup().addTo(map);gRing=L.layerGroup().addTo(map);gProj=L.layerGroup().addTo(map);gEdu=L.layerGroup();gMetro=L.layerGroup();gDist=L.layerGroup();gDens=L.layerGroup();gRoad=L.layerGroup();gMed=L.layerGroup().addTo(map);gPharm=L.layerGroup();
+gBC=L.layerGroup().addTo(map);gRing=L.layerGroup().addTo(map);gProj=L.layerGroup().addTo(map);gEdu=L.layerGroup();gFnb=L.layerGroup();gMetro=L.layerGroup();gDist=L.layerGroup();gDens=L.layerGroup();gRoad=L.layerGroup();gMed=L.layerGroup().addTo(map);gPharm=L.layerGroup();
 }else{
 renderStaticMap();
 }
@@ -1364,6 +1385,250 @@ function renderEdu(){
   if(note)note.textContent=EDU.length+' объектов'+(EDU_SRC?' ('+EDU_SRC+')':'')+', на экране '+n+(parts.length?' — '+parts.join(', '):'');
 }
 async function loadEdu(){await ensureEdu();renderEdu();}
+
+/* ================= F&B: рестораны, кафе, фастфуд, чайханы =================
+   Собирается ровно так же, как образование: страница сама идёт в OpenStreetMap из
+   браузера пользователя. Точки в файл не зашиты — придумывать адреса общепита для
+   расчёта аренды нельзя, а собрать их из песочницы разработки невозможно: там нет сети.
+   Тот же слой принимает выгрузку коллектора (категории restaurants/cafes/fast_food)
+   и GeoJSON из overpass-turbo. */
+let FNB=[],FNB_SRC='',FNB_TRIED=false;
+/* Цвета по типам: для аренды ресторан, фастфуд и чайхана — три разных рынка
+   с разными ставками и разными арендаторами, одним цветом их смешивать нельзя. */
+const FNB_COL={restaurant:'#c0392b',cafe:'#a36a3e',fast_food:'#d9534f',teahouse:'#16a085',
+  bar:'#7b3fa0',bakery:'#e8a33d',canteen:'#7f8c8d',other:'#95a5a6'};
+const FNB_TYPES={restaurant:'Ресторан',cafe:'Кафе / кофейня',fast_food:'Фастфуд / QSR',
+  teahouse:'Чайхана / национальная',bar:'Бар / паб',bakery:'Пекарня / кондитерская',
+  canteen:'Столовая',other:'Другое'};
+const FNB_LS='caseos_fnb';
+function fnbAdopt(j,src){
+  const arr=Array.isArray(j)?j:(Array.isArray(j&&j.points)?j.points:(Array.isArray(j&&j.data)?j.data:null));
+  if(!arr||!arr.length)return 0;
+  FNB=arr.filter(x=>x&&isFinite(+x.la)&&isFinite(+x.ln));
+  FNB_SRC=(j&&j.src)||src||'файл';
+  return FNB.length;
+}
+function fnbRemember(){try{localStorage.setItem(FNB_LS,JSON.stringify({src:FNB_SRC,points:FNB}));}catch(e){}}
+/* Порядок правил важен: «чайхана» и «столовая» проверяются раньше «кафе» и «ресторана»,
+   иначе «Чайхана Навруз» уедет в рестораны и исказит картину по национальному сегменту. */
+const FNB_RULES=[
+  ['teahouse',['чайхан','choyxona','choyhona','чойхон','милли таом','national food','ошхона','oshxona']],
+  ['canteen',['столов','canteen','ошпаз','food court','фуд-корт','фудкорт']],
+  ['bakery',['пекарн','кондитер','bakery','patisserie','нонвой','non ','tandir','тандыр','cake','торт']],
+  ['bar',['бар','паб',' pub','beer','пивн','коктейль','cocktail','караоке']],
+  ['fast_food',['фастфуд','fast food','бургер','burger','пицц','pizza','шаурм','shaurma','лаваш','lavash',
+                'самса','somsa','хот-дог','hot dog','kfc','макдон','donerci','донер','doner','qsr']],
+  ['cafe',['кафе','кофейн','кофе','cafe','coffee','qahvaxona','кондит','десерт','dessert','чайная']],
+  ['restaurant',['ресторан','restoran','restaurant','osh markazi','плов центр','гриль','grill','стейк','steak']]
+];
+function fnbDetect(sub,name){
+  const h=String((sub||'')+' '+(name||'')).toLowerCase();
+  if(!h.trim())return 'other';
+  for(const [t,ns] of FNB_RULES){ for(const n of ns){ if(h.indexOf(n)>=0)return t; } }
+  return 'other';
+}
+/* Теги OSM. cuisine здесь намеренно НЕ используется как признак типа: cuisine=uzbek
+   висит и на ресторане, и на чайхане — их различает только название. */
+const OSM_FNB={restaurant:'restaurant',cafe:'cafe',fast_food:'fast_food',food_court:'fast_food',
+  bar:'bar',pub:'bar',biergarten:'bar',ice_cream:'cafe',canteen:'canteen'};
+const OSM_FNB_SHOP={bakery:'bakery',confectionery:'bakery',pastry:'bakery',coffee:'cafe',tea:'cafe'};
+/* Категории master-выгрузки коллектора → наши типы */
+const FNB_CATS={restaurants:'restaurant',cafes:'cafe',fast_food:'fast_food',horeca:'',fnb:''};
+function fnbOsmType(tg,name){
+  const t=OSM_FNB[tg.amenity]||OSM_FNB_SHOP[tg.shop]||'';
+  /* Чайхану OSM отдельным тегом не размечает — она приходит как amenity=restaurant,
+     поэтому название смотрим всегда: по нему и отличаем национальный сегмент. */
+  const byName=fnbDetect('',name);
+  if(byName==='teahouse'||byName==='canteen')return byName;
+  /* Пустая строка = «это не общепит». Возвращать 'other' нельзя: в выдаче Overpass
+     попадаются соседние по тегам объекты (магазин одежды и т.п.), и они уезжали
+     в слой под видом «Другое», раздувая счёт конкурентов. */
+  return t||(byName!=='other'?byName:'');
+}
+function fnbFromGeoJson(j){
+  if(!j||j.type!=='FeatureCollection'||!Array.isArray(j.features))return null;
+  const pts=[];
+  j.features.forEach(f=>{
+    const g=f&&f.geometry; if(!g)return;
+    let c=null;
+    if(g.type==='Point')c=g.coordinates;
+    else if(g.type==='Polygon'||g.type==='MultiPolygon'||g.type==='LineString')c=polyCenter(g.coordinates);
+    if(!c||!isFinite(+c[0])||!isFinite(+c[1]))return;
+    const pr=f.properties||{};
+    if(!pr.amenity&&!pr.shop)return;                 /* чужие объекты в слой не пускаем */
+    const name=pr.name||pr['name:ru']||pr['name:uz']||pr['name:en']||'';
+    const t=fnbOsmType(pr,name); if(!t)return;
+    pts.push({n:String(name).trim()||'Без названия',la:+(+c[1]).toFixed(5),ln:+(+c[0]).toFixed(5),
+              t:t,s:'OSM',cu:pr.cuisine||''});
+  });
+  return pts.length?{src:'GeoJSON (OpenStreetMap)',points:pts}:null;
+}
+function fnbFromCsv(text){
+  const rows=csvRows(text); if(rows.length<2)return null;
+  const head=rows[0].map(x=>String(x).replace(/^﻿/,'').trim());
+  const ix={}; head.forEach((h,i)=>ix[h]=i);
+  if(ix.main_category==null||ix.canonical_lat==null)return null;
+  const pts=[];
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const cat=String(r[ix.main_category]||'').trim();
+    if(!(cat in FNB_CATS))continue;
+    const la=parseFloat(r[ix.canonical_lat]),ln=parseFloat(r[ix.canonical_lng]);
+    if(!isFinite(la)||!isFinite(ln))continue;
+    const name=String(r[ix.canonical_name]||'').trim();
+    const sub=ix.subcategory!=null?String(r[ix.subcategory]||'').trim():'';
+    /* Тип из названия важнее категории: чайхана в выгрузке лежит в restaurants. */
+    const byName=fnbDetect(sub,name);
+    const t=(byName!=='other')?byName:(FNB_CATS[cat]||'other');
+    const p={n:name,la:+la.toFixed(5),ln:+ln.toFixed(5),t:t};
+    const src=ix.primary_source!=null?String(r[ix.primary_source]||'').trim():'';
+    if(src)p.s=src;
+    pts.push(p);
+  }
+  return pts.length?{src:'master CSV коллектора',points:pts}:null;
+}
+/* Рамка — границы Ташкента, как у образования. shop=bakery/confectionery/coffee дают
+   пекарни и кофейни, которых нет среди amenity, — для стрит-ритейла это половина рынка. */
+const FNB_OVERPASS=`[out:json][timeout:90];
+(
+  nwr["amenity"="restaurant"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="cafe"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="fast_food"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="food_court"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="bar"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="pub"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="biergarten"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="ice_cream"](41.15,69.10,41.43,69.50);
+  nwr["amenity"="canteen"](41.15,69.10,41.43,69.50);
+  nwr["shop"="bakery"](41.15,69.10,41.43,69.50);
+  nwr["shop"="confectionery"](41.15,69.10,41.43,69.50);
+  nwr["shop"="pastry"](41.15,69.10,41.43,69.50);
+  nwr["shop"="coffee"](41.15,69.10,41.43,69.50);
+);
+out center tags;`;
+function fnbFromOverpass(j){
+  if(!j||!Array.isArray(j.elements))return null;
+  const pts=[];
+  j.elements.forEach(el=>{
+    if(!el)return;
+    const la=(el.lat!=null)?el.lat:(el.center&&el.center.lat), ln=(el.lon!=null)?el.lon:(el.center&&el.center.lon);
+    if(!isFinite(+la)||!isFinite(+ln))return;
+    const tg=el.tags||{};
+    const name=tg.name||tg['name:ru']||tg['name:uz']||tg['name:en']||'';
+    const t=fnbOsmType(tg,name); if(!t)return;
+    pts.push({n:String(name).trim()||'Без названия',la:+(+la).toFixed(5),ln:+(+ln).toFixed(5),
+              t:t,s:'OSM',cu:tg.cuisine||''});
+  });
+  return pts.length?{src:'OpenStreetMap, загружено '+new Date().toLocaleDateString('ru'),points:pts}:null;
+}
+async function fnbFetchOsm(){
+  const note=$('fnbNote'); const say=h=>{if(note)note.innerHTML=h;};
+  say('Запрашиваю OpenStreetMap… это занимает 10–60 секунд, не закрывайте вкладку.');
+  let lastErr='';
+  for(let i=0;i<EDU_ENDPOINTS.length;i++){
+    const url=EDU_ENDPOINTS[i];
+    try{
+      say('Запрашиваю OpenStreetMap (сервер '+(i+1)+' из '+EDU_ENDPOINTS.length+')… 10–60 секунд.');
+      const ctl=new AbortController(); const to=setTimeout(()=>ctl.abort(),120000);
+      const r=await fetch(url,{method:'POST',body:'data='+encodeURIComponent(FNB_OVERPASS),
+        headers:{'Content-Type':'application/x-www-form-urlencoded'},signal:ctl.signal});
+      clearTimeout(to);
+      if(!r.ok){ lastErr='сервер ответил '+r.status+(r.status===429?' (слишком много запросов)':''); continue; }
+      const data=fnbFromOverpass(await r.json());
+      if(!data){ lastErr='ответ пустой'; continue; }
+      fnbAdopt(data,url); fnbRemember(); FNB_TRIED=true;
+      if($('lFnb')&&!$('lFnb').checked){$('lFnb').checked=true;if(map)map.addLayer(gFnb);}
+      renderFnb();
+      return;
+    }catch(e){ lastErr=(e&&e.name==='AbortError')?'превышено время ожидания':String(e&&e.message||e).slice(0,80); }
+  }
+  say('Не получилось скачать: '+lastErr+'.<br>Проверьте интернет и попробуйте ещё раз — '
+    +'сервера OpenStreetMap бесплатные и иногда отказывают при нагрузке.<br>'
+    +'Запасной путь: <a href="#" onclick="event.preventDefault();fnbCopyQuery()" style="color:#9E0000">скопировать запрос</a> и выполнить его на overpass-turbo.eu, затем «Загрузить данные».');
+}
+function fnbCopyQuery(){
+  const done=()=>{try{toast?toast('Запрос скопирован — вставьте на overpass-turbo.eu'):alert('Запрос скопирован.');}catch(e){alert('Запрос скопирован.');}};
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(FNB_OVERPASS).then(done,()=>fnbShowQuery());
+  else fnbShowQuery();
+}
+function fnbShowQuery(){
+  const w=window.open('','_blank');
+  if(w){w.document.write('<pre style="font:12px monospace;white-space:pre-wrap">'+FNB_OVERPASS.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))+'</pre>');w.document.close();}
+  else prompt('Скопируйте запрос:',FNB_OVERPASS);
+}
+function fnbLoadFile(input){
+  const f=input&&input.files&&input.files[0]; if(!f)return;
+  const rd=new FileReader();
+  rd.onload=function(){
+    const txt=String(rd.result||'');
+    if(/^<\?php/i.test(txt.slice(0,400).trim())){
+      alert('Это скрипт для сервера (PHP), а не данные.\n\nЗапустите на сервере:\n'
+        +'  php api/geo_collector.php --category=restaurants,cafes,fast_food --sources=osm\n'
+        +'и выберите созданный data/geo_collect_out/seed_master.csv');
+      input.value=''; return;
+    }
+    let j=null;
+    try{ const raw=JSON.parse(txt); j=fnbFromGeoJson(raw)||raw; }
+    catch(e){ j=fnbFromCsv(txt); }
+    if(!j){
+      alert('Не похоже на данные F&B.\n\nПодойдёт любой из вариантов:\n'
+        +'  • GeoJSON из overpass-turbo.eu (быстрее всего)\n'
+        +'  • data/geo_collect_out/seed_master.csv — выгрузка коллектора\n'
+        +'  • data/tashkent_fnb.json — заранее подготовленный файл');
+      input.value=''; return;
+    }
+    const n=fnbAdopt(j,f.name);
+    if(!n){ alert('Файл прочитан, но объектов F&B с координатами в нём нет.'); input.value=''; return; }
+    fnbRemember(); FNB_TRIED=true;
+    if($('lFnb')&&!$('lFnb').checked){$('lFnb').checked=true;if(map)map.addLayer(gFnb);}
+    renderFnb();
+    input.value='';
+  };
+  rd.readAsText(f);
+}
+async function ensureFnb(){
+  if(FNB_TRIED)return; FNB_TRIED=true;
+  try{const saved=localStorage.getItem(FNB_LS);
+    if(saved){const j=JSON.parse(saved); if(fnbAdopt(j,'сохранено в браузере'))return;}
+  }catch(e){}
+  for(const u of ['data/tashkent_fnb.json','data/geo_collect_out/fnb.json']){
+    try{ const r=await fetch(u,{cache:'no-store'}); if(!r.ok)continue;
+      if(fnbAdopt(await r.json(),u)){fnbRemember();break;}
+    }catch(e){}
+  }
+}
+function fnbType(p){const t=String(p.t||'').toLowerCase();return FNB_TYPES[t]?t:'other';}
+function renderFnb(){
+  if(!map||!gFnb)return; gFnb.clearLayers();
+  const on=$('lFnb')&&$('lFnb').checked; const note=$('fnbNote');
+  if(!on){if(note)note.textContent='';VIS.fnb=0;VIS.fnbByType={};updateLegend();return;}
+  if(!FNB.length){
+    if(note)note.innerHTML='Данных пока нет. Нажмите <b>«⤓ Скачать из OpenStreetMap»</b> — страница загрузит их сама.<br>'
+      +'<span style="color:var(--muted)">Займёт 10–60 секунд. Загруженное запомнится в этом браузере.</span>';
+    VIS.fnb=0; updateLegend(); return;
+  }
+  const c=$('fnbC').value, r=+$('fnbR').value, want=$('fnbT').value, lab=$('fnbLab').checked;
+  const byT=!$('fnbColBy')||$('fnbColBy').value==='t';
+  const VB=vbox(); let n=0, byType={};
+  FNB.forEach(p=>{
+    const t=fnbType(p);
+    if(want&&t!==want)return;
+    const la=+p.la, ln=+p.ln;
+    if(VB&&!VB.contains([la,ln]))return;
+    n++; byType[t]=(byType[t]||0)+1;
+    const cc=byT?(FNB_COL[t]||c):c;
+    const pm=L.circleMarker([la,ln],{renderer:CANV,radius:r,color:cc,weight:1,fillColor:cc,fillOpacity:.65});
+    pm.bindTooltip(lab?esc(p.n||'Заведение')
+      :('<b>'+esc(p.n||'Заведение')+'</b><br>'+esc(FNB_TYPES[t])+(p.cu?' · '+esc(p.cu):'')+(p.s?'<br><span style="color:#888">'+esc(p.s)+'</span>':'')),
+      lab?{permanent:true,direction:'top',className:'bclab',opacity:.95}:{sticky:true});
+    pm.addTo(gFnb);
+  });
+  VIS.fnb=n; VIS.fnbByType=byType; VIS.fnbByT=byT;
+  updateLegend();
+  const parts=Object.keys(byType).sort((a,b)=>byType[b]-byType[a]).map(t=>FNB_TYPES[t]+': '+byType[t]);
+  if(note)note.textContent=FNB.length+' объектов'+(FNB_SRC?' ('+FNB_SRC+')':'')+', на экране '+n+(parts.length?' — '+parts.join(', '):'');
+}
+async function loadFnb(){await ensureFnb();renderFnb();}
 function vbox(){if(!map)return null;const s=map.getSize();if(!s||s.x<60||s.y<60)return null;const b=map.getBounds();return (b&&b.isValid())?b.pad(0.25):null;}
 function labelFont(){const z=map.getZoom();return Math.max(8,Math.min(15,8+(z-13)*1.4));}
 function renderBC(){if(!map)return;gBC.clearLayers();if(!$('lBC').checked)return;
@@ -1636,8 +1901,18 @@ function eduR(la,ln,r){
   EDU.forEach(p=>{ if(want&&eduType(p)!==want)return; if(hav(la,ln,+p.la,+p.ln)<=km)n++; });
   return n;
 }
+/* F&B в радиусе. Так же учитывает фильтр по типу: выбрали «фастфуд» — конкурентами
+   считается фастфуд, а не рестораны; для аренды это принципиально разные истории. */
+function fnbR(la,ln,r){
+  if(!FNB.length)return 0;
+  const want=($('fnbT')&&$('fnbT').value)||'';
+  const km=r/1000; let n=0;
+  FNB.forEach(p=>{ if(want&&fnbType(p)!==want)return; if(hav(la,ln,+p.la,+p.ln)<=km)n++; });
+  return n;
+}
 function zCompCount(la,ln,r,biz){
  if(biz==='edu')return eduR(la,ln,r);
+ if(biz==='fnb')return fnbR(la,ln,r);
  if(biz==='bc')return bcR(la,ln,r);
  if(biz==='ret')return medR(la,ln,Math.round(r*0.6),false)+bcR(la,ln,Math.round(r*0.6));
  if(biz==='sp'){const sp=$('medSp').value;
@@ -1729,7 +2004,7 @@ function exportProbe(){
  c+='Ближайшее метро;'+(p.metro?p.metro.n+' ('+Math.round(p.metro.d*1000)+' м)':'-')+'\n\n';
  c+='Радиус, м;Население;БЦ;Мед-объекты;в т.ч. профильные;Аптеки\n';
  R.forEach(r=>{c+=r+';'+(popR(p.la,p.ln,r)||'')+';'+bcR(p.la,p.ln,r)+';'+medR(p.la,p.ln,r,false)+';'+medR(p.la,p.ln,r,true)+';'+phR(p.la,p.ln,r)+'\n';});
- c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+';учебный центр;'+(p.scoreEdu==null?'-':p.scoreEdu)+'\n';
+ c+='\nСкоринг (0-100);БЦ;'+(p.scoreBC==null?'-':p.scoreBC)+';клиника;'+(p.scoreMed==null?'-':p.scoreMed)+';учебный центр;'+(p.scoreEdu==null?'-':p.scoreEdu)+';F&B;'+(p.scoreFnb==null?'-':p.scoreFnb)+'\n';
  c+='Формула;0.55*min(1,население_1км/25000) + 0.45*max(0,1-конкуренты/эталон)\n';
  c+='Источники;население - Kontur H3 (калибровка Toshstat 2026); БЦ - CASE DB; медицина - OpenStreetMap + clinics.uz\n';
  dl('CASE_OS_geo_report_'+p.la.toFixed(4)+'_'+p.ln.toFixed(4)+'.csv',c);}
@@ -1801,21 +2076,68 @@ function openPh(la,ln){
 
 
 /* ================= живая легенда карты ================= */
-let VIS={med:[],bc:0,ph:0,edu:0,eduByType:{},eduByT:true}, LGD=null, LGDMIN=false;
+let VIS={med:[],bc:0,ph:0,edu:0,eduByType:{},eduByT:true,fnb:0,fnbByType:{},fnbByT:true}, LGD=null, LGDMIN=false;
 function initLegend(){
  if(!map||LGD)return;
  const C=L.Control.extend({options:{position:'bottomleft'},
   onAdd:function(){const d=L.DomUtil.create('div','mlgd');d.id='mlgd';
    L.DomEvent.disableClickPropagation(d);L.DomEvent.disableScrollPropagation(d);
+   /* disableClickPropagation ставит на элемент лишь признак для карты и не глушит сам
+      click — из-за этого клик по строке легенды доходил до карты и вдобавок открывал
+      отчёт по точке. Гасим события у контейнера: наши обработчики на строках срабатывают
+      раньше (всплытие), карта не получает ничего. */
+   ['click','dblclick','mousedown','mouseup','wheel','contextmenu']
+     .forEach(t=>L.DomEvent.on(d,t,L.DomEvent.stopPropagation));
    return d;}});
  LGD=new C();map.addControl(LGD);
  updateLegend();
 }
+/* ---- размер легенды: тянется мышью за уголок, размер запоминается ----
+   Легенда прижата к левому нижнему углу карты, поэтому ручка стоит СПРАВА СВЕРХУ:
+   тянешь вверх — выше, вправо — шире. Это единственный вариант, при котором
+   легенда растёт в ту сторону, куда тянет рука. */
+const LGDSZ_LS='caseos_lgdsize';
+let LGDSZ=(function(){try{const s=JSON.parse(localStorage.getItem(LGDSZ_LS)||'null');
+  return (s&&(s.w||s.h))?s:null;}catch(e){return null;}})();
+function lgdApplySize(){
+ const el=document.getElementById('mlgd'); if(!el)return;
+ const bd=el.querySelector('.body');
+ el.style.width    = LGDSZ&&LGDSZ.w ? LGDSZ.w+'px' : '';
+ el.style.maxWidth = LGDSZ&&LGDSZ.w ? 'none' : '';
+ if(bd)bd.style.maxHeight = LGDSZ&&LGDSZ.h ? LGDSZ.h+'px' : '';
+}
+window.lgdResize=function(ev){
+ ev.preventDefault(); ev.stopPropagation();
+ const el=document.getElementById('mlgd'); if(!el)return;
+ const bd=el.querySelector('.body'); if(!bd)return;
+ const r=el.getBoundingClientRect(), rb=bd.getBoundingClientRect();
+ const x0=ev.clientX, y0=ev.clientY, w0=r.width, h0=rb.height;
+ const maxH=(map?map.getSize().y:window.innerHeight)-90, maxW=Math.min(560,window.innerWidth-80);
+ const mv=e=>{
+   /* тянем вверх → выше; вправо → шире */
+   const h=Math.max(60,Math.min(maxH, h0+(y0-e.clientY)));
+   const w=Math.max(170,Math.min(maxW, w0+(e.clientX-x0)));
+   LGDSZ={w:Math.round(w),h:Math.round(h)}; lgdApplySize();
+ };
+ /* Слушаем на перехвате (capture): сама легенда гасит всплытие мыши, чтобы события
+    не доставались карте, и обычный обработчик на document до отпускания кнопки просто
+    не дожил бы — размер не сохранялся, а слежение за мышью оставалось висеть. */
+ const up=()=>{document.removeEventListener('mousemove',mv,true);document.removeEventListener('mouseup',up,true);
+   try{localStorage.setItem(LGDSZ_LS,JSON.stringify(LGDSZ));}catch(e){}};
+ document.addEventListener('mousemove',mv,true); document.addEventListener('mouseup',up,true);
+};
+/* Двойной клик по ручке — вернуть размер по умолчанию */
+window.lgdSizeReset=function(ev){ev.preventDefault();ev.stopPropagation();LGDSZ=null;
+ try{localStorage.removeItem(LGDSZ_LS);}catch(e){}
+ const el=document.getElementById('mlgd'); if(!el)return;
+ el.style.width='';el.style.maxWidth='';
+ const bd=el.querySelector('.body'); if(bd)bd.style.maxHeight='';};
 function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
 /* Клик по строке легенды образования = фильтр по типу, как у медицины:
    на карте полторы тысячи точек, и «оставить только вузы» удобнее делать
    прямо в легенде, а не искать выпадающий список в панели. */
 function lgdFilterEdu(t){const e=$('eduT');if(!e)return;e.value=t;renderEdu();}
+function lgdFilterFnb(t){const e=$('fnbT');if(!e)return;e.value=t;renderFnb();}
 function updateLegend(){
  const el=document.getElementById('mlgd'); if(!el)return;
  let n=0, h2='';
@@ -1846,6 +2168,17 @@ function updateLegend(){
     +esc(EDU_TYPES[k]||k)+'<b>'+bt[k]+'</b></div>').join('');
   if($('eduT')&&$('eduT').value)h2+='<div class="li" onclick="lgdFilterEdu(\'\')" style="color:#9E0000">↺ снять фильтр типа</div>';
  }
+ // --- F&B ---
+ if($('lFnb')&&$('lFnb').checked&&VIS.fnb){
+  const bt=VIS.fnbByType||{}, fk=Object.keys(bt).sort((a,b)=>bt[b]-bt[a]);
+  n+=VIS.fnb;
+  h2+='<div class="grp2">F&B · '+VIS.fnb+'</div>';
+  const fix=$('fnbC')?$('fnbC').value:'#c0392b';
+  h2+=fk.map(k=>'<div class="li" onclick="lgdFilterFnb(\''+k+'\')" title="фильтровать по типу">'
+    +'<span class="dot" style="background:'+(VIS.fnbByT?(FNB_COL[k]||fix):fix)+'"></span>'
+    +esc(FNB_TYPES[k]||k)+'<b>'+bt[k]+'</b></div>').join('');
+  if($('fnbT')&&$('fnbT').value)h2+='<div class="li" onclick="lgdFilterFnb(\'\')" style="color:#9E0000">↺ снять фильтр типа</div>';
+ }
  // --- аптеки ---
  if($('lPharm').checked){n+=VIS.ph;
   h2+='<div class="grp2">Аптеки</div>'
@@ -1863,10 +2196,21 @@ function updateLegend(){
       +'<span class="dot" style="background:'+zcol(v)+'"></span>'+v+'</span>').join('')
     +'</div><div style="color:#6b7280;margin-top:2px">наш проект: <b>'+ZGRID.site.s+'/100</b> · медиана '+ZGRID.site.med+'</div>';}
  if(!h2)h2='<div style="color:#6b7280">Слои выключены.</div>';
- el.className='mlgd'+(LGDMIN?' min':'');
+ /* className НЕ перезаписываем: Leaflet вешает на элемент свой класс leaflet-control,
+    и именно он включает мышь (у контейнера углов карты pointer-events:none). Стирая
+    класс, легенда становилась «сквозной»: ползунок не схватить, колесо уходило в зум. */
+ el.classList.add('mlgd','leaflet-control');
+ el.classList.toggle('min',LGDMIN);
+ /* Прокрутку сохраняем: легенда перерисовывается на каждый сдвиг карты, и без этого
+    список отщёлкивал бы обратно наверх, стоит только чуть подвинуть карту. */
+ const bd0=el.querySelector('.body'), sc=bd0?bd0.scrollTop:0;
  el.innerHTML='<h4 onclick="LGDMIN=!LGDMIN;updateLegend();">'+(LGDMIN?'▸':'▾')
-   +' На экране <span class="c">'+(n?n.toLocaleString('ru')+' объектов · z'+map.getZoom():'z'+map.getZoom())+'</span></h4>'
+   +' На экране <span class="c">'+(n?n.toLocaleString('ru')+' объектов · z'+map.getZoom():'z'+map.getZoom())+'</span>'
+   +'<span class="rsz" title="потянуть — изменить размер легенды, двойной клик — вернуть как было"'
+   +' onmousedown="lgdResize(event)" ondblclick="lgdSizeReset(event)" onclick="event.stopPropagation()">⤡</span></h4>'
    +'<div class="body">'+h2+'</div>';
+ lgdApplySize();
+ const bd=el.querySelector('.body'); if(bd)bd.scrollTop=sc;
 }
 
 function renderRoad(){if(!map)return;gRoad.clearLayers();if(!$('lRoad').checked)return;
@@ -2182,6 +2526,12 @@ async function probeAt(la,ln){
     и порог насыщения наступает раньше. Формула та же и так же прозрачна. */
  const compEdu=edu1==null?null:Math.max(0,1-edu1/5);
  const scoreEdu=(demand==null||compEdu==null)?null:Math.round((0.55*demand+0.45*compEdu)*100);
+ /* F&B: эталон конкуренции 25 на километр — общепита в городе на порядок больше, чем
+    клиник и учебных центров, и насыщение наступает много позже. Формула та же. */
+ const fnbIn=r=>FNB.length?fnbR(la,ln,r):null;
+ const fnb1=fnbIn(1000);
+ const compFnb=fnb1==null?null:Math.max(0,1-fnb1/25);
+ const scoreFnb=(demand==null||compFnb==null)?null:Math.round((0.55*demand+0.45*compFnb)*100);
  const fmt=v=>v==null?'-':v.toLocaleString('ru');
  let h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`;
  h+=`<div class="grp">Локация</div><div class="note">${la.toFixed(5)}, ${ln.toFixed(5)}${d?' · район <b>'+d+'</b>':''}${nearMetro?'<br>метро <b>'+esc(nearMetro.n)+'</b> - '+(nearMetro.d*1000).toFixed(0)+' м':''}</div>`;
@@ -2203,6 +2553,16 @@ async function probeAt(la,ln){
  }else{
   h+=`<div class="grp">Образование</div><p class="mini">Данные не загружены — включите слой «Образование» и нажмите «Загрузить данные».</p>`;
  }
+ if(FNB.length){
+  const byF={};
+  FNB.forEach(pp=>{ if(hav(la,ln,+pp.la,+pp.ln)<=1){const t=fnbType(pp);byF[t]=(byF[t]||0)+1;} });
+  const fl2=Object.keys(byF).sort((a,b)=>byF[b]-byF[a]).map(t=>FNB_TYPES[t]+': '+byF[t]).join(', ');
+  h+=`<div class="grp">F&B (конкуренция)</div><table><tbody>`+
+    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${fmt(fnbIn(r))}</b></td></tr>`).join('')+
+    `</tbody></table>`+(fl2?`<p class="mini">В 1 км: ${esc(fl2)}</p>`:'');
+ }else{
+  h+=`<div class="grp">F&B</div><p class="mini">Данные не загружены — включите слой «F&B» и нажмите «⤓ Скачать из OpenStreetMap».</p>`;
+ }
  h+=`<table><thead><tr><th>Радиус</th><th>Все</th><th>Профильные</th><th>Аптеки</th></tr></thead><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td><b>${medR(la,ln,r,false)}</b></td><td>${medR(la,ln,r,true)}</td><td>${phR(la,ln,r)}</td></tr>`).join('')+`</tbody></table>`;
  h+=`<div class="grp">Быстрый скоринг (0-100)</div>
@@ -2210,9 +2570,10 @@ async function probeAt(la,ln){
    <tr><td>Потенциал БЦ</td><td style="text-align:right"><b style="color:${scoreBC>=55?'#1a7f37':scoreBC>=40?'#e67e22':'#9E0000'}">${scoreBC==null?'-':scoreBC}</b></td></tr>
    <tr><td>Потенциал клиники</td><td style="text-align:right"><b style="color:${scoreMed>=55?'#1a7f37':scoreMed>=40?'#e67e22':'#9E0000'}">${scoreMed==null?'загрузите медицину':scoreMed}</b></td></tr>
    <tr><td>Потенциал учебного центра</td><td style="text-align:right"><b style="color:${scoreEdu>=55?'#1a7f37':scoreEdu>=40?'#e67e22':'#9E0000'}">${scoreEdu==null?'загрузите образование':scoreEdu}</b></td></tr>
+   <tr><td>Потенциал заведения F&B</td><td style="text-align:right"><b style="color:${scoreFnb>=55?'#1a7f37':scoreFnb>=40?'#e67e22':'#9E0000'}">${scoreFnb==null?'загрузите F&B':scoreFnb}</b></td></tr>
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
- LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreEdu:scoreEdu};
+ LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreEdu:scoreEdu,scoreFnb:scoreFnb};
 h+=`</div><div class="cbtns"><button class="btn" onclick="exportProbe()">Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
 }
@@ -2312,6 +2673,8 @@ $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm
     файла может не быть вовсе, и незачем дёргать сеть на каждом открытии карты. */
  $('lEdu').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gEdu);loadEdu();}else{map.removeLayer(gEdu);renderEdu();}};
  ['eduC','eduR','eduT','eduLab','eduColBy'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',renderEdu);});
+ $('lFnb').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gFnb);loadFnb();}else{map.removeLayer(gFnb);renderFnb();}};
+ ['fnbC','fnbR','fnbT','fnbLab','fnbColBy'].forEach(id=>{const el=$(id);if(el)el.addEventListener('input',renderFnb);});
 $('phC').addEventListener('input',renderPharm);
 
 $('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'Кликайте по карте…':'Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
@@ -2329,7 +2692,7 @@ $('lMed').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gMed);re
 ['lBC','lMed','lPharm','lMetro','lRoad','lDist','bcNa','phC','mC','rC','dC','medSp','medColBy'].forEach(id=>{const e=$(id);if(e)e.addEventListener('change',()=>setTimeout(updateLegend,60));});
 let _rt=null;
 function redrawPts(){if(_rt)clearTimeout(_rt);_rt=setTimeout(()=>{_rt=null;
-  renderBC();if($('lMed').checked)renderMed();if($('lPharm').checked)renderPharm();if($('lEdu')&&$('lEdu').checked)renderEdu();},140);}
+  renderBC();if($('lMed').checked)renderMed();if($('lPharm').checked)renderPharm();if($('lEdu')&&$('lEdu').checked)renderEdu();if($('lFnb')&&$('lFnb').checked)renderFnb();},140);}
 if(map)map.on('moveend zoomend',redrawPts);
 if(map)map.on('zoomend',()=>setTimeout(updateLegend,80));
 initLegend();

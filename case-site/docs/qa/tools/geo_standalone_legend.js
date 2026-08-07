@@ -131,6 +131,10 @@ const EDU = { src: 'тест', points: [
              txt: document.getElementById('mlgd').innerText.replace(/\s+/g, ' ') };
   });
   ck('клик по строке ставит фильтр по типу', filtered.sel === 'school', 'фильтр: «' + filtered.sel + '»');
+  /* Клик по легенде не должен «проваливаться» на карту: раньше он вдобавок открывал
+     отчёт по точке, потому что событие доходило до обработчика карты. */
+  const leaked = await pg.evaluate(() => [...document.querySelectorAll('.cardbg.open')].map(x => x.id));
+  ck('клик по легенде не открывает отчёт по точке', leaked.length === 0, leaked.join(', ') || 'ничего лишнего');
   ck('после фильтра на карте только школы', filtered.vis === 3, 'видно ' + filtered.vis);
   ck('в легенде остался один тип', /Образование · 3/.test(filtered.txt) && !/Автошкола/.test(filtered.txt),
     filtered.txt.slice(0, 160));
@@ -183,6 +187,89 @@ const EDU = { src: 'тест', points: [
   });
   ck('при выключенном слое блока образования нет', !/Образование/.test(off), off.slice(0, 140));
   ck('медицина при этом осталась', /Медицина|Бизнес-центры/.test(off), off.slice(0, 140));
+
+  /* ===== Прокрутка и размер легенды =====
+     Жалоба: «когда список не помещается, появляется ползунок, но он не двигается».
+     Причина была в том, что updateLegend перезаписывал className и стирал служебный
+     класс Leaflet `leaflet-control` — без него у элемента pointer-events:none, то есть
+     мышь его вообще не видела: ползунок не схватить, колесо уходило в зум карты. */
+  await pg.evaluate(async () => {
+    const c = document.getElementById('lEdu'); c.checked = true; c.dispatchEvent(new Event('change', { bubbles: true }));
+    ['lMed', 'lPharm', 'lBC'].forEach(id => { const e = document.getElementById(id); e.checked = true; e.dispatchEvent(new Event('change', { bubbles: true })); });
+    await new Promise(r => setTimeout(r, 1500));
+  });
+  await pg.waitForTimeout(800);
+
+  const geom = await pg.evaluate(() => {
+    const el = document.getElementById('mlgd'), bd = el.querySelector('.body');
+    const r = bd.getBoundingClientRect();
+    return { over: bd.scrollHeight > bd.clientHeight, pe: getComputedStyle(el).pointerEvents,
+             cls: el.className, x: r.x, y: r.y, w: r.width, h: r.height };
+  });
+  ck('легенда принимает мышь (не «сквозная»)', geom.pe !== 'none', 'pointer-events: ' + geom.pe);
+  ck('служебный класс Leaflet не стёрт', /leaflet-control/.test(geom.cls), geom.cls);
+  ck('содержимое не помещается — есть что прокручивать', geom.over);
+
+  /* колесо над легендой прокручивает её, а не зумит карту */
+  const zBefore = await pg.evaluate(() => map.getZoom());
+  await pg.mouse.move(geom.x + 60, geom.y + 80);
+  await pg.mouse.wheel(0, 200);
+  await pg.waitForTimeout(400);
+  const afterWheel = await pg.evaluate(() => ({ top: document.querySelector('#mlgd .body').scrollTop, z: map.getZoom() }));
+  ck('колесо прокручивает легенду', afterWheel.top > 0, 'прокручено на ' + afterWheel.top + ' px');
+  ck('колесо над легендой не зумит карту', afterWheel.z === zBefore, `было z${zBefore}, стало z${afterWheel.z}`);
+
+  /* заголовок с ручкой не уезжает вместе со списком — иначе до ручки не дотянуться */
+  const headVisible = await pg.evaluate(() => {
+    const el = document.getElementById('mlgd'), h = el.querySelector('h4'), g = el.querySelector('.rsz');
+    const rh = h.getBoundingClientRect(), re = el.getBoundingClientRect(), rg = g.getBoundingClientRect();
+    return { inside: rh.top >= re.top - 1 && rh.bottom <= re.bottom + 1,
+             gripHit: document.elementFromPoint(rg.x + rg.width / 2, rg.y + rg.height / 2) === g };
+  });
+  ck('заголовок остаётся на месте при прокрутке', headVisible.inside);
+  ck('ручка размера доступна мыши', headVisible.gripHit);
+
+  /* прокрутка переживает сдвиг карты (легенда перерисовывается на каждый moveend) */
+  await pg.evaluate(() => { document.querySelector('#mlgd .body').scrollTop = 50; map.panBy([90, 0]); });
+  await pg.waitForTimeout(1400);
+  const kept = await pg.evaluate(() => document.querySelector('#mlgd .body').scrollTop);
+  ck('прокрутка не сбрасывается при сдвиге карты', kept === 50, 'осталось ' + kept);
+
+  /* размер тянется за ручку: вверх — выше, вправо — шире */
+  const grip = await pg.evaluate(() => {
+    const g = document.querySelector('#mlgd h4 .rsz');
+    if (!g) return null;
+    const r = g.getBoundingClientRect(), l = document.getElementById('mlgd').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2, h: l.height, w: l.width };
+  });
+  ck('ручка изменения размера есть', !!grip);
+  await pg.mouse.move(grip.x, grip.y);
+  await pg.mouse.down();
+  await pg.mouse.move(grip.x + 60, grip.y - 120, { steps: 12 });
+  await pg.mouse.up();
+  await pg.waitForTimeout(300);
+  const sized = await pg.evaluate(() => {
+    const r = document.getElementById('mlgd').getBoundingClientRect();
+    return { h: r.height, w: r.width, saved: localStorage.getItem('caseos_lgdsize') || '' };
+  });
+  ck('легенда стала выше', sized.h > grip.h + 80, `было ${Math.round(grip.h)}, стало ${Math.round(sized.h)}`);
+  ck('легенда стала шире', sized.w > grip.w + 40, `было ${Math.round(grip.w)}, стало ${Math.round(sized.w)}`);
+  ck('размер запомнен', /"w":\d+/.test(sized.saved) && /"h":\d+/.test(sized.saved), sized.saved);
+
+  /* размер переживает перерисовку и возвращается двойным кликом */
+  await pg.evaluate(() => updateLegend());
+  await pg.waitForTimeout(200);
+  const afterRedraw = await pg.evaluate(() => document.getElementById('mlgd').getBoundingClientRect().height);
+  ck('размер не слетает при перерисовке', Math.abs(afterRedraw - sized.h) < 2,
+    `${Math.round(sized.h)} → ${Math.round(afterRedraw)}`);
+  const g2 = await pg.evaluate(() => { const r = document.querySelector('#mlgd h4 .rsz').getBoundingClientRect();
+    return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+  await pg.mouse.dblclick(g2.x, g2.y);
+  await pg.waitForTimeout(300);
+  const reset2 = await pg.evaluate(() => ({ h: document.getElementById('mlgd').getBoundingClientRect().height,
+    saved: localStorage.getItem('caseos_lgdsize') }));
+  ck('двойной клик возвращает размер по умолчанию', reset2.h < sized.h - 40 && !reset2.saved,
+    `${Math.round(sized.h)} → ${Math.round(reset2.h)}, в памяти: ${reset2.saved}`);
 
   ck('ошибок сценария за весь прогон нет', errs.length === 0, errs[0] || 'ошибок нет');
 
