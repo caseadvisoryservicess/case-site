@@ -2,3 +2,10 @@
 graphify-out/
 .graphify_python
 .graphifyignore.local
+
+# Выхлоп QA-тестов геоаналитики: скриншоты и временные копии страницы,
+# которые тесты создают рядом с собой при каждом прогоне
+docs/qa/tools/*.png
+docs/qa/tools/indep/
+docs/qa/tools/labtest/
+docs/qa/tools/legendtest/
