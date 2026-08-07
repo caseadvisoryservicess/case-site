@@ -88,7 +88,9 @@ const OS = {
   med: { score: 55, comp: 33, median: 55, pctile: 26 },
   edu: { score: 55, comp: 19, median: 55, pctile: 29 },
   radii: [500, 1000, 1500, 2000, 3000],
-  pop:  { 500: 11392, 1000: 32375, 1500: 82992, 2000: 138615, 3000: 302913 },
+  // население обновлено 2026-08-07 по CSV-геоотчёту CASE OS (перекрывается
+  // значениями из caseos-model.json ниже, если файл на месте)
+  pop:  { 500: 11392, 1000: 32375, 1500: 82746, 2000: 117229, 3000: 288614 },
   bcR:  { 500: 2, 1000: 4, 1500: 7, 2000: 16, 3000: 29 },
   medR: { 500: 7, 1000: 34, 1500: 53, 2000: 86, 3000: 176 },
   compR:{ 500: 7, 1000: 33, 1500: 49, 2000: 73, 3000: 152 },
@@ -135,28 +137,22 @@ const EDU = {
 // и прямо объясняем, откуда расхождение. Выдавать приоритет за результат
 // модели нельзя, как и молча подгонять балл под приоритет.
 // ── карты из приложения CASE OS ──
-// Подложку с улицами из среды сборки не снять: тайлы OSM, 2ГИС и Яндекса
-// закрыты прокси (проверено, CONNECT отдаёт 403). Поэтому карты кладём
-// картинками: владелец делает скриншот в приложении и кладёт файл в uploads
-// проекта. Как только файл появился - страница карты собирается сама, без
-// правок кода. Пока файлов нет, работает наша SVG-схема.
+// Владелец 2026-08-07 прислал четыре PDF-экспорта приложения одним видом и
+// масштабом: население по районам, бизнес-центры, медицина, образование.
+// Кадры карты вырезаны из них в 300 dpi (кроп без панелей интерфейса) и лежат
+// в uploads как caseos-ppl/bc/med/edu.jpg. Каждая найденная карта собирает
+// свой лист «карта + аналитика рядом»; нет файла - лист просто пропускается.
 const UP_DIR = path.join(__dirname, '..', 'data', 'projects', 'takhtapul', 'uploads');
-const MAP_DEFS = [
-  { file: 'caseos-map.jpg', h: 'Окружение объекта на карте',
-    c: 'В кольце радиусом километр живёт 32 375 человек и работают 34 медицинских учреждения. Ближайший бизнес-центр NEXUS в 358 метрах, следующие уже за километром: это обжитой центр Шайхантахура, а не деловой коридор.' },
-  { file: 'caseos-heat-bc.jpg', h: 'Зоны пригодности: офис',
-    c: 'Зелёным отмечены зоны, где людей много, а офисов мало. Наша точка попадает в такую зону и получает лучший из трёх баллов - 78 из 100. Но офисный спрос города стягивается восточнее, в деловые коридоры, поэтому сильный сценарий здесь один: здание целиком под одну компанию.' },
-  { file: 'caseos-heat-med.jpg', h: 'Зоны пригодности: клиника',
-    c: 'Красное - насыщение: медицинских центров вокруг много, и формально это опускает балл до 55. На практике для клиники соседство работает наоборот: рядом стационары, роддом и диспансеры, а значит поток направлений и район, который люди уже знают как место, куда едут лечиться.' },
-  { file: 'caseos-heat-edu.jpg', h: 'Зоны пригодности: образование',
-    c: 'Учебных заведений вокруг тоже много, и балл снова 55. Но 82 объекта из 103 в ближней зоне - школы и детские сады, то есть аудитория, а не соперники. Коммерческих курсов рядом почти нет: спрос сформирован, предложения нет.' }
-];
-const MAPS = MAP_DEFS.filter((m) => fs.existsSync(path.join(UP_DIR, m.file)));
+const MAP_FILES = { ppl: 'caseos-ppl.jpg', bc: 'caseos-bc.jpg', med: 'caseos-med.jpg', edu: 'caseos-edu.jpg' };
+const HAS_MAP = {};
+for (const [k, f] of Object.entries(MAP_FILES)) HAS_MAP[k] = fs.existsSync(path.join(UP_DIR, f));
+const N_MAPS = Object.values(HAS_MAP).filter(Boolean).length;
 
-// Широкий обзор с кольцами 1/2/3 км. Если владелец положил этот файл, он
-// заменяет нашу SVG-схему на странице «Окружение объекта в цифрах»: настоящая
-// карта с улицами читается лучше, чем точки на белом. Файла нет - работает схема.
-const WIDE_MAP = fs.existsSync(path.join(UP_DIR, 'caseos-map-wide.jpg')) ? 'caseos-map-wide.jpg' : null;
+// Население по радиусам и плотности районов - из caseos-model.json:
+// туда сведён CSV-геоотчёт CASE OS от 2026-08-07 и карта населения.
+const POP = (MODEL && MODEL.radii && MODEL.radii.pop) || {};
+const DISTR = (MODEL && MODEL.districts && MODEL.districts.list) || [];
+const METRO = (MODEL && MODEL.metro) || { name: 'Гафура Гуляма', d: 1754, alt: { name: 'Бадамзар', d: 1791 } };
 
 const GEO_COL = { med: '#c0392b', medx: '#e08a80', bc: '#2f6fb0', ph: '#1e8f5e', mh: '#8a6bbf', x: '#9aa0a6' };
 // Показываем только те слои, которые действительно конкурируют с оцениваемыми
@@ -184,13 +180,14 @@ const SECTIONS = {
   },
   geo: {
     n: '05', h: 'Геоаналитика и выбор формата', s: 'Что говорят данные об окружении объекта и какой формат для него сильнее', img: '',
-    list: ['Окружение в радиусе до 3 км по геобазе CASE', 'Конкурентная среда: кто уже работает рядом', 'Сравнение форматов: офис, клиника, образование', 'Чего в данных не хватает и как это закрыть']
+    list: ['Население и плотность районов вокруг объекта', 'Карты окружения: бизнес-центры, медицина, образование', 'Сравнение категорий по радиусам', 'Приоритет CASE и его обоснование']
   }
 };
 
-// 4 титульных листа основной брошюры + 5 страниц инвесторской части + карты,
-// если владелец положил скриншоты приложения в uploads
-const count = 4 + 5 + MAPS.length;
+// 4 титульных листа основной брошюры + геоблок: дивайдер, листы карт с
+// аналитикой, зона охвата, сравнение категорий, конкурентная среда,
+// приоритет, вывод
+const count = 4 + 6 + N_MAPS;
 
 function dividerPage(ctx, key, right) {
   const { esc, img64, BRONZE, DARK, CODE, nextPg, TOTAL } = ctx;
@@ -338,49 +335,140 @@ ${dividerPage(ctx, 'geo', `<div style="height:100%;padding:18mm 12mm;display:fle
   <div style="font-size:8pt;color:rgba(255,255,255,.5);line-height:1.5">Три прогона одной модели при общем эталоне конкуренции ${OS.bench.bc}. Жителей в радиусе 1 км - ${gnum(OS.pop[1000])}: спрос упирается в верхнюю границу модели, поэтому разницу между форматами задаёт только конкуренция.</div>
 </div>`)}
 
-${MAPS.map((m) => `
-<!-- карта из приложения: ${m.file} -->
+${(() => {
+  // ── лист «карта + аналитика рядом» ──
+  // Карта занимает левые две трети листа, справа колонка выводов. Кадры карт
+  // сняты одним видом и масштабом, поэтому листы сравниваются перелистыванием.
+  const mapPage = (key, title, rightHtml, capt) => HAS_MAP[key] ? `
 <div class="pg">
   <span class="ilbl">Геоаналитика</span>
-  <div class="ih">${esc(m.h)}</div>
-  <div style="flex:1;min-height:0;border-radius:4mm;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center">
-    <img src="${ctx.img64(m.file)}" style="width:100%;height:100%;object-fit:contain">
+  <div class="ih">${title}</div>
+  <div style="display:flex;gap:7mm;flex:1;min-height:0">
+    <div style="flex:1.55;display:flex;flex-direction:column;min-height:0">
+      <div class="icard" style="flex:1;padding:0;overflow:hidden;display:flex">
+        <img src="${ctx.img64(MAP_FILES[key])}" style="width:100%;height:100%;object-fit:cover">
+      </div>
+      <div class="inote" style="margin-top:2.5mm">${capt}</div>
+    </div>
+    <div style="flex:.8;display:flex;flex-direction:column;gap:4mm;min-height:0">${rightHtml}</div>
   </div>
-  <div class="inote" style="margin-top:4mm">${esc(m.c)}</div>
   ${foot()}
-</div>`).join('')}
+</div>` : '';
 
-<!-- окружение в цифрах -->
+  const box = (title, html2) => `<div class="icard" style="padding:4.5mm 5.5mm"><div class="ih3" style="margin-bottom:2mm">${title}</div>${html2}</div>`;
+  const abox = (html2) => `<div class="icard acc" style="padding:4.5mm 5.5mm;font-size:9pt;line-height:1.5">${html2}</div>`;
+  const big = (v, k, s) => `<div class="ikpi" style="padding:4.5mm 5.5mm"><div class="k">${k}</div><div class="v" style="font-size:21pt">${v}</div><div class="s">${s}</div></div>`;
+  const mrow = (a, b, hl) => `<tr><td style="padding:2mm 0;font-size:9pt;${hl ? 'font-weight:800' : ''}">${a}</td><td class="n" style="padding:2mm 0;font-size:9pt">${b}</td></tr>`;
+
+  return [
+    // 1. Население: карта плотности районов
+    mapPage('ppl', 'Население: кто живёт вокруг',
+      big(gn(POP[1000] || OS.pop[1000]), 'Жителей в 1 км', 'эталон спроса модели 25 000 перекрыт уже в километре') +
+      box('Плотность районов, чел/км²', `<table class="itab" style="background:transparent">${
+        DISTR.map((d) => mrow(d[0] + (d[4] === 'наш район' ? ' - наш' : ''), gn(d[3]), d[4] === 'наш район')).join('')}</table>`) +
+      abox('<b>Объект стоит в самом плотном районе города.</b> Шайхантахур - 13 841 чел/км², и кольцо 2 км накрывает стык трёх районов, где вместе живёт 1,19 млн человек. Спрос здесь не надо создавать, он уже живёт вокруг.'),
+      'Кольца 1, 2 и 3 км от объекта. Плашки - население, площадь и плотность районов по официальным границам.'),
+
+    // 2. Зона охвата: аналитика населения
+    `
 <div class="pg">
   <span class="ilbl">Геоаналитика</span>
-  <div class="ih">Окружение объекта в цифрах</div>
-  <div style="display:flex;gap:8mm;flex:1;min-height:0">
-    <div style="flex:.95;display:flex;flex-direction:column;min-height:0">
-      ${WIDE_MAP ? `<div class="icard" style="flex:1;padding:0;overflow:hidden;display:flex">
-        <img src="${ctx.img64(WIDE_MAP)}" style="width:100%;height:100%;object-fit:cover">
-      </div>
-      <div class="inote" style="margin-top:3mm">Кольца 1, 2 и 3 км. Плотность объектов растёт к востоку, к деловому центру, но жилая масса вокруг объекта плотная на всех радиусах.</div>`
-      : `<div class="icard" style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:5mm">
-        ${scheme(300)}
-      </div>
-      <div style="margin-top:3mm">${legend}</div>`}
+  <div class="ih">Население в зоне охвата</div>
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5mm">
+    ${[[1000, '1 км', 'пешая зона'], [1500, '1,5 км', 'ближний охват'], [2000, '2 км', 'стык трёх районов'], [3000, '3 км', 'весь северный центр']]
+      .map(([r, t, s]) => `<div class="ikpi"><div class="k">${t}</div><div class="v">${gn(POP[r])}</div><div class="s">${s}</div></div>`).join('')}
+  </div>
+  <div style="display:flex;gap:5mm;margin-top:5mm;flex:1;min-height:0">
+    <div class="icard" style="flex:1.25;display:flex;flex-direction:column;justify-content:center">
+      ${[[1000, POP[1000]], [1500, POP[1500]], [2000, POP[2000]], [3000, POP[3000]]].map(([r, v]) => `
+        <div style="display:flex;align-items:center;gap:4mm;margin:2.6mm 0">
+          <div style="width:16mm;font-size:9pt;font-weight:800">${r / 1000} км</div>
+          <div style="flex:1;height:7mm;background:rgba(0,0,0,.05);border-radius:2mm;overflow:hidden">
+            <div style="width:${Math.round((v / POP[3000]) * 100)}%;height:100%;background:rgba(${ACC_RGB},.85)"></div>
+          </div>
+          <div style="width:24mm;font-size:9.5pt;font-weight:800;text-align:right">${gn(v)}</div>
+        </div>`).join('')}
+      <div class="inote" style="margin-top:2mm">Каждая следующая ступень почти утраивает охват против километра.</div>
     </div>
-    <div style="flex:1.1;display:flex;flex-direction:column;gap:5mm;min-height:0">
-      <table class="itab">
-        <tr><th>Что вокруг</th>${OS.radii.map((r) => `<th class="n">${r >= 1000 ? (r / 1000).toString().replace('.', ',') + ' км' : r + ' м'}</th>`).join('')}</tr>
-        <tr><td><b>Жителей</b></td>${OS.radii.map((r) => `<td class="n">${gnum(OS.pop[r])}</td>`).join('')}</tr>
-        <tr><td>Медицина, всего</td>${OS.radii.map((r) => `<td class="n">${OS.medR[r]}</td>`).join('')}</tr>
-        <tr><td>в том числе профильные конкуренты</td>${OS.radii.map((r) => `<td class="n">${OS.compR[r]}</td>`).join('')}</tr>
-        <tr><td>Бизнес-центры</td>${OS.radii.map((r) => `<td class="n">${OS.bcR[r]}</td>`).join('')}</tr>
-      </table>
-      <div class="icard acc" style="font-size:9.5pt;line-height:1.5">
-        <b>Что это за место.</b> В километре вокруг живёт ${gn(OS.pop[1000])} человек, в трёх километрах - ${gn(OS.pop[3000])}. Верхняя граница модели ${gn(OS.benchPop)}, то есть спроса здесь заведомо достаточно под любой формат. Плотная центральная застройка Шайхантахура: метро ${esc(OS.metro.n)} в ${gn(OS.metro.d)} м, ${OS.medR[1000]} медицинских объекта в том же километре.
+    <div style="flex:1;display:flex;flex-direction:column;gap:4mm">
+      <div class="icard">
+        <div class="ih3">Метро: две станции</div>
+        <table class="itab" style="background:transparent">
+          ${mrow(esc(METRO.name), gn(METRO.d) + ' м')}${METRO.alt ? mrow(esc(METRO.alt.name), gn(METRO.alt.d) + ' м') : ''}
+        </table>
+        <div class="inote" style="margin-top:1.5mm">Обе на расстоянии короткой поездки, у Малой кольцевой.</div>
       </div>
-      <div class="inote">Чужих бизнес-центров в километре три: NEXUS 358 м, «Бизнес центр» 891 м, Alpha 949 м.</div>
+      <div class="icard acc" style="flex:1;font-size:9.5pt;line-height:1.55">
+        <b>Что это значит.</b> Эталон спроса модели - ${gn(OS.benchPop)} человек в километре; здесь их ${gn(POP[1000])}, на 29% больше. В двух километрах живёт ${gn(POP[2000])} человек, в трёх - ${gn(POP[3000])}: любой из трёх форматов получает аудиторию без борьбы за неё.
+      </div>
     </div>
   </div>
+  <div class="inote" style="margin-top:3mm">Источник: геоотчёт CASE OS по точке объекта, сетка населения с калибровкой на официальную статистику.</div>
   ${foot()}
-</div>
+</div>`,
+
+    // 3. Бизнес-центры
+    mapPage('bc', 'Бизнес-центры: ниша не занята',
+      big(OS.bc.score + ' / 100', 'Балл модели', 'лучший из трёх форматов; медиана города ' + OS.bc.median) +
+      box('Чужих БЦ в 1 км - ' + C1.bc, `<table class="itab" style="background:transparent">${
+        GEO.nearestBc.slice(0, 3).map((b) => mrow(esc(b.n), gn(b.d) + ' м')).join('')}</table>
+        <div class="inote" style="margin-top:1.5mm">До 3 км - ${GEO.counts[3000].bc}. Модель считает на один больше: в её списке есть сам Тахтапул.</div>`) +
+      abox('<b>Как читать.</b> Ниша свободна, но офисный спрос стягивается в деловые коридоры восточнее. Сильный сценарий один: здание целиком под одну компанию - ей важен свой дом и парковка, а не деловой адрес.'),
+      'Зелёные точки - бизнес-центры города: плотность нарастает к юго-востоку, к деловому центру, вокруг объекта разрежение.'),
+
+    // 4. Медицина
+    mapPage('med', 'Медицина: сложившийся кластер',
+      big(C1.med, 'Медобъекта в 1 км', 'из них ' + C1.comp + ' профильных - модель видит насыщение и ставит ' + OS.med.score) +
+      box('Якоря кластера', `<table class="itab" style="background:transparent">${
+        [['Детская инфекционная больница №4', 214], ['Областной онкодиспансер', 462], ['Родильный комплекс №3', 553], ['Sinomed MD International Hospital', 629]]
+          .map(([n, d]) => mrow(n, gn(d) + ' м')).join('')}</table>`) +
+      abox('<b>Как читать.</b> Для клиники штраф модели работает наоборот: стационары, роддом и диспансеры дают направления, диагностику и наблюдение после выписки. Район уже известен людям как место, куда едут лечиться.'),
+      'Каждый цвет - направление медицины. Плотное ядро вокруг объекта - и есть кластер: поликлиники, стационары, роддом в первом километре.'),
+
+    // 5. Образование
+    mapPage('edu', 'Образование: аудитория без предложения',
+      big(EDU_NEAR_TOTAL, 'Учебных объектов рядом', (EDU_NEAR.eduAudience || 82) + ' из них - школы и детские сады, то есть аудитория') +
+      box('Состав слоя в поле карты', `<table class="itab" style="background:transparent">${
+        [['Школы', 510], ['Детские сады', 452], ['Колледжи и лицеи', 104], ['Вузы', 100], ['Языковые школы', 23], ['Курсы и учебные центры', 17]]
+          .map(([n, v]) => mrow(n, gn(v))).join('')}</table>`) +
+      abox('<b>Как читать.</b> Коммерческий учебный центр в ближней зоне один. Спрос сформирован школами и садами вокруг, а предложения нет - курсы заходят на чистое поле. Балл ' + OS.edu.score + ': модель записала в конкуренты весь слой, включая школы.'),
+      'Фиолетовое - школы, оранжевое - детские сады. Плотность учебных заведений повторяет плотность жилья: аудитория живёт вокруг объекта.'),
+
+    // 6. Сравнение категорий
+    `
+<div class="pg">
+  <span class="ilbl">Геоаналитика</span>
+  <div class="ih">Окружение в цифрах: сравнение категорий</div>
+  <table class="itab">
+    <tr><th>Что вокруг</th><th class="n">1 км</th><th class="n">1,5 км</th><th class="n">2 км</th><th class="n">3 км</th></tr>
+    <tr><td><b>Жителей</b></td>${[1000, 1500, 2000, 3000].map((r) => `<td class="n">${gn(POP[r])}</td>`).join('')}</tr>
+    <tr><td>Медицина, всего</td>${[1000, 1500, 2000, 3000].map((r) => `<td class="n">${OS.medR[r]}</td>`).join('')}</tr>
+    <tr><td>в том числе профильные конкуренты клиники</td>${[1000, 1500, 2000, 3000].map((r) => `<td class="n">${OS.compR[r]}</td>`).join('')}</tr>
+    <tr><td>Бизнес-центры, кроме самого объекта</td>${[1000, 1500, 2000, 3000].map((r) => `<td class="n">${OS.bcR[r] - 1}</td>`).join('')}</tr>
+  </table>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6mm;margin-top:7mm;flex:1;min-height:0">
+    ${[
+      ['#2f6fb0', 'Офису - простор', String(C1.bc), 'чужих бизнес-центра в 1 км',
+        `Конкуренция вчетверо ниже эталона модели при ${gn(POP[1000])} жителях вокруг - отсюда лучший балл ${OS.bc.score} из 100. Спрос на офисы при этом тянется в деловые коридоры восточнее, поэтому рабочий сценарий - здание целиком под одну компанию.`],
+      ['#c0392b', 'Клинике - кластер', String(C1.comp), 'профильных соседа в 1 км',
+        'Формально это насыщение, но среди соседей стационары, роддом и диспансеры: они дают направления, диагностику и наблюдение после выписки, а не соперничают за того же пациента. Кластер работает на новую клинику.'],
+      ['#7a6a3f', 'Курсам - аудитория', String(EDU_NEAR.eduAudience || 82), 'школы и сада в ближней зоне',
+        'Плюс один коммерческий учебный центр на всю ближнюю зону. Поток учеников и родителей сформирован государственной инфраструктурой, коммерческого предложения рядом нет - формат заходит на чистое поле.']
+    ].map(([col, h, v, u, p]) => `
+    <div class="icard" style="border-top:1.6mm solid ${col};display:flex;flex-direction:column">
+      <div class="ih3">${h}</div>
+      <div style="display:flex;align-items:baseline;gap:2.5mm;margin:1mm 0 2.5mm">
+        <div style="font-size:26pt;font-weight:800;letter-spacing:-.02em">${v}</div>
+        <div style="font-size:9pt;color:${MUTED}">${u}</div>
+      </div>
+      <div style="font-size:9.5pt;line-height:1.5;color:${MUTED}">${p}</div>
+    </div>`).join('')}
+  </div>
+  <div class="inote" style="margin-top:4mm">Численность населения - геоотчёт CASE OS; счёт категорий - слои приложения по точке объекта, те же данные, по которым посчитаны баллы.</div>
+  ${foot()}
+</div>`
+  ].join('');
+})()}
 
 <!-- конкурентная среда -->
 <div class="pg">
