@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "skills-for-architects": {
+      "source": {
+        "source": "github",
+        "repo": "AlpacaLabsLLC/skills-for-architects"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "as@skills-for-architects": true
+  }
+}
