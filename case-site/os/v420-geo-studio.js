@@ -889,22 +889,37 @@
     try{if(typeof catchSummary==='function')catchSummary();}catch(e){}
     if(!map||!window.L||!gProj)return;
     gProj.clearLayers();GEO_PROJ_MARKERS={};
+    var lp=document.getElementById('lProj'),showOther=!lp||lp.checked,pfV=0,pfN=0;
     Object.keys(PROJECTS).forEach(function(id){
       var q=PROJECTS[id],la=+q.lat,ln=+q.lng;
       if(!Number.isFinite(la)||!Number.isFinite(ln)||q.mapHidden)return;
       if(GEO_EXTERNAL&&!q.extVisible)return;
       var isActive=(p&&String(id)===String(p.id)),color=geoObjColorOf(q),mk;
+      // Кроме текущего проекта (он и есть точка расчёта) все наши объекты можно скрыть
+      // одной галочкой: раньше на карте просто висели безымянные янтарные кружки,
+      // которые нельзя было ни опознать, ни выключить.
+      if(!isActive&&!showOther)return;
+      if(!isActive){(q.verification==='verified')?pfV++:pfN++;}
       if(isActive){
         var ic=L.divIcon({className:'',html:'<div style="background:'+color+';width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
         mk=L.marker([la,ln],{icon:ic}).bindTooltip('★ '+esc(q.name),{permanent:true,direction:'top',className:'dlab'});
       }else{
         var rad=Number.isFinite(+q.markerSize)&&+q.markerSize>0?+q.markerSize:6;
-        mk=L.circleMarker([la,ln],{radius:rad,color:'#fff',weight:1.5,fillColor:color,fillOpacity:.85}).bindTooltip(esc(q.name));
+        mk=L.circleMarker([la,ln],{radius:rad,color:'#fff',weight:1.5,fillColor:color,fillOpacity:.85})
+          .bindTooltip('<b>'+esc(q.name)+'</b><br><small>Наш проект CASE'
+            +(q.city||q.district?' · '+esc(q.city||q.district):'')
+            +(q.verification==='verified'?'':' · требует проверки')
+            +'<br>клик — открыть карточку</small>');
       }
       mk.bindPopup(geoObjPopup(id),{maxWidth:300});
       mk.on('click',function(){var s=document.getElementById('proj');if(s&&s.value!==String(id)){s.value=String(id);if(typeof universalProfile==='function')universalProfile();}mk.openPopup();});
       mk.addTo(gProj);GEO_PROJ_MARKERS[String(id)]=mk;
     });
+    // легенда карты показывает, сколько наших проектов на экране и что значат цвета
+    /* VIS объявлен через let — свойством window он НЕ становится, поэтому обращаемся
+       к нему по имени из общей области видимости страницы, а не через window. */
+    try{if(typeof VIS==='object'&&VIS)VIS.pf={v:pfV,n:pfN};
+        if(typeof window.updateLegend==='function')window.updateLegend();}catch(e){}
     if(!GEO_PROJ_CENTERED&&Number.isFinite(plat)&&Number.isFinite(plng)){try{map.setView([plat,plng],11);}catch(e){}GEO_PROJ_CENTERED=true;}
   }
   window.geoObjFocus=function(id){

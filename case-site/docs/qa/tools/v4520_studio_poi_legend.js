@@ -153,6 +153,57 @@ const ROWS = {
   ck('модель зон считает конкурентами образование', zone.edu === 2, 'получено ' + zone.edu);
   ck('медицина считается по-старому', typeof zone.med === 'number');
 
+  /* ===== Проекты портфеля: было не понять, что за янтарные точки, и не выключить =====
+     Жалоба: «в OS геоаналитике лишние оранжевые точки на карте, не могу отключить
+     или понять что за точки это». Это наши собственные проекты из «Портфеля проектов»:
+     янтарные — требующие проверки, тёмно-зелёные — проверенные. */
+  const pf = await pg.evaluate(async () => {
+    /* добавляем два проекта портфеля рядом с текущим */
+    PROJECTS.pf1 = { id: 'pf1', name: 'Проект портфеля А', portfolio: true, lat: 41.3140, lng: 69.2830,
+                     city: 'Ташкент', verification: 'verified', extVisible: true };
+    PROJECTS.pf2 = { id: 'pf2', name: 'Проект портфеля Б', portfolio: true, lat: 41.3150, lng: 69.2840,
+                     city: 'Ташкент', verification: 'online', extVisible: true };
+    renderProj();
+    await new Promise(r => setTimeout(r, 600));
+    const tips = gProj.getLayers().map(l => (l.getTooltip && l.getTooltip()) ? l.getTooltip().getContent() : '');
+    return { drawn: gProj.getLayers().length, vis: VIS.pf,
+             tip: tips.find(t => /Проект портфеля А/.test(t)) || '',
+             txt: document.getElementById('mlgd').innerText.replace(/\s+/g, ' ') };
+  });
+  ck('точки портфеля нарисованы', pf.vis && pf.vis.v === 1 && pf.vis.n === 1, JSON.stringify(pf.vis));
+  ck('в легенде есть блок «Проекты портфеля»', /Проекты портфеля · 2/.test(pf.txt), pf.txt.slice(0, 200));
+  ck('легенда расшифровывает цвета', /проверенные/.test(pf.txt) && /требуют проверки/.test(pf.txt),
+    pf.txt.slice(0, 240));
+  ck('подсказка объясняет, что это за точка', /Наш проект CASE/.test(pf.tip), pf.tip.slice(0, 110));
+
+  const pfOff = await pg.evaluate(async () => {
+    const cb = document.getElementById('lProj');
+    cb.checked = false; cb.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 600));
+    return { drawn: gProj.getLayers().length,
+             txt: document.getElementById('mlgd').innerText.replace(/\s+/g, ' ') };
+  });
+  /* Остаётся только метка текущего проекта — она и есть точка, по которой считается анализ */
+  ck('точки портфеля выключаются галочкой', pfOff.drawn === 1, 'на карте осталось: ' + pfOff.drawn);
+  ck('выключенный слой ушёл из легенды', !/Проекты портфеля/.test(pfOff.txt), pfOff.txt.slice(0, 160));
+
+  await pg.evaluate(async () => {
+    const cb = document.getElementById('lProj');
+    cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true }));
+    await new Promise(r => setTimeout(r, 500));
+  });
+  const pfClick = await pg.evaluate(async () => {
+    const li = [...document.querySelectorAll('#mlgd .li')].find(x => /lgdTogglePf/.test(x.getAttribute('onclick') || ''));
+    li.click();
+    await new Promise(r => setTimeout(r, 500));
+    return { on: document.getElementById('lProj').checked, drawn: gProj.getLayers().length };
+  });
+  ck('клик по строке легенды скрывает проекты портфеля', pfClick.on === false && pfClick.drawn === 1,
+    `галочка ${pfClick.on}, на карте ${pfClick.drawn}`);
+  await pg.evaluate(() => { const cb = document.getElementById('lProj'); cb.checked = true;
+    cb.dispatchEvent(new Event('change', { bubbles: true })); });
+  await pg.waitForTimeout(500);
+
   /* ===== Механика легенды ===== */
   const mech = await pg.evaluate(() => {
     const el = document.getElementById('mlgd'), bd = el.querySelector('.body');

@@ -881,6 +881,9 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
    <div class="mini">1 · 3 · 5 км — каждая своим цветом.</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
+   <div class="geo-cat-title">Проекты CASE</div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lProj" checked> Проекты портфеля (наши объекты)</label></div>
+   <div class="styrow sub"><span class="mini"><span class="geo-dot" style="background:#14675B"></span> проверенные &nbsp; <span class="geo-dot" style="background:#A8792C"></span> требуют проверки · клик по точке переключает проект</span></div>
    <div class="geo-cat-title">Бизнес-центры</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="bcNa" value="#0d7a6f"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"></div>
@@ -1116,7 +1119,23 @@ function renderRings(){if(!map)return;gRing.clearLayers();const p=proj();const w
  RADII.filter(r=>r.on).sort((a,b)=>b.km-a.km).forEach((r)=>{const idx=[1,3,5].indexOf(r.km);const col=idx===2?$('ringWc').value:RINGC[idx>=0?idx:2];
    L.circle([p.lat,p.lng],{radius:r.km*1000,color:col,weight:w,opacity:.95,fillColor:col,fillOpacity:.06}).addTo(gRing).bindTooltip(r.km+' км',{sticky:true});});}
 function renderProj(){const p=proj(),plat=+p.lat,plng=+p.lng;$('projInfo').innerHTML=`${esc(p.name)}<br>Район: <b>${esc(p.district||'—')}</b><br>${Number.isFinite(plat)?plat.toFixed(5):'—'}, ${Number.isFinite(plng)?plng.toFixed(5):'—'}${p.verification!=='verified'?'<br><span style="color:#9b6b00">'+(p.coordinateAccuracy==='city_geocoded'?'Геокодирование уровня города':'Предположительная точка')+' · требуется проверка</span>':''}`;renderRings();catchSummary();if(!map||!Number.isFinite(plat)||!Number.isFinite(plng))return;gProj.clearLayers();const ic=L.divIcon({className:'',html:'<div style="background:#9E0000;width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
- Object.keys(PROJECTS).forEach(id=>{const q=PROJECTS[id],la=+q.lat,ln=+q.lng;if(!q.portfolio||!Number.isFinite(la)||!Number.isFinite(ln)||id===p.id)return;const m=L.circleMarker([la,ln],{radius:5,color:'#fff',weight:1,fillColor:q.verification==='verified'?'#14675B':'#A8792C',fillOpacity:.82});m.bindTooltip(esc(q.name)+'<br><small>'+esc(q.city||q.location||'')+(q.verification!=='verified'?' · требует проверки':'')+'</small>');m.on('click',()=>{const sel=$('proj');if(sel){sel.value=id;renderProj();if(typeof universalProfile==='function')universalProfile();}});m.addTo(gProj);});
+ /* Точки портфеля: наши собственные проекты из раздела «Портфель проектов».
+    Раньше их нельзя было ни выключить, ни опознать — на карте просто появлялись
+    безымянные янтарные кружки. Теперь есть переключатель, подпись в подсказке
+    и строка в легенде с расшифровкой цветов. */
+ const showPf=!$('lProj')||$('lProj').checked;
+ let pfV=0,pfN=0;
+ if(showPf)Object.keys(PROJECTS).forEach(id=>{const q=PROJECTS[id],la=+q.lat,ln=+q.lng;
+  if(!q.portfolio||!Number.isFinite(la)||!Number.isFinite(ln)||id===p.id)return;
+  const ok=q.verification==='verified'; ok?pfV++:pfN++;
+  const m=L.circleMarker([la,ln],{radius:5,color:'#fff',weight:1,fillColor:ok?'#14675B':'#A8792C',fillOpacity:.82});
+  m.bindTooltip('<b>'+esc(q.name)+'</b><br><small>Проект портфеля CASE'
+    +(q.city||q.location?' · '+esc(q.city||q.location):'')
+    +(ok?'':' · требует проверки')+'<br>клик — открыть этот проект</small>');
+  m.on('click',()=>{const sel=$('proj');if(sel){sel.value=id;renderProj();if(typeof universalProfile==='function')universalProfile();}});
+  m.addTo(gProj);});
+ VIS.pf={v:pfV,n:pfN};
+ try{updateLegend();}catch(e){}
  L.marker([plat,plng],{icon:ic}).addTo(gProj).bindTooltip('★ '+esc(p.name),{permanent:true,direction:'top',className:'dlab'});
  map.setView([plat,plng],p.portfolio?10:13);}
 function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
@@ -1515,7 +1534,7 @@ function openPh(la,ln){
 
 
 /* ================= живая легенда карты ================= */
-let VIS={med:[],bc:0,ph:0}, LGD=null, LGDMIN=false;
+let VIS={med:[],bc:0,ph:0,pf:{v:0,n:0}}, LGD=null, LGDMIN=false;
 function initLegend(){
  if(!map||LGD)return;
  const C=L.Control.extend({options:{position:'bottomleft'},
@@ -1571,6 +1590,7 @@ function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
 /* Клик по строке городского объекта в легенде убирает и возвращает слой:
    фильтровать там нечего — у каждой категории свой переключатель в панели. */
 function lgdTogglePoi(k){if(window.CASE_GEO_POI)window.CASE_GEO_POI.toggle(k);}
+function lgdTogglePf(){const cb=$('lProj');if(!cb)return;cb.checked=!cb.checked;renderProj();}
 function updateLegend(){
  const el=document.getElementById('mlgd'); if(!el)return;
  let n=0, h2='';
@@ -1592,6 +1612,15 @@ function updateLegend(){
  if($('lPharm')&&$('lPharm').checked){n+=VIS.ph;
   h2+='<div class="grp2">Аптеки</div>'
     +'<div class="li"><span class="dot" style="background:'+$('phC').value+'"></span>на экране<b>'+VIS.ph+'</b></div>';}
+ // --- проекты портфеля CASE ---
+ if($('lProj')&&$('lProj').checked&&VIS.pf&&(VIS.pf.v||VIS.pf.n)){
+  n+=VIS.pf.v+VIS.pf.n;
+  h2+='<div class="grp2">Проекты портфеля · '+(VIS.pf.v+VIS.pf.n)+'</div>';
+  if(VIS.pf.v)h2+='<div class="li" onclick="lgdTogglePf()" title="показать / скрыть проекты портфеля">'
+    +'<span class="dot" style="background:#14675B"></span>проверенные<b>'+VIS.pf.v+'</b></div>';
+  if(VIS.pf.n)h2+='<div class="li" onclick="lgdTogglePf()" title="показать / скрыть проекты портфеля">'
+    +'<span class="dot" style="background:#A8792C"></span>требуют проверки<b>'+VIS.pf.n+'</b></div>';
+ }
  // --- городские объекты: F&B, образование, ритейл и остальные категории ---
  /* Раньше в легенде были только медицина, БЦ и аптеки, а полтора десятка слоёв
     городских объектов на ней не отражались вовсе. Числа берём те, что реально
@@ -2159,6 +2188,7 @@ $('lDens').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gDens);
 ['dC','dW','dF','dO','dLab'].forEach(id=>$(id).addEventListener('input',renderDist));
 $('lReg').onchange=()=>{syncDistLayer();renderDens();analytics();};
 $('proj').onchange=renderProj;
+if($('lProj'))$('lProj').addEventListener('change',renderProj);
 if(map)map.on('click',e=>{
  if(ZMODE){ZPTS.push([e.latlng.lat,e.latlng.lng]);zoneDraw();return;}
  if($('lProbe')&&$('lProbe').checked)probeAt(e.latlng.lat,e.latlng.lng);});
