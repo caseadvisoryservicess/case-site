@@ -54,13 +54,17 @@ function osm_poi_tag_filters(string $category): array {
     'supermarkets'   => ['shop~"supermarket|convenience"'],
     'markets'        => ['amenity=marketplace', 'market=flea_market'],
     'restaurants'    => ['amenity=restaurant'],
-    'cafes'          => ['amenity=cafe'],
-    'fast_food'      => ['amenity=fast_food', 'amenity=food_court'],
+    'cafes'          => ['amenity~"cafe|ice_cream"', 'shop~"coffee|tea"'],
+    'fast_food'      => ['amenity~"fast_food|food_court"'],
     'parks'          => ['leisure~"park|garden|nature_reserve|recreation_ground"', 'tourism=theme_park'],
     'playgrounds'    => ['leisure~"playground|amusement_arcade"', 'tourism=theme_park'],
     'entertainment'  => ['amenity~"cinema|nightclub"', 'leisure~"amusement_arcade|water_park|bowling_alley"', 'tourism~"theme_park|aquarium"'],
     'sports'         => ['leisure~"sports_centre|fitness_centre|stadium|swimming_pool|ice_rink|sports_hall"'],
-    'education'      => ['amenity~"school|university|college|kindergarten|language_school|music_school|driving_school"'],
+    // Учебные центры и курсы: amenity=training и office=educational_institution. Без них
+    // выпадал весь коммерческий сегмент (IT-школы, языковые и подготовительные центры),
+    // а для аренды он важнее государственных школ — проверено на автономной версии карты.
+    'education'      => ['amenity~"school|university|college|kindergarten|language_school|music_school|driving_school|training"',
+                         'office=educational_institution'],
     'residential'    => ['building~"apartments|residential"'],
     'warehouses'     => ['building~"warehouse|industrial"', 'landuse=industrial', 'office=logistics'],
     'parking'        => ['amenity=parking', 'building~"parking|garages"'],
@@ -84,7 +88,9 @@ if ($mode === 'poi') {
     if (!$south || !$west || !$north || !$east) fail('south/west/north/east required', 400);
     $bbox = "$south,$west,$north,$east";
     $stmts = '';
-    foreach ($filters as $f) { $stmts .= "node[$f]($bbox);way[$f]($bbox);"; }
+    // nwr вместо node+way: часть объектов (крупные вузы, ТРЦ, парки) размечена
+    // отношениями (relation) и раньше в выборку не попадала вовсе.
+    foreach ($filters as $f) { $stmts .= "nwr[$f]($bbox);"; }
     // Лимит выборки: 400 было мало для города целиком (обрезало плотные категории —
     // рестораны/магазины/супермаркеты). Клиент может запросить больше через &limit=;
     // держим потолок 3000, чтобы не перегрузить Overpass и браузер.

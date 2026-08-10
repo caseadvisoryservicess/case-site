@@ -69,6 +69,29 @@
     optician:'Оптика', variety_store:'Товары по одной цене / разное', department_store:'Универсальные магазины', convenience:'Универсальные магазины',
     gift_shop:'Подарки и сувениры', toys:'Игрушки и детские товары', florist:'Цветы'
   };
+  /* Подтипы образования и общепита — человеческими словами. OSM отдаёт сырой тег
+     (school, training, restaurant), и в отчётах это выглядело как «training: 12».
+     Набор и правила совпадают с автономной версией карты, чтобы цифры сходились.
+     Чайхану OSM отдельным тегом НЕ размечает — она приходит обычным рестораном,
+     поэтому национальный сегмент выделяем по названию. */
+  var EDU_SUBTYPES={school:'Школа',university:'Университет / вуз',college:'Колледж / лицей',
+    kindergarten:'Детский сад',language_school:'Языковая школа',
+    music_school:'Музыкальная / художественная',driving_school:'Автошкола',
+    training:'Курсы / учебный центр',educational_institution:'Курсы / учебный центр'};
+  var FNB_SUBTYPES={restaurant:'Ресторан',cafe:'Кафе / кофейня',ice_cream:'Кафе / кофейня',
+    coffee:'Кафе / кофейня',tea:'Кафе / кофейня',fast_food:'Фастфуд / QSR',food_court:'Фудкорт'};
+  var TEA_RE=/чайхан|choyxona|choyhona|чойхон|милли таом/i, CANTEEN_RE=/столов|ошхона|oshxona/i;
+  function poiSubtypeLabel(cat,x){
+    var raw=String((x&&x.subtype)||'').toLowerCase(), name=String((x&&x.name)||'');
+    if(cat==='education')return EDU_SUBTYPES[raw]||'Другое учебное заведение';
+    if(cat==='restaurants'||cat==='cafes'||cat==='fast_food'){
+      if(TEA_RE.test(name))return 'Чайхана / национальная';
+      if(CANTEEN_RE.test(name))return 'Столовая';
+      return FNB_SUBTYPES[raw]||'Общепит, прочее';
+    }
+    if(cat==='street_retail')return retailSubtypeLabel(raw);
+    return raw||'';
+  }
   var GEO_RETAIL_SUB_ON={};
   function retailSubtypeLabel(raw){return STREET_RETAIL_SUBTYPES[String(raw||'').toLowerCase()]||'Прочее';}
   function retailSubtypeList(){ // отсортированный список меток без дублей + «Прочее» в конце
@@ -623,7 +646,7 @@
     GEO_POI_CONTROLS_BUILT=true;
   }
   function poiRowRefresh(k){var row=document.querySelector('.geo-poi-row[data-poi-k="'+k+'"]');if(!row)return;var cnt=row.querySelector('#geoLayerCount-'+k);if(cnt)cnt.textContent=GEO_POI_LOADING[k]?'загрузка…':GEO_POI[k].length;row.classList.toggle('geo-poi-empty',!GEO_POI_LOADING[k]&&!GEO_POI[k].length);}
-  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([x.subtype,x.district].filter(Boolean).join(' · '))+'</p>'+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
+  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([poiSubtypeLabel(k,x),x.district].filter(Boolean).join(' · '))+'</p>'+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
   function renderPoiLayer(k){if(!map||!window.L||!POI_DEFS[k])return;if(!GEO_POI_RENDERER)GEO_POI_RENDERER=L.svg({padding:.25});var g=GEO_POI_LAYERS[k];
    // Кластеризация маркеров (Leaflet.markercluster) — при поднятом лимите 2000 точек/слой без
    // неё карта превращается в кашу и тормозит. На близком зуме (>=17) кластеры распадаются на
@@ -1001,7 +1024,14 @@
         var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
         if(typeof hav==='function'&&hav(la,ln,a,b)<=km)c++;});if(c)o[k]=c;});
       return o;},
-    has:function(cats){return (cats||[]).some(function(k){return (GEO_POI[k]||[]).length>0;});}
+    has:function(cats){return (cats||[]).some(function(k){return (GEO_POI[k]||[]).length>0;});},
+    subtypeLabel:poiSubtypeLabel,
+    // разбивка по человеческим подтипам: {'Школа':12,'Курсы / учебный центр':5}
+    subtypes:function(cats,la,ln,km){
+      var o={};(cats||[]).forEach(function(k){(GEO_POI[k]||[]).forEach(function(x){
+        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
+        if(typeof hav==='function'&&hav(la,ln,a,b)<=km){var lb=poiSubtypeLabel(k,x)||'Прочее';o[lb]=(o[lb]||0)+1;}});});
+      return o;}
   };
   function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
   auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});

@@ -43,9 +43,14 @@ def check_xlsx(path):
     wb = openpyxl.load_workbook(path)
     ck('Excel: файл открывается', True, os.path.basename(path))
     names = wb.sheetnames
+    # Тест перед выгрузкой снимает галочки «Метро» и «Рынок города» и задаёт свои
+    # радиусы — файл обязан это учесть, иначе настройка проекта ни на что не влияет.
     want = ['Сводка', 'Население', 'Население по районам', 'Районы города', 'Радиусы',
-            'Бизнес-центры', 'Медицина', 'Городские объекты', 'Метро', 'Рынок города']
-    ck('Excel: все десять листов на месте', names == want, names)
+            'Бизнес-центры', 'Медицина', 'Городские объекты', 'Образование по типам',
+            'F&B по типам']
+    ck('Excel: состав листов соответствует настройке проекта', names == want, names)
+    ck('Excel: отключённые разделы не попали в файл',
+       'Метро' not in names and 'Рынок города' not in names, names)
 
     sv = wb['Сводка']
     vals = [str(c.value) for row in sv.iter_rows() for c in row if c.value is not None]
@@ -61,9 +66,10 @@ def check_xlsx(path):
        head[:4] == ['Радиус, м', 'Население', 'Бизнес-центры', 'Медицина'] and 'F&B' in head and 'Образование' in head,
        head)
     body = list(rd.iter_rows(min_row=2, values_only=True))
-    ck('Excel: строк по радиусам не меньше пяти', len(body) >= 5, len(body))
+    ck('Excel: строки по радиусам посчитаны', len(body) >= 3, len(body))
     nums = [r[0] for r in body]
     ck('Excel: радиусы — числа, а не текст', all(isinstance(x, (int, float)) for x in nums), nums)
+    ck('Excel: радиусы взяты из настройки проекта', nums == [400, 800, 1600], nums)
     fnb_col = head.index('F&B')
     ck('Excel: F&B посчитан', any(isinstance(r[fnb_col], (int, float)) for r in body),
        [r[fnb_col] for r in body])
@@ -74,16 +80,34 @@ def check_xlsx(path):
     ck('Excel: в населении есть плотность и прирост',
        'Плотность, чел/км²' in ph and 'Прирост в кольце' in ph and 'Доля населения района, %' in ph, ph)
     pbody = [r for r in pop.iter_rows(min_row=2, values_only=True) if isinstance(r[0], (int, float))]
-    ck('Excel: строки населения посчитаны', len(pbody) >= 5, len(pbody))
+    ck('Excel: строки населения посчитаны', len(pbody) >= 3, len(pbody))
     dens = [r[ph.index('Плотность, чел/км²')] for r in pbody]
     ck('Excel: плотность — числа', all(isinstance(x, (int, float)) for x in dens), dens)
     area = [r[ph.index('Площадь круга, км²')] for r in pbody]
     ck('Excel: площадь круга растёт с радиусом', area == sorted(area) and area[0] > 0, area)
 
-    # --- разрез по районам
+    # --- разрез по районам: радиус детализации тоже из настройки (800 м)
     bd = wb['Население по районам']
     bh = [c.value for c in next(bd.iter_rows(min_row=1, max_row=1))]
-    ck('Excel: разрез населения по районам', bh == ['Район', 'Жителей в 1 км', 'Жителей в 3 км'], bh)
+    ck('Excel: разрез населения по районам с радиусом из настройки',
+       bh == ['Район', 'Жителей в 800 м', 'Жителей в 3 км'], bh)
+
+    # --- эталоны проекта попали в методику
+    ck('Excel: в сводке указаны эталоны проекта',
+       any('Эталоны насыщения' in v for v in vals) and any('F&B 3' in v for v in vals),
+       [v for v in vals if 'талон' in v][:3])
+
+    # --- образование и F&B по человеческим типам
+    ed = wb['Образование по типам']
+    erows = [r for r in ed.iter_rows(min_row=2, values_only=True) if r[0]]
+    ck('Excel: образование разложено по типам', len(erows) >= 2, erows[:4])
+    labels = [str(r[0]) for r in erows]
+    ck('Excel: типы образования человеческие, а не теги OSM',
+       'Школа' in labels and 'Курсы / учебный центр' in labels
+       and not any(x in labels for x in ('school', 'training', 'university')), labels)
+    fb = wb['F&B по типам']
+    frows = [str(r[0]) for r in fb.iter_rows(min_row=2, values_only=True) if r[0]]
+    ck('Excel: чайхана выделена из ресторанов', 'Чайхана / национальная' in frows, frows)
 
     # --- все районы города
     ad = wb['Районы города']
@@ -104,10 +128,7 @@ def check_xlsx(path):
     ck('Excel: список конкурентов не пуст', len(bcrows) >= 1, f'строк: {len(bcrows)}')
 
     # --- метро
-    mt = wb['Метро']
-    mh = [c.value for c in next(mt.iter_rows(min_row=1, max_row=1))]
-    ck('Excel: метро с расстоянием и временем пешком',
-       'Расстояние, м' in mh and any('пешком' in str(x).lower() for x in mh), mh)
+
 
 
 def check_pptx(path):

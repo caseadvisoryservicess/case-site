@@ -23,11 +23,16 @@ const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQV
 let failed = 0;
 const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
 
+/* subtype — сырой тег OSM, как его отдаёт api/gis_proxy.php. Отчёт обязан
+   превратить его в человеческое название, а чайхану — узнать по имени. */
 const ROWS = {
-  restaurants: [{ name: 'Афсона', lat: 41.3110, lng: 69.2800 }, { name: 'Чайхана Навруз', lat: 41.3115, lng: 69.2805 }],
-  cafes: [{ name: 'Coffee House', lat: 41.3112, lng: 69.2802 }],
-  fast_food: [{ name: 'Evos', lat: 41.3125, lng: 69.2815 }],
-  education: [{ name: 'Школа №110', lat: 41.3105, lng: 69.2795 }]
+  restaurants: [{ name: 'Афсона', lat: 41.3110, lng: 69.2800, subtype: 'restaurant' },
+                { name: 'Чайхана Навруз', lat: 41.3115, lng: 69.2805, subtype: 'restaurant' }],
+  cafes: [{ name: 'Coffee House', lat: 41.3112, lng: 69.2802, subtype: 'cafe' }],
+  fast_food: [{ name: 'Evos', lat: 41.3125, lng: 69.2815, subtype: 'fast_food' }],
+  education: [{ name: 'Школа №110', lat: 41.3105, lng: 69.2795, subtype: 'school' },
+              { name: "Najot Ta'lim", lat: 41.3108, lng: 69.2798, subtype: 'training' },
+              { name: 'Inha University', lat: 41.3112, lng: 69.2801, subtype: 'university' }]
 };
 
 (async () => {
@@ -110,6 +115,62 @@ const ROWS = {
   ck('в отчёте записан проект', /Samsung BC/.test(rep.project || ''), rep.project);
   ck('таблица по радиусам собрана', rep.rows >= 5, 'строк: ' + rep.rows);
   ck('в таблице есть F&B', rep.fnb !== null && rep.fnb !== undefined, 'в 1 км: ' + rep.fnb);
+
+  /* Типы образования и общепита — человеческими словами, чайхана отдельно */
+  const subs = await pg.evaluate(() => ({
+    edu: window.CASE_GEO_POI.subtypes(['education'], 41.3115, 69.2805, 1),
+    fnb: window.CASE_GEO_POI.subtypes(['restaurants', 'cafes', 'fast_food'], 41.3115, 69.2805, 1)
+  }));
+  ck('образование разложено по человеческим типам',
+    subs.edu['Школа'] === 1 && subs.edu['Курсы / учебный центр'] === 1 && subs.edu['Университет / вуз'] === 1,
+    JSON.stringify(subs.edu));
+  ck('чайхана отделена от ресторанов', subs.fnb['Чайхана / национальная'] === 1 && subs.fnb['Ресторан'] === 1,
+    JSON.stringify(subs.fnb));
+
+  /* ===== Настройки выгрузки: свои у каждого проекта =====
+     Запрос: «каждый проект уникален и имеет свою настройку». Проверяем, что окно
+     открывается, настройка сохраняется по проекту и реально меняет состав файла
+     и баллы скоринга. */
+  const dlg = await pg.evaluate(() => {
+    window.caseGeoExportSettings(false);
+    const w = document.getElementById('caseExpCfg');
+    return { open: !!w, parts: w ? w.querySelectorAll('[data-part]').length : 0,
+             bench: w ? w.querySelectorAll('[data-bench]').length : 0,
+             fmt: w ? w.querySelectorAll('[data-fmt]').length : 0,
+             radii: w ? w.querySelector('#caseExpRadii').value : '' };
+  });
+  ck('окно настроек открывается', dlg.open);
+  ck('в настройках есть разделы, эталоны и форматы',
+    dlg.parts >= 10 && dlg.bench === 4 && dlg.fmt === 3,
+    `разделов ${dlg.parts}, эталонов ${dlg.bench}, форматов ${dlg.fmt}`);
+  ck('радиусы по умолчанию подставлены', /500/.test(dlg.radii), dlg.radii);
+
+  const savedCfg = await pg.evaluate(() => {
+    const w = document.getElementById('caseExpCfg');
+    /* убираем метро и рынок, свои радиусы, свой эталон F&B */
+    w.querySelector('[data-part="metro"]').checked = false;
+    w.querySelector('[data-part="market"]').checked = false;
+    w.querySelector('#caseExpRadii').value = '400,800,1600';
+    w.querySelector('[data-bench="fnb"]').value = '3';
+    w.querySelector('#caseExpDetail').value = '800';
+    w.querySelector('#caseExpSave').click();
+    const key = 'caseos_export_cfg_' + document.getElementById('proj').value;
+    return { raw: localStorage.getItem(key), closed: !document.getElementById('caseExpCfg') };
+  });
+  ck('настройка сохранена по конкретному проекту', /"radii":"400,800,1600"/.test(savedCfg.raw || ''), savedCfg.raw);
+  ck('окно закрывается после сохранения', savedCfg.closed);
+
+  const otherProj = await pg.evaluate(() => {
+    const sel = document.getElementById('proj'); const was = sel.value;
+    sel.value = 'project';
+    window.caseGeoExportSettings(false);
+    const v = document.getElementById('caseExpRadii').value;
+    document.getElementById('caseExpX').click();
+    sel.value = was;
+    return v;
+  });
+  ck('у другого проекта своя настройка, не перетёрта',
+    otherProj === '500,1000,1500,2000,3000', 'радиусы второго проекта: ' + otherProj);
 
   /* Выгрузка Excel и PPTX */
   await pg.evaluate(() => window.caseGeoExportXlsx());
