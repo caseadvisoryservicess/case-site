@@ -1,4 +1,4 @@
-/* CASE OS v4.54.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
+/* CASE OS v4.55.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
  *
  * Запрос владельца: «поставили наш новый проект на карту, проверили данные проекта,
  * конкурентную среду, население — и одной кнопкой выгрузили PDF, Excel, PPTX
@@ -110,8 +110,11 @@
   var CFG_DEF = {
     radii: '500,1000,1500,2000,3000',
     parts: { pop: true, districts: true, allDistricts: true, radii: true, bc: true,
-             med: true, poi: true, metro: true, market: true, scoring: true, map: true },
+             med: true, poi: true, metro: true, market: true, scoring: true, map: true,
+             comp: true, rentChart: true },
     bcLimit: 60, bcRadius: 3000, detailRadius: 1000,
+    compRadius: 5000, compLimit: 20,
+    compCats: { bc: true, shopping: true, markets: true, street_retail: false, hotels: false },
     /* эталоны конкуренции: сколько объектов на километр считается насыщением */
     bench: { bc: 6, med: 8, fnb: 25, edu: 5 },
     demandPop: 25000,
@@ -128,7 +131,8 @@
       if (raw && typeof raw === 'object') {
         if (raw.radii) out.radii = raw.radii;
         ['bcLimit', 'bcRadius', 'detailRadius', 'demandPop'].forEach(function (k) { if (raw[k] != null) out[k] = raw[k]; });
-        ['parts', 'bench', 'formats'].forEach(function (g) {
+        ['compRadius', 'compLimit'].forEach(function (k) { if (raw[k] != null) out[k] = raw[k]; });
+        ['parts', 'bench', 'formats', 'compCats'].forEach(function (g) {
           if (raw[g]) Object.keys(out[g]).forEach(function (k) { if (raw[g][k] != null) out[g][k] = raw[g][k]; });
         });
       }
@@ -151,6 +155,8 @@
     ['poi', 'Городские объекты по слоям'],
     ['metro', 'Метро и пешая доступность'],
     ['market', 'Рынок города (OLX, uybor)'],
+    ['comp', 'Конкуренты: карточки (тип, GBA, GLA, точки, ставка)'],
+    ['rentChart', 'График «Заявленные ставки» в презентации'],
     ['scoring', 'Скоринг локации'],
     ['map', 'Снимок карты в презентации']
   ];
@@ -186,6 +192,13 @@
       + '<input id="caseExpDetail" type="number" min="200" max="10000" step="100" value="' + c.detailRadius + '" style="width:90px"></label>'
       + '<label style="display:block">Конкуренты-БЦ: радиус, м <input id="caseExpBcR" type="number" min="500" max="10000" step="100" value="' + c.bcRadius + '" style="width:90px">'
       + ' строк не больше <input id="caseExpBcN" type="number" min="5" max="500" step="5" value="' + c.bcLimit + '" style="width:70px"></label>'
+      + '<label style="display:block">Конкуренты (карточки): радиус, м <input id="caseExpCompR" type="number" min="500" max="20000" step="500" value="' + c.compRadius + '" style="width:90px">'
+      + ' строк не больше <input id="caseExpCompN" type="number" min="3" max="100" step="1" value="' + c.compLimit + '" style="width:70px"></label>'
+      + '<div style="margin:6px 0 0">Кого считать конкурентами: '
+      + COMP_CATS.map(function (cc) {
+          return '<label style="margin-right:12px"><input type="checkbox" data-cc="' + cc.key + '"'
+            + (c.compCats[cc.key] ? ' checked' : '') + '> ' + xe(cc.label) + '</label>';
+        }).join('') + '</div>'
       + '<div style="font-weight:700;margin:14px 0 4px">Эталоны насыщения (объектов на 1 км)</div>'
       + '<div style="color:#6b7280;margin-bottom:4px">Чем выше эталон, тем терпимее скоринг к соседям. Влияет на баллы.</div>'
       + BENCH_LABELS.map(function (b) {
@@ -210,6 +223,9 @@
       wrap.querySelectorAll('[data-part]').forEach(function (el) { n.parts[el.dataset.part] = el.checked; });
       wrap.querySelectorAll('[data-bench]').forEach(function (el) { n.bench[el.dataset.bench] = Math.max(1, +el.value || 1); });
       wrap.querySelectorAll('[data-fmt]').forEach(function (el) { n.formats[el.dataset.fmt] = el.checked; });
+      wrap.querySelectorAll('[data-cc]').forEach(function (el) { n.compCats[el.dataset.cc] = el.checked; });
+      n.compRadius = Math.max(500, +wrap.querySelector('#caseExpCompR').value || 5000);
+      n.compLimit = Math.max(3, +wrap.querySelector('#caseExpCompN').value || 20);
       n.radii = wrap.querySelector('#caseExpRadii').value;
       n.detailRadius = Math.max(200, +wrap.querySelector('#caseExpDetail').value || 1000);
       n.bcRadius = Math.max(500, +wrap.querySelector('#caseExpBcR').value || 3000);
@@ -323,6 +339,61 @@
       return row;
     });
   }
+  /* ================= карточки конкурентов =================
+     Тот самый разрез, который команда делает руками в презентациях по рынку:
+     тип, год открытия, участок, GBA/GLA, этажность, число точек и из них F&B,
+     парковка, заявленная ставка и расстояние. Берём из наших же данных —
+     бизнес-центры из базы CASE, торговые центры и рынки из городских объектов. */
+  var COMP_CATS = [
+    { key: 'bc', label: 'Бизнес-центр' },
+    { key: 'shopping', label: 'ТРЦ / ТЦ' },
+    { key: 'markets', label: 'Рынок' },
+    { key: 'street_retail', label: 'Стрит-ритейл' },
+    { key: 'hotels', label: 'Гостиница' }
+  ];
+  function numOf(v) { var n = parseFloat(String(v == null ? '' : v).replace(/\s|\u00a0/g, '').replace(',', '.')); return isFinite(n) ? n : null; }
+  /* Ставка может быть числом (25), диапазоном («15-35», «$20–40») или «20 и выше».
+     Возвращаем {min,max,text} — по ним строится и колонка, и график. */
+  function rentRange(v) {
+    var t = String(v == null ? '' : v).trim();
+    if (!t) return null;
+    var nums = (t.match(/\d+[.,]?\d*/g) || []).map(function (x) { return parseFloat(x.replace(',', '.')); });
+    if (!nums.length) return null;
+    var open = /выше|от\s|\+/.test(t.toLowerCase()) && nums.length === 1;
+    return { min: nums[0], max: nums.length > 1 ? nums[1] : nums[0], open: open,
+      text: nums.length > 1 ? ('$' + nums[0] + '–' + nums[1]) : ('$' + nums[0] + (open ? ' и выше' : '')) };
+  }
+  function competitors(p, c) {
+    var hav = g('hav'), eff = g('eff'), BC = g('BC'), api = window.CASE_GEO_POI;
+    if (!hav) return [];
+    var km = (c.compRadius || c.bcRadius || 3000) / 1000, out = [];
+    var cats = c.compCats || { bc: true, shopping: true, markets: true, street_retail: false, hotels: false };
+    if (cats.bc && BC) BC.forEach(function (b) {
+      var e = eff ? eff(b) : b;
+      if (e.lat == null || e.lng == null) return;
+      var d = hav(p.la, p.ln, +e.lat, +e.lng); if (d > km) return;
+      out.push({ name: e.name, type: e['class'] ? ('Бизнес-центр ' + e['class']) : 'Бизнес-центр',
+        year: numOf(e.year), land: numOf(e.landArea), gba: numOf(e.gba), gla: numOf(e.gla),
+        floors: numOf(e.floors), units: numOf(e.tenantsCount), fb: numOf(e.fbCount),
+        park: numOf(e.parking) != null ? numOf(e.parking) : numOf(e.parkingSpaces),
+        rent: rentRange(e.rent != null && e.rent !== '' ? e.rent : e.rentRange),
+        km: d, district: e.district || '', ours: /CASE \(owner\)/i.test(e.provider || '') });
+    });
+    if (api) COMP_CATS.forEach(function (cc) {
+      if (cc.key === 'bc' || !cats[cc.key]) return;
+      (api.rows ? api.rows(cc.key) : []).forEach(function (x) {
+        var la = +x.lat, ln = +x.lng; if (!isFinite(la) || !isFinite(ln)) return;
+        var d = hav(p.la, p.ln, la, ln); if (d > km) return;
+        out.push({ name: x.name, type: x.format || cc.label,
+          year: numOf(x.openYear), land: numOf(x.landArea), gba: numOf(x.gba), gla: numOf(x.gla),
+          floors: numOf(x.floors), units: numOf(x.tenantsCount) != null ? numOf(x.tenantsCount) : numOf(x.units),
+          fb: numOf(x.fbCount), park: numOf(x.parkingSpaces),
+          rent: rentRange(x.rentRange || x.rent), km: d, district: x.district || '', ours: false });
+      });
+    });
+    return out.sort(function (a, b) { return a.km - b.km; }).slice(0, c.compLimit || 20);
+  }
+
   function detail(p, c) {
     c = c || cfgLoad();
     var RAD = radiiOf(c), DR = c.detailRadius || 1000;
@@ -359,6 +430,7 @@
       fnbSub: (window.CASE_GEO_POI && window.CASE_GEO_POI.subtypes)
         ? window.CASE_GEO_POI.subtypes(['restaurants', 'cafes', 'fast_food'], p.la, p.ln, DR / 1000) : null,
       market: c.parts.market ? (g('MARKET') || null) : null,
+      comp: c.parts.comp ? competitors(p, c) : [],
       radii: RAD, detailRadius: DR, cfg: c,
       /* Таблица по радиусам считается по настроенным радиусам, а не по тем,
          что были на экране: пользователь мог задать свои. */
@@ -391,6 +463,28 @@
                  scoreFnb: sc(fnb1, c.bench.fnb), scoreEdu: sc(edu1, c.bench.edu), pop1: pop1 };
       })()
     };
+  }
+
+  function coreXml(p) {
+    var t = new Date().toISOString().replace(/\.\d+Z$/, 'Z');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" '
+      + 'xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" '
+      + 'xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">'
+      + '<dc:title>CASE OS — геоаналитика: ' + xe(p.project || 'точка') + '</dc:title>'
+      + '<dc:creator>CASE Advisory · CASE OS</dc:creator>'
+      + '<cp:lastModifiedBy>CASE OS</cp:lastModifiedBy>'
+      + '<dcterms:created xsi:type="dcterms:W3CDTF">' + t + '</dcterms:created>'
+      + '<dcterms:modified xsi:type="dcterms:W3CDTF">' + t + '</dcterms:modified>'
+      + '</cp:coreProperties>';
+  }
+  function appXml(app, slides) {
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
+      + '<Properties xmlns="http://schemas.openxmlformats.org/officeDocument/2006/extended-properties" '
+      + 'xmlns:vt="http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes">'
+      + '<Application>' + xe(app) + '</Application>'
+      + (slides ? '<Slides>' + slides + '</Slides>' : '')
+      + '<Company>CASE Advisory</Company></Properties>';
   }
 
   /* ================= Excel (.xlsx) ================= */
@@ -518,6 +612,20 @@
     });
     else poi.push(['Слои городских объектов не включены'].concat(RAD.map(function () { return ''; })));
 
+    /* 8a. Конкуренты — карточки как в презентациях по рынку */
+    var comp = [['№', 'Объект', 'Тип', 'Откр.', 'Участок, м²', 'GBA, м²', 'GLA, м²', 'Эт.',
+      'Точки', 'F&B', 'Парк.', 'Ставка, $/м²/мес', 'Расст. по прямой, км', 'Район', 'Наш проект']];
+    (D.comp || []).forEach(function (x, i) {
+      comp.push([i + 1, x.name, x.type, x.year == null ? '—' : x.year,
+        x.land == null ? '—' : x.land, x.gba == null ? '—' : x.gba, x.gla == null ? '—' : x.gla,
+        x.floors == null ? '—' : x.floors, x.units == null ? '—' : x.units,
+        x.fb == null ? '—' : x.fb, x.park == null ? '—' : x.park,
+        x.rent ? x.rent.text : '—', +x.km.toFixed(2), x.district, x.ours ? 'да' : '']);
+    });
+    if (comp.length === 1) comp.push(['—', 'В заданном радиусе конкурентов не найдено', '', '', '', '', '', '', '', '', '', '', '', '', '']);
+    comp.push([], ['Пустые ячейки', 'данных нет в базе — заполняются в карточке объекта на вкладке «Объекты»'],
+      ['Расстояние', 'по прямой от точки проекта; расстояние по дороге считается отдельно маршрутизатором']);
+
     /* 8b. Образование и F&B по человеческим типам */
     var eduS = [['Тип учебного заведения', 'В ' + DR + ' м']];
     if (D.eduSub) Object.keys(D.eduSub).sort(function (a, b) { return D.eduSub[b] - D.eduSub[a]; })
@@ -559,6 +667,7 @@
     add(C.parts.allDistricts, { name: 'Районы города', rows: allRows, w: [28, 14, 16, 20, 14] });
     add(C.parts.radii, { name: 'Радиусы', rows: rad, w: [12, 14, 16, 12, 18, 10, 10, 14] });
     add(C.parts.bc, { name: 'Бизнес-центры', rows: bc, w: [34, 16, 15, 10, 18, 14, 15, 12, 10, 40, 14] });
+    add(C.parts.comp, { name: 'Конкуренты', rows: comp, w: [5, 30, 20, 8, 13, 12, 12, 6, 8, 7, 8, 18, 18, 16, 12] });
     add(C.parts.med, { name: 'Медицина', rows: med, w: [40, 12, 12] });
     add(C.parts.poi, { name: 'Городские объекты', rows: poi, w: [32, 10, 10, 10, 10, 10] });
     add(C.parts.poi, { name: 'Образование по типам', rows: eduS, w: [34, 14] });
@@ -578,11 +687,17 @@
         + '<Default Extension="xml" ContentType="application/xml"/>'
         + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
         + sheets.map(function (s, i) { return '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>'; }).join('')
+        + '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
+        + '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
         + '</Types>' },
       { name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
         + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+        + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>'
+        + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>'
         + '</Relationships>' },
+      { name: 'docProps/core.xml', data: coreXml(p) },
+      { name: 'docProps/app.xml', data: appXml('Microsoft Excel', 0) },
       { name: 'xl/workbook.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'
         + sheets.map(function (s, i) { return '<sheet name="' + xe(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>'; }).join('')
@@ -645,9 +760,13 @@
       + 'xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main">'
       + '<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr>'
       + '<p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>'
-      + shapes.join('') + '</p:spTree></p:cSld><p:clrMapOvr><a:overrideClrMapping bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" '
-      + 'accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" '
-      + 'hlink="hlink" folHlink="folHlink"/></p:clrMapOvr></p:sld>';
+      + shapes.join('') + '</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>';
+  }
+  function rect(x, y, w, h, color, id) {
+    return '<p:sp><p:nvSpPr><p:cNvPr id="' + id + '" name="r' + id + '"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
+      + '<p:spPr><a:xfrm><a:off x="' + x + '" y="' + y + '"/><a:ext cx="' + w + '" cy="' + h + '"/></a:xfrm>'
+      + '<a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="' + color + '"/></a:solidFill>'
+      + '<a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p/></p:txBody></p:sp>';
   }
   function band(id) {   /* фирменная красная полоса сверху слайда */
     return '<p:sp><p:nvSpPr><p:cNvPr id="' + id + '" name="band"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr>'
@@ -755,7 +874,7 @@
       fnbRows.push([(D.fnbSub ? k : ((p.poiLabels && p.poiLabels[k]) || k)), String(fb[k])]);
     });
     if (fnbRows.length === 1) fnbRows.push(['Слои общепита не загружены', '—']);
-    if (C.parts.bc) S.push([band(2), tx('Конкурентная среда', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+    if (C.parts.bc) S.push([band(2), tx('Ближайшее окружение: офисы и общепит', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
       tbl(bcRows, 600000, 1150000, 6600000, 4), tbl(fnbRows, 7500000, 1150000, 4100000, 5)]);
     /* 6. Медицина по направлениям */
     var med = [['Направление медицины', 'В 1 км', 'В 3 км']];
@@ -790,6 +909,53 @@
         tbl(es, 600000, 1150000, 7000000, 4),
         tx('Школа, вуз и коммерческие курсы для аренды означают разное: у них разные '
           + 'арендаторы, разные площади и разный трафик.', 7900000, 1150000, 3700000, 2500000, 12, { color: '6D6D6D', id: 5 })]);
+    }
+
+    /* 7c. Конкурентная среда: предложение — таблица как в наших презентациях */
+    if (C.parts.comp && D.comp && D.comp.length) {
+      var ct = [['№', 'Объект', 'Тип', 'Откр.', 'GBA, м²', 'GLA, м²', 'Эт.', 'Точки', 'F&B', 'Парк.', 'Ставка', 'Расст., км']];
+      D.comp.slice(0, 12).forEach(function (x, i) {
+        ct.push([String(i + 1), x.name, x.type, x.year == null ? '—' : String(x.year),
+          x.gba == null ? '—' : num(x.gba), x.gla == null ? '—' : num(x.gla),
+          x.floors == null ? '—' : String(x.floors), x.units == null ? '—' : String(x.units),
+          x.fb == null ? '—' : String(x.fb), x.park == null ? '—' : num(x.park),
+          x.rent ? x.rent.text : '—', x.km.toFixed(1)]);
+      });
+      S.push([band(2),
+        tx('Конкурентная среда', 600000, 260000, 11000000, 420000, 24, { bold: true, color: '9E0000', id: 3 }),
+        tx('Предложение рядом с проектом', 600000, 700000, 11000000, 380000, 14, { color: '6D6D6D', id: 4 }),
+        tbl(ct, 400000, 1250000, 11400000, 5),
+        tx('Пустые ячейки — данных нет в базе; заполняются в карточке объекта. '
+          + 'Расстояние по прямой от площадки.', 400000, 6100000, 11400000, 500000, 10, { color: '6D6D6D', id: 6 })]);
+    }
+    /* 7d. Заявленные ставки — «плавающие» столбцы min–max, наш проект чёрным */
+    if (C.parts.rentChart && D.comp) {
+      var withRent = D.comp.filter(function (x) { return x.rent; }).slice(0, 14);
+      if (withRent.length) {
+        var maxV = Math.max.apply(null, withRent.map(function (x) { return x.rent.max; }));
+        var top = Math.ceil(maxV / 10) * 10 || 10;
+        var X0 = 3100000, W = 8400000, Y0 = 1250000, RH = Math.min(360000, 4600000 / withRent.length);
+        var sh = [band(2), tx('Заявленные ставки, $/м²/мес', 600000, 260000, 11000000, 460000, 24, { bold: true, color: '9E0000', id: 3 })];
+        var id = 10;
+        /* шкала и вертикальные линии сетки */
+        for (var v = 0; v <= top; v += 10) {
+          var gx = X0 + Math.round(W * v / top);
+          sh.push(tx('$' + v, gx - 250000, 800000, 500000, 300000, 11, { align: 'ctr', color: '6D6D6D', id: id++ }));
+          sh.push(rect(gx, Y0, 9525, RH * withRent.length, 'E5E7EB', id++));
+        }
+        withRent.forEach(function (x, i) {
+          var y = Y0 + i * RH;
+          sh.push(tx(x.name, 500000, y + Math.round(RH * 0.15), 2500000, RH, 11, { align: 'r', id: id++ }));
+          var bx = X0 + Math.round(W * x.rent.min / top);
+          var bw = Math.max(60000, Math.round(W * (x.rent.max - x.rent.min) / top));
+          sh.push(rect(bx, y + Math.round(RH * 0.18), bw, Math.round(RH * 0.62), x.ours ? '111111' : '9E0000', id++));
+          sh.push(tx(x.rent.text, bx + bw + 90000, y + Math.round(RH * 0.15), 1600000, RH, 10, { color: '6D6D6D', id: id++ }));
+        });
+        sh.push(tx('Чёрным — наши проекты. Показаны только объекты с заявленной ставкой '
+          + '(' + withRent.length + ' из ' + D.comp.length + ').',
+          500000, 6150000, 11000000, 500000, 10, { color: '6D6D6D', id: id++ }));
+        S.push(sh);
+      }
     }
 
     /* 8. Скоринг */
@@ -829,12 +995,16 @@
       + '<Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/>'
       + '<Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>'
       + '<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>'
+      + '<Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/>'
+      + '<Override PartName="/docProps/app.xml" ContentType="application/vnd.openxmlformats-officedocument.extended-properties+xml"/>'
       + slides.map(function (s, i) { return '<Override PartName="/ppt/slides/slide' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>'; }).join('')
       + '</Types>';
     files.push({ name: '[Content_Types].xml', data: types });
     files.push({ name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
       + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>'
+      + '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/>'
+      + '<Relationship Id="rId3" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/extended-properties" Target="docProps/app.xml"/>'
       + '</Relationships>' });
     files.push({ name: 'ppt/presentation.xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" '
@@ -861,6 +1031,11 @@
       + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/>'
       + '</Relationships>' });
     files.push({ name: 'ppt/theme/theme1.xml', data: THEME });
+    /* docProps есть в любом файле, созданном Office. Формально необязательны,
+       но офисные пакеты на них рассчитывают — кладём, чтобы не искать проблему
+       потом на чужом компьютере. */
+    files.push({ name: 'docProps/core.xml', data: coreXml(p) });
+    files.push({ name: 'docProps/app.xml', data: appXml('Microsoft Office PowerPoint', slides.length) });
     slides.forEach(function (shapes, i) {
       files.push({ name: 'ppt/slides/slide' + (i + 1) + '.xml', data: slideXml(shapes) });
       var rels = '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>';
@@ -966,5 +1141,5 @@
   };
 
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
-  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.54.0';
+  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.55.0';
 })();

@@ -46,8 +46,8 @@ def check_xlsx(path):
     # Тест перед выгрузкой снимает галочки «Метро» и «Рынок города» и задаёт свои
     # радиусы — файл обязан это учесть, иначе настройка проекта ни на что не влияет.
     want = ['Сводка', 'Население', 'Население по районам', 'Районы города', 'Радиусы',
-            'Бизнес-центры', 'Медицина', 'Городские объекты', 'Образование по типам',
-            'F&B по типам']
+            'Бизнес-центры', 'Конкуренты', 'Медицина', 'Городские объекты',
+            'Образование по типам', 'F&B по типам']
     ck('Excel: состав листов соответствует настройке проекта', names == want, names)
     ck('Excel: отключённые разделы не попали в файл',
        'Метро' not in names and 'Рынок города' not in names, names)
@@ -127,6 +127,20 @@ def check_xlsx(path):
     bcrows = [r for r in bc.iter_rows(min_row=2, values_only=True) if r[0]]
     ck('Excel: список конкурентов не пуст', len(bcrows) >= 1, f'строк: {len(bcrows)}')
 
+    # --- конкуренты: та самая таблица из презентаций по рынку
+    cp = wb['Конкуренты']
+    ch = [c.value for c in next(cp.iter_rows(min_row=1, max_row=1))]
+    need = ['№', 'Объект', 'Тип', 'Откр.', 'Участок, м²', 'GBA, м²', 'GLA, м²', 'Эт.',
+            'Точки', 'F&B', 'Парк.', 'Ставка, $/м²/мес', 'Расст. по прямой, км']
+    ck('Excel: карточка конкурента со всеми колонками', ch[:len(need)] == need, ch)
+    crows = [r for r in cp.iter_rows(min_row=2, values_only=True) if isinstance(r[0], int)]
+    ck('Excel: конкуренты перечислены', len(crows) >= 3, f'строк: {len(crows)}')
+    dist = [r[12] for r in crows]
+    ck('Excel: конкуренты отсортированы по расстоянию', dist == sorted(dist), dist[:6])
+    ck('Excel: ставка записана диапазоном или суммой',
+       any(isinstance(r[11], str) and r[11].startswith('$') for r in crows),
+       [r[11] for r in crows[:6]])
+
     # --- метро
 
 
@@ -171,8 +185,38 @@ def check_pptx(path):
             w = int.from_bytes(png[16:20], 'big')
             h = int.from_bytes(png[20:24], 'big')
             ck('PowerPoint: снимок карты нормального размера', w > 300 and h > 200, f'{w}×{h}')
+
         else:
             print('..  снимка карты нет — подложка не отдала тайлы с CORS, презентация собрана без картинки')
+
+    # --- слайд «Заявленные ставки»: столбцы min–max, наш проект чёрным
+    chart = None
+    for sl in pr.slides:
+        t = ' '.join(sh.text_frame.text for sh in sl.shapes if sh.has_text_frame)
+        if 'Заявленные ставки' in t:
+            chart = sl
+    ck('PowerPoint: есть слайд «Заявленные ставки»', chart is not None)
+    if chart is not None:
+        bars, W = [], pr.slide_width
+        for sh in chart.shapes:
+            fill = getattr(sh, 'fill', None)
+            try:
+                rgb = str(fill.fore_color.rgb)
+            except Exception:
+                continue
+            # столбцы графика: шире линии сетки и ниже шапки слайда
+            if sh.width > 50000 and sh.top > 1000000 and rgb in ('9E0000', '111111'):
+                bars.append((sh.left, sh.width, rgb, sh.top))
+        ck('PowerPoint: столбцы ставок нарисованы', len(bars) >= 2, f'столбцов: {len(bars)}')
+        ck('PowerPoint: столбцы не вылезают за слайд',
+           all(b[0] + b[1] <= W for b in bars),
+           [(b[0], b[1]) for b in bars[:3]])
+        ck('PowerPoint: столбцы идут сверху вниз без наложения',
+           [b[3] for b in bars] == sorted(b[3] for b in bars),
+           [b[3] for b in bars[:4]])
+        ck('PowerPoint: у графика есть шкала в долларах',
+           sum(1 for sh in chart.shapes if sh.has_text_frame and sh.text_frame.text.startswith('$')) >= 3)
+
 
 
 def main():
