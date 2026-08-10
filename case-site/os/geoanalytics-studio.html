@@ -1589,6 +1589,15 @@ window.lgdSizeReset=function(ev){ev.preventDefault();ev.stopPropagation();LGDSZ=
  const el=document.getElementById('mlgd'); if(!el)return;
  el.style.width='';el.style.maxWidth='';
  const bd=el.querySelector('.body'); if(bd)bd.style.maxHeight='';};
+/* Мост к данным карты для модуля выгрузки. Через window напрямую они не видны:
+   BC, DIST, POP и прочее объявлены через const/let, а такие имена свойствами window
+   НЕ становятся. Читать их через eval нельзя — CSP системы это запрещает. */
+window.CASE_GEO_DATA={
+ get BC(){return BC;}, get MEDPTS(){return MEDPTS;}, get PHARM(){return PHARM;},
+ get POP(){return POP;}, get DIST(){return DIST;}, get DRU(){return DRU;},
+ get DISTGEO(){return DISTGEO;}, get METRO(){return METRO;}, get SPLBL(){return SPLBL;},
+ get MARKET(){return MARKET;}, get PRICES(){return PRICES;}, get PROJECTS(){return PROJECTS;}
+};
 function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
 /* Клик по строке городского объекта в легенде убирает и возвращает слой:
    фильтровать там нечего — у каждой категории свой переключатель в панели. */
@@ -2309,5 +2318,5 @@ setTimeout(initPop,800);
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
 <script src="v420-geo-studio.js?v=4.52.0"></script>
-<script src="v4530-geo-export.js?v=4.53.0"></script>
+<script src="v4530-geo-export.js?v=4.53.1"></script>
 </body></html>

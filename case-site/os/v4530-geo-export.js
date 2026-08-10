@@ -1,4 +1,4 @@
-/* CASE OS v4.53.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
+/* CASE OS v4.53.1 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
  *
  * Запрос владельца: «поставили наш новый проект на карту, проверили данные проекта,
  * конкурентную среду, население — и одной кнопкой выгрузили PDF, Excel, PPTX
@@ -113,6 +113,111 @@
     + 'Бизнес-центры — база CASE. Медицина и аптеки — OpenStreetMap и clinics.uz. '
     + 'Общепит и образование — OpenStreetMap через сервер CASE OS. Ручные правки команды CASE учтены.';
 
+  /* ================= детальные данные =================
+     Всё, что система знает о локации, но раньше в файлы не попадало: плотность
+     населения, разрез по районам города, полный список конкурентов с ценами,
+     медицина по направлениям, метро, рынок аренды. Считается один раз и идёт
+     и в Excel, и в презентацию — чтобы цифры в них не разошлись. */
+  /* Данные карты читаем через мост CASE_GEO_DATA: BC, DIST, POP объявлены в студии
+     через const/let и свойствами window не становятся, а eval запрещён политикой CSP.
+     Функции (hav, popR, polysOf…) — обычные объявления, они на window есть. */
+  function g(name) {
+    var d = window.CASE_GEO_DATA;
+    if (d && name in d) { try { return d[name]; } catch (e) { return undefined; } }
+    return window[name];
+  }
+  function km2(m) { return Math.PI * Math.pow(m / 1000, 2); }
+  function distName(latin) {
+    var ru = g('DRU'); return (ru && ru[latin]) ? (ru[latin] + ' (' + latin + ')') : (latin || '');
+  }
+  /* Район каждой ячейки населения: по полигонам районов. Считаем только ячейки внутри
+     радиуса — их сотни, а не десятки тысяч, поэтому точка-в-полигоне здесь допустима. */
+  function popByDistrict(la, ln, m) {
+    var POP = g('POP'), DISTGEO = g('DISTGEO'), hav = g('hav'),
+        polysOf = g('polysOf'), inPoly = g('inPoly'), matchD = g('matchD');
+    if (!POP || !DISTGEO || !hav || !polysOf || !inPoly) return null;
+    var feats = (DISTGEO.features || []).map(function (f) {
+      return { key: matchD ? matchD(f.properties) : '', polys: polysOf(f.geometry) };
+    }).filter(function (x) { return x.key && x.polys.length; });
+    if (!feats.length) return null;
+    var out = {}, km = m / 1000, other = 0;
+    POP.forEach(function (h) {
+      if (hav(la, ln, h[0], h[1]) > km) return;
+      for (var i = 0; i < feats.length; i++) {
+        if (inPoly(h[1], h[0], feats[i].polys)) { out[feats[i].key] = (out[feats[i].key] || 0) + h[2]; return; }
+      }
+      other += h[2];
+    });
+    if (other > 1) out['за границей районов'] = other;
+    return out;
+  }
+  function nearestMetro(la, ln, n) {
+    var METRO = g('METRO'), hav = g('hav'); if (!METRO || !hav) return [];
+    var all = [];
+    METRO.forEach(function (l) { (l.s || []).forEach(function (x) { all.push({ n: x[2], line: l.n, km: hav(la, ln, x[0], x[1]) }); }); });
+    return all.sort(function (a, b) { return a.km - b.km; }).slice(0, n || 6);
+  }
+  function bcAround(la, ln, m) {
+    var BC = g('BC'), eff = g('eff'), hav = g('hav'); if (!BC || !hav) return [];
+    var km = m / 1000, out = [];
+    BC.forEach(function (b) {
+      var e = eff ? eff(b) : b;
+      if (e.lat == null || e.lng == null) return;
+      var d = hav(la, ln, +e.lat, +e.lng);
+      if (d > km) return;
+      out.push({ name: e.name, district: e.district || '', km: d, cls: e['class'] || '', rent: e.rent || '',
+        avail: e.avail || '', sale: e.sale || '', gla: e.gla || '', floors: e.floors || '',
+        addr: e.address || '', prov: e.provider || '', psrc: e.psrc || '' });
+    });
+    return out.sort(function (a, b) { return a.km - b.km; });
+  }
+  function medBySpecialty(la, ln, m) {
+    var MED = g('MEDPTS'), hav = g('hav'), SPLBL = g('SPLBL'); if (!MED || !hav) return null;
+    var km = m / 1000, out = {};
+    MED.forEach(function (x) { if (hav(la, ln, x.la, x.ln) <= km) { var k = (SPLBL && SPLBL[x.sp]) || x.sp || 'прочее'; out[k] = (out[k] || 0) + 1; } });
+    return out;
+  }
+  function poiAround(la, ln, radii) {
+    var api = window.CASE_GEO_POI; if (!api) return null;
+    var vis = api.visible(), keys = Object.keys(vis);
+    if (!keys.length) return null;
+    return keys.map(function (k) {
+      var row = { key: k, label: api.label(k) };
+      radii.forEach(function (r) { row['r' + r] = api.countIn([k], la, ln, r / 1000); });
+      return row;
+    });
+  }
+  function detail(p) {
+    var RAD = p.radii || [500, 1000, 1500, 2000, 3000];
+    var DIST = g('DIST'), popR = g('popR');
+    var dRow = (DIST && p.d && DIST[p.d]) ? DIST[p.d] : null;
+    var byDist1 = popByDistrict(p.la, p.ln, 1000), byDist3 = popByDistrict(p.la, p.ln, 3000);
+    var prev = 0;
+    var pop = RAD.map(function (r) {
+      var v = popR ? popR(p.la, p.ln, r) : null;
+      var row = { r: r, pop: v, area: +km2(r).toFixed(2),
+        dens: (v == null) ? null : Math.round(v / km2(r)),
+        ring: (v == null) ? null : Math.round(v - prev),
+        shareDistrict: (v == null || !dRow) ? null : +(100 * v / (dRow[0] * 1000)).toFixed(1) };
+      prev = v || prev;
+      return row;
+    });
+    return {
+      district: dRow ? { name: distName(p.d), pop: Math.round(dRow[0] * 1000), area: dRow[1],
+        dens: Math.round(dRow[0] * 1000 / dRow[1]) } : null,
+      districtsAll: (DIST ? Object.keys(DIST).map(function (k) {
+        return { name: distName(k), pop: Math.round(DIST[k][0] * 1000), area: DIST[k][1],
+          dens: Math.round(DIST[k][0] * 1000 / DIST[k][1]), here: (k === p.d) };
+      }).sort(function (a, b) { return b.pop - a.pop; }) : []),
+      pop: pop, byDist1: byDist1, byDist3: byDist3,
+      metro: nearestMetro(p.la, p.ln, 6),
+      bc: bcAround(p.la, p.ln, 3000),
+      med1: medBySpecialty(p.la, p.ln, 1000), med3: medBySpecialty(p.la, p.ln, 3000),
+      poi: poiAround(p.la, p.ln, RAD),
+      market: g('MARKET') || null
+    };
+  }
+
   /* ================= Excel (.xlsx) ================= */
   function sheetXml(rows, widths) {
     var cols = (widths || []).map(function (w, i) {
@@ -133,46 +238,145 @@
   }
   function colName(i) { var s = ''; i++; while (i > 0) { var m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = (i - 1 - m) / 26; } return s; }
 
-  function buildSheets(p) {
+  function buildSheets(p, D) {
+    var RAD = p.radii || [500, 1000, 1500, 2000, 3000];
+
+    /* 1. Сводка */
     var head = [
       ['CASE OS — геоаналитика локации'],
       ['Проект', p.project || '—'],
       ['Координаты', (+p.la).toFixed(5) + ', ' + (+p.ln).toFixed(5)],
-      ['Район', p.d || '—'],
+      ['Район', D.district ? D.district.name : (p.d || '—')],
+      ['Население района', D.district ? D.district.pop : 'нет данных'],
+      ['Площадь района, км²', D.district ? D.district.area : 'нет данных'],
+      ['Плотность района, чел/км²', D.district ? D.district.dens : 'нет данных'],
       ['Ближайшее метро', p.metro ? (p.metro.n + ' — ' + Math.round(p.metro.d * 1000) + ' м') : '—'],
       ['Дата отчёта', new Date().toLocaleString('ru-RU')],
       []
     ];
-    var scores = [['Быстрый скоринг', 'Балл (0–100)']];
-    SCORE_ROWS.forEach(function (r) { scores.push([r[0], p[r[1]] == null ? 'нет данных' : p[r[1]]]); });
+    var scores = [['Быстрый скоринг', 'Балл (0–100)', 'Оценка']];
+    SCORE_ROWS.forEach(function (r) {
+      var v = p[r[1]];
+      scores.push([r[0], v == null ? 'нет данных' : v,
+        v == null ? '—' : (v >= 55 ? 'хорошо' : v >= 40 ? 'умеренно' : 'слабо')]);
+    });
     scores.push([], ['Формула', FORMULA], ['Источники', SOURCES]);
 
+    /* 2. Население: плотность, прирост по кольцам, доля района */
+    var popRows = [['Радиус, м', 'Жителей', 'Площадь круга, км²', 'Плотность, чел/км²',
+      'Прирост в кольце', 'Доля населения района, %']];
+    D.pop.forEach(function (t) {
+      popRows.push([t.r, t.pop == null ? 'нет данных' : t.pop, t.area,
+        t.dens == null ? '—' : t.dens, t.ring == null ? '—' : t.ring,
+        t.shareDistrict == null ? '—' : t.shareDistrict]);
+    });
+    popRows.push([], ['Модель', 'Kontur H3, откалибровано на официальное население районов'],
+      ['Плотность', 'жители в круге / площадь круга — сравнима с плотностью района из листа «Районы»']);
+
+    /* 3. Разрез населения по районам */
+    var dRows = [['Район', 'Жителей в 1 км', 'Жителей в 3 км']];
+    var keys = {};
+    [D.byDist1, D.byDist3].forEach(function (o) { if (o) Object.keys(o).forEach(function (k) { keys[k] = 1; }); });
+    Object.keys(keys).sort(function (a, b) {
+      return ((D.byDist3 && D.byDist3[b]) || 0) - ((D.byDist3 && D.byDist3[a]) || 0);
+    }).forEach(function (k) {
+      dRows.push([distName(k), Math.round((D.byDist1 && D.byDist1[k]) || 0),
+        Math.round((D.byDist3 && D.byDist3[k]) || 0)]);
+    });
+    if (dRows.length === 1) dRows.push(['Данные о населении ещё не загружены', '', '']);
+    dRows.push([], ['Смысл', 'Показывает, из каких районов приходит аудитория — важно, когда точка стоит на границе']);
+
+    /* 4. Все районы города */
+    var allRows = [['Район', 'Население', 'Площадь, км²', 'Плотность, чел/км²', 'Район проекта']];
+    D.districtsAll.forEach(function (x) { allRows.push([x.name, x.pop, x.area, x.dens, x.here ? 'да' : '']); });
+
+    /* 5. Радиусы: всё окружение в одной таблице */
     var rad = [['Радиус, м', 'Население', 'Бизнес-центры', 'Медицина', 'в т.ч. профильные', 'Аптеки', 'F&B', 'Образование']];
     p.table.forEach(function (t) {
       rad.push([t.r, t.pop == null ? 'нет данных' : t.pop, t.bc, t.med, t.medProf, t.ph,
         t.fnb == null ? 'слой не загружен' : t.fnb, t.edu == null ? 'слой не загружен' : t.edu]);
     });
 
-    var bc = [['Ближайшие бизнес-центры', 'Расстояние, м', 'Класс', 'Ставка, $/м²/мес']];
-    (p.nearBC || []).forEach(function (x) { bc.push([x.name, Math.round(x.km * 1000), x.cls || '—', x.rent || '—']); });
-
-    var fnb = [['F&B в радиусе 1 км', 'Объектов']];
-    if (p.fnbBreak) Object.keys(p.fnbBreak).forEach(function (k) {
-      fnb.push([(p.poiLabels && p.poiLabels[k]) || k, p.fnbBreak[k]]);
+    /* 6. Бизнес-центры: полный список в 3 км + средние по классам */
+    var bc = [['Бизнес-центр', 'Район', 'Расстояние, м', 'Класс', 'Ставка, $/м²/мес', 'Свободно, м²',
+      'Продажа, $/м²', 'GLA, м²', 'Этажей', 'Адрес', 'Источник']];
+    D.bc.forEach(function (x) {
+      bc.push([x.name, x.district, Math.round(x.km * 1000), x.cls || '—',
+        x.rent === '' ? '—' : (parseFloat(x.rent) || x.rent),
+        x.avail === '' ? '—' : (parseFloat(x.avail) || x.avail),
+        x.sale === '' ? '—' : (parseFloat(x.sale) || x.sale),
+        x.gla === '' ? '—' : (parseFloat(x.gla) || x.gla), x.floors || '—', x.addr, x.prov]);
     });
-    else fnb.push(['Слои общепита не загружены', '']);
+    if (bc.length === 1) bc.push(['В радиусе 3 км бизнес-центров не найдено', '', '', '', '', '', '', '', '', '', '']);
+    var byCls = {};
+    D.bc.forEach(function (x) {
+      var r = parseFloat(x.rent); if (!isFinite(r)) return;
+      var c = x.cls || 'без класса';
+      (byCls[c] = byCls[c] || []).push(r);
+    });
+    var clsKeys = Object.keys(byCls);
+    if (clsKeys.length) {
+      bc.push([], ['Средняя ставка по классам (только объекты с известной ценой)', 'Объектов', 'Средняя, $/м²/мес', 'Минимум', 'Максимум']);
+      clsKeys.sort().forEach(function (c) {
+        var a = byCls[c], sum = a.reduce(function (n, v) { return n + v; }, 0);
+        bc.push([c, a.length, +(sum / a.length).toFixed(1), Math.min.apply(null, a), Math.max.apply(null, a)]);
+      });
+    }
+
+    /* 7. Медицина по направлениям */
+    var med = [['Направление медицины', 'В 1 км', 'В 3 км']];
+    var mk = {};
+    [D.med1, D.med3].forEach(function (o) { if (o) Object.keys(o).forEach(function (k) { mk[k] = 1; }); });
+    Object.keys(mk).sort(function (a, b) { return ((D.med3 && D.med3[b]) || 0) - ((D.med3 && D.med3[a]) || 0); })
+      .forEach(function (k) { med.push([k, (D.med1 && D.med1[k]) || 0, (D.med3 && D.med3[k]) || 0]); });
+    if (med.length === 1) med.push(['Данные медицины не загружены', '', '']);
+
+    /* 8. Городские объекты по слоям */
+    var poi = [['Слой городских объектов'].concat(RAD.map(function (r) { return r + ' м'; }))];
+    if (D.poi) D.poi.forEach(function (row) {
+      poi.push([row.label].concat(RAD.map(function (r) { return row['r' + r]; })));
+    });
+    else poi.push(['Слои городских объектов не включены'].concat(RAD.map(function () { return ''; })));
+
+    /* 9. Метро */
+    var metro = [['Станция метро', 'Линия', 'Расстояние, м', 'Пешком, мин (~5 км/ч)']];
+    D.metro.forEach(function (x) {
+      metro.push([x.n, x.line, Math.round(x.km * 1000), Math.round(x.km / 5 * 60)]);
+    });
+    if (metro.length === 1) metro.push(['Данные метро не загружены', '', '', '']);
+
+    /* 10. Рынок аренды города — фон для сравнения ставок */
+    var mkt = [['Рынок Ташкента (внешние площадки)', 'Значение']];
+    if (D.market) {
+      if (D.market.src) mkt.push(['Источник и дата сбора', D.market.src]);
+      ['olx', 'uybor'].forEach(function (k) {
+        var m = D.market[k]; if (!m) return;
+        if (m.rent) mkt.push([k.toUpperCase() + ' · аренда, медиана $/м²/мес', m.rent.med],
+          [k.toUpperCase() + ' · аренда, 25–75 %', (m.rent.p25 || '—') + ' – ' + (m.rent.p75 || '—')],
+          [k.toUpperCase() + ' · объявлений (аренда)', m.rent.n]);
+        if (m.sale) mkt.push([k.toUpperCase() + ' · продажа, медиана $/м²', m.sale.med],
+          [k.toUpperCase() + ' · объявлений (продажа)', m.sale.n]);
+      });
+    }
+    if (mkt.length === 1) mkt.push(['Рыночные данные не загружены', '']);
 
     return [
-      { name: 'Сводка', rows: head.concat(scores), w: [34, 46] },
+      { name: 'Сводка', rows: head.concat(scores), w: [34, 46, 14] },
+      { name: 'Население', rows: popRows, w: [12, 14, 18, 20, 18, 24] },
+      { name: 'Население по районам', rows: dRows, w: [30, 18, 18] },
+      { name: 'Районы города', rows: allRows, w: [28, 14, 16, 20, 14] },
       { name: 'Радиусы', rows: rad, w: [12, 14, 16, 12, 18, 10, 10, 14] },
-      { name: 'Конкуренты БЦ', rows: bc, w: [40, 16, 10, 18] },
-      { name: 'F&B рядом', rows: fnb, w: [34, 12] }
+      { name: 'Бизнес-центры', rows: bc, w: [34, 16, 15, 10, 18, 14, 15, 12, 10, 40, 14] },
+      { name: 'Медицина', rows: med, w: [40, 12, 12] },
+      { name: 'Городские объекты', rows: poi, w: [32, 10, 10, 10, 10, 10] },
+      { name: 'Метро', rows: metro, w: [28, 22, 16, 20] },
+      { name: 'Рынок города', rows: mkt, w: [42, 30] }
     ];
   }
 
   window.caseGeoExportXlsx = function () {
     var p = need(); if (!p) return;
-    var sheets = buildSheets(p);
+    var sheets = buildSheets(p, detail(p));
     var files = [
       { name: '[Content_Types].xml', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
         + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -296,42 +500,91 @@
 
   function num(v, dash) { return v == null ? (dash || 'нет данных') : Number(v).toLocaleString('ru'); }
 
-  function slidesFor(p, mapPng) {
+  function slidesFor(p, mapPng, D) {
     var S = [], H = 660000;
     /* 1. Титул */
     S.push([band(2),
       tx('Геоаналитика локации', 700000, 1900000, 10800000, 900000, 40, { bold: true, color: '9E0000', id: 3 }),
       tx(p.project || 'Точка на карте', 700000, 2900000, 10800000, 700000, 24, { id: 4 }),
-      tx((+p.la).toFixed(5) + ', ' + (+p.ln).toFixed(5) + (p.d ? '  ·  район ' + p.d : ''), 700000, 3600000, 10800000, 500000, 16, { color: '6D6D6D', id: 5 }),
+      tx((+p.la).toFixed(5) + ', ' + (+p.ln).toFixed(5)
+        + (D.district ? '  ·  ' + D.district.name : (p.d ? '  ·  район ' + p.d : ''))
+        + (p.metro ? '  ·  метро ' + p.metro.n + ' — ' + Math.round(p.metro.d * 1000) + ' м' : ''),
+        700000, 3600000, 10800000, 500000, 16, { color: '6D6D6D', id: 5 }),
       tx('CASE Advisory  ·  ' + new Date().toLocaleDateString('ru-RU'), 700000, 5700000, 10800000, 500000, 13, { color: '6D6D6D', id: 6 })]);
-    /* 2. Карта (если удалось снять) или сводка локации */
+    /* 2. Карта */
     if (mapPng) {
       S.push([band(2), tx('Локация на карте', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
         pic('rId2', 600000, 1100000, 11000000, 5000000, 4)]);
     }
-    /* 3. Население и окружение */
-    var rows = [['Радиус, м', 'Население', 'БЦ', 'Медицина', 'Аптеки', 'F&B', 'Образование']];
-    p.table.forEach(function (t) {
-      rows.push([String(t.r), num(t.pop), String(t.bc), String(t.med), String(t.ph),
-        t.fnb == null ? '—' : String(t.fnb), t.edu == null ? '—' : String(t.edu)]);
+    /* 3. Население: плотность и прирост по кольцам */
+    var popRows = [['Радиус, м', 'Жителей', 'Плотность, чел/км²', 'Прирост в кольце', 'Доля района, %']];
+    D.pop.forEach(function (t) {
+      popRows.push([String(t.r), num(t.pop), t.dens == null ? '—' : num(t.dens),
+        t.ring == null ? '—' : num(t.ring), t.shareDistrict == null ? '—' : String(t.shareDistrict)]);
     });
-    S.push([band(2), tx('Население и окружение по радиусам', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
-      tbl(rows, 600000, 1200000, 11000000, 4),
-      tx('Данные: ' + SOURCES, 600000, 5900000, 11000000, 600000, 10, { color: '6D6D6D', id: 5 })]);
-    /* 4. Конкурентная среда */
+    var dtxt = D.district
+      ? ('Район ' + D.district.name + ': ' + num(D.district.pop) + ' жителей, '
+         + D.district.area + ' км², плотность ' + num(D.district.dens) + ' чел/км².')
+      : 'Район проекта не определён.';
+    S.push([band(2), tx('Население вокруг точки', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+      tbl(popRows, 600000, 1150000, 11000000, 4),
+      tx(dtxt + '\nМодель Kontur H3, откалибрована на официальное население районов.',
+        600000, 4600000, 11000000, 900000, 12, { color: '6D6D6D', id: 5 })]);
+    /* 4. Откуда приходит аудитория — разрез по районам */
+    var dr = [['Район', 'Жителей в 1 км', 'Жителей в 3 км']];
+    var keys = {};
+    [D.byDist1, D.byDist3].forEach(function (o) { if (o) Object.keys(o).forEach(function (k) { keys[k] = 1; }); });
+    Object.keys(keys).sort(function (a, b) {
+      return ((D.byDist3 && D.byDist3[b]) || 0) - ((D.byDist3 && D.byDist3[a]) || 0);
+    }).slice(0, 8).forEach(function (k) {
+      dr.push([distName(k), num(Math.round((D.byDist1 && D.byDist1[k]) || 0)),
+        num(Math.round((D.byDist3 && D.byDist3[k]) || 0))]);
+    });
+    if (dr.length > 1) {
+      S.push([band(2), tx('Откуда приходит аудитория: районы города', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+        tbl(dr, 600000, 1150000, 7000000, 4),
+        tx('Разрез показывает, из каких районов складывается население вокруг точки. '
+          + 'Это важно, когда локация стоит на границе районов: формально она в одном, '
+          + 'а половина аудитории живёт в соседнем.', 7900000, 1150000, 3700000, 3000000, 12, { color: '6D6D6D', id: 5 })]);
+    }
+    /* 5. Конкурентная среда: БЦ + средние ставки */
     var bcRows = [['Ближайшие бизнес-центры', 'Расстояние', 'Класс', 'Ставка']];
-    (p.nearBC || []).slice(0, 6).forEach(function (x) {
+    D.bc.slice(0, 8).forEach(function (x) {
       bcRows.push([x.name, Math.round(x.km * 1000) + ' м', x.cls || '—', x.rent ? ('$' + x.rent) : '—']);
     });
-    if (bcRows.length === 1) bcRows.push(['Рядом бизнес-центров не найдено', '', '', '']);
+    if (bcRows.length === 1) bcRows.push(['В радиусе 3 км не найдено', '', '', '']);
     var fnbRows = [['F&B в 1 км', 'Объектов']];
     if (p.fnbBreak) Object.keys(p.fnbBreak).forEach(function (k) {
       fnbRows.push([(p.poiLabels && p.poiLabels[k]) || k, String(p.fnbBreak[k])]);
     });
     if (fnbRows.length === 1) fnbRows.push(['Слои общепита не загружены', '—']);
     S.push([band(2), tx('Конкурентная среда', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
-      tbl(bcRows, 600000, 1200000, 6600000, 4), tbl(fnbRows, 7500000, 1200000, 4100000, 5)]);
-    /* 5. Скоринг */
+      tbl(bcRows, 600000, 1150000, 6600000, 4), tbl(fnbRows, 7500000, 1150000, 4100000, 5)]);
+    /* 6. Медицина по направлениям */
+    var med = [['Направление медицины', 'В 1 км', 'В 3 км']];
+    var mk = {};
+    [D.med1, D.med3].forEach(function (o) { if (o) Object.keys(o).forEach(function (k) { mk[k] = 1; }); });
+    Object.keys(mk).sort(function (a, b) { return ((D.med3 && D.med3[b]) || 0) - ((D.med3 && D.med3[a]) || 0); })
+      .slice(0, 9).forEach(function (k) { med.push([k, String((D.med1 && D.med1[k]) || 0), String((D.med3 && D.med3[k]) || 0)]); });
+    if (med.length > 1) {
+      var metro = [['Метро', 'Линия', 'Пешком']];
+      D.metro.slice(0, 5).forEach(function (x) { metro.push([x.n, x.line, Math.round(x.km / 5 * 60) + ' мин']); });
+      S.push([band(2), tx('Медицина и транспортная доступность', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+        tbl(med, 600000, 1150000, 6600000, 4), tbl(metro, 7500000, 1150000, 4100000, 5)]);
+    }
+    /* 7. Городские объекты по слоям */
+    if (D.poi && D.poi.length) {
+      var RAD = p.radii || [500, 1000, 1500, 2000, 3000];
+      var pr = [['Слой городских объектов'].concat(RAD.map(function (r) { return r + ' м'; }))];
+      D.poi.slice(0, 10).forEach(function (row) {
+        pr.push([row.label].concat(RAD.map(function (r) { return String(row['r' + r]); })));
+      });
+      S.push([band(2), tx('Городские объекты по радиусам', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+        tbl(pr, 600000, 1150000, 11000000, 4),
+        tx('Считаются только включённые слои. Данные — OpenStreetMap через сервер CASE OS.',
+          600000, 5400000, 11000000, 600000, 11, { color: '6D6D6D', id: 5 })]);
+    }
+    /* 8. Скоринг */
     var sc = [['Сценарий', 'Балл 0–100', 'Оценка']];
     SCORE_ROWS.forEach(function (r) {
       var v = p[r[1]];
@@ -339,15 +592,23 @@
         v == null ? '—' : (v >= 55 ? 'хорошо' : v >= 40 ? 'умеренно' : 'слабо')]);
     });
     S.push([band(2), tx('Быстрый скоринг локации', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
-      tbl(sc, 600000, 1200000, 11000000, 4),
+      tbl(sc, 600000, 1150000, 11000000, 4),
       tx('Формула: ' + FORMULA + '\nЭто прозрачный расчёт, а не модель машинного обучения: любую цифру можно проверить руками.',
-        600000, 4700000, 11000000, 1400000, 12, { color: '6D6D6D', id: 5 })]);
+        600000, 3900000, 11000000, 1400000, 12, { color: '6D6D6D', id: 5 })]);
+    /* 9. Источники и методика */
+    var srcTxt = SOURCES;
+    if (D.market && D.market.src) srcTxt += '\nРынок города: ' + D.market.src;
+    S.push([band(2), tx('Источники и методика', 600000, 300000, 11000000, H, 26, { bold: true, color: '9E0000', id: 3 }),
+      tx(srcTxt + '\n\nРадиусы анализа: ' + (p.radii || []).join(', ') + ' м.'
+        + '\nОтчёт собран в CASE OS автоматически по данным на ' + new Date().toLocaleDateString('ru-RU') + '.'
+        + '\nПодробные таблицы — в приложении Excel к этой презентации.',
+        600000, 1200000, 11000000, 4000000, 14, { id: 4 })]);
     return S;
   }
 
   window.caseGeoExportPptx = function (mapPng) {
     var p = need(); if (!p) return;
-    var slides = slidesFor(p, mapPng);
+    var slides = slidesFor(p, mapPng, detail(p));
     var files = [];
     var types = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'
       + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -492,5 +753,5 @@
   };
 
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
-  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.53.0';
+  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.53.1';
 })();
