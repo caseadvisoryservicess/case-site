@@ -838,7 +838,10 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
 <div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT">Профиль проекта</button><button data-t="planT">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
-  <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div></div>
+  <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
+   <div class="styrow" style="margin-top:7px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке проекта">▣ Аналитика по проекту</button></div>
+   <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по выбранному проекту">⤓ Выгрузить PDF · Excel · PPTX</button></div>
+   <div class="mini">Выгрузка считает отчёт в точке проекта и складывает те же цифры, что видны на экране.</div></div>
   <div class="sect"><h3>🎯 Анализ локации (как в гео-платформах)</h3>
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
@@ -2031,9 +2034,19 @@ async function probeAt(la,ln){
    <tr><td>Потенциал учебного центра</td><td style="text-align:right"><b style="color:${scoreEdu>=55?'#1a7f37':scoreEdu>=40?'#e67e22':'#9E0000'}">${scoreEdu==null?'загрузите образование':scoreEdu}</b></td></tr>
    </tbody></table>
    <p class="mini">Прозрачная формула: 0.55×спрос(население 1км/25к) + 0.45×(1 - конкуренты/эталон). Не ML. Эталоны настраиваемы.</p>`;
- LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreFnb:scoreFnb,scoreEdu:scoreEdu,html:h};
+ /* Готовые числа для выгрузки в Excel и PowerPoint: собираем здесь, чтобы модуль
+    выгрузки не пересчитывал то же самое второй раз и не разошёлся с экраном. */
+ const _sel=$('proj'), _pname=(_sel&&_sel.options[_sel.selectedIndex])?_sel.options[_sel.selectedIndex].text:'';
+ const _table=RAD.map(r=>({r:r,pop:popIn(r),bc:bcIn(r),med:medR(la,ln,r,false),medProf:medR(la,ln,r,true),
+   ph:phR(la,ln,r),fnb:(POIP&&POIP.has(FNBC))?poiIn(FNBC,r):null,edu:(POIP&&POIP.has(EDUC))?poiIn(EDUC,r):null}));
+ LASTPROBE={la:la,ln:ln,d:d,metro:nearMetro,radii:RAD,scoreBC:scoreBC,scoreMed:scoreMed,scoreFnb:scoreFnb,scoreEdu:scoreEdu,html:h,
+   project:_pname,table:_table,
+   nearBC:nearBC.map(x=>({name:x.b.name,km:x.d,cls:x.b['class']||'',rent:x.b.rent||''})),
+   fnbBreak:(POIP&&POIP.has(FNBC))?POIP.breakdown(FNBC,la,ln,1):null,
+   poiLabels:(POIP?FNBC.concat(EDUC).reduce((o,k)=>{o[k]=POIP.label(k);return o;},{}):{}),
+   at:new Date().toISOString()};
  h=`<div class="ch"><span style="flex:1">🎯 Отчёт по точке</span><span class="btn sec" onclick="closeProbe()">✕</span></div><div class="body">`+h+
-   `</div><div class="cbtns"><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="exportProbePdf()">⤓ Скачать PDF</button><button class="btn" onclick="exportProbe()">⤓ Экспорт CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
+   `</div><div class="cbtns"><button class="btn pri" onclick="caseGeoExportAll()" title="Excel, презентация PowerPoint и PDF по этой точке">⤓ PDF · Excel · PPTX</button><button class="btn" onclick="saveProbePoint()">💾 Сохранить точку</button><button class="btn" onclick="caseGeoExportXlsx()">⤓ Excel</button><button class="btn" onclick="caseGeoMapPngAsync().then(caseGeoExportPptx)">⤓ Презентация</button><button class="btn" onclick="exportProbePdf()">⤓ PDF</button><button class="btn" onclick="exportProbe()">⤓ CSV</button><button class="btn sec" onclick="closeProbe()">Закрыть</button></div>`;
  $('probe').innerHTML=h;$('probe').classList.add('open');$('probebg').classList.add('open');
  try{renderSavedProbes();}catch(e){}
 }
@@ -2296,4 +2309,5 @@ setTimeout(initPop,800);
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
 <script src="v420-geo-studio.js?v=4.52.0"></script>
+<script src="v4530-geo-export.js?v=4.53.0"></script>
 </body></html>
