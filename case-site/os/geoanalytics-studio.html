@@ -2036,20 +2036,18 @@ async function probeAt(la,ln){
    if(S)h+=`<p class="mini" style="margin:2px 0 4px">Ставка: ${S.rentMed==null?'нет данных':
       ('медиана <b>$'+S.rentMed+'</b>'+(S.rentMin!=null?', диапазон $'+S.rentMin+'–'+S.rentMax:''))}`
      +` · известна у ${S.withRent} из ${S.n}`
-     +`${S.area?' · суммарная NLA <b>'+Number(S.area).toLocaleString('ru')+'</b> м²':''}`
-     +`${S.scMed!=null?' · service charge медиана $'+S.scMed:''}`
-     +`${S.vacMed!=null?' · вакансия медиана '+S.vacMed+'%':''}</p>`;
+     +`${S.area?' · суммарная GLA <b>'+Number(S.area).toLocaleString('ru')+'</b> м²':''}`
+     +`${S.avail?' · свободно '+Number(S.avail).toLocaleString('ru')+' м²':''}</p>`;
    h+=`<div class="cmpwrap"><table class="cmp"><thead><tr><th>Объект</th><th>Класс</th><th>Год</th>`
-     +`<th>GBA</th><th>NLA</th><th>Эт.</th><th>Типовой этаж</th><th>Потолки</th><th>Лифтов</th>`
-     +`<th>Паркинг</th><th>Ставка</th><th>SC</th><th>Свободно</th><th>Вакансия</th><th>Расст.</th></tr></thead><tbody>`
-     +office.map(x=>`<tr${rowAttr(x)}>`+nameCell(x)+cell(x.cls)+cell(x.year)+cell(nf(x.gba))+cell(nf(x.nla))
-       +cell(x.floors)+cell(nf(x.typicalFloor))+cell(x.ceiling)+cell(x.elevators)
-       +cell(nf(x.park))+cell(x.rent?x.rent.text:null)+cell(x.sc==null?null:'$'+x.sc)
-       +cell(nf(x.avail))+cell(x.vacancy==null?null:x.vacancy+'%')
+     +`<th>GBA</th><th>GLA</th><th>Эт.</th><th>Типовой этаж</th><th>Паркинг</th>`
+     +`<th>Ставка</th><th>Свободно</th><th>Планировка</th><th>Отделка</th><th>Расст.</th></tr></thead><tbody>`
+     +office.map(x=>`<tr${rowAttr(x)}>`+nameCell(x)+cell(x.cls)+cell(x.year)+cell(nf(x.gba))+cell(nf(x.gla))
+       +cell(x.floors)+cell(nf(x.typicalFloor))+cell(nf(x.park))
+       +cell(x.rent?x.rent.text:null)+cell(nf(x.avail))+cell(x.layout)+cell(x.finish)
        +`<td>${(x.km*1000).toFixed(0)} м</td></tr>`).join('')
      +`</tbody></table></div>`
-     +`<p class="mini">Клик по строке — карточка объекта: там же поля Service charge, планировка,`
-     +` отделка, собственник, срок договора и индексация. Прочерк значит, что поле ещё не заполнено.</p>`;
+     +`<p class="mini">Клик по строке — карточка объекта: там же собственник, арендаторы и`
+     +` источник цены. Прочерк значит, что поле ещё не заполнено.</p>`;
   }
   if(retail.length){
    h+=`<div class="grp">Конкуренты · торговля и прочее (${retail.length})</div>`
@@ -2379,6 +2377,6 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.57.0"></script>
-<script src="v4530-geo-export.js?v=4.57.0"></script>
+<script src="v420-geo-studio.js?v=4.57.1"></script>
+<script src="v4530-geo-export.js?v=4.57.1"></script>
 </body></html>

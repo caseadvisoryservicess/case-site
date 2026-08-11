@@ -126,9 +126,8 @@ const ROWS = {
   /* Офисы и торговля разнесены: у БЦ свои показатели, колонки ТРЦ для них пустые */
   const filled = await pg.evaluate(async () => {
     const i = BC.findIndex(b => /Trilliant/i.test(b.name || ''));
-    if (i >= 0) Object.assign(BC[i], { class: 'A+', year: 2019, gba: 24000, nla: 18500, floors: 12,
-      typicalFloor: 1500, ceiling: 3.3, elevators: 6, parking: 220, parkRatio: 1.2,
-      rentRange: '28-38', serviceCharge: 5.5, avail: 1200, vacancy: 6.5,
+    if (i >= 0) Object.assign(BC[i], { class: 'A+', year: 2019, gba: 24000, gla: 18500, floors: 12,
+      typicalFloor: 1500, parking: 220, rentRange: '28-38', avail: 1200,
       layout: 'open space', finish: 'shell&core', owner: 'CASE Development' });
     await probeAt(41.3115, 69.2805);
     await new Promise(r => setTimeout(r, 1500));
@@ -143,9 +142,13 @@ const ROWS = {
                .filter(r => /caseGeoOpenCompetitor/.test(r.getAttribute('onclick') || '')).length : 0 };
   });
   ck('в отчёте два блока конкурентов: офисы и торговля', filled.n === 2, 'таблиц: ' + filled.n);
-  ck('у офисов свои колонки (класс, NLA, типовой этаж, вакансия)',
-    filled.n >= 1 && ['Класс', 'NLA', 'Типовой этаж', 'Вакансия', 'SC', 'Ставка']
+  ck('у офисов свои колонки (класс, GLA, типовой этаж, планировка)',
+    filled.n >= 1 && ['Класс', 'GLA', 'Типовой этаж', 'Планировка', 'Отделка', 'Ставка']
       .every(h => filled.heads[0].includes(h)), (filled.heads[0] || []).join(' | '));
+  /* Владелец отказался от этих полей — их не должно быть ни на экране, ни в файлах */
+  ck('убранные показатели не вернулись',
+    filled.n >= 1 && !['NLA', 'SC', 'Вакансия', 'Потолки', 'Лифтов', 'Заполн.']
+      .some(h => filled.heads[0].includes(h)), (filled.heads[0] || []).join(' | '));
   ck('колонок торгового центра в офисной таблице нет',
     filled.n >= 1 && !filled.heads[0].includes('Точки') && !filled.heads[0].includes('F&B'),
     (filled.heads[0] || []).join(' | '));
@@ -153,10 +156,12 @@ const ROWS = {
     filled.n >= 2 && ['Точки', 'F&B', 'GLA', 'Участок'].every(h => filled.heads[1].includes(h)),
     (filled.heads[1] || []).join(' | '));
   ck('заполненный БЦ показан с данными',
-    /A\+/.test(filled.first) && /18\s?500/.test(filled.first) && /\$28–38/.test(filled.first),
-    filled.first.slice(0, 120));
-  ck('свод по зоне охвата показан', /Ставка: медиана|медиана \$/.test(filled.txt),
-    (filled.txt.match(/Ставка:[^\n]{0,90}/) || [''])[0]);
+    /A\+/.test(filled.first) && /18\s?500/.test(filled.first) && /\$28–38/.test(filled.first)
+    && /open space/.test(filled.first),
+    filled.first.slice(0, 140));
+  ck('свод по зоне охвата показан',
+    /медиана \$/.test(filled.txt) && /суммарная GLA/.test(filled.txt),
+    (filled.txt.match(/Ставка:[^\n]{0,110}/) || [''])[0]);
   ck('каждая строка открывает карточку', filled.clickable === filled.rows[0],
     `${filled.clickable} из ${filled.rows[0]}`);
 

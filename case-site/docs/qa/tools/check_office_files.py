@@ -130,19 +130,25 @@ def check_xlsx(path):
     # --- конкуренты-офисы: показатели, по которым сравнивают БЦ
     of = wb['Конкуренты · БЦ']
     oh = [c.value for c in next(of.iter_rows(min_row=1, max_row=1))]
-    needo = ['Класс', 'NLA, м²', 'Типовой этаж, м²', 'Потолки, м', 'Лифтов', 'Мест/100 м²',
-             'Service charge', 'Вакансия, %', 'Собственник / УК', 'Срок договора']
+    needo = ['Класс', 'GLA, м²', 'Типовой этаж, м²', 'Парковка', 'Ставка, $/м²/мес',
+             'Свободно, м²', 'Планировка', 'Отделка', 'Собственник / УК']
     ck('Excel: у офисов свои, отраслевые колонки', all(h in oh for h in needo), oh)
     ck('Excel: колонок торгового центра у офисов нет',
        'Точки' not in oh and 'F&B' not in oh and 'Участок, м²' not in oh, oh)
+    # владелец отказался от этих показателей — они не должны вернуться в файл
+    dropped = ['NLA, м²', 'Потолки, м', 'Лифтов', 'Мест/100 м²', 'Service charge',
+               'Вакансия, %', 'Заполн., %', 'Срок договора', 'Индексация, %']
+    ck('Excel: убранные показатели не вернулись', not any(h in oh for h in dropped),
+       [h for h in dropped if h in oh] or 'ни одного')
     orows = [r for r in of.iter_rows(min_row=2, values_only=True) if isinstance(r[0], int)]
     ck('Excel: бизнес-центры перечислены', len(orows) >= 3, f'строк: {len(orows)}')
     ovals = [str(c.value) for row in of.iter_rows() for c in row if c.value is not None]
     ck('Excel: заполненный БЦ выгружен с данными',
        any('A+' == v for v in ovals) and any('18500' == v or v == '18500' for v in ovals), ovals[:0] or 'см. лист')
     ck('Excel: есть свод по офисам зоны охвата',
-       any('Свод по офисам' in v for v in ovals) and any('Ставка: медиана' in v for v in ovals),
-       [v for v in ovals if 'Свод' in v or 'медиана' in v][:3])
+       any('Свод по офисам' in v for v in ovals) and any('Ставка: медиана' in v for v in ovals)
+       and any('Суммарная GLA' in v for v in ovals),
+       [v for v in ovals if 'Свод' in v or 'Суммарная' in v][:3])
 
     # --- конкуренты: торговля
     cp = wb['Конкуренты · торговля']

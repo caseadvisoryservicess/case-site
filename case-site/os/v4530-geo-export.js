@@ -1,4 +1,4 @@
-/* CASE OS v4.57.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
+/* CASE OS v4.57.1 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
  *
  * Запрос владельца: «поставили наш новый проект на карту, проверили данные проекта,
  * конкурентную среду, население — и одной кнопкой выгрузили PDF, Excel, PPTX
@@ -375,12 +375,8 @@
       out.push({ src: { k: 'bc', i: bi },   /* откуда строка — чтобы открыть полный профиль */
         kind: 'office',                     /* офис сравнивают по своим показателям */
         cls: e['class'] || '', yearReno: numOf(e.yearReno),
-        nla: numOf(e.nla) != null ? numOf(e.nla) : numOf(e.gla),
-        typicalFloor: numOf(e.typicalFloor), ceiling: numOf(e.ceiling), elevators: numOf(e.elevators),
-        parkRatio: numOf(e.parkRatio), sc: numOf(e.serviceCharge),
-        vacancy: numOf(e.vacancy), occupancy: numOf(e.occupancy),
+        typicalFloor: numOf(e.typicalFloor),
         layout: e.layout || '', finish: e.finish || '', owner: e.owner || '',
-        leaseTerm: e.leaseTerm || '', indexation: numOf(e.indexation),
         name: e.name, type: e['class'] ? ('Бизнес-центр ' + e['class']) : 'Бизнес-центр',
         year: numOf(e.year), land: numOf(e.landArea), gba: numOf(e.gba), gla: numOf(e.gla),
         floors: numOf(e.floors), units: numOf(e.tenantsCount), fb: numOf(e.fbCount),
@@ -389,7 +385,7 @@
            проверенные данные, а число rent часто приходит из объявлений одной площадки. */
         rent: rentRange(e.rentRange !== undefined && e.rentRange !== '' ? e.rentRange : e.rent),
         km: d, district: e.district || '', ours: /CASE \(owner\)/i.test(e.provider || ''),
-        addr: e.address || '', occ: numOf(e.occupancy), avail: numOf(e.avail), sale: numOf(e.sale) });
+        addr: e.address || '', avail: numOf(e.avail), sale: numOf(e.sale) });
     });
     if (api) COMP_CATS.forEach(function (cc) {
       if (cc.key === 'bc' || !cats[cc.key]) return;
@@ -419,19 +415,18 @@
   function compSummary(list, kind) {
     var rows = list.filter(function (x) { return x.kind === kind; });
     if (!rows.length) return null;
-    var rents = [], scs = [], vac = [], area = 0, byCls = {};
+    var rents = [], avail = 0, area = 0, byCls = {};
     rows.forEach(function (x) {
       if (x.rent) { rents.push(x.rent.min); if (x.rent.max !== x.rent.min) rents.push(x.rent.max); }
-      if (x.sc != null) scs.push(x.sc);
-      if (x.vacancy != null) vac.push(x.vacancy);
-      var a = (kind === 'office' ? x.nla : x.gla); if (a) area += a;
+      if (x.gla) area += x.gla;
+      if (x.avail) avail += x.avail;
       if (kind === 'office') { var c = x.cls || 'без класса'; byCls[c] = (byCls[c] || 0) + 1; }
     });
     return { n: rows.length, withRent: rows.filter(function (x) { return x.rent; }).length,
-      area: area || null,
+      area: area || null, avail: avail || null,
       rentMin: rents.length ? Math.min.apply(null, rents) : null,
       rentMax: rents.length ? Math.max.apply(null, rents) : null,
-      rentMed: med(rents), scMed: med(scs), vacMed: med(vac), byCls: byCls };
+      rentMed: med(rents), byCls: byCls };
   }
 
   function detail(p, c) {
@@ -657,32 +652,26 @@
     else poi.push(['Слои городских объектов не включены'].concat(RAD.map(function () { return ''; })));
 
     /* 8a0. Конкуренты-офисы: показатели, по которым сравнивают БЦ */
-    var off = [['№', 'Бизнес-центр', 'Класс', 'Год', 'Реконстр.', 'GBA, м²', 'NLA, м²', 'Эт.',
-      'Типовой этаж, м²', 'Потолки, м', 'Лифтов', 'Парковка', 'Мест/100 м²',
-      'Ставка, $/м²/мес', 'Service charge', 'Свободно, м²', 'Вакансия, %', 'Заполн., %',
-      'Планировка', 'Отделка', 'Собственник / УК', 'Срок договора', 'Индексация, %',
-      'Расст., км', 'Адрес', 'Наш проект']];
+    var off = [['№', 'Бизнес-центр', 'Класс', 'Год', 'Реконстр.', 'GBA, м²', 'GLA, м²', 'Эт.',
+      'Типовой этаж, м²', 'Парковка', 'Ставка, $/м²/мес', 'Свободно, м²',
+      'Планировка', 'Отделка', 'Собственник / УК', 'Расст., км', 'Адрес', 'Наш проект']];
     (D.comp || []).filter(function (x) { return x.kind === 'office'; }).forEach(function (x, i) {
       off.push([i + 1, x.name, x.cls || '—', x.year == null ? '—' : x.year, x.yearReno == null ? '—' : x.yearReno,
-        x.gba == null ? '—' : x.gba, x.nla == null ? '—' : x.nla, x.floors == null ? '—' : x.floors,
-        x.typicalFloor == null ? '—' : x.typicalFloor, x.ceiling == null ? '—' : x.ceiling,
-        x.elevators == null ? '—' : x.elevators, x.park == null ? '—' : x.park,
-        x.parkRatio == null ? '—' : x.parkRatio, x.rent ? x.rent.text : '—',
-        x.sc == null ? '—' : x.sc, x.avail == null ? '—' : x.avail,
-        x.vacancy == null ? '—' : x.vacancy, x.occ == null ? (x.occupancy == null ? '—' : x.occupancy) : x.occ,
-        x.layout || '—', x.finish || '—', x.owner || '—', x.leaseTerm || '—',
-        x.indexation == null ? '—' : x.indexation, +x.km.toFixed(2), x.addr || '', x.ours ? 'да' : '']);
+        x.gba == null ? '—' : x.gba, x.gla == null ? '—' : x.gla, x.floors == null ? '—' : x.floors,
+        x.typicalFloor == null ? '—' : x.typicalFloor, x.park == null ? '—' : x.park,
+        x.rent ? x.rent.text : '—', x.avail == null ? '—' : x.avail,
+        x.layout || '—', x.finish || '—', x.owner || '—',
+        +x.km.toFixed(2), x.addr || '', x.ours ? 'да' : '']);
     });
-    if (off.length === 1) off.push(['—', 'В заданном радиусе бизнес-центров не найдено'].concat(new Array(24).fill('')));
+    if (off.length === 1) off.push(['—', 'В заданном радиусе бизнес-центров не найдено'].concat(new Array(16).fill('')));
     var S1 = D.compOffice;
     if (S1) off.push([], ['Свод по офисам в зоне охвата', ''],
       ['Объектов', S1.n], ['Из них с известной ставкой', S1.withRent],
-      ['Суммарная NLA, м²', S1.area == null ? 'нет данных' : S1.area],
+      ['Суммарная GLA, м²', S1.area == null ? 'нет данных' : S1.area],
+      ['Свободно суммарно, м²', S1.avail == null ? 'нет данных' : S1.avail],
       ['Ставка: минимум, $/м²/мес', S1.rentMin == null ? 'нет данных' : S1.rentMin],
       ['Ставка: медиана', S1.rentMed == null ? 'нет данных' : S1.rentMed],
       ['Ставка: максимум', S1.rentMax == null ? 'нет данных' : S1.rentMax],
-      ['Service charge: медиана', S1.scMed == null ? 'нет данных' : S1.scMed],
-      ['Вакансия: медиана, %', S1.vacMed == null ? 'нет данных' : S1.vacMed],
       ['По классам', Object.keys(S1.byCls).sort().map(function (k) { return k + ': ' + S1.byCls[k]; }).join(', ') || '—'],
       ['Медиана, а не среднее', 'один дорогой объект перекашивает среднее; решение принимают по типичной ставке']);
 
@@ -742,7 +731,7 @@
     add(C.parts.radii, { name: 'Радиусы', rows: rad, w: [12, 14, 16, 12, 18, 10, 10, 14] });
     add(C.parts.bc, { name: 'Бизнес-центры', rows: bc, w: [34, 16, 15, 10, 18, 14, 15, 12, 10, 40, 14] });
     add(C.parts.comp, { name: 'Конкуренты · БЦ', rows: off,
-      w: [5, 30, 10, 8, 10, 12, 12, 6, 15, 11, 8, 10, 12, 18, 15, 13, 11, 11, 22, 20, 24, 14, 12, 11, 34, 12] });
+      w: [5, 32, 10, 8, 10, 12, 12, 6, 15, 11, 18, 13, 24, 22, 26, 11, 34, 12] });
     add(C.parts.comp, { name: 'Конкуренты · торговля', rows: comp, w: [5, 30, 20, 8, 13, 12, 12, 6, 8, 7, 8, 18, 18, 16, 12] });
     add(C.parts.med, { name: 'Медицина', rows: med, w: [40, 12, 12] });
     add(C.parts.poi, { name: 'Городские объекты', rows: poi, w: [32, 10, 10, 10, 10, 10] });
@@ -1231,5 +1220,5 @@
   window.caseGeoCompSummary = function (list, kind) { return compSummary(list || [], kind || 'office'); };
 
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
-  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.57.0';
+  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.57.1';
 })();
