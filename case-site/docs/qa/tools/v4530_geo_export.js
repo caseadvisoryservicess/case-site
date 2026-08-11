@@ -116,6 +116,41 @@ const ROWS = {
   ck('таблица по радиусам собрана', rep.rows >= 5, 'строк: ' + rep.rows);
   ck('в таблице есть F&B', rep.fnb !== null && rep.fnb !== undefined, 'в 1 км: ' + rep.fnb);
 
+  /* ===== Профили конкурентов на экране, а не только в файлах =====
+     Запрос: «on analytics side I want to see every competitor profile's informations
+     also. their price, GLA, GBA and etc». */
+  const onScreen = await pg.evaluate(() => {
+    const panel = document.getElementById('probe');
+    const t = panel.querySelector('table.cmp');
+    if (!t) return { err: 'таблицы конкурентов нет' };
+    const head = [...t.querySelectorAll('th')].map(x => x.textContent.trim());
+    const rows = [...t.querySelectorAll('tbody tr')];
+    return { head, rows: rows.length,
+             clickable: rows.filter(r => /caseGeoOpenCompetitor/.test(r.getAttribute('onclick') || '')).length,
+             first: rows.length ? rows[0].textContent.replace(/\s+/g, ' ').slice(0, 80) : '',
+             text: panel.innerText };
+  });
+  ck('в отчёте по точке есть таблица конкурентов', !onScreen.err, onScreen.err || 'есть');
+  ck('в таблице те же колонки, что в презентации',
+    !onScreen.err && ['Объект', 'Тип', 'Откр.', 'GBA', 'GLA', 'Эт.', 'Точки', 'F&B', 'Парк.', 'Ставка', 'Расст.']
+      .every(h => onScreen.head.includes(h)), (onScreen.head || []).join(' | '));
+  ck('конкуренты перечислены строками', onScreen.rows >= 3, 'строк: ' + onScreen.rows);
+  ck('каждая строка открывает карточку объекта', onScreen.clickable === onScreen.rows,
+    `${onScreen.clickable} из ${onScreen.rows}`);
+  ck('пустые поля показаны прочерком, а не пустотой', /—/.test(onScreen.first || ''), onScreen.first);
+
+  const opened = await pg.evaluate(async () => {
+    const calls = [];
+    const old = window.geoOpenMapRecord;
+    window.geoOpenMapRecord = (k, i) => calls.push(k + ':' + i);
+    document.querySelector('#probe table.cmp tbody tr').click();
+    await new Promise(r => setTimeout(r, 200));
+    window.geoOpenMapRecord = old;
+    return calls;
+  });
+  ck('клик по строке открывает карточку', opened.length === 1 && /^(bc|shopping|markets):/.test(opened[0]),
+    opened.join(', ') || 'вызова не было');
+
   /* Типы образования и общепита — человеческими словами, чайхана отдельно */
   const subs = await pg.evaluate(() => ({
     edu: window.CASE_GEO_POI.subtypes(['education'], 41.3115, 69.2805, 1),

@@ -1,4 +1,4 @@
-/* CASE OS v4.55.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
+/* CASE OS v4.56.0 — выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint.
  *
  * Запрос владельца: «поставили наш новый проект на карту, проверили данные проекта,
  * конкурентную среду, население — и одной кнопкой выгрузили PDF, Excel, PPTX
@@ -368,27 +368,31 @@
     if (!hav) return [];
     var km = (c.compRadius || c.bcRadius || 3000) / 1000, out = [];
     var cats = c.compCats || { bc: true, shopping: true, markets: true, street_retail: false, hotels: false };
-    if (cats.bc && BC) BC.forEach(function (b) {
+    if (cats.bc && BC) BC.forEach(function (b, bi) {
       var e = eff ? eff(b) : b;
       if (e.lat == null || e.lng == null) return;
       var d = hav(p.la, p.ln, +e.lat, +e.lng); if (d > km) return;
-      out.push({ name: e.name, type: e['class'] ? ('Бизнес-центр ' + e['class']) : 'Бизнес-центр',
+      out.push({ src: { k: 'bc', i: bi },   /* откуда строка — чтобы открыть полный профиль */
+        name: e.name, type: e['class'] ? ('Бизнес-центр ' + e['class']) : 'Бизнес-центр',
         year: numOf(e.year), land: numOf(e.landArea), gba: numOf(e.gba), gla: numOf(e.gla),
         floors: numOf(e.floors), units: numOf(e.tenantsCount), fb: numOf(e.fbCount),
         park: numOf(e.parking) != null ? numOf(e.parking) : numOf(e.parkingSpaces),
         rent: rentRange(e.rent != null && e.rent !== '' ? e.rent : e.rentRange),
-        km: d, district: e.district || '', ours: /CASE \(owner\)/i.test(e.provider || '') });
+        km: d, district: e.district || '', ours: /CASE \(owner\)/i.test(e.provider || ''),
+        addr: e.address || '', occ: numOf(e.occupancy), avail: numOf(e.avail), sale: numOf(e.sale) });
     });
     if (api) COMP_CATS.forEach(function (cc) {
       if (cc.key === 'bc' || !cats[cc.key]) return;
-      (api.rows ? api.rows(cc.key) : []).forEach(function (x) {
+      (api.rows ? api.rows(cc.key) : []).forEach(function (x, xi) {
         var la = +x.lat, ln = +x.lng; if (!isFinite(la) || !isFinite(ln)) return;
         var d = hav(p.la, p.ln, la, ln); if (d > km) return;
-        out.push({ name: x.name, type: x.format || cc.label,
+        out.push({ src: { k: cc.key, i: xi },
+          name: x.name, type: x.format || cc.label,
           year: numOf(x.openYear), land: numOf(x.landArea), gba: numOf(x.gba), gla: numOf(x.gla),
           floors: numOf(x.floors), units: numOf(x.tenantsCount) != null ? numOf(x.tenantsCount) : numOf(x.units),
           fb: numOf(x.fbCount), park: numOf(x.parkingSpaces),
-          rent: rentRange(x.rentRange || x.rent), km: d, district: x.district || '', ours: false });
+          rent: rentRange(x.rentRange || x.rent), km: d, district: x.district || '', ours: false,
+          addr: x.address || '', occ: numOf(x.occupancy), foot: numOf(x.annualFootfall) });
       });
     });
     return out.sort(function (a, b) { return a.km - b.km; }).slice(0, c.compLimit || 20);
@@ -1140,6 +1144,17 @@
     });
   };
 
+  /* Тот же список конкурентов, что уходит в файлы, — для отчёта по точке на экране.
+     Считается по настройкам проекта, поэтому экран и выгрузка не расходятся. */
+  window.caseGeoCompetitors = function (la, ln) {
+    if (!isFinite(+la) || !isFinite(+ln)) return [];
+    return competitors({ la: +la, ln: +ln }, cfgLoad());
+  };
+  /* Клик по строке открывает полную карточку объекта — со всеми полями и правкой */
+  window.caseGeoOpenCompetitor = function (k, i) {
+    if (typeof window.geoOpenMapRecord === 'function') window.geoOpenMapRecord(k, +i);
+  };
+
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
-  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.55.0';
+  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.56.0';
 })();

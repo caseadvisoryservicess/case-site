@@ -759,6 +759,19 @@ a{color:var(--red)}
 .mlgd .li b{margin-left:auto}
 .mlgd .grp2{margin-top:6px;padding-top:5px;border-top:1px solid var(--line);font-weight:700;color:var(--ink);font-size:10px}
 .mlgd .ln{display:inline-block;width:14px;height:3px;border-radius:2px}
+/* Таблица профилей конкурентов в отчёте по точке.
+   Колонок много, панель узкая — поэтому таблица прокручивается вбок внутри своей
+   рамки, а не обрезается по краю панели; шапка при этом остаётся на месте.
+   Сам отчёт по точке шире обычной карточки: иначе профили не читаются. */
+#probe{width:720px}
+#probe .cmpwrap{overflow-x:auto;overflow-y:visible;max-width:100%;border:1px solid #eceef1;border-radius:6px;margin:4px 0}
+#probe table.cmp{border-collapse:collapse;font-size:11px;min-width:100%}
+#probe table.cmp th{background:#9E0000;color:#fff;font-weight:600;padding:5px 6px;text-align:left;white-space:nowrap;
+ position:sticky;top:0;z-index:1}
+#probe table.cmp td{padding:5px 6px;border-bottom:1px solid #eceef1;vertical-align:top;white-space:nowrap}
+#probe table.cmp td:first-child{white-space:normal;min-width:170px}
+#probe table.cmp tbody tr:hover{background:#f5f6f8}
+@media(max-width:820px){#probe{width:390px}}
 /* Ручка размера: легенда прижата к левому нижнему углу, поэтому тянем за правый верхний */
 .mlgd h4 .rsz{margin-left:6px;cursor:nesw-resize;color:var(--muted);font-size:13px;line-height:1;
  padding:0 2px;transform:scaleY(-1);display:inline-block}
@@ -2003,7 +2016,29 @@ async function probeAt(la,ln){
    `</tbody></table><p class="mini">Kontur H3, откалибровано на офиц. население района.</p>`;
  h+=`<div class="grp">Бизнес-центры (конкуренция)</div><table><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${bcIn(r)}</b></td></tr>`).join('')+`</tbody></table>`;
- h+=`<div class="mini">Ближайшие: `+nearBC.map(x=>esc(x.b.name)+' ('+(x.d*1000).toFixed(0)+'м'+(x.b['class']?', кл.'+esc(x.b['class']):'')+(x.b.rent?', $'+esc(x.b.rent):'')+')').join('; ')+`</div>`;
+ /* Профили конкурентов прямо в отчёте: ставка, GBA, GLA, этажность, точки, парковка.
+    Раньше здесь была одна строка «Ближайшие: имя (500м)» — по ней ничего не решишь.
+    Список тот же, что уходит в Excel и презентацию, и считается по настройкам проекта,
+    поэтому экран и файлы не расходятся. Клик по строке открывает полную карточку. */
+ if(typeof window.caseGeoCompetitors==='function'){
+  const comp=window.caseGeoCompetitors(la,ln)||[];
+  if(comp.length){
+   const cell=v=>v==null||v===''?'<td style="color:#9aa3ae">—</td>':'<td>'+esc(String(v))+'</td>';
+   const nfmt=v=>v==null?null:Number(v).toLocaleString('ru');
+   h+=`<div class="grp">Конкуренты рядом (${comp.length})</div>`
+     +`<div class="cmpwrap"><table class="cmp"><thead><tr><th>Объект</th><th>Тип</th><th>Откр.</th><th>GBA</th><th>GLA</th>`
+     +`<th>Эт.</th><th>Точки</th><th>F&B</th><th>Парк.</th><th>Ставка</th><th>Расст.</th></tr></thead><tbody>`
+     +comp.map(x=>`<tr${x.ours?' style="background:#fff7e6"':''}${x.src?` onclick="caseGeoOpenCompetitor('${x.src.k}',${x.src.i})" style="cursor:pointer${x.ours?';background:#fff7e6':''}" title="открыть карточку объекта"`:''}>`
+       +`<td><b>${esc(x.name)}</b>${x.ours?' <span style="color:#9E0000">наш</span>':''}${x.addr?'<br><span style="color:#8a9099">'+esc(x.addr)+'</span>':''}</td>`
+       +cell(x.type)+cell(x.year)+cell(nfmt(x.gba))+cell(nfmt(x.gla))+cell(x.floors)+cell(x.units)+cell(x.fb)
+       +cell(nfmt(x.park))+cell(x.rent?x.rent.text:null)+`<td>${(x.km*1000).toFixed(0)} м</td></tr>`).join('')
+     +`</tbody></table></div>`
+     +`<p class="mini">Клик по строке — полная карточка объекта. Прочерк значит, что данных в базе нет:`
+     +` их заполняет команда в карточке. Радиус и состав конкурентов — в «⚙ Настройки выгрузки».</p>`;
+  }
+ }else{
+  h+=`<div class="mini">Ближайшие: `+nearBC.map(x=>esc(x.b.name)+' ('+(x.d*1000).toFixed(0)+'м'+(x.b['class']?', кл.'+esc(x.b['class']):'')+(x.b.rent?', $'+esc(x.b.rent):'')+')').join('; ')+`</div>`;
+ }
  h+=`<div class="grp">Медицина (конкуренция)</div>`;
  h+=`<table><thead><tr><th>Радиус</th><th>Все</th><th>Профильные</th><th>Аптеки</th></tr></thead><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td><b>${medR(la,ln,r,false)}</b></td><td>${medR(la,ln,r,true)}</td><td>${phR(la,ln,r)}</td></tr>`).join('')+`</tbody></table>`;
@@ -2318,6 +2353,6 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.55.0"></script>
-<script src="v4530-geo-export.js?v=4.55.0"></script>
+<script src="v420-geo-studio.js?v=4.56.0"></script>
+<script src="v4530-geo-export.js?v=4.56.0"></script>
 </body></html>
