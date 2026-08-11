@@ -154,9 +154,25 @@
     bc:[
       ['Основное',[['name','Название','text'],['district','Район','text'],['provider','Источник','text'],['status','Рабочий статус','text']]],
       ['Локация',[['address','Адрес','textarea'],['lat','Широта','lat'],['lng','Долгота','lng']]],
-      ['Параметры здания',[['class','Класс БЦ','text'],['floors','Этажей','number'],['gla','GLA, м²','number'],['gba','GBA, м²','number'],['parking','Парковочных мест','number'],['year','Год постройки','number']]],
+      /* Набор полей для офисного здания — то, по чему на рынке сравнивают БЦ.
+         Колонки торговых центров (точки, F&B, участок) для офисов не показательны:
+         арендатора интересуют класс, типовой этаж, вакансия, ставка и service charge. */
+      ['Параметры здания',[['class','Класс БЦ (A+/A/B+/B/C)','text'],['year','Год постройки','number'],['yearReno','Год реконструкции','number'],
+        ['floors','Этажей','number'],['gba','GBA (общая), м²','number'],['nla','NLA (арендопригодная), м²','number'],['gla','GLA, м² (устар. — см. NLA)','number'],
+        ['typicalFloor','Типовой этаж, м²','number'],['ceiling','Высота потолков, м','number'],['elevators','Лифтов','number'],
+        ['layout','Планировка (open space / кабинетная)','text'],['finish','Отделка (shell&core / с отделкой)','text'],
+        ['cert','Сертификация (LEED / BREEAM)','text']]],
+      ['Инженерия и парковка',[['parking','Парковочных мест','number'],['parkRatio','Мест на 100 м² NLA','number'],
+        ['hvac','Кондиционирование','text'],['power','Электромощность, кВт','number'],['generator','Резервное питание','text']]],
       ['Контакты',[['website','Сайт','text'],['socials','Социальные сети','textarea'],['phone','Телефон','text']]],
-      ['Коммерческие данные',[['rent','Аренда, $/м²/мес','number'],['avail','Свободная площадь, м²','number'],['sale','Продажа, $/м²','number'],['psrc','Источник цены','text'],['pdate','Дата цены','date']]],
+      ['Коммерческие данные',[['rent','Аренда, $/м²/мес','number'],['rentRange','Ставка диапазоном (напр. 15-35)','text'],
+        ['serviceCharge','Service charge, $/м²/мес','number'],['avail','Свободная площадь, м²','number'],
+        ['vacancy','Вакансия, %','number'],['occupancy','Заполняемость, %','number'],
+        ['leaseTerm','Срок договора','text'],['indexation','Индексация, %/год','number'],['deposit','Депозит','text'],
+        ['freeRent','Арендные каникулы, мес','number'],['vat','НДС в ставке','text'],
+        ['sale','Продажа, $/м²','number'],['psrc','Источник цены','text'],['pdate','Дата цены','date']]],
+      ['Арендаторы и собственник',[['anchors','Якорные арендаторы','textarea'],['tenants','Профиль арендаторов','textarea'],
+        ['owner','Собственник / управляющая компания','text']]],
       ['Оценка и заметки',[['rating','Рейтинг','number'],['reviews','Количество отзывов','number'],['comment','Комментарий','textarea']]],
       ['Мастер-база',[['master_id','ID мастер-базы','text'],['seed_object_id','ID исходного seed','text'],['source_count','Количество источников','number'],['data_confidence','Уровень доверия','text'],['coordinate_accuracy','Точность координат','text'],['possible_duplicate','Возможный дубль','text'],['duplicate_group_id','Группа дублей','text'],['sourceUrl','Ссылка на источник','text']]],
       ['Ручная проверка',[['_verification','Статус проверки','select',[['online','Онлайн, не проверено'],['needs_review','Нужна ручная проверка'],['verified','Подтверждено вручную']]],['_sourceDate','Дата источника','date'],['_checkedBy','Проверил','text'],['_checkedAt','Дата проверки','date'],['_note','Примечание проверки','textarea']]]

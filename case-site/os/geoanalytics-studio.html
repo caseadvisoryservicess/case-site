@@ -2016,26 +2016,52 @@ async function probeAt(la,ln){
    `</tbody></table><p class="mini">Kontur H3, откалибровано на офиц. население района.</p>`;
  h+=`<div class="grp">Бизнес-центры (конкуренция)</div><table><tbody>`+
    RAD.map(r=>`<tr><td>${r} м</td><td style="text-align:right"><b>${bcIn(r)}</b></td></tr>`).join('')+`</tbody></table>`;
- /* Профили конкурентов прямо в отчёте: ставка, GBA, GLA, этажность, точки, парковка.
-    Раньше здесь была одна строка «Ближайшие: имя (500м)» — по ней ничего не решишь.
-    Список тот же, что уходит в Excel и презентацию, и считается по настройкам проекта,
-    поэтому экран и файлы не расходятся. Клик по строке открывает полную карточку. */
+ /* Профили конкурентов прямо в отчёте. Офисы и торговля разнесены: у бизнес-центра
+    показательны класс, типовой этаж, вакансия, ставка и service charge, а «точки»
+    и «F&B» — колонки торгового центра, для офиса они пустые и только мешают.
+    Список тот же, что уходит в Excel и презентацию. Клик — полная карточка. */
  if(typeof window.caseGeoCompetitors==='function'){
   const comp=window.caseGeoCompetitors(la,ln)||[];
-  if(comp.length){
-   const cell=v=>v==null||v===''?'<td style="color:#9aa3ae">—</td>':'<td>'+esc(String(v))+'</td>';
-   const nfmt=v=>v==null?null:Number(v).toLocaleString('ru');
-   h+=`<div class="grp">Конкуренты рядом (${comp.length})</div>`
-     +`<div class="cmpwrap"><table class="cmp"><thead><tr><th>Объект</th><th>Тип</th><th>Откр.</th><th>GBA</th><th>GLA</th>`
-     +`<th>Эт.</th><th>Точки</th><th>F&B</th><th>Парк.</th><th>Ставка</th><th>Расст.</th></tr></thead><tbody>`
-     +comp.map(x=>`<tr${x.ours?' style="background:#fff7e6"':''}${x.src?` onclick="caseGeoOpenCompetitor('${x.src.k}',${x.src.i})" style="cursor:pointer${x.ours?';background:#fff7e6':''}" title="открыть карточку объекта"`:''}>`
-       +`<td><b>${esc(x.name)}</b>${x.ours?' <span style="color:#9E0000">наш</span>':''}${x.addr?'<br><span style="color:#8a9099">'+esc(x.addr)+'</span>':''}</td>`
-       +cell(x.type)+cell(x.year)+cell(nfmt(x.gba))+cell(nfmt(x.gla))+cell(x.floors)+cell(x.units)+cell(x.fb)
-       +cell(nfmt(x.park))+cell(x.rent?x.rent.text:null)+`<td>${(x.km*1000).toFixed(0)} м</td></tr>`).join('')
+  const cell=v=>v==null||v===''?'<td style="color:#9aa3ae">—</td>':'<td>'+esc(String(v))+'</td>';
+  const nf=v=>v==null?null:Number(v).toLocaleString('ru');
+  const nameCell=x=>`<td><b>${esc(x.name)}</b>${x.ours?' <span style="color:#9E0000">наш</span>':''}`
+    +`${x.addr?'<br><span style="color:#8a9099">'+esc(x.addr)+'</span>':''}</td>`;
+  const rowAttr=x=>x.src?` onclick="caseGeoOpenCompetitor('${x.src.k}',${x.src.i})" style="cursor:pointer${x.ours?';background:#fff7e6':''}" title="открыть карточку объекта"`:'';
+  const office=comp.filter(x=>x.kind==='office'), retail=comp.filter(x=>x.kind!=='office');
+
+  if(office.length){
+   /* Свод по зоне охвата — то, ради чего собирают карточки */
+   const S=window.caseGeoCompSummary?window.caseGeoCompSummary(comp,'office'):null;
+   h+=`<div class="grp">Конкуренты · бизнес-центры (${office.length})</div>`;
+   if(S)h+=`<p class="mini" style="margin:2px 0 4px">Ставка: ${S.rentMed==null?'нет данных':
+      ('медиана <b>$'+S.rentMed+'</b>'+(S.rentMin!=null?', диапазон $'+S.rentMin+'–'+S.rentMax:''))}`
+     +` · известна у ${S.withRent} из ${S.n}`
+     +`${S.area?' · суммарная NLA <b>'+Number(S.area).toLocaleString('ru')+'</b> м²':''}`
+     +`${S.scMed!=null?' · service charge медиана $'+S.scMed:''}`
+     +`${S.vacMed!=null?' · вакансия медиана '+S.vacMed+'%':''}</p>`;
+   h+=`<div class="cmpwrap"><table class="cmp"><thead><tr><th>Объект</th><th>Класс</th><th>Год</th>`
+     +`<th>GBA</th><th>NLA</th><th>Эт.</th><th>Типовой этаж</th><th>Потолки</th><th>Лифтов</th>`
+     +`<th>Паркинг</th><th>Ставка</th><th>SC</th><th>Свободно</th><th>Вакансия</th><th>Расст.</th></tr></thead><tbody>`
+     +office.map(x=>`<tr${rowAttr(x)}>`+nameCell(x)+cell(x.cls)+cell(x.year)+cell(nf(x.gba))+cell(nf(x.nla))
+       +cell(x.floors)+cell(nf(x.typicalFloor))+cell(x.ceiling)+cell(x.elevators)
+       +cell(nf(x.park))+cell(x.rent?x.rent.text:null)+cell(x.sc==null?null:'$'+x.sc)
+       +cell(nf(x.avail))+cell(x.vacancy==null?null:x.vacancy+'%')
+       +`<td>${(x.km*1000).toFixed(0)} м</td></tr>`).join('')
      +`</tbody></table></div>`
-     +`<p class="mini">Клик по строке — полная карточка объекта. Прочерк значит, что данных в базе нет:`
-     +` их заполняет команда в карточке. Радиус и состав конкурентов — в «⚙ Настройки выгрузки».</p>`;
+     +`<p class="mini">Клик по строке — карточка объекта: там же поля Service charge, планировка,`
+     +` отделка, собственник, срок договора и индексация. Прочерк значит, что поле ещё не заполнено.</p>`;
   }
+  if(retail.length){
+   h+=`<div class="grp">Конкуренты · торговля и прочее (${retail.length})</div>`
+     +`<div class="cmpwrap"><table class="cmp"><thead><tr><th>Объект</th><th>Тип</th><th>Откр.</th>`
+     +`<th>Участок</th><th>GBA</th><th>GLA</th><th>Эт.</th><th>Точки</th><th>F&B</th><th>Парк.</th>`
+     +`<th>Ставка</th><th>Расст.</th></tr></thead><tbody>`
+     +retail.map(x=>`<tr${rowAttr(x)}>`+nameCell(x)+cell(x.type)+cell(x.year)+cell(nf(x.land))
+       +cell(nf(x.gba))+cell(nf(x.gla))+cell(x.floors)+cell(x.units)+cell(x.fb)+cell(nf(x.park))
+       +cell(x.rent?x.rent.text:null)+`<td>${(x.km*1000).toFixed(0)} м</td></tr>`).join('')
+     +`</tbody></table></div>`;
+  }
+  if(!comp.length)h+=`<div class="mini">В заданном радиусе конкурентов не найдено. Радиус и состав — в «⚙ Настройки выгрузки».</div>`;
  }else{
   h+=`<div class="mini">Ближайшие: `+nearBC.map(x=>esc(x.b.name)+' ('+(x.d*1000).toFixed(0)+'м'+(x.b['class']?', кл.'+esc(x.b['class']):'')+(x.b.rent?', $'+esc(x.b.rent):'')+')').join('; ')+`</div>`;
  }
@@ -2353,6 +2379,6 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.56.0"></script>
-<script src="v4530-geo-export.js?v=4.56.0"></script>
+<script src="v420-geo-studio.js?v=4.57.0"></script>
+<script src="v4530-geo-export.js?v=4.57.0"></script>
 </body></html>

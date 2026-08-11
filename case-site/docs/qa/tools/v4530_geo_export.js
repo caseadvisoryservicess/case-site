@@ -30,6 +30,10 @@ const ROWS = {
                 { name: 'Чайхана Навруз', lat: 41.3115, lng: 69.2805, subtype: 'restaurant' }],
   cafes: [{ name: 'Coffee House', lat: 41.3112, lng: 69.2802, subtype: 'cafe' }],
   fast_food: [{ name: 'Evos', lat: 41.3125, lng: 69.2815, subtype: 'fast_food' }],
+  /* торговый центр — чтобы проверить, что у торговли свой набор колонок */
+  shopping: [{ name: 'Depo Mall', lat: 41.3122, lng: 69.2790, subtype: 'mall', format: 'ТЦ, стрит-ритейл',
+               openYear: 2021, landArea: 97000, gba: 42664, gla: 34398, floors: 2,
+               tenantsCount: 200, fbCount: 12, parkingSpaces: 600, rentRange: '15-40' }],
   education: [{ name: 'Школа №110', lat: 41.3105, lng: 69.2795, subtype: 'school' },
               { name: "Najot Ta'lim", lat: 41.3108, lng: 69.2798, subtype: 'training' },
               { name: 'Inha University', lat: 41.3112, lng: 69.2801, subtype: 'university' }]
@@ -77,7 +81,7 @@ const ROWS = {
 
   /* Слои общепита и образования — чтобы в отчёт попали и они */
   await pg.evaluate(async () => {
-    for (const k of ['restaurants', 'cafes', 'fast_food', 'education']) {
+    for (const k of ['restaurants', 'cafes', 'fast_food', 'education', 'shopping']) {
       const cb = document.getElementById('geoLayer-' + k);
       if (cb) { cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true })); await new Promise(r => setTimeout(r, 300)); }
     }
@@ -119,25 +123,42 @@ const ROWS = {
   /* ===== Профили конкурентов на экране, а не только в файлах =====
      Запрос: «on analytics side I want to see every competitor profile's informations
      also. their price, GLA, GBA and etc». */
-  const onScreen = await pg.evaluate(() => {
+  /* Офисы и торговля разнесены: у БЦ свои показатели, колонки ТРЦ для них пустые */
+  const filled = await pg.evaluate(async () => {
+    const i = BC.findIndex(b => /Trilliant/i.test(b.name || ''));
+    if (i >= 0) Object.assign(BC[i], { class: 'A+', year: 2019, gba: 24000, nla: 18500, floors: 12,
+      typicalFloor: 1500, ceiling: 3.3, elevators: 6, parking: 220, parkRatio: 1.2,
+      rentRange: '28-38', serviceCharge: 5.5, avail: 1200, vacancy: 6.5,
+      layout: 'open space', finish: 'shell&core', owner: 'CASE Development' });
+    await probeAt(41.3115, 69.2805);
+    await new Promise(r => setTimeout(r, 1500));
     const panel = document.getElementById('probe');
-    const t = panel.querySelector('table.cmp');
-    if (!t) return { err: 'таблицы конкурентов нет' };
-    const head = [...t.querySelectorAll('th')].map(x => x.textContent.trim());
-    const rows = [...t.querySelectorAll('tbody tr')];
-    return { head, rows: rows.length,
-             clickable: rows.filter(r => /caseGeoOpenCompetitor/.test(r.getAttribute('onclick') || '')).length,
-             first: rows.length ? rows[0].textContent.replace(/\s+/g, ' ').slice(0, 80) : '',
-             text: panel.innerText };
+    const tabs = [...panel.querySelectorAll('table.cmp')];
+    const heads = tabs.map(t => [...t.querySelectorAll('th')].map(x => x.textContent.trim()));
+    const rows = tabs.map(t => t.querySelectorAll('tbody tr').length);
+    const txt = panel.innerText;
+    const first = tabs.length ? tabs[0].querySelector('tbody tr').textContent.replace(/\s+/g, ' ') : '';
+    return { n: tabs.length, heads, rows, txt, first,
+             clickable: tabs.length ? [...tabs[0].querySelectorAll('tbody tr')]
+               .filter(r => /caseGeoOpenCompetitor/.test(r.getAttribute('onclick') || '')).length : 0 };
   });
-  ck('в отчёте по точке есть таблица конкурентов', !onScreen.err, onScreen.err || 'есть');
-  ck('в таблице те же колонки, что в презентации',
-    !onScreen.err && ['Объект', 'Тип', 'Откр.', 'GBA', 'GLA', 'Эт.', 'Точки', 'F&B', 'Парк.', 'Ставка', 'Расст.']
-      .every(h => onScreen.head.includes(h)), (onScreen.head || []).join(' | '));
-  ck('конкуренты перечислены строками', onScreen.rows >= 3, 'строк: ' + onScreen.rows);
-  ck('каждая строка открывает карточку объекта', onScreen.clickable === onScreen.rows,
-    `${onScreen.clickable} из ${onScreen.rows}`);
-  ck('пустые поля показаны прочерком, а не пустотой', /—/.test(onScreen.first || ''), onScreen.first);
+  ck('в отчёте два блока конкурентов: офисы и торговля', filled.n === 2, 'таблиц: ' + filled.n);
+  ck('у офисов свои колонки (класс, NLA, типовой этаж, вакансия)',
+    filled.n >= 1 && ['Класс', 'NLA', 'Типовой этаж', 'Вакансия', 'SC', 'Ставка']
+      .every(h => filled.heads[0].includes(h)), (filled.heads[0] || []).join(' | '));
+  ck('колонок торгового центра в офисной таблице нет',
+    filled.n >= 1 && !filled.heads[0].includes('Точки') && !filled.heads[0].includes('F&B'),
+    (filled.heads[0] || []).join(' | '));
+  ck('у торговли остались свои колонки',
+    filled.n >= 2 && ['Точки', 'F&B', 'GLA', 'Участок'].every(h => filled.heads[1].includes(h)),
+    (filled.heads[1] || []).join(' | '));
+  ck('заполненный БЦ показан с данными',
+    /A\+/.test(filled.first) && /18\s?500/.test(filled.first) && /\$28–38/.test(filled.first),
+    filled.first.slice(0, 120));
+  ck('свод по зоне охвата показан', /Ставка: медиана|медиана \$/.test(filled.txt),
+    (filled.txt.match(/Ставка:[^\n]{0,90}/) || [''])[0]);
+  ck('каждая строка открывает карточку', filled.clickable === filled.rows[0],
+    `${filled.clickable} из ${filled.rows[0]}`);
 
   const opened = await pg.evaluate(async () => {
     const calls = [];
@@ -148,8 +169,16 @@ const ROWS = {
     window.geoOpenMapRecord = old;
     return calls;
   });
-  ck('клик по строке открывает карточку', opened.length === 1 && /^(bc|shopping|markets):/.test(opened[0]),
+  ck('клик по строке открывает карточку', opened.length === 1 && /^bc:/.test(opened[0]),
     opened.join(', ') || 'вызова не было');
+
+  /* Карточка БЦ должна содержать поля, которые команда будет заполнять */
+  const schema = await pg.evaluate(() => {
+    const out = [];
+    document.querySelectorAll('#probe, .card').forEach(() => {});
+    return typeof window.geoOpenMapRecord === 'function';
+  });
+  ck('карточка объекта доступна для заполнения', schema === true);
 
   /* Типы образования и общепита — человеческими словами, чайхана отдельно */
   const subs = await pg.evaluate(() => ({

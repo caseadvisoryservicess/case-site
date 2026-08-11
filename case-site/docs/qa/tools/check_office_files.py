@@ -46,8 +46,8 @@ def check_xlsx(path):
     # Тест перед выгрузкой снимает галочки «Метро» и «Рынок города» и задаёт свои
     # радиусы — файл обязан это учесть, иначе настройка проекта ни на что не влияет.
     want = ['Сводка', 'Население', 'Население по районам', 'Районы города', 'Радиусы',
-            'Бизнес-центры', 'Конкуренты', 'Медицина', 'Городские объекты',
-            'Образование по типам', 'F&B по типам']
+            'Бизнес-центры', 'Конкуренты · БЦ', 'Конкуренты · торговля', 'Медицина',
+            'Городские объекты', 'Образование по типам', 'F&B по типам']
     ck('Excel: состав листов соответствует настройке проекта', names == want, names)
     ck('Excel: отключённые разделы не попали в файл',
        'Метро' not in names and 'Рынок города' not in names, names)
@@ -127,14 +127,34 @@ def check_xlsx(path):
     bcrows = [r for r in bc.iter_rows(min_row=2, values_only=True) if r[0]]
     ck('Excel: список конкурентов не пуст', len(bcrows) >= 1, f'строк: {len(bcrows)}')
 
-    # --- конкуренты: та самая таблица из презентаций по рынку
-    cp = wb['Конкуренты']
+    # --- конкуренты-офисы: показатели, по которым сравнивают БЦ
+    of = wb['Конкуренты · БЦ']
+    oh = [c.value for c in next(of.iter_rows(min_row=1, max_row=1))]
+    needo = ['Класс', 'NLA, м²', 'Типовой этаж, м²', 'Потолки, м', 'Лифтов', 'Мест/100 м²',
+             'Service charge', 'Вакансия, %', 'Собственник / УК', 'Срок договора']
+    ck('Excel: у офисов свои, отраслевые колонки', all(h in oh for h in needo), oh)
+    ck('Excel: колонок торгового центра у офисов нет',
+       'Точки' not in oh and 'F&B' not in oh and 'Участок, м²' not in oh, oh)
+    orows = [r for r in of.iter_rows(min_row=2, values_only=True) if isinstance(r[0], int)]
+    ck('Excel: бизнес-центры перечислены', len(orows) >= 3, f'строк: {len(orows)}')
+    ovals = [str(c.value) for row in of.iter_rows() for c in row if c.value is not None]
+    ck('Excel: заполненный БЦ выгружен с данными',
+       any('A+' == v for v in ovals) and any('18500' == v or v == '18500' for v in ovals), ovals[:0] or 'см. лист')
+    ck('Excel: есть свод по офисам зоны охвата',
+       any('Свод по офисам' in v for v in ovals) and any('Ставка: медиана' in v for v in ovals),
+       [v for v in ovals if 'Свод' in v or 'медиана' in v][:3])
+
+    # --- конкуренты: торговля
+    cp = wb['Конкуренты · торговля']
     ch = [c.value for c in next(cp.iter_rows(min_row=1, max_row=1))]
     need = ['№', 'Объект', 'Тип', 'Откр.', 'Участок, м²', 'GBA, м²', 'GLA, м²', 'Эт.',
             'Точки', 'F&B', 'Парк.', 'Ставка, $/м²/мес', 'Расст. по прямой, км']
     ck('Excel: карточка конкурента со всеми колонками', ch[:len(need)] == need, ch)
     crows = [r for r in cp.iter_rows(min_row=2, values_only=True) if isinstance(r[0], int)]
-    ck('Excel: конкуренты перечислены', len(crows) >= 3, f'строк: {len(crows)}')
+    # в тестовом наборе один торговый центр — проверяем, что его данные на месте
+    ck('Excel: торговые конкуренты перечислены', len(crows) >= 1, f'строк: {len(crows)}')
+    ck('Excel: у торгового центра заполнены точки и F&B',
+       any(r[8] == 200 and r[9] == 12 for r in crows), [(r[1], r[8], r[9]) for r in crows[:3]])
     dist = [r[12] for r in crows]
     ck('Excel: конкуренты отсортированы по расстоянию', dist == sorted(dist), dist[:6])
     ck('Excel: ставка записана диапазоном или суммой',
