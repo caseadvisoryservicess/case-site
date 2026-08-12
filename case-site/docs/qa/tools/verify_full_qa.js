@@ -58,6 +58,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   rec('boot: страница отвечает 200', !!resp && resp.status() === 200, String(resp && resp.status()));
   await page.waitForTimeout(1200);
   rec('boot: экран входа показан', await page.evaluate(() => !document.getElementById('login').classList.contains('hidden')));
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   const roles = await page.evaluate(() => Array.from(document.getElementById('luser').options).map(o => o.value));
   rec('boot: в демо-режиме доступен выбор ролей', roles.length > 3, roles.length + ' ролей');
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = s.options[0].value; doLogin(); });

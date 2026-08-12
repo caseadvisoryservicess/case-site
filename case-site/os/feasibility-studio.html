@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CASE Financial Feasibility — Investment Appraisal</title>
+<title>CASE Financial Feasibility - Investment Appraisal</title>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -33,7 +33,7 @@ button{font-family:var(--sans)}
 .toolbar{position:sticky;top:0;z-index:100;background:rgba(245,243,239,.97);backdrop-filter:blur(12px);border-bottom:1px solid var(--i10);display:flex;align-items:center;gap:16px;padding:10px 24px;flex-wrap:wrap}
 .brand{display:flex;flex-direction:column;gap:1px;margin-right:8px;text-decoration:none;color:inherit}
 .brand-n{font-family:var(--serif);font-size:20px;font-weight:800;line-height:1;letter-spacing:.5px}.brand-n .asaas-a{color:var(--red)}
-.brand-s{font-size:7.5px;font-weight:600;letter-spacing:2.2px;text-transform:uppercase;color:var(--i60)}
+.brand-s{font-size:9px;font-weight:600;letter-spacing:2.2px;text-transform:uppercase;color:var(--i60)}
 .tb-sep{width:1px;height:28px;background:var(--i10)}
 .tb-title{font-size:12px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;color:var(--i60)}
 .tb-spacer{flex:1}
@@ -85,6 +85,8 @@ select.tb-select{font:inherit;font-size:12px;padding:7px 10px;border:1.5px solid
 .frow select{width:100%;font:inherit;font-size:12.5px;padding:7px 8px;border:1.5px solid var(--i10);background:var(--cream)}
 .frow-slider{padding:0 0 8px}
 input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:3px;background:var(--i10);outline:none}
+    /* v4.58.0: у ползунка обводку снимали и ничем не заменяли - с клавиатуры не было видно, где фокус */
+    input[type=range]:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
 input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:pointer;border:2.5px solid #fff;box-shadow:0 0 0 1px var(--i30)}
 input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:var(--ink);cursor:pointer;border:2.5px solid #fff;box-shadow:0 0 0 1px var(--i30)}
 .chkrow{display:flex;align-items:center;gap:9px;padding:8px 0;font-size:12.5px;color:var(--i70);cursor:pointer}
@@ -329,7 +331,7 @@ html.embedded #scenSelect,html.embedded #btnDelete,html.embedded #btnNew{display
       <div class="card pb">
         <div class="card-head">
           <div>
-            <div class="card-title" data-i18n="sensitivityTwoWay">Sensitivity — 25 scenarios</div>
+            <div class="card-title" data-i18n="sensitivityTwoWay">Sensitivity - 25 scenarios</div>
             <div class="card-sub" id="sensSub"></div>
           </div>
           <div class="seg" id="segSens">
@@ -347,7 +349,7 @@ html.embedded #scenSelect,html.embedded #btnDelete,html.embedded #btnNew{display
       <div class="card">
         <div class="card-head">
           <div>
-            <div class="card-title" data-i18n="npvDrivers">Sensitivity — NPV drivers</div>
+            <div class="card-title" data-i18n="npvDrivers">Sensitivity - NPV drivers</div>
             <div class="card-sub" data-i18n="npvImpact">Impact of each assumption on project NPV</div>
           </div>
         </div>

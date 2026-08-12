@@ -13,6 +13,7 @@
  */
 (function () {
   'use strict';
+  var VERSION = '4.58.0';   /* единственный источник версии модуля — см. регистрацию в конце файла */
 
   /* ================= ZIP без сжатия (method 0) =================
      Сжатие нам не нужно: файлы небольшие, а deflate в браузере без библиотеки
@@ -71,9 +72,41 @@
     a.href = u; a.download = name; document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(u); a.remove(); }, 1500);
   }
+  /* v4.58.0: выгрузки собираются строками и минуют DOM, поэтому экранный нормализатор
+     тире (v4450-ux-system.js) до содержимого .xlsx/.pptx/PDF не дотягивается, хотя
+     требование «короткое тире» распространялось и на презентацию. Нормализуем сами —
+     только подписи и текстовые ячейки; числовые ячейки идут мимо (см. sheetXml). */
+  function dsh(v) {
+    var s = String(v == null ? '' : v), solo = s.match(/^(\s*)[—–](\s*)$/);
+    if (solo) return solo[1] + '-' + solo[2];
+    return s.replace(/(\d)\s*[—–]\s*(?=\d)/g, '$1-')
+            .replace(/(\S)\s*[—–]\s*(?=\S)/g, '$1 - ')
+            .replace(/\s*[—–]\s*/g, '-');
+  }
+  /* PDF печатается в отдельном окне, куда экранный нормализатор тоже не попадает */
+  function dshDoc(doc) {
+    try {
+      var w = doc.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT, null), n, list = [];
+      while ((n = w.nextNode())) if (/[—–]/.test(n.nodeValue || '')) list.push(n);
+      list.forEach(function (x) { x.nodeValue = dsh(x.nodeValue); });
+      if (/[—–]/.test(doc.title || '')) doc.title = dsh(doc.title);
+    } catch (e) {}
+  }
+  /* v4.58.0: (parseFloat(x)||x) ломал две записи — «15-35» превращалось в 15 (диапазон ставки
+     терялся), а «0» уходило в файл текстом. Число ставим числом, только если вся строка — число. */
+  function cellNum(v) {
+    if (v === '' || v == null) return '-';
+    var t = String(v).trim();
+    if (/^-?\d+(?:[.,]\d+)?$/.test(t)) return parseFloat(t.replace(',', '.'));
+    return t;
+  }
   function xe(v) {
     return String(v == null ? '' : v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/\x00-\x08|\x0b|\x0c|\x0e-\x1f/g, '');
+      .replace(/"/g, '&quot;')
+      /* v4.58.0: было /\x00-\x08|\x0b|\x0c|\x0e-\x1f/ — вне квадратных скобок это не диапазоны,
+         а буквальные строки, поэтому управляющие символы из имён OSM доходили до XML и Excel
+         открывал файл «с восстановлением». Настоящий класс символов: */
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g, '');
   }
 
   /* ================= данные отчёта ================= */
@@ -314,9 +347,13 @@
     var km = m / 1000, out = [];
     BC.forEach(function (b) {
       var e = eff ? eff(b) : b;
-      if (e.lat == null || e.lng == null) return;
-      var d = hav(la, ln, +e.lat, +e.lng);
-      if (d > km) return;
+      /* v4.58.0: проверки на null не хватало — пустая строка даёт +'' === 0, а текст даёт NaN,
+         и hav() возвращал NaN; сравнение NaN > km ложно, поэтому объект без координат попадал
+         в выборку и вставал в отчёт с пустым расстоянием */
+      var la2 = parseFloat(e.lat), ln2 = parseFloat(e.lng);
+      if (!Number.isFinite(la2) || !Number.isFinite(ln2)) return;
+      var d = hav(la, ln, la2, ln2);
+      if (!Number.isFinite(d) || d > km) return;
       out.push({ name: e.name, district: e.district || '', km: d, cls: e['class'] || '', rent: e.rent || '',
         avail: e.avail || '', sale: e.sale || '', gla: e.gla || '', floors: e.floors || '',
         addr: e.address || '', prov: e.provider || '', psrc: e.psrc || '' });
@@ -331,7 +368,12 @@
   }
   function poiAround(la, ln, radii) {
     var api = window.CASE_GEO_POI; if (!api) return null;
-    var vis = api.visible(), keys = Object.keys(vis);
+    /* v4.58.0: брали api.visible() — это то, что попало в текущий кадр карты. Из-за этого
+       один и тот же проект давал разные выгрузки в зависимости от того, куда пользователь
+       сдвинул карту перед нажатием кнопки. Берём загруженные слои и уважаем галочки. */
+    var loaded = api.keys().filter(function (k) { return api.total(k) > 0; });
+    var keys = loaded.filter(function (k) { return api.on(k); });
+    if (!keys.length) keys = loaded;      /* панель слоёв ещё не отрисована — берём все загруженные */
     if (!keys.length) return null;
     return keys.map(function (k) {
       var row = { key: k, label: api.label(k) };
@@ -370,8 +412,9 @@
     var cats = c.compCats || { bc: true, shopping: true, markets: true, street_retail: false, hotels: false };
     if (cats.bc && BC) BC.forEach(function (b, bi) {
       var e = eff ? eff(b) : b;
-      if (e.lat == null || e.lng == null) return;
-      var d = hav(p.la, p.ln, +e.lat, +e.lng); if (d > km) return;
+      var bla = parseFloat(e.lat), bln = parseFloat(e.lng);
+      if (!Number.isFinite(bla) || !Number.isFinite(bln)) return;
+      var d = hav(p.la, p.ln, bla, bln); if (!Number.isFinite(d) || d > km) return;
       out.push({ src: { k: 'bc', i: bi },   /* откуда строка — чтобы открыть полный профиль */
         kind: 'office',                     /* офис сравнивают по своим показателям */
         cls: e['class'] || '', yearReno: numOf(e.yearReno),
@@ -401,7 +444,13 @@
           addr: x.address || '', occ: numOf(x.occupancy), foot: numOf(x.annualFootfall) });
       });
     });
-    return out.sort(function (a, b) { return a.km - b.km; }).slice(0, c.compLimit || 20);
+    /* v4.58.0: лимит применяли к общему списку. Если ближе оказывались 20 бизнес-центров,
+       торговая часть выпадала целиком, хотя владелец просил обе таблицы. Режем по видам. */
+    var lim = c.compLimit || 20;
+    out.sort(function (a, b) { return a.km - b.km; });
+    var office = out.filter(function (x) { return x.kind === 'office'; }).slice(0, lim);
+    var retail = out.filter(function (x) { return x.kind === 'retail'; }).slice(0, lim);
+    return office.concat(retail).sort(function (a, b) { return a.km - b.km; });
   }
 
   /* Свод по конкурентам в зоне охвата: сколько объектов, сколько метров, какие ставки.
@@ -416,8 +465,13 @@
     var rows = list.filter(function (x) { return x.kind === kind; });
     if (!rows.length) return null;
     var rents = [], avail = 0, area = 0, byCls = {};
+    /* v4.58.0: раньше объект со ставкой «15-35» давал в выборку два числа, а объект с одной
+       ставкой — одно, и медиана смещалась в сторону тех, кто указал диапазон. Для медианы
+       берём по одному значению на объект (середину диапазона), границы рынка считаем отдельно. */
+    var mids = [];
     rows.forEach(function (x) {
-      if (x.rent) { rents.push(x.rent.min); if (x.rent.max !== x.rent.min) rents.push(x.rent.max); }
+      if (x.rent) { rents.push(x.rent.min); if (x.rent.max !== x.rent.min) rents.push(x.rent.max);
+        mids.push((x.rent.min + x.rent.max) / 2); }
       if (x.gla) area += x.gla;
       if (x.avail) avail += x.avail;
       if (kind === 'office') { var c = x.cls || 'без класса'; byCls[c] = (byCls[c] || 0) + 1; }
@@ -426,7 +480,7 @@
       area: area || null, avail: avail || null,
       rentMin: rents.length ? Math.min.apply(null, rents) : null,
       rentMax: rents.length ? Math.max.apply(null, rents) : null,
-      rentMed: med(rents), byCls: byCls };
+      rentMed: med(mids), byCls: byCls };
   }
 
   function detail(p, c) {
@@ -536,7 +590,7 @@
         var ref = colName(ci) + (ri + 1);
         if (v == null || v === '') return '<c r="' + ref + '"/>';
         if (typeof v === 'number' && isFinite(v)) return '<c r="' + ref + '"><v>' + v + '</v></c>';
-        return '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xe(v) + '</t></is></c>';
+        return '<c r="' + ref + '" t="inlineStr"><is><t xml:space="preserve">' + xe(dsh(v)) + '</t></is></c>';
       }).join('');
       return '<row r="' + (ri + 1) + '">' + cells + '</row>';
     }).join('');
@@ -614,11 +668,9 @@
     var bc = [['Бизнес-центр', 'Район', 'Расстояние, м', 'Класс', 'Ставка, $/м²/мес', 'Свободно, м²',
       'Продажа, $/м²', 'GLA, м²', 'Этажей', 'Адрес', 'Источник']];
     D.bc.forEach(function (x) {
-      bc.push([x.name, x.district, Math.round(x.km * 1000), x.cls || '—',
-        x.rent === '' ? '—' : (parseFloat(x.rent) || x.rent),
-        x.avail === '' ? '—' : (parseFloat(x.avail) || x.avail),
-        x.sale === '' ? '—' : (parseFloat(x.sale) || x.sale),
-        x.gla === '' ? '—' : (parseFloat(x.gla) || x.gla), x.floors || '—', x.addr, x.prov]);
+      bc.push([x.name, x.district, Math.round(x.km * 1000), x.cls || '-',
+        cellNum(x.rent), cellNum(x.avail), cellNum(x.sale), cellNum(x.gla),
+        x.floors || '-', x.addr, x.prov]);
     });
     if (bc.length === 1) bc.push(['В радиусе 3 км бизнес-центров не найдено', '', '', '', '', '', '', '', '', '', '']);
     var byCls = {};
@@ -784,7 +836,7 @@
     var runs = String(text).split('\n').map(function (line) {
       return '<a:p><a:pPr algn="' + (opt.align || 'l') + '"/><a:r><a:rPr lang="ru-RU" sz="' + (size * 100) + '"'
         + (opt.bold ? ' b="1"' : '') + ' dirty="0"><a:solidFill><a:srgbClr val="' + (opt.color || '222222') + '"/></a:solidFill>'
-        + '<a:latin typeface="Arial"/></a:rPr><a:t>' + xe(line) + '</a:t></a:r></a:p>';
+        + '<a:latin typeface="Arial"/></a:rPr><a:t>' + xe(dsh(line)) + '</a:t></a:r></a:p>';
     }).join('');
     return '<p:sp><p:nvSpPr><p:cNvPr id="' + (opt.id || 2) + '" name="t' + (opt.id || 2) + '"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>'
       + '<p:spPr><a:xfrm><a:off x="' + x + '" y="' + y + '"/><a:ext cx="' + w + '" cy="' + h + '"/></a:xfrm>'
@@ -799,7 +851,7 @@
         var head = ri === 0;
         return '<a:tc><a:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="ru-RU" sz="1100"'
           + (head ? ' b="1"' : '') + '><a:solidFill><a:srgbClr val="' + (head ? 'FFFFFF' : '222222') + '"/></a:solidFill>'
-          + '<a:latin typeface="Arial"/></a:rPr><a:t>' + xe(c) + '</a:t></a:r></a:p></a:txBody>'
+          + '<a:latin typeface="Arial"/></a:rPr><a:t>' + xe(dsh(c)) + '</a:t></a:r></a:p></a:txBody>'
           + '<a:tcPr marL="45720" marR="45720" marT="27432" marB="27432"><a:solidFill><a:srgbClr val="'
           + (head ? '9E0000' : (ri % 2 ? 'F5F6F8' : 'FFFFFF')) + '"/></a:solidFill></a:tcPr></a:tc>';
       }).join('');
@@ -1219,6 +1271,8 @@
   /* Свод по конкурентам — тот же расчёт для экрана и для файлов */
   window.caseGeoCompSummary = function (list, kind) { return compSummary(list || [], kind || 'office'); };
 
+  window.caseDashFix = dsh;
+  window.caseDashFixDoc = dshDoc;
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
-  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = '4.57.1';
+  window.CASE_MODULE_VERSIONS['v4530-geo-export'] = VERSION;
 })();

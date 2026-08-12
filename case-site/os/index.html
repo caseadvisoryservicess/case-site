@@ -73,7 +73,7 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .nav-group-btn{display:flex;visibility:hidden;align-items:center;justify-content:space-between;width:100%;height:24px;gap:7px;padding:7px 9px 3px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
 .side:hover .nav-group-btn,.side.open .nav-group-btn{visibility:visible;pointer-events:auto;cursor:pointer}
 /* v4.37: группы меню — аккордеон. Открыта группа текущего экрана; остальные сворачиваются, клик по заголовку раскрывает. Меню перестаёт быть простынёй. */
-.nav-group-btn .chev{display:none;font-size:8px;transition:transform .15s}
+.nav-group-btn .chev{display:none;font-size:9px;transition:transform .15s}
 .side:hover .nav-group-btn .chev,.side.open .nav-group-btn .chev,body.nav-pin .side .nav-group-btn .chev{display:inline}
 .nav-group.open .nav-group-btn .chev{transform:rotate(180deg)}
 .side:hover .nav-group:not(.open) .nav-menu,.side.open .nav-group:not(.open) .nav-menu{display:none}
@@ -205,6 +205,10 @@ th.num .th1r{justify-content:flex-end}
 .moremenu>summary::-webkit-details-marker{display:none}
 .moremenu[open]>summary{background:var(--soft)}
 .moremenu-pop{position:absolute;z-index:60;top:calc(100% + 4px);left:0;background:var(--panel);border:1px solid var(--border);border-radius:12px;box-shadow:0 12px 34px rgba(0,0,0,.22);padding:7px;display:flex;flex-direction:column;gap:5px;min-width:210px}
+/* v4.58.0: кнопка «Ещё» стоит у правого края панели действий, а меню открывалось влево-вниз
+   от своего левого угла (left:0) и уезжало за правую границу окна на ~110px — на 1366 и уже
+   часть пунктов оказывалась недоступна. Привязываем это меню к правому краю. */
+.case-action-more .moremenu-pop{left:auto;right:0;max-width:min(320px,92vw)}
 .moremenu-pop button,.moremenu-pop select{width:100%;text-align:left}
 .tblfnl:hover{opacity:1;color:var(--red-d,#9E0000)}
 .tblfnl.on{color:#fff;background:var(--red-d,#9E0000);border-radius:5px;padding:0 4px;opacity:1}
@@ -420,7 +424,7 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
   <div class="topbar">
     <button class="burger" aria-label="Открыть меню" onclick="toggleSide()">☰</button>
     <div class="brand" title="Перейти на главный экран"><span><span class="c">CASE</span> OS</span><span class="tag">Company &amp; Real Estate Operating System</span></div>
-    <span class="demo" id="appVer" title="Версия платформы" style="align-self:center">v—</span>
+    <span class="demo" id="appVer" title="Версия платформы" style="align-self:center">v-</span>
     <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
     <button class="btn ghost sm" id="addObjBtn" style="display:none" onclick="addObjectForm()" title="Добавить новый объект в портфель">+ Объект</button>
     <button class="btn ghost sm" id="editObjBtn" style="display:none" onclick="if(S.obj&&S.obj!=='ALL')addObjectForm(S.obj)" title="Редактировать или удалить выбранный объект">✎ Объект</button>
@@ -448,11 +452,14 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js?v=4.50.2" defer></script>
-<script>const APP_VERSION='4.57.1';
+<script>const APP_VERSION='4.58.0';    /* версия платформы — повышается с каждым обновлением */
 /* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
    менялось при каждом обновлении любого модуля и не кэшировалось */
-const CASE_EXPECTED_MODULES={'core':'4.52.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.47.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.48.4','v4450-owner-report':'4.47.0'};    /* версия платформы — повышается с каждым обновлением */</script>
-<script src="core.js?v=4.52.0"></script>
+const CASE_EXPECTED_MODULES={'core':'4.58.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.58.0','v4450-owner-report':'4.47.0'};
+/* v4.58.0: модули гео-студии живут в iframe, поэтому в CASE_MODULE_VERSIONS этого окна
+   они не появляются и общей сверкой не ловились — студия читает карту отсюда и сверяет у себя */
+window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.58.0','v4530-geo-export':'4.58.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
+<script src="core.js?v=4.58.0"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.51.0" defer></script>
@@ -474,9 +481,9 @@ const CASE_EXPECTED_MODULES={'core':'4.52.0','v432-data-grid':'4.49.1','v4327-pa
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
 <script src="v432-data-grid.js?v=4.49.1" defer></script>
 <script src="v4327-patch.js?v=4.50.1" defer></script>
-<script src="v4450-ux-system.js?v=4.48.4" defer></script>
+<script src="v4450-ux-system.js?v=4.58.0" defer></script>
 <script src="v4450-owner-report.js?v=4.47.0" defer></script>
-<script src="v4451-live-sync.js?v=4.47.0" defer></script>
+<script src="v4451-live-sync.js?v=4.58.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

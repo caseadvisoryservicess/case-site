@@ -30,6 +30,7 @@ srv.listen(0, '127.0.0.1', async () => {
   await page.goto(base + '/index.html?demo=1', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
 
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   const roles = await page.evaluate(() => Array.from(document.getElementById('luser').options).map(o => o.value));
   rec('демо: список ролей получен', roles.length >= 5, roles.join(','));
 

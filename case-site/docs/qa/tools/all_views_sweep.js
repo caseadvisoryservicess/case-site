@@ -29,6 +29,7 @@ srv.listen(0, '127.0.0.1', async () => {
   page.on('pageerror', e => viewErrors.push(String(e && e.message || e).slice(0, 140)));
   await page.goto(base + '/index.html?demo=1', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = s.options[0].value; doLogin(); });
   await page.waitForTimeout(900);
 

@@ -489,7 +489,7 @@
     '#geoColMenu .geo-m-sec small{margin-left:auto;font-size:9px;color:#a29a92;font-weight:650}'+
     '#geoColMenu .geo-m-field{display:block;margin:0}#geoColMenu .geo-m-field>span{display:none}'+
     '#geoColMenu input[type=search],#geoColMenu input[type=text]{display:block;width:100%;min-width:0;height:32px;font-family:inherit;font-size:11.5px;padding:6px 8px;border:1px solid #d9d2c7;border-radius:7px;background:#fff;color:#1c1f26;outline:none}'+
-    '#geoColMenu input[type=search]:focus,#geoColMenu input[type=text]:focus{border-color:#9E0000;box-shadow:0 0 0 2px rgba(158,0,0,.08)}'+
+    '#geoColMenu input[type=search]:focus,#geoColMenu input[type=text]:focus{border-color:#9E0000;box-shadow:0 0 0 3px rgba(158,0,0,.28)}'+
     '#geoColMenu input[type=checkbox]{width:15px;height:15px;min-width:15px;margin:1px 0 0;accent-color:#9E0000;padding:0;border:0}'+
     '#geoColMenu .geo-m-links{display:flex;align-items:center;gap:5px;font-size:10.5px;margin:6px 0 5px;white-space:nowrap}#geoColMenu .geo-m-links a{color:#9E0000;text-decoration:none}#geoColMenu .geo-m-links a:hover{text-decoration:underline}'+
     '#geoColMenu .geo-m-vals{height:min(230px,34vh);min-height:76px;overflow-y:auto;overflow-x:hidden;border:1px solid #ece7e0;border-radius:8px;padding:4px;background:#fff;scrollbar-gutter:stable}'+
@@ -1051,3 +1051,6 @@
   function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
   auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});
 })();
+/* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
+   теперь объявляет себя, а студия сверяет его с картой из index.html */
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.58.0';

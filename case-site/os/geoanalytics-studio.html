@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>CASE OS — Geo Analytics · Tashkent Office/BC Benchmark</title>
+<title>CASE OS - Geo Analytics · Tashkent Office/BC Benchmark</title>
 <style>/*leaflet-inline*/
 /* required styles */
 
@@ -792,9 +792,9 @@ body.geo-auth-pending>*{visibility:hidden}
 .geo-quality{border-left:3px solid var(--red);padding:4px 10px;text-align:right;white-space:nowrap}.geo-quality b{display:block;font-size:22px;color:var(--red)}.geo-quality span{font-size:9px;color:var(--muted)}
 .geo-form{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;margin-bottom:10px}.geo-form h3,.geo-files h3,.geo-summary h3,.geo-plan-section h3{margin:2px 0 8px;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--slate)}
 .geo-form h3:not(:first-child){border-top:1px solid var(--line);padding-top:10px;margin-top:10px}
-.geo-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px 9px}.geo-field{display:flex;flex-direction:column;gap:3px;min-width:0}.geo-field.wide{grid-column:span 2}.geo-field>span{font-size:8.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
+.geo-fields{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px 9px}.geo-field{display:flex;flex-direction:column;gap:3px;min-width:0}.geo-field.wide{grid-column:span 2}.geo-field>span{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}
 .geo-field input,.geo-field select,.geo-field textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:6px 7px;font:11px Montserrat,Arial,sans-serif}.geo-field textarea{min-height:48px;resize:vertical}.geo-field input:disabled,.geo-field select:disabled,.geo-field textarea:disabled{background:#f4f5f7;color:#555}
-.geo-files{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0}.geo-files>small{display:inline-block;margin-left:7px;color:var(--muted);font-size:9px}.geo-file-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}.geo-file{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:6px;align-items:center;max-width:320px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;background:#f8f9fa}.geo-file a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:700}.geo-file small{font-size:8px;color:var(--muted)}.geo-file button{border:0;background:none;color:var(--red);font-size:15px;cursor:pointer;padding:0}
+.geo-files{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px;margin:10px 0}.geo-files>small{display:inline-block;margin-left:7px;color:var(--muted);font-size:9px}.geo-file-list{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}.geo-file{display:grid;grid-template-columns:minmax(70px,1fr) auto auto;gap:6px;align-items:center;max-width:320px;border:1px solid var(--line);border-radius:7px;padding:5px 7px;background:#f8f9fa}.geo-file a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;font-weight:700}.geo-file small{font-size:9px;color:var(--muted)}.geo-file button{border:0;background:none;color:var(--red);font-size:15px;cursor:pointer;padding:0}
 .geo-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:10px 0}.geo-view-note{font-size:10px;color:var(--muted);margin-right:auto}.geo-summary{margin-top:11px}.geo-source-list{display:flex;gap:6px;flex-wrap:wrap}.geo-source-list span{border:1px solid var(--line);border-radius:999px;background:#fff;padding:5px 8px;font-size:9px}.geo-source-list b{color:var(--red)}
 .geo-qchips{display:flex;gap:5px;flex-wrap:wrap}.geo-qchips span{border:1px solid var(--line);border-radius:999px;background:#fff;padding:5px 8px;font-size:9px}.geo-qchips b{color:var(--red)}
 .geo-data-tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:9px}.geo-data-tools select,.geo-data-tools input{height:32px;border:1px solid var(--line);border-radius:7px;background:#fff;padding:6px 8px;font:11px Montserrat,Arial,sans-serif}.geo-data-tools #geoDataset{flex:1 1 200px;max-width:240px}.geo-data-tools #geoSearch{flex:2 1 220px}.geo-data-tools #geoSortBy{flex:1 1 190px}.geo-unedited-toggle{display:inline-flex;align-items:center;gap:5px;font:11px Montserrat,Arial,sans-serif;color:var(--muted);white-space:nowrap;padding:0 4px}.geo-unedited-toggle input{height:auto;width:auto}
@@ -817,8 +817,8 @@ body.geo-auth-pending>*{visibility:hidden}
    just below the header row (top:31px) instead of stacking on top of it (top:0). */
 .geo-tfilter-row{display:none!important}.geo-tfilter-row th{position:sticky;top:31px;z-index:2;background:#fff;padding:4px 6px;border-bottom:1px solid var(--line);cursor:default}
 .geo-tfilter-row th input{width:100%;box-sizing:border-box;font:11px Montserrat,Arial,sans-serif;padding:4px 6px;border:1px solid var(--line);border-radius:6px}
-.geo-col-resizer{position:absolute;top:0;right:-5px;width:10px;height:100%;cursor:col-resize;z-index:12;touch-action:none}.geo-table-resizable th:hover{z-index:13}.geo-col-resizer:hover,.geo-col-resizer:active{background:rgba(158,0,0,.28)}.geo-trow{cursor:pointer}.geo-trow:hover{background:#faf5f2}.geo-table small{color:var(--muted)}.geo-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.geo-row{display:grid;grid-template-columns:8px minmax(0,1fr);gap:2px 7px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px;cursor:pointer;min-width:0}.geo-row:hover{border-color:#b97878}.geo-row b{font:700 10px Montserrat,Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.geo-row small{grid-column:2;display:block;color:var(--muted);font-size:8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.geo-status{width:7px;height:7px;border-radius:50%;background:#b7bbc2}.geo-status.needs_review{background:#e29b19}.geo-status.verified{background:#28945a}.geo-object{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px}.geo-object>span{float:right;color:var(--muted);font-size:9px}.geo-object pre{max-height:52vh;overflow:auto;background:#f5f6f7;border-radius:6px;padding:9px;font-size:9px;white-space:pre-wrap}.geo-json{width:100%;min-height:58vh;border:1px solid var(--line);border-radius:7px;padding:9px;font:10px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.geo-denied{max-width:560px;margin:12vh auto;padding:28px;border:1px solid var(--line);border-left:5px solid var(--red);border-radius:12px;background:#fff}
-.card.geo-record-card,.card.geo-json-card{width:640px!important;max-width:96vw!important}.geo-record-group{border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:8px;padding:8px}.geo-record-group h3{margin:0 0 7px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--red)}.geo-record-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 9px}.geo-record-field{display:flex;flex-direction:column;gap:3px;min-width:0}.geo-record-field.wide{grid-column:1/-1}.geo-record-field>span{font-size:8px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}.geo-record-field input,.geo-record-field select,.geo-record-field textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:6px 7px;font:11px Montserrat,Arial,sans-serif}.geo-record-field textarea{min-height:50px;resize:vertical}.geo-record-field input:disabled,.geo-record-field select:disabled,.geo-record-field textarea:disabled{background:#f3f4f6;color:#555}.geo-record-error{min-height:18px;color:#9E0000;font-size:10px;padding:4px 1px}
+.geo-col-resizer{position:absolute;top:0;right:-5px;width:10px;height:100%;cursor:col-resize;z-index:12;touch-action:none}.geo-table-resizable th:hover{z-index:13}.geo-col-resizer:hover,.geo-col-resizer:active{background:rgba(158,0,0,.28)}.geo-trow{cursor:pointer}.geo-trow:hover{background:#faf5f2}.geo-table small{color:var(--muted)}.geo-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}.geo-row{display:grid;grid-template-columns:8px minmax(0,1fr);gap:2px 7px;align-items:center;text-align:left;border:1px solid var(--line);border-radius:8px;background:#fff;padding:7px;cursor:pointer;min-width:0}.geo-row:hover{border-color:#b97878}.geo-row b{font:700 10px Montserrat,Arial,sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.geo-row small{grid-column:2;display:block;color:var(--muted);font-size:9px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.geo-status{width:7px;height:7px;border-radius:50%;background:#b7bbc2}.geo-status.needs_review{background:#e29b19}.geo-status.verified{background:#28945a}.geo-object{background:#fff;border:1px solid var(--line);border-radius:9px;padding:10px}.geo-object>span{float:right;color:var(--muted);font-size:9px}.geo-object pre{max-height:52vh;overflow:auto;background:#f5f6f7;border-radius:6px;padding:9px;font-size:9px;white-space:pre-wrap}.geo-json{width:100%;min-height:58vh;border:1px solid var(--line);border-radius:7px;padding:9px;font:10px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;resize:vertical}.geo-denied{max-width:560px;margin:12vh auto;padding:28px;border:1px solid var(--line);border-left:5px solid var(--red);border-radius:12px;background:#fff}
+.card.geo-record-card,.card.geo-json-card{width:640px!important;max-width:96vw!important}.geo-record-group{border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:8px;padding:8px}.geo-record-group h3{margin:0 0 7px;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--red)}.geo-record-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px 9px}.geo-record-field{display:flex;flex-direction:column;gap:3px;min-width:0}.geo-record-field.wide{grid-column:1/-1}.geo-record-field>span{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);font-weight:700}.geo-record-field input,.geo-record-field select,.geo-record-field textarea{width:100%;min-width:0;border:1px solid var(--line);border-radius:6px;background:#fff;color:var(--ink);padding:6px 7px;font:11px Montserrat,Arial,sans-serif}.geo-record-field textarea{min-height:50px;resize:vertical}.geo-record-field input:disabled,.geo-record-field select:disabled,.geo-record-field textarea:disabled{background:#f3f4f6;color:#555}.geo-record-error{min-height:18px;color:#9E0000;font-size:10px;padding:4px 1px}
 .geo-poi-layers{margin:7px 0 2px}.geo-poi-section-title{font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.02em;margin:10px 0 3px;padding-top:8px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:8px}.geo-poi-section-title span{font-weight:500;text-transform:none}.geo-poi-row .geo-poi-count{color:var(--muted);font-weight:500;margin-left:3px}.geo-poi-row.geo-poi-empty .geo-poi-count{color:#b5793a}
 .geo-poi-row .geo-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto;border:1px solid rgba(0,0,0,.15)}
 .geo-poi-row .geo-gear{margin-left:auto;flex:0 0 auto;width:24px;height:24px;border:1px solid var(--line);border-radius:7px;background:var(--panel,#fff);color:var(--muted);cursor:pointer;font-size:13px;line-height:1;padding:0}
@@ -829,8 +829,8 @@ body.geo-auth-pending>*{visibility:hidden}
 .geo-cat-title:first-of-type{margin-top:2px;padding-top:0;border-top:none}
 .geo-poi-sub input[type="range"]{width:64px}
 .leaflet-tooltip.geo-poi-lab{font-weight:600}
-.geo-map-popup{min-width:210px}.geo-map-popup strong{display:block;font-size:13px;color:var(--ink);margin:0 0 3px}.geo-map-popup p{margin:2px 0!important;color:var(--slate);font-size:10px}.geo-map-popup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.geo-map-popup-grid>div{border:1px solid var(--line);border-radius:5px;padding:4px}.geo-map-popup-grid span{display:block;color:var(--muted);font-size:7px;text-transform:uppercase}.geo-map-popup-grid b{display:block;font-size:9px;overflow-wrap:anywhere}.geo-map-popup>small{display:block;color:var(--muted);font-size:8px;margin:6px 0}.geo-map-popup>small.verified{color:#237a49}.geo-map-popup>small.needs_review{color:#9a680d}.geo-map-popup>button{width:100%;border:0;border-radius:6px;background:var(--red);color:#fff;padding:7px 9px;font:700 10px Montserrat,Arial,sans-serif;cursor:pointer}.geo-map-popup>button:hover{filter:brightness(.92)}
-.geo-plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}.geo-plan-head h2{font-size:21px;margin:2px 0 3px}.geo-plan-head p{font-size:10px;color:var(--muted);margin:0}.geo-source-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.geo-source-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px}.geo-source-card .source-kind{font-size:8px;font-weight:800;letter-spacing:.07em;color:var(--red);text-transform:uppercase}.geo-source-card h3{margin:5px 0 4px;font-size:12px}.geo-source-card p{flex:1;margin:0 0 8px;color:var(--muted);font-size:9.5px;line-height:1.4}.geo-source-card a{align-self:flex-start;text-decoration:none}.geo-plan-section{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;margin:10px 0}.geo-envelope{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}.geo-envelope>div{border:1px solid var(--line);border-radius:8px;background:#f7f8fa;padding:8px}.geo-envelope b{display:block;color:var(--red);font-size:17px}.geo-envelope span{display:block;color:var(--muted);font-size:8px;line-height:1.35}.geo-plan-coords{font:700 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--slate);white-space:nowrap}.geo-legal-warning{border:1px solid #e4b8b8;border-left:4px solid var(--red);background:#fff3f3;color:#682828;border-radius:8px;padding:8px 10px;font-size:10px;line-height:1.45}
+.geo-map-popup{min-width:210px}.geo-map-popup strong{display:block;font-size:13px;color:var(--ink);margin:0 0 3px}.geo-map-popup p{margin:2px 0!important;color:var(--slate);font-size:10px}.geo-map-popup-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin:7px 0}.geo-map-popup-grid>div{border:1px solid var(--line);border-radius:5px;padding:4px}.geo-map-popup-grid span{display:block;color:var(--muted);font-size:9px;text-transform:uppercase}.geo-map-popup-grid b{display:block;font-size:9px;overflow-wrap:anywhere}.geo-map-popup>small{display:block;color:var(--muted);font-size:9px;margin:6px 0}.geo-map-popup>small.verified{color:#237a49}.geo-map-popup>small.needs_review{color:#9a680d}.geo-map-popup>button{width:100%;border:0;border-radius:6px;background:var(--red);color:#fff;padding:7px 9px;font:700 10px Montserrat,Arial,sans-serif;cursor:pointer}.geo-map-popup>button:hover{filter:brightness(.92)}
+.geo-plan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:10px}.geo-plan-head h2{font-size:21px;margin:2px 0 3px}.geo-plan-head p{font-size:10px;color:var(--muted);margin:0}.geo-source-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:10px 0}.geo-source-card{display:flex;flex-direction:column;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:10px}.geo-source-card .source-kind{font-size:9px;font-weight:800;letter-spacing:.07em;color:var(--red);text-transform:uppercase}.geo-source-card h3{margin:5px 0 4px;font-size:12px}.geo-source-card p{flex:1;margin:0 0 8px;color:var(--muted);font-size:9.5px;line-height:1.4}.geo-source-card a{align-self:flex-start;text-decoration:none}.geo-plan-section{background:#fff;border:1px solid var(--line);border-radius:10px;padding:11px;margin:10px 0}.geo-envelope{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}.geo-envelope>div{border:1px solid var(--line);border-radius:8px;background:#f7f8fa;padding:8px}.geo-envelope b{display:block;color:var(--red);font-size:17px}.geo-envelope span{display:block;color:var(--muted);font-size:9px;line-height:1.35}.geo-plan-coords{font:700 10px ui-monospace,SFMono-Regular,Consolas,monospace;color:var(--slate);white-space:nowrap}.geo-legal-warning{border:1px solid #e4b8b8;border-left:4px solid var(--red);background:#fff3f3;color:#682828;border-radius:8px;padding:8px 10px;font-size:10px;line-height:1.45}
 .geo-embedded header.top{display:none}.geo-embedded .tabs{padding-top:2px}.geo-embedded .page{padding:10px 11px}
 .geo-dshk-panel{background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px;margin:8px 0 10px}.geo-dshk-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:7px}.geo-dshk-head h3{display:inline-block;margin:0 10px 0 0;font-size:12px}.geo-dshk-head .geo-plan-coords{display:inline-block}.geo-dshk-actions{display:flex;gap:6px;flex-wrap:wrap}.geo-dshk-actions a{text-decoration:none}.geo-dshk-framewrap{position:relative;height:clamp(410px,58vh,700px);border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#f4f5f7}.geo-dshk-framewrap iframe{display:block;width:100%;height:100%;border:0;background:#fff}.geo-dshk-loading{position:absolute;inset:0;z-index:2;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.9);color:var(--red);font-size:11px;font-weight:800}.geo-dshk-help{margin-top:6px;color:var(--muted);font-size:9px}.geo-dshk-help summary{cursor:pointer}.geo-dshk-help p{margin:4px 0 0}.geo-legal-warning{border-left-width:3px;border-radius:7px;padding:6px 9px;font-size:9px;line-height:1.35}
 body.dark .geo-dshk-panel{background:#202329;color:#eee;border-color:#393d45}
@@ -854,7 +854,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
   <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
    <div class="styrow" style="margin-top:7px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке проекта">▣ Аналитика по проекту</button></div>
    <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по выбранному проекту">⤓ Выгрузить PDF · Excel · PPTX</button>
-    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать — настройка своя у каждого проекта">⚙ Настройки выгрузки</button></div>
+    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать - настройка своя у каждого проекта">⚙ Настройки выгрузки</button></div>
    <div class="mini">Выгрузка считает отчёт в точке проекта и складывает те же цифры, что видны на экране. Состав разделов, радиусы и эталоны настраиваются отдельно по каждому проекту.</div></div>
   <div class="sect"><h3>🎯 Анализ локации (как в гео-платформах)</h3>
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
@@ -896,7 +896,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    </div></div>
   <div class="sect"><h3>Зона охвата (catchment)</h3><div id="rings"></div>
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
-   <div class="mini">1 · 3 · 5 км — каждая своим цветом.</div></div>
+   <div class="mini">1 · 3 · 5 км - каждая своим цветом.</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
    <div class="geo-cat-title">Проекты CASE</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lProj" checked> Проекты портфеля (наши объекты)</label></div>
@@ -945,7 +945,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="styrow"><label class="ck"><input type="checkbox" id="lDist"> Районы (граница+заливка)</label></div>
    <div class="styrow sub"><label>граница</label><input type="color" id="dC" value="#9E0000"><input type="range" id="dW" min="1" max="6" value="2"><label>заливка</label><input type="color" id="dF" value="#9E0000"><input type="range" id="dO" min="0" max="70" value="12"><label class="ck"><input type="checkbox" id="dLab" checked> подписи районов</label></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lReg"> + Ташкентская область (22 территории)</label></div>
-   <div class="mini" style="margin:-2px 0 4px;color:var(--muted)">Стиль (граница/заливка/подписи) — общий с «Районами» выше.</div>
+   <div class="mini" style="margin:-2px 0 4px;color:var(--muted)">Стиль (граница/заливка/подписи) - общий с «Районами» выше.</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lDens"> Плотность населения</label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="densC" value="#9E0000"><label>прозр.</label><input type="range" id="densO" min="20" max="100" value="80"></div><div id="densLegend" class="mini" style="display:none;margin-top:3px"></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lHeat"> Тепловая карта населения</label></div>
@@ -2138,7 +2138,10 @@ function exportProbePdf(){ /* v4.43.1: полный отчёт по точке �
  <p class="mini" style="border-top:1px solid #ddd;margin-top:14px;padding-top:8px">Отчёт сформирован CASE OS по онлайн-данным (OpenStreetMap, Kontur, clinics.uz) и ручным правкам команды CASE. Радиусы анализа: ${LASTPROBE.radii.join(', ')} м.</p>
  <div class="noprint" style="margin-top:14px"><button onclick="print()" style="padding:8px 14px;font-size:11pt;cursor:pointer">🖨 Печать / Сохранить как PDF</button></div>
  </body></html>`);
- w.document.close();setTimeout(()=>{try{w.focus();w.print();}catch(e){}},450);
+ w.document.close();
+ /* v4.58.0: печатная версия — отдельное окно, экранный нормализатор тире туда не достаёт */
+ try{if(typeof window.caseDashFixDoc==='function')caseDashFixDoc(w.document);}catch(e){}
+ setTimeout(()=>{try{w.focus();w.print();}catch(e){}},450);
 }
 /* #92: сохранённые точки на карте — список, вкл/выкл, удаление; хранятся локально в студии */
 function loadSavedProbes(){try{window.SAVED_PROBES=JSON.parse(localStorage.getItem('asaas_saved_probes')||'[]');}catch(e){window.SAVED_PROBES=[];}if(!Array.isArray(window.SAVED_PROBES))window.SAVED_PROBES=[];return window.SAVED_PROBES;}
@@ -2377,6 +2380,56 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.57.1"></script>
-<script src="v4530-geo-export.js?v=4.57.1"></script>
+<script src="v420-geo-studio.js?v=4.58.0"></script>
+<script src="v4530-geo-export.js?v=4.58.0"></script>
+<script>
+/* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
+   подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span
+   легенды и панелей были недоступны с клавиатуры навсегда. Лёгкий шим: роль, табстоп,
+   осмысленное имя вместо значка и Enter/Пробел как клик. Перерисовки ловим наблюдателем. */
+(function(){
+  var GLYPH={'×':'Закрыть','✕':'Закрыть','⚙':'Настройки','⤓':'Выгрузить','▣':'Аналитика',
+             '↺':'Сбросить','⬜':'Слой','⤡':'Размер','▾':'Развернуть','▸':'Развернуть','+':'Добавить','−':'Убрать'};
+  function name(el){
+    var t=(el.getAttribute('title')||el.textContent||'').replace(/\s+/g,' ').trim();
+    var core=t.replace(/[\s️‍]/g,'');
+    if(core.length<=2){for(var i=0;i<core.length;i++)if(GLYPH[core[i]])return GLYPH[core[i]];}
+    return t.slice(0,90)||'Элемент управления';
+  }
+  function shim(root){
+    (root||document).querySelectorAll('[onclick]:not(button):not(a):not(input):not(select):not(textarea):not(td):not(th):not(tr)').forEach(function(el){
+      if(el.dataset.kbd)return; el.dataset.kbd='1';
+      if(!el.hasAttribute('role'))el.setAttribute('role','button');
+      if(!el.hasAttribute('tabindex'))el.tabIndex=0;
+      if(!el.getAttribute('aria-label'))el.setAttribute('aria-label',name(el));
+    });
+    /* подложки модалок закрываются по Escape — в обходе с клавиатуры они только мешают */
+    (root||document).querySelectorAll('.ovl,.overlay,.backdrop').forEach(function(el){if(!el.hasAttribute('aria-hidden'))el.setAttribute('aria-hidden','true');});
+  }
+  var st=document.createElement('style');
+  st.textContent='[role="button"]:focus-visible,button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(11,103,194,.6)!important;outline-offset:2px}';
+  document.head.appendChild(st);
+  function boot(){shim(document);if(window.MutationObserver)new MutationObserver(function(){shim(document);}).observe(document.body,{childList:true,subtree:true});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  document.addEventListener('keydown',function(e){
+    if((e.key==='Enter'||e.key===' ')&&e.target&&e.target.matches('[role="button"]:not(button):not(a)')){e.preventDefault();e.target.click();}
+  });
+})();
+/* v4.58.0: сверка версий модулей студии. Оба модуля грузятся внутри iframe, поэтому в
+   CASE_MODULE_VERSIONS главного окна они не появляются и общей проверкой из core.js не
+   ловились: залитый наполовину /os молчал. Карту ожидаемых версий держим одну — в
+   index.html; при открытии студии отдельным окном сверять не с чем, и проверка молчит. */
+(function(){
+  window.addEventListener('load',function(){setTimeout(function(){try{
+    var exp=null;try{exp=window.parent&&window.parent!==window?window.parent.CASE_EXPECTED_STUDIO_MODULES:null;}catch(e){return;}
+    if(!exp)return;
+    var got=window.CASE_MODULE_VERSIONS||{};
+    var stale=Object.keys(exp).filter(function(m){return got[m]!==exp[m];});
+    if(!stale.length){console.info('CASE OS: модули гео-студии актуальны');return;}
+    var list=stale.map(function(m){return m+'.js ('+(got[m]||'старый файл')+')';}).join(', ');
+    console.warn('CASE OS: устаревшие модули гео-студии:',list);
+    try{window.parent.toast('⚠ Гео-студия обновлена не полностью: '+list+' — на сервере старые файлы. Перезалейте папку /os целиком и сделайте Ctrl+Shift+R.',15000);}catch(e){}
+  }catch(e){}},2500);});
+})();
+</script>
 </body></html>

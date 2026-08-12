@@ -108,9 +108,14 @@ if ($idx === false) {
   $sums = glob($OS . '/SHA256SUMS_v*.txt');
   if ($sums) {
     /* берём файл сумм именно для установленной версии, иначе — самый свежий */
-    natsort($sums); $f = end($sums);
-    foreach ($sums as $s0) if (basename($s0) === 'SHA256SUMS_v' . $appv . '.txt') { $f = $s0; break; }
+    natsort($sums); $f = end($sums); $forThis = false;
+    foreach ($sums as $s0) if (basename($s0) === 'SHA256SUMS_v' . $appv . '.txt') { $f = $s0; $forThis = true; break; }
     echo "\nКОНТРОЛЬНЫЕ СУММЫ (" . basename($f) . "):\n";
+    /* v4.58.0: раньше при отсутствии манифеста для установленной версии молча брался
+       «самый свежий по имени», и все нормальные файлы помечались как «изменён» — проверка
+       целостности превращалась в генератор ложных тревог. Теперь про это говорим прямо. */
+    if (!$forThis) echo "  !!  Это манифест НЕ для установленной версии $appv — расхождения ниже ожидаемы\n"
+                      . "      и не означают повреждения файлов. Положите SHA256SUMS_v$appv.txt из архива релиза.\n";
     $lines = @file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
     $miss = 0; $diff = 0; $okn = 0; $ex = [];
     foreach ($lines as $ln) {

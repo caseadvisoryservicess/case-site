@@ -17,7 +17,8 @@ srv.listen(0,'127.0.0.1',async()=>{
  const errs=[];page.on('pageerror',e=>errs.push(e.message));
  await page.goto(base+'/index.html?demo=1',{waitUntil:'networkidle'});
  await page.waitForTimeout(600);
- await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
+  await page.waitForSelector('#luser',{timeout:15000});   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
+await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
  await page.waitForTimeout(500);
 
  /* сеем обрезанные шаблоны BRJ и HO со схемой 4420 (прошлая миграция уже прошла) */
