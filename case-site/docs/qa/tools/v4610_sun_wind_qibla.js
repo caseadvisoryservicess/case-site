@@ -9,7 +9,12 @@
 
    Запуск: node v4610_sun_wind_qibla.js [путь к v4600-sun-wind.js] */
 global.window = {}; global.document = { getElementById: () => null };
-require(process.argv[2] || require('path').join(__dirname, '..', '..', '..', 'os', 'v4600-sun-wind.js'));
+/* принимаем и путь к файлу, и папку os — остальные наборы вызываются как «<набор> os»,
+   и разнобой в этом соглашении приводил к «модуль не найден» вместо результата */
+const _p = require('path'), _fs = require('fs');
+let _m = process.argv[2] || _p.join(__dirname, '..', '..', '..', 'os');
+if (_fs.existsSync(_m) && _fs.statSync(_m).isDirectory()) _m = _p.join(_m, 'v4600-sun-wind.js');
+require(_p.resolve(_m));
 const S = global.window.CASE_SUN;
 let bad = 0;
 const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) bad++; };

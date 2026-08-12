@@ -666,7 +666,21 @@
     GEO_POI_CONTROLS_BUILT=true;
   }
   function poiRowRefresh(k){var row=document.querySelector('.geo-poi-row[data-poi-k="'+k+'"]');if(!row)return;var cnt=row.querySelector('#geoLayerCount-'+k);if(cnt)cnt.textContent=GEO_POI_LOADING[k]?'загрузка…':GEO_POI[k].length;row.classList.toggle('geo-poi-empty',!GEO_POI_LOADING[k]&&!GEO_POI[k].length);}
-  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([poiSubtypeLabel(k,x),x.district].filter(Boolean).join(' · '))+'</p>'+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
+  /* v4.61.1: у остановки в карточке главное — номера маршрутов, и человек ждёт их
+     увидеть так же, как в Яндексе или 2ГИС: кликнул по остановке — вот номера. Раньше
+     они шли одной строкой среди прочих полей и терялись. Рисуем их значками по видам
+     транспорта, отдельным блоком над остальным. */
+  var MODE_COLOR={'автобус':'#0d7a6f','троллейбус':'#2878B5','маршрутка':'#B3541E','трамвай':'#8F5E99','метро':'#9E0000'};
+  function routesBadges(routes){
+    if(!routes)return '';
+    return '<div class="geo-routes">'+String(routes).split(' · ').map(function(part){
+      var p=part.split(':'),mode=(p[0]||'').trim(),nums=(p[1]||'').split(',');
+      var col=MODE_COLOR[mode]||'#4a443c';
+      return '<div class="geo-routes-row"><span class="geo-routes-mode">'+esc(mode)+'</span>'
+        +nums.map(function(n){n=n.trim();return n?'<b style="background:'+col+'">'+esc(n)+'</b>':'';}).join('')+'</div>';
+    }).join('')+'</div>';
+  }
+  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([poiSubtypeLabel(k,x),x.district].filter(Boolean).join(' · '))+'</p>'+(k==='transport_hubs'?(x.routes?routesBadges(x.routes):'<p class="geo-routes-none">Маршруты по этой остановке в OpenStreetMap не размечены</p>'):'')+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
   function renderPoiLayer(k){if(!map||!window.L||!POI_DEFS[k])return;if(!GEO_POI_RENDERER)GEO_POI_RENDERER=L.svg({padding:.25});var g=GEO_POI_LAYERS[k];
    // Кластеризация маркеров (Leaflet.markercluster) — при поднятом лимите 2000 точек/слой без
    // неё карта превращается в кашу и тормозит. На близком зуме (>=17) кластеры распадаются на
@@ -720,7 +734,16 @@
     if(!VB){var d=CENTER;VB={getSouth:function(){return d.lat-0.09;},getWest:function(){return d.lng-0.14;},getNorth:function(){return d.lat+0.09;},getEast:function(){return d.lng+0.14;}};}
     GEO_POI_LOADING[k]=true;poiRowRefresh(k);
     var url='api/gis_proxy.php?mode=poi&provider=osm&category='+encodeURIComponent(k)+'&south='+VB.getSouth()+'&west='+VB.getWest()+'&north='+VB.getNorth()+'&east='+VB.getEast();
-    return fetch(url,{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    /* v4.61.1: раньше здесь стоял просто r.json(). Если сервер отвечал страницей ошибки
+       (500, редирект на вход, HTML от хостинга), разбор падал и человек видел загадочное
+       «Unexpected token <». Теперь читаем как текст и говорим, что именно пришло. */
+    return fetch(url,{credentials:'same-origin',cache:'no-store'}).then(function(r){
+      return r.text().then(function(t){
+        var j=null; try{j=JSON.parse(t);}catch(e){}
+        if(!j)return {ok:false,_http:r.status,_raw:t.slice(0,160)};
+        j._http=r.status; return j;
+      });
+    }).then(function(j){
       GEO_POI_LOADING[k]=false;
       if(j&&j.ok&&Array.isArray(j.rows)){
         GEO_POI[k]=j.rows;
@@ -738,12 +761,23 @@
         if(k==='street_retail')refreshRetailSubPanel();
       }else{
         var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
-        toastGeo((j&&j.message)||'Не удалось загрузить слой из OSM.');
+        /* v4.61.1: причину отказа отдавали в поле error (так делает fail() в api/lib.php),
+           а читали только message — из-за этого ЛЮБАЯ ошибка сервера превращалась в
+           «Не удалось загрузить слой из OSM», и понять, что именно случилось, было нельзя.
+           Читаем оба поля и добавляем код ответа: по нему сразу видно, дело в файле на
+           сервере, в правах или во внешнем сервисе. */
+        var why=(j&&(j.message||j.error))||'';
+        if(!why&&j&&j._raw)why='сервер ответил не JSON: '+j._raw;
+        if(!why)why='причина неизвестна';
+        if(j&&j._http&&j._http!==200)why+=' (ответ сервера '+j._http+')';
+        if(j&&j.error==='Unknown category')
+          why='на сервере нет сбора для слоя «'+((POI_DEFS[k]||{}).label||k)+'»: файл api/gis_proxy.php старше остальной папки /os. Перезалейте папку целиком.';
+        toastGeo('Слой «'+((POI_DEFS[k]||{}).label||k)+'» не загрузился - '+why);
       }
       poiRowRefresh(k);
     }).catch(function(e){
       GEO_POI_LOADING[k]=false;var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
-      toastGeo('Ошибка сети при загрузке слоя: '+e.message);poiRowRefresh(k);
+      toastGeo('Слой «'+((POI_DEFS[k]||{}).label||k)+'» не загрузился - сеть недоступна или запрос отклонён: '+e.message);poiRowRefresh(k);
     });
   }
   function toastGeo(msg){try{if(typeof toast==='function'){toast(msg);return;}}catch(e){}try{alert(msg);}catch(e2){}}
@@ -1084,4 +1118,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.60.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.61.1';
