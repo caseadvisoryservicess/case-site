@@ -84,9 +84,16 @@
   var FNB_SUBTYPES={restaurant:'Ресторан',cafe:'Кафе / кофейня',ice_cream:'Кафе / кофейня',
     coffee:'Кафе / кофейня',tea:'Кафе / кофейня',fast_food:'Фастфуд / QSR',food_court:'Фудкорт'};
   var TEA_RE=/чайхан|choyxona|choyhona|чойхон|милли таом/i, CANTEEN_RE=/столов|ошхона|oshxona/i;
+  /* v4.59.0: транспорт разбивается по видам узла — для аренды остановка городского автобуса
+     под окнами и аэропорт в двадцати километрах это совершенно разные вещи, а в легенде они
+     до этого складывались в одно число */
+  var TRANSPORT_SUBTYPES={bus_stop:'Остановка автобуса',bus_station:'Автовокзал',
+    tram_stop:'Остановка трамвая',station:'Станция (метро / ж/д)',halt:'Станция (метро / ж/д)',
+    aerodrome:'Аэропорт'};
   function poiSubtypeLabel(cat,x){
     var raw=String((x&&x.subtype)||'').toLowerCase(), name=String((x&&x.name)||'');
     if(cat==='education')return EDU_SUBTYPES[raw]||'Другое учебное заведение';
+    if(cat==='transport_hubs')return TRANSPORT_SUBTYPES[raw]||String((x&&x.hubType)||'Транспортный узел');
     if(cat==='restaurants'||cat==='cafes'||cat==='fast_food'){
       if(TEA_RE.test(name))return 'Чайхана / национальная';
       if(CANTEEN_RE.test(name))return 'Столовая';
@@ -692,8 +699,12 @@
     // Точки без подписей (было всегда так - только всплывающая подсказка по наведению) vs
     // постоянная подпись на карте, когда для слоя включена галочка «подписи» (независимый
     // аудит: "при постановке галочки на карте появляются только точки, надписей нет").
-    if(showLab)m.bindTooltip(esc(x.name||d.short),{permanent:true,direction:'top',className:'geo-poi-lab geo-poi-lab-'+k,offset:[0,-radius-2]});
-    else m.bindTooltip(esc(x.name||d.short),{sticky:true});
+    /* v4.59.0: у остановки главное - какие маршруты на ней останавливаются. Держать это
+       только в карточке значит заставлять кликать по каждой точке; показываем при наведении. */
+    var tip=esc(x.name||d.short);
+    if(k==='transport_hubs'&&x.routes)tip+='<br><span style="color:#6f6a63">'+esc(x.routes)+'</span>';
+    if(showLab)m.bindTooltip(tip,{permanent:true,direction:'top',className:'geo-poi-lab geo-poi-lab-'+k,offset:[0,-radius-2]});
+    else m.bindTooltip(tip,{sticky:true});
     m.on('click',function(ev){L.DomEvent.stopPropagation(ev);if(typeof markSel==='function')markSel(la,ln);m.openPopup();});m.addTo(g);
    // SVG-рендерер (не canvas) - у маркера есть настоящий DOM-элемент, поэтому можно дать ему
    // доступное имя для скринридеров (независимый аудит: "map marker accessibility-name issues").
@@ -713,7 +724,17 @@
       GEO_POI_LOADING[k]=false;
       if(j&&j.ok&&Array.isArray(j.rows)){
         GEO_POI[k]=j.rows;
-        markDataset(k);commit('загружен слой «'+(POI_DEFS[k]||{}).label+'» из OSM: '+j.rows.length);
+        /* v4.59.0: по транспорту говорим не только сколько точек, но и сколько из них с
+           маршрутами и не обрезали ли выборку — иначе «загружено 2000» скрывает, что в зоне
+           их было 5400 и половина без единого маршрута */
+        var note='загружен слой «'+(POI_DEFS[k]||{}).label+'» из OSM: '+j.rows.length;
+        if(k==='transport_hubs'){
+          if(typeof j.withRoutes==='number')note+=', с маршрутами '+j.withRoutes;
+          if(typeof j.routesFound==='number')note+=', маршрутов в зоне '+j.routesFound;
+          if(j.truncated)note+=' (в зоне '+j.total+', показаны первые '+j.rows.length+' по числу маршрутов — уменьшите участок карты)';
+        }
+        markDataset(k);commit(note);
+        if(k==='transport_hubs'&&j.truncated)toastGeo('Транспорт: в зоне '+j.total+' узлов, показаны '+j.rows.length+' с наибольшим числом маршрутов. Уменьшите участок карты, чтобы взять все.');
         if(k==='street_retail')refreshRetailSubPanel();
       }else{
         var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
@@ -1063,4 +1084,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.59.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.60.0';
