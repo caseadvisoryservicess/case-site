@@ -456,13 +456,13 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js?v=4.50.2" defer></script>
-<script>const APP_VERSION='4.60.0';    /* версия платформы — повышается с каждым обновлением */
+<script>const APP_VERSION='4.61.0';    /* версия платформы — повышается с каждым обновлением */
 /* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
    менялось при каждом обновлении любого модуля и не кэшировалось */
 const CASE_EXPECTED_MODULES={'core':'4.59.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.59.0','v4450-owner-report':'4.47.0'};
 /* v4.58.0: модули гео-студии живут в iframe, поэтому в CASE_MODULE_VERSIONS этого окна
    они не появляются и общей сверкой не ловились — студия читает карту отсюда и сверяет у себя */
-window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.60.0','v4530-geo-export':'4.58.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
+window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.60.0','v4530-geo-export':'4.58.0','v4600-sun-wind':'4.61.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
 <script src="core.js?v=4.59.0"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
