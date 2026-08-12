@@ -319,8 +319,12 @@ const STAT={vac:'Вакант',neg:'Переговоры',off:'Предложе�
 const STCLS={vac:'st-vac',neg:'st-neg',off:'st-off',os:'st-os',cs:'st-cs',cd:'st-cd',res:'st-res'};
 const STAT_UZ={vac:'Boʻsh',neg:'Muzokara',off:'Taklif qilindi',os:'Taklif imzolandi',cs:'Shartnoma imzolanmoqda',cd:'Shartnoma imzolandi',res:'Rezerv'};
 const STAT_EN={vac:'Vacant',neg:'Negotiation',off:'Offered',os:'Offer signed',cs:'Contract signing',cd:'Contract signed',res:'Reserved'};
-const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]):LANG==='en'?(STAT_EN[k]||STAT[k]):STAT[k];
-const stTl=(k,lang)=>lang==='uz'?(STAT_UZ[k]||STAT[k]):lang==='en'?(STAT_EN[k]||STAT[k]):STAT[k];
+/* v4.58.0: у незнакомого статуса (пришёл из импорта CSV или из старой записи) stT возвращал
+   undefined, и planSVG падал на planLabel(u).toUpperCase() — весь экран «Планировки» оставался
+   пустым без единого слова о причине. Отдаём сам код статуса, как это давно делает ssT: экран
+   строится, а странное значение видно глазами и его можно поправить в реестре. */
+const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]||k||''):LANG==='en'?(STAT_EN[k]||STAT[k]||k||''):(STAT[k]||k||'');
+const stTl=(k,lang)=>lang==='uz'?(STAT_UZ[k]||STAT[k]||k||''):lang==='en'?(STAT_EN[k]||STAT[k]||k||''):(STAT[k]||k||'');
 const OCCK=['cd','cs','os'];
 const brokerRole={'Хилола':'HO','Нодир':'AG','Азиз':'ASH','Внешний партнёр':'AGX'};
 const brokerUser={'Хилола':'hilola','Нодир':'nodir','Азиз':'aziz','Внешний партнёр':'extagent'};
@@ -1418,15 +1422,20 @@ function renderDash(){
  const offered=sU.filter(u=>u.status==='off').length,loi=sU.filter(u=>u.status==='os'||u.status==='cs').length;
  const occUnits=sU.filter(u=>OCCK.indexOf(u.status)>=0&&u.rate);
  const avgRate=occUnits.length?occUnits.reduce((s,u)=>s+u.rate,0)/occUnits.length:0;
- const avgOcc=Math.round(scope.reduce((s,o)=>s+occPct(o.id),0)/scope.length*100);
- const avgSc=Math.round(scope.reduce((s,o)=>s+o.sc,0)/scope.length);
+ /* v4.58.0: складывали o.sc по всем проектам, а у проекта без сервис-чарджа поля просто нет —
+    undefined в сумме давал NaN, и на главном экране висело «NaN%». Ноль тут тоже неправда:
+    «нет данных» и «ноль процентов» — разные утверждения, и второе вводит в заблуждение. */
+ const occRows=scope.filter(o=>Number.isFinite(occPct(o.id)));
+ const avgOcc=occRows.length?Math.round(occRows.reduce((s,o)=>s+occPct(o.id),0)/occRows.length*100):null;
+ const scRows=scope.filter(o=>Number.isFinite(parseFloat(o.sc)));
+ const avgSc=scRows.length?Math.round(scRows.reduce((s,o)=>s+parseFloat(o.sc),0)/scRows.length):null;
  const lost=sU.filter(u=>u.gap<0).reduce((s,u)=>s+u.gap,0);
  const id=S.obj,us=unitsOf(id);
  const byStat=Object.keys(STAT).map(k=>({k,area:us.filter(u=>u.status===k).reduce((s,u)=>s+u.area,0),n:us.filter(u=>u.status===k).length})).filter(x=>x.n);
  const maxA=Math.max(...byStat.map(x=>x.area),1);
  const C=2*Math.PI*52,off=C*(1-totOcc/totGla);
  $('main').innerHTML=`
- <div class="ph"><h1>${t('dash')}</h1><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>${S.obj!=='ALL'?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Объект</button>`:''}`:''}${R().leasing?`<button class="btn ghost sm" onclick="logActivity()">+ Активность</button>`:''}${R().finance?`<button class="btn ghost sm" onclick="ownerReport()">Отчёт (PDF)</button>`:''}<span class="pill">${curObj().plan||''}</span></div></div>
+ <div class="ph"><h1>${t('dash')}</h1><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>${S.obj!=='ALL'?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Объект</button>`:''}`:''}${R().leasing?`<button class="btn ghost sm" onclick="logActivity()">+ Активность</button>`:''}${R().finance?`<button class="btn ghost sm" onclick="ownerReport()">Отчёт (PDF)</button>`:''}${curObj().plan?`<span class="pill">${curObj().plan}</span>`:''}</div></div>
  <p class="sub">${S.obj==='ALL'?t('allobj'):t('objectlb')+': '+curObj().name} · ${t('rolelb')}: ${R().label}</p>
  ${dashAlertHTML()}
  ${S.dashDatesOpen?datesCardHTML():''}
@@ -1438,9 +1447,9 @@ function renderDash(){
   </div>
   ${actionCenterHTML(scope,sU)}
   <div class="card"><h3>${t('avg')} <span class="mut">${S.obj==='ALL'?t('portfolio'):curObj().name}</span></h3><div class="kpis" style="margin-bottom:0">
-  <div class="kpi"><div class="lab">${t('avgocc')}</div><div class="val">${avgOcc}%</div><div class="sub2">${t('byobj')}</div></div>
-  <div class="kpi"><div class="lab">${t('avgrate')}</div><div class="val">${avgRate.toFixed(1)}<small> $/м²</small></div><div class="sub2">${t('byocc')}</div></div>
-  <div class="kpi"><div class="lab">${t('avgsc')}</div><div class="val">${avgSc}%</div><div class="sub2">${t('ofrent')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgocc')}</div><div class="val">${avgOcc==null?'-':avgOcc+'%'}</div><div class="sub2">${t('byobj')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgrate')}</div><div class="val">${avgRate?avgRate.toFixed(1):'-'}${avgRate?'<small> $/м²</small>':''}</div><div class="sub2">${t('byocc')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgsc')}</div><div class="val">${avgSc==null?'-':avgSc+'%'}</div><div class="sub2">${t('ofrent')}</div></div>
   <div class="kpi"><div class="lab">${t('lossvac')}</div><div class="val">${fin?fmt(Math.abs(lost)):'•••'}</div><div class="sub2">${t('permonth')}</div></div>
  </div></div>
  <div class="grid2">
@@ -1538,7 +1547,7 @@ function renderRegistry(){
  const rows=fus.map(u=>{const ch=selSet.indexOf(u.id)>=0;if(S.regEdit&&canEdit)return regEditRow(u,showBlk,allObj,ch);return `<tr class="click" onclick="openUnit('${u.id}')">
   ${canEdit?`<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" ${ch?'checked':''} onclick="regToggleSel('${u.id}',this.checked)"></td>`:''}
   <td><b>${u.merged&&u.merged.length?hlt(u.merged.join(' + '),hq):hlt(u.code,hq)}</b>${u.merged?' <span class="pill" title="Объединённое помещение — площадь можно уточнить в карточке (стены/коридоры)">объед.</span>':''}${allObj?`<div style="font-size:10px;color:#6d6d6d">${esc(objById(u.obj).name)} · ${esc(objCountry(objById(u.obj)))}, ${esc(objById(u.obj).city)}</div>`:''}</td>${showBlk?`<td>${unitBlock(u)?esc(unitBlock(u)):'<span style="color:#6d6d6d">-</span>'}</td>`:''}<td>${esc(floorLabel(u.floor))}</td>
-  <td>${hlt(u.cat,hq)}<div style="font-size:10px;color:#6d6d6d">${u.sub}</div></td>
+  <td>${hlt(u.cat,hq)}${u.sub?`<div style="font-size:10px;color:#6d6d6d">${u.sub}</div>`:''}</td>
   <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#6d6d6d">+'+fmtA(u.terr)+' терр.</div>':''}</td>
   ${lcrBudVis().map(c=>`<td data-colkey="${c.k}" class="num grp-bud">${lcrCellVal(u,c,fin)}</td>`).join('')}${lcrFacVis().map(c=>`<td data-colkey="${c.k}" class="num grp-fac">${lcrCellVal(u,c,fin)}</td>`).join('')}
   <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
@@ -4164,4 +4173,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.58.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.59.0';

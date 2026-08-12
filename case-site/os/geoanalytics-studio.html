@@ -845,7 +845,136 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
 #geoPanelToggle{display:none}
 @media(max-width:620px){.wrap{position:relative}.left{position:absolute;z-index:1000;top:0;bottom:0;left:0;width:min(300px,86vw);min-width:0;max-width:86vw;transform:translateX(-100%);transition:transform .2s;box-shadow:4px 0 22px rgba(0,0,0,.28)}.left.geo-open{transform:none}#map{width:100%}#geoPanelToggle{display:flex;align-items:center;justify-content:center;position:absolute;z-index:1001;top:8px;left:8px;width:40px;height:40px;border-radius:9px;border:1px solid var(--line);background:#fff;color:var(--ink);font-size:18px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.25)}.page{padding:9px}.geo-profile-head,.geo-data-head,.geo-plan-head{flex-direction:column}.geo-quality{text-align:left}.geo-fields,.geo-envelope,.geo-record-fields{grid-template-columns:1fr}.geo-field.wide,.geo-record-field.wide{grid-column:auto}.geo-files>small{display:block;margin:6px 0 0}.geo-global-warning span{white-space:normal}.tag{display:none}.card.geo-record-card,.card.geo-json-card{width:100vw!important;max-width:100vw!important}.geo-poi-layer-list{max-height:230px}}
 @media print{header.top,.tabs,.geo-global-warning,.geo-actions,.geo-data-tools,.left{display:none!important}.app{height:auto}.wrap,.page{display:block!important;overflow:visible!important;padding:0;background:#fff}.geo-form,.geo-files{break-inside:avoid}.geo-fields{grid-template-columns:repeat(4,1fr)}body{font-size:9pt}}
-</style><style id="mcCss">.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow { -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in; -moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in; -o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in; transition: transform 0.3s ease-out, opacity 0.3s ease-in; } .leaflet-cluster-spider-leg { -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in; -moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in; -o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in; transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in; } .marker-cluster-small { background-color: rgba(181, 226, 140, 0.6); } .marker-cluster-small div { background-color: rgba(110, 204, 57, 0.6); } .marker-cluster-medium { background-color: rgba(241, 211, 87, 0.6); } .marker-cluster-medium div { background-color: rgba(240, 194, 12, 0.6); } .marker-cluster-large { background-color: rgba(253, 156, 115, 0.6); } .marker-cluster-large div { background-color: rgba(241, 128, 23, 0.6); } .leaflet-oldie .marker-cluster-small { background-color: rgb(181, 226, 140); } .leaflet-oldie .marker-cluster-small div { background-color: rgb(110, 204, 57); } .leaflet-oldie .marker-cluster-medium { background-color: rgb(241, 211, 87); } .leaflet-oldie .marker-cluster-medium div { background-color: rgb(240, 194, 12); } .leaflet-oldie .marker-cluster-large { background-color: rgb(253, 156, 115); } .leaflet-oldie .marker-cluster-large div { background-color: rgb(241, 128, 23); } .marker-cluster { background-clip: padding-box; border-radius: 20px; } .marker-cluster div { width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px; font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif; } .marker-cluster span { line-height: 30px; } .marker-cluster{background:rgba(158,0,0,.25)}.marker-cluster div{background:rgba(158,0,0,.75);color:#fff;font-weight:700}</style></head><body class="geo-auth-pending">
+</style><style id="mcCss">.leaflet-cluster-anim .leaflet-marker-icon, .leaflet-cluster-anim .leaflet-marker-shadow { -webkit-transition: -webkit-transform 0.3s ease-out, opacity 0.3s ease-in; -moz-transition: -moz-transform 0.3s ease-out, opacity 0.3s ease-in; -o-transition: -o-transform 0.3s ease-out, opacity 0.3s ease-in; transition: transform 0.3s ease-out, opacity 0.3s ease-in; } .leaflet-cluster-spider-leg { -webkit-transition: -webkit-stroke-dashoffset 0.3s ease-out, -webkit-stroke-opacity 0.3s ease-in; -moz-transition: -moz-stroke-dashoffset 0.3s ease-out, -moz-stroke-opacity 0.3s ease-in; -o-transition: -o-stroke-dashoffset 0.3s ease-out, -o-stroke-opacity 0.3s ease-in; transition: stroke-dashoffset 0.3s ease-out, stroke-opacity 0.3s ease-in; } .marker-cluster-small { background-color: rgba(181, 226, 140, 0.6); } .marker-cluster-small div { background-color: rgba(110, 204, 57, 0.6); } .marker-cluster-medium { background-color: rgba(241, 211, 87, 0.6); } .marker-cluster-medium div { background-color: rgba(240, 194, 12, 0.6); } .marker-cluster-large { background-color: rgba(253, 156, 115, 0.6); } .marker-cluster-large div { background-color: rgba(241, 128, 23, 0.6); } .leaflet-oldie .marker-cluster-small { background-color: rgb(181, 226, 140); } .leaflet-oldie .marker-cluster-small div { background-color: rgb(110, 204, 57); } .leaflet-oldie .marker-cluster-medium { background-color: rgb(241, 211, 87); } .leaflet-oldie .marker-cluster-medium div { background-color: rgb(240, 194, 12); } .leaflet-oldie .marker-cluster-large { background-color: rgb(253, 156, 115); } .leaflet-oldie .marker-cluster-large div { background-color: rgb(241, 128, 23); } .marker-cluster { background-clip: padding-box; border-radius: 20px; } .marker-cluster div { width: 30px; height: 30px; margin-left: 5px; margin-top: 5px; text-align: center; border-radius: 15px; font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif; } .marker-cluster span { line-height: 30px; } .marker-cluster{background:rgba(158,0,0,.25)}.marker-cluster div{background:rgba(158,0,0,.75);color:#fff;font-weight:700}</style><style id="caseGeoSkin">
+/* CASE OS v4.58.0 - фирменный слой гео-студии.
+   Студия писалась как внутренний инструмент и жила на своей палитре: холодный
+   сине-серый (--line #e3e6ec, --slate #34495e) против тёплой бумаги остальной системы
+   (#faf8f5 / #d9d2c7). В одном продукте это читалось как две разные программы. Здесь
+   студия переходит на палитру CASE: тёплая бумага, оксблад, Montserrat, единая шкала
+   размеров. Ничего не переставляем - меняем только материал, из которого сделан экран.
+
+   Экран продающий: его показывают клиенту и по нему принимают решение о локации,
+   поэтому командный блок (проект и выгрузка) закреплён сверху и не уезжает при прокрутке
+   списка слоёв, а отчёт по точке оформлен как документ с печатью - тот самый «паспорт
+   локации», который CASE и продаёт. */
+:root{
+  --line:#e3dcd1;              /* хайрлайн по тёплой бумаге вместо холодного #e3e6ec */
+  --muted:#6f6a63;
+  --slate:#4a443c;
+  --paper:#faf8f5;
+  --paper-2:#f3f1ee;
+  --red-deep:#6e0000;
+  --shadow:0 1px 3px rgba(60,48,36,.08);
+  --shadow-l:0 10px 30px rgba(60,48,36,.16);
+}
+body{background:var(--paper)}
+
+/* --- вкладки: продуктовая панель вместо серой полосы браузерного вида --- */
+.tabs{background:var(--paper-2);border-bottom:1px solid var(--line);padding:5px 10px 0;gap:1px;
+  overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{white-space:nowrap;font-size:12px;font-weight:700;letter-spacing:.01em;padding:9px 14px;
+  border-radius:9px 9px 0 0;color:var(--muted)}
+.tabs button:hover{color:var(--ink);background:rgba(255,255,255,.6)}
+.tabs button.active{background:#fff;color:var(--ink);box-shadow:inset 0 -2px 0 var(--red)}
+/* на узком экране вкладки прокручиваются - показываем, что справа есть ещё */
+@media(max-width:900px){.tabs{position:relative;
+  -webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent);
+  mask-image:linear-gradient(90deg,#000 calc(100% - 26px),transparent)}}
+
+/* --- левая панель: командный блок закреплён, слои прокручиваются под ним --- */
+.left{background:#fff;padding:0;border-right:1px solid var(--line)}
+.left>.sect{padding:11px 12px;margin:0;border-bottom:1px solid var(--line)}
+.left>.sect:first-of-type{position:sticky;top:0;z-index:5;background:#fff;
+  border-bottom:1px solid var(--line);box-shadow:var(--shadow)}
+.sect h3{font-size:10.5px;font-weight:800;letter-spacing:.06em;color:var(--slate);margin:0 0 8px}
+.left .note{font-size:11.5px;line-height:1.45;color:var(--muted)}
+
+/* --- главное действие читается как главное --- */
+.left .btn{min-height:32px;border-radius:9px;font-weight:700}
+#btnProjReport{width:100%;justify-content:center;font-size:12px!important;min-height:34px}
+#btnProjExport{flex:1 1 auto;justify-content:center;white-space:nowrap;font-size:12px!important;
+  min-height:38px;background:var(--red);border-color:var(--red);color:#fff;
+  box-shadow:0 2px 0 var(--red-deep)}
+#btnProjExport:hover{background:var(--red-deep);border-color:var(--red-deep)}
+#btnExpCfg{flex:0 0 auto;min-height:38px;white-space:nowrap;font-size:12px!important;padding:0 11px}
+.left .styrow:has(#btnProjExport){grid-template-columns:1fr auto;gap:7px}
+
+/* --- слои: строка данных, а не список форм --- */
+label.ck{font-size:12px;padding:3px 0;border-radius:6px}
+label.ck:hover{background:var(--paper-2)}
+.styrow{font-size:11.5px}
+.mini{font-size:10.5px;line-height:1.45}
+
+/* --- контролы карты в фирменном виде вместо браузерных по умолчанию --- */
+.leaflet-bar{border:1px solid var(--line);border-radius:9px;overflow:hidden;box-shadow:var(--shadow)}
+.leaflet-bar a,.leaflet-bar a:hover{width:32px;height:32px;line-height:32px;color:var(--ink);
+  border-bottom-color:var(--line);font-weight:700}
+.leaflet-bar a:hover{background:var(--paper-2)}
+.leaflet-control-attribution{background:rgba(250,248,245,.86)!important;font-size:10px;
+  border-radius:7px 0 0 0;padding:2px 7px;color:var(--muted)}
+.leaflet-control-attribution a{color:var(--muted)}
+.mlgd{border-color:var(--line);box-shadow:var(--shadow-l);border-radius:10px}
+.mlgd h4{color:var(--slate);letter-spacing:.06em;font-weight:800}
+/* пустая рамка легенды выглядела как недогрузившийся элемент - прячем, пока в ней нет строк */
+.mlgd:not(.min):empty,.mlgd.geo-empty{display:none!important}
+
+/* --- кнопка слоёв на телефоне не должна лежать на зуме --- */
+@media(max-width:620px){
+  #geoPanelToggle{top:auto!important;bottom:14px!important;left:12px!important;
+    width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:#fff;
+    box-shadow:var(--shadow-l);font-size:17px;color:var(--ink);z-index:1001}
+  .left{box-shadow:var(--shadow-l)}
+}
+
+/* --- паспорт локации: отчёт по точке как документ с печатью --- */
+#probe .ch{background:var(--ink)}
+#probe .body{background:var(--paper)}
+.geo-passport{background:#fff;border:1px solid var(--line);border-top:3px solid var(--red);
+  border-radius:0 0 10px 10px;padding:14px 15px;box-shadow:var(--shadow);margin-bottom:12px}
+.geo-passport .eyebrow{font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--red)}
+.geo-passport .addr{font-size:15px;font-weight:800;line-height:1.25;margin:3px 0 2px}
+.geo-passport .coords{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.geo-stamp{float:right;margin:0 0 8px 12px;width:78px;height:78px;border:2px solid var(--red);
+  border-radius:50%;color:var(--red);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;transform:rotate(-8deg);opacity:.9}
+.geo-stamp b{font-size:23px;line-height:1;font-variant-numeric:tabular-nums}
+.geo-stamp span{font-size:8px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;margin-top:2px}
+
+/* --- таблицы отчёта: тёплые линии вместо холодных --- */
+#probe th,.page th{background:var(--paper-2);color:var(--slate);font-size:10.5px;font-weight:800;
+  letter-spacing:.04em;text-transform:uppercase}
+#probe td,.page td{border-bottom-color:#efeae2}
+.page{background:var(--paper)}
+.insight{border-radius:0 10px 10px 0;box-shadow:var(--shadow)}
+/* --- переключатель подложки: у Leaflet иконка приходит картинкой layers.png, которой в
+   сборке нет, и контрол выглядел пустым белым квадратом - будто элемент не догрузился.
+   Рисуем стопку слоёв средствами CSS, ничего внешнего не подключая. --- */
+.leaflet-control-layers-toggle{width:36px!important;height:36px!important;background-image:none!important;position:relative}
+.leaflet-control-layers-toggle::before,.leaflet-control-layers-toggle::after{content:"";position:absolute;left:50%;width:17px;height:9px;
+  margin-left:-8.5px;border:1.6px solid var(--ink);border-radius:2px;background:#fff;
+  transform:translateY(-50%) skewX(-26deg)}
+.leaflet-control-layers-toggle::before{top:39%}
+.leaflet-control-layers-toggle::after{top:63%;opacity:.5}
+.leaflet-control-layers{border-radius:9px!important;border-color:var(--line)!important;box-shadow:var(--shadow)!important}
+.leaflet-control-layers-expanded{padding:8px 10px;font-size:12px;min-width:150px}
+.leaflet-control-layers-expanded label{display:flex;align-items:center;gap:6px;padding:2px 0}
+
+/* --- сведения о проекте: подписи слева, значения справа --- */
+.pi-row{display:flex;gap:10px;align-items:baseline;padding:2px 0}
+.pi-k{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);flex:0 0 84px}
+.pi-v{font-size:12.5px;font-weight:700;color:var(--ink);min-width:0;overflow-wrap:anywhere}
+.pi-v.num{font-variant-numeric:tabular-nums;font-weight:600}
+.pi-chip{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:3px 9px;border-radius:999px;
+  background:#fff6e2;border:1px solid #e6cf9a;color:#7a5a00;font-size:10.5px;font-weight:800}
+.pi-chip::before{content:"";width:6px;height:6px;border-radius:50%;background:#c99400}
+
+/* --- «Развернуть всё / Свернуть всё» - служебные кнопки, а не действия уровня проекта --- */
+#pOpen,#pClose{font-size:10.5px;font-weight:700;color:var(--muted);background:transparent;
+  border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer}
+#pOpen:hover,#pClose:hover{background:var(--paper-2);color:var(--ink)}
+</style></head><body class="geo-auth-pending">
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Universal Geo Analytics · preliminary online data</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
 <div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT">Профиль проекта</button><button data-t="planT">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT">Объекты на карте</button></div>
@@ -854,9 +983,9 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
   <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
    <div class="styrow" style="margin-top:7px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке проекта">▣ Аналитика по проекту</button></div>
    <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по выбранному проекту">⤓ Выгрузить PDF · Excel · PPTX</button>
-    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать - настройка своя у каждого проекта">⚙ Настройки выгрузки</button></div>
-   <div class="mini">Выгрузка считает отчёт в точке проекта и складывает те же цифры, что видны на экране. Состав разделов, радиусы и эталоны настраиваются отдельно по каждому проекту.</div></div>
-  <div class="sect"><h3>🎯 Анализ локации (как в гео-платформах)</h3>
+    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать - настройка своя у каждого проекта">⚙ Настройки</button></div>
+   <div class="mini">Цифры те же, что на экране. Состав и радиусы - в настройках выгрузки.</div></div>
+  <div class="sect"><h3>Анализ локации</h3>
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
    <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">▱ Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
@@ -894,7 +1023,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
     <div class="mini" id="zonesNote"></div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
    </div></div>
-  <div class="sect"><h3>Зона охвата (catchment)</h3><div id="rings"></div>
+  <div class="sect"><h3>Зона охвата</h3><div id="rings"></div>
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
    <div class="mini">1 · 3 · 5 км - каждая своим цветом.</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
@@ -909,7 +1038,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="geo-cat-title">HoReCa</div>
    <div id="geoCatAnchor-horeca"></div>
    <div class="geo-cat-title">Медицина и аптеки</div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed"> Медицина (OSM + clinics.uz)</label></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lMed"> <span title="источники: OpenStreetMap и clinics.uz">Медицина</span></label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="medC" value="#16a085"><label>размер</label><input type="range" id="medR" min="3" max="9" value="5"><label>прозр.</label><input type="range" id="medO" min="20" max="100" value="85"></div>
       <div class="styrow sub"><label for="medT">тип</label><select id="medT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="comp">конкуренты клиники (больницы+клиники+частные+врачи+лаб.)</option><option value="hospital">больницы / стационары</option><option value="clinic">клиники / поликлиники</option><option value="private">частные клиники (clinics.uz)</option><option value="doctors">врачебные практики / кабинеты</option><option value="dentist">стоматологии</option><option value="lab">лаборатории / диагностика</option><option value="maternity">роддома / перинатальные</option><option value="rehab">реабилитация / санатории</option><option value="other">прочее</option></select></div>
    <div class="styrow sub"><label for="medSp">направление</label><select id="medSp" style="width:auto;font-size:11px"><option value="">все направления</option><option value="gen">Многопрофильные / общие</option><option value="polikl">Поликлиники / семейные / диспансеры</option><option value="hosp">Больницы / стационары / скорая</option><option value="stom">Стоматология</option><option value="lor">ЛОР / сурдология</option><option value="nevro">Неврология / нейрохирургия</option><option value="kardio">Кардиология / флебология</option><option value="oftalm">Офтальмология / оптика</option><option value="lab">Лаборатории / диагностика / МРТ</option><option value="pediatr">Педиатрия / детские</option><option value="gynec">Гинекология / роддома / ЭКО</option><option value="derma">Дерматология / косметология / пластика</option><option value="uro">Урология / нефрология</option><option value="travma">Травматология / ортопедия</option><option value="psih">Психиатрия / наркология / логопедия</option><option value="onko">Онкология / гематология</option><option value="infekt">Инфекции / туберкулёз / СЭС</option><option value="allerg">Аллергология / иммунология / пульмонология</option><option value="endo">Эндокринология / гастроэнтерология</option><option value="reabil">Реабилитация / физиотерапия / санатории</option></select></div>
@@ -917,7 +1046,7 @@ body.dark{background:#17191d;color:#eee}body.dark header.top{background:#111318}
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="medLab" checked> подписи</label><label>размер подписи</label><input type="range" id="medLS" min="8" max="20" value="11"><label>подписи с зума</label><input type="range" id="medLabZ" min="11" max="18" value="13"><span class="mini" id="medLabZv"></span></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="medClu"> кластеры точек</label></div>
    <div class="mini" id="medLeg" style="line-height:1.7;margin:2px 0 4px"></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> Аптеки (OSM)</label></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> <span title="источник: OpenStreetMap">Аптеки</span></label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="phC" value="#2ecc71"><label>размер</label><input type="range" id="phR" min="2" max="9" value="3"><label>прозр.</label><input type="range" id="phO" min="20" max="100" value="60"></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="phLab"> подписи</label><label>размер подписи</label><input type="range" id="phLS" min="8" max="20" value="10"><label class="ck"><input type="checkbox" id="phClu"> кластеры точек</label></div>
    <div class="mini" id="phNote"></div>
@@ -2291,7 +2420,7 @@ function buildPanel(){
  const left=document.querySelector('.left');if(!left)return;
  // 1. кнопки «свернуть всё / развернуть всё»
  const nav=document.createElement('div');nav.className='pnav';
- nav.innerHTML='<button id="pOpen">развернуть всё</button><button id="pClose">свернуть всё</button>';
+ nav.innerHTML='<button id="pOpen">Развернуть всё</button><button id="pClose">Свернуть всё</button>';
  left.insertBefore(nav,left.firstChild);
  // 2. секции: тело в .sbody, заголовок кликабельный
  const OPEN=JSON.parse(localStorage.getItem('caseos_panel')||'null');
@@ -2380,7 +2509,7 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.58.0"></script>
+<script src="v420-geo-studio.js?v=4.59.0"></script>
 <script src="v4530-geo-export.js?v=4.58.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не

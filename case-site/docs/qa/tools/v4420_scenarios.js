@@ -197,9 +197,24 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     const cs = getComputedStyle(document.getElementById('quizPop'));
     const chat = document.getElementById('chatFab');
     const ccs = chat ? getComputedStyle(chat) : null;
-    return { right: cs.right, bottom: cs.bottom, left: cs.left, chatBottom: ccs ? ccs.bottom : '', agxExternal: !!(ROLES.AGX && ROLES.AGX.external) };
+    /* v4.58.0: проверяем не магическое число, а само требование — три плавающие кнопки
+       стоят в одной колонке справа и не наезжают друг на друга. Раньше тест закреплял
+       bottom:86px, и когда «наверх» и бейдж действительно перекрылись, он этого не заметил. */
+    const rects = ['quizPop', 'chatFab', 'toTop'].map(id => {
+      const el = document.getElementById(id); if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { id, top: Math.round(r.top), bottom: Math.round(r.bottom), right: Math.round(r.right) };
+    }).filter(Boolean);
+    let overlap = '';
+    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+      const a = rects[i], b = rects[j];
+      if (a.top < b.bottom && b.top < a.bottom) overlap += a.id + '/' + b.id + ' ';
+    }
+    return { right: cs.right, bottom: cs.bottom, left: cs.left, chatBottom: ccs ? ccs.bottom : '',
+             agxExternal: !!(ROLES.AGX && ROLES.AGX.external), rects, overlap: overlap.trim() };
   });
-  rec('quiz: бейдж справа (right 18px, bottom 86px)', quiz.right === '18px' && quiz.bottom === '86px', JSON.stringify(quiz));
+  rec('quiz: бейдж прижат к правому краю', quiz.right === '18px', JSON.stringify(quiz.rects));
+  rec('плавающие кнопки не перекрывают друг друга', quiz.overlap === '', quiz.overlap || 'пересечений нет');
   rec('quiz: не перекрывает кнопку чата (бейдж выше)', parseInt(quiz.bottom) > parseInt(quiz.chatBottom || '20') + 54 - 1, quiz.chatBottom);
   rec('quiz: AGX помечен как внешний (гейт по роли активен)', quiz.agxExternal);
   await page.setViewportSize({ width: 800, height: 900 });

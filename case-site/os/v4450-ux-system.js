@@ -2,7 +2,7 @@
    Loaded last so it can stabilize all legacy and modular screens without rewriting business logic. */
 (function(){
 'use strict';
-var VERSION='4.58.0';
+var VERSION='4.59.0';
 var SAFE_EXTERNAL=['dash','work_tasks','work_kanban','brands','v32_investors'];
 var SAFE_BRJ=['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'];
 var READ_ONLY_REGISTRY=['AGX','BSH','BRJ'];
@@ -79,6 +79,66 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .case-access-denied{max-width:680px;margin:32px auto;padding:32px;text-align:center}.case-access-denied h2{margin:8px 0}.case-access-denied p{color:var(--muted);font-size:14px;line-height:1.55}.case-access-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:auto;background:#fff2f2;color:var(--red-d);font-size:24px;font-weight:900;border:1px solid #efbcbc}.case-access-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
 .case-dashboard-mode{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--soft)}.case-dashboard-mode button{border:0;background:transparent;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted)}.case-dashboard-mode button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 #main.case-dash-summary [data-case-secondary="1"]{display:none!important}
+/* ======================================================================
+   v4.58.0 — единая визуальная система CASE OS.
+   До этого каждый модуль приносил свою форму кнопки, свою высоту поля и свою
+   трактовку «активного» состояния. На одном экране реестра получалось семнадцать
+   управляющих элементов четырёх разных форм и ДВА чёрных «текущих» таба подряд —
+   пользователь не мог понять, где он находится. Ниже — не перекраска, а согласование:
+   одна высота у всего кликабельного, одна шкала подписей, одно активное состояние
+   на уровень навигации. Материал берём из уже существующей палитры CASE
+   (оксблад #9E0000 и тёплая бумага), а не вводим новую.
+   ====================================================================== */
+:root{--case-h:34px;--case-r:9px;--case-gap:8px}
+
+/* --- один рост у всего, на что нажимают: раньше 30/34/36/38 в разных модулях --- */
+#main .btn,#main .thbtn,#main .tabs button,#main select,#main input[type="text"],
+#main input[type="search"],#main input[type="date"],#main input[type="number"]{min-height:var(--case-h)}
+#main .btn.sm,#main .thbtn.sm{min-height:30px}
+
+/* --- два уровня навигации перестают выглядеть одинаково ---
+   Первый ряд .tabs — это где я нахожусь (вид: таблица / планировка / канбан).
+   Второй ряд, идущий сразу за ним, — это раздел внутри вида. Раньше оба рисовали
+   залитую чёрную «таблетку», и на экране было два текущих места одновременно. */
+#main .tabs+.tabs{gap:2px;border-bottom:1px solid var(--border);padding-bottom:0;margin-top:-4px}
+#main .tabs+.tabs button{background:transparent;border:0;border-radius:0;color:var(--muted);
+  padding:7px 12px 8px;box-shadow:inset 0 -2px 0 transparent;font-weight:700}
+#main .tabs+.tabs button:hover{color:var(--ink);background:var(--soft)}
+#main .tabs+.tabs button.on{background:transparent;color:var(--red-d,#9E0000);
+  box-shadow:inset 0 -2px 0 var(--red-d,#9E0000)}
+
+/* --- показатель: подпись тише, число громче, единица не спорит с числом --- */
+#main .kpi .lab{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+#main .kpi .val{font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:2px}
+#main .kpi .val small{font-size:12px;font-weight:700;color:var(--muted);margin-left:2px}
+#main .kpi .sub2{font-size:10.5px;color:var(--muted);margin-top:3px}
+/* «-» вместо числа — это отсутствие данных, а не маленькое значение: не кричим им */
+#main .kpi .val:not(:has(small)){color:var(--ink)}
+
+/* --- заголовок карточки: одна ступень, а не пять разных размеров по модулям --- */
+#main .card>h3{font-size:13.5px;font-weight:800;letter-spacing:-.005em;margin:0 0 10px}
+#main .card>h3 .mut{font-weight:600;color:var(--muted)}
+
+/* --- пустое состояние: приглашение действовать, а не серая строка --- */
+#main .mut:only-child{display:block;padding:14px 0;text-align:center;color:var(--muted)}
+
+/* --- плавающие кнопки стоят в одну колонку и не наезжают друг на друга --- */
+#toTop,.quizpop-badge,#chatFab{transition:transform .15s}
+#toTop:hover,.quizpop-badge:hover,#chatFab:hover{transform:translateY(-2px)}
+
+/* --- строка таблицы, открывающая карточку, показывает это курсором и подсветкой --- */
+#main table tbody tr[onclick]{cursor:pointer}
+#main table tbody tr[onclick]:hover{background:var(--soft)}
+#main table tbody tr[tabindex]:focus-visible{outline:2px solid var(--case-focus);outline-offset:-2px}
+
+/* --- телефон: ряды «заголовок + кнопки» переносятся, а не сжимаются в столбик из двух букв --- */
+@media(max-width:620px){
+  #main .card>div[style*="display:flex"],#main .ph,#main .tabs{flex-wrap:wrap}
+  #main .card>h3{width:100%}
+  #main .kpi .val{font-size:22px}
+  /* действие шире пальца: на телефоне кнопка в ряд по двое, а не по четверо */
+  #main .ph .btn,#main .ph .thbtn{flex:1 1 auto;justify-content:center}
+}
 .case-ui-readonly{display:inline-flex;align-items:center;gap:5px;border:1px solid #d8c58c;background:#fff9df;color:#6e5714;border-radius:999px;padding:5px 9px;font-size:10.5px;font-weight:800}
 .tbl-scroll{overscroll-behavior-y:auto;scrollbar-gutter:stable}.tbl-scroll-top{scrollbar-gutter:stable}.tbl-scroll-top+.tbl-scroll{margin-top:0}
 #main table thead th{line-height:1.25}#main table td,#main table th{font-variant-numeric:tabular-nums}

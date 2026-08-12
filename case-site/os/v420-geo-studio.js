@@ -920,7 +920,17 @@
   function geoRenderProj(){
     var p=(typeof active==='function')?active():PROJECTS[Object.keys(PROJECTS)[0]];
     var pi=document.getElementById('projInfo'),plat=+(p&&p.lat),plng=+(p&&p.lng);
-    if(pi&&p)pi.innerHTML=esc(p.name)+'<br>Район: <b>'+esc(p.district||'—')+'</b><br>'+(Number.isFinite(plat)?plat.toFixed(5):'—')+', '+(Number.isFinite(plng)?plng.toFixed(5):'—')+(p.verification!=='verified'?'<br><span style="color:#9b6b00">требуется проверка</span>':'');
+    if(pi&&p){
+      /* v4.58.0: было четыре строки текста подряд, где имя проекта дублировало выпадающий
+         список прямо над ним, а «Район: —» не сообщало ничего. Подписанные строки: слева -
+         что это, справа - значение; отсутствие данных названо словами, а не прочерком. */
+      var okc=Number.isFinite(plat)&&Number.isFinite(plng);
+      pi.innerHTML='<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
+        +(p.district?esc(p.district):'не определён')+'</span></div>'
+        +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
+        +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
+        +(p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+    }
     try{if(typeof renderRings==='function')renderRings();}catch(e){}
     try{if(typeof catchSummary==='function')catchSummary();}catch(e){}
     if(!map||!window.L||!gProj)return;
@@ -1053,4 +1063,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.58.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.59.0';

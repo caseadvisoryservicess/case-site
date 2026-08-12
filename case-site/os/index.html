@@ -71,6 +71,10 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .nav{display:flex;flex-direction:column;align-items:stretch;gap:3px;min-width:0}
 .nav-group{position:relative;width:100%;flex:0 0 auto}
 .nav-group-btn{display:flex;visibility:hidden;align-items:center;justify-content:space-between;width:100%;height:24px;gap:7px;padding:7px 9px 3px;border:0;background:transparent;color:var(--muted);font:inherit;font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;white-space:nowrap;pointer-events:none}
+/* v4.58.0: заголовок группы обрезался прямо посреди слова («АРЕНДА И ПРОДАЖИ (LEASING & SA»)
+   и молча уезжал под правый край меню. Текст ужимаем с многоточием, стрелку не даём сжать. */
+.nav-group-btn>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1 1 auto;text-align:left}
+.nav-group-btn>span:last-child{flex:0 0 auto}
 .side:hover .nav-group-btn,.side.open .nav-group-btn{visibility:visible;pointer-events:auto;cursor:pointer}
 /* v4.37: группы меню — аккордеон. Открыта группа текущего экрана; остальные сворачиваются, клик по заголовку раскрывает. Меню перестаёт быть простынёй. */
 .nav-group-btn .chev{display:none;font-size:9px;transition:transform .15s}
@@ -98,7 +102,7 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .orgmini{font-size:10px;background:var(--soft,#f7f5f1);border:1px solid var(--border);border-radius:7px;padding:2px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
 @media(max-width:900px){.orgtree,.orgtree ul{flex-wrap:nowrap}.orgtree li{padding:22px 4px 0 4px}.orgbox{font-size:10.5px;padding:6px 8px}.orgmini{max-width:96px;font-size:9px}.orgtree-wrap{-webkit-overflow-scrolling:touch}}
 /* круглая кнопка «наверх» */
-#toTop{position:fixed;right:18px;bottom:92px;width:44px;height:44px;border-radius:50%;background:var(--red-d,#9E0000);color:#fff;border:0;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:80;display:none}
+#toTop{position:fixed;right:18px;bottom:138px;width:44px;height:44px;border-radius:50%;background:var(--red-d,#9E0000);color:#fff;border:0;font-size:19px;font-weight:800;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.25);z-index:80;display:none}
 #toTop:hover{filter:brightness(1.12)}
 /* чат-виджет */
 #chatFab{position:fixed;right:18px;bottom:20px;width:54px;height:54px;border-radius:50%;background:var(--red-d,#9E0000);color:#fff;border:0;font-size:23px;cursor:pointer;box-shadow:0 5px 18px rgba(0,0,0,.3);z-index:120}
@@ -109,7 +113,7 @@ button{font-family:inherit;cursor:pointer}button:focus-visible,input:focus-visib
 .chatw-x{background:none;border:0;color:#fff;font-size:17px;cursor:pointer;line-height:1;padding:0 4px}
 .chatw-body{flex:1;overflow-y:auto;padding:10px;background:var(--soft,#f7f5f1)}
 .chatw-inp{border-top:1px solid var(--border);padding:8px;background:#fff;position:relative}
-#chatNotif{display:none;position:fixed;right:18px;bottom:146px;max-width:300px;background:#fff;border:1px solid var(--red-d,#9E0000);border-left:5px solid var(--red-d,#9E0000);border-radius:12px;padding:10px 13px;font-size:12px;box-shadow:0 8px 26px rgba(0,0,0,.22);z-index:121;cursor:pointer}
+#chatNotif{display:none;position:fixed;right:18px;bottom:196px;max-width:300px;background:#fff;border:1px solid var(--red-d,#9E0000);border-left:5px solid var(--red-d,#9E0000);border-radius:12px;padding:10px 13px;font-size:12px;box-shadow:0 8px 26px rgba(0,0,0,.22);z-index:121;cursor:pointer}
 #mentionDD{position:absolute;bottom:100%;left:8px;right:8px;background:#fff;border:1px solid var(--border);border-radius:9px;box-shadow:0 6px 18px rgba(0,0,0,.18);max-height:150px;overflow:auto;z-index:5}
 .mention-it{padding:7px 11px;font-size:12px;cursor:pointer;border-bottom:1px solid #f2f0ed}
 .mention-it:hover,.mention-it.on{background:var(--soft,#f7f5f1)}
@@ -374,7 +378,7 @@ body.dark .kcard{background:#262420}
 .quizpop-ok{color:var(--green);font-weight:700}
 .quizpop-bad{color:var(--red-d);font-weight:700}
 .quizpop-why{color:var(--muted);margin-top:4px}
-.quizpop-badge{position:fixed;right:18px;left:auto;bottom:86px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
+.quizpop-badge{position:fixed;right:18px;left:auto;bottom:84px;width:44px;height:44px;border-radius:50%;background:var(--red);color:#fff;border:none;font-size:18px;font-weight:800;box-shadow:0 6px 18px rgba(0,0,0,.25);z-index:2000}
 @media (max-width:480px){.quizpop{right:8px;bottom:8px;left:8px;width:auto}}
 @media (max-width:900px){.quizpop-badge{display:none!important}}
 /* v3.1: тёмный режим для квиз-окна и тестов — все тексты читаемые */
@@ -452,14 +456,14 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js?v=4.50.2" defer></script>
-<script>const APP_VERSION='4.58.0';    /* версия платформы — повышается с каждым обновлением */
+<script>const APP_VERSION='4.59.0';    /* версия платформы — повышается с каждым обновлением */
 /* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
    менялось при каждом обновлении любого модуля и не кэшировалось */
-const CASE_EXPECTED_MODULES={'core':'4.58.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.58.0','v4450-owner-report':'4.47.0'};
+const CASE_EXPECTED_MODULES={'core':'4.59.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.47.0','v4450-ux-system':'4.59.0','v4450-owner-report':'4.47.0'};
 /* v4.58.0: модули гео-студии живут в iframe, поэтому в CASE_MODULE_VERSIONS этого окна
    они не появляются и общей сверкой не ловились — студия читает карту отсюда и сверяет у себя */
-window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.58.0','v4530-geo-export':'4.58.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
-<script src="core.js?v=4.58.0"></script>
+window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.59.0','v4530-geo-export':'4.58.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
+<script src="core.js?v=4.59.0"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.51.0" defer></script>
@@ -481,7 +485,7 @@ window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.58.0','v4530-geo-expor
 <script src="v417-master-plan.js?v=4.42.0" defer></script>
 <script src="v432-data-grid.js?v=4.49.1" defer></script>
 <script src="v4327-patch.js?v=4.50.1" defer></script>
-<script src="v4450-ux-system.js?v=4.58.0" defer></script>
+<script src="v4450-ux-system.js?v=4.59.0" defer></script>
 <script src="v4450-owner-report.js?v=4.47.0" defer></script>
 <script src="v4451-live-sync.js?v=4.58.0" defer></script>
 <script>
