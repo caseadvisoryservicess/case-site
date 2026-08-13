@@ -1082,6 +1082,40 @@
      тянем в фоне и до-рисовываем, когда пришла. Так карта появляется за ~1с, а не за 4-5с. */
   /* Мост для карты: легенда, отчёт по точке и модель зон живут в geoanalytics-studio.html,
      а точки городских объектов — здесь. Наружу отдаём только чтение. */
+  /* v4.62.0: пространственный индекс по слоям POI.
+     countIn перебирал ВЕСЬ слой на каждый вопрос «сколько объектов в радиусе». Для отчёта по
+     одной точке это незаметно, а модель зон пригодности спрашивает по каждой ячейке сетки:
+     на 5000 ячеек и 2000 объектов в слое выходило десять миллионов вычислений расстояния
+     в главном потоке, и карта вставала. Раскладываем точки по клеткам 0.01 градуса (примерно
+     1.1 км) и смотрим только те клетки, что попадают в радиус — ровно тот же приём, что уже
+     работает для населения, медицины и бизнес-центров. Индекс строится лениво и сбрасывается
+     при перезагрузке слоя, иначе он врал бы про старые данные. */
+  var GEO_POI_IX={};
+  function poiIndex(k){
+    var rows=GEO_POI[k]||[];
+    var ix=GEO_POI_IX[k];
+    if(ix&&ix.n===rows.length&&ix.src===rows)return ix;
+    var b={};
+    for(var i=0;i<rows.length;i++){
+      var a=+rows[i].lat,c=+rows[i].lng;
+      if(!Number.isFinite(a)||!Number.isFinite(c))continue;
+      var key=Math.floor(a/0.01)+'_'+Math.floor(c/0.01);
+      (b[key]=b[key]||[]).push(rows[i]);
+    }
+    ix=GEO_POI_IX[k]={b:b,n:rows.length,src:rows};
+    return ix;
+  }
+  function poiNear(k,la,ln,km){
+    if(typeof hav!=='function')return [];
+    var ix=poiIndex(k),out=[];
+    var dLa=km/111.32,dLn=km/(111.32*Math.cos(la*Math.PI/180)||1);
+    for(var i=Math.floor((la-dLa)/0.01);i<=Math.floor((la+dLa)/0.01);i++)
+      for(var j=Math.floor((ln-dLn)/0.01);j<=Math.floor((ln+dLn)/0.01);j++){
+        var a=ix.b[i+'_'+j];
+        if(a)for(var t=0;t<a.length;t++)out.push(a[t]);
+      }
+    return out;
+  }
   window.CASE_GEO_POI={
     label:function(k){return (POI_DEFS[k]||{}).label||k;},
     color:function(k){return (POI_DEFS[k]||{}).color||'#888';},
@@ -1093,12 +1127,11 @@
     toggle:function(k){var cb=document.getElementById('geoLayer-'+k);if(!cb)return;
       cb.checked=!cb.checked;cb.dispatchEvent(new Event('change',{bubbles:true}));},
     countIn:function(cats,la,ln,km){
-      var n=0;(cats||[]).forEach(function(k){(GEO_POI[k]||[]).forEach(function(x){
-        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
-        if(typeof hav==='function'&&hav(la,ln,a,b)<=km)n++;});});
+      var n=0;(cats||[]).forEach(function(k){poiNear(k,la,ln,km).forEach(function(x){
+        if(hav(la,ln,+x.lat,+x.lng)<=km)n++;});});
       return n;},
     breakdown:function(cats,la,ln,km){
-      var o={};(cats||[]).forEach(function(k){var c=0;(GEO_POI[k]||[]).forEach(function(x){
+      var o={};(cats||[]).forEach(function(k){var c=0;poiNear(k,la,ln,km).forEach(function(x){
         var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
         if(typeof hav==='function'&&hav(la,ln,a,b)<=km)c++;});if(c)o[k]=c;});
       return o;},
@@ -1118,4 +1151,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.61.1';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.62.0';
