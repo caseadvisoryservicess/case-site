@@ -288,7 +288,7 @@ const USERS=[
  {u:'extagent',name:'Внешний партнёр',role:'AGX',title:'Внешний агент',projects:['ca']},
  {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Администратор аренды (тыл)'},
  {u:'beksulton',name:'Beksulton Shaxridinov',role:'BSH',title:'Архитектор'},
- {u:'humoyun',name:'Humoyun Mirkamolov',role:'HM',title:'Менеджер по консалтингу'},
+ {u:'humoyun',name:'Humoyun Mirkamolov',role:'DIR',title:'Директор'},
  {u:'cfo',name:'Abdulaziz Rakhimov',role:'CFO',title:'Финансовый директор'},
  {u:'junior',name:'Младший администратор данных',role:'BRJ',title:'Бренды и геоданные'},
 ];
@@ -301,6 +301,11 @@ const ROLES={
  HO:{label:'Администратор аренды (тыл)',leasing:true,finance:true,edit:true,approve:false,reportsTo:'BA',rights:['Реестр и даты','Бюджет / Факт / NOI','Документы','Координация']},
  BSH:{label:'Архитектор',leasing:true,finance:false,edit:true,approve:false,plans:true,reportsTo:'ASH',rights:['Загрузка чертежей','Интерактивный план','Реестр (просмотр)','Без финансов']},
  HM:{label:'Менеджер по консалтингу',leasing:true,finance:true,edit:false,approve:false,reportsTo:'ASH',rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
+ /* v4.64.0: полный доступ к работе без администрирования. Отличие от ADM ровно одно —
+    admin:false, и этого достаточно: разделы «Доступ», «Модули» и «Система» закрыты не
+    только в меню, но и на отрисовке (renderAdminModules / renderAdminSystem), поэтому
+    попасть в них по прямому переходу тоже нельзя. */
+ DIR:{label:'Директор (без администрирования)',leasing:true,finance:true,edit:true,approve:true,plans:true,admin:false,geoEdit:true,reportsTo:'ASH',rights:['Все рабочие разделы','Финансы / NOI','Виза по ставкам','Загрузка планов','Геоданные: правка','Без управления доступами']},
  CFO:{label:'Финансовый директор',leasing:true,finance:true,edit:true,approve:true,plans:true,admin:true,geoEdit:true,reportsTo:'ASH',rights:['Полный доступ','Все финансы / NOI','Виза по ставкам','Все дашборды','Геоданные: правка']},
  BRJ:{label:'Младший администратор данных',leasing:true,finance:false,edit:true,approve:false,plans:false,brandsOnly:true,geoEdit:true,reportsTo:'BA',rights:['База брендов','Геоаналитика: ввод и проверка','Внутренний чат','Без финансов и реестра']},
 };
@@ -4173,4 +4178,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.59.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.64.0';
