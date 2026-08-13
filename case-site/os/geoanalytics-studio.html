@@ -995,6 +995,8 @@ label.ck:hover{background:var(--paper-2)}
    <div class="mini">Цифры те же, что на экране. Состав и радиусы - в настройках выгрузки.</div>
    <div class="styrow" style="margin-top:8px"><button class="btn sec" id="btnSunWind" style="font-size:11px"
      onclick="caseSunOpen()" title="ход солнца по выбранному дню, роза ветров по архиву наблюдений и направление киблы">☀ Солнце, ветер и кибла</button></div>
+   <div class="styrow" style="margin-top:4px"><button class="btn sec" id="btnHuff" style="font-size:11px"
+     onclick="caseHuffOpen()" title="какую долю жителей зоны реально заберёт объект с учётом конкурентов, и у кого именно">◱ Доля рынка (модель Хаффа)</button></div>
    <label class="ck" style="margin-top:4px"><input type="checkbox" id="lQibla" onchange="caseQiblaToggle(this.checked)"> Направление киблы на карте</label></div>
   <div class="sect"><h3>Анализ локации</h3>
    <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
@@ -2523,6 +2525,7 @@ setTimeout(initPop,800);
 <script src="v420-geo-studio.js?v=4.62.0"></script>
 <script src="v4530-geo-export.js?v=4.58.0"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
+<script src="v4630-huff.js?v=4.63.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span
