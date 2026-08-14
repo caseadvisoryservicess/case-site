@@ -565,3 +565,68 @@ function delete_row(string $table, $id): void {
   db()->prepare('DELETE FROM '.q($table).' WHERE '.q($d['pk']).'=?')->execute([$id]);
   audit('Удаление: '.$table, (string)$id);
 }
+
+// ── P0-SEC-01/02: финансовые поля помещений ─────────────────────────────────
+// Независимый аудит v4.70.0 показал: экран честно маскирует ставки как «•••» для ролей
+// без права finance, но сервер отдавал те же ставки целиком - в ключе U общего state,
+// в CSV-выгрузке и через атомарные эндпоинты. Маскировка на экране защитой не является:
+// значение доступно через DevTools, выгрузку и прямой запрос к API.
+//
+// Ниже - ЕДИНСТВЕННОЕ место, где перечислены финансовые поля помещения. Все три пути
+// (state.php, unit_patch.php, units_batch.php) обязаны спрашивать именно его, иначе
+// расхождение вернётся при первом же добавленном поле.
+//
+// Площадь и терраса в список НЕ входят намеренно: архитектору они нужны для работы, а
+// коммерческой тайной не являются. Скрываем деньги, а не геометрию.
+function unit_finance_fields(): array {
+  return ['rate','budget','budLand','factLand','capex','total','gap','commission','feeTotal'];
+}
+
+// Видит ли пользователь деньги помещений.
+function unit_can_see_finance(array $u): bool {
+  return !empty($u['finance']) || !empty($u['admin']);
+}
+
+// Вырезать деньги из массива помещений перед отправкой роли без права finance.
+// Ключи не обнуляются, а УДАЛЯЮТСЯ: клиент отличает «поля нет» от «поле равно нулю»,
+// и подставленный ноль выглядел бы как реальная бесплатная ставка.
+function redact_units_for(array $rows, array $u): array {
+  if (unit_can_see_finance($u)) return $rows;
+  $fields = unit_finance_fields();
+  return array_map(function ($r) use ($fields) {
+    if (!is_array($r)) return $r;
+    foreach ($fields as $f) unset($r[$f]);
+    /* offer/vars хранят коммерческие условия внутри JSON - отдаём только безопасную часть */
+    if (isset($r['offer'])) unset($r['offer']);
+    return $r;
+  }, $rows);
+}
+
+// Вернуть деньги на место при сохранении. Без этого шага защита превращается в потерю
+// данных: клиент получил помещения БЕЗ ставок, сохранил весь state целиком, и ставки
+// исчезли бы у всех. Поэтому финансовые поля каждого помещения берутся из серверной
+// копии по идентификатору, а не из присланного клиентом.
+function restore_unit_finance(array $incomingRows, array $oldRows, array $u): array {
+  if (unit_can_see_finance($u)) return $incomingRows;
+  $fields = unit_finance_fields();
+  $byId = [];
+  foreach ($oldRows as $r) if (is_array($r) && isset($r['id'])) $byId[(string)$r['id']] = $r;
+  return array_map(function ($r) use ($byId, $fields) {
+    if (!is_array($r)) return $r;
+    $old = isset($r['id']) ? ($byId[(string)$r['id']] ?? null) : null;
+    foreach ($fields as $f) {
+      if ($old !== null && array_key_exists($f, $old)) $r[$f] = $old[$f];
+      else unset($r[$f]);   /* новое помещение: денег у него пока просто нет */
+    }
+    if ($old !== null && array_key_exists('offer', $old)) $r['offer'] = $old['offer'];
+    else unset($r['offer']);
+    return $r;
+  }, $incomingRows);
+}
+
+// Может ли пользователь менять состав помещений: создавать, удалять, массово заливать,
+// объединять и перенумеровывать. Право edit этого не даёт: агент аренды по описанию роли
+// ведёт показы и брони, а не структуру объекта.
+function unit_can_change_structure(array $u): bool {
+  return !empty($u['admin']) || !empty($u['finance']) || !empty($u['plans']);
+}
