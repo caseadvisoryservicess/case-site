@@ -92,19 +92,30 @@ if (fs.existsSync(mig)) {
      /UPDATE app_users SET role_key='DIR'[\s\S]*Humoyun Mirkamolov/.test(sql));
 }
 
-/* --- дисциплина релиза --- */
+/* --- дисциплина релиза ---
+   Сверяем согласованность между собой, а не совпадение с литералом версии. Первая редакция
+   этой проверки была прибита к строке «4.64.0» и развалилась о следующий же релиз, ничего
+   при этом не поймав: роль была в порядке, а тест был красным. Версия меняется каждый
+   релиз, а вот рассинхрон между объявленной версией модуля, его cache-buster'ом и именем
+   офлайн-кэша — настоящая ошибка, из-за которой у пользователя останутся старые файлы. */
 const idx = fs.readFileSync(path.join(OS, 'index.html'), 'utf8');
 const ver = (idx.match(/APP_VERSION='([\d.]+)'/) || [])[1];
-ck('версия платформы поднята', ver === '4.64.0', ver);
+ck('версия платформы объявлена', /^\d+\.\d+\.\d+$/.test(ver || ''), ver);
 ['core', 'v3520-workspaces'].forEach(m => {
-  const exp = new RegExp("'" + m + "':'4\\.64\\.0'").test(idx);
-  const bust = new RegExp(m.replace(/[.]/g, '\\.') + "\\.js\\?v=4\\.64\\.0").test(idx);
-  ck('модуль ' + m + ': ожидаемая версия совпадает с 4.64.0', exp);
-  ck('модуль ' + m + ': cache-buster совпадает с версией', bust);
+  const esc = m.replace(/[.]/g, '\\.');
+  const declared = (idx.match(new RegExp("'" + m + "':'([\\d.]+)'")) || [])[1];
+  const bust = (idx.match(new RegExp(esc + "\\.js\\?v=([\\d.]+)")) || [])[1];
+  const inFile = (fs.readFileSync(path.join(OS, m === 'core' ? 'core.js' : m + '.js'), 'utf8')
+    .match(new RegExp("CASE_MODULE_VERSIONS\\['" + esc + "'\\]='([\\d.]+)'")) || [])[1];
+  ck('модуль ' + m + ': версия в файле совпадает с ожидаемой в index.html',
+     inFile && inFile === declared, inFile + ' / ' + declared);
+  ck('модуль ' + m + ': cache-buster совпадает с версией модуля',
+     bust === declared, bust + ' / ' + declared);
 });
 const sw = fs.readFileSync(path.join(OS, 'sw.js'), 'utf8');
-ck('имя офлайн-кэша обновлено — иначе старые файлы переживут релиз',
-   /case-os-v4640/.test(sw));
+const cache = (sw.match(/case-os-v(\d+)/) || [])[1];
+ck('имя офлайн-кэша соответствует версии платформы — иначе старые файлы переживут релиз',
+   cache === (ver || '').replace(/\./g, ''), 'case-os-v' + cache + ' при версии ' + ver);
 
 console.log(bad ? `\nПРОВАЛЕНО проверок: ${bad}` : '\nРоль DIR настроена верно во всех трёх местах');
 process.exit(bad ? 1 : 0);
