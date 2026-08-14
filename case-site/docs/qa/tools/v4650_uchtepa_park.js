@@ -121,10 +121,20 @@ ck('у карты есть запасной цвет для проекта бе�
 const idx = fs.readFileSync(path.join(OS, 'index.html'), 'utf8');
 const ver = (idx.match(/APP_VERSION='([\d.]+)'/) || [])[1];
 ck('версия платформы объявлена', /^\d+\.\d+\.\d+$/.test(ver || ''), ver);
+/* Cache-buster обязан СУЩЕСТВОВАТЬ и быть не новее текущей версии платформы. Требовать
+   равенства с APP_VERSION неверно: файл, не менявшийся в этом релизе, законно остаётся с
+   прежним номером, и такая проверка краснела бы на каждом следующем релизе, ничего не
+   поймав. Ловим настоящие ошибки: пропущенный buster и номер из будущего. */
+const cmp = (a, b) => {
+  const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) { if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) - (y[i] || 0); }
+  return 0;
+};
 [['v492-portfolio-proposals\\.js', 'рантайм-модуль портфеля'],
  ['case_portfolio\\.seed\\.js', 'дозаливочный seed']].forEach(([f, label]) => {
   const bust = (idx.match(new RegExp(f + '\\?v=([\\d.]+)')) || [])[1];
-  ck('cache-buster обновлён: ' + label, bust === ver, bust + ' при версии ' + ver);
+  ck('cache-buster проставлен и не из будущего: ' + label,
+     !!bust && cmp(bust, ver) <= 0, bust + ' при версии платформы ' + ver);
 });
 const cache = (fs.readFileSync(path.join(OS, 'sw.js'), 'utf8').match(/case-os-v(\d+)/) || [])[1];
 ck('имя офлайн-кэша соответствует версии платформы',
