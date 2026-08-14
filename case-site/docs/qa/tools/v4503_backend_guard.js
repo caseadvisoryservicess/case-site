@@ -2,10 +2,10 @@
 
    Из аудита: на статичном сервере /api/auth.php отдаётся ИСХОДНЫМ ТЕКСТОМ с кодом 200.
    apiGET глотает ошибку разбора JSON и возвращает null, а initAuth ставил BACKEND=true
-   безусловно — платформа показывала серверный вход, который не может работать, вместо
+   безусловно - платформа показывала серверный вход, который не может работать, вместо
    честного отказа. Заодно наружу утекал исходник PHP.
 
-   Проверяем оба конца: при мусорном ответе бэкенд считается недоступным, при нормальном —
+   Проверяем оба конца: при мусорном ответе бэкенд считается недоступным, при нормальном -
    доступным (иначе проверка сломала бы обычный вход).
 
    Запуск: node v4503_backend_guard.js [папка os] */
@@ -20,7 +20,7 @@ const PHP_SRC = '<?php\nrequire __DIR__."/lib.php";\nsession_start();\njson_out(
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -28,7 +28,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'application/javascri
                '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
                '.svg': 'image/svg+xml', '.png': 'image/png' };
 
-/** mode: 'source' — сервер отдаёт исходник PHP (не выполняет его); 'json' — нормальный ответ */
+/** mode: 'source' - сервер отдаёт исходник PHP (не выполняет его); 'json' - нормальный ответ */
 function serve(mode) {
   return http.createServer((rq, rs) => {
     const u = decodeURIComponent(rq.url.split('?')[0]);

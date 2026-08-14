@@ -1,6 +1,6 @@
 /* Проверка обновлённой геоаналитики: настройки подписаны, данные не потеряны.
 
-   Главный риск — правки БЦ хранятся в localStorage по ИНДЕКСУ в массиве BC
+   Главный риск - правки БЦ хранятся в localStorage по ИНДЕКСУ в массиве BC
    (BC.forEach((b,i)=>b.id=i)). Если массив сдвинется, правки молча прилипнут
    к чужим БЦ. Поэтому сначала кладём в хранилище «старые» правки, потом грузим
    новый файл и проверяем, что они на своих местах.
@@ -16,7 +16,7 @@ const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 

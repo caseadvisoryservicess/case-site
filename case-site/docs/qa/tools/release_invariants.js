@@ -1,4 +1,4 @@
-/* Инварианты релиза CASE OS — ловит расхождения, из-за которых обновление уезжает
+/* Инварианты релиза CASE OS - ловит расхождения, из-за которых обновление уезжает
    наполовину, а система об этом молчит.
 
    Поводом стала проверка v4.57.1: новый модуль выгрузки v4530-geo-export.js не попал ни в
@@ -16,7 +16,7 @@ const OS = path.resolve(process.argv[2] || path.join(__dirname, '..', '..', '..'
 const ROOT = path.resolve(OS, '..');
 
 let failed = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) failed++; };
 const read = f => fs.readFileSync(path.join(OS, f), 'utf8');
 
 const index = read('index.html');
@@ -35,11 +35,11 @@ const swComment = (sw.match(/^\/\/ CASE OS v([\d.]+) service worker/) || [])[1];
 ck('комментарий версии в sw.js не отстал', swComment === APP, swComment + ' против ' + APP);
 
 if (fs.existsSync(path.join(OS, 'DEPLOY.md'))) {
-  /* строку «Включает v4.52.0-v4.57.1» проверять не надо — это перечень вошедших релизов.
+  /* строку «Включает v4.52.0-v4.57.1» проверять не надо - это перечень вошедших релизов.
      Важны заголовок и признак успешной установки: по ним администратор решает, залилось ли */
   const dep = read('DEPLOY.md').split('\n').filter(l => !/^Миграций|Включает/.test(l.trim())).join('\n');
   const head = (dep.match(/^# CASE OS v([\d.]+)/) || [])[1];
-  ck('заголовок DEPLOY.md — текущая версия', head === APP, head + ' против ' + APP);
+  ck('заголовок DEPLOY.md - текущая версия', head === APP, head + ' против ' + APP);
   const badge = (dep.match(/В шапке `v([\d.]+)`/) || [])[1];
   ck('DEPLOY.md называет верный признак успешной установки', badge === APP, badge + ' против ' + APP);
 }
@@ -60,7 +60,7 @@ const expectedStudio = {};
 
 ck('карта версий модулей студии объявлена через window, а не const',
    !studio || /window\.CASE_EXPECTED_STUDIO_MODULES\s*=/.test(index),
-   /window\.CASE_EXPECTED_STUDIO_MODULES/.test(index) ? 'window' : 'const не становится свойством окна — сверка из iframe не сработает');
+   /window\.CASE_EXPECTED_STUDIO_MODULES/.test(index) ? 'window' : 'const не становится свойством окна - сверка из iframe не сработает');
 
 const registrars = [];
 fs.readdirSync(OS).filter(f => f.endsWith('.js')).forEach(f => {
@@ -76,7 +76,7 @@ fs.readdirSync(OS).filter(f => f.endsWith('.js')).forEach(f => {
 
 registrars.forEach(r => {
   /* если модуль объявляет var VERSION, регистрировать он обязан именно её:
-     литерал рядом с переменной — это два источника правды, которые расходятся молча */
+     литерал рядом с переменной - это два источника правды, которые расходятся молча */
   if (r.varDecl) {
     ck('версия модуля ' + r.file + ' берётся из одной переменной',
        /(^|\.)VERSION$/.test(r.value) || r.lit === r.varDecl,
@@ -122,10 +122,44 @@ const dashPages = fs.readdirSync(OS).filter(f => f.endsWith('.html')).filter(f =
 ck('в статическом тексте страниц нет длинного тире', dashPages.length === 0, dashPages.join(', ') || 'чисто');
 
 /* нормализатор экрана и нормализатор выгрузок должны существовать оба:
-   первый не достаёт до .xlsx/.pptx и до окна печати, второй — до экрана */
+   первый не достаёт до .xlsx/.pptx и до окна печати, второй - до экрана */
 ck('нормализатор тире на экране на месте', /function dashFix\(/.test(read('v4450-ux-system.js')));
 ck('нормализатор тире в выгрузках на месте', /function dsh\(/.test(read('v4530-geo-export.js')));
 ck('печатная версия PDF нормализуется', /caseDashFixDoc/.test(studio));
+
+/* ---- 4bis. в документации и инструментах проверки длинного тире быть не должно ----
+   Три нормализатора выше приводят тире к короткому уже на выходе: на экране, в выгрузках и
+   в окне печати. До markdown-документов они не дотягиваются по определению - те никто не
+   рендерит через DOM, - а читают их и заказчик, и команда. Поэтому здесь правило
+   проверяется прямо по файлам.
+
+   Исходники модулей эта проверка намеренно НЕ трогает. Сами нормализаторы построены на
+   символьном классе [—–], и массовая замена в коде уничтожила бы именно тот механизм,
+   который обеспечивает требование. Правило распространяется на текст, который пишем мы,
+   а не на данные и не на регулярные выражения. */
+const textDirs = [ROOT, path.join(ROOT, 'docs'), path.join(ROOT, 'docs', 'qa'), path.join(ROOT, 'docs', 'market'), path.join(ROOT, 'docs', 'ops')];
+const dashDocs = [];
+textDirs.forEach(dir => {
+  let names = [];
+  try { names = fs.readdirSync(dir); } catch (e) { return; }
+  names.filter(f => f.endsWith('.md')).forEach(f => {
+    const full = path.join(dir, f);
+    try { if (/[—–]/.test(fs.readFileSync(full, 'utf8'))) dashDocs.push(path.relative(ROOT, full)); } catch (e) {}
+  });
+});
+ck('в документации нет длинного тире', dashDocs.length === 0, dashDocs.join(', ') || 'чисто');
+
+const toolsDir = path.join(ROOT, 'docs', 'qa', 'tools');
+const dashTools = [];
+try {
+  fs.readdirSync(toolsDir).filter(f => f.endsWith('.js')).forEach(f => {
+    const src = fs.readFileSync(path.join(toolsDir, f), 'utf8');
+    /* сам символьный класс [—–] - легальное вхождение: без него проверка тире неработоспособна */
+    if (/[—–]/.test(src.split('[—–]').join(''))) dashTools.push(f);
+  });
+} catch (e) {}
+ck('в инструментах проверки нет длинного тире вне символьного класса',
+   dashTools.length === 0, dashTools.join(', ') || 'чисто');
 
 /* ---- 5. в релизном пакете нет секретов ---- */
 ['api/config.php', 'api/config.local.php', 'api/config.local-xampp.php'].forEach(f => {

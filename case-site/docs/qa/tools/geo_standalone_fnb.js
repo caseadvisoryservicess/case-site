@@ -1,11 +1,11 @@
 /* Слой «F&B» в автономной геоаналитике: рестораны, кафе, фастфуд, чайханы.
 
    Запрос владельца: «данные по F&B локациям собери как ты собрал по образованию».
-   Собрать их из песочницы разработки нельзя — там нет интернета, поэтому слой устроен
+   Собрать их из песочницы разработки нельзя - там нет интернета, поэтому слой устроен
    так же, как образование: страница сама идёт в OpenStreetMap из браузера пользователя,
    плюс принимает GeoJSON из overpass-turbo и master-CSV коллектора.
 
-   Проверяем: разбор всех трёх источников, определение типов (особенно чайханы — OSM
+   Проверяем: разбор всех трёх источников, определение типов (особенно чайханы - OSM
    не размечает её отдельным тегом), легенду, фильтр по типу и аналитику.
 
    Запуск: node geo_standalone_fnb.js [файл.html] */
@@ -17,10 +17,10 @@ const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
 let failed = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) failed++; };
 
 /* Ответ Overpass: обычные точки, контур здания (way с center), чайхана под тегом
-   ресторана, объект без координат и посторонний магазин — всё как в жизни. */
+   ресторана, объект без координат и посторонний магазин - всё как в жизни. */
 const OVERPASS = { elements: [
   { type: 'node', id: 1, lat: 41.3200, lon: 69.2800, tags: { amenity: 'restaurant', name: 'Афсона', cuisine: 'uzbek' } },
   { type: 'node', id: 2, lat: 41.3210, lon: 69.2810, tags: { amenity: 'restaurant', name: 'Чайхана Навруз' } },
@@ -61,7 +61,7 @@ const CSV = 'main_category,canonical_name,canonical_lat,canonical_lng,subcategor
   const pg = await b.newPage({ viewport: { width: 1400, height: 900 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
-  /* Overpass отвечаем сами: интернета в песочнице нет. Первый сервер отдаёт 429 —
+  /* Overpass отвечаем сами: интернета в песочнице нет. Первый сервер отдаёт 429 -
      проверяем, что страница переходит к следующему зеркалу, как и задумано. */
   await pg.route('**/*', r => {
     const u = r.request().url();
@@ -82,7 +82,7 @@ const CSV = 'main_category,canonical_name,canonical_lat,canonical_lng,subcategor
   ck('фильтр по типу есть', await pg.evaluate(() => {
     const s = document.getElementById('fnbT'); return !!s && s.options.length >= 8; }));
 
-  /* 1. Данных нет — слой честно объясняет, что делать */
+  /* 1. Данных нет - слой честно объясняет, что делать */
   const empty = await pg.evaluate(async () => {
     const cb = document.getElementById('lFnb'); cb.checked = true;
     cb.dispatchEvent(new Event('change', { bubbles: true }));
@@ -101,7 +101,7 @@ const CSV = 'main_category,canonical_name,canonical_lat,canonical_lng,subcategor
              saved: !!localStorage.getItem('caseos_fnb') };
   });
   ck('страница сама скачала данные из OpenStreetMap', osm.n === 6, 'точек: ' + osm.n + ' (' + osm.src + ')');
-  ck('отказ первого сервера пережит — взят следующий', overpassHits >= 2, 'обращений к серверам: ' + overpassHits);
+  ck('отказ первого сервера пережит - взят следующий', overpassHits >= 2, 'обращений к серверам: ' + overpassHits);
   ck('запрос уходит методом POST с телом', /^data=/.test(lastBody), lastBody.slice(0, 40));
   ck('запрос охватывает кафе, фастфуд и пекарни',
     /amenity%22%3D%22cafe/.test(lastBody) && /amenity%22%3D%22fast_food/.test(lastBody) && /shop%22%3D%22bakery/.test(lastBody));
@@ -127,7 +127,7 @@ const CSV = 'main_category,canonical_name,canonical_lat,canonical_lng,subcategor
   ck('в легенде разбивка по типам', lgd.rows.length >= 5, lgd.rows.join(' | '));
   ck('названия типов человеческие', /Чайхана/.test(lgd.txt) && !/teahouse/.test(lgd.txt));
 
-  /* 4. Фильтр по типу — из легенды и из панели */
+  /* 4. Фильтр по типу - из легенды и из панели */
   const filt = await pg.evaluate(async () => {
     const el = document.getElementById('mlgd');
     const li = [...el.querySelectorAll('.li')].find(x => /lgdFilterFnb\('teahouse'\)/.test(x.getAttribute('onclick') || ''));

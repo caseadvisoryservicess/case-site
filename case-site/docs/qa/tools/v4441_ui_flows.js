@@ -1,4 +1,4 @@
-/* CASE OS v4.44.1 — сохранения из карточек сразу видны в таблицах + резайзер в прилипшей шапке */
+/* CASE OS v4.44.1 - сохранения из карточек сразу видны в таблицах + резайзер в прилипшей шапке */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');

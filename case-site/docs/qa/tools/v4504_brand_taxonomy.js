@@ -1,13 +1,13 @@
-/* v4.50.4: таксономия брендов — типы и подкатегории должны быть доступны в форме.
+/* v4.50.4: таксономия брендов - типы и подкатегории должны быть доступны в форме.
 
    Жалоба: «нет мобильных операторов». Разбор показал три наложившихся бага, все от одной
-   причины — CATTYPES и CATALCO остались на названиях категорий ДО таксономии v3.5.7:
+   причины - CATTYPES и CATALCO остались на названиях категорий ДО таксономии v3.5.7:
      1. CATTYPES объявлена через const, поэтому в window не попадала, а форма читает
-        window.CATTYPES — поле «Тип» было пустым для ВСЕХ 16 категорий;
+        window.CATTYPES - поле «Тип» было пустым для ВСЕХ 16 категорий;
      2. даже с доступом ключи не совпали бы: ни один из 13 не равен каноническому имени;
      3. CATALCO по той же причине не давал появиться галочке алкоголя даже у F&B.
    «Оператор связи» при этом лежал в CATTYPES['Услуги, киоски, спец. магазин'] и был
-   недостижим. В подкатегориях вместо него стояло «Telecom» — единственное английское
+   недостижим. В подкатегориях вместо него стояло «Telecom» - единственное английское
    слово среди 32 русских.
 
    Запуск: node v4504_brand_taxonomy.js [папка os] */
@@ -19,7 +19,7 @@ const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -75,7 +75,7 @@ function check(name, cond, detail) {
   const noSubs = per.filter(x => x.subs === 0);
   check('у каждой категории есть подкатегории', noSubs.length === 0,
     noSubs.length ? noSubs.map(x => x.cat).join(', ') : 'пустых нет');
-  /* «Прочее» типов не имеет по смыслу — остальные должны иметь */
+  /* «Прочее» типов не имеет по смыслу - остальные должны иметь */
   const noTypes = per.filter(x => x.types === 0 && x.cat !== 'Прочее');
   check('типы подгружаются, а не остаются пустыми',
     noTypes.length <= 3,
@@ -111,7 +111,7 @@ function check(name, cond, detail) {
     alias.alias.s === alias.canon.s && alias.alias.t === alias.canon.t,
     `канон ${alias.canon.s}/${alias.canon.t}, псевдоним ${alias.alias.s}/${alias.alias.t}`);
 
-  /* Галочка алкоголя — по каноническому имени и по старому (обратная совместимость) */
+  /* Галочка алкоголя - по каноническому имени и по старому (обратная совместимость) */
   const alco = await pg.evaluate(() => ({
     canonF: !!(window.catHasAlcohol && window.catHasAlcohol('F&B / рестораны и кафе')),
     canonS: !!(window.catHasAlcohol && window.catHasAlcohol('Супермаркет / продукты')),
@@ -121,7 +121,7 @@ function check(name, cond, detail) {
   check('алкоголь распознаётся по каноническому имени', alco.canonF && alco.canonS,
     `F&B=${alco.canonF}, супермаркет=${alco.canonS}`);
   check('старое имя категории тоже распознаётся', alco.old);
-  check('где алкоголя быть не должно — его нет', alco.none === false);
+  check('где алкоголя быть не должно - его нет', alco.none === false);
 
   await b.close(); srv.close();
   console.log(failed ? '\nПРОВАЛЕНО проверок: ' + failed : '\nВсе проверки пройдены');

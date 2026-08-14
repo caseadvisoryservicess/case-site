@@ -1,4 +1,4 @@
-/* CASE OS v4.43.1 — автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
+/* CASE OS v4.43.1 - автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');

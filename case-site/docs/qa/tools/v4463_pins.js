@@ -1,8 +1,8 @@
-/* CASE OS v4.48.0 — закрепление столбцов и НАТИВНАЯ прилипшая шапка (без клона):
+/* CASE OS v4.48.0 - закрепление столбцов и НАТИВНАЯ прилипшая шапка (без клона):
    1) шапка (оба ряда) прилипает вместе с телом закреплённых столбцов при гор. скролле;
    2) незакреплённые th без паразитных сдвигов;
    3) вертикальная прокрутка: настоящий thead остаётся видимым (sticky), клон-слоёв в DOM нет;
-   4) линии столбцов шапки совпадают с телом (один элемент — по построению);
+   4) линии столбцов шапки совпадают с телом (один элемент - по построению);
    5) резайзер работает в прилипшем состоянии;
    6) снятие закрепления.
    Запуск: node v4463_pins.js /path/to/os */
@@ -72,7 +72,7 @@ srv.listen(0, '127.0.0.1', async () => {
     const wr = wrap.getBoundingClientRect();
     const leaf = tb.tHead.rows[tb.tHead.rows.length - 1];
     const layers = document.querySelectorAll('.case-sticky-head-layer').length;
-    /* липнут ЯЧЕЙКИ шапки (tr не sticky — его rect уезжает, мерить надо th!) */
+    /* липнут ЯЧЕЙКИ шапки (tr не sticky - его rect уезжает, мерить надо th!) */
     const leafTh = [...leaf.cells].find(c => c.getBoundingClientRect().width > 0.5);
     const leafThR = leafTh.getBoundingClientRect();
     /* липнет ряд колонок ПОД полосой групп (полоса ~24px) */
@@ -116,7 +116,7 @@ srv.listen(0, '127.0.0.1', async () => {
     const px = Math.max(budDiv.getBoundingClientRect().x + 40, cornerRight + 25);
     const probe = document.elementFromPoint(px, br.top + br.height / 2);
     const painted = !!(probe && b.contains(probe));
-    /* ряд колонок — ПОД полосой */
+    /* ряд колонок - ПОД полосой */
     const leaf = tb.tHead.rows[tb.tHead.rows.length - 1];
     const lTh = [...leaf.cells].find(c => !c.classList.contains('case-grid-pin') && c.getBoundingClientRect().width > 0.5);
     const leafBelow = lTh ? Math.abs(lTh.getBoundingClientRect().top - (wr.top + br.height)) <= 2 : false;

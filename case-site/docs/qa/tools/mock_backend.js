@@ -1,7 +1,7 @@
 /* Мок-бэкенд CASE OS для E2E: эмулирует auth.php, state.php, unit_patch.php, units_batch.php,
    geo_state.php, user_prefs.php, workspace_access.php с управляемыми отказами.
-   Управление: POST /__ctl {sessionValid:false} — «сессия истекла» (все api → 401);
-               {failMode:'reject-units'} — unit_patch отвечает 403; {failMode:null} — норма.
+   Управление: POST /__ctl {sessionValid:false} - «сессия истекла» (все api → 401);
+               {failMode:'reject-units'} - unit_patch отвечает 403; {failMode:null} - норма.
    Экспортирует createMockServer(osDir) → {srv, base, ctl}. */
 'use strict';
 const fs = require('fs');
@@ -32,7 +32,7 @@ function createMockServer(OS_DIR, opts) {
 
     if (p.startsWith('/api/')) {
       const ep = p.slice(5);
-      // истёкшая сессия: auth.php отвечает «не авторизован», остальные — 401
+      // истёкшая сессия: auth.php отвечает «не авторизован», остальные - 401
       if (!state.sessionValid) {
         if (ep === 'auth.php' && req.method === 'GET') { json(rsp, 200, { auth: false }); return; }
         json(rsp, 401, { error: 'Не авторизован' }); return;
@@ -77,7 +77,7 @@ function createMockServer(OS_DIR, opts) {
         if (state.failMode === 'reject-units') { json(rsp, 403, { error: 'Нет прав на изменение реестра' }); return; }
         if (state.failMode === 'units-500') { json(rsp, 500, { error: 'Внутренняя ошибка' }); return; }
         state.unitPatches.push(b);
-        /* Настоящий unit_patch.php делает UPDATE app_state — мок обязан вести себя так же,
+        /* Настоящий unit_patch.php делает UPDATE app_state - мок обязан вести себя так же,
            иначе тест «данные не доехали до сервера» даёт ложное срабатывание. */
         const NUM = ['area','terr','rate','budget','budLand','factLand','capex','total','gap'];
         const ALLOWED = new Set(['code','block','floor','area','terr','cat','sub','rate','budget','budLand','factLand','capex','total','gap','status','broker','assignedTo','assigned_to','vars','shortlist','merged','offer','comment','comments','dates','hist','leaseModel','vat','utilities','terms','opening','reservationEnd','contractSign','contractEnd','rateReview','fitout','handover','specialTerms','brand','tenant','layoutVersionId','layoutVersionNo','layoutSource','manualOverride','updatedAt','updatedBy']);

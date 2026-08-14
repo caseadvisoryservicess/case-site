@@ -1,4 +1,4 @@
-/* v4.46.0 — смоук слияния: owner-report кнопки, ux-system активен, fail-closed BRJ/AGX, BSH read-only */
+/* v4.46.0 - смоук слияния: owner-report кнопки, ux-system активен, fail-closed BRJ/AGX, BSH read-only */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -49,7 +49,7 @@ await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';
    await page.evaluate(()=>{try{caseOwnerReportClose();}catch(e){}});
  }
 
- // BRJ: fail-closed — реестр недоступен даже через go()
+ // BRJ: fail-closed - реестр недоступен даже через go()
  await page.evaluate(()=>{logout();});
  await page.waitForTimeout(500);
  await page.evaluate(()=>{const s=document.getElementById('luser');s.value='BRJ';doLogin();});

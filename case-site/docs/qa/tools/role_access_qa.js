@@ -1,4 +1,4 @@
-/* CASE OS — ролевой QA (браузер, ?demo=1): вход под КАЖДОЙ ролью, проверка меню и запретных экранов.
+/* CASE OS - ролевой QA (браузер, ?demo=1): вход под КАЖДОЙ ролью, проверка меню и запретных экранов.
    Запуск: node role_access_qa.js /path/to/os */
 'use strict';
 const fs = require('fs');
@@ -65,7 +65,7 @@ srv.listen(0, '127.0.0.1', async () => {
         out.probe.externalNav = { guarded: !links.some(a => ['map', 'bench'].indexOf(a.dataset.v) >= 0) };
       }
       if (out.rights.brandsOnly) {
-        /* v4.41.2: BRJ управляется рабочим пространством (по умолчанию есть гео/рынок) — проверяем,
+        /* v4.41.2: BRJ управляется рабочим пространством (по умолчанию есть гео/рынок) - проверяем,
            что меню непусто, содержит «Базу брендов» и НЕ содержит админ-экранов */
         out.probe.brandsOnlyNav = { guarded: links.length > 0 && links.some(a => a.dataset.v === 'brands') && !links.some(a => ['users','admin_modules','admin_system'].indexOf(a.dataset.v) >= 0) };
       }
@@ -81,7 +81,7 @@ srv.listen(0, '127.0.0.1', async () => {
       rec('роль ' + role + ': «' + v + '» ' + (r.rights.admin ? 'доступен админу' : 'закрыт'), !!p.guarded, 'landed=' + p.landed);
     }
     if (r.probe.externalNav) rec('роль ' + role + ' (внешний агент): map/bench скрыты', r.probe.externalNav.guarded);
-    if (r.probe.brandsOnlyNav) rec('роль ' + role + ' (BRJ): меню по workspace — есть «brands», нет админ-экранов', r.probe.brandsOnlyNav.guarded);
+    if (r.probe.brandsOnlyNav) rec('роль ' + role + ' (BRJ): меню по workspace - есть «brands», нет админ-экранов', r.probe.brandsOnlyNav.guarded);
   }
 
   rec('console: нет ошибок страницы за весь прогон', pageErrors.length === 0, pageErrors.slice(0, 3).join(' | '));

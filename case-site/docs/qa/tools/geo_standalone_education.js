@@ -1,15 +1,15 @@
 /* Слой «Образование» в геоаналитике: работает и когда данных нет, и когда они появились.
-   Данные НЕ зашиты в страницу — их собирает коллектор на сервере. */
+   Данные НЕ зашиты в страницу - их собирает коллектор на сервере. */
 const { chromium } = require('playwright-core');
 const http = require('http'); const fs = require('fs'); const path = require('path');
 const FILE = '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
 /* Leaflet вшит в саму страницу, подменять его не нужно. Заглушки остаются на случай
    запуска против старой сборки, где библиотека грузилась из сети: если рядом лежат
-   leaflet.js/leaflet.css — подставим их, если нет — просто не мешаем. */
+   leaflet.js/leaflet.css - подставим их, если нет - просто не мешаем. */
 const LJS  = fs.existsSync(path.join(__dirname,'leaflet.js'))  ? fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8')  : null;
 const LCSS = fs.existsSync(path.join(__dirname,'leaflet.css')) ? fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8') : null;
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==','base64');
-/* Небольшой правдоподобный набор ТОЛЬКО для теста — в поставку не входит.
+/* Небольшой правдоподобный набор ТОЛЬКО для теста - в поставку не входит.
    По одному объекту каждого типа: так проверяется и фильтр, и разбивка. */
 const SAMPLE = {"src":"CASE OS collector · тест","total":8,
  "by_type":{"school":1,"college":1,"university":1,"kindergarten":1,"language":1,"courses":1,"driving":1,"music":1},
@@ -22,7 +22,7 @@ const SAMPLE = {"src":"CASE OS collector · тест","total":8,
   {"n":"O'quv markazi Najot Ta'lim","la":41.348,"ln":69.288,"t":"courses","s":"2GIS"},
   {"n":"Автошкола Лидер","la":41.3,"ln":69.25,"t":"driving","s":"Яндекс"},
   {"n":"Музыкальная школа №3","la":41.31,"ln":69.26,"t":"music","s":"OSM"}]};
-let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' — '+d)); if(!c)failed++;};
+let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' - '+d)); if(!c)failed++;};
 (async()=>{
   const html=fs.readFileSync(FILE,'utf8');
   let serveData = false;
@@ -51,7 +51,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   ck('фильтр по типу есть',await pg.evaluate(()=>{
     const s=document.getElementById('eduT');return !!s&&s.options.length>=8;}));
 
-  /* 1. Данных нет — слой честно объясняет, как их собрать, и не падает */
+  /* 1. Данных нет - слой честно объясняет, как их собрать, и не падает */
   const empty=await pg.evaluate(async()=>{
     const cb=document.getElementById('lEdu'); cb.checked=true;
     cb.dispatchEvent(new Event('change',{bubbles:true}));
@@ -63,7 +63,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
     /* Подсказка теперь ведёт к кнопке скачивания, а не к командам на сервере */
   ck('подсказка ведёт к кнопке скачивания', /Скачать из OpenStreetMap/i.test(empty.note), empty.note.slice(0, 80));
 
-  /* 2. Файл появился — точки рисуются */
+  /* 2. Файл появился - точки рисуются */
   serveData=true;
   const filled=await pg.evaluate(async()=>{
     EDU_TRIED=false; await loadEdu();
@@ -115,7 +115,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
     const panel = document.getElementById('probe');
     const t = panel ? panel.innerText : '';
     return {
-      hasBlock: /Образование \(конкуренция\)/i.test(t),   /* .grp — uppercase через CSS */
+      hasBlock: /Образование \(конкуренция\)/i.test(t),   /* .grp - uppercase через CSS */
       hasScore: /Потенциал учебного центра/.test(t),
       scoreEdu: (typeof LASTPROBE === 'object' && LASTPROBE) ? LASTPROBE.scoreEdu : undefined,
       scoreMed: (typeof LASTPROBE === 'object' && LASTPROBE) ? LASTPROBE.scoreMed : undefined,
@@ -127,7 +127,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
   ck('блок показывает счёт по радиусам', /\d/.test(rep.counts), rep.counts.slice(0, 90));
   ck('в отчёте есть разбивка по типам', rep.byType);
   ck('в отчёте есть потенциал учебного центра', rep.hasScore);
-  /* Без данных о населении спрос неизвестен, поэтому оценка пустая — и у клиники тоже.
+  /* Без данных о населении спрос неизвестен, поэтому оценка пустая - и у клиники тоже.
      Проверяем именно это: образование считается по тем же правилам, что медицина. */
   ck('оценка образования ведёт себя как оценка клиники',
     (rep.scoreEdu === null) === (rep.scoreMed === null),
@@ -182,7 +182,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
         geometry:{ type:'Point', coordinates:[69.2800, 41.3200] } },
       { type:'Feature', properties:{ name:'Najot Talim', office:'educational_institution' },
         geometry:{ type:'Point', coordinates:[69.2880, 41.3480] } },
-      /* вуз нарисован контуром здания — должен превратиться в точку по центру */
+      /* вуз нарисован контуром здания - должен превратиться в точку по центру */
       { type:'Feature', properties:{ name:'Inha University', amenity:'university' },
         geometry:{ type:'Polygon', coordinates:[[[69.2860,41.3440],[69.2880,41.3440],[69.2880,41.3460],[69.2860,41.3460],[69.2860,41.3440]]] } },
       { type:'Feature', properties:{ name:'Автошкола', amenity:'driving_school' },
@@ -215,7 +215,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
 
 
   /* ===== Кнопка «Скачать из OpenStreetMap»: запрос, разбор, отказ сервера ===== */
-  /* Настоящего интернета в проверке нет — подставляем ответ Overpass и следим за тем,
+  /* Настоящего интернета в проверке нет - подставляем ответ Overpass и следим за тем,
      что именно страница отправляет и как переживает отказ первого сервера. */
   const seen = [];
   await pg.route('**/api/interpreter', async route => {
@@ -238,7 +238,7 @@ let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?
              layers: (()=>{try{return gEdu.getLayers().length;}catch(e){return -1;}})() };
   });
   ck('страница сама скачала данные из OpenStreetMap', osm.n === 4, 'точек: ' + osm.n + ' (' + osm.src + ')');
-  ck('отказ первого сервера пережит — взят следующий', seen.length === 2,
+  ck('отказ первого сервера пережит - взят следующий', seen.length === 2,
     'обращений к серверам: ' + seen.length);
   ck('запрос уходит методом POST с телом', seen[0].method === 'POST' && /amenity/.test(seen[0].body),
     seen[0].method + ', ' + seen[0].body.slice(0, 60));

@@ -1,13 +1,13 @@
 /* Выгрузка геоаналитики по проекту: PDF · Excel · PowerPoint одной кнопкой.
 
    Запрос владельца: «поставили наш новый проект на карту, проверили данные проекта,
-   конкурентную среду, население — и одной кнопкой выгрузили PDF, Excel, PPTX
+   конкурентную среду, население - и одной кнопкой выгрузили PDF, Excel, PPTX
    с готовым презентационным видом».
 
-   Файлы собираются в браузере без сторонних библиотек (.xlsx и .pptx — это ZIP с XML).
+   Файлы собираются в браузере без сторонних библиотек (.xlsx и .pptx - это ZIP с XML).
    Поэтому мало проверить, что файл скачался: тест сохраняет его на диск, а рядом
    лежащий проверяльщик (check_office_files.py) открывает его настоящими openpyxl
-   и python-pptx — если структура невалидна, PowerPoint бы тоже не открыл.
+   и python-pptx - если структура невалидна, PowerPoint бы тоже не открыл.
 
    Запуск: node v4530_geo_export.js [папка os] */
 const { chromium } = require('playwright-core');
@@ -21,16 +21,16 @@ const OUT = path.join(__dirname, 'exporttest');
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
 let failed = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) failed++; };
 
-/* subtype — сырой тег OSM, как его отдаёт api/gis_proxy.php. Отчёт обязан
-   превратить его в человеческое название, а чайхану — узнать по имени. */
+/* subtype - сырой тег OSM, как его отдаёт api/gis_proxy.php. Отчёт обязан
+   превратить его в человеческое название, а чайхану - узнать по имени. */
 const ROWS = {
   restaurants: [{ name: 'Афсона', lat: 41.3110, lng: 69.2800, subtype: 'restaurant' },
                 { name: 'Чайхана Навруз', lat: 41.3115, lng: 69.2805, subtype: 'restaurant' }],
   cafes: [{ name: 'Coffee House', lat: 41.3112, lng: 69.2802, subtype: 'cafe' }],
   fast_food: [{ name: 'Evos', lat: 41.3125, lng: 69.2815, subtype: 'fast_food' }],
-  /* торговый центр — чтобы проверить, что у торговли свой набор колонок */
+  /* торговый центр - чтобы проверить, что у торговли свой набор колонок */
   shopping: [{ name: 'Depo Mall', lat: 41.3122, lng: 69.2790, subtype: 'mall', format: 'ТЦ, стрит-ритейл',
                openYear: 2021, landArea: 97000, gba: 42664, gla: 34398, floors: 2,
                tenantsCount: 200, fbCount: 12, parkingSpaces: 600, rentRange: '15-40' }],
@@ -62,7 +62,7 @@ const ROWS = {
         body: JSON.stringify({ ok: true, rows: (ROWS[k] || []).map(x => Object.assign({ provider: 'OSM' }, x)) }) });
     }
     if (u.startsWith(base) || u.startsWith('data:') || u.startsWith('blob:')) return r.continue();
-    /* Тайлы подложки отдаём сами — иначе снимок карты для презентации будет пустым.
+    /* Тайлы подложки отдаём сами - иначе снимок карты для презентации будет пустым.
        Заголовок CORS обязателен: без него холст «пачкается» и снимок не сделать. */
     if (/\.png($|\?)|tiles?\?|\/vt\/|MapServer/i.test(u))
       return r.fulfill({ status: 200, contentType: 'image/png', body: TILE,
@@ -79,7 +79,7 @@ const ROWS = {
     await pg.evaluate(() => typeof window.caseGeoExportXlsx === 'function' && typeof window.caseGeoExportPptx === 'function'));
   ck('кнопки на месте', await pg.evaluate(() => !!document.getElementById('btnProjExport') && !!document.getElementById('btnProjReport')));
 
-  /* Слои общепита и образования — чтобы в отчёт попали и они */
+  /* Слои общепита и образования - чтобы в отчёт попали и они */
   await pg.evaluate(async () => {
     for (const k of ['restaurants', 'cafes', 'fast_food', 'education', 'shopping']) {
       const cb = document.getElementById('geoLayer-' + k);
@@ -88,7 +88,7 @@ const ROWS = {
     await new Promise(r => setTimeout(r, 1200));
   });
 
-  /* Проект без координат — выгрузка должна объяснить, а не молчать */
+  /* Проект без координат - выгрузка должна объяснить, а не молчать */
   const noCoords = await pg.evaluate(async () => {
     const msgs = []; const old = window.alert; window.alert = m => msgs.push(m);
     const sel = document.getElementById('proj');
@@ -145,7 +145,7 @@ const ROWS = {
   ck('у офисов свои колонки (класс, GLA, типовой этаж, планировка)',
     filled.n >= 1 && ['Класс', 'GLA', 'Типовой этаж', 'Планировка', 'Отделка', 'Ставка']
       .every(h => filled.heads[0].includes(h)), (filled.heads[0] || []).join(' | '));
-  /* Владелец отказался от этих полей — их не должно быть ни на экране, ни в файлах */
+  /* Владелец отказался от этих полей - их не должно быть ни на экране, ни в файлах */
   ck('убранные показатели не вернулись',
     filled.n >= 1 && !['NLA', 'SC', 'Вакансия', 'Потолки', 'Лифтов', 'Заполн.']
       .some(h => filled.heads[0].includes(h)), (filled.heads[0] || []).join(' | '));
@@ -156,7 +156,7 @@ const ROWS = {
     filled.n >= 2 && ['Точки', 'F&B', 'GLA', 'Участок'].every(h => filled.heads[1].includes(h)),
     (filled.heads[1] || []).join(' | '));
   ck('заполненный БЦ показан с данными',
-    /A\+/.test(filled.first) && /18\s?500/.test(filled.first) && /\$28–38/.test(filled.first)
+    /A\+/.test(filled.first) && /18\s?500/.test(filled.first) && /\$28-38/.test(filled.first)
     && /open space/.test(filled.first),
     filled.first.slice(0, 140));
   ck('свод по зоне охвата показан',
@@ -185,7 +185,7 @@ const ROWS = {
   });
   ck('карточка объекта доступна для заполнения', schema === true);
 
-  /* Типы образования и общепита — человеческими словами, чайхана отдельно */
+  /* Типы образования и общепита - человеческими словами, чайхана отдельно */
   const subs = await pg.evaluate(() => ({
     edu: window.CASE_GEO_POI.subtypes(['education'], 41.3115, 69.2805, 1),
     fnb: window.CASE_GEO_POI.subtypes(['restaurants', 'cafes', 'fast_food'], 41.3115, 69.2805, 1)
@@ -247,7 +247,7 @@ const ROWS = {
   await pg.evaluate(async () => window.caseGeoExportPptx(await window.caseGeoMapPngAsync()));
   await pg.waitForTimeout(1500);
 
-  /* Тайлы отдаём с CORS — снимок должен получиться. Без CORS функция обязана вернуть
+  /* Тайлы отдаём с CORS - снимок должен получиться. Без CORS функция обязана вернуть
      пустоту, а не пустую картинку: карта без подложки в презентации выглядит готовой,
      но по ней ничего не понять. */
   const snap = await pg.evaluate(async () => { const b = await window.caseGeoMapPngAsync(); return b ? b.length : 0; });
@@ -266,7 +266,7 @@ const ROWS = {
     errs.filter(e => !/Failed to fetch|net::|NetworkError|Load failed/i.test(e)).length === 0, errs[0] || 'ошибок нет');
 
   await b.close(); srv.close();
-  console.log('\nФайлы сохранены в ' + OUT + ' — проверьте их: python3 docs/qa/tools/check_office_files.py ' + OUT);
+  console.log('\nФайлы сохранены в ' + OUT + ' - проверьте их: python3 docs/qa/tools/check_office_files.py ' + OUT);
   console.log(failed ? '\nПРОВАЛЕНО проверок: ' + failed : '\nВсе проверки в браузере пройдены');
   process.exit(failed ? 1 : 0);
 })();

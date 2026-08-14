@@ -15,7 +15,7 @@ const FILE = process.argv[2] || '/home/user/case-site/case-site/docs/standalone/
 const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
 let failed = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) failed++; };
 
 /* Точки кладём в центр Ташкента, чтобы все попали в стартовый экран карты:
    легенда считает только видимое, за краем экрана объект в неё не попадёт. */
@@ -39,7 +39,7 @@ const EDU = { src: 'тест', points: [
   const pg = await b.newPage({ viewport: { width: 1400, height: 900 } });
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
-  /* Интернета нет — рвём всё внешнее, страница обязана работать автономно */
+  /* Интернета нет - рвём всё внешнее, страница обязана работать автономно */
   await pg.route('**/*', r => {
     const u = r.request().url();
     if (u.startsWith('file://') || u.startsWith('data:') || u.startsWith('blob:')) return r.continue();
@@ -152,7 +152,7 @@ const EDU = { src: 'тест', points: [
     'фильтр «' + reset.sel + '», видно ' + reset.vis);
   ck('вернулись все типы', /Автошкола/.test(reset.txt) && /Университет/.test(reset.txt));
 
-  /* Раскраска «один цвет» — легенда не должна показывать разноцветные кружки */
+  /* Раскраска «один цвет» - легенда не должна показывать разноцветные кружки */
   const oneCol = await pg.evaluate(async () => {
     document.getElementById('eduColBy').value = 'fix';
     document.getElementById('eduC').value = '#123456';
@@ -167,7 +167,7 @@ const EDU = { src: 'тест', points: [
     oneCol.uniq.length === 1 && /18, 52, 86/.test(oneCol.uniq[0]),
     oneCol.uniq.join(' | '));
 
-  /* Медицина и БЦ на месте — ничего не сломали */
+  /* Медицина и БЦ на месте - ничего не сломали */
   const others = await pg.evaluate(async () => {
     document.getElementById('eduColBy').value = 't';
     ['lBC', 'lMed'].forEach(id => { const c = document.getElementById(id); c.checked = true; c.dispatchEvent(new Event('change', { bubbles: true })); });
@@ -178,7 +178,7 @@ const EDU = { src: 'тест', points: [
     others.slice(0, 180));
   ck('образование соседствует с ними', /Образование/.test(others), others.slice(0, 220));
 
-  /* Выключили слой — блок ушёл */
+  /* Выключили слой - блок ушёл */
   const off = await pg.evaluate(async () => {
     const cb = document.getElementById('lEdu');
     cb.checked = false; cb.dispatchEvent(new Event('change', { bubbles: true }));
@@ -191,7 +191,7 @@ const EDU = { src: 'тест', points: [
   /* ===== Прокрутка и размер легенды =====
      Жалоба: «когда список не помещается, появляется ползунок, но он не двигается».
      Причина была в том, что updateLegend перезаписывал className и стирал служебный
-     класс Leaflet `leaflet-control` — без него у элемента pointer-events:none, то есть
+     класс Leaflet `leaflet-control` - без него у элемента pointer-events:none, то есть
      мышь его вообще не видела: ползунок не схватить, колесо уходило в зум карты. */
   await pg.evaluate(async () => {
     const c = document.getElementById('lEdu'); c.checked = true; c.dispatchEvent(new Event('change', { bubbles: true }));
@@ -208,7 +208,7 @@ const EDU = { src: 'тест', points: [
   });
   ck('легенда принимает мышь (не «сквозная»)', geom.pe !== 'none', 'pointer-events: ' + geom.pe);
   ck('служебный класс Leaflet не стёрт', /leaflet-control/.test(geom.cls), geom.cls);
-  ck('содержимое не помещается — есть что прокручивать', geom.over);
+  ck('содержимое не помещается - есть что прокручивать', geom.over);
 
   /* колесо над легендой прокручивает её, а не зумит карту */
   const zBefore = await pg.evaluate(() => map.getZoom());
@@ -219,7 +219,7 @@ const EDU = { src: 'тест', points: [
   ck('колесо прокручивает легенду', afterWheel.top > 0, 'прокручено на ' + afterWheel.top + ' px');
   ck('колесо над легендой не зумит карту', afterWheel.z === zBefore, `было z${zBefore}, стало z${afterWheel.z}`);
 
-  /* заголовок с ручкой не уезжает вместе со списком — иначе до ручки не дотянуться */
+  /* заголовок с ручкой не уезжает вместе со списком - иначе до ручки не дотянуться */
   const headVisible = await pg.evaluate(() => {
     const el = document.getElementById('mlgd'), h = el.querySelector('h4'), g = el.querySelector('.rsz');
     const rh = h.getBoundingClientRect(), re = el.getBoundingClientRect(), rg = g.getBoundingClientRect();
@@ -235,7 +235,7 @@ const EDU = { src: 'тест', points: [
   const kept = await pg.evaluate(() => document.querySelector('#mlgd .body').scrollTop);
   ck('прокрутка не сбрасывается при сдвиге карты', kept === 50, 'осталось ' + kept);
 
-  /* размер тянется за ручку: вверх — выше, вправо — шире */
+  /* размер тянется за ручку: вверх - выше, вправо - шире */
   const grip = await pg.evaluate(() => {
     const g = document.querySelector('#mlgd h4 .rsz');
     if (!g) return null;

@@ -1,4 +1,4 @@
-/* CASE OS v4.43.0 — серверное per-user хранение настроек таблиц (api/user_prefs.php мокается) */
+/* CASE OS v4.43.0 - серверное per-user хранение настроек таблиц (api/user_prefs.php мокается) */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');

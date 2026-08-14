@@ -16,12 +16,12 @@ const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome
    запуска против старой сборки, где библиотека грузилась из сети. */
 const LJS  = fs.existsSync(path.join(__dirname,'leaflet.js'))  ? fs.readFileSync(path.join(__dirname,'leaflet.js'),'utf8')  : null;
 const LCSS = fs.existsSync(path.join(__dirname,'leaflet.css')) ? fs.readFileSync(path.join(__dirname,'leaflet.css'),'utf8') : null;
-/* 1×1 прозрачный PNG — вместо настоящих тайлов */
+/* 1×1 прозрачный PNG - вместо настоящих тайлов */
 const TILE = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'base64');
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 

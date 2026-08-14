@@ -1,4 +1,4 @@
-/* CASE OS v4.43.3 — правка в строке LCR сразу пересчитывает итоги (без перезагрузки) */
+/* CASE OS v4.43.3 - правка в строке LCR сразу пересчитывает итоги (без перезагрузки) */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');

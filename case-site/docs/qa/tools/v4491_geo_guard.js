@@ -8,7 +8,7 @@ const results=[];const rec=(n,ok,i)=>{results.push({test:n,status:ok?'PASS':'FAI
   const {srv,base,state}=await createMockServer(OS,{initialState:{OBJECTS:[{id:'ca',name:'CA',floors:2}],U:[]}});
   state.user={id:'u-brj',name:'Asad',role:'BRJ',role_key:'BRJ',admin:false,edit:true,leasing:true,finance:false,csrf:'t'};
   state.rights={leasing:1,finance:0,edit:1,approve:0,plans:0,admin:0,own_only:0,project_scope:0};
-  // на сервере 148 БЦ — как в реальной базе пользователя
+  // на сервере 148 БЦ - как в реальной базе пользователя
   state.geo.data={datasets:{bc:Array.from({length:148},(_,i)=>({name:'БЦ '+i,lat:41+i/1000,lng:69+i/1000}))},projects:[]};
   const b=await chromium.launch({executablePath:'/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args:['--no-sandbox','--no-proxy-server']});
   const p=await b.newPage({viewport:{width:1600,height:900}});

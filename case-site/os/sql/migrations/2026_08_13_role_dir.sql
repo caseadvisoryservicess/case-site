@@ -1,4 +1,4 @@
--- Роль DIR — «Директор (без администрирования)»: все рабочие права, кроме управления
+-- Роль DIR - «Директор (без администрирования)»: все рабочие права, кроме управления
 -- доступами. Отличие от ADM ровно в одном флаге: admin=0. Этого достаточно, потому что
 -- разделы «Доступ», «Модули» и «Система» в клиенте закрыты и в меню, и на отрисовке.
 --
@@ -13,7 +13,7 @@ ON DUPLICATE KEY UPDATE
   approve=VALUES(approve), plans=VALUES(plans), own_only=VALUES(own_only),
   project_scope=VALUES(project_scope), admin=VALUES(admin);
 
--- Humoyun Mirkamolov -> DIR. Ключ поиска — имя, потому что почтовый адрес в репозитории
+-- Humoyun Mirkamolov -> DIR. Ключ поиска - имя, потому что почтовый адрес в репозитории
 -- не хранится. Если в базе имя записано иначе, строка не обновится молча: проверьте
 -- результат запросом в конце файла.
 UPDATE app_users SET role_key='DIR'
@@ -22,6 +22,6 @@ WHERE name='Humoyun Mirkamolov' AND role_key<>'DIR';
 -- Проверка после применения (должна вернуть одну строку с role_key='DIR'):
 -- SELECT id, name, email, role_key, active FROM app_users WHERE name LIKE '%Mirkamolov%';
 --
--- Если строк ноль — пользователь заведён под другим написанием имени. Найдите его:
+-- Если строк ноль - пользователь заведён под другим написанием имени. Найдите его:
 -- SELECT id, name, email, role_key FROM app_users ORDER BY name;
 -- и выполните точечно: UPDATE app_users SET role_key='DIR' WHERE id='<его id>';

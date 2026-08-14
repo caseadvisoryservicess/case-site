@@ -1,6 +1,6 @@
-/* CASE OS v4.46.2 — визуальная стабильность таблиц:
-   1) контролы (селекты/инпуты) не выходят за границу столбца — ЛСР, включая узкие колонки;
-   2) после точечной перерисовки (live-sync) таблица улучшена В ТОМ ЖЕ кадре — нет мигания «сырым» видом;
+/* CASE OS v4.46.2 - визуальная стабильность таблиц:
+   1) контролы (селекты/инпуты) не выходят за границу столбца - ЛСР, включая узкие колонки;
+   2) после точечной перерисовки (live-sync) таблица улучшена В ТОМ ЖЕ кадре - нет мигания «сырым» видом;
    3) тост «Данные обновлены» молчит для собственных правок (updated_by = я);
    4) у Администратора аренды (тыл, HO) есть «Столбцы» и «Вид» на таблицах ЛСР/брендов/корзины.
    Запуск: node v4462_visual.js /path/to/os */
@@ -43,9 +43,9 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
     return { before, afterNarrow: count(), key };
   });
   rec('ЛСР: контролы не выходят за границу столбца', ov.before === 0, JSON.stringify(ov));
-  rec('ЛСР: узкий столбец (90px) — селект зажат внутри', ov.afterNarrow === 0, JSON.stringify(ov));
+  rec('ЛСР: узкий столбец (90px) - селект зажат внутри', ov.afterNarrow === 0, JSON.stringify(ov));
 
-  /* 2. синхронное улучшение после live-sync — нет кадра «сырой» таблицы */
+  /* 2. синхронное улучшение после live-sync - нет кадра «сырой» таблицы */
   const sync = await page.evaluate(() => {
     CASE_LIVE_SYNC.withPreservedUi(() => { if (typeof renderRegistry === 'function') renderRegistry(); });
     // сразу же, ДО каких-либо таймеров/дебаунсов:
@@ -54,7 +54,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
   });
   rec('live-sync: таблица улучшена в том же кадре (case-grid сразу)', sync.api && sync.enhanced && sync.toolbar, JSON.stringify(sync));
 
-  /* 3. HO (Администратор аренды — тыл): «Столбцы» и «Вид» доступны на основных таблицах */
+  /* 3. HO (Администратор аренды - тыл): «Столбцы» и «Вид» доступны на основных таблицах */
   await page.evaluate(() => { logout(); });
   await page.waitForTimeout(400);
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = 'HO'; doLogin(); });

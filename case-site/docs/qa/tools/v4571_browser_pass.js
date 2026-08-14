@@ -29,7 +29,7 @@ const VIEWPORTS = [
 const VIEWS = ['dash', 'registry', 'brands', 'plans', 'dates', 'docs', 'users', 'admin_system'];
 
 let failed = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) failed++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) failed++; };
 
 /* Собирает проблемы вёрстки и доступности на текущем экране */
 const AUDIT = () => {
@@ -51,7 +51,7 @@ const AUDIT = () => {
     }
     return false;
   };
-  /* выехавшая за экран панель (transform / left:100%) — это закрытая шторка, а не дефект */
+  /* выехавшая за экран панель (transform / left:100%) - это закрытая шторка, а не дефект */
   const offCanvas = el => {
     for (let p = el; p && p !== document.body; p = p.parentElement) {
       const s = getComputedStyle(p);
@@ -60,7 +60,7 @@ const AUDIT = () => {
     return false;
   };
   /* имя, собранное только из значков: скринридер прочитает «крестик» вместо «закрыть».
-     Диапазоны заданы кодами — писать их символами опасно, любая пара «символ-дефис-символ»
+     Диапазоны заданы кодами - писать их символами опасно, любая пара «символ-дефис-символ»
      внутри класса легко превращается в диапазон, накрывающий кириллицу целиком. */
   const GLYPH_ONLY = /^[\s×‐-⯿️‍]+$/u;
   document.querySelectorAll('body *').forEach(el => {
@@ -84,7 +84,7 @@ const AUDIT = () => {
       out.fakeButtons.push((el.className || el.id || tag).slice(0, 40) + ': '
         + (el.textContent || '').trim().slice(0, 24));
     }
-    /* строки реестра не должны становиться кнопками — иначе таблица перестаёт быть таблицей */
+    /* строки реестра не должны становиться кнопками - иначе таблица перестаёт быть таблицей */
     if ((tag === 'TR' || tag === 'TD' || tag === 'TH') && el.getAttribute('role') === 'button') {
       out.tableRoles = out.tableRoles || [];
       out.tableRoles.push(tag);
@@ -151,7 +151,7 @@ const AUDIT = () => {
     await pg.close();
   }
 
-  /* Сводка по доступности — считаем на самом широком экране, чтобы не дублировать */
+  /* Сводка по доступности - считаем на самом широком экране, чтобы не дублировать */
   const pg = await b.newPage({ viewport: { width: 1366, height: 768 } });
   await pg.route('**/*', r => {
     const u = r.request().url();

@@ -1,12 +1,12 @@
 /* Клик по остановке показывает номера маршрутов; отказ прокси называет причину.
-   Каждый случай — своя загрузка страницы: слой кэшируется в замыкании модуля и
+   Каждый случай - своя загрузка страницы: слой кэшируется в замыкании модуля и
    очистить его снаружи нельзя, а подменять внутренности модуля из теста нечестно. */
 const { chromium } = require('playwright-core');
 const path = require('path');
 const { createMockServer } = require('./mock_backend.js');
 
 let bad = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) bad++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) bad++; };
 
 const REPLY = {
   fail: { status: 400, type: 'application/json', body: JSON.stringify({ error: 'Unknown category' }) },
@@ -44,7 +44,7 @@ const REPLY = {
     return { pg, errs, alerts };
   }
 
-  /* 1. отказ в форме fail(): {"error": ...} — раньше причина выбрасывалась */
+  /* 1. отказ в форме fail(): {"error": ...} - раньше причина выбрасывалась */
   let r = await run('fail');
   ck('отказ прокси объяснён, а не спрятан',
      r.alerts.some(a => /gis_proxy|перезалейте|целиком/i.test(a)), r.alerts[0] || 'сообщения нет');

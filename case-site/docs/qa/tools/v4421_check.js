@@ -1,4 +1,4 @@
-/* CASE OS v4.42.1 — миграция 4421 (все роли) + предупреждение о rejected_keys */
+/* CASE OS v4.42.1 - миграция 4421 (все роли) + предупреждение о rejected_keys */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -39,7 +39,7 @@ await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';
    _warnRejectedKeys({rejected_keys:['BRANDS','GEO_DATA','U:L2_5']});
    await new Promise(r=>setTimeout(r,150));
    const t1=[...document.querySelectorAll('#toastBox div')].map(x=>x.textContent);
-   _warnRejectedKeys({rejected_keys:['BRANDS']}); /* повтор — не должен спамить */
+   _warnRejectedKeys({rejected_keys:['BRANDS']}); /* повтор - не должен спамить */
    await new Promise(r=>setTimeout(r,150));
    const t2=[...document.querySelectorAll('#toastBox div')].map(x=>x.textContent);
    return {t1,t2};

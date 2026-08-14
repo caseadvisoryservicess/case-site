@@ -5,7 +5,7 @@
    ломается ли сам путь сохранения ЛСР, или данные просто не вводили.
 
    ВАЖНО про мок: unit_patch.php на сервере делает UPDATE app_state. Мок обязан делать
-   то же самое — иначе тест показывает «до сервера не доехало» на ровном месте.
+   то же самое - иначе тест показывает «до сервера не доехало» на ровном месте.
 
    Запуск: node lcr_persist.js   (из папки с node_modules, где стоит playwright-core) */
 const { chromium } = require('playwright-core');
@@ -22,7 +22,7 @@ for (let i = 1; i <= 6; i++) units.push({
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -43,7 +43,7 @@ function check(name, cond, detail) {
   });
   await pg.waitForTimeout(2500);
 
-  /* Таблица ЛСР — это отдельный вид registry, а не reg: go('reg') рисует «План/бюджет»
+  /* Таблица ЛСР - это отдельный вид registry, а не reg: go('reg') рисует «План/бюджет»
      с планировками, и строк с data-uid там нет вовсе. */
   await pg.evaluate(() => { if (typeof go === 'function') go('registry'); });
   await pg.waitForTimeout(1500);
@@ -75,7 +75,7 @@ function check(name, cond, detail) {
   const patch = state.unitPatches[0];
   check('в запросе именно правка бюджета',
     !!(patch && patch.changes && Number(patch.changes.budget) === 45),
-    patch ? JSON.stringify(patch.changes) : '—');
+    patch ? JSON.stringify(patch.changes) : '-');
 
   const onSrv = (state.appState.data.U.find(x => x.id === 'L1_1') || {}).budget;
   check('сервер записал значение', Number(onSrv) === 45, 'budget=' + onSrv);

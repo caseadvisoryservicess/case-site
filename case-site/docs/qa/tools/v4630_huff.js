@@ -1,4 +1,4 @@
-/* Модель Хаффа — сверка по свойствам, которые обязаны выполняться тождественно.
+/* Модель Хаффа - сверка по свойствам, которые обязаны выполняться тождественно.
 
    У Хаффа математика строгая, и это редкий случай, когда расчёт можно проверить не
    «похоже на правду», а точно: доли обязаны давать единицу, при равных условиях делиться
@@ -15,7 +15,7 @@ require(path.resolve(m));
 const H = global.window.CASE_HUFF;
 
 let bad = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) bad++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) bad++; };
 const close = (x, y, eps) => Math.abs(x - y) < (eps === undefined ? 1e-9 : eps);
 
 /* --- свойства долей --- */
@@ -79,7 +79,7 @@ const target = { lat: 41.30, lng: 69.25, attract: 10000, name: 'наш' };
 const alone = H.catchment(target, [], pop, { a: 1, b: 2, maxKm: 5 });
 ck('без конкурентов охват равен всему населению зоны', alone.captured === alone.popInRadius,
    `${alone.captured} из ${alone.popInRadius}`);
-ck('доля рынка без конкурентов — сто процентов', close(alone.share, 100, 1e-6), alone.share.toFixed(3) + ' %');
+ck('доля рынка без конкурентов - сто процентов', close(alone.share, 100, 1e-6), alone.share.toFixed(3) + ' %');
 
 const twin = H.catchment(target, [{ lat: 41.30, lng: 69.25, attract: 10000, name: 'близнец' }], pop, { a: 1, b: 2, maxKm: 5 });
 ck('одинаковый конкурент в той же точке делит рынок пополам', close(twin.share, 50, 0.001),
@@ -126,7 +126,7 @@ ck('в расчёт идут только объекты с координата
 
 /* --- картинка --- */
 const svg = H.lostSvg(r);
-ck('диаграмма «у кого забираем» — статичный SVG без внешних ссылок',
+ck('диаграмма «у кого забираем» - статичный SVG без внешних ссылок',
    /^<svg /.test(svg) && !/<script|https?:\/\//.test(svg), svg.length + ' символов');
 ck('свои объекты помечены в диаграмме', /свой/.test(svg));
 ck('пустой список конкурентов объяснён словами, а не пустой картинкой',

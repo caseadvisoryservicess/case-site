@@ -1,9 +1,9 @@
 /* Uchtepa Park в живом интерфейсе: проект должен появиться на карте проектов Advisory
-   и в её таблице, а маркер — встать в Учтепа, а не в центре города.
+   и в её таблице, а маркер - встать в Учтепа, а не в центре города.
 
    Файловые проверки (v4650_uchtepa_park.js) говорят только о том, что запись лежит в
    правильных файлах. Этот прогон отвечает на другой вопрос: доходит ли она до экрана.
-   Между файлом и экраном стоят ensureData(), migrate() и фильтр по линии бизнеса —
+   Между файлом и экраном стоят ensureData(), migrate() и фильтр по линии бизнеса -
    любой из трёх может отбросить запись молча.
 
    Запуск: NODE_PATH=<...>/node_modules node v4650_uchtepa_browser.js [папка os] */
@@ -17,7 +17,7 @@ const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; cha
   '.png': 'image/png', '.jpg': 'image/jpeg', '.xlsx': 'application/octet-stream' };
 
 let bad = 0;
-const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' — ' + d)); if (!c) bad++; };
+const ck = (n, c, d) => { console.log((c ? 'OK  ' : '!!  ') + n + (d === undefined ? '' : ' - ' + d)); if (!c) bad++; };
 
 const srv = http.createServer((req, rsp) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
@@ -44,7 +44,7 @@ srv.listen(0, '127.0.0.1', async () => {
   /* Воспроизводим состояние РАБОТАЮЩЕЙ установки, а не чистого профиля.
 
      В core.js:1158 живёт разовая очистка портфеля от v4.11.0: при первом входе, если флаг
-     CASE_WORKFLOW_SETTINGS.portfolioClearedV411 не выставлен, весь портфель вычищается —
+     CASE_WORKFLOW_SETTINGS.portfolioClearedV411 не выставлен, весь портфель вычищается -
      тогда по просьбе владельца проекты стали заполнять вручную через интерфейс. Флаг
      выставляется один раз на установку и больше очистка не повторяется.
 
@@ -92,12 +92,12 @@ srv.listen(0, '127.0.0.1', async () => {
     ck('состояние сделки заполнено миграцией по умолчанию', !!r.rec.deal, r.rec.deal);
   }
 
-  /* поиск по названию — так проект будут искать в реальной работе */
+  /* поиск по названию - так проект будут искать в реальной работе */
   const found = await page.evaluate(async () => {
     const inp = document.getElementById('case493SearchInput');
     if (!inp) return 'поле поиска не найдено';
     /* поле вызывает case493Search напрямую из oninput, а не через слушателя события,
-       поэтому синтетический Event ничего бы не запустил — зовём обработчик как браузер */
+       поэтому синтетический Event ничего бы не запустил - зовём обработчик как браузер */
     inp.value = 'Uchtepa'; case493Search(inp.value, inp.value.length);
     await new Promise(res => setTimeout(res, 1200));
     return document.getElementById('main').innerText.indexOf('Uchtepa Park') >= 0 ? 'найден' : 'не найден';
