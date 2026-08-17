@@ -2,7 +2,7 @@
    Loaded last so it can stabilize all legacy and modular screens without rewriting business logic. */
 (function(){
 'use strict';
-var VERSION='4.59.0';
+var VERSION='4.60.0';
 var SAFE_EXTERNAL=['dash','work_tasks','work_kanban','brands','v32_investors'];
 var SAFE_BRJ=['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'];
 var READ_ONLY_REGISTRY=['AGX','BSH','BRJ'];
@@ -76,6 +76,17 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 .btn,.thbtn,.langbtn,.tabs button,.geo-tabbar button{min-height:34px}
 .card,.kpi,.miniobj,.opbox{box-shadow:var(--case-shadow);border-radius:var(--case-radius)}
 .ph{gap:10px;align-items:center}.ph h1{line-height:1.18}.ph>div{margin-left:auto}
+/* v4.70.2: margin-left:auto нужен блоку кнопок, чтобы он ушёл вправо. Но в разделах, где
+   заголовок сам лежит в <div> (финансовая модель, инженерия, база брендов), это правило
+   отталкивало вправо и его тоже, и заголовок вставал в середину строки. Первый ребёнок
+   .ph - это всегда заголовок, ему уезжать некуда. */
+.ph>div:first-child{margin-left:0}
+/* v4.70.2: один кегль названия раздела. Реестр рисовал 20px, воронка Advisory - 27px,
+   финансовая модель и инженерия - 24px, потому что брали <h2>, а правило системы знало
+   только <h1>. Три размера в одном приложении читаются как три разных приложения, и
+   владелец увидел именно это. Селектор с #main нужен, чтобы перебить собственные
+   правила модулей вида .case49-head h1. */
+#main .ph h1,#main .ph h2{font-size:20px;font-weight:700;line-height:1.18;letter-spacing:-.01em}
 .case-access-denied{max-width:680px;margin:32px auto;padding:32px;text-align:center}.case-access-denied h2{margin:8px 0}.case-access-denied p{color:var(--muted);font-size:14px;line-height:1.55}.case-access-icon{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:auto;background:#fff2f2;color:var(--red-d);font-size:24px;font-weight:900;border:1px solid #efbcbc}.case-access-actions{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:18px}
 .case-dashboard-mode{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:9px;padding:2px;background:var(--soft)}.case-dashboard-mode button{border:0;background:transparent;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:700;cursor:pointer;color:var(--muted)}.case-dashboard-mode button.on{background:var(--panel);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 #main.case-dash-summary [data-case-secondary="1"]{display:none!important}
@@ -112,6 +123,40 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 #main .kpi .val{font-size:26px;font-weight:800;line-height:1.1;font-variant-numeric:tabular-nums;margin-top:2px}
 #main .kpi .val small{font-size:12px;font-weight:700;color:var(--muted);margin-left:2px}
 #main .kpi .sub2{font-size:10.5px;color:var(--muted);margin-top:3px}
+
+/* --- плитки показателей во всех модулях выглядят одинаково ------------------
+   Инвентаризация v4.70.2 показала: из 89 разделов 17 выглядели «старыми», и у 14 причина
+   была одна - собственные плитки чисел вместо системных. Подсистема .kpi самой дизайн-системы
+   при этом не использовалась НИ ОДНИМ модулем и была мёртвой.
+
+   Модули рисуют три разные формы одного и того же:
+     ядро и система   <div class="kpi"><div class="lab">подпись</div><div class="val">число</div>
+     аренда           <div class="v32-kpi"><small>подпись</small><b>число</b>
+     консалтинг       <div><b>число</b><span>подпись</span>   (обратный порядок)
+
+   Правим стилями, а не разметкой: четырнадцать точек отрисовки трогать рискованно, а
+   результат один и тот же. Порядок сводим к системному - подпись тише и выше, число
+   громче и ниже; консалтинг переворачивается флексом без единой правки в HTML. */
+#main .v32-kpi,#main .v326-kpi,#main .case49-kpis>div,#main .case492-kpis>div,#main .case493-kpis>div{
+  display:flex;flex-direction:column;gap:2px;border:1px solid var(--border);border-radius:12px;
+  padding:10px 12px;background:var(--soft);min-width:0}
+#main .case49-kpis>div,#main .case492-kpis>div,#main .case493-kpis>div{flex-direction:column-reverse}
+#main .v32-kpi small,#main .v326-kpi small,
+#main .case49-kpis>div>span,#main .case492-kpis>div>span,#main .case493-kpis>div>span{
+  display:block;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--muted);line-height:1.25}
+#main .v32-kpi b,#main .v326-kpi b,
+#main .case49-kpis>div>b,#main .case492-kpis>div>b,#main .case493-kpis>div>b{
+  display:block;font-size:26px;font-weight:800;line-height:1.1;color:var(--ink);
+  font-variant-numeric:tabular-nums;margin-top:2px}
+@media (max-width:820px){
+  #main .v32-kpi b,#main .v326-kpi b,
+  #main .case49-kpis>div>b,#main .case492-kpis>div>b,#main .case493-kpis>div>b{font-size:22px}
+}
+/* Светофор был рассогласован: два разных жёлтых у соседних модулей. Один набор на всех. */
+#main .v32-kpi.warn b,#main .v326-kpi.warn b{color:var(--amber)}
+#main .v32-kpi.bad b,#main .v326-kpi.bad b{color:var(--red-d)}
+#main .v32-kpi.good b,#main .v326-kpi.good b{color:var(--green)}
 /* «-» вместо числа — это отсутствие данных, а не маленькое значение: не кричим им */
 #main .kpi .val:not(:has(small)){color:var(--ink)}
 
