@@ -761,3 +761,125 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 .w-52{max-width:52ch}
 .order-2{order:2}
 .basis--gold{border-left-color:var(--gold)}
+
+/* ==========================================================================
+   17. ПОГРУЖЕНИЕ: ОДИН УЧАСТОК, ТРИ ПРОГРАММЫ
+   Скроллителлинг вместо статичных карточек. Пользователь спускается,
+   разрез перестраивается, состав программы перераспределяется.
+   ========================================================================== */
+/* Штора: тёмное поле раскрывается сверху вниз, секция читается как склейка.
+   По умолчанию поле на месте, движение включает только живой motion.js. */
+.section--wipe{position:relative;background:transparent;isolation:isolate}
+.section--wipe .ground{
+  position:absolute;inset:0;z-index:-2;background:var(--black);
+  transform-origin:top center;
+}
+.dive{position:relative;overflow:clip;color:var(--paper)}
+/* Свет: пятно уходит вниз вместе с погружением. */
+.dive__light{
+  position:absolute;inset:-10% -10% 0;z-index:-1;pointer-events:none;
+  background:radial-gradient(38% 32% at 50% var(--lit,18%),rgba(190,142,58,.16),transparent 70%);
+}
+.dive .sec-head__ghost{color:var(--paper);opacity:.16}
+.dive .lead{color:rgba(250,249,247,.78)}
+
+.dive__grid{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--col-gap);align-items:start}
+.dive__stage{grid-column:1/span 6;position:sticky;top:calc(var(--nav-h) + 2.5rem)}
+.dive__steps{grid-column:8/span 5;position:relative}
+@media (max-width:960px){
+  .dive__stage{grid-column:1/-1;position:sticky;top:var(--nav-h);
+    background:var(--black);padding-block:1rem;z-index:2}
+  .dive__steps{grid-column:1/-1;margin-top:1.5rem}
+}
+
+.cut{width:100%;aspect-ratio:4/3;display:block}
+.cut__ground{stroke:rgba(250,249,247,.35)}
+.cut__plot{stroke:rgba(250,249,247,.22);stroke-dasharray:7 7;fill:none}
+.cut__mass{fill:rgba(190,142,58,.14);stroke:var(--red);stroke-width:2.5;stroke-linejoin:round}
+.cut__ghost{fill:none;stroke:rgba(250,249,247,.3);stroke-width:1.5;opacity:0}
+.cut__seg{transition:none}
+
+.dive__legend{display:flex;flex-wrap:wrap;gap:1rem 1.6rem;margin-top:1rem;font-size:var(--t-micro);color:rgba(250,249,247,.7)}
+.dive__legend i{display:inline-block;width:1.1rem;height:.55rem;margin-right:.5rem;vertical-align:middle}
+.dive__legend .l-a i{background:var(--red)}
+.dive__legend .l-b i{background:var(--gold)}
+.dive__legend .l-c i{background:rgba(250,249,247,.4)}
+
+/* Шкала глубины: сама по себе носитель смысла, а не украшение. */
+.dive__gauge{
+  position:absolute;left:0;top:0;bottom:0;width:2px;
+  background:rgba(250,249,247,.14);
+}
+.dive__mark{
+  position:absolute;left:-4px;width:10px;height:10px;background:var(--red);
+  top:0;will-change:transform;
+}
+.dive__step{
+  position:relative;padding:0 0 0 clamp(1.4rem,3vw,2.6rem);
+  min-height:min(62vh,30rem);display:flex;flex-direction:column;justify-content:center;
+  opacity:.34;transition:opacity .45s var(--ease);
+}
+.dive__step.is-on{opacity:1}
+.dive__step h3{font-size:clamp(1.3rem,2.2vw,2rem);margin-bottom:.9rem}
+.dive__step p{color:rgba(250,249,247,.72);max-width:46ch}
+.dive__level{
+  font-family:var(--display);font-size:2.4rem;line-height:1;color:var(--red);
+  display:block;margin-bottom:.6rem;letter-spacing:.03em;
+}
+@media (prefers-reduced-motion:reduce){.dive__step{opacity:1}}
+
+/* ==========================================================================
+   18. СТЕНД DSCR: АНИМАЦИЯ, КОТОРАЯ ОБЪЯСНЯЕТ ПРОДУКТ
+   ========================================================================== */
+.stand{display:grid;grid-template-columns:repeat(12,1fr);gap:var(--col-gap);align-items:start}
+.stand__controls{grid-column:1/span 6;display:grid;gap:1.6rem}
+.stand__out{grid-column:8/span 5;border:var(--hair);padding:clamp(1.4rem,2.4vw,2.2rem);display:grid;gap:1.1rem}
+@media (max-width:900px){.stand__controls,.stand__out{grid-column:1/-1}}
+
+.dial{display:grid;gap:.5rem}
+.dial__top{display:flex;justify-content:space-between;align-items:baseline;gap:1rem}
+.dial__name{font-size:var(--t-micro);font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink2)}
+.dial__val{font-family:var(--display);font-size:1.9rem;line-height:1;font-variant-numeric:tabular-nums}
+.dial__val small{font-family:var(--sans);font-size:.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--ink3);margin-left:.4rem}
+.dial input[type=range]{
+  -webkit-appearance:none;appearance:none;width:100%;height:2px;background:var(--line);
+  margin:.7rem 0;cursor:ew-resize;
+}
+.dial input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:18px;height:18px;background:var(--black);border:0;cursor:grab;
+}
+.dial input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--black);border:0;cursor:grab}
+.dial input[type=range]:focus-visible{outline:2px solid var(--red);outline-offset:6px}
+
+.stand__row{display:flex;justify-content:space-between;gap:1rem;font-size:var(--t-small);border-bottom:var(--hair);padding-bottom:.7rem}
+.stand__row b{font-family:var(--display);font-size:1.4rem;font-weight:400;font-variant-numeric:tabular-nums}
+.stand__dscr{display:flex;align-items:baseline;gap:.8rem}
+.stand__dscr b{font-family:var(--display);font-size:clamp(3.4rem,7vw,5.4rem);line-height:.85;font-variant-numeric:tabular-nums}
+.stand__verdict{font-size:var(--t-micro);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.stand[data-state="ok"] .stand__dscr b{color:var(--khaki)}
+.stand[data-state="ok"] .stand__verdict{color:var(--khaki)}
+.stand[data-state="bad"] .stand__dscr b{color:var(--red)}
+.stand[data-state="bad"] .stand__verdict{color:var(--red)}
+/* Шкала с порогом: положение отметки читается быстрее числа. */
+.scale{position:relative;height:10px;background:var(--paper-2);border:var(--hair)}
+.scale__fill{position:absolute;inset:0 auto 0 0;background:var(--khaki);width:0;transition:width .25s var(--ease),background .25s var(--ease)}
+.stand[data-state="bad"] .scale__fill{background:var(--red)}
+.scale__mark{position:absolute;top:-5px;bottom:-5px;width:2px;background:var(--black)}
+.scale__note{display:flex;justify-content:space-between;font-size:.6875rem;color:var(--ink3);margin-top:.4rem;letter-spacing:.04em}
+
+/* ==========================================================================
+   19. РИТМ: СЛОМЫ СЕТКИ И ПОВЕДЕНИЕ ЦИФР
+   ========================================================================== */
+/* Номер секции выходит за край полосы набора. */
+.sec-head--bleed .sec-head__ghost{font-size:clamp(5rem,16vw,15rem);margin-left:-.09em;opacity:.1}
+.section--dark .sec-head--bleed .sec-head__ghost{opacity:.2}
+/* Заголовок сдвинут вправо на широком экране: длинная страница не должна
+   читаться одной колонкой сверху донизу. */
+@media (min-width:1100px){
+  .sec-head--indent{grid-template-columns:minmax(0,3fr) minmax(0,9fr)}
+  .sec-head--indent .sec-head__inner{padding-left:clamp(1rem,4vw,4rem)}
+}
+.sec-head__ghost{will-change:auto}
+
+/* Построчное раскрытие заголовков ставит только JS: без него текст на месте. */
+.line-mask{display:block;overflow:hidden}

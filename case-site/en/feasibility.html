@@ -32,8 +32,9 @@
 <script>document.documentElement.classList.add('js');addEventListener('load',function(){setTimeout(function(){var d=document.documentElement;if(!d.classList.contains('motion-ready')){d.classList.remove('js')}},3000)})</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://caseadvisory.com/#organization","name":"CASE Real Estate Advisory","alternateName":"CASE Advisory","url":"https://caseadvisory.com/","foundingDate":"2022","description":"CASE is independent commercial real estate advisory: what to build and how much it will return, before design.","sameAs":["https://www.linkedin.com/company/case-real-estate-advisory","https://www.instagram.com/caseadvisory","https://t.me/case_advisory","https://www.youtube.com/@case.advisory"],"address":{"@type":"PostalAddress","addressLocality":"Tashkent","addressCountry":"UZ"},"contactPoint":[{"@type":"ContactPoint","telephone":"+998770477375","email":"support@caseadvisory.uz","contactType":"sales","availableLanguage":["uz","ru","en"]}]},{"@type":"ProfessionalService","@id":"https://caseadvisory.com/#professionalservice","name":"CASE Real Estate Advisory","parentOrganization":{"@id":"https://caseadvisory.com/#organization"},"url":"https://caseadvisory.com/","telephone":"+998770477375","email":"support@caseadvisory.uz","priceRange":"$$$","areaServed":[{"@type":"Country","name":"Uzbekistan"},{"@type":"Country","name":"Tajikistan"},{"@type":"Country","name":"Saudi Arabia"}],"address":{"@type":"PostalAddress","addressLocality":"Tashkent","addressCountry":"UZ"}},{"@type":"WebSite","@id":"https://caseadvisory.com/#website","url":"https://caseadvisory.com/","name":"CASE Advisory","publisher":{"@id":"https://caseadvisory.com/#organization"},"inLanguage":["uz","ru","en"]},{"@type":"WebPage","@id":"https://caseadvisory.com/en/feasibility.html#webpage","url":"https://caseadvisory.com/en/feasibility.html","name":"CASE Feasibility: the model before design","description":"A full financial model of the asset: scenarios, sensitivity, a separate version for the credit committee and the point where DSCR falls below 1.30.","isPartOf":{"@id":"https://caseadvisory.com/#website"},"about":{"@id":"https://caseadvisory.com/#organization"},"inLanguage":"en","dateModified":"2026-08-19"},{"@type":"BreadcrumbList","@id":"https://caseadvisory.com/en/feasibility.html#breadcrumb","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://caseadvisory.com/en/"},{"@type":"ListItem","position":2,"name":"Four formats and the boundary of each","item":"https://caseadvisory.com/en/services.html"},{"@type":"ListItem","position":3,"name":"T2 CASE Feasibility","item":"https://caseadvisory.com/en/feasibility.html"}]},{"@type":"Service","@id":"https://caseadvisory.com/en/services.html#feasibility","name":"T2 CASE Feasibility","serviceType":"CASE Feasibility","description":"Everything in T1 plus a full financial model you can rely on in front of a bank and a partner.","provider":{"@id":"https://caseadvisory.com/#organization"},"areaServed":{"@type":"Country","name":"Uzbekistan"},"inLanguage":"en"}]}</script>
 <script type="module" src="/assets/js/app.js"></script>
-<script>addEventListener("load",function(){var v=["/assets/js/vendor/gsap.min.js","/assets/js/vendor/ScrollTrigger.min.js","/assets/js/vendor/lenis.min.js"],i=0;(function n(){if(i>=v.length){var m=document.createElement("script");m.type="module";m.src="/assets/js/motion.js";document.head.appendChild(m);return}var e=document.createElement("script");e.src=v[i++];e.onload=n;e.onerror=n;document.head.appendChild(e)})()})</script>
+<script>addEventListener("load",function(){var v=["/assets/js/vendor/gsap.min.js","/assets/js/vendor/ScrollTrigger.min.js","/assets/js/vendor/SplitText.min.js","/assets/js/vendor/lenis.min.js"],i=0;(function n(){if(i>=v.length){var m=document.createElement("script");m.type="module";m.src="/assets/js/motion.js";document.head.appendChild(m);return}var e=document.createElement("script");e.src=v[i++];e.onload=n;e.onerror=n;document.head.appendChild(e)})()})</script>
 <script type="module" src="/assets/js/massing.js"></script>
+<script type="module" src="/assets/js/dscr.js"></script>
 </head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
@@ -50,12 +51,12 @@
 </header>
 <main id="main" data-depth-goal="feasibility_depth"><div class="wrap"><nav aria-label="breadcrumb"><ol class="crumbs"><li><a href="/en/">Home</a></li><li><a href="/en/services.html">Four formats and the boundary of each</a></li><li>T2 CASE Feasibility</li></ol></nav></div><section class="phead"><div class="wrap">
 <p class="mono-label phead__eyebrow">T2 CASE Feasibility</p>
-<h1>A financial model you can defend in front of a credit committee</h1><p class="lead phead__lead muted">Feasibility answers the owner&#x27;s second question. Not what to build here, but how much it will earn and under which conditions it stops earning.</p>
+<h1 data-lines>A financial model you can defend in front of a credit committee</h1><p class="lead phead__lead muted reveal">Feasibility answers the owner&#x27;s second question. Not what to build here, but how much it will earn and under which conditions it stops earning.</p>
 <p class="mt-lg"><a class="btn magnetic" href="/en/contact.html" data-goal="feasibility_cta">Discuss a project<i class="btn__arrow"></i></a></p>
 <div class="phead__meta"><p class="micro muted">Updated: <time datetime="2026-08-19">2026-08-19</time></p></div></div></section><section class="section"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">01</span><span class="sec-head__ghost" aria-hidden="true">01</span></div>
-<div class="sec-head__inner"><h2>The question it answers</h2></div></div>
+<div class="sec-head">
+<div class="sec-head__n reveal"><span class="mono-label">01</span><span class="sec-head__ghost" data-drift aria-hidden="true">01</span></div>
+<div class="sec-head__inner"><h2 data-lines>The question it answers</h2></div></div>
 <div class="split"><div class="split__b prose reveal order-2"><p>Feasibility sets out the cash flow of the asset across the project horizon and the boundaries inside which it stays viable. We do not calculate a single number but a field: a base case, a conservative case, a stress case, and separately the point at which operating cash flow stops covering debt service.</p><p>In practice you receive a map of risk with named thresholds rather than a promise of return. The decision stays yours, but you take it knowing the level of rent, vacancy or opening delay at which the calculation breaks.</p></div>
 <div class="split__a reveal">
 <div class="stage3d" data-massing>
@@ -65,9 +66,9 @@
 </div>
 <p class="basis mt-md">Massing diagram: a podium holding the retail and the income producing volume above it. The scene runs on desktop only and only where the device can hold the frame rate.</p>
 </div></div></div></section><section class="section section--paper2"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">02</span><span class="sec-head__ghost" aria-hidden="true">02</span></div>
-<div class="sec-head__inner"><h2>What is inside the report</h2><p class="lead muted">The contents page of a real report, not a list of topics.</p></div></div><div class="case-block reveal"><div class="case-row"><div class="case-row__k">01 Executive summary</div>
+<div class="sec-head">
+<div class="sec-head__n reveal"><span class="mono-label">02</span><span class="sec-head__ghost" data-drift aria-hidden="true">02</span></div>
+<div class="sec-head__inner"><h2 data-lines>What is inside the report</h2><p class="lead muted reveal">The contents page of a real report, not a list of topics.</p></div></div><div class="case-block reveal"><div class="case-row"><div class="case-row__k">01 Executive summary</div>
 <div class="case-row__v"><p class="small muted">The decision, the numbers and the risks on two pages. Read first and read alone.</p></div></div><div class="case-row"><div class="case-row__k">02 Site and constraints</div>
 <div class="case-row__v"><p class="small muted">Boundaries, access, encumbrances, height and coverage limits, and which of them shape the programme.</p></div></div><div class="case-row"><div class="case-row__k">03 Catchment and demand</div>
 <div class="case-row__v"><p class="small muted">Who falls inside the catchment, how many, what they can spend, and how capacity was calculated.</p></div></div><div class="case-row"><div class="case-row__k">04 Competition and pipeline</div>
@@ -80,18 +81,49 @@
 <div class="case-row__v"><p class="small muted">The combination of rent, vacancy and opening delay at which DSCR falls below 1.30.</p></div></div><div class="case-row"><div class="case-row__k">11 Bank version</div>
 <div class="case-row__v"><p class="small muted">A separate document written to credit committee requirements.</p></div></div><div class="case-row"><div class="case-row__k">12 Source register</div>
 <div class="case-row__v"><p class="small muted">Every figure with its source, its date and its data type.</p></div></div></div></div></section><section class="section"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">03</span><span class="sec-head__ghost" aria-hidden="true">03</span></div>
-<div class="sec-head__inner"><h2>The bank version</h2></div></div><div class="prose reveal"><p>A credit committee does not look at the concept. It looks at whether the asset can service debt. So the bank version is assembled separately: it opens with the repayment schedule, DSCR by year and the stress test, not with positioning and images.</p><p>It names the assumptions committees challenge first: time to reach stabilised occupancy, the durability of the anchor tenant, rent indexation and opening delay. Each assumption carries its source and its date.</p></div></div></section><section class="section"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">04</span><span class="sec-head__ghost" aria-hidden="true">04</span></div>
-<div class="sec-head__inner"><h2>The DSCR 1.30 break point</h2></div></div><div class="prose reveal"><p>We name the combination of conditions at which the ratio of operating cash flow to debt service falls below 1.30. This is not decoration, it is the point of the report: the owner and the bank see in advance which mix of rent, vacancy and opening delay pushes the project outside the safe corridor.</p><p>The 1.30 threshold is used as a typical covenant for commercial real estate. If your bank works to a different level, the model is rebuilt around it and the report states whose requirement was applied.</p></div></div></section><section class="section"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">05</span><span class="sec-head__ghost" aria-hidden="true">05</span></div>
-<div class="sec-head__inner"><h2>Forecast against outcome</h2></div></div><div class="prose reveal"><p>Twelve months after opening we send the owner and the bank our own reconciliation of forecast against actual: where the model was right, where it missed and why. That commitment is part of T2 and T3.</p><p>We do it because advisory that never checks its own forecasts is indistinguishable from opinion. The reconciliation costs us reputational risk, and that is exactly why it is useful to you.</p></div></div></section><section class="section section--paper2"><div class="wrap">
-<div class="sec-head reveal">
-<div class="sec-head__n"><span class="mono-label">06</span><span class="sec-head__ghost" aria-hidden="true">06</span></div>
-<div class="sec-head__inner"><h2>Turnaround, price and a report excerpt</h2></div></div>
+<div class="sec-head">
+<div class="sec-head__n reveal"><span class="mono-label">03</span><span class="sec-head__ghost" data-drift aria-hidden="true">03</span></div>
+<div class="sec-head__inner"><h2 data-lines>The bank version</h2></div></div><div class="prose reveal"><p>A credit committee does not look at the concept. It looks at whether the asset can service debt. So the bank version is assembled separately: it opens with the repayment schedule, DSCR by year and the stress test, not with positioning and images.</p><p>It names the assumptions committees challenge first: time to reach stabilised occupancy, the durability of the anchor tenant, rent indexation and opening delay. Each assumption carries its source and its date.</p></div></div></section><section class="section"><div class="wrap">
+<div class="sec-head">
+<div class="sec-head__n reveal"><span class="mono-label">04</span><span class="sec-head__ghost" data-drift aria-hidden="true">04</span></div>
+<div class="sec-head__inner"><h2 data-lines>The DSCR 1.30 break point</h2></div></div><div class="prose reveal"><p>We name the combination of conditions at which the ratio of operating cash flow to debt service falls below 1.30. This is not decoration, it is the point of the report: the owner and the bank see in advance which mix of rent, vacancy and opening delay pushes the project outside the safe corridor.</p><p>The 1.30 threshold is used as a typical covenant for commercial real estate. If your bank works to a different level, the model is rebuilt around it and the report states whose requirement was applied.</p></div></div></section><section class="section section--paper2" id="stand"><div class="wrap">
+<div class="sec-head sec-head--bleed">
+<div class="sec-head__n reveal"><span class="mono-label">05</span><span class="sec-head__ghost" data-drift aria-hidden="true">05</span></div>
+<div class="sec-head__inner"><h2 data-lines>The stand: where the calculation breaks</h2><p class="lead muted reveal">Move the three dials and watch the point at which the asset stops servicing its debt. That is what T2 does, on illustrative numbers instead of yours.</p></div></div>
+<div class="stand" data-stand data-state="ok" data-dec="."
+ data-ok="Inside the corridor" data-bad="Below 1.30: a bank will not accept this">
+<div class="stand__controls reveal">
+<div class="dial">
+<div class="dial__top"><label class="dial__name" for="dial-0">Rent</label>
+<span class="dial__val"><span data-out>28</span><small>$/m2 per month</small></span></div>
+<input id="dial-0" type="range" min="12" max="45" step="1" value="28"
+ aria-label="Rent, $/m2 per month"></div><div class="dial">
+<div class="dial__top"><label class="dial__name" for="dial-1">Vacancy</label>
+<span class="dial__val"><span data-out>8</span><small>%</small></span></div>
+<input id="dial-1" type="range" min="0" max="30" step="1" value="8"
+ aria-label="Vacancy, %"></div><div class="dial">
+<div class="dial__top"><label class="dial__name" for="dial-2">Opening delay</label>
+<span class="dial__val"><span data-out>0</span><small>months</small></span></div>
+<input id="dial-2" type="range" min="0" max="12" step="1" value="0"
+ aria-label="Opening delay, months"></div>
+<div class="prose"><h4>Assumptions of this stand</h4><ul><li>GLA 20,000 m2, fully let</li><li>OPEX 30 per cent of gross income</li><li>Debt 18 mn USD, 12 per cent, 10 year term</li><li>Debt service calculated as an annuity</li></ul></div>
+</div>
+<div class="stand__out reveal">
+<div class="stand__row"><span>Operating income per year</span><b data-noi>4 327 680</b></div>
+<div class="stand__row"><span>Debt service per year</span><b data-debt>3 185 715</b></div>
+<div class="stand__dscr"><b data-dscr>1.36</b>
+<span class="stand__verdict" data-verdict>Inside the corridor</span></div>
+<div class="scale"><span class="scale__fill" data-fill style="width:45.3%"></span>
+<span class="scale__mark" style="left:43.3%"></span></div>
+<div class="scale__note"><span>0</span><span>threshold 1.30</span><span>3.0</span></div>
+<p class="basis">A teaching stand. Every figure in it is illustrative and set by you. It is not a calculation for your asset and not investment advice.</p>
+</div></div></div></section><section class="section"><div class="wrap">
+<div class="sec-head sec-head--indent">
+<div class="sec-head__n reveal"><span class="mono-label">06</span><span class="sec-head__ghost" data-drift aria-hidden="true">06</span></div>
+<div class="sec-head__inner"><h2 data-lines>Forecast against outcome</h2></div></div><div class="prose reveal"><p>Twelve months after opening we send the owner and the bank our own reconciliation of forecast against actual: where the model was right, where it missed and why. That commitment is part of T2 and T3.</p><p>We do it because advisory that never checks its own forecasts is indistinguishable from opinion. The reconciliation costs us reputational risk, and that is exactly why it is useful to you.</p></div></div></section><section class="section section--paper2"><div class="wrap">
+<div class="sec-head">
+<div class="sec-head__n reveal"><span class="mono-label">07</span><span class="sec-head__ghost" data-drift aria-hidden="true">07</span></div>
+<div class="sec-head__inner"><h2 data-lines>Turnaround, price and a report excerpt</h2></div></div>
 <div class="split">
 <div class="split__a"><dl class="tier__meta reveal">
 <dt>Turnaround</dt><dd><span class="tbd" data-tbd="t2_time">Data needed: Срок выполнения T2 CASE Feasibility, в неделях</span></dd><dt>Price band</dt><dd><span class="tbd" data-tbd="t2_price">Data needed: Вилка цены T2, USD</span></dd></dl></div>
@@ -106,8 +138,8 @@
 <p class="form__status" data-form-status role="status" aria-live="polite"></p>
 </form>
 <p class="basis"><span class="tbd" data-tbd="excerpt_pdf">Data needed: Обезличенный разворот отчёта на 2 страницы в PDF для скачивания</span></p>
-</div></div></div></div></section><section class="section section--dark section--tight"><div class="wrap">
-<div class="split"><div class="split__a"><h2>Start the conversation</h2></div>
+</div></div></div></div></section><section class="section section--dark section--wipe section--tight"><span class="ground" data-ground aria-hidden="true"></span><div class="wrap">
+<div class="split"><div class="split__a"><h2 data-lines>Start the conversation</h2></div>
 <div class="split__b"><p class="lead">We reply within 48 hours on working days.</p>
 <p class="mt-md"><a class="btn btn--ghost magnetic" href="/en/contact.html" data-goal="strip_cta">Request a strategic consultation<i class="btn__arrow"></i></a></p>
 </div></div></div></section></main><footer class="foot">

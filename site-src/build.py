@@ -117,7 +117,8 @@ def head(lang, page, title, desc, extra_schema=None, scripts=(), canonical_path=
     # права соревноваться за канал с первым экраном.
     js = ['<script type="module" src="/assets/js/app.js"></script>',
           '<script>addEventListener("load",function(){var v=["/assets/js/vendor/gsap.min.js",'
-          '"/assets/js/vendor/ScrollTrigger.min.js","/assets/js/vendor/lenis.min.js"],i=0;'
+          '"/assets/js/vendor/ScrollTrigger.min.js","/assets/js/vendor/SplitText.min.js",'
+          '"/assets/js/vendor/lenis.min.js"],i=0;'
           '(function n(){if(i>=v.length){var m=document.createElement("script");m.type="module";'
           'm.src="/assets/js/motion.js";document.head.appendChild(m);return}'
           'var e=document.createElement("script");e.src=v[i++];e.onload=n;e.onerror=n;'
@@ -316,14 +317,26 @@ def foot(lang):
     }
 
 
-def sec_head(num_, title, lead=None, tag="h2", right=False):
-    lead_html = '<p class="lead muted">%s</p>' % esc(lead) if lead else ""
-    return """<div class="sec-head reveal%(r)s">
-<div class="sec-head__n"><span class="mono-label">%(n)s</span><span class="sec-head__ghost" aria-hidden="true">%(n)s</span></div>
-<div class="sec-head__inner"><%(t)s>%(title)s</%(t)s>%(lead)s</div></div>""" % {
-        "n": esc(num_), "t": tag, "title": esc(title), "lead": lead_html,
-        "r": " break-r" if right else "",
+def sec_head(num_, title, lead=None, tag="h2", right=False, variant=""):
+    """variant: bleed (номер выходит за край), indent (заголовок сдвинут вправо)."""
+    lead_html = '<p class="lead muted reveal">%s</p>' % esc(lead) if lead else ""
+    cls = " break-r" if right else ""
+    for v in variant.split():
+        if v:
+            cls += " sec-head--" + v
+    # Хореография: номер проявляется, заголовок поднимается построчно,
+    # лид догоняет. Поэтому reveal висит на частях, а не на всём блоке.
+    return """<div class="sec-head%(r)s">
+<div class="sec-head__n reveal"><span class="mono-label">%(n)s</span><span class="sec-head__ghost" data-drift aria-hidden="true">%(n)s</span></div>
+<div class="sec-head__inner"><%(t)s data-lines>%(title)s</%(t)s>%(lead)s</div></div>""" % {
+        "n": esc(num_), "t": tag, "title": esc(title), "lead": lead_html, "r": cls,
     }
+
+
+# Тёмные секции въезжают шторой: чёрное поле раскрывается сверху вниз.
+# По умолчанию оно на месте, движение включает только живой motion.js.
+GROUND = '<span class="ground" data-ground aria-hidden="true"></span>'
+
 
 
 def crumbs(lang, trail):
@@ -572,43 +585,63 @@ def page_home(lang):
         "more": esc(H["tiers_all"]),
     })
 
-    # 04 цифры, которые решают
-    # Одинаковое число точек во всех трёх силуэтах: иначе морфинг не считается.
+    # 04 погружение: один участок, три программы
+    # Разрез и состав программы схематические. Ни одной цифры на экране:
+    # пока нет расчёта, показываем механику, а не выдуманные значения.
     shapes = [
-        "70,310 70,180 200,180 200,180 400,180 400,180 530,180 530,310",
-        "70,310 70,215 320,215 320,110 470,110 470,215 530,215 530,310",
-        "110,310 110,200 250,200 250,150 350,150 350,200 490,200 490,310",
+        "70,380 70,380 250,380 250,380 390,380 390,380 570,380 570,380",
+        "70,380 70,120 250,120 250,120 390,120 390,120 570,120 570,380",
+        "70,380 70,246 250,246 250,246 390,246 390,246 570,246 570,380",
+        "70,380 70,286 250,286 250,146 390,146 390,286 570,286 570,380",
+        "110,380 110,300 250,300 250,214 390,214 390,300 530,300 530,380",
+        "110,380 110,300 250,300 250,214 390,214 390,300 530,300 530,380",
     ]
+    comps = ["0,0,0", "0,0,0", "88,0,12", "55,30,15", "62,8,30", "62,8,30"]
     steps = []
-    for i, s in enumerate(H["scen_steps"]):
-        # Пока реальных значений нет, в ячейках стоит прочерк, а не выдуманное число.
-        kpis = "".join(
-            '<div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">%s</div></div>'
-            % esc(k) for k in H["scen_kpis"])
-        steps.append("""<article class="scen__step reveal" data-points="%s">
-<h3>%s</h3><p class="small muted">%s</p><div class="scen__kpis">%s</div></article>"""
-                     % (shapes[i], esc(s["t"]), esc(s["d"]), kpis))
-    out.append("""<section class="section section--paper2" data-scenarios><div class="wrap">
+    for i, st in enumerate(H["scen_steps"]):
+        steps.append("""<article class="dive__step reveal" data-points="%(pts)s" data-comp="%(comp)s"%(last)s>
+<span class="dive__level">%(lvl)02d</span>
+<h3 data-lines>%(t)s</h3><p class="small">%(d)s</p></article>""" % {
+            "pts": shapes[i], "comp": comps[i], "lvl": i + 1,
+            "last": ' data-final="1"' if i == len(H["scen_steps"]) - 1 else "",
+            "t": esc(st["t"]), "d": esc(st["d"]),
+        })
+    ghosts = "".join('<polygon class="cut__ghost" data-ghost points="%s"></polygon>' % shapes[j]
+                     for j in (2, 3, 4))
+    legend = "".join('<span class="l-%s"><i></i>%s</span>' % (c, esc(t))
+                     for c, t in zip("abc", H["scen_legend"]))
+    out.append("""<section class="section dive section--wipe" data-dive>%(ground)s<span class="dive__light" data-dive-light aria-hidden="true"></span>
+<div class="wrap">
 %(head)s
-<div class="scen__grid">
-<div class="scen__stage">
-<svg class="plot" viewBox="0 0 600 380" role="img" aria-label="%(alt)s">
-<rect x="0" y="0" width="600" height="380" fill="none"></rect>
-<line x1="60" y1="300" x2="540" y2="300" stroke="#0D0D0D" stroke-width="1"></line>
-<rect x="50" y="60" width="500" height="250" fill="none" stroke="#0D0D0D" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="6 6"></rect>
-<polygon data-shape points="%(p0)s" fill="#0D0D0D" fill-opacity="0.10" stroke="#A91D20" stroke-width="2.5"></polygon>
+<div class="dive__grid">
+<div class="dive__stage">
+<svg class="cut" viewBox="0 0 640 480" role="img" aria-label="%(alt)s">
+<rect class="cut__plot" x="70" y="110" width="500" height="270"></rect>
+<line class="cut__ground" x1="40" y1="380" x2="600" y2="380" stroke-width="1"></line>
+%(ghosts)s
+<polygon class="cut__mass" data-shape points="%(p0)s"></polygon>
+<g transform="translate(70,424)">
+<rect class="cut__seg" data-seg="0" x="0" y="0" width="0" height="14" fill="#A91D20"></rect>
+<rect class="cut__seg" data-seg="1" x="0" y="0" width="0" height="14" fill="#BE8E3A"></rect>
+<rect class="cut__seg" data-seg="2" x="0" y="0" width="0" height="14" fill="rgba(250,249,247,.4)"></rect>
+</g>
 </svg>
-<p class="basis mt-md">%(note)s %(tbd)s</p>
+<div class="dive__legend">%(legend)s</div>
 </div>
-<div class="scen__steps">%(steps)s</div>
+<div class="dive__steps">
+<span class="dive__gauge" aria-hidden="true"><span class="dive__mark" data-dive-mark></span></span>
+%(steps)s
 </div>
-<p class="mt-lg reveal"><a class="arrow-link" href="%(feas)s">%(cta)s</a></p>
+</div>
+<p class="basis mt-lg">%(note)s %(tbd)s</p>
+<p class="mt-md"><a class="arrow-link" href="%(feas)s">%(cta)s</a></p>
 </div></section>""" % {
-        "head": sec_head(H["scen_num"], H["scen_title"], H["scen_lead"]),
-        "alt": esc(H["scen_title"]), "p0": shapes[0], "note": esc(H["scen_note"]),
-        "tbd": tbd("scenarios", lang),
-        "steps": "".join(steps), "feas": path_for(lang, "feasibility"),
-        "cta": esc(H["scen_cta"]),
+        "ground": GROUND,
+        "head": sec_head(H["scen_num"], H["scen_title"], H["scen_lead"], variant="bleed"),
+        "alt": esc(H["scen_title"]), "p0": shapes[0], "ghosts": ghosts,
+        "legend": legend, "steps": "".join(steps),
+        "note": esc(H["scen_note"]), "tbd": tbd("scenarios", lang),
+        "feas": path_for(lang, "feasibility"), "cta": esc(H["scen_cta"]),
     })
 
     # 05 кейсы
@@ -637,12 +670,13 @@ def page_home(lang):
 
     # 07 исламское финансирование
     body = "".join("<p>%s</p>" % esc(x) for x in H["islam_body"])
-    out.append("""<section class="section section--dark"><div class="wrap">
+    out.append("""<section class="section section--dark section--wipe">%(ground)s<div class="wrap">
 %(head)s
 <div class="split"><div class="split__a"><p class="lead">%(lead)s</p></div>
 <div class="split__b prose">%(body)s<p class="basis basis--gold">%(disc)s</p></div></div>
 </div></section>""" % {
-        "head": sec_head(H["islam_num"], H["islam_title"]),
+        "ground": GROUND,
+        "head": sec_head(H["islam_num"], H["islam_title"], variant="bleed"),
         "lead": esc(H["islam_lead"]), "body": body, "disc": esc(H["islam_disclaimer"]),
     })
 
@@ -688,7 +722,7 @@ def page_services(lang):
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
     out.append("""<section class="phead"><div class="wrap">
-<h1>%s</h1><p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div>
+<h1 data-lines>%s</h1><p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div>
 </div></section>""" % (esc(S["h1"]), esc(S["lead"]), updated_line(lang)))
 
     intro = "".join("<p>%s</p>" % esc(x) for x in S["intro_body"])
@@ -729,11 +763,12 @@ def page_services(lang):
 
 def cta_strip(lang):
     L = LANGS[lang]
-    return """<section class="section section--dark section--tight"><div class="wrap">
-<div class="split"><div class="split__a"><h2>%(t)s</h2></div>
+    return """<section class="section section--dark section--wipe section--tight">%(ground)s<div class="wrap">
+<div class="split"><div class="split__a"><h2 data-lines>%(t)s</h2></div>
 <div class="split__b"><p class="lead">%(l)s</p>
 <p class="mt-md"><a class="btn btn--ghost magnetic" href="%(c)s" data-goal="strip_cta">%(cta)s<i class="btn__arrow"></i></a></p>
 </div></div></div></section>""" % {
+        "ground": GROUND,
         "t": esc(L["home"]["contact_title"]), "l": esc(L["contact"]["promise"]),
         "c": path_for(lang, "contact"), "cta": esc(L["home"]["cta1"]),
     }
@@ -748,13 +783,13 @@ def page_feasibility(lang):
              ("T2 CASE Feasibility", path_for(lang, "feasibility"))]
     svc = [s for s in service_schema(lang) if s["@id"].endswith("#feasibility")]
     out = [head(lang, "feasibility", m["title"], m["desc"], extra_schema=svc,
-                scripts=("/assets/js/massing.js",), breadcrumb=trail)]
+                scripts=("/assets/js/massing.js", "/assets/js/dscr.js"), breadcrumb=trail)]
     out.append(nav(lang, "feasibility"))
     out.append('<main id="main" data-depth-goal="feasibility_depth">')
     out.append(crumbs(lang, trail))
     out.append("""<section class="phead"><div class="wrap">
 <p class="mono-label phead__eyebrow">%s</p>
-<h1>%s</h1><p class="lead phead__lead muted">%s</p>
+<h1 data-lines>%s</h1><p class="lead phead__lead muted reveal">%s</p>
 <p class="mt-lg"><a class="btn magnetic" href="%s" data-goal="feasibility_cta">%s<i class="btn__arrow"></i></a></p>
 <div class="phead__meta">%s</div></div></section>"""
                % (esc(F["eyebrow"]), esc(F["h1"]), esc(F["lead"]),
@@ -789,12 +824,18 @@ def page_feasibility(lang):
                % (sec_head(F["s2_num"], F["s2_title"], F["s2_lead"]), toc))
 
     for numkey, titlekey, bodykey in [("s3_num", "s3_title", "s3_body"),
-                                      ("s4_num", "s4_title", "s4_body"),
-                                      ("s5_num", "s5_title", "s5_body")]:
+                                      ("s4_num", "s4_title", "s4_body")]:
         b = "".join("<p>%s</p>" % esc(x) for x in F[bodykey])
         out.append("""<section class="section"><div class="wrap">
 %s<div class="prose reveal">%s</div></div></section>"""
                    % (sec_head(F[numkey], F[titlekey]), b))
+
+    out.append(stand_block(lang))
+
+    b = "".join("<p>%s</p>" % esc(x) for x in F["s5_body"])
+    out.append("""<section class="section"><div class="wrap">
+%s<div class="prose reveal">%s</div></div></section>"""
+               % (sec_head(F["s5_num"], F["s5_title"], variant="indent"), b))
 
     T = L["tiers"]
     out.append("""<section class="section section--paper2"><div class="wrap">
@@ -831,6 +872,69 @@ def page_feasibility(lang):
     return "".join(out)
 
 
+def stand_block(lang):
+    """Стенд DSCR. Начальное состояние считается здесь же, поэтому без
+    JavaScript блок показывает не пустые поля, а готовый пример."""
+    L = LANGS[lang]
+    F = L["feasibility"]
+    GLA, OPEX, DEBT, RATE, YEARS = 20000, 0.30, 18000000, 0.12, 10
+    base = [28, 8, 0]  # ставка, вакансия, задержка
+    service = DEBT * RATE / (1 - (1 + RATE) ** -YEARS)
+    gross = GLA * base[0] * 12 * (1 - base[1] / 100.0) * (1 - base[2] / 12.0)
+    noi = gross * (1 - OPEX)
+    dscr = noi / service
+    ok = dscr >= 1.30
+    dec = "." if lang == "en" else ","
+
+    def money(v):
+        return "{:,.0f}".format(v).replace(",", " ")
+
+    ranges = [(12, 45, 1), (0, 30, 1), (0, 12, 1)]
+    dials = []
+    for i, (name, unit) in enumerate(F["stand_inputs"]):
+        lo, hi, step = ranges[i]
+        dials.append("""<div class="dial">
+<div class="dial__top"><label class="dial__name" for="dial-%(i)d">%(name)s</label>
+<span class="dial__val"><span data-out>%(v)s</span><small>%(unit)s</small></span></div>
+<input id="dial-%(i)d" type="range" min="%(lo)d" max="%(hi)d" step="%(step)d" value="%(v)s"
+ aria-label="%(name)s, %(unit)s"></div>""" % {
+            "i": i, "name": esc(name), "unit": esc(unit), "v": base[i],
+            "lo": lo, "hi": hi, "step": step,
+        })
+
+    assumptions = "".join("<li>%s</li>" % esc(x) for x in F["stand_assumptions"])
+    return """<section class="section section--paper2" id="stand"><div class="wrap">
+%(head)s
+<div class="stand" data-stand data-state="%(state)s" data-dec="%(dec)s"
+ data-ok="%(okmsg)s" data-bad="%(badmsg)s">
+<div class="stand__controls reveal">
+%(dials)s
+<div class="prose"><h4>%(atitle)s</h4><ul>%(assump)s</ul></div>
+</div>
+<div class="stand__out reveal">
+<div class="stand__row"><span>%(noil)s</span><b data-noi>%(noi)s</b></div>
+<div class="stand__row"><span>%(debtl)s</span><b data-debt>%(debt)s</b></div>
+<div class="stand__dscr"><b data-dscr>%(dscr)s</b>
+<span class="stand__verdict" data-verdict>%(verdict)s</span></div>
+<div class="scale"><span class="scale__fill" data-fill style="width:%(fill).1f%%"></span>
+<span class="scale__mark" style="left:43.3%%"></span></div>
+<div class="scale__note"><span>0</span><span>%(thr)s</span><span>3%(dec)s0</span></div>
+<p class="basis">%(disc)s</p>
+</div></div></div></section>""" % {
+        "head": sec_head(F["stand_num"], F["stand_title"], F["stand_lead"], variant="bleed"),
+        "state": "ok" if ok else "bad", "dec": dec,
+        "okmsg": esc(F["stand_ok"]), "badmsg": esc(F["stand_bad"]),
+        "dials": "".join(dials), "atitle": esc(F["stand_assumptions_title"]),
+        "assump": assumptions,
+        "noil": esc(F["stand_noi"]), "noi": money(noi),
+        "debtl": esc(F["stand_debt"]), "debt": money(service),
+        "dscr": ("%.2f" % dscr).replace(".", dec),
+        "verdict": esc(F["stand_ok"] if ok else F["stand_bad"]),
+        "fill": max(0.0, min(100.0, dscr / 3 * 100)),
+        "thr": esc(F["stand_threshold"]), "disc": esc(F["stand_disclaimer"]),
+    }
+
+
 def page_projects(lang):
     L = LANGS[lang]
     P = L["projects"]
@@ -841,7 +945,7 @@ def page_projects(lang):
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
     out.append("""<section class="phead"><div class="wrap">
-<h1>%s</h1><p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div>
+<h1 data-lines>%s</h1><p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div>
 </div></section>""" % (esc(P["h1"]), esc(P["lead"]), updated_line(lang)))
 
     filters = "".join('<button type="button" data-filter="%s" aria-pressed="%s">%s</button>'
@@ -916,7 +1020,7 @@ def page_case(lang, case):
     out.append(crumbs(lang, trail))
     out.append("""<section class="phead"><div class="wrap">
 <p class="mono-label phead__eyebrow">%(city)s, %(country)s</p>
-<h1>%(name)s</h1><p class="lead phead__lead muted">%(why)s</p>
+<h1 data-lines>%(name)s</h1><p class="lead phead__lead muted reveal">%(why)s</p>
 <div class="phead__meta">%(upd)s</div></div></section>""" % {
         "city": esc(L["cities"][case["city_key"]]),
         "country": esc(L["countries"][case["country_key"]]),
@@ -970,8 +1074,8 @@ def page_leasing(lang):
     out.append(nav(lang, "leasing"))
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
-    out.append("""<section class="phead"><div class="wrap"><h1>%s</h1>
-<p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div></div></section>"""
+    out.append("""<section class="phead"><div class="wrap"><h1 data-lines>%s</h1>
+<p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div></div></section>"""
                % (esc(G["h1"]), esc(G["lead"]), updated_line(lang)))
     for numk, titlek, bodyk in [("s1_num", "s1_title", "s1_body"), ("s2_num", "s2_title", "s2_body")]:
         b = "".join("<p>%s</p>" % esc(x) for x in G[bodyk])
@@ -1003,8 +1107,8 @@ def page_insights(lang):
     out.append(nav(lang, "insights"))
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
-    out.append("""<section class="phead"><div class="wrap"><h1>%s</h1>
-<p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div></div></section>"""
+    out.append("""<section class="phead"><div class="wrap"><h1 data-lines>%s</h1>
+<p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div></div></section>"""
                % (esc(I["h1"]), esc(I["lead"]), updated_line(lang)))
     body = "".join("<p>%s</p>" % esc(x) for x in I["empty_body"])
     out.append("""<section class="section"><div class="wrap"><div class="empty reveal">
@@ -1036,8 +1140,8 @@ def page_about(lang):
     out.append(nav(lang, "about"))
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
-    out.append("""<section class="phead"><div class="wrap"><h1>%s</h1>
-<p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div></div></section>"""
+    out.append("""<section class="phead"><div class="wrap"><h1 data-lines>%s</h1>
+<p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div></div></section>"""
                % (esc(A["h1"]), esc(A["lead"]), updated_line(lang)))
     b1 = "".join("<p>%s</p>" % esc(x) for x in A["s1_body"])
     out.append('<section class="section"><div class="wrap">%s<div class="prose reveal">%s</div></div></section>'
@@ -1087,8 +1191,8 @@ def page_contact(lang):
     out.append(nav(lang, "contact"))
     out.append('<main id="main">')
     out.append(crumbs(lang, trail))
-    out.append("""<section class="phead"><div class="wrap"><h1>%s</h1>
-<p class="lead phead__lead muted">%s</p><div class="phead__meta">%s</div></div></section>"""
+    out.append("""<section class="phead"><div class="wrap"><h1 data-lines>%s</h1>
+<p class="lead phead__lead muted reveal">%s</p><div class="phead__meta">%s</div></div></section>"""
                % (esc(C["h1"]), esc(C["lead"]), updated_line(lang)))
     out.append("""<section class="section"><div class="wrap"><div class="split">
 <div class="split__a stack-md reveal">
