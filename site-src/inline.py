@@ -71,7 +71,8 @@ def inline_css(lang):
 def inline_js(body):
     """Порядок важен: сначала библиотека, потом наш код."""
     parts = []
-    for rel in ("vendor/gsap.min.js", "vendor/ScrollTrigger.min.js", "vendor/lenis.min.js"):
+    for rel in ("vendor/gsap.min.js", "vendor/ScrollTrigger.min.js",
+                "vendor/SplitText.min.js", "vendor/lenis.min.js"):
         parts.append(open(os.path.join(SITE, "assets/js", rel), encoding="utf-8").read())
 
     # app.js подключает i18n.js как модуль. Внутри одного файла модули не нужны,
@@ -83,9 +84,11 @@ def inline_js(body):
     parts.append("(function(){\n%s\n%s\n})();" % (i18n, app))
 
     parts.append(open(os.path.join(SITE, "assets/js/motion.js"), encoding="utf-8").read())
-    # Сцена объёма нужна только там, где она есть на странице.
+    # Сцена объёма и стенд нужны только там, где они есть на странице.
     if "data-massing" in body:
         parts.append(open(os.path.join(SITE, "assets/js/massing.js"), encoding="utf-8").read())
+    if "data-stand" in body:
+        parts.append(open(os.path.join(SITE, "assets/js/dscr.js"), encoding="utf-8").read())
 
     # Переходы между страницами в одном файле невозможны: гасим их честно,
     # оставляя якоря внутри страницы рабочими.
