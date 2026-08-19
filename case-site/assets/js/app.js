@@ -100,9 +100,10 @@ function initForms() {
         return;
       }
       const action = form.getAttribute('action') || '';
-      // Пока endpoint не задан, отправка остаётся обычной: пользователь
-      // увидит честную ошибку, а не молчаливую потерю заявки.
-      if (!action || action.indexOf('{{') === 0) return;
+      // Пока приёмник заявок не согласован, в action стоит почта. Её нельзя
+      // отправить через fetch, поэтому пропускаем обычную отправку: браузер
+      // откроет почтовый клиент с заполненным письмом и заявка не потеряется.
+      if (!action || action.indexOf('mailto:') === 0) return;
 
       e.preventDefault();
       if (status) { status.dataset.state = ''; status.textContent = form.dataset.msgSending || ''; }
@@ -162,6 +163,78 @@ function initPointer() {
   });
 }
 
+/* --- Появление блоков. Наблюдатель, а не прокрутка: переход по якорю
+       прыгает мимо любых точек на пути, и блок обязан проявиться всё равно.
+       Само движение делает CSS, поэтому оно не зависит от библиотеки. --- */
+function initReveals() {
+  const els = document.querySelectorAll('.reveal:not([data-hero-after]), .reveal-rule');
+  if (!els.length) return;
+  if (!('IntersectionObserver' in window)) {
+    document.documentElement.classList.remove('js');
+    return;
+  }
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      en.target.classList.add('is-in');
+    });
+  }, { rootMargin: '0px 0px -6% 0px', threshold: 0.04 });
+
+  els.forEach((el) => {
+    // Соседи по одному родителю выходят лесенкой, а не все разом.
+    const parent = el.parentElement;
+    if (parent) {
+      const sibs = Array.prototype.filter.call(parent.children, (n) => n.classList.contains('reveal'));
+      const i = sibs.indexOf(el);
+      if (i > 0) el.style.transitionDelay = Math.min(i, 6) * 60 + 'ms';
+    }
+    io.observe(el);
+  });
+}
+
+/* --- Проверяемые цифры оживают при входе в экран.
+       Это не украшение: секция «что можно проверить» держится на числах,
+       и взгляд должен идти к ним первым. Значения уже стоят в разметке,
+       поэтому без скрипта и при prefers-reduced-motion всё на месте. --- */
+function initCounters() {
+  const els = document.querySelectorAll('[data-count]');
+  if (!els.length) return;
+  if (window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  if (!('IntersectionObserver' in window)) return;
+
+  const fmt = (v, dec, sep) => {
+    const s = dec ? v.toFixed(dec) : String(Math.round(v));
+    const parts = s.split('.');
+    return parts[1] ? parts[0] + sep + parts[1] : parts[0];
+  };
+
+  const run = (el) => {
+    const target = parseFloat(el.dataset.count);
+    if (!isFinite(target)) return;
+    const dec = parseInt(el.dataset.dec || '0', 10);
+    const sep = el.dataset.sep || ',';
+    const t0 = performance.now();
+    const tick = (t) => {
+      const p = Math.min(1, (t - t0) / 900);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = fmt(target * e, dec, sep);
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = fmt(target, dec, sep);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (!en.isIntersecting) return;
+      io.unobserve(en.target);
+      run(en.target);
+    });
+  }, { threshold: 0.6 });
+  els.forEach((el) => io.observe(el));
+}
+
 /* --- Отслеживаемые цели --- */
 function initGoals() {
   document.querySelectorAll('[data-goal]').forEach((el) => {
@@ -184,6 +257,8 @@ function boot() {
   initFilters();
   initForms();
   initPointer();
+  initReveals();
+  initCounters();
   initGoals();
   initLangSwitcher(track);
 }

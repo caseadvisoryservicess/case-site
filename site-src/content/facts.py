@@ -36,6 +36,11 @@ CITY_CODE = "Tashkent"
 COUNTRY_CODE = "UZ"
 RESPONSE_HOURS = 48
 
+# Куда уходит форма. Пока настоящий приёмник заявок не согласован, стоит почта:
+# без JavaScript браузер откроет почтовый клиент с заполненным письмом, и заявка
+# не потеряется. Как только появится endpoint, меняется только эта строка.
+FORM_ENDPOINT = "mailto:%s" % EMAIL
+
 LEGAL_NAME = "CASE Real Estate Advisory"
 TRADE_NAME = "CASE Advisory"
 

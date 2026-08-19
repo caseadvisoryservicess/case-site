@@ -89,6 +89,7 @@ L = {
     },
 
     "home": {
+        "eyebrow": "Mustaqil tijorat koʻchmas mulk ekspertizasi. Toshkent",
         "slogan": ["Bitimdan oldin.", "Chizmadan oldin."],
         "h1": "Bu yerda nima qurish va bu qancha keltiradi. Javob loyihalash boshlanishidan oldin.",
         "sub": "CASE bu mustaqil tijorat koʻchmas mulk ekspertizasi: loyihalashdan oldin nimani qurish va bu qancha daromad keltirishini aniqlaymiz.",
@@ -201,6 +202,22 @@ L = {
         "faq_num": "08",
         "faq_title": "Birinchi uchrashuvdan oldin beriladigan savollar",
 
+        'toc_label': 'Bu sahifada',
+        'toc': [       ('position', 'Biz kim emasmiz'),
+        ('chain', 'Qarorlar zanjiri'),
+        ('products', 'Toʻrt format'),
+        ('numbers', 'Qaror qiladigan raqamlar'),
+        ('cases', 'Keyslar'),
+        ('proof', 'Nimani tekshirish mumkin'),
+        ('islamic', 'Islom moliyasi'),
+        ('faq', 'Savollar'),
+        ('contact', 'Aloqa')],
+        'tbd_policy': ('Sariq rang bilan bizda hali tekshiriladigan koʻrinishda boʻlmagan narsalar belgilangan. '
+ 'Ularning oʻrniga taxminiy raqam qoʻymaymiz: saytda hisobotlardagi qoida amal qiladi.'),
+        'scale_title': 'Uch obyekt bir masshtabda',
+        'scale_note': ('Ustunlar shu uch obyektning haqiqiy GLA qiymatlaridan qurilgan. Bular portfelning chop '
+ 'etishga kelishilgan yagona raqamlari: qolganlari boʻyicha NDA auditi ketmoqda.'),
+        'gla_full': 'GLA, ijaraga yaroqli maydon',
         "contact_num": "09",
         "contact_title": "Suhbatni boshlash",
         "contact_lead": "Yer uchastkasi va bosqichni yozing. 48 soat ichida javob beramiz va birinchi qoʻngʻiroqda ishimiz sizga umuman kerakmi yoʻqmi, toʻgʻridan toʻgʻri aytamiz.",
@@ -258,6 +275,7 @@ L = {
             "out": "Kirmaydi: qatʼiy belgilangan hajm. U ish boshlanishidan oldin aniqlanadi va shartnomada qayd etiladi.",
         },
         "flags": {"priority": "Sotuvda ustuvor", "anchor": "Langar"},
+        "price_hint": 'Oraliqni birinchi qoʻngʻiroqda aytamiz',
         "labels": {"time": "Muddat", "price": "Narx oraligʻi", "in": "Nima kiradi", "out": "Chegaralar"},
     },
 
@@ -340,6 +358,22 @@ L = {
             "Biz operatsion oqimning qarz xizmatiga nisbati 1,30 dan pastga tushadigan shartlar kombinatsiyasini aytamiz. Bu hisobotning bezagi emas, mazmuni: egasi va bank stavka, boʻsh maydon va kechikishning qaysi qoʻshilmasi loyihani xavfsiz yoʻlakdan chiqarishini oldindan koʻradi.",
             "1,30 chegarasi tijorat koʻchmas mulk uchun odatiy kovenant sifatida olingan. Bankingiz boshqa qiymat bilan ishlasa, model unga qayta hisoblanadi va hisobotda kimning talabi qoʻllanilgani koʻrsatiladi.",
         ],
+        'glossary_title': 'Qisqartmalar nimani anglatadi',
+        'glossary': [       (       'GLA',
+                'Ijaraga yaroqli maydon: ijara toʻlanadigan qism. Yoʻlaklar, texnik xonalar '
+                'va parkovka kirmaydi.'),
+        (       'GBA',
+                'Umumiy qurilish maydoni: qurilgan hamma narsa, jumladan hech qachon ijaraga '
+                'berilmaydigani ham.'),
+        (       'DSCR',
+                'Operatsion oqimning yillik qarz xizmatiga nisbati. 1,00 dan past boʻlsa, '
+                'obyekt kreditni oʻz tushumidan toʻlay olmaydi.'),
+        (       'OPEX',
+                'Obyektning operatsion xarajatlari: ekspluatatsiya, qoʻriqlash, tozalash, '
+                'kommunal, boshqaruv.'),
+        ('CAPEX', 'Investitsiya xarajatlari: ochilishgacha qoʻyilgan hamma narsa.'),
+        (       'Service charge',
+                'Ijarachining umumiy zonalarni saqlashga toʻlovi, ijara stavkasidan alohida.')],
         "stand_num": "05",
         "stand_title": "Stend: hisob qayerda buziladi",
         "stand_lead": "Uchta murvatni suring va obyekt qarzni qachon toʻlay olmay qolishini koʻring. T2 aynan shuni qiladi, faqat sizning raqamlaringiz bilan.",

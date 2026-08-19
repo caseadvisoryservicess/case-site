@@ -130,7 +130,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 /* ==========================================================================
    4. ТИПОГРАФИКА
    ========================================================================== */
-h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.08;letter-spacing:-.018em}
+h1,h2,h3,h4{margin:0;font-weight:700;line-height:1.12;letter-spacing:-.018em}
 h1{font-size:var(--t-h1)}
 h2{font-size:var(--t-h2)}
 h3{font-size:var(--t-h3);line-height:1.2;letter-spacing:-.01em}
@@ -466,6 +466,10 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 }
 
 /* Кинетический слоган: две половины съезжаются и фиксируются */
+.hero__eyebrow{
+  display:flex;align-items:center;gap:.75rem;margin-bottom:clamp(1.2rem,2.4vw,2rem);
+}
+.hero__eyebrow::before{content:"";width:2.2rem;height:2px;background:var(--red);flex:none}
 .slogan{
   font-family:var(--display);font-weight:400;text-transform:uppercase;
   font-size:var(--t-hero);line-height:.88;letter-spacing:.005em;
@@ -480,7 +484,8 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 .hero__facts{border-top:var(--hair);display:grid;gap:0}
 .hero__fact{display:flex;gap:1rem;align-items:baseline;padding:.95rem 0;border-bottom:var(--hair)}
 .hero__fact b{font-family:var(--display);font-size:1.75rem;line-height:1;min-width:5.2rem;letter-spacing:.02em;font-weight:400}
-.hero__fact span{font-size:var(--t-micro);color:var(--ink2);line-height:1.4}
+/* Только прямой потомок: внутри b лежит span счётчика, он не подпись. */
+.hero__fact > span{font-size:var(--t-micro);color:var(--ink2);line-height:1.4}
 
 /* ==========================================================================
    8. ЦЕПОЧКА СТАДИЙ
@@ -658,8 +663,13 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
    ========================================================================== */
 /* Стартовые состояния ставит только JS (класс .js на <html>), чтобы без JS
    и до загрузки скриптов контент был виден. */
-.js .reveal:not([data-hero-after]){opacity:0;transform:translate3d(0,18px,0)}
-.js .reveal-rule{transform:scaleX(0);transform-origin:left center}
+.js .reveal:not([data-hero-after]){
+  opacity:0;transform:translate3d(0,18px,0);
+  transition:opacity .62s var(--ease),transform .62s var(--ease);
+}
+.js .reveal.is-in{opacity:1;transform:none}
+.js .reveal-rule{transform:scaleX(0);transform-origin:left center;transition:transform .7s var(--ease)}
+.js .reveal-rule.is-in{transform:scaleX(1)}
 
 /* Кинетика слогана: две половины съезжаются и фиксируются, затем черта.
    Всё вместе укладывается в 900 мс и не зависит от JavaScript. */
@@ -667,18 +677,22 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 .slogan__h:nth-child(1){--from:-36px}
 .slogan__h:nth-child(2){--from:36px;animation-delay:.09s}
 .hero .slogan__rule{animation:draw .5s .55s var(--ease) both}
-.hero [data-hero-after]{animation:up .5s var(--ease) both}
-.hero h1[data-hero-after]{animation-delay:.62s}
-.hero .hero__sub[data-hero-after]{animation-delay:.70s}
-.hero .hero__cta[data-hero-after]{animation-delay:.78s}
-.hero .hero__aside[data-hero-after]{animation-delay:.86s}
+/* Заголовок и подзаголовок никогда не появляются из прозрачности: это
+   кандидаты на LCP, и любая задержка их проявления прямо добавляется к нему.
+   Поэтому они видны с первого кадра и только подъезжают на место. */
+.hero [data-hero-after]{animation:rise .55s var(--ease) both}
+.hero h1[data-hero-after]{animation-delay:.30s}
+.hero .hero__sub[data-hero-after]{animation-delay:.38s}
+.hero .hero__cta[data-hero-after]{animation-delay:.46s}
+.hero .hero__aside[data-hero-after]{animation-delay:.54s}
 @keyframes lock{from{opacity:0;transform:translate3d(var(--from,0),0,0)}to{opacity:1;transform:none}}
 @keyframes draw{from{transform:scaleX(0)}to{transform:scaleX(1)}}
 @keyframes up{from{opacity:0;transform:translate3d(0,14px,0)}to{opacity:1;transform:none}}
+@keyframes rise{from{transform:translate3d(0,16px,0)}to{transform:none}}
 
 @media (prefers-reduced-motion:reduce){
-  .js .reveal{opacity:1;transform:none}
-  .js .reveal-rule{transform:none}
+  .js .reveal{opacity:1;transform:none;transition:none}
+  .js .reveal-rule{transform:none;transition:none}
   .slogan__h,.hero .slogan__rule,.hero [data-hero-after]{animation:none}
   *,*::before,*::after{
     animation-duration:.001ms!important;animation-iteration-count:1!important;
@@ -796,7 +810,9 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 .cut__ground{stroke:rgba(250,249,247,.35)}
 .cut__plot{stroke:rgba(250,249,247,.22);stroke-dasharray:7 7;fill:none}
 .cut__mass{fill:rgba(190,142,58,.14);stroke:var(--red);stroke-width:2.5;stroke-linejoin:round}
-.cut__ghost{fill:none;stroke:rgba(250,249,247,.3);stroke-width:1.5;opacity:0}
+.cut__ghost{fill:none;stroke:rgba(250,249,247,.3);stroke-width:1.5}
+/* На первых уровнях сравнение ещё не нужно, его убирает скрипт. */
+.js .cut__ghost{opacity:0}
 .cut__seg{transition:none}
 
 .dive__legend{display:flex;flex-wrap:wrap;gap:1rem 1.6rem;margin-top:1rem;font-size:var(--t-micro);color:rgba(250,249,247,.7)}
@@ -817,16 +833,18 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 .dive__step{
   position:relative;padding:0 0 0 clamp(1.4rem,3vw,2.6rem);
   min-height:min(62vh,30rem);display:flex;flex-direction:column;justify-content:center;
-  opacity:.34;transition:opacity .45s var(--ease);
 }
-.dive__step.is-on{opacity:1}
+/* Приглушение соседних шагов ставит только живой скрипт. Без него все шесть
+   уровней читаются полностью: раздел не имеет права зависеть от анимации. */
+.js .dive__step{opacity:.34;transition:opacity .45s var(--ease)}
+.js .dive__step.is-on{opacity:1}
+@media (prefers-reduced-motion:reduce){.js .dive__step{opacity:1}}
 .dive__step h3{font-size:clamp(1.3rem,2.2vw,2rem);margin-bottom:.9rem}
 .dive__step p{color:rgba(250,249,247,.72);max-width:46ch}
 .dive__level{
   font-family:var(--display);font-size:2.4rem;line-height:1;color:var(--red);
   display:block;margin-bottom:.6rem;letter-spacing:.03em;
 }
-@media (prefers-reduced-motion:reduce){.dive__step{opacity:1}}
 
 /* ==========================================================================
    18. СТЕНД DSCR: АНИМАЦИЯ, КОТОРАЯ ОБЪЯСНЯЕТ ПРОДУКТ
@@ -881,5 +899,58 @@ a.card:hover,.card--hover:hover{border-color:var(--black)}
 }
 .sec-head__ghost{will-change:auto}
 
-/* Построчное раскрытие заголовков ставит только JS: без него текст на месте. */
-.line-mask{display:block;overflow:hidden}
+/* Построчное раскрытие заголовков ставит только JS: без него текст на месте.
+   Подложка снизу нужна, чтобы обрезка не съедала хвосты букв у, р, д, ц.
+   Отрицательное поле возвращает высоту строки на место. */
+.line-mask{display:block;padding-bottom:.16em;margin-bottom:-.16em}
+
+/* ==========================================================================
+   20. ОГЛАВЛЕНИЕ И МАСШТАБНАЯ ПОЛОСА
+   ========================================================================== */
+/* Оглавление: длинная страница получает адресуемые части. Набрано как
+   колонтитул газеты, а не как меню. */
+.toc{border-bottom:var(--hair);background:var(--paper)}
+.toc__in{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,10fr);gap:var(--col-gap);
+  padding-block:clamp(1.2rem,2.2vw,2rem)}
+.toc__label{font-size:var(--t-micro);font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ink3)}
+.toc__list{display:grid;grid-template-columns:repeat(3,1fr);gap:.55rem clamp(1rem,2vw,2rem)}
+.toc__list li{display:flex;gap:.6rem;align-items:baseline;min-width:0}
+.toc__n{font-family:var(--display);font-size:.95rem;color:var(--red);flex:none;letter-spacing:.04em}
+.toc__list a{
+  font-size:var(--t-small);color:var(--ink2);border-bottom:1px solid transparent;
+  transition:color .18s var(--ease),border-color .18s var(--ease);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+.toc__list a:hover{color:var(--black);border-bottom-color:var(--red)}
+@media (max-width:900px){
+  .toc__in{grid-template-columns:1fr;gap:.8rem}
+  .toc__list{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:520px){.toc__list{grid-template-columns:1fr}}
+
+/* Масштабная полоса: три кейса, построенные по реальным GLA.
+   Единственные согласованные к публикации цифры портфеля, поэтому
+   они и показаны цифрами, а не фигурой речи. */
+.scaleb{border-top:2px solid var(--black);padding-top:clamp(1.2rem,2vw,1.8rem)}
+.scaleb__title{font-size:clamp(1.05rem,1.6vw,1.35rem)}
+.scaleb__list{display:grid;gap:.9rem;margin-top:1.4rem}
+.scaleb__row{
+  display:grid;grid-template-columns:minmax(8rem,3fr) 9fr minmax(6rem,auto);
+  gap:1rem;align-items:center;
+}
+.scaleb__name{font-size:var(--t-small);font-weight:700}
+.scaleb__bar{
+  display:block;height:14px;width:var(--w,0);background:var(--red);
+  transform-origin:left center;min-width:2px;
+}
+.scaleb__row:nth-child(2) .scaleb__bar{background:var(--khaki)}
+.scaleb__row:nth-child(3) .scaleb__bar{background:var(--gold)}
+.scaleb__val{
+  font-family:var(--display);font-size:1.5rem;line-height:1;text-align:right;
+  font-variant-numeric:tabular-nums;letter-spacing:.02em;
+}
+.scaleb__val small{font-family:var(--sans);font-size:.55em;font-weight:700;color:var(--ink3)}
+@media (max-width:700px){
+  .scaleb__row{grid-template-columns:1fr auto;gap:.35rem 1rem}
+  .scaleb__bar{grid-column:1/-1;order:3}
+}

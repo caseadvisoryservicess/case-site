@@ -88,6 +88,7 @@ L = {
     },
 
     "home": {
+        "eyebrow": "Independent commercial real estate advisory. Tashkent",
         "slogan": ["Before the deal.", "Before the drawing."],
         "h1": "What to build here and what it will earn. The answer before design begins.",
         "sub": "CASE is independent commercial real estate advisory: what to build and how much it will return, before design.",
@@ -200,6 +201,22 @@ L = {
         "faq_num": "08",
         "faq_title": "Questions people ask before the first meeting",
 
+        'toc_label': 'On this page',
+        'toc': [       ('position', 'What we are not'),
+        ('chain', 'The chain'),
+        ('products', 'Four formats'),
+        ('numbers', 'The numbers that decide'),
+        ('cases', 'Cases'),
+        ('proof', 'What can be verified'),
+        ('islamic', 'Islamic finance'),
+        ('faq', 'Questions'),
+        ('contact', 'Contact')],
+        'tbd_policy': ('Yellow marks what we do not yet hold in verifiable form. We do not substitute approximate '
+ 'figures for it: the site follows the same rule as our reports.'),
+        'scale_title': 'Three assets at one scale',
+        'scale_note': ('The bars are built from the real GLA of these three assets. They are the only portfolio '
+ 'figures cleared for publication; the rest are in the NDA audit.'),
+        'gla_full': 'GLA, lettable area',
         "contact_num": "09",
         "contact_title": "Start the conversation",
         "contact_lead": "Describe the site and the stage. We reply within 48 hours, and on the first call we tell you plainly whether you need our work at all.",
@@ -257,6 +274,7 @@ L = {
             "out": "Not included: a fixed scope. It is defined before the start and written into the contract.",
         },
         "flags": {"priority": "Sales priority", "anchor": "Anchor"},
+        "price_hint": 'We name the band on the first call',
         "labels": {"time": "Turnaround", "price": "Price band", "in": "Included", "out": "Boundaries"},
     },
 
@@ -339,6 +357,20 @@ L = {
             "We name the combination of conditions at which the ratio of operating cash flow to debt service falls below 1.30. This is not decoration, it is the point of the report: the owner and the bank see in advance which mix of rent, vacancy and opening delay pushes the project outside the safe corridor.",
             "The 1.30 threshold is used as a typical covenant for commercial real estate. If your bank works to a different level, the model is rebuilt around it and the report states whose requirement was applied.",
         ],
+        'glossary_title': 'What the abbreviations mean',
+        'glossary': [       (       'GLA',
+                'Gross lettable area: the area rent is paid on. It excludes corridors, plant '
+                'rooms and parking.'),
+        ('GBA', 'Gross built area: everything constructed, including what is never let.'),
+        (       'DSCR',
+                'The ratio of operating cash flow to annual debt service. Below 1.00 the '
+                'asset cannot pay its loan out of its own revenue.'),
+        (       'OPEX',
+                'Operating expenditure: maintenance, security, cleaning, utilities, '
+                'management.'),
+        ('CAPEX', 'Capital expenditure: everything invested before opening.'),
+        (       'Service charge',
+                "The tenant's contribution to running the common areas, separate from rent.")],
         "stand_num": "05",
         "stand_title": "The stand: where the calculation breaks",
         "stand_lead": "Move the three dials and watch the point at which the asset stops servicing its debt. That is what T2 does, on illustrative numbers instead of yours.",

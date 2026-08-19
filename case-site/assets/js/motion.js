@@ -32,13 +32,18 @@ if (!gsap || !ScrollTrigger) {
   ready();
   initSmooth();
   initLines();
-  initReveals();
   initWipes();
   initDrift();
   initChain();
   initDive();
   initCaseTransition();
+  // После загрузки шрифтов и разбивки заголовков высота страницы меняется,
+  // поэтому позиции триггеров пересчитываем ещё раз. Без этого блоки ниже
+  // сгиба могут остаться в стартовом состоянии.
   window.addEventListener('load', () => ScrollTrigger.refresh());
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(() => setTimeout(() => ScrollTrigger.refresh(), 60));
+  }
 }
 
 /* --- Плавный скролл. На касании отключаем: там он стоит кадров дороже, чем даёт --- */
@@ -64,41 +69,21 @@ function initLines() {
   const run = () => {
     gsap.utils.toArray('[data-lines]').forEach((el) => {
       if (!el.textContent.trim()) return;
-      const split = (Split.create || ((e, o) => new Split(e, o)))(el, { type: 'lines', mask: 'lines' });
+      const split = (Split.create || ((e, o) => new Split(e, o)))(el, { type: 'lines', mask: 'lines', linesClass: 'line' });
       gsap.from(split.lines, {
         yPercent: 100,
         duration: 0.85,
         ease: 'power3.out',
         stagger: 0.075,
         scrollTrigger: { trigger: el, start: 'top 90%', once: true },
-        onComplete() { split.revert(); }
+        onComplete() { split.revert(); ScrollTrigger.refresh(); }
       });
     });
+    ScrollTrigger.refresh();
   };
   // Разбивать текст до загрузки шрифта нельзя: переносы посчитаются по фолбэку.
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(run);
   else run();
-}
-
-/* --- Появление блоков. Один общий батч вместо десятка триггеров --- */
-function initReveals() {
-  const items = gsap.utils.toArray('.reveal:not([data-hero-after])');
-  if (items.length) {
-    ScrollTrigger.batch(items, {
-      start: 'top 88%',
-      once: true,
-      onEnter: (batch) => gsap.to(batch, {
-        opacity: 1, y: 0, duration: 0.62, stagger: 0.07, ease: 'power2.out',
-        onComplete() { gsap.set(batch, { clearProps: 'willChange' }); }
-      })
-    });
-  }
-  gsap.utils.toArray('.reveal-rule').forEach((el) => {
-    gsap.to(el, {
-      scaleX: 1, duration: 0.7, ease: 'power2.inOut',
-      scrollTrigger: { trigger: el, start: 'top 92%', once: true }
-    });
-  });
 }
 
 /* --- Штора на тёмных секциях: переход читается как склейка, а не как

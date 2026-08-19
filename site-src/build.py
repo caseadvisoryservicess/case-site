@@ -317,6 +317,23 @@ def foot(lang):
     }
 
 
+def counted(value, lang):
+    """Разметка числа со счётчиком. Год не анимируем: отсчёт от нуля до 2022
+    выглядит как ошибка, а не как приём. Значение всегда стоит в разметке."""
+    raw = str(value).replace(" ", "")
+    sep = "." if lang == "en" else ","
+    norm = raw.replace(",", ".")
+    try:
+        num = float(norm)
+    except ValueError:
+        return esc(value)
+    if float(num).is_integer() and 1900 <= num <= 2100:
+        return esc(value)
+    dec = len(norm.split(".")[1]) if "." in norm else 0
+    return '<span data-count="%s" data-dec="%d" data-sep="%s">%s</span>' % (
+        norm, dec, sep, esc(value))
+
+
 def sec_head(num_, title, lead=None, tag="h2", right=False, variant=""):
     """variant: bleed (номер выходит за край), indent (заголовок сдвинут вправо)."""
     lead_html = '<p class="lead muted reveal">%s</p>' % esc(lead) if lead else ""
@@ -379,13 +396,14 @@ def tiers_block(lang, linked=True):
 <p class="micro muted">%(out)s</p>
 <dl class="tier__meta">
 <dt>%(ltime)s</dt><dd>%(vtime)s</dd>
-<dt>%(lprice)s</dt><dd>%(vprice)s</dd>
+<dt>%(lprice)s</dt><dd>%(vprice)s<br><span class="micro muted">%(hint)s</span></dd>
 </dl>%(link)s</article>""" % {
             "cls": cls, "slug": t["slug"], "code": code, "flag": flag,
             "name": esc(d["name"]), "tag": esc(d["tag"]), "desc": esc(d["desc"]),
             "items": items, "out": esc(d["out"]),
             "ltime": esc(T["labels"]["time"]), "vtime": tbd("%s_time" % code.lower(), lang),
             "lprice": esc(T["labels"]["price"]), "vprice": tbd("%s_price" % code.lower(), lang),
+            "hint": esc(T["price_hint"]),
             "link": link,
         })
     out.append("</div>")
@@ -423,6 +441,32 @@ def cases_block(lang):
         })
     out.append("</div>")
     return "".join(out)
+
+
+def scale_block(lang):
+    """Столбцы по реальным GLA трёх кейсов. Ни одного условного числа:
+    это единственные цифры портфеля, согласованные к публикации."""
+    L = LANGS[lang]
+    H = L["home"]
+    top = max(c["gla"] for c in facts.CASES)
+    rows = []
+    for c in facts.CASES:
+        cd = L["cases"][c["slug"]]
+        rows.append("""<li class="scaleb__row reveal">
+<span class="scaleb__name">%(name)s</span>
+<span class="scaleb__bar" style="--w:%(w).1f%%"></span>
+<span class="scaleb__val">%(gla)s <small>m<sup>2</sup></small></span></li>""" % {
+            "name": esc(cd["name"]), "w": c["gla"] / float(top) * 100.0,
+            "gla": num(c["gla"], lang),
+        })
+    return """<div class="scaleb mt-lg">
+<h3 class="scaleb__title">%(title)s</h3>
+<p class="micro muted">%(glafull)s</p>
+<ul class="scaleb__list">%(rows)s</ul>
+<p class="basis mt-md">%(note)s</p></div>""" % {
+        "title": esc(H["scale_title"]), "glafull": esc(H["gla_full"]),
+        "rows": "".join(rows), "note": esc(H["scale_note"]),
+    }
 
 
 def faq_block(lang, ids=True):
@@ -473,7 +517,7 @@ def form_block(lang, form_id="consultation"):
     C = L["contact"]
     f = C["fields"]
     stages = "".join('<option value="%s">%s</option>' % (esc(s), esc(s)) for s in C["stages"])
-    return """<form class="form" method="post" action="{{TBD:endpoint}}" data-form="%(fid)s"
+    return """<form class="form" method="post" action="%(action)s" enctype="text/plain" data-form="%(fid)s"
  data-msg-sending="%(sending)s" data-msg-ok="%(sent)s" data-msg-err="%(err)s" data-msg-slow="%(slow)s">
 <div class="field"><label for="f-name">%(name)s</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
 <div class="field"><label for="f-company">%(company)s</label><input id="f-company" name="company" type="text" autocomplete="organization"></div>
@@ -491,7 +535,7 @@ def form_block(lang, form_id="consultation"):
 <p class="form__status" data-form-status role="status" aria-live="polite"></p>
 <p class="basis field--full">%(endpoint_note)s</p>
 </form>""" % {
-        "fid": form_id, "lang": lang,
+        "fid": form_id, "lang": lang, "action": facts.FORM_ENDPOINT,
         "sending": esc(L["ui"]["sending"]), "sent": esc(L["ui"]["sent"]),
         "err": esc(L["ui"]["send_error"]), "slow": esc(L["ui"]["too_fast"]),
         "name": esc(f["name"]), "company": esc(f["company"]), "phone": esc(f["phone"]),
@@ -517,10 +561,11 @@ def page_home(lang):
     # 00 герой
     halves = "".join('<span class="slogan__h">%s</span>' % esc(x) for x in H["slogan"])
     facts_rows = "".join(
-        '<li class="hero__fact"><b>%s</b><span>%s</span></li>' % (esc(a), esc(b))
+        '<li class="hero__fact"><b>%s</b><span>%s</span></li>' % (counted(a, lang), esc(b))
         for a, b in H["hero_facts"])
     out.append("""<section class="hero"><div class="wrap hero__grid">
 <div class="hero__main">
+<p class="mono-label hero__eyebrow">%(eyebrow)s</p>
 <p class="slogan" data-slogan>%(halves)s</p>
 <span class="slogan__rule reveal-rule" aria-hidden="true"></span>
 <h1 class="reveal" data-hero-after>%(h1)s</h1>
@@ -536,17 +581,28 @@ def page_home(lang):
 %(updated)s
 </aside>
 </div></section>""" % {
-        "halves": halves, "h1": esc(H["h1"]), "sub": esc(H["sub"]),
+        "eyebrow": esc(H["eyebrow"]), "halves": halves, "h1": esc(H["h1"]), "sub": esc(H["sub"]),
         "contact": path_for(lang, "contact"), "cta1": esc(H["cta1"]),
         "feas": path_for(lang, "feasibility"), "cta2": esc(H["cta2"]),
         "flabel": esc(H["hero_facts_label"]), "facts": facts_rows,
         "updated": updated_line(lang),
     })
 
+
+    # Оглавление: у длинной страницы должны быть адресуемые части, иначе
+    # она читается одним нерасчленимым свитком. Заодно это работает как
+    # навигация с телефона и как карта для машин, читающих разметку.
+    toc = "".join(
+        '<li><span class="toc__n">%02d</span><a href="#%s">%s</a></li>' % (i + 1, esc(a), esc(t))
+        for i, (a, t) in enumerate(H["toc"]))
+    out.append("""<nav class="toc" aria-label="%(label)s"><div class="wrap toc__in">
+<span class="toc__label">%(label)s</span><ol class="toc__list">%(items)s</ol>
+</div></nav>""" % {"label": esc(H["toc_label"]), "items": toc})
+
     # 01 кто мы не
     nots = "".join("""<article class="nots__i reveal"><h3>%s</h3><p class="small muted">%s</p></article>"""
                    % (esc(n["t"]), esc(n["d"])) for n in H["nots"])
-    out.append("""<section class="section"><div class="wrap">
+    out.append("""<section class="section" id="position"><div class="wrap">
 %(head)s
 <div class="nots">%(nots)s</div>
 <p class="basis mt-md reveal">%(caveat)s <a class="link" href="%(clink)s">%(clabel)s</a></p>
@@ -565,7 +621,7 @@ def page_home(lang):
     legend = "".join('<span class="%s"><i></i>%s</span>'
                      % (["is-now", "is-next", ""][i], esc(x))
                      for i, x in enumerate(H["chain_legend"]))
-    out.append("""<section class="section chain" data-chain><div class="wrap">
+    out.append("""<section class="section chain" id="chain" data-chain><div class="wrap">
 %(head)s</div>
 <div class="chain__viewport"><ol class="chain__track">
 <span class="chain__prog" aria-hidden="true"></span><li class="chain__pad" aria-hidden="true"></li>%(stages)s</ol></div>
@@ -576,10 +632,12 @@ def page_home(lang):
     })
 
     # 03 тарифы
-    out.append("""<section class="section"><div class="wrap">
+    out.append("""<section class="section" id="products"><div class="wrap">
 %(head)s%(tiers)s
+<p class="basis mt-md reveal">%(policy)s</p>
 <p class="mt-md reveal"><a class="arrow-link" href="%(services)s">%(more)s</a></p>
 </div></section>""" % {
+        "policy": esc(H["tbd_policy"]),
         "head": sec_head(H["tiers_num"], H["tiers_title"], H["tiers_lead"]),
         "tiers": tiers_block(lang), "services": path_for(lang, "services"),
         "more": esc(H["tiers_all"]),
@@ -608,9 +666,15 @@ def page_home(lang):
         })
     ghosts = "".join('<polygon class="cut__ghost" data-ghost points="%s"></polygon>' % shapes[j]
                      for j in (2, 3, 4))
+    final_comp = [float(x) for x in comps[-1].split(",")]
+    seg_attrs, cursor = [], 0.0
+    for part in final_comp:
+        w = part / 100.0 * 500.0
+        seg_attrs.append((cursor, w))
+        cursor += w
     legend = "".join('<span class="l-%s"><i></i>%s</span>' % (c, esc(t))
                      for c, t in zip("abc", H["scen_legend"]))
-    out.append("""<section class="section dive section--wipe" data-dive>%(ground)s<span class="dive__light" data-dive-light aria-hidden="true"></span>
+    out.append("""<section class="section dive section--wipe" id="numbers" data-dive>%(ground)s<span class="dive__light" data-dive-light aria-hidden="true"></span>
 <div class="wrap">
 %(head)s
 <div class="dive__grid">
@@ -621,9 +685,9 @@ def page_home(lang):
 %(ghosts)s
 <polygon class="cut__mass" data-shape points="%(p0)s"></polygon>
 <g transform="translate(70,424)">
-<rect class="cut__seg" data-seg="0" x="0" y="0" width="0" height="14" fill="#A91D20"></rect>
-<rect class="cut__seg" data-seg="1" x="0" y="0" width="0" height="14" fill="#BE8E3A"></rect>
-<rect class="cut__seg" data-seg="2" x="0" y="0" width="0" height="14" fill="rgba(250,249,247,.4)"></rect>
+<rect class="cut__seg" data-seg="0" x="%(x0).1f" y="0" width="%(w0).1f" height="14" fill="#A91D20"></rect>
+<rect class="cut__seg" data-seg="1" x="%(x1).1f" y="0" width="%(w1).1f" height="14" fill="#BE8E3A"></rect>
+<rect class="cut__seg" data-seg="2" x="%(x2).1f" y="0" width="%(w2).1f" height="14" fill="rgba(250,249,247,.4)"></rect>
 </g>
 </svg>
 <div class="dive__legend">%(legend)s</div>
@@ -638,19 +702,24 @@ def page_home(lang):
 </div></section>""" % {
         "ground": GROUND,
         "head": sec_head(H["scen_num"], H["scen_title"], H["scen_lead"], variant="bleed"),
-        "alt": esc(H["scen_title"]), "p0": shapes[0], "ghosts": ghosts,
+        "alt": esc(H["scen_title"]), "p0": shapes[-1], "ghosts": ghosts,
+        "x0": seg_attrs[0][0], "w0": seg_attrs[0][1],
+        "x1": seg_attrs[1][0], "w1": seg_attrs[1][1],
+        "x2": seg_attrs[2][0], "w2": seg_attrs[2][1],
         "legend": legend, "steps": "".join(steps),
         "note": esc(H["scen_note"]), "tbd": tbd("scenarios", lang),
         "feas": path_for(lang, "feasibility"), "cta": esc(H["scen_cta"]),
     })
 
     # 05 кейсы
-    out.append("""<section class="section"><div class="wrap">
+    out.append("""<section class="section" id="cases"><div class="wrap">
 %(head)s%(cases)s
+%(scale)s
 <p class="mt-lg reveal"><a class="arrow-link" href="%(projects)s">%(all)s</a></p>
 </div></section>""" % {
         "head": sec_head(H["cases_num"], H["cases_title"], H["cases_lead"]),
-        "cases": cases_block(lang), "projects": path_for(lang, "projects"),
+        "cases": cases_block(lang), "scale": scale_block(lang),
+        "projects": path_for(lang, "projects"),
         "all": esc(L["ui"]["all_projects"]),
     })
 
@@ -659,10 +728,10 @@ def page_home(lang):
     for p in H["proof"]:
         proof.append("""<div class="proof__item reveal"><span class="proof__n">%s</span>
 <span class="proof__l">%s</span><span class="proof__note">%s</span></div>"""
-                     % (esc(p["n"]), esc(p["l"]), esc(p["note"])))
+                     % (counted(p["n"], lang), esc(p["l"]), esc(p["note"])))
     proof.append("""<div class="proof__item reveal"><span class="proof__l">%s</span>
 <span class="proof__note">%s</span></div>""" % (esc(H["proof_icsc_label"]), tbd("icsc", lang)))
-    out.append("""<section class="section"><div class="wrap">
+    out.append("""<section class="section" id="proof"><div class="wrap">
 %(head)s<div class="proof">%(proof)s</div></div></section>""" % {
         "head": sec_head(H["proof_num"], H["proof_title"], H["proof_lead"], right=True),
         "proof": "".join(proof),
@@ -670,7 +739,7 @@ def page_home(lang):
 
     # 07 исламское финансирование
     body = "".join("<p>%s</p>" % esc(x) for x in H["islam_body"])
-    out.append("""<section class="section section--dark section--wipe">%(ground)s<div class="wrap">
+    out.append("""<section class="section section--dark section--wipe" id="islamic">%(ground)s<div class="wrap">
 %(head)s
 <div class="split"><div class="split__a"><p class="lead">%(lead)s</p></div>
 <div class="split__b prose">%(body)s<p class="basis basis--gold">%(disc)s</p></div></div>
@@ -845,7 +914,7 @@ def page_feasibility(lang):
 <dt>%(lt)s</dt><dd>%(vt)s</dd><dt>%(lp)s</dt><dd>%(vp)s</dd></dl></div>
 <div class="split__b reveal"><div class="empty">
 <h3>%(et)s</h3><p class="small muted">%(eb)s</p>
-<form class="form" method="post" action="{{TBD:endpoint}}" data-form="excerpt"
+<form class="form" method="post" action="%(action)s" enctype="text/plain" data-form="excerpt"
  data-msg-sending="%(sending)s" data-msg-ok="%(sent)s" data-msg-err="%(err)s" data-msg-slow="%(slow)s">
 <div class="field field--full"><label for="x-email">%(el)s</label><input id="x-email" name="email" type="email" required></div>
 <div class="field field--hp" aria-hidden="true"><label for="x-url">%(trap)s</label><input id="x-url" name="company_url" type="text" tabindex="-1" autocomplete="off"></div>
@@ -855,6 +924,7 @@ def page_feasibility(lang):
 </form>
 <p class="basis">%(pdf)s</p>
 </div></div></div></div></section>""" % {
+        "action": facts.FORM_ENDPOINT,
         "head": sec_head(F["s6_num"], F["s6_title"]),
         "lt": esc(T["labels"]["time"]), "vt": tbd("t2_time", lang),
         "lp": esc(T["labels"]["price"]), "vp": tbd("t2_price", lang),
@@ -865,6 +935,16 @@ def page_feasibility(lang):
         "err": esc(L["ui"]["send_error"]), "slow": esc(L["ui"]["too_fast"]),
         "pdf": tbd("excerpt_pdf", lang),
     })
+
+    # Глоссарий там, где сокращений больше всего. Он же помогает машинам,
+    # которые собирают ответ из нашей страницы.
+    glossary = "".join(
+        '<div class="case-row"><div class="case-row__k">%s</div>'
+        '<div class="case-row__v"><p class="small muted">%s</p></div></div>'
+        % (esc(t), esc(d)) for t, d in F["glossary"])
+    out.append("""<section class="section section--tight"><div class="wrap">
+<h2 data-lines>%s</h2><div class="case-block mt-md reveal">%s</div></div></section>"""
+               % (esc(F["glossary_title"]), glossary))
 
     out.append(cta_strip(lang))
     out.append("</main>")
@@ -1113,7 +1193,7 @@ def page_insights(lang):
     body = "".join("<p>%s</p>" % esc(x) for x in I["empty_body"])
     out.append("""<section class="section"><div class="wrap"><div class="empty reveal">
 <h2>%(t)s</h2><div class="prose">%(b)s</div>
-<form class="form" method="post" action="{{TBD:endpoint}}" data-form="insights"
+<form class="form" method="post" action="%(action)s" enctype="text/plain" data-form="insights"
  data-msg-sending="%(sending)s" data-msg-ok="%(sent)s" data-msg-err="%(err)s" data-msg-slow="%(slow)s">
 <div class="field field--full"><label for="i-email">%(el)s</label><input id="i-email" name="email" type="email" required></div>
 <div class="field field--hp" aria-hidden="true"><label for="i-url">%(trap)s</label><input id="i-url" name="company_url" type="text" tabindex="-1" autocomplete="off"></div>
@@ -1121,6 +1201,7 @@ def page_insights(lang):
 <div class="field field--full"><button class="btn btn--red magnetic" type="submit" data-goal="insights_subscribe">%(cta)s<i class="btn__arrow"></i></button></div>
 <p class="form__status" data-form-status role="status" aria-live="polite"></p></form>
 </div></div></section>""" % {
+        "action": facts.FORM_ENDPOINT,
         "t": esc(I["empty_title"]), "b": body, "el": esc(I["email_label"]),
         "cta": esc(I["cta"]), "trap": esc(L["contact"]["trap_label"]), "lang": lang,
         "sending": esc(L["ui"]["sending"]), "sent": esc(L["ui"]["sent"]),
