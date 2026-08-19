@@ -10,3 +10,7 @@ case-site/os/api/config.php
 *.sqlite3
 *.db
 *.log
+
+# Python cache
+__pycache__/
+*.pyc

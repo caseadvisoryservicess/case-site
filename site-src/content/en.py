@@ -1,0 +1,636 @@
+# -*- coding: utf-8 -*-
+"""English version. Same structure as ru.py, key for key.
+
+Copy rules: no dashes of any kind, the first sentence answers the heading,
+each block stands on its own in 40 to 150 words, and no figure appears
+without a stated basis.
+"""
+
+L = {
+    "code": "en",
+    "label": "EN",
+    "name": "English",
+    "locale": "en_GB",
+
+    "ui": {
+        "skip": "Skip to content",
+        "menu": "Menu",
+        "lang_nav": "Language",
+        "home_crumb": "Home",
+        "updated": "Updated",
+        "read_more": "More",
+        "all_projects": "Full portfolio",
+        "back_to_projects": "All projects",
+        "basis": "Basis for the figure",
+        "tbd_prefix": "Data needed:",
+        "sending": "Sending",
+        "sent": "Received. We reply within 48 hours.",
+        "send_error": "Not sent. Write to support@caseadvisory.uz or call us.",
+        "too_fast": "The form was filled in too quickly. Check the fields and send again.",
+        "required": "required",
+        "shown": "Showing",
+        "of": "of",
+        "projects_word": "projects",
+    },
+
+    "nav": [
+        ("services", "Services"),
+        ("feasibility", "Feasibility"),
+        ("projects", "Projects"),
+        ("about", "About"),
+        ("insights", "Insights"),
+        ("leasing", "Leasing"),
+        ("contact", "Contact"),
+    ],
+    "nav_cta": "Consultation",
+
+    "meta": {
+        "home": {
+            "title": "CASE Advisory: what to build and what it earns",
+            "desc": "Independent commercial real estate advisory in Tashkent: what to build on the site and what it will earn. The answer before design begins.",
+        },
+        "feasibility": {
+            "title": "CASE Feasibility: the model before design",
+            "desc": "A full financial model of the asset: scenarios, sensitivity, a separate version for the credit committee and the point where DSCR falls below 1.30.",
+        },
+        "services": {
+            "title": "CASE services: four formats, T1 to T4",
+            "desc": "Concept, financial model, full cycle and a custom scope. What each format includes, what it excludes and the stage at which we engage.",
+        },
+        "projects": {
+            "title": "CASE projects: the portfolio register",
+            "desc": "42 projects in 7 countries. A register with asset parameters and the CASE role. Names appear only where written consent exists.",
+        },
+        "leasing": {
+            "title": "CASE leasing: executing an approved strategy",
+            "desc": "We run leasing as execution of an approved concept, not as filling space. The conflict of interest policy is published separately.",
+        },
+        "insights": {
+            "title": "CASE insights on commercial real estate",
+            "desc": "Market analysis of commercial real estate in Uzbekistan and the region, with named figures and sources. The first issue is in preparation.",
+        },
+        "about": {
+            "title": "About CASE Real Estate Advisory",
+            "desc": "An independent commercial real estate advisory firm founded in Tashkent in 2022. Method, team and figures you can verify.",
+        },
+        "contact": {
+            "title": "Contact CASE Advisory, Tashkent",
+            "desc": "Describe the site and the stage of the project. We reply within 48 hours. Phone +998 77 047 73 75, email support@caseadvisory.uz.",
+        },
+        "privacy": {
+            "title": "CASE privacy policy",
+            "desc": "What data the CASE Advisory site collects, why it is needed, how long it is kept and how to have it deleted.",
+        },
+        "conflicts": {
+            "title": "CASE conflict of interest policy",
+            "desc": "How CASE separates advisory from leasing, what is disclosed to the client and which mandates the firm declines.",
+        },
+    },
+
+    "home": {
+        "slogan": ["Before the deal.", "Before the drawing."],
+        "h1": "What to build here and what it will earn. The answer before design begins.",
+        "sub": "CASE is independent commercial real estate advisory: what to build and how much it will return, before design.",
+        "cta1": "Request a strategic consultation",
+        "cta2": "See Feasibility",
+        "hero_facts_label": "Figures you can check",
+        "hero_facts": [
+            ("2022", "the year the firm was founded"),
+            ("42", "projects in the portfolio, 7 countries"),
+            ("48", "hours to reply to an enquiry"),
+        ],
+
+        "nots_num": "01",
+        "nots_title": "What we are not",
+        "nots_lead": "The category is easiest to name by negation. We are responsible for the decision that is taken before any drawing exists.",
+        "nots": [
+            {
+                "t": "We are not an architecture practice",
+                "d": "We do not issue construction documentation and we do not draw elevations. We hand the architect a brief: format, area split by category, building depth, circulation. The architect designs from there.",
+            },
+            {
+                "t": "We are not a broker",
+                "d": "We do not sell space. We calculate what the space will earn under a given concept, and we state the conditions under which that calculation stops working.",
+            },
+            {
+                "t": "We are not a valuer",
+                "d": "We do not sign a valuation report for a bank or a court. We are responsible for the decision: what to build, for whom and at what scale, and for the cash flow forecast that follows from it.",
+            },
+        ],
+        "nots_caveat": "One caveat about leasing. We run a leasing practice, and that is a potential conflict of interest. We disclose it in writing before the contract is signed and we separate the roles inside the firm.",
+        "nots_caveat_link": "Conflict of interest policy",
+
+        "chain_num": "02",
+        "chain_title": "The chain of decisions and where we work",
+        "chain_lead": "Stages 01 to 03 are what we sell today. The cost of an error is highest there and the cost of fixing it is lowest: what changes is a spreadsheet, not a finished building.",
+        "chain": {
+            "land": ("Land", "What you start with: boundaries, access, restrictions, encumbrances, surroundings.", "We sell this today"),
+            "market": ("Market", "Who is nearby, what is missing, how many people are in the catchment and what they can spend.", "We sell this today"),
+            "concept": ("Concept", "Format, area, split by category, zoning, merchandise mix, a test layout.", "We sell this today"),
+            "model": ("Financial model", "Scenarios, sensitivity, the break point, a separate version for the bank.", "Next step"),
+            "brief": ("Design brief", "Written requirements for massing, circulation, engineering and areas.", "Next step"),
+            "leasing": ("Leasing", "Execution of the approved strategy: tenant pool, commercial terms, schedule.", "Further down the chain"),
+            "opening": ("Opening", "Launch, the first months of trading and the reconciliation of forecast against actual.", "Further down the chain"),
+        },
+        "chain_legend": ["We sell this today", "Next step", "Further down the chain"],
+        "chain_hint": "Swipe sideways or keep scrolling",
+
+        "tiers_num": "03",
+        "tiers_title": "Four formats of engagement",
+        "tiers_lead": "The formats differ on one thing: how far we take the decision, and whether we stand behind the number the project will be financed against.",
+        "tiers_more": "What is and is not included",
+        "tiers_all": "Compare the formats",
+
+        "scen_num": "04",
+        "scen_title": "The numbers that decide",
+        "scen_lead": "An architect shows a picture. We show how the numbers produce the decision. The same site returns different results depending on the programme, and the difference is visible before design, not after opening.",
+        "scen_steps": [
+            {
+                "t": "Scenario A. Maximum retail",
+                "d": "All area given to retail. Fast take up, high dependence on a single demand pool and on the anchor. If the anchor leaves, the whole asset moves with it.",
+            },
+            {
+                "t": "Scenario B. Mixed programme",
+                "d": "Retail plus office or services. Lower peak return per square metre, higher resilience: two different income streams pay rent in different phases of the cycle.",
+            },
+            {
+                "t": "Scenario C. Programme built for retention",
+                "d": "Less lettable area, more public space and parking. Lower opening revenue, higher repeat visits and basket size over a long horizon.",
+            },
+        ],
+        "scen_kpis": ["GLA, m2", "Footfall, per year", "Return, %"],
+        "scen_note": "Values for the three scenarios are filled in from a real calculation. Until that exists we show nothing: only numbers with a stated basis can be compared.",
+        "scen_cta": "How the financial model is built",
+
+        "cases_num": "05",
+        "cases_title": "Three cases",
+        "cases_lead": "The card format is the same for every project: the owner's problem, the stage we entered, the solution, the result in numbers, the parameters and the NDA note. Where a result cannot be published, we say so instead of replacing it with adjectives.",
+
+        "proof_num": "06",
+        "proof_title": "What can be verified",
+        "proof_lead": "Every figure below has a stated basis. Anything that cannot be checked is not on this site.",
+        "proof": [
+            {
+                "n": "2022", "l": "the year CASE was founded",
+                "note": "The firm was founded in 2022. The old claim of 7 plus years in the market has been removed: it does not reconcile with the founding date.",
+            },
+            {
+                "n": "42", "l": "projects in the portfolio",
+                "note": "The public portfolio register. The figure of 89 from the old site has been removed: the portfolio never held that many.",
+            },
+            {
+                "n": "7", "l": "countries",
+                "note": "Countries in which portfolio projects exist. The old site claimed 8, which was an error.",
+            },
+            {
+                "n": "8.1", "l": "mn m2 GBA",
+                "note": "Including work by members of the team before CASE was founded in 2022. Without that caveat the figure is not correct.",
+            },
+            {
+                "n": "48", "l": "hours to reply",
+                "note": "Our commitment on the time to a first substantive reply to an enquiry, on working days.",
+            },
+        ],
+        "proof_icsc_label": "ICSC membership",
+
+        "islam_num": "07",
+        "islam_title": "Islamic finance",
+        "islam_lead": "We produce a Sharia version of the financial model. Nobody else on this market does it.",
+        "islam_body": [
+            "Uzbekistan's Islamic banking law was signed on 27.03.2026 and came into force on 29.06.2026. At least one Islamic window opens during 2026. That changes the arithmetic: an interest loan is no longer the only way to finance an asset.",
+            "In practice this means two things. First, the funding structure is assembled from murabaha, ijara or musharaka instead of an interest loan, and the cash flow is rebuilt around it. Second, the tenant pool is screened against AAOIFI criteria, because certain tenant profiles close off access to that financing entirely.",
+        ],
+        "islam_disclaimer": "This is not a fatwa. The final ruling comes from a qualified scholar or from the bank's Sharia board. We are responsible for the calculation and for preparing the documents that such a review requires.",
+
+        "faq_num": "08",
+        "faq_title": "Questions people ask before the first meeting",
+
+        "contact_num": "09",
+        "contact_title": "Start the conversation",
+        "contact_lead": "Describe the site and the stage. We reply within 48 hours, and on the first call we tell you plainly whether you need our work at all.",
+    },
+
+    "tiers": {
+        "T1": {
+            "name": "CASE Concept",
+            "tag": "«What to build»",
+            "desc": "Answers the question of what should stand here and at what scale.",
+            "in": [
+                "Asset concept and positioning",
+                "Merchandise mix and zoning",
+                "A test layout",
+                "A design brief for the architect",
+                "A financial model at indicative level",
+            ],
+            "out": "Not included: the full scenario based financial model and the bank version.",
+        },
+        "T2": {
+            "name": "CASE Feasibility",
+            "tag": "«What to build and what it earns»",
+            "desc": "Everything in T1 plus a full financial model you can rely on in front of a bank and a partner.",
+            "in": [
+                "Everything in T1",
+                "A full financial model across scenarios",
+                "Sensitivity analysis and the break point",
+                "A separate version for the credit committee",
+                "Reconciliation of forecast against actual 12 months after opening",
+            ],
+            "out": "Not included: design supervision and leasing.",
+        },
+        "T3": {
+            "name": "CASE Full Cycle",
+            "tag": "«From the site to opening»",
+            "desc": "Everything in T2 plus design supervision, a leasing strategy and six months of support after the report.",
+            "in": [
+                "Everything in T2",
+                "Design supervision and control against the brief",
+                "Leasing strategy",
+                "Six months of support after the report is delivered",
+            ],
+            "out": "Not included: construction documentation and main contractor duties.",
+        },
+        "T4": {
+            "name": "CASE Custom",
+            "tag": "«Assembled around the question»",
+            "desc": "A scope built for the specific question, priced by the hour. For bazaars, parks, redevelopment and a second opinion on someone else's report.",
+            "in": [
+                "Scope assembled around one specific question",
+                "A second opinion on an existing concept or model",
+                "Bazaars, parks, redevelopment, non standard formats",
+                "Priced by the hour",
+            ],
+            "out": "Not included: a fixed scope. It is defined before the start and written into the contract.",
+        },
+        "flags": {"priority": "Sales priority", "anchor": "Anchor"},
+        "labels": {"time": "Turnaround", "price": "Price band", "in": "Included", "out": "Boundaries"},
+    },
+
+    "services": {
+        "h1": "Four formats and the boundary of each",
+        "lead": "We sell a decision, not the thickness of a report. Below: what each format includes, where it ends and where our responsibility stops.",
+        "intro_num": "01",
+        "intro_title": "How to choose a format",
+        "intro_body": [
+            "Choose by one test: what you will actually use once we deliver. If you need to know what makes sense on this site at all, that is T1. If the decision will be financed and defended in front of a credit committee or a partner, that is T2. If you want the approved decision to survive all the way to opening, that is T3. If the question is narrow or the asset is unusual, that is T4.",
+            "We decline work when we believe you do not need it. That is cheaper for both sides than a report nobody opens twice.",
+        ],
+        "compare_num": "02",
+        "compare_title": "Comparing the formats",
+        "compare_head": ["What you receive", "T1", "T2", "T3", "T4"],
+        "compare_rows": [
+            ("Concept and positioning", 1, 1, 1, 0),
+            ("Merchandise mix and zoning", 1, 1, 1, 0),
+            ("Test layout", 1, 1, 1, 0),
+            ("Design brief for the architect", 1, 1, 1, 0),
+            ("Financial model, indicative", 1, 1, 1, 0),
+            ("Full scenario based model", 0, 1, 1, 0),
+            ("Sensitivity analysis and break point", 0, 1, 1, 0),
+            ("Version for the credit committee", 0, 1, 1, 0),
+            ("Design supervision", 0, 0, 1, 0),
+            ("Leasing strategy", 0, 0, 1, 0),
+            ("Forecast against actual reconciliation", 0, 1, 1, 0),
+            ("Scope built for one question", 0, 0, 0, 1),
+        ],
+        "compare_yes": "included",
+        "compare_no": "not included",
+        "compare_custom": "by agreement, scope fixed before the start",
+        "not_num": "03",
+        "not_title": "What we do in no format at all",
+        "not_items": [
+            "Construction documentation and design supervision as author. That is the architect's work.",
+            "A valuation report for a bank or a court. That is a licensed valuer's work.",
+            "Selling space without an approved concept. Filling for the sake of filling reduces the value of the asset.",
+            "Reverse engineering numbers towards a predetermined answer. If the model does not work, we write that it does not work.",
+        ],
+    },
+
+    "feasibility": {
+        "eyebrow": "T2 CASE Feasibility",
+        "h1": "A financial model you can defend in front of a credit committee",
+        "lead": "Feasibility answers the owner's second question. Not what to build here, but how much it will earn and under which conditions it stops earning.",
+        "cta": "Discuss a project",
+        "s1_num": "01",
+        "s1_title": "The question it answers",
+        "s1_body": [
+            "Feasibility sets out the cash flow of the asset across the project horizon and the boundaries inside which it stays viable. We do not calculate a single number but a field: a base case, a conservative case, a stress case, and separately the point at which operating cash flow stops covering debt service.",
+            "In practice you receive a map of risk with named thresholds rather than a promise of return. The decision stays yours, but you take it knowing the level of rent, vacancy or opening delay at which the calculation breaks.",
+        ],
+        "s2_num": "02",
+        "s2_title": "What is inside the report",
+        "s2_lead": "The contents page of a real report, not a list of topics.",
+        "toc": [
+            ("Executive summary", "The decision, the numbers and the risks on two pages. Read first and read alone."),
+            ("Site and constraints", "Boundaries, access, encumbrances, height and coverage limits, and which of them shape the programme."),
+            ("Catchment and demand", "Who falls inside the catchment, how many, what they can spend, and how capacity was calculated."),
+            ("Competition and pipeline", "Existing assets and those announced. What will have changed by the time you open."),
+            ("Programme and area split", "Format, GLA, split by category, anchors, a test layout."),
+            ("Operating assumptions", "Rents by category, vacancy, service charge, OPEX, indexation, rent free periods."),
+            ("Investment cost", "CAPEX by line, the drawdown schedule, funding sources and terms."),
+            ("Financial model", "Cash flow, NPV, IRR, payback, DSCR by year."),
+            ("Scenarios and sensitivity", "Base, conservative and stress. What happens when each assumption moves."),
+            ("Break point", "The combination of rent, vacancy and opening delay at which DSCR falls below 1.30."),
+            ("Bank version", "A separate document written to credit committee requirements."),
+            ("Source register", "Every figure with its source, its date and its data type."),
+        ],
+        "s3_num": "03",
+        "s3_title": "The bank version",
+        "s3_body": [
+            "A credit committee does not look at the concept. It looks at whether the asset can service debt. So the bank version is assembled separately: it opens with the repayment schedule, DSCR by year and the stress test, not with positioning and images.",
+            "It names the assumptions committees challenge first: time to reach stabilised occupancy, the durability of the anchor tenant, rent indexation and opening delay. Each assumption carries its source and its date.",
+        ],
+        "s4_num": "04",
+        "s4_title": "The DSCR 1.30 break point",
+        "s4_body": [
+            "We name the combination of conditions at which the ratio of operating cash flow to debt service falls below 1.30. This is not decoration, it is the point of the report: the owner and the bank see in advance which mix of rent, vacancy and opening delay pushes the project outside the safe corridor.",
+            "The 1.30 threshold is used as a typical covenant for commercial real estate. If your bank works to a different level, the model is rebuilt around it and the report states whose requirement was applied.",
+        ],
+        "s5_num": "05",
+        "s5_title": "Forecast against outcome",
+        "s5_body": [
+            "Twelve months after opening we send the owner and the bank our own reconciliation of forecast against actual: where the model was right, where it missed and why. That commitment is part of T2 and T3.",
+            "We do it because advisory that never checks its own forecasts is indistinguishable from opinion. The reconciliation costs us reputational risk, and that is exactly why it is useful to you.",
+        ],
+        "s6_num": "06",
+        "s6_title": "Turnaround, price and a report excerpt",
+        "excerpt_title": "A redacted report excerpt",
+        "excerpt_body": "Two pages of a real report with names and addresses removed: what the assumptions table looks like and what the conclusion looks like. Sent by email.",
+        "excerpt_cta": "Get the excerpt",
+        "excerpt_email": "Work email",
+        "stage_caption": "Massing diagram: a podium holding the retail and the income producing volume above it. The scene runs on desktop only and only where the device can hold the frame rate.",
+        "stage_figs": [("GBA", "gross built area"), ("GLA", "lettable area"), ("DSCR", "debt cover")],
+    },
+
+    "projects": {
+        "h1": "The portfolio register",
+        "lead": "42 projects in 7 countries. Below is the register: asset parameters, the CASE role and the period of work. Owner and asset names appear only where written consent exists. Everything else is shown anonymised.",
+        "policy_title": "Why some rows are closed",
+        "policy_body": "Some projects sit under non disclosure agreements and for others consent to publish the name and logo has not yet been given. Until consent exists we show the asset without its name but with its real parameters. That is more honest than a logo on a website without the owner's permission.",
+        "filters_label": "Filter",
+        "filters": [("all", "All"), ("uz", "Uzbekistan"), ("tj", "Tajikistan"), ("sa", "Saudi Arabia"), ("retail", "Retail"), ("mixed", "Mixed use")],
+        "head": ["Asset", "City", "GLA, m2", "CASE role", "Row status"],
+        "status_open": "Name disclosed",
+        "status_anon": "Anonymised",
+        "anon_names": {"mecca_retail": "A retail centre in Mecca, details on request"},
+        "pending_title": "Rows still to publish",
+        "pending_body": "These rows are ready to publish once the NDA audit across all 42 projects is complete and written consent for names and logos has been received.",
+    },
+
+    "case_labels": {
+        "problem": "The owner's problem",
+        "stage": "Stage we entered and product sold",
+        "solution": "Solution",
+        "result": "Result in numbers",
+        "params": "Parameters",
+        "nda": "Note",
+        "city": "City",
+        "country": "Country",
+        "investor": "Investor",
+        "gla": "GLA",
+        "year": "Year",
+        "role": "CASE role",
+        "why": "Why this case is here",
+    },
+    "countries": {"uz": "Uzbekistan", "tj": "Tajikistan", "sa": "Saudi Arabia"},
+    "cities": {"tashkent": "Tashkent", "dushanbe": "Dushanbe", "mecca": "Mecca"},
+
+    "cases": {
+        "82-mall": {
+            "name": "82 Mall / 82 Towers",
+            "why": "Concept and leasing on one asset: our difference in action.",
+            "problem": "The owner held a site in Dushanbe and intended to build a large mixed use asset. The open question was the one that decides everything: how large the retail component should be and what it should contain, so that it lets and holds footfall instead of becoming an empty ground floor under apartments.",
+            "stage": "We entered before the architectural decisions were locked and stayed with the project down the chain: concept and merchandise mix first, then leasing as execution of the approved strategy.",
+            "solution": "We set the format and the size of the retail component, built the split by category, defined the zoning and tested the layout for circulation. A tenant pool was assembled against the approved programme: anchors first, supporting categories after. Leasing ran off the same table the concept was calculated on, so the tenant list did not drift away from the model.",
+            "nda": "Some commercial terms are covered by an agreement with the owner. Only asset parameters and the CASE role are published.",
+        },
+        "chilonzor": {
+            "name": "Chilonzor Shopping Center",
+            "why": "Repositioning a Soviet era asset: a Tashkent owner recognises the situation.",
+            "problem": "A trading centre in Tashkent built in 1963, with an outdated area split and tenant list. The owner's question was not how to refurbish it but what role this asset should play in today's market so that the refurbishment pays back.",
+            "stage": "We engaged at the point of the refurbishment decision, before the design was prepared. Product: concept and merchandise mix with a test layout.",
+            "solution": "The role of the asset was reset: from a general purpose centre to a format that works on regular footfall from the immediate catchment. The area split was rebuilt around high frequency categories, and the entrance zone and vertical circulation were reconsidered. The refurbishment ran through 2023 and 2024 against the approved programme.",
+            "nda": "The asset name is published with the owner's consent. Commercial lease terms are not disclosed.",
+        },
+        "jabal-omar": {
+            "name": "Jabal Omar",
+            "why": "Calibre and trust, with an honest note on our role and period.",
+            "problem": "A mixed use complex in Mecca next to the Sacred Mosque. The retail brief was specific: assemble a programme for pilgrim footfall, whose seasonality, composition and buying logic differ fundamentally from urban retail.",
+            "stage": "The work covered the retail component of the complex: retail strategy, merchandise mix, zoning and budgeting.",
+            "solution": "The programme was built around peak season load and the structure of pilgrim spending rather than the familiar urban set of categories. Zoning followed the flows to the mosque and back, with priority given to categories that work on a short visit and high throughput.",
+            "nda": "Members of the CASE team worked on this project before the firm was founded in 2022, as part of another team. We state that plainly: attributing pre incorporation experience to the firm without such a note would not be correct.",
+        },
+    },
+
+    "leasing": {
+        "h1": "Leasing as execution of an approved strategy",
+        "lead": "For us leasing is not a separate space filling service. It is execution of the approved concept: the same mix, the same table, the same assumptions the model was built on.",
+        "s1_num": "01",
+        "s1_title": "What that means in practice",
+        "s1_body": [
+            "We take a leasing mandate when an approved concept and tenant mix already exist. Without them, leasing turns into filling vacant metres with whoever appears, and two years later the asset has to be repositioned at the owner's expense.",
+            "In the work itself we move from anchors to supporting categories, hold category shares inside the approved programme, and refuse tenants who break the positioning even when they offer above market rent. That is inconvenient in the moment and pays back over the horizon.",
+        ],
+        "s2_num": "02",
+        "s2_title": "Conflict of interest",
+        "s2_body": [
+            "Leasing creates a conflict of interest with advisory: a firm that recommends a programme can earn from executing it. We do not pretend the problem is not there.",
+            "We disclose the conflict in writing before the contract is signed, separate the roles inside the firm, and never tie advisory fees to the leasing outcome on the same asset. The owner is free to award leasing to another party, and that does not affect our advisory work.",
+        ],
+        "s2_link": "Full policy text",
+        "s3_num": "03",
+        "s3_title": "What we do and what we do not",
+        "do": [
+            "Assemble a tenant pool against the approved programme",
+            "Run negotiations and prepare commercial terms",
+            "Hold category shares inside the concept",
+            "Report the funnel: contacts, letters of intent, signings",
+        ],
+        "dont": [
+            "Fill space outside the approved programme",
+            "Take a mandate without an approved concept",
+            "Act for the owner and the tenant on the same deal",
+            "Put leasing above advisory in a conversation with an owner",
+        ],
+        "do_title": "We do",
+        "dont_title": "We do not",
+    },
+
+    "insights": {
+        "h1": "Insights",
+        "lead": "The section where market analysis with named figures and sources will be published.",
+        "empty_title": "The first issue is in preparation",
+        "empty_body": [
+            "Uzbekistan has no regular open source on commercial real estate that publishes its method alongside its numbers. We intend to close that gap rather than add one more blog of advice.",
+            "The first piece: one calculation walked through from site to conclusion, with the assumptions and sources left open. Leave an email if you want it first.",
+        ],
+        "cta": "Tell me about the first issue",
+        "email_label": "Work email",
+    },
+
+    "about": {
+        "h1": "Independent commercial real estate advisory",
+        "lead": "CASE Real Estate Advisory is an independent consulting firm in commercial real estate. We work at the stage where decisions can still change: before the key architectural decisions are locked in.",
+        "s1_num": "01",
+        "s1_title": "What we do",
+        "s1_body": [
+            "We establish the commercial and operational foundation of the asset: what to build, for whom, how it should function and how it will generate revenue. The architect then designs against that brief rather than the other way round.",
+            "Asset types: shopping centres and mixed use, hotels and resorts, business centres. We work in Uzbekistan and across the region.",
+        ],
+        "s2_num": "02",
+        "s2_title": "Method: descending through the layers",
+        "depth_out_label": "Deliverable",
+        "s2_lead": "Each layer rests on the one above it. You can skip a layer, but then the decision is made on an assumption rather than on data.",
+        "depth": [
+            ("Layer 1", "Site", "Boundaries, access, encumbrances, development limits. What is physically possible here.", "Constraints map"),
+            ("Layer 2", "Catchment", "Who lives and works inside the catchment, how many, how they move, what they can spend.", "Capacity calculation"),
+            ("Layer 3", "Competition", "Existing assets and those announced. Which niches are open and which are taken.", "Supply map"),
+            ("Layer 4", "Programme", "Format, area, split by category, anchors, a test layout.", "Concept and mix"),
+            ("Layer 5", "Model", "Rents, vacancy, OPEX, CAPEX, schedule, scenarios and sensitivity.", "Financial model"),
+            ("Layer 6", "Verification", "Break point, bank version, reconciliation of forecast against actual a year after opening.", "Stress test and reconciliation"),
+        ],
+        "s3_num": "03",
+        "s3_title": "Sources and verifiability",
+        "s3_body": [
+            "Every report carries a source register: for each figure, the source, the date and the data type. An assumption is marked as an assumption and a fact as a fact. It is dull, and it is the only way to tell a calculation from an opinion.",
+            "The same rule governs this site. If a figure cannot be justified, it is not here. Claims from the old site that failed the check have been removed: 89 projects, 8 countries, 7 plus years in the market, 5 billion dollars of investment.",
+        ],
+        "s4_num": "04",
+        "s4_title": "Team",
+        "s4_lead": "Instead of a sum of years we name people and their roles. Start dates are added once verified.",
+        "team": [
+            {"name": "Aziz Shermuhamedov", "role": "Founder and Chief Executive", "note": "Responsible for the method and for the final call on every report."},
+            {"name": "Bekzod Abdumajitov", "role": "Leasing Director", "note": "Tenant pool, commercial terms, execution of the approved strategy."},
+            {"name": "Timur Ilmuradov", "role": "Leasing Director", "note": "Negotiations with chains and work with anchor tenants."},
+            {"name": "Sunnatullo Mardanov", "role": "Leasing Manager", "note": "Deal funnel and mandate reporting."},
+        ],
+        "s5_num": "05",
+        "s5_title": "Memberships",
+        "s5_body": "We state industry memberships publicly only once the status and the exact wording have been confirmed.",
+    },
+
+    "contact": {
+        "h1": "Describe the site and the stage",
+        "lead": "The more specific the input, the more useful the first conversation. On the first call we say plainly whether you need our work and in which format.",
+        "promise": "We reply within 48 hours on working days.",
+        "phone_label": "Phone",
+        "email_label": "Email",
+        "city_label": "City",
+        "city_value": "Tashkent, Uzbekistan",
+        "form_title": "Request a strategic consultation",
+        "fields": {
+            "name": "Name",
+            "company": "Company",
+            "phone": "Phone",
+            "email": "Email",
+            "city": "Project city",
+            "plot": "Plot size, m2",
+            "stage": "Project stage",
+            "message": "The task",
+        },
+        "stages": [
+            "Site acquired, no decision yet",
+            "A concept exists, it needs checking",
+            "Design is under way",
+            "The asset trades, it needs a rethink",
+            "Other",
+        ],
+        "stage_placeholder": "Choose a stage",
+        "consent": "I consent to the processing of my personal data.",
+        "consent_link": "Privacy policy",
+        "submit": "Send the enquiry",
+        "trap_label": "Leave this field empty",
+    },
+
+    "faq": [
+        (
+            "What exactly does CASE do",
+            "CASE answers the owner's two questions: what to build on this site and what it will earn. We work before design begins, while the decision can still be changed in a spreadsheet rather than on site. The output is the asset concept, the split of area by category, a test layout, a design brief for the architect and a financial model. We do not issue construction documentation, we do not sell space and we do not sign valuation reports.",
+        ),
+        (
+            "At what stage should I come to you",
+            "The best moment is when the site exists and the architectural decisions are not yet locked. At that point changing the programme costs one spreadsheet. After the design brief is issued every revision gets more expensive, and once construction starts most decisions are irreversible. We also work with trading assets, but the task there is different: repositioning what is already built rather than shaping what will be.",
+        ),
+        (
+            "Are you designers",
+            "No. We are not an architecture practice, we do not issue construction documentation and we do not act as author supervisor. We hand the architect a brief: format, areas, the split by category, requirements for circulation, building depth and connections between floors. The architect designs from there and we check that the design stays inside the approved programme. The split suits both sides: the architect gets clear input, the owner keeps control of the commercial logic.",
+        ),
+        (
+            "What is in the financial model",
+            "The cash flow of the asset across the project horizon: rents by category, vacancy, service charge, OPEX, CAPEX and its drawdown schedule, funding sources and the repayment profile. Then three scenarios, sensitivity analysis on every key assumption, and the break point: the combination of rent, vacancy and opening delay at which DSCR falls below 1.30. A separate version is assembled for the bank, written to credit committee requirements.",
+        ),
+        (
+            "How much does it cost and what drives the price",
+            "Three things: the format of the engagement, the size and complexity of the asset, and whether site and market data already exist. T1 answers what to build. T2 adds the full financial model and the bank version. T3 carries the decision through to opening. T4 is assembled around a specific question and priced by the hour. Price bands for each format are published on the services page once the price list is approved.",
+        ),
+        (
+            "How long does the work take",
+            "Turnaround depends on the format and on how complete the input data is. The decisive factor is access to data: footfall counts, site documents and confirmed constraints speed the work up far more than adding people to the team. Exact turnaround times for each format are published on the services page once they are approved.",
+        ),
+        (
+            "How are you different from CBRE, JLL and local brokers",
+            "The majors are strong in valuation, brokerage and international reporting, and most of them have no office of their own in Uzbekistan: the region is served from neighbouring countries on visits. Local brokers are strong on transactions but start work once the building exists. We occupy the stage between them: the decision before design, with a financial model and a commitment to reconcile forecast against actual a year after opening. We are independent: no franchise, no obligations to a network.",
+        ),
+        (
+            "How do you avoid a conflict of interest when you also do leasing",
+            "We name the conflict and bound it with three rules. First, it is disclosed in writing before the contract is signed. Second, advisory fees are never tied to the leasing outcome on the same asset, so we have no incentive to inflate the programme. Third, the owner is free to award leasing to another party, and that does not affect our advisory work. We also never act for the owner and the tenant on the same deal.",
+        ),
+        (
+            "Do you work outside Uzbekistan",
+            "Yes. The portfolio holds 42 projects in 7 countries, including Tajikistan and Saudi Arabia. Outside Uzbekistan we work on the same terms but always with a local market data source: without one the calculation rests on someone else's assumptions. If a country has no accessible statistics of the required quality, we say so before the contract is signed rather than in the report.",
+        ),
+        (
+            "What do you need from me to start",
+            "Three things are enough for a first conversation: the city and address of the site, its area and the stage of the project. Useful but not required at the outset: title documents, planning constraints, a topographic survey, and any concepts or calculations already produced. The first call is free, and on it we say plainly whether you need our work. If the question can be settled without us, we will tell you so.",
+        ),
+    ],
+
+    "privacy": {
+        "h1": "Privacy policy",
+        "body": [
+            ("What data we collect", [
+                "Through the form on this site: name, company, phone, email, project city, plot size, stage and the text of the enquiry. That data serves one purpose: to contact you and prepare a substantive reply.",
+                "Automatically: anonymised visit statistics without advertising cookies. We do not collect data for profiling and we do not pass it to advertising platforms.",
+            ]),
+            ("How long we keep it", [
+                "Enquiries are kept for as long as the correspondence continues and for 24 months after the last contact. On your request we delete them sooner.",
+            ]),
+            ("Who we share it with", [
+                "Nobody outside the firm, except where the law requires it. We do not sell or pass on contact details to third parties.",
+            ]),
+            ("How to have data deleted", [
+                "Write to support@caseadvisory.uz from the address used in the enquiry. We delete within 10 working days and confirm by email.",
+            ]),
+        ],
+    },
+    "conflicts": {
+        "h1": "Conflict of interest policy",
+        "body": [
+            ("Where the conflict arises", [
+                "CASE runs advisory and leasing. A firm that recommends the programme of an asset can at the same time earn from letting space in that asset. That is a conflict of interest, and we state it plainly rather than hiding it in a footnote.",
+            ]),
+            ("What we do to bound it", [
+                "We disclose the conflict in writing before the contract is signed, as a clause of its own rather than a line in an annex.",
+                "We never tie advisory fees to the leasing outcome on the same asset.",
+                "We separate roles inside the firm: the consultant who builds the programme does not carry the leasing sales plan for that asset.",
+                "We never act for the owner and the tenant on the same deal.",
+                "The owner is free to award leasing to another party. That does not affect our advisory work.",
+            ]),
+            ("What we decline", [
+                "A leasing mandate without an approved concept.",
+                "Work where the required conclusion is set in advance.",
+                "Acting for two competing assets in the same catchment at once, without written consent from both sides.",
+            ]),
+            ("How to report a breach", [
+                "Write to support@caseadvisory.uz with the subject line conflict of interest. We reply within 5 working days.",
+            ]),
+        ],
+    },
+
+    "foot": {
+        "tagline": "Independent commercial real estate advisory. What to build and what it will earn, before design.",
+        "col_nav": "Sections",
+        "col_legal": "Legal",
+        "col_contact": "Contact",
+        "rights": "All rights reserved.",
+        "legal_note": "The material on this site is informational. It is not an offer, a valuation or investment advice.",
+    },
+}

@@ -1,0 +1,43 @@
+# CASE Real Estate Advisory
+# Поисковых роботов ИИ не закрываем: закрыть их значит выпасть из ответов целиком.
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: Claude-SearchBot
+Allow: /
+
+User-agent: Claude-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Perplexity-User
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: YandexBot
+Allow: /
+
+User-agent: *
+Allow: /
+Disallow: /os/
+Disallow: /admin/
+Disallow: /docs/
+
+# Обучающие краулеры. Решение за собственником: снимите комментарий,
+# если контент не должен уходить в обучающие выборки.
+# User-agent: GPTBot
+# Disallow: /
+# User-agent: ClaudeBot
+# Disallow: /
+# User-agent: Google-Extended
+# Disallow: /
+
+Sitemap: https://caseadvisory.com/sitemap.xml

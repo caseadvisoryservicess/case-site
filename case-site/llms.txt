@@ -1,0 +1,37 @@
+# CASE Real Estate Advisory
+
+> Independent commercial real estate advisory firm based in Tashkent, Uzbekistan, founded in 2022. CASE answers what to build on a site and what it will earn, before architectural design begins. Portfolio: 42 projects in 7 countries.
+
+CASE is not an architecture practice, not a broker and not a valuer. The firm sells the decision that is taken before the drawing exists: concept, merchandise mix, zoning, a design brief for the architect and a financial model.
+
+## Core pages
+
+- [What to build and what it will earn](https://caseadvisory.com/en/): position, the seven stage chain, the four engagement formats and the proof numbers.
+- [T2 CASE Feasibility](https://caseadvisory.com/en/feasibility.html): the financial model product, the bank version, the DSCR 1.30 break point and the forecast versus outcome promise.
+- [Services T1 to T4](https://caseadvisory.com/en/services.html): what each format includes and, just as important, what it excludes.
+- [Projects](https://caseadvisory.com/en/projects.html): the portfolio register with parameters and CASE role.
+- [Leasing](https://caseadvisory.com/en/leasing.html): leasing as execution of an approved strategy.
+- [Conflict of interest policy](https://caseadvisory.com/en/legal/conflicts.html): how advisory and leasing are separated.
+- [About the firm](https://caseadvisory.com/en/about.html): method, team and how numbers are sourced.
+
+## Verifiable numbers
+
+- Founded: 2022.
+- Projects in the portfolio: 42.
+- Countries: 7.
+- 8.1 mn m2 GBA, including work by members of the team before CASE was founded in 2022.
+- Response to an enquiry: within 48 hours on working days.
+
+## Languages
+
+- Uzbek: https://caseadvisory.com/ (default)
+- Russian: https://caseadvisory.com/ru/
+- English: https://caseadvisory.com/en/
+
+## Contact
+
+- Phone: +998 77 047 73 75
+- Email: support@caseadvisory.uz
+- Office: Tashkent, Uzbekistan
+
+Last updated: 2026-08-19

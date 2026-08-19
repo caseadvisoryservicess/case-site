@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img">
+<defs><radialGradient id="lamp" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#BE8E3A" stop-opacity="0.20"/><stop offset="1" stop-color="#BE8E3A" stop-opacity="0"/></radialGradient><radialGradient id="floor" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#BE8E3A" stop-opacity="0.16"/><stop offset="1" stop-color="#BE8E3A" stop-opacity="0"/></radialGradient></defs>
+<rect width="1600" height="1000" fill="#0A0A0A"/>
+<rect width="1600" height="1000" fill="url(#lamp)"/>
+<polygon points="800.0,930.0 1267.6,660.0 713.4,340.0 245.8,610.0" fill="#131210" stroke="#2A2620" stroke-width="1.5"/>
+<line x1="858.5" y1="896.2" x2="304.2" y2="576.2" stroke="#211E19" stroke-width="1"/>
+<line x1="916.9" y1="862.5" x2="362.7" y2="542.5" stroke="#211E19" stroke-width="1"/>
+<line x1="975.4" y1="828.8" x2="421.1" y2="508.8" stroke="#211E19" stroke-width="1"/>
+<line x1="1033.8" y1="795.0" x2="479.6" y2="475.0" stroke="#211E19" stroke-width="1"/>
+<line x1="1092.3" y1="761.2" x2="538.0" y2="441.2" stroke="#211E19" stroke-width="1"/>
+<line x1="1150.7" y1="727.5" x2="596.5" y2="407.5" stroke="#211E19" stroke-width="1"/>
+<line x1="1209.2" y1="693.8" x2="654.9" y2="373.8" stroke="#211E19" stroke-width="1"/>
+<ellipse cx="800" cy="890" rx="470" ry="110" fill="url(#floor)"/>
+<polygon points="800.0,880.0 427.6,665.0 427.6,545.0 800.0,760.0" fill="#2E2A22" stroke="#4A4338" stroke-width="1.5"/>
+<polygon points="800.0,880.0 1085.8,715.0 1085.8,595.0 800.0,760.0" fill="#4E4739" stroke="#6E6553" stroke-width="1.5"/>
+<polygon points="713.4,380.0 1085.8,595.0 800.0,760.0 427.6,545.0" fill="#8A7C64" stroke="#B29A72" stroke-width="1.5"/>
+<polygon points="800.0,650.0 583.5,525.0 583.5,245.0 800.0,370.0" fill="#2E2A22" stroke="#4A4338" stroke-width="1.5"/>
+<polygon points="800.0,650.0 973.2,550.0 973.2,270.0 800.0,370.0" fill="#4E4739" stroke="#6E6553" stroke-width="1.5"/>
+<polygon points="756.7,145.0 973.2,270.0 800.0,370.0 583.5,245.0" fill="#8A7C64" stroke="#B29A72" stroke-width="1.5"/>
+<ellipse cx="800.0" cy="270.0" rx="200" ry="100" fill="url(#floor)"/>
+</svg>

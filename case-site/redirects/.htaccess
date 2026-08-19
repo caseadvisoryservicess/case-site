@@ -1,0 +1,39 @@
+# Сгенерировано site-src/build.py. Правки вносите в facts.REDIRECT_MAP.
+RewriteEngine On
+
+# CASE OS и админка остаются на своём хосте, их не трогаем.
+RewriteRule ^os/ - [L]
+RewriteRule ^admin/ - [L]
+
+# Единственный канонический хост.
+RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
+RewriteRule ^(.*)$ https://%1/$1 [R=301,L]
+RewriteCond %{HTTP_HOST} ^caseadvisory\.uz$ [NC]
+RewriteRule ^(.*)$ https://caseadvisory.com/$1 [R=301,L]
+
+RedirectMatch 301 ^/main\-ru/?$ /ru/
+RedirectMatch 301 ^/main\-en/?$ /en/
+RedirectMatch 301 ^/portfolio\-uz/?$ /projects.html
+RedirectMatch 301 ^/portfolio\-ru/?$ /ru/projects.html
+RedirectMatch 301 ^/portfolio\-en/?$ /en/projects.html
+RedirectMatch 301 ^/portfolio\-uz2/?$ /projects.html
+RedirectMatch 301 ^/portfolio\-ru2/?$ /ru/projects.html
+RedirectMatch 301 ^/portfolio\-en2/?$ /en/projects.html
+RedirectMatch 301 ^/faq\-uz/?$ /#faq
+RedirectMatch 301 ^/faq\-ru/?$ /ru/#faq
+RedirectMatch 301 ^/faq\-en/?$ /en/#faq
+RedirectMatch 301 ^/ijara/?$ /leasing.html
+RedirectMatch 301 ^/arenda/?$ /ru/leasing.html
+RedirectMatch 301 ^/leasing/?$ /en/leasing.html
+RedirectMatch 301 ^/82mall/?$ /en/projects/82-mall.html
+RedirectMatch 301 ^/82mall\-ru/?$ /ru/projects/82-mall.html
+RedirectMatch 301 ^/82mall\-uz/?$ /projects/82-mall.html
+RedirectMatch 301 ^/chilonzormall/?$ /en/projects/chilonzor.html
+RedirectMatch 301 ^/chilonzormall\-ru/?$ /ru/projects/chilonzor.html
+RedirectMatch 301 ^/chilonzormall\-uz/?$ /projects/chilonzor.html
+RedirectMatch 301 ^/form\-ru/?$ /ru/contact.html
+RedirectMatch 301 ^/form\-en/?$ /en/contact.html
+RedirectMatch 301 ^/form\-uz/?$ /contact.html
+RedirectMatch 301 ^/ru/?$ /ru/
+RedirectMatch 301 ^/uz/?$ /
+RedirectMatch 301 ^/en/?$ /en/

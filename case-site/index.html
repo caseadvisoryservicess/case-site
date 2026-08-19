@@ -1,533 +1,271 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uz">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CASE Real Estate Advisory</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{
-  --cream:#F5F3EF;--white:#FFF;--ink:#1A1714;
-  --i60:rgba(26,23,20,.6);--i30:rgba(26,23,20,.28);--i10:rgba(26,23,20,.08);
-  --red:#B01F22;
-  --serif:'DM Serif Display',Georgia,serif;
-  --sans:'Inter',system-ui,sans-serif;
-  --g:60px;--max:1380px;
-}
-html{scroll-behavior:smooth}
-body{font-family:var(--sans);background:var(--cream);color:var(--ink);overflow-x:hidden}
-::-webkit-scrollbar{width:2px}::-webkit-scrollbar-thumb{background:var(--red)}
-img{display:block;width:100%;height:100%;object-fit:cover}
-
-/* NAV */
-nav{position:fixed;top:0;left:0;right:0;z-index:300;height:68px;padding:0 var(--g);display:flex;align-items:center;justify-content:space-between;transition:background .3s,border-color .3s;border-bottom:1px solid transparent}
-nav.s{background:rgba(245,243,239,.96);backdrop-filter:blur(14px);border-color:var(--i10)}
-.brand{text-decoration:none;display:flex;flex-direction:column;gap:1px}
-.brand-n{font-family:var(--serif);font-size:22px;color:var(--ink);line-height:1;letter-spacing:1px}
-.brand-s{font-size:8px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--i60)}
-.nl{display:flex;gap:32px;list-style:none}
-.nl a{font-size:12px;font-weight:500;color:var(--i60);text-decoration:none;transition:color .2s}
-.nl a:hover{color:var(--ink)}
-.nc{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--ink);text-decoration:none;border-bottom:1.5px solid var(--ink);padding-bottom:2px;transition:color .2s,border-color .2s}
-.nc:hover{color:var(--red);border-color:var(--red)}
-
-/* ── HERO: full-bleed render ── */
-.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:flex-end;overflow:hidden}
-.hero-img{position:absolute;inset:0;z-index:0}
-.hero-img img{width:100%;height:100%;object-fit:cover;object-position:center 40%}
-.hero-grad{position:absolute;inset:0;z-index:1;background:linear-gradient(to top,rgba(15,12,10,.88) 0%,rgba(15,12,10,.3) 55%,transparent 100%)}
-.hero-content{position:relative;z-index:2;padding:0 var(--g) 72px;display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:end;max-width:var(--max);margin:0 auto;width:100%}
-.hero-eyebrow{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.9);display:flex;align-items:center;gap:10px;margin-bottom:24px;opacity:0;animation:up .7s .1s forwards}
-.hero-eyebrow::before{content:'';width:20px;height:1px;background:currentColor;flex-shrink:0}
-h1{font-family:var(--serif);font-size:clamp(52px,5.5vw,88px);line-height:1.02;letter-spacing:-1px;color:#fff;opacity:0;animation:up .9s .25s forwards}
-h1 em{font-style:italic;color:rgba(176,31,34,.9)}
-.hero-r{display:flex;flex-direction:column;justify-content:flex-end;gap:24px;opacity:0;animation:up .8s .45s forwards}
-.hero-desc{font-size:16px;line-height:1.75;color:rgba(255,255,255,.65);max-width:420px}
-.hero-desc strong{color:#fff;font-weight:600}
-.btns{display:flex;gap:12px;flex-wrap:wrap}
-.btn-w{background:rgba(255,255,255,.12);backdrop-filter:blur(8px);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 30px;text-decoration:none;border:1px solid rgba(255,255,255,.25);transition:background .2s}
-.btn-w:hover{background:rgba(255,255,255,.22)}
-.btn-r{background:var(--red);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 30px;text-decoration:none;border:1px solid transparent;transition:background .2s}
-.btn-r:hover{background:#8e1719}
-
-/* Stat bar on hero bottom */
-.hero-stats{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);opacity:0;animation:fadeIn .8s 1s forwards}
-.hstat{padding:28px var(--g);border-right:1px solid rgba(255,255,255,.1)}
-.hstat:last-child{border-right:none}
-.hstat-n{font-family:var(--serif);font-size:42px;color:#fff;line-height:1}
-.hstat-n sup{font-family:var(--sans);font-size:16px;color:rgba(176,31,34,.9);vertical-align:super;font-weight:300}
-.hstat-l{font-size:11px;color:rgba(255,255,255,.45);margin-top:5px}
-
-/* TICKER */
-.ticker{background:var(--ink);padding:15px 0;overflow:hidden;white-space:nowrap}
-.tt{display:inline-flex;animation:scroll 32s linear infinite}
-.ti{font-family:var(--serif);font-style:italic;font-size:16px;color:rgba(255,255,255,.6);padding:0 30px;display:inline-flex;align-items:center;gap:30px}
-.ti::after{content:'·';color:var(--red);font-style:normal;font-size:20px}
-
-/* ── PORTFOLIO ── */
-.portfolio{background:var(--white);padding:100px 0 0}
-.port-head{padding:0 var(--g) 52px;max-width:var(--max);margin:0 auto;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:24px}
-.port-head-l .plabel{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.port-head-l .plabel::before{content:'';width:20px;height:1px;background:var(--red);flex-shrink:0}
-.port-head-l h2{font-family:var(--serif);font-size:clamp(38px,4vw,60px);line-height:1.06}
-.port-filters{display:flex;gap:8px;flex-wrap:wrap}
-.pf{font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:9px 20px;border:1.5px solid var(--i30);background:transparent;cursor:pointer;color:var(--i60);transition:all .2s}
-.pf.active,.pf:hover{background:var(--ink);color:#fff;border-color:var(--ink)}
-
-/* Featured project — full width */
-.port-featured{position:relative;height:600px;overflow:hidden;cursor:pointer;margin:0}
-.port-featured img{transition:transform .8s ease}
-.port-featured:hover img{transform:scale(1.03)}
-.port-featured-overlay{position:absolute;inset:0;background:linear-gradient(to right,rgba(15,12,10,.75) 0%,rgba(15,12,10,.1) 60%,transparent 100%);display:flex;align-items:flex-end;padding:60px var(--g)}
-.pf-tag{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.85);margin-bottom:12px}
-.pf-title{font-family:var(--serif);font-size:clamp(32px,3.5vw,54px);color:#fff;line-height:1.06;margin-bottom:12px}
-.pf-meta{font-size:13px;color:rgba(255,255,255,.55);display:flex;gap:24px}
-.pf-badge{position:absolute;top:40px;right:60px;background:var(--red);color:#fff;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;padding:10px 20px}
-.port-featured-arrow{width:52px;height:52px;background:rgba(255,255,255,.12);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;margin-left:32px;flex-shrink:0;transition:background .2s}
-.port-featured:hover .port-featured-arrow{background:var(--red);border-color:var(--red)}
-
-/* Grid of 4 project cards */
-.port-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:3px;background:var(--i10);margin-top:3px}
-.pcard{position:relative;height:420px;overflow:hidden;cursor:pointer;background:var(--cream)}
-.pcard img{transition:transform .7s ease}
-.pcard:hover img{transform:scale(1.06)}
-.pcard-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,12,10,.82) 0%,rgba(15,12,10,.08) 50%,transparent 100%);display:flex;flex-direction:column;justify-content:flex-end;padding:28px 24px;transition:background .3s}
-.pcard:hover .pcard-overlay{background:linear-gradient(to top,rgba(15,12,10,.9) 0%,rgba(15,12,10,.2) 60%,transparent 100%)}
-.pcard-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:8px;transition:color .3s}
-.pcard:hover .pcard-type{color:rgba(176,31,34,.85)}
-.pcard-name{font-family:var(--serif);font-size:22px;color:#fff;line-height:1.1;margin-bottom:6px}
-.pcard-loc{font-size:12px;color:rgba(255,255,255,.45);display:flex;align-items:center;gap:6px}
-.pcard-loc::before{content:'→';font-size:10px;color:var(--red)}
-.pcard-detail{font-size:12px;line-height:1.6;color:rgba(255,255,255,.55);margin-top:12px;max-height:0;overflow:hidden;transition:max-height .4s ease}
-.pcard:hover .pcard-detail{max-height:80px}
-
-/* 2nd row — wide + narrow */
-.port-duo{display:grid;grid-template-columns:3fr 2fr;gap:3px;background:var(--i10);margin-top:3px}
-.pdcard{position:relative;height:480px;overflow:hidden;cursor:pointer}
-.pdcard img{transition:transform .7s}
-.pdcard:hover img{transform:scale(1.05)}
-.pdcard-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(15,12,10,.8) 0%,transparent 60%);display:flex;flex-direction:column;justify-content:flex-end;padding:36px 32px}
-.pdcard-type{font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(176,31,34,.8);margin-bottom:10px}
-.pdcard-name{font-family:var(--serif);font-size:28px;color:#fff;line-height:1.1;margin-bottom:8px}
-.pdcard-meta{font-size:12px;color:rgba(255,255,255,.45)}
-
-/* Port CTA row */
-.port-cta{padding:52px var(--g);display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--i10);max-width:100%}
-.port-cta p{font-size:15px;color:var(--i60);max-width:480px}
-.port-cta p strong{color:var(--ink)}
-.btn-ink{background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 32px;text-decoration:none;white-space:nowrap;transition:background .2s}
-.btn-ink:hover{background:var(--red)}
-
-/* SERVICES */
-.services{background:var(--cream);padding:120px 0}
-.sw{max-width:var(--max);margin:0 auto;padding:0 var(--g);display:grid;grid-template-columns:360px 1fr;gap:100px;align-items:start}
-.sl{position:sticky;top:96px}
-.sl .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.sl .lbl::before{content:'';width:20px;height:1px;background:var(--red)}
-.sl h2{font-family:var(--serif);font-size:clamp(36px,3vw,50px);line-height:1.08;margin-bottom:20px}
-.sl p{font-size:15px;line-height:1.75;color:var(--i60)}
-.sr-img{width:100%;height:320px;overflow:hidden;margin-top:36px}
-.srow{display:grid;grid-template-columns:48px 1fr 20px;gap:20px;align-items:start;padding:30px 0;border-top:1px solid var(--i10);text-decoration:none;color:inherit;transition:border-color .25s;cursor:pointer}
-.srow:last-child{border-bottom:1px solid var(--i10)}
-.srow:hover{border-top-color:var(--red)}
-.srow:hover .sn{color:var(--red)}
-.srow:hover .arr{transform:translate(3px,-3px)}
-.sn{font-family:var(--serif);font-size:13px;color:var(--i30);padding-top:3px;transition:color .25s}
-.sname{font-size:18px;font-weight:600;margin-bottom:8px}
-.sdesc{font-size:13.5px;line-height:1.7;color:var(--i60)}
-.arr{font-size:16px;color:var(--red);padding-top:3px;transition:transform .2s}
-
-/* QUOTE BAND */
-.qband{position:relative;height:460px;overflow:hidden}
-.qband img{position:absolute;inset:0}
-.qband-ov{position:absolute;inset:0;background:rgba(20,17,14,.62);display:flex;align-items:center;justify-content:center;padding:var(--g)}
-.qt{font-family:var(--serif);font-size:clamp(26px,3.8vw,54px);font-style:italic;color:#fff;text-align:center;max-width:860px;line-height:1.2}
-.qt em{font-style:normal;color:rgba(176,31,34,.9)}
-
-/* HOW */
-.how{background:var(--white);padding:120px 0}
-.ht{max-width:var(--max);margin:0 auto;padding:0 var(--g) 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
-.ht h2{font-family:var(--serif);font-size:clamp(38px,3.8vw,60px);line-height:1.06}
-.ht p{font-size:16px;line-height:1.75;color:var(--i60)}
-.ht p strong{color:var(--ink)}
-.hg{max-width:var(--max);margin:0 auto;padding:0 var(--g);display:grid;grid-template-columns:repeat(3,1fr);gap:2px;background:var(--i10)}
-.hc{background:var(--white);padding:40px 32px;transition:background .25s}
-.hc:hover{background:var(--cream)}
-.hc-tag{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:16px}
-.hc h3{font-family:var(--serif);font-size:21px;line-height:1.2;margin-bottom:12px}
-.hc p{font-size:13.5px;line-height:1.72;color:var(--i60)}
-
-/* APPROACH */
-.approach{background:var(--ink);color:#fff;padding:120px 0}
-.at{max-width:var(--max);margin:0 auto;padding:0 var(--g) 64px;display:grid;grid-template-columns:1fr 1fr;gap:80px;align-items:end}
-.at .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(176,31,34,.8);display:flex;align-items:center;gap:10px;margin-bottom:20px}
-.at .lbl::before{content:'';width:20px;height:1px;background:rgba(176,31,34,.8)}
-.at h2{font-family:var(--serif);font-size:clamp(36px,3.5vw,58px);line-height:1.06;color:#fff}
-.at p{font-size:15px;line-height:1.75;color:rgba(255,255,255,.48)}
-.at p strong{color:rgba(255,255,255,.85)}
-.steps{display:grid;grid-template-columns:repeat(5,1fr);border-top:1px solid rgba(255,255,255,.1);max-width:var(--max);margin:0 auto;padding:0 var(--g)}
-.step{padding:36px 24px;border-right:1px solid rgba(255,255,255,.07)}
-.step:last-child{border-right:none}
-.step-n{font-family:var(--serif);font-size:36px;color:rgba(255,255,255,.1);margin-bottom:16px}
-.step-t{font-size:14px;font-weight:600;color:rgba(255,255,255,.88);margin-bottom:8px;line-height:1.3}
-.step-b{font-size:12.5px;line-height:1.7;color:rgba(255,255,255,.36)}
-
-/* WHY */
-.why{display:grid;grid-template-columns:1fr 1fr}
-.why-l{position:relative;min-height:580px;overflow:hidden}
-.why-l img{position:absolute;inset:0}
-.why-lov{position:absolute;inset:0;background:rgba(176,31,34,.58);display:flex;flex-direction:column;justify-content:flex-end;padding:60px}
-.why-lov .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:rgba(255,255,255,.75);display:flex;align-items:center;gap:10px;margin-bottom:16px}
-.why-lov .lbl::before{content:'';width:20px;height:1px;background:rgba(255,255,255,.6)}
-.why-lov h2{font-family:var(--serif);font-size:clamp(32px,2.8vw,50px);line-height:1.06;color:#fff;margin-bottom:18px}
-.why-lov p{font-size:15px;line-height:1.75;color:rgba(255,255,255,.7);max-width:380px}
-.why-r{background:var(--white);padding:72px 60px;display:flex;flex-direction:column;justify-content:center}
-.dp{display:flex;gap:18px;padding:20px 0;border-bottom:1px solid var(--i10);align-items:flex-start}
-.dp:first-child{border-top:1px solid var(--i10)}
-.dp-ic{width:20px;height:20px;background:var(--red);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:900;color:#fff;margin-top:2px}
-.dp-tx{font-size:14.5px;line-height:1.65;color:var(--i60)}
-.dp-tx strong{color:var(--ink);font-weight:600}
-
-/* CTA */
-.cta{padding:140px var(--g);background:var(--cream);text-align:center}
-.cta .lbl{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:20px}
-.cta .lbl::before{content:'';width:20px;height:1px;background:var(--red)}
-.cta h2{font-family:var(--serif);font-size:clamp(44px,5.5vw,84px);line-height:1.02;letter-spacing:-1px;margin-bottom:24px}
-.cta h2 em{font-style:italic;color:var(--red)}
-.cta>p{font-size:17px;line-height:1.7;color:var(--i60);max-width:460px;margin:0 auto 48px}
-.cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
-.btn-f{background:var(--ink);color:#fff;font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:14px 32px;text-decoration:none;transition:background .2s}
-.btn-f:hover{background:var(--red)}
-.btn-o{background:transparent;color:var(--ink);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:13px 32px;border:1.5px solid var(--i30);text-decoration:none;transition:border-color .2s}
-.btn-o:hover{border-color:var(--ink)}
-.cons{margin-top:64px;padding-top:48px;border-top:1px solid var(--i10);display:grid;grid-template-columns:repeat(4,1fr)}
-.con{padding:0 24px;border-right:1px solid var(--i10)}
-.con:first-child{padding-left:0}.con:last-child{border-right:none}
-.con-l{font-size:10px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:var(--i30);margin-bottom:8px}
-.con-v{font-size:13.5px;font-weight:500;color:var(--ink);text-decoration:none;transition:color .2s;display:block}
-.con-v:hover{color:var(--red)}
-
-/* FOOTER */
-footer{background:var(--ink);padding:36px var(--g);display:flex;align-items:center;justify-content:space-between}
-.fl{display:flex;flex-direction:column;gap:2px}
-.fl-n{font-family:var(--serif);font-size:18px;color:#fff;letter-spacing:1px}
-.fl-s{font-size:8px;font-weight:600;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.3)}
-.flinks{display:flex;gap:28px;list-style:none}
-.flinks a{font-size:11px;font-weight:500;letter-spacing:.5px;text-transform:uppercase;color:rgba(255,255,255,.38);text-decoration:none;transition:color .2s}
-.flinks a:hover{color:#fff}
-.fc{font-size:11px;color:rgba(255,255,255,.18)}
-
-/* ANIM */
-@keyframes up{from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.r{opacity:0;transform:translateY(32px);transition:opacity .8s,transform .8s}
-.r.in{opacity:1;transform:none}
-.d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
-
-/* RESPONSIVE */
-@media(max-width:1000px){
-  :root{--g:24px}
-  .hero-content,.sw,.ht,.at,.why{grid-template-columns:1fr;gap:40px}
-  .hero-stats{grid-template-columns:1fr 1fr}
-  .port-grid{grid-template-columns:1fr 1fr}
-  .pcard{height:320px}
-  .port-duo{grid-template-columns:1fr}
-  .hg{grid-template-columns:1fr;padding:0 var(--g)}
-  .steps{grid-template-columns:1fr 1fr}
-  .sl{position:relative;top:0}
-  .why-l{min-height:360px}
-  .why-r{padding:60px var(--g)}
-  .cons{grid-template-columns:1fr 1fr;gap:32px}
-  .con{border-right:none;padding:0}
-  footer{flex-direction:column;gap:20px;text-align:center}
-  .flinks{flex-wrap:wrap;justify-content:center}
-  nav .nl,.nc{display:none}
-  .port-cta{flex-direction:column;gap:24px;align-items:flex-start}
-  .port-featured{height:420px}
-}
-</style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CASE Advisory: nima qurish va qancha keltiradi</title>
+<meta name="description" content="Toshkentda mustaqil tijorat koʻchmas mulk ekspertizasi: yerda nima qurish va bu qancha daromad keltiradi. Javob loyihalash boshlanishidan oldin.">
+<link rel="canonical" href="https://caseadvisory.com/">
+<link rel="alternate" hreflang="uz" href="https://caseadvisory.com/">
+<link rel="alternate" hreflang="ru" href="https://caseadvisory.com/ru/">
+<link rel="alternate" hreflang="en" href="https://caseadvisory.com/en/">
+<link rel="alternate" hreflang="x-default" href="https://caseadvisory.com/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="CASE Real Estate Advisory">
+<meta property="og:locale" content="uz_UZ">
+<meta property="og:title" content="CASE Advisory: nima qurish va qancha keltiradi">
+<meta property="og:description" content="Toshkentda mustaqil tijorat koʻchmas mulk ekspertizasi: yerda nima qurish va bu qancha daromad keltiradi. Javob loyihalash boshlanishidan oldin.">
+<meta property="og:url" content="https://caseadvisory.com/">
+<meta property="og:image" content="https://caseadvisory.com/assets/img/og/uz-home.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="CASE Advisory: nima qurish va qancha keltiradi">
+<meta name="twitter:description" content="Toshkentda mustaqil tijorat koʻchmas mulk ekspertizasi: yerda nima qurish va bu qancha daromad keltiradi. Javob loyihalash boshlanishidan oldin.">
+<meta name="twitter:image" content="https://caseadvisory.com/assets/img/og/uz-home.png">
+<meta name="theme-color" content="#FAF9F7">
+<link rel="preload" href="/assets/fonts/bebas-neue-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/assets/fonts/montserrat-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/assets/css/styles.css">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
+<script>document.documentElement.classList.add('js');addEventListener('load',function(){setTimeout(function(){var d=document.documentElement;if(!d.classList.contains('motion-ready')){d.classList.remove('js')}},3000)})</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://caseadvisory.com/#organization","name":"CASE Real Estate Advisory","alternateName":"CASE Advisory","url":"https://caseadvisory.com/","foundingDate":"2022","description":"CASE bu mustaqil tijorat koʻchmas mulk ekspertizasi: loyihalashdan oldin nimani qurish va bu qancha daromad keltirishini aniqlaymiz.","sameAs":["https://www.linkedin.com/company/case-real-estate-advisory","https://www.instagram.com/caseadvisory","https://t.me/case_advisory","https://www.youtube.com/@case.advisory"],"address":{"@type":"PostalAddress","addressLocality":"Tashkent","addressCountry":"UZ"},"contactPoint":[{"@type":"ContactPoint","telephone":"+998770477375","email":"support@caseadvisory.uz","contactType":"sales","availableLanguage":["uz","ru","en"]}]},{"@type":"ProfessionalService","@id":"https://caseadvisory.com/#professionalservice","name":"CASE Real Estate Advisory","parentOrganization":{"@id":"https://caseadvisory.com/#organization"},"url":"https://caseadvisory.com/","telephone":"+998770477375","email":"support@caseadvisory.uz","priceRange":"$$$","areaServed":[{"@type":"Country","name":"Uzbekistan"},{"@type":"Country","name":"Tajikistan"},{"@type":"Country","name":"Saudi Arabia"}],"address":{"@type":"PostalAddress","addressLocality":"Tashkent","addressCountry":"UZ"}},{"@type":"WebSite","@id":"https://caseadvisory.com/#website","url":"https://caseadvisory.com/","name":"CASE Advisory","publisher":{"@id":"https://caseadvisory.com/#organization"},"inLanguage":["uz","ru","en"]},{"@type":"WebPage","@id":"https://caseadvisory.com/#webpage","url":"https://caseadvisory.com/","name":"CASE Advisory: nima qurish va qancha keltiradi","description":"Toshkentda mustaqil tijorat koʻchmas mulk ekspertizasi: yerda nima qurish va bu qancha daromad keltiradi. Javob loyihalash boshlanishidan oldin.","isPartOf":{"@id":"https://caseadvisory.com/#website"},"about":{"@id":"https://caseadvisory.com/#organization"},"inLanguage":"uz","dateModified":"2026-08-19"},{"@type":"FAQPage","@id":"https://caseadvisory.com/#faq","mainEntity":[{"@type":"Question","name":"CASE aynan nima bilan shugʻullanadi","acceptedAnswer":{"@type":"Answer","text":"CASE egasining ikki savoliga javob beradi: bu yerda nima qurish va bu qancha keltiradi. Biz loyihalash boshlanishidan oldin, qarorni hali qurilishda emas, jadvalda oʻzgartirish mumkin boʻlgan paytda ishlaymiz. Ish natijasi: obyekt konsepsiyasi, maydonlarning toifalar boʻyicha taqsimoti, tekshiruv rejasi, arxitektorga texnik topshiriq va moliyaviy model. Biz ishchi hujjatlar chiqarmaymiz, maydon sotmaymiz va baholash hisobotlarini imzolamaymiz."}},{"@type":"Question","name":"Qaysi bosqichda murojaat qilish kerak","acceptedAnswer":{"@type":"Answer","text":"Eng yaxshi bosqich: yer uchastkasi bor, arxitektura qarorlari esa hali qayd etilmagan payt. Shu damda dasturni oʻzgartirish bitta jadvalga tushadi. Loyihalash topshirigʻi berilgandan keyin har bir tuzatish qimmatlashadi, qurilish boshlangach esa qarorlarning koʻpi qaytarib boʻlmaydigan boʻladi. Ishlab turgan obyektlar bilan ham ishlaymiz, lekin u yerda vazifa boshqa: loyihalash emas, qurilganini qayta pozitsiyalash."}},{"@type":"Question","name":"Siz loyihachimisiz","acceptedAnswer":{"@type":"Answer","text":"Yoʻq. Biz arxitektura byurosi emasmiz, ishchi hujjatlar chiqarmaymiz va mualliflik nazoratini olib bormaymiz. Arxitektorga texnik topshiriq beramiz: format, maydonlar, toifalar boʻyicha taqsimot, oqimlarga, korpus chuqurligiga va qavatlar bogʻliqligiga talablar. Undan keyingisini arxitektor loyihalaydi, biz esa loyiha tasdiqlangan dastur ichida qolayotganini tekshiramiz. Bunday boʻlinish ikkala tomonga foydali: arxitektor aniq kirish maʼlumotini oladi, egasi tijorat mantigʻi ustidan nazoratni saqlaydi."}},{"@type":"Question","name":"Moliyaviy modelga nima kiradi","acceptedAnswer":{"@type":"Answer","text":"Obyektning loyiha ufqidagi pul oqimi: toifalar boʻyicha stavkalar, boʻsh maydon, service charge, OPEX, CAPEX va uning oʻzlashtirish jadvali, moliyalashtirish manbalari va toʻlov jadvali. Keyin uch stsenariy, har bir asosiy faraz boʻyicha sezgirlik tahlili va uzilish nuqtasi: DSCR 1,30 dan pastga tushadigan stavka, boʻsh maydon va ochilish kechikishi kombinatsiyasi. Bank uchun kredit qoʻmitasi talablariga moslangan alohida versiya yigʻiladi."}},{"@type":"Question","name":"Bu qancha turadi va narx nimaga bogʻliq","acceptedAnswer":{"@type":"Answer","text":"Narx uch narsaga bogʻliq: ish formati, obyektning hajmi va murakkabligi hamda uchastka va bozor boʻyicha maʼlumot allaqachon yigʻilganmi yoki yoʻq. T1 formati nima qurish kerakligiga javob beradi. T2 toʻliq moliyaviy model va bank versiyasini qoʻshadi. T3 qarorni ochilishgacha yetkazadi. T4 aniq vazifa atrofida yigʻiladi va norma soat boʻyicha hisoblanadi. Har bir format boʻyicha oraliqlar narx roʻyxati tasdiqlangach xizmatlar sahifasida chop etiladi."}},{"@type":"Question","name":"Ish qancha vaqt oladi","acceptedAnswer":{"@type":"Answer","text":"Muddat formatga va uchastka boʻyicha boshlangʻich maʼlumot qanchalik yopilganiga bogʻliq. Hal qiluvchi omil maʼlumotning mavjudligi: oqim oʻlchovlari, uchastka hujjatlari va tasdiqlangan cheklovlar ishni jamoa hajmidan koʻra kuchliroq tezlashtiradi. Har bir format boʻyicha aniq muddatlar reglament tasdiqlangach xizmatlar sahifasida chop etiladi."}},{"@type":"Question","name":"CBRE, JLL va mahalliy brokerlardan nimasi bilan farq qilasiz","acceptedAnswer":{"@type":"Answer","text":"Yirik xalqaro firmalar baholash, brokerlik va xalqaro hisobotda kuchli, va ularning koʻpchiligida Oʻzbekistonda oʻz ofisi yoʻq: mintaqa qoʻshni davlatlardan borib kelib xizmat qilinadi. Mahalliy brokerlar bitimlarda kuchli, lekin bino qurib boʻlingandan keyin ishga tushadi. Biz ular orasidagi bosqichni egallaymiz: loyihalashdan oldingi qaror, moliyaviy model bilan va ochilishdan bir yil keyin prognozni fakt bilan solishtirish majburiyati bilan. Biz mustaqilmiz: franshiza ham, tarmoq oldidagi majburiyat ham yoʻq."}},{"@type":"Question","name":"Oʻzingiz ijara bilan shugʻullansangiz, manfaatlar toʻqnashuvidan qanday qochasiz","acceptedAnswer":{"@type":"Answer","text":"Toʻqnashuvni ochiq nomlaymiz va uni uch qoida bilan cheklaymiz. Birinchi: toʻqnashuv shartnoma imzolanishidan oldin yozma ochib beriladi. Ikkinchi: maslahatchi mukofoti shu obyekt boʻyicha ijara natijasiga bogʻlanmaydi, shuning uchun dasturni oshirib koʻrsatishga ragʻbatimiz yoʻq. Uchinchi: egasi ijarani boshqa tomonga berishga haqli va bu bizning konsalting ishimizga taʼsir qilmaydi. Shuningdek, bitta bitim boʻyicha bir vaqtda egasi va ijarachi uchun ishlamaymiz."}},{"@type":"Question","name":"Oʻzbekistondan tashqarida ishlaysizmi","acceptedAnswer":{"@type":"Answer","text":"Ha. Portfelda 7 mamlakatda 42 loyiha bor, jumladan Tojikiston va Saudiya Arabistoni. Oʻzbekistondan tashqarida ham xuddi shu shartlarda ishlaymiz, lekin doim bozor boʻyicha mahalliy maʼlumot manbai bilan: usiz hisob begona farazlarga tayanadi. Agar mamlakat boʻyicha kerakli sifatdagi statistika mavjud boʻlmasa, buni hisobotda emas, shartnoma imzolanishidan oldin aytamiz."}},{"@type":"Question","name":"Boshlash uchun mendan nima kerak","acceptedAnswer":{"@type":"Answer","text":"Birinchi suhbat uchun uch narsa yetarli: uchastkaning shahri va manzili, maydoni va loyiha bosqichi. Foydali, lekin kirishda majburiy emas: huquqni belgilovchi hujjatlar, shaharsozlik cheklovlari, topografik suratga olish, allaqachon tayyorlangan konsepsiya yoki hisoblar. Birinchi qoʻngʻiroq bepul va unda ishimiz sizga kerakmi yoʻqmi toʻgʻridan toʻgʻri aytamiz. Vazifa bizsiz hal boʻlsa, shuni aytamiz."}}]},{"@type":"Service","@id":"https://caseadvisory.com/services.html#concept","name":"T1 CASE Concept","serviceType":"CASE Concept","description":"Bu yerda nima turishi va qanday hajmda boʻlishi kerakligiga javob beradi.","provider":{"@id":"https://caseadvisory.com/#organization"},"areaServed":{"@type":"Country","name":"Uzbekistan"},"inLanguage":"uz"},{"@type":"Service","@id":"https://caseadvisory.com/services.html#feasibility","name":"T2 CASE Feasibility","serviceType":"CASE Feasibility","description":"T1 dagi hamma narsa va bank hamda hamkor bilan suhbatda tayanish mumkin boʻlgan toʻliq moliyaviy model.","provider":{"@id":"https://caseadvisory.com/#organization"},"areaServed":{"@type":"Country","name":"Uzbekistan"},"inLanguage":"uz"},{"@type":"Service","@id":"https://caseadvisory.com/services.html#full-cycle","name":"T3 CASE Full Cycle","serviceType":"CASE Full Cycle","description":"T2 dagi hamma narsa va loyihalashni kuzatib borish, ijara strategiyasi hamda hisobotdan keyin olti oy hamrohlik.","provider":{"@id":"https://caseadvisory.com/#organization"},"areaServed":{"@type":"Country","name":"Uzbekistan"},"inLanguage":"uz"},{"@type":"Service","@id":"https://caseadvisory.com/services.html#custom","name":"T4 CASE Custom","serviceType":"CASE Custom","description":"Tarkib aniq savol atrofida yigʻiladi, narx norma soat boʻyicha. Bozorlar, parklar, redevelopment va begona hisobotga ikkinchi fikr uchun.","provider":{"@id":"https://caseadvisory.com/#organization"},"areaServed":{"@type":"Country","name":"Uzbekistan"},"inLanguage":"uz"}]}</script>
+<script type="module" src="/assets/js/app.js"></script>
+<script>addEventListener("load",function(){var v=["/assets/js/vendor/gsap.min.js","/assets/js/vendor/ScrollTrigger.min.js","/assets/js/vendor/lenis.min.js"],i=0;(function n(){if(i>=v.length){var m=document.createElement("script");m.type="module";m.src="/assets/js/motion.js";document.head.appendChild(m);return}var e=document.createElement("script");e.src=v[i++];e.onload=n;e.onerror=n;document.head.appendChild(e)})()})</script>
 </head>
 <body>
-
-<!-- NAV -->
-<nav id="nav">
-  <a href="#" class="brand"><span class="brand-n">CASE</span><span class="brand-s">Real Estate Advisory</span></a>
-  <ul class="nl">
-    <li><a href="#portfolio">Projects</a></li>
-    <li><a href="#services">Services</a></li>
-    <li><a href="#approach">Approach</a></li>
-    <li><a href="#why">Why CASE</a></li>
-  </ul>
-  <a href="#contact" class="nc">Get in Touch →</a>
-</nav>
-
-<!-- HERO — Use your most striking render here -->
-<section class="hero">
-  <div class="hero-img">
-    <!-- 💡 REPLACE: Your best full-bleed project render (exterior, golden hour, dramatic angle) -->
-    <img src="https://images.unsplash.com/photo-1486325212027-8081e485255e?auto=format&fit=crop&w=1800&q=90" alt="Project render">
-  </div>
-  <div class="hero-grad"></div>
-  <div class="hero-content">
-    <div>
-      <div class="hero-eyebrow">Real Estate Advisory</div>
-      <h1>Buildings<br>that work as<br><em>products.</em></h1>
-    </div>
-    <div class="hero-r">
-      <p class="hero-desc">We help developers and owners create <strong>commercially viable buildings</strong> — shopping centers, hotels, mixed-use and business centers that attract the right tenants and generate lasting revenue.</p>
-      <div class="btns">
-        <a href="#portfolio" class="btn-r">See Our Projects</a>
-        <a href="#contact" class="btn-w">Book a Consultation</a>
-      </div>
-    </div>
-  </div>
-  <div class="hero-stats">
-    <div class="hstat"><div class="hstat-n">90<sup>+</sup></div><div class="hstat-l">Projects Completed</div></div>
-    <div class="hstat"><div class="hstat-n">8</div><div class="hstat-l">Countries</div></div>
-    <div class="hstat"><div class="hstat-n">3</div><div class="hstat-l">Asset Segments</div></div>
-    <div class="hstat"><div class="hstat-n">1<sup style="font-size:15px">st</sup></div><div class="hstat-l">Independent Advisory in Region</div></div>
-  </div>
-</section>
-
-<!-- TICKER -->
-<div class="ticker">
-  <div class="tt" id="tick">
-    <span class="ti">Shopping Centers</span><span class="ti">Mixed-Use</span><span class="ti">Hotels & Resorts</span><span class="ti">Business Centers</span><span class="ti">Leasing Strategy</span><span class="ti">Tenant Mix</span><span class="ti">Operational Logic</span><span class="ti">Commercial Real Estate</span><span class="ti">Shopping Centers</span><span class="ti">Mixed-Use</span><span class="ti">Hotels & Resorts</span><span class="ti">Business Centers</span><span class="ti">Leasing Strategy</span><span class="ti">Tenant Mix</span><span class="ti">Operational Logic</span><span class="ti">Commercial Real Estate</span>
-  </div>
+<a class="skip" href="#main">Asosiy qismga oʻtish</a>
+<header class="nav" data-nav>
+<div class="wrap nav__bar">
+<a class="nav__logo" href="/"><b>CASE</b><span>Real Estate Advisory</span></a>
+<button class="nav__toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="nav-links"><b></b>Menyu</button>
+<nav class="nav__links" id="nav-links" aria-label="Menyu"><a href="/services.html">Xizmatlar</a><a href="/feasibility.html">Feasibility</a><a href="/projects.html">Loyihalar</a><a href="/about.html">Firma haqida</a><a href="/insights.html">Nashrlar</a><a href="/leasing.html">Ijara</a><a href="/contact.html">Aloqa</a></nav>
+<div class="nav__side">
+<nav class="lang" data-lang-switcher aria-label="Til tanlash"><a href="/" hreflang="uz" lang="uz" aria-current="true">UZ</a><a href="/ru/" hreflang="ru" lang="ru">RU</a><a href="/en/" hreflang="en" lang="en">EN</a></nav>
+<a class="btn nav__cta magnetic" href="/contact.html" data-goal="nav_cta">Maslahat<i class="btn__arrow"></i></a>
 </div>
-
-<!-- ── PORTFOLIO ── -->
-<section class="portfolio" id="portfolio">
-  <div class="port-head r">
-    <div class="port-head-l">
-      <div class="plabel">Selected Projects</div>
-      <h2>Our Work</h2>
-    </div>
-    <div class="port-filters">
-      <button class="pf active" onclick="filterCards(this,'all')">All</button>
-      <button class="pf" onclick="filterCards(this,'retail')">Shopping & Mixed-Use</button>
-      <button class="pf" onclick="filterCards(this,'hotel')">Hotels</button>
-      <button class="pf" onclick="filterCards(this,'office')">Business Centers</button>
-    </div>
-  </div>
-
-  <!-- FEATURED PROJECT — Use your most iconic render -->
-  <div class="port-featured r" data-cat="retail">
-    <!-- 💡 REPLACE: Hero project render — wide format, ideally exterior or dramatic atrium shot -->
-    <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1800&q=88" alt="Featured project">
-    <div class="port-featured-overlay">
-      <div>
-        <div class="pf-tag">Shopping Center · Tashkent, UZ</div>
-        <div class="pf-title">City Mall Tashkent</div>
-        <div class="pf-meta">
-          <span>Concept Development</span>
-          <span>Leasing Strategy</span>
-          <span>85 000 m²</span>
-        </div>
-      </div>
-      <div class="port-featured-arrow">↗</div>
-    </div>
-    <div class="pf-badge">Featured Project</div>
-  </div>
-
-  <!-- 4-card grid -->
-  <div class="port-grid">
-    <div class="pcard r" data-cat="hotel">
-      <!-- 💡 REPLACE: Hotel lobby or facade render -->
-      <img src="https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?auto=format&fit=crop&w=700&q=85" alt="Hotel project">
-      <div class="pcard-overlay">
-        <div class="pcard-type">Hotel & Resort</div>
-        <div class="pcard-name">Silk Road<br>Boutique Hotel</div>
-        <div class="pcard-loc">Samarkand, UZ</div>
-        <div class="pcard-detail">Concept & room mix strategy for a 120-key boutique hotel positioned for international operators.</div>
-      </div>
-    </div>
-    <div class="pcard r d1" data-cat="office">
-      <!-- 💡 REPLACE: Business center exterior or lobby render -->
-      <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=700&q=85" alt="Business center">
-      <div class="pcard-overlay">
-        <div class="pcard-type">Business Center</div>
-        <div class="pcard-name">Capital<br>Business Park</div>
-        <div class="pcard-loc">Tashkent, UZ</div>
-        <div class="pcard-detail">Floor efficiency audit and tenant mix strategy for a Class A office development.</div>
-      </div>
-    </div>
-    <div class="pcard r d2" data-cat="retail">
-      <!-- 💡 REPLACE: Mixed-use render, street level or interior -->
-      <img src="https://images.unsplash.com/photo-1519501025264-65ba15a82390?auto=format&fit=crop&w=700&q=85" alt="Mixed-use project">
-      <div class="pcard-overlay">
-        <div class="pcard-type">Mixed-Use</div>
-        <div class="pcard-name">Navoi Boulevard<br>Quarter</div>
-        <div class="pcard-loc">Tashkent, UZ</div>
-        <div class="pcard-detail">Commercial concept, retail zoning and F&B mix for a 6-block mixed-use development.</div>
-      </div>
-    </div>
-    <div class="pcard r d3" data-cat="hotel">
-      <!-- 💡 REPLACE: Resort or hotel exterior render -->
-      <img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=700&q=85" alt="Resort project">
-      <div class="pcard-overlay">
-        <div class="pcard-type">Resort</div>
-        <div class="pcard-name">Chimgan<br>Mountain Resort</div>
-        <div class="pcard-loc">Chimgan, UZ</div>
-        <div class="pcard-detail">Full resort programming, operator brief and F&B concept for a 200-key mountain resort.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Duo row -->
-  <div class="port-duo">
-    <div class="pdcard r" data-cat="retail">
-      <!-- 💡 REPLACE: Large retail interior or atrium render — this card is 3/5 width -->
-      <img src="https://images.unsplash.com/photo-1604328727766-a151d1045ab4?auto=format&fit=crop&w=1100&q=85" alt="Retail project">
-      <div class="pdcard-overlay">
-        <div class="pdcard-type">Shopping Center · Almaty, KZ</div>
-        <div class="pdcard-name">Mega Park Almaty</div>
-        <div class="pdcard-meta">Repositioning · Tenant Mix Strategy · 120 000 m²</div>
-      </div>
-    </div>
-    <div class="pdcard r d1" data-cat="office">
-      <!-- 💡 REPLACE: Office or mixed-use exterior render -->
-      <img src="https://images.unsplash.com/photo-1582407947304-fd86f028f716?auto=format&fit=crop&w=800&q=85" alt="Office project">
-      <div class="pdcard-overlay">
-        <div class="pdcard-type">Business Center · Baku, AZ</div>
-        <div class="pdcard-name">Caspian Tower</div>
-        <div class="pdcard-meta">Commercial Brief · Leasing · 45 000 m²</div>
-      </div>
-    </div>
-  </div>
-
-  <div class="port-cta r">
-    <p>These are a sample of our projects across <strong>8 countries</strong>. Every project starts with honest analysis — we only take on work where we can make a measurable difference.</p>
-    <a href="#contact" class="btn-ink">Discuss Your Project →</a>
-  </div>
-</section>
-
-<!-- SERVICES -->
-<section class="services" id="services">
-  <div class="sw">
-    <div class="sl r">
-      <div class="lbl">What We Do</div>
-      <h2>Expertise across asset classes</h2>
-      <p>We act as your <strong>commercial partner</strong> — connecting market insight, product logic, architectural requirements, and operational reality into one coherent strategy.</p>
-      <div class="sr-img">
-        <!-- 💡 REPLACE: A candid working shot, site visit, or architectural detail render -->
-        <img src="https://images.unsplash.com/photo-1560179707-f14e90ef3623?auto=format&fit=crop&w=700&q=85" alt="Our work">
-      </div>
-    </div>
-    <div>
-      <a href="#contact" class="srow r"><div class="sn">01</div><div><div class="sname">Shopping Centers & Mixed-Use</div><div class="sdesc">Tenant mix, flow patterns, zoning, and layouts that eliminate dead zones and maximise dwell time and spend.</div></div><div class="arr">↗</div></a>
-      <a href="#contact" class="srow r d1"><div class="sn">02</div><div><div class="sname">Hotels & Resorts</div><div class="sdesc">Room mix, guest scenarios, operational flows — everything an operator or international brand needs to say yes.</div></div><div class="arr">↗</div></a>
-      <a href="#contact" class="srow r d2"><div class="sn">03</div><div><div class="sname">Business Centers</div><div class="sdesc">Floor efficiency, divisibility, vertical transport, parking logic, and engineering that positions you competitively.</div></div><div class="arr">↗</div></a>
-      <a href="#contact" class="srow r d3"><div class="sn">04</div><div><div class="sname">Leasing & Brokerage</div><div class="sdesc">A tenant portfolio that supports your positioning, drives footfall, and sustains long-term yield.</div></div><div class="arr">↗</div></a>
-    </div>
-  </div>
-</section>
-
-<!-- QUOTE BAND -->
-<div class="qband">
-  <!-- 💡 REPLACE: Aerial project render or cityscape with your buildings visible -->
-  <img src="https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1800&q=85" alt="City view">
-  <div class="qband-ov">
-    <div class="qt r">"The details that look minor on paper become <em>expensive mistakes</em> after construction. We catch them first."</div>
-  </div>
 </div>
-
-<!-- HOW WE HELP -->
-<section class="how" id="how">
-  <div class="ht r">
-    <div><div class="lbl" style="font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;color:var(--red);display:flex;align-items:center;gap:10px;margin-bottom:16px"><span style="width:20px;height:1px;background:var(--red);display:block"></span>How We Help</div><h2>Decisions that define success</h2></div>
-    <p>We engage before decisions are locked into design. Every asset type has a different commercial logic — we bring the <strong>full picture</strong> to every stage.</p>
-  </div>
-  <div class="hg">
-    <div class="hc r"><div class="hc-tag">Product</div><h3>What to Build & For Whom</h3><p>Target audience, competitive angle, and the commercial concept that sets your project apart.</p></div>
-    <div class="hc r d1"><div class="hc-tag">Layout</div><h3>Layouts That Actually Work</h3><p>Flow logic, column grids, divisibility — parameters that determine leasability before a wall is built.</p></div>
-    <div class="hc r d2"><div class="hc-tag">Tenants</div><h3>International Brand Requirements</h3><p>We translate operator specs into your brief early — not as costly afterthoughts.</p></div>
-    <div class="hc r d3"><div class="hc-tag">Operations</div><h3>Operational Efficiency</h3><p>Service corridors, loading, technical zones — the unseen infrastructure that separates quality from chaos.</p></div>
-    <div class="hc r d1"><div class="hc-tag">Investment</div><h3>Rational Investment Decisions</h3><p>We help you spend where it matters and avoid premium finishes that add cost but reduce performance.</p></div>
-    <div class="hc r d2"><div class="hc-tag">Relaunch</div><h3>Repositioning Existing Assets</h3><p>Already built but underperforming? We diagnose the commercial gaps and design a recovery strategy.</p></div>
-  </div>
-</section>
-
-<!-- APPROACH -->
-<section class="approach" id="approach">
-  <div class="at r">
-    <div><div class="lbl">Our Approach</div><h2>From concept<br>to completion</h2></div>
-    <p>We engage <strong>early</strong> — before decisions are locked. But we also work on projects already in development or operation. Every stage benefits from our commercial lens.</p>
-  </div>
-  <div class="steps">
-    <div class="step r"><div class="step-n">01</div><div class="step-t">Market & Concept Analysis</div><div class="step-b">Demand, competition, and site context — what product will succeed and why alternatives would fail.</div></div>
-    <div class="step r d1"><div class="step-n">02</div><div class="step-t">Commercial Concept & Brief</div><div class="step-b">Positioning, zoning logic, tenant categories, and layout parameters — the foundation architects build on.</div></div>
-    <div class="step r d2"><div class="step-n">03</div><div class="step-t">Design Review</div><div class="step-b">Audit design-stage solutions against commercial criteria — catching problems when changes are cheap.</div></div>
-    <div class="step r d3"><div class="step-n">04</div><div class="step-t">Leasing Strategy</div><div class="step-b">Target brands, negotiations, and a tenant portfolio that supports long-term performance.</div></div>
-    <div class="step r d4"><div class="step-n">05</div><div class="step-t">Launch Support</div><div class="step-b">We stay engaged through opening — ensuring operational readiness and avoiding early-stage pitfalls.</div></div>
-  </div>
-</section>
-
-<!-- WHY CASE -->
-<div class="why" id="why">
-  <div class="why-l r">
-    <!-- 💡 REPLACE: A project interior or finished space that shows quality -->
-    <img src="https://images.unsplash.com/photo-1445991842772-097fea258e7b?auto=format&fit=crop&w=900&q=85" alt="Our project">
-    <div class="why-lov">
-      <div class="lbl">Why CASE</div>
-      <h2>Commercial logic.<br>No compromise.</h2>
-      <p>We are not architects. We are the commercial intelligence that makes architecture perform. Our role: turn a building into a business.</p>
-    </div>
-  </div>
-  <div class="why-r r d1">
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Independent advisory</strong> — no developer affiliations, no conflicting interests. Our advice serves your project.</div></div>
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Operations experience</strong> — we have managed buildings, so we see operational problems at design stage, not after opening.</div></div>
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Brand & operator network</strong> — direct relationships with retail, F&B and hotel brands mean faster, better leasing outcomes.</div></div>
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Architecture partnership</strong> — we produce the commercial brief architects need. We strengthen their work, not replace it.</div></div>
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Depth over surface</strong> — we engage with the 50 technical details most advisors skip.</div></div>
-    <div class="dp"><div class="dp-ic">✓</div><div class="dp-tx"><strong>Confident, analytical</strong> — no grand promises. Logic, data, and real-world precedent guide every recommendation.</div></div>
-  </div>
+</header>
+<main id="main"><section class="hero"><div class="wrap hero__grid">
+<div class="hero__main">
+<p class="slogan" data-slogan><span class="slogan__h">Bitimdan oldin.</span><span class="slogan__h">Chizmadan oldin.</span></p>
+<span class="slogan__rule reveal-rule" aria-hidden="true"></span>
+<h1 class="reveal" data-hero-after>Bu yerda nima qurish va bu qancha keltiradi. Javob loyihalash boshlanishidan oldin.</h1>
+<p class="lead hero__sub reveal" data-hero-after>CASE bu mustaqil tijorat koʻchmas mulk ekspertizasi: loyihalashdan oldin nimani qurish va bu qancha daromad keltirishini aniqlaymiz.</p>
+<div class="hero__cta reveal" data-hero-after>
+<a class="btn magnetic" href="/contact.html" data-goal="hero_cta">Strategik maslahat olish<i class="btn__arrow"></i></a>
+<a class="btn btn--ghost magnetic" href="/feasibility.html" data-goal="hero_feasibility">Feasibility sahifasi<i class="btn__arrow"></i></a>
 </div>
-
-<!-- CTA -->
-<section class="cta" id="contact">
-  <div class="lbl r">Start a Conversation</div>
-  <h2 class="r">Ready to build<br>something that <em>works?</em></h2>
-  <p class="r">Tell us about your project. We'll tell you honestly whether — and how — we can help.</p>
-  <div class="cta-btns r">
-    <a href="mailto:a.rakhimov@caseadvisory.uz" class="btn-f">Email Us</a>
-    <a href="https://www.caseadvisory.com" target="_blank" class="btn-o">Visit Website</a>
-  </div>
-  <div class="cons r">
-    <div class="con"><div class="con-l">Email</div><a href="mailto:a.rakhimov@caseadvisory.uz" class="con-v">a.rakhimov@caseadvisory.uz</a></div>
-    <div class="con"><div class="con-l">WhatsApp / Telegram</div><a href="tel:+998977707375" class="con-v">+998 97 770 73 75</a></div>
-    <div class="con"><div class="con-l">LinkedIn</div><a href="https://www.linkedin.com/company/case-real-estate-advisory" target="_blank" class="con-v">CASE Advisory</a></div>
-    <div class="con"><div class="con-l">Telegram Channel</div><a href="https://t.me/case_advisory" target="_blank" class="con-v">@case_advisory</a></div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <div class="fl"><span class="fl-n">CASE</span><span class="fl-s">Real Estate Advisory</span></div>
-  <ul class="flinks">
-    <li><a href="https://www.instagram.com/caseadvisory" target="_blank">Instagram</a></li>
-    <li><a href="https://t.me/case_advisory" target="_blank">Telegram</a></li>
-    <li><a href="https://www.linkedin.com/company/case-real-estate-advisory" target="_blank">LinkedIn</a></li>
-    <li><a href="https://www.youtube.com/@case.advisory/videos" target="_blank">YouTube</a></li>
-  </ul>
-  <div class="fc">© 2025 CASE Real Estate Advisory</div>
+</div>
+<aside class="hero__aside reveal" data-hero-after>
+<p class="mono-label">Tekshirsa boʻladigan raqamlar</p>
+<ul class="hero__facts"><li class="hero__fact"><b>2022</b><span>firma tashkil etilgan yil</span></li><li class="hero__fact"><b>42</b><span>portfeldagi loyiha, 7 mamlakat</span></li><li class="hero__fact"><b>48</b><span>soat ichida javob beramiz</span></li></ul>
+<p class="micro muted">Yangilangan: <time datetime="2026-08-19">2026-08-19</time></p>
+</aside>
+</div></section><section class="section"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">01</span><span class="sec-head__ghost" aria-hidden="true">01</span></div>
+<div class="sec-head__inner"><h2>Biz kim emasmiz</h2><p class="lead muted">Toifani inkor orqali aytish osonroq. Biz chizma paydo boʻlishidan oldin qabul qilinadigan qaror uchun javob beramiz.</p></div></div>
+<div class="nots"><article class="nots__i reveal"><h3>Biz arxitektura byurosi emasmiz</h3><p class="small muted">Biz ishchi hujjatlar chiqarmaymiz va fasad chizmaymiz. Arxitektorga texnik topshiriq beramiz: format, maydonlarning toifalar boʻyicha taqsimoti, korpus chuqurligi, oqimlar. Undan keyingisini arxitektor loyihalaydi.</p></article><article class="nots__i reveal"><h3>Biz broker emasmiz</h3><p class="small muted">Biz maydon sotmaymiz. Berilgan konsepsiyada u qancha keltirishini hisoblaymiz va hisob qaysi shartlarda buzilishini koʻrsatamiz.</p></article><article class="nots__i reveal"><h3>Biz baholovchi emasmiz</h3><p class="small muted">Biz bank yoki sud uchun qiymat hisobotini imzolamaymiz. Biz qaror uchun javob beramiz: nima qurish, kim uchun va qanday hajmda, hamda shu qarordan kelib chiqadigan pul oqimi prognozi uchun.</p></article></div>
+<p class="basis mt-md reveal">Ijara haqida alohida. Bizda ijara yoʻnalishi bor va bu manfaatlar toʻqnashuvi ehtimoli. Buni shartnoma imzolanishidan oldin yozma ochib beramiz va firma ichida rollarni ajratamiz. <a class="link" href="/legal/conflicts.html">Manfaatlar toʻqnashuvi siyosati</a></p>
+</div></section><section class="section chain" data-chain><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">02</span><span class="sec-head__ghost" aria-hidden="true">02</span></div>
+<div class="sec-head__inner"><h2>Qarorlar zanjiri va biz ishlaydigan joy</h2><p class="lead muted">01 dan 03 gacha boʻlgan bosqichlarni bugun sotamiz. Xato narxi shu yerda eng yuqori, tuzatish narxi esa eng past: jadval oʻzgaradi, qurilgan bino emas.</p></div></div></div>
+<div class="chain__viewport"><ol class="chain__track">
+<span class="chain__prog" aria-hidden="true"></span><li class="chain__pad" aria-hidden="true"></li><li class="chain__stage" data-tier="now"><span class="chain__n">01</span>
+<h3>Yer uchastkasi</h3><p>Kirishda nima bor: chegaralar, kirish yoʻllari, cheklovlar, yuklamalar, atrof.</p><span class="chain__tag">Bugun sotamiz</span></li><li class="chain__stage" data-tier="now"><span class="chain__n">02</span>
+<h3>Bozor</h3><p>Yaqin atrofda kim bor, nima yetishmaydi, qamrov zonasida necha kishi va ularning imkoniyati qanday.</p><span class="chain__tag">Bugun sotamiz</span></li><li class="chain__stage" data-tier="now"><span class="chain__n">03</span>
+<h3>Konsepsiya</h3><p>Format, maydon, toifalar boʻyicha taqsimot, zonalash, mix, tekshiruv rejasi.</p><span class="chain__tag">Bugun sotamiz</span></li><li class="chain__stage" data-tier="next"><span class="chain__n">04</span>
+<h3>Moliyaviy model</h3><p>Stsenariylar, sezgirlik, uzilish nuqtasi, bank uchun versiya.</p><span class="chain__tag">Keyingi qadam</span></li><li class="chain__stage" data-tier="next"><span class="chain__n">05</span>
+<h3>Arxitektorga topshiriq</h3><p>Hajm, oqimlar, muhandislik va maydonlarga talablar, yozma shaklda.</p><span class="chain__tag">Keyingi qadam</span></li><li class="chain__stage" data-tier="later"><span class="chain__n">06</span>
+<h3>Ijara</h3><p>Tasdiqlangan strategiyani bajarish: ijarachilar puli, shartlar, jadval.</p><span class="chain__tag">Zanjirda keyinroq</span></li><li class="chain__stage" data-tier="later"><span class="chain__n">07</span>
+<h3>Ochilish</h3><p>Ishga tushirish, birinchi oylar va prognozni fakt bilan solishtirish.</p><span class="chain__tag">Zanjirda keyinroq</span></li></ol></div>
+<div class="wrap"><div class="chain__legend"><span class="is-now"><i></i>Bugun sotamiz</span><span class="is-next"><i></i>Keyingi qadam</span><span class=""><i></i>Zanjirda keyinroq</span></div>
+<p class="micro muted mt-md">Yon tomonga suring yoki sahifani aylantiring</p></div></section><section class="section"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">03</span><span class="sec-head__ghost" aria-hidden="true">03</span></div>
+<div class="sec-head__inner"><h2>Toʻrt ish formati</h2><p class="lead muted">Formatlar bitta narsa bilan farq qiladi: qarorni qaysi bosqichgacha yetkazamiz va uni moliyalashtiradigan raqam uchun javobgarlikni olamizmi.</p></div></div><div class="tiers"><article class="tier card--lit reveal" id="concept">
+<span class="tier__code">T1</span><span class="tier__flag tier__flag--none" aria-hidden="true">&#183;</span>
+<h3>CASE Concept<br><span class="muted">«Nima qurish»</span></h3>
+<p class="small">Bu yerda nima turishi va qanday hajmda boʻlishi kerakligiga javob beradi.</p>
+<ul class="tier__list"><li>Obyekt konsepsiyasi va pozitsiyalash</li><li>Merchandise mix va zonalash</li><li>Tekshiruv rejasi</li><li>Arxitektorga texnik topshiriq</li><li>Yoʻnaltiruvchi darajadagi moliyaviy model</li></ul>
+<p class="micro muted">Kirmaydi: stsenariyli toʻliq moliyaviy model va bank uchun versiya.</p>
+<dl class="tier__meta">
+<dt>Muddat</dt><dd><span class="tbd" data-tbd="t1_time">Maʼlumot kerak: Срок выполнения T1 CASE Concept, в неделях</span></dd>
+<dt>Narx oraligʻi</dt><dd><span class="tbd" data-tbd="t1_price">Maʼlumot kerak: Вилка цены T1, USD</span></dd>
+</dl><a class="arrow-link" href="/services.html#concept">Nima kiradi va nima kirmaydi</a></article><article class="tier tier--hero card--lit reveal" id="feasibility">
+<span class="tier__code">T2</span><span class="tier__flag">Sotuvda ustuvor</span>
+<h3>CASE Feasibility<br><span class="muted">«Nima qurish va qancha keltiradi»</span></h3>
+<p class="small">T1 dagi hamma narsa va bank hamda hamkor bilan suhbatda tayanish mumkin boʻlgan toʻliq moliyaviy model.</p>
+<ul class="tier__list"><li>T1 tarkibining hammasi</li><li>Stsenariylar boʻyicha toʻliq moliyaviy model</li><li>Sezgirlik tahlili va uzilish nuqtasi</li><li>Kredit qoʻmitasi uchun alohida versiya</li><li>Ochilishdan 12 oy keyin prognozni fakt bilan solishtirish</li></ul>
+<p class="micro muted">Kirmaydi: loyihalashni kuzatib borish va ijara.</p>
+<dl class="tier__meta">
+<dt>Muddat</dt><dd><span class="tbd" data-tbd="t2_time">Maʼlumot kerak: Срок выполнения T2 CASE Feasibility, в неделях</span></dd>
+<dt>Narx oraligʻi</dt><dd><span class="tbd" data-tbd="t2_price">Maʼlumot kerak: Вилка цены T2, USD</span></dd>
+</dl><a class="arrow-link" href="/feasibility.html">Nima kiradi va nima kirmaydi</a></article><article class="tier card--lit reveal" id="full-cycle">
+<span class="tier__code">T3</span><span class="tier__flag tier__flag--anchor">Langar</span>
+<h3>CASE Full Cycle<br><span class="muted">«Yerdan ochilishgacha»</span></h3>
+<p class="small">T2 dagi hamma narsa va loyihalashni kuzatib borish, ijara strategiyasi hamda hisobotdan keyin olti oy hamrohlik.</p>
+<ul class="tier__list"><li>T2 tarkibining hammasi</li><li>Loyihalashni kuzatib borish va topshiriq nazorati</li><li>Ijara strategiyasi</li><li>Hisobot topshirilgandan keyin olti oy hamrohlik</li></ul>
+<p class="micro muted">Kirmaydi: ishchi hujjatlar va bosh pudratchi vazifalari.</p>
+<dl class="tier__meta">
+<dt>Muddat</dt><dd><span class="tbd" data-tbd="t3_time">Maʼlumot kerak: Срок выполнения T3 CASE Full Cycle, в неделях</span></dd>
+<dt>Narx oraligʻi</dt><dd><span class="tbd" data-tbd="t3_price">Maʼlumot kerak: Вилка цены T3, USD</span></dd>
+</dl><a class="arrow-link" href="/services.html#full-cycle">Nima kiradi va nima kirmaydi</a></article><article class="tier card--lit reveal" id="custom">
+<span class="tier__code">T4</span><span class="tier__flag">Sotuvda ustuvor</span>
+<h3>CASE Custom<br><span class="muted">«Vazifaga qarab yigʻiladi»</span></h3>
+<p class="small">Tarkib aniq savol atrofida yigʻiladi, narx norma soat boʻyicha. Bozorlar, parklar, redevelopment va begona hisobotga ikkinchi fikr uchun.</p>
+<ul class="tier__list"><li>Tarkib aniq savol atrofida yigʻiladi</li><li>Tayyor konsepsiya yoki modelga ikkinchi fikr</li><li>Bozorlar, parklar, redevelopment, nostandart formatlar</li><li>Toʻlov norma soat boʻyicha</li></ul>
+<p class="micro muted">Kirmaydi: qatʼiy belgilangan hajm. U ish boshlanishidan oldin aniqlanadi va shartnomada qayd etiladi.</p>
+<dl class="tier__meta">
+<dt>Muddat</dt><dd><span class="tbd" data-tbd="t4_time">Maʼlumot kerak: Срок выполнения T4 CASE Custom, в неделях</span></dd>
+<dt>Narx oraligʻi</dt><dd><span class="tbd" data-tbd="t4_price">Maʼlumot kerak: Ставка нормо-часа T4, USD</span></dd>
+</dl><a class="arrow-link" href="/services.html#custom">Nima kiradi va nima kirmaydi</a></article></div>
+<p class="mt-md reveal"><a class="arrow-link" href="/services.html">Formatlarni solishtirish</a></p>
+</div></section><section class="section section--paper2" data-scenarios><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">04</span><span class="sec-head__ghost" aria-hidden="true">04</span></div>
+<div class="sec-head__inner"><h2>Qaror qiladigan raqamlar</h2><p class="lead muted">Arxitektor rasm koʻrsatadi. Biz raqamlardan qaror qanday tugʻilishini koʻrsatamiz. Bitta yer uchastkasi dastur turiga qarab turlicha natija beradi va bu farq loyihalashdan oldin koʻrinadi, ochilishdan keyin emas.</p></div></div>
+<div class="scen__grid">
+<div class="scen__stage">
+<svg class="plot" viewBox="0 0 600 380" role="img" aria-label="Qaror qiladigan raqamlar">
+<rect x="0" y="0" width="600" height="380" fill="none"></rect>
+<line x1="60" y1="300" x2="540" y2="300" stroke="#0D0D0D" stroke-width="1"></line>
+<rect x="50" y="60" width="500" height="250" fill="none" stroke="#0D0D0D" stroke-opacity="0.35" stroke-width="1" stroke-dasharray="6 6"></rect>
+<polygon data-shape points="70,310 70,180 200,180 200,180 400,180 400,180 530,180 530,310" fill="#0D0D0D" fill-opacity="0.10" stroke="#A91D20" stroke-width="2.5"></polygon>
+</svg>
+<p class="basis mt-md">Uch stsenariy boʻyicha qiymatlar haqiqiy hisobdan qoʻyiladi. U boʻlmaguncha shartli raqam koʻrsatmaymiz: faqat asosi koʻrsatilgan raqamlarni solishtirish mumkin. <span class="tbd" data-tbd="scenarios">Maʼlumot kerak: Три сценария программы для блока «цифры, которые решают»: GLA, трафик, доходность, источник</span></p>
+</div>
+<div class="scen__steps"><article class="scen__step reveal" data-points="70,310 70,180 200,180 200,180 400,180 400,180 530,180 530,310">
+<h3>A stsenariy. Maksimal savdo</h3><p class="small muted">Butun maydon savdoga berilgan. Tez toʻlish, bitta talab manbaiga va langar ijarachiga yuqori bogʻliqlik. Langar ketsa, butun obyekt qulaydi.</p><div class="scen__kpis"><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">GLA, m2</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Oqim, kishi/yil</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Daromadlilik, %</div></div></div></article><article class="scen__step reveal" data-points="70,310 70,215 320,215 320,110 470,110 470,215 530,215 530,310">
+<h3>B stsenariy. Aralash dastur</h3><p class="small muted">Savdo qoʻshimcha ofis yoki xizmat bilan. Kvadrat metrga choʻqqi daromad pastroq, barqarorlik yuqoriroq: ikki xil oqim tsiklning turli fazalarida ijara toʻlaydi.</p><div class="scen__kpis"><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">GLA, m2</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Oqim, kishi/yil</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Daromadlilik, %</div></div></div></article><article class="scen__step reveal" data-points="110,310 110,200 250,200 250,150 350,150 350,200 490,200 490,310">
+<h3>C stsenariy. Ushlab turishga qaratilgan dastur</h3><p class="small muted">Ijaraga beriladigan maydon kamroq, jamoat maydoni va parkovka koʻproq. Boshlangʻich tushum pastroq, takroriy tashriflar va oʻrtacha chek uzoq muddatda yuqoriroq.</p><div class="scen__kpis"><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">GLA, m2</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Oqim, kishi/yil</div></div><div><div class="kpi__n" data-empty>&#183;&#183;&#183;</div><div class="kpi__l">Daromadlilik, %</div></div></div></article></div>
+</div>
+<p class="mt-lg reveal"><a class="arrow-link" href="/feasibility.html">Moliyaviy model qanday hisoblanadi</a></p>
+</div></section><section class="section"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">05</span><span class="sec-head__ghost" aria-hidden="true">05</span></div>
+<div class="sec-head__inner"><h2>Uchta keys</h2><p class="lead muted">Kartochka formati barcha loyihalar uchun bir xil: egasining vazifasi, kirish bosqichi, yechim, raqamlardagi natija, parametrlar va NDA izohi. Agar natijani ochiq koʻrsatib boʻlmasa, buni toʻgʻridan toʻgʻri yozamiz, sifatdosh bilan almashtirmaymiz.</p></div></div><div class="cases"><a class="case-card card--lit reveal" href="/projects/82-mall.html" data-case-link data-vt="82-mall" data-goal="case_open">
+<figure class="case-card__media"><img src="/assets/img/cases/82-mall.svg" alt="82 Mall / 82 Towers" width="800" height="600" loading="lazy" decoding="async"></figure>
+<div class="case-card__body">
+<p class="case-card__where">Dushanbe, Tojikiston</p>
+<h3>82 Mall / 82 Towers</h3>
+<p class="case-card__why">Bitta obyektda konsepsiya va ijara: farqimiz amalda.</p>
+<div class="case-card__facts"><span><b>35 324</b> GLA</span><span>Dushanbe</span></div>
+</div></a><a class="case-card card--lit reveal" href="/projects/chilonzor.html" data-case-link data-vt="chilonzor" data-goal="case_open">
+<figure class="case-card__media"><img src="/assets/img/cases/chilonzor.svg" alt="Chilonzor Shopping Center" width="800" height="600" loading="lazy" decoding="async"></figure>
+<div class="case-card__body">
+<p class="case-card__where">Toshkent, Oʻzbekiston</p>
+<h3>Chilonzor Shopping Center</h3>
+<p class="case-card__why">Sovet davrida qurilgan obyektni qayta pozitsiyalash: toshkentlik egasi oʻz holatini taniydi.</p>
+<div class="case-card__facts"><span><b>7 439</b> GLA</span><span>Toshkent</span></div>
+</div></a><a class="case-card card--lit reveal" href="/projects/jabal-omar.html" data-case-link data-vt="jabal-omar" data-goal="case_open">
+<figure class="case-card__media"><img src="/assets/img/cases/jabal-omar.svg" alt="Jabal Omar" width="800" height="600" loading="lazy" decoding="async"></figure>
+<div class="case-card__body">
+<p class="case-card__where">Makka, Saudiya Arabistoni</p>
+<h3>Jabal Omar</h3>
+<p class="case-card__why">Salmoq va ishonch, rolimiz hamda ish davri boʻyicha halol izoh bilan.</p>
+<div class="case-card__facts"><span><b>60 000</b> GLA</span><span>Makka</span></div>
+</div></a></div>
+<p class="mt-lg reveal"><a class="arrow-link" href="/projects.html">Butun portfel</a></p>
+</div></section><section class="section"><div class="wrap">
+<div class="sec-head reveal break-r">
+<div class="sec-head__n"><span class="mono-label">06</span><span class="sec-head__ghost" aria-hidden="true">06</span></div>
+<div class="sec-head__inner"><h2>Nimani tekshirish mumkin</h2><p class="lead muted">Quyidagi har bir raqamning asosi koʻrsatilgan. Tekshirib boʻlmaydigan narsa saytda yoʻq.</p></div></div><div class="proof"><div class="proof__item reveal"><span class="proof__n">2022</span>
+<span class="proof__l">CASE tashkil etilgan yil</span><span class="proof__note">Firma 2022 yilda tashkil etilgan. Eski saytdagi «bozorda 7 yildan ortiq» iborasi olib tashlandi: u tashkil etilgan sana bilan mos kelmaydi.</span></div><div class="proof__item reveal"><span class="proof__n">42</span>
+<span class="proof__l">portfeldagi loyiha</span><span class="proof__note">Ochiq portfel reyestri. Eski saytdagi 89 raqami olib tashlandi: portfelda hech qachon shuncha boʻlmagan.</span></div><div class="proof__item reveal"><span class="proof__n">7</span>
+<span class="proof__l">mamlakat</span><span class="proof__note">Portfel loyihalari mavjud mamlakatlar hisoblanadi. Ilgari 8 deb koʻrsatilgan edi, bu xato edi.</span></div><div class="proof__item reveal"><span class="proof__n">8,1</span>
+<span class="proof__l">mln m2 GBA</span><span class="proof__note">CASE 2022 yilda tashkil etilishidan oldin jamoa aʼzolari bajargan ishlarni ham hisobga olgan holda. Bu izohsiz raqam notoʻgʻri boʻladi.</span></div><div class="proof__item reveal"><span class="proof__n">48</span>
+<span class="proof__l">soat ichida javob</span><span class="proof__note">Ish kunlarida murojaatga birinchi mazmunli javob berish muddati boʻyicha majburiyatimiz.</span></div><div class="proof__item reveal"><span class="proof__l">ICSC aʼzoligi</span>
+<span class="proof__note"><span class="tbd" data-tbd="icsc">Maʼlumot kerak: Статус членства ICSC: действует ли, точная формулировка, номер и год</span></span></div></div></div></section><section class="section section--dark"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">07</span><span class="sec-head__ghost" aria-hidden="true">07</span></div>
+<div class="sec-head__inner"><h2>Islom moliyasi</h2></div></div>
+<div class="split"><div class="split__a"><p class="lead">Biz moliyaviy modelning shariat vositalariga moslangan versiyasini tayyorlaymiz. Bu bozorda buni hech kim qilmaydi.</p></div>
+<div class="split__b prose"><p>Oʻzbekistonda islom bankchiligi toʻgʻrisidagi qonun 27.03.2026 da imzolangan va 29.06.2026 da kuchga kirgan. 2026 yil davomida kamida bitta islomiy oyna ochiladi. Bu hisobni oʻzgartiradi: foizli kredit obyektni moliyalashtirishning yagona yoʻli boʻlmay qoladi.</p><p>Amalda bu ikki narsani anglatadi. Birinchisi: moliyalashtirish tuzilmasi foizli qarz oʻrniga murobaha, ijara yoki musharaka asosida yigʻiladi va pul oqimi shunga qayta hisoblanadi. Ikkinchisi: ijarachilar puli AAOIFI mezonlari boʻyicha tekshiruvdan oʻtadi, chunki ayrim ijarachi profillari obyektga bunday moliyalashtirish yoʻlini butunlay yopadi.</p><p class="basis basis--gold">Bu fatvo emas. Yakuniy xulosani malakali shariat mutaxassisi yoki bankning shariat kengashi beradi. Biz hisob va bunday koʻrib chiqishga hujjat tayyorlash uchun javob beramiz.</p></div></div>
+</div></section><section class="section" id="faq"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">08</span><span class="sec-head__ghost" aria-hidden="true">08</span></div>
+<div class="sec-head__inner"><h2>Birinchi uchrashuvdan oldin beriladigan savollar</h2></div></div><div class="faq" data-faq><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-0">CASE aynan nima bilan shugʻullanadi<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-0"><p>CASE egasining ikki savoliga javob beradi: bu yerda nima qurish va bu qancha keltiradi. Biz loyihalash boshlanishidan oldin, qarorni hali qurilishda emas, jadvalda oʻzgartirish mumkin boʻlgan paytda ishlaymiz. Ish natijasi: obyekt konsepsiyasi, maydonlarning toifalar boʻyicha taqsimoti, tekshiruv rejasi, arxitektorga texnik topshiriq va moliyaviy model. Biz ishchi hujjatlar chiqarmaymiz, maydon sotmaymiz va baholash hisobotlarini imzolamaymiz.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-1">Qaysi bosqichda murojaat qilish kerak<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-1"><p>Eng yaxshi bosqich: yer uchastkasi bor, arxitektura qarorlari esa hali qayd etilmagan payt. Shu damda dasturni oʻzgartirish bitta jadvalga tushadi. Loyihalash topshirigʻi berilgandan keyin har bir tuzatish qimmatlashadi, qurilish boshlangach esa qarorlarning koʻpi qaytarib boʻlmaydigan boʻladi. Ishlab turgan obyektlar bilan ham ishlaymiz, lekin u yerda vazifa boshqa: loyihalash emas, qurilganini qayta pozitsiyalash.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-2">Siz loyihachimisiz<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-2"><p>Yoʻq. Biz arxitektura byurosi emasmiz, ishchi hujjatlar chiqarmaymiz va mualliflik nazoratini olib bormaymiz. Arxitektorga texnik topshiriq beramiz: format, maydonlar, toifalar boʻyicha taqsimot, oqimlarga, korpus chuqurligiga va qavatlar bogʻliqligiga talablar. Undan keyingisini arxitektor loyihalaydi, biz esa loyiha tasdiqlangan dastur ichida qolayotganini tekshiramiz. Bunday boʻlinish ikkala tomonga foydali: arxitektor aniq kirish maʼlumotini oladi, egasi tijorat mantigʻi ustidan nazoratni saqlaydi.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-3">Moliyaviy modelga nima kiradi<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-3"><p>Obyektning loyiha ufqidagi pul oqimi: toifalar boʻyicha stavkalar, boʻsh maydon, service charge, OPEX, CAPEX va uning oʻzlashtirish jadvali, moliyalashtirish manbalari va toʻlov jadvali. Keyin uch stsenariy, har bir asosiy faraz boʻyicha sezgirlik tahlili va uzilish nuqtasi: DSCR 1,30 dan pastga tushadigan stavka, boʻsh maydon va ochilish kechikishi kombinatsiyasi. Bank uchun kredit qoʻmitasi talablariga moslangan alohida versiya yigʻiladi.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-4">Bu qancha turadi va narx nimaga bogʻliq<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-4"><p>Narx uch narsaga bogʻliq: ish formati, obyektning hajmi va murakkabligi hamda uchastka va bozor boʻyicha maʼlumot allaqachon yigʻilganmi yoki yoʻq. T1 formati nima qurish kerakligiga javob beradi. T2 toʻliq moliyaviy model va bank versiyasini qoʻshadi. T3 qarorni ochilishgacha yetkazadi. T4 aniq vazifa atrofida yigʻiladi va norma soat boʻyicha hisoblanadi. Har bir format boʻyicha oraliqlar narx roʻyxati tasdiqlangach xizmatlar sahifasida chop etiladi.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-5">Ish qancha vaqt oladi<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-5"><p>Muddat formatga va uchastka boʻyicha boshlangʻich maʼlumot qanchalik yopilganiga bogʻliq. Hal qiluvchi omil maʼlumotning mavjudligi: oqim oʻlchovlari, uchastka hujjatlari va tasdiqlangan cheklovlar ishni jamoa hajmidan koʻra kuchliroq tezlashtiradi. Har bir format boʻyicha aniq muddatlar reglament tasdiqlangach xizmatlar sahifasida chop etiladi.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-6">CBRE, JLL va mahalliy brokerlardan nimasi bilan farq qilasiz<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-6"><p>Yirik xalqaro firmalar baholash, brokerlik va xalqaro hisobotda kuchli, va ularning koʻpchiligida Oʻzbekistonda oʻz ofisi yoʻq: mintaqa qoʻshni davlatlardan borib kelib xizmat qilinadi. Mahalliy brokerlar bitimlarda kuchli, lekin bino qurib boʻlingandan keyin ishga tushadi. Biz ular orasidagi bosqichni egallaymiz: loyihalashdan oldingi qaror, moliyaviy model bilan va ochilishdan bir yil keyin prognozni fakt bilan solishtirish majburiyati bilan. Biz mustaqilmiz: franshiza ham, tarmoq oldidagi majburiyat ham yoʻq.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-7">Oʻzingiz ijara bilan shugʻullansangiz, manfaatlar toʻqnashuvidan qanday qochasiz<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-7"><p>Toʻqnashuvni ochiq nomlaymiz va uni uch qoida bilan cheklaymiz. Birinchi: toʻqnashuv shartnoma imzolanishidan oldin yozma ochib beriladi. Ikkinchi: maslahatchi mukofoti shu obyekt boʻyicha ijara natijasiga bogʻlanmaydi, shuning uchun dasturni oshirib koʻrsatishga ragʻbatimiz yoʻq. Uchinchi: egasi ijarani boshqa tomonga berishga haqli va bu bizning konsalting ishimizga taʼsir qilmaydi. Shuningdek, bitta bitim boʻyicha bir vaqtda egasi va ijarachi uchun ishlamaymiz.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-8">Oʻzbekistondan tashqarida ishlaysizmi<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-8"><p>Ha. Portfelda 7 mamlakatda 42 loyiha bor, jumladan Tojikiston va Saudiya Arabistoni. Oʻzbekistondan tashqarida ham xuddi shu shartlarda ishlaymiz, lekin doim bozor boʻyicha mahalliy maʼlumot manbai bilan: usiz hisob begona farazlarga tayanadi. Agar mamlakat boʻyicha kerakli sifatdagi statistika mavjud boʻlmasa, buni hisobotda emas, shartnoma imzolanishidan oldin aytamiz.</p></div>
+</div><div class="faq__item">
+<h3><button class="faq__q" type="button" aria-expanded="true" aria-controls="faq-9">Boshlash uchun mendan nima kerak<span class="faq__sign" aria-hidden="true"></span></button></h3>
+<div class="faq__a" id="faq-9"><p>Birinchi suhbat uchun uch narsa yetarli: uchastkaning shahri va manzili, maydoni va loyiha bosqichi. Foydali, lekin kirishda majburiy emas: huquqni belgilovchi hujjatlar, shaharsozlik cheklovlari, topografik suratga olish, allaqachon tayyorlangan konsepsiya yoki hisoblar. Birinchi qoʻngʻiroq bepul va unda ishimiz sizga kerakmi yoʻqmi toʻgʻridan toʻgʻri aytamiz. Vazifa bizsiz hal boʻlsa, shuni aytamiz.</p></div>
+</div></div></div></section><section class="section" id="contact"><div class="wrap">
+<div class="sec-head reveal">
+<div class="sec-head__n"><span class="mono-label">09</span><span class="sec-head__ghost" aria-hidden="true">09</span></div>
+<div class="sec-head__inner"><h2>Suhbatni boshlash</h2><p class="lead muted">Yer uchastkasi va bosqichni yozing. 48 soat ichida javob beramiz va birinchi qoʻngʻiroqda ishimiz sizga umuman kerakmi yoʻqmi, toʻgʻridan toʻgʻri aytamiz.</p></div></div>
+<div class="split"><div class="split__a stack-md">
+<p class="lead">Ish kunlarida 48 soat ichida javob beramiz.</p>
+<ul class="stack-md">
+<li><span class="mono-label">Telefon</span><br><a class="link" href="tel:+998770477375">+998 77 047 73 75</a></li>
+<li><span class="mono-label">Pochta</span><br><a class="link" href="mailto:support@caseadvisory.uz">support@caseadvisory.uz</a></li>
+<li><span class="mono-label">Shahar</span><br>Toshkent, Oʻzbekiston</li>
+</ul></div>
+<div class="split__b"><form class="form" method="post" action="{{TBD:endpoint}}" data-form="home"
+ data-msg-sending="Yuborilmoqda" data-msg-ok="Qabul qilindi. 48 soat ichida javob beramiz." data-msg-err="Yuborilmadi. support@caseadvisory.uz manziliga yozing yoki qoʻngʻiroq qiling." data-msg-slow="Shakl juda tez toʻldirildi. Maydonlarni tekshirib, qayta yuboring.">
+<div class="field"><label for="f-name">Ism</label><input id="f-name" name="name" type="text" autocomplete="name" required></div>
+<div class="field"><label for="f-company">Kompaniya</label><input id="f-company" name="company" type="text" autocomplete="organization"></div>
+<div class="field"><label for="f-phone">Telefon</label><input id="f-phone" name="phone" type="tel" autocomplete="tel" required></div>
+<div class="field"><label for="f-email">Pochta</label><input id="f-email" name="email" type="email" autocomplete="email" required></div>
+<div class="field"><label for="f-city">Loyiha shahri</label><input id="f-city" name="city" type="text"></div>
+<div class="field"><label for="f-plot">Uchastka maydoni, m2</label><input id="f-plot" name="plot" type="text" inputmode="numeric"></div>
+<div class="field field--full"><label for="f-stage">Loyiha bosqichi</label><select id="f-stage" name="stage"><option value="">Bosqichni tanlang</option><option value="Uchastka sotib olingan, qaror yoʻq">Uchastka sotib olingan, qaror yoʻq</option><option value="Konsepsiya bor, tekshiruv kerak">Konsepsiya bor, tekshiruv kerak</option><option value="Loyihalash ketmoqda">Loyihalash ketmoqda</option><option value="Obyekt ishlayapti, qayta koʻrish kerak">Obyekt ishlayapti, qayta koʻrish kerak</option><option value="Boshqa">Boshqa</option></select></div>
+<div class="field field--full"><label for="f-message">Vazifa</label><textarea id="f-message" name="message" rows="5"></textarea></div>
+<div class="field field--hp" aria-hidden="true"><label for="f-url">Bu maydonni toʻldirmang</label><input id="f-url" name="company_url" type="text" tabindex="-1" autocomplete="off"></div>
+<input type="hidden" name="started_at" value="">
+<input type="hidden" name="lang" value="uz">
+<div class="field field--full"><label class="consent"><input type="checkbox" name="consent" required> <span>Shaxsiy maʼlumotlarim qayta ishlanishiga roziman. <a class="link" href="/legal/privacy.html">Maxfiylik siyosati</a></span></label></div>
+<div class="field field--full"><button class="btn btn--red magnetic" type="submit" data-goal="consultation_submit">Soʻrovni yuborish<i class="btn__arrow"></i></button></div>
+<p class="form__status" data-form-status role="status" aria-live="polite"></p>
+<p class="basis field--full"><span class="tbd" data-tbd="form_endpoint">Maʼlumot kerak: Endpoint формы: адрес приёмника заявок и формат ответа</span></p>
+</form></div></div>
+</div></section></main><footer class="foot">
+<div class="wrap foot__grid">
+<div class="foot__brand">
+<a class="nav__logo" href="/"><b>CASE</b><span>Real Estate Advisory</span></a>
+<p class="small mt-md w-34">Mustaqil tijorat koʻchmas mulk ekspertizasi. Nima qurish va bu qancha keltiradi, loyihalashdan oldin.</p>
+</div>
+<div class="foot__col"><h4>Boʻlimlar</h4><ul><li><a href="/services.html">Xizmatlar</a></li><li><a href="/feasibility.html">Feasibility</a></li><li><a href="/projects.html">Loyihalar</a></li><li><a href="/about.html">Firma haqida</a></li><li><a href="/insights.html">Nashrlar</a></li><li><a href="/leasing.html">Ijara</a></li><li><a href="/contact.html">Aloqa</a></li></ul></div>
+<div class="foot__col"><h4>Huquqiy</h4><ul><li><a href="/legal/privacy.html">CASE maxfiylik siyosati</a></li><li><a href="/legal/conflicts.html">CASE manfaatlar toʻqnashuvi siyosati</a></li></ul></div>
+<div class="foot__col"><h4>Aloqa</h4><ul>
+<li><a href="tel:+998770477375">+998 77 047 73 75</a></li>
+<li><a href="mailto:support@caseadvisory.uz">support@caseadvisory.uz</a></li>
+</ul></div>
+<div class="foot__col"><h4>Social</h4><ul><li><a href="https://www.linkedin.com/company/case-real-estate-advisory" rel="me noopener" target="_blank">linkedin.com</a></li><li><a href="https://www.instagram.com/caseadvisory" rel="me noopener" target="_blank">instagram.com</a></li><li><a href="https://t.me/case_advisory" rel="me noopener" target="_blank">t.me</a></li><li><a href="https://www.youtube.com/@case.advisory" rel="me noopener" target="_blank">youtube.com</a></li></ul></div>
+</div>
+<div class="wrap"><div class="foot__bottom">
+<span>&copy; 2026 CASE Real Estate Advisory. Barcha huquqlar himoyalangan.</span>
+<span>Yangilangan: <time datetime="2026-08-19">2026-08-19</time></span>
+<span class="w-52">Sayt materiallari axborot xarakteriga ega va oferta, baholash yoki investitsiya tavsiyasi emas.</span>
+</div></div>
 </footer>
-
-<script>
-  addEventListener('scroll', () => document.getElementById('nav').classList.toggle('s', scrollY > 60));
-  const obs = new IntersectionObserver(e => e.forEach(x => { if(x.isIntersecting){x.target.classList.add('in'); obs.unobserve(x.target);} }),{threshold:.1});
-  document.querySelectorAll('.r').forEach(el => obs.observe(el));
-  document.getElementById('tick').innerHTML += document.getElementById('tick').innerHTML;
-
-  function filterCards(btn, cat) {
-    document.querySelectorAll('.pf').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    document.querySelectorAll('[data-cat]').forEach(card => {
-      const show = cat === 'all' || card.dataset.cat === cat;
-      card.style.display = show ? '' : 'none';
-    });
-  }
-</script>
 </body>
 </html>
