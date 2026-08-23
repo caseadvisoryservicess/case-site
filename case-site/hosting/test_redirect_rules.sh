@@ -21,11 +21,14 @@ HT="$(cd "$(dirname "$0")" && pwd)/caseadvisory.uz/.htaccess"
 
 ROOT=$(mktemp -d /tmp/htcheck.XXXX)
 PORT=8731
-mkdir -p "$ROOT/www/os" "$ROOT/www/.well-known/acme-challenge" "$ROOT/logs"
+mkdir -p "$ROOT/www/os" "$ROOT/www/admin" "$ROOT/www/takhtapul" \
+         "$ROOT/www/.well-known/acme-challenge" "$ROOT/logs"
 cp "$HT" "$ROOT/www/.htaccess"
 echo 'ЛЕНДИНГ .uz' > "$ROOT/www/index.html"
 echo 'ПЛАТФОРМА CASE OS' > "$ROOT/www/os/index.html"
 echo 'контакты' > "$ROOT/www/contacts.html"
+echo 'АДМИНКА' > "$ROOT/www/admin/index.html"
+echo 'ЛЕНДИНГ ТАХТАПУЛ' > "$ROOT/www/takhtapul/index.html"
 # mktemp -d создаёт каталог с правами 0700 для root, а Apache работает от www-data:
 # без этого КАЖДЫЙ запрос отдаёт 403, и проверки «нет переадресации» проходят
 # по ложной причине.
@@ -53,6 +56,10 @@ load authz_core
 load dir
 load mime
 load rewrite
+# mod_alias нужен для директив Redirect / RedirectMatch. Без него Apache падает с
+# «Invalid command» и отдаёт 500 на КАЖДЫЙ запрос - а это выглядит как дефект
+# проверяемого правила, хотя дефект в стенде.
+load alias
 load log_config
 cat <<CONF
 TypesConfig /etc/mime.types
@@ -122,6 +129,20 @@ done
 r=$(req caseadvisory.uz "/os"); l=$(loc "$r"); c=$(code "$r")
 ck "/os без слэша остаётся на .uz" \
    "$(echo "$l" | grep -qv 'caseadvisory\.com' && echo 1 || echo 0)" "код $c $l"
+
+echo
+echo "--- 2b. Админка и лендинги тоже остаются на .uz"
+# Ровно та ошибка, из-за которой лендинг перестал открываться: список исключений
+# знал про /os и /admin, а про takhtapul нет.
+for p in /admin/ /takhtapul/ /takhtapul/index.html; do
+  r=$(reqs caseadvisory.uz "$p"); l=$(loc "$r"); c=$(code "$r")
+  ck "$p отдаётся с .uz" "$([ -z "$l" ] && [ "$c" = "200" ] && echo 1 || echo 0)" \
+     "код $c ${l:-без Location}"
+done
+# Похожее имя не должно попадать в исключение по случайному совпадению начала строки.
+r=$(reqs caseadvisory.uz "/takhtapul-old"); l=$(loc "$r")
+ck "похожий путь takhtapul-old всё же уходит на .com" \
+   "$([ "$l" = "https://caseadvisory.com/takhtapul-old" ] && echo 1 || echo 0)" "$l"
 
 echo
 echo "--- 3. Остальной сайт уходит на .com с сохранением пути"
