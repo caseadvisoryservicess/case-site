@@ -21,14 +21,17 @@ HT="$(cd "$(dirname "$0")" && pwd)/caseadvisory.uz/.htaccess"
 
 ROOT=$(mktemp -d /tmp/htcheck.XXXX)
 PORT=8731
-mkdir -p "$ROOT/www/os" "$ROOT/www/admin" "$ROOT/www/takhtapul" \
+mkdir -p "$ROOT/www/os" "$ROOT/www/admin" "$ROOT/www/lp/newlanding" \
+         "$ROOT/www/takhtapul" "$ROOT/www/taxtapul" "$ROOT/www/taktapul" \
          "$ROOT/www/.well-known/acme-challenge" "$ROOT/logs"
 cp "$HT" "$ROOT/www/.htaccess"
 echo 'ЛЕНДИНГ .uz' > "$ROOT/www/index.html"
 echo 'ПЛАТФОРМА CASE OS' > "$ROOT/www/os/index.html"
 echo 'контакты' > "$ROOT/www/contacts.html"
 echo 'АДМИНКА' > "$ROOT/www/admin/index.html"
-echo 'ЛЕНДИНГ ТАХТАПУЛ' > "$ROOT/www/takhtapul/index.html"
+# В проекте гуляют четыре написания названия. Правило обязано принимать все.
+for d in takhtapul taxtapul taktapul; do echo "ЛЕНДИНГ $d" > "$ROOT/www/$d/index.html"; done
+echo 'БУДУЩИЙ ЛЕНДИНГ' > "$ROOT/www/lp/newlanding/index.html"
 # mktemp -d создаёт каталог с правами 0700 для root, а Apache работает от www-data:
 # без этого КАЖДЫЙ запрос отдаёт 403, и проверки «нет переадресации» проходят
 # по ложной причине.
@@ -134,11 +137,17 @@ echo
 echo "--- 2b. Админка и лендинги тоже остаются на .uz"
 # Ровно та ошибка, из-за которой лендинг перестал открываться: список исключений
 # знал про /os и /admin, а про takhtapul нет.
-for p in /admin/ /takhtapul/ /takhtapul/index.html; do
+for p in /admin/ /takhtapul/ /taxtapul/ /taktapul/ /lp/newlanding/; do
   r=$(reqs caseadvisory.uz "$p"); l=$(loc "$r"); c=$(code "$r")
   ck "$p отдаётся с .uz" "$([ -z "$l" ] && [ "$c" = "200" ] && echo 1 || echo 0)" \
      "код $c ${l:-без Location}"
 done
+# Регистр: правило обязано НЕ уводить на .com. Отдаст ли сервер страницу - вопрос
+# файловой системы, а не правила: в Linux Taxtapul и taxtapul разные папки,
+# поэтому здесь корректно ждать 404 с .uz, а не 200.
+r=$(reqs caseadvisory.uz "/Taxtapul/"); l=$(loc "$r"); c=$(code "$r")
+ck "/Taxtapul/ с большой буквы не уводится на .com" \
+   "$([ -z "$l" ] && echo 1 || echo 0)" "код $c ${l:-без Location}"
 # Похожее имя не должно попадать в исключение по случайному совпадению начала строки.
 r=$(reqs caseadvisory.uz "/takhtapul-old"); l=$(loc "$r")
 ck "похожий путь takhtapul-old всё же уходит на .com" \
