@@ -21,17 +21,26 @@ HT="$(cd "$(dirname "$0")" && pwd)/caseadvisory.uz/.htaccess"
 
 ROOT=$(mktemp -d /tmp/htcheck.XXXX)
 PORT=8731
+# Состав ровно как на проде, по паспорту проекта.
+LANDINGS="taxtapul galaba kibray-dc mercure-restaurant botanica"
 mkdir -p "$ROOT/www/os" "$ROOT/www/admin" "$ROOT/www/lp/newlanding" \
-         "$ROOT/www/takhtapul" "$ROOT/www/taxtapul" "$ROOT/www/taktapul" \
          "$ROOT/www/.well-known/acme-challenge" "$ROOT/logs"
+for d in $LANDINGS; do mkdir -p "$ROOT/www/$d/uz" "$ROOT/www/$d/en"; done
 cp "$HT" "$ROOT/www/.htaccess"
 echo 'ЛЕНДИНГ .uz' > "$ROOT/www/index.html"
 echo 'ПЛАТФОРМА CASE OS' > "$ROOT/www/os/index.html"
 echo 'контакты' > "$ROOT/www/contacts.html"
 echo 'АДМИНКА' > "$ROOT/www/admin/index.html"
-# В проекте гуляют четыре написания названия. Правило обязано принимать все.
-for d in takhtapul taxtapul taktapul; do echo "ЛЕНДИНГ $d" > "$ROOT/www/$d/index.html"; done
+for d in $LANDINGS; do
+  echo "ЛЕНДИНГ $d" > "$ROOT/www/$d/index.html"
+  echo "$d uz" > "$ROOT/www/$d/uz/index.html"
+  echo "$d en" > "$ROOT/www/$d/en/index.html"
+done
 echo 'БУДУЩИЙ ЛЕНДИНГ' > "$ROOT/www/lp/newlanding/index.html"
+# Служебные файлы в корне: подтверждения прав уехав на .com перестают работать.
+echo 'User-agent: *' > "$ROOT/www/robots.txt"
+echo 'ok' > "$ROOT/www/yandex_1234567890abcdef.html"
+echo 'ok' > "$ROOT/www/google1234567890abcdef.html"
 # mktemp -d создаёт каталог с правами 0700 для root, а Apache работает от www-data:
 # без этого КАЖДЫЙ запрос отдаёт 403, и проверки «нет переадресации» проходят
 # по ложной причине.
@@ -137,7 +146,15 @@ echo
 echo "--- 2b. Админка и лендинги тоже остаются на .uz"
 # Ровно та ошибка, из-за которой лендинг перестал открываться: список исключений
 # знал про /os и /admin, а про takhtapul нет.
-for p in /admin/ /takhtapul/ /taxtapul/ /taktapul/ /lp/newlanding/; do
+# Все пять лендингов и обе их языковые версии.
+for d in $LANDINGS; do
+  for p in "/$d/" "/$d/uz/" "/$d/en/"; do
+    r=$(reqs caseadvisory.uz "$p"); l=$(loc "$r"); c=$(code "$r")
+    ck "$p отдаётся с .uz" "$([ -z "$l" ] && [ "$c" = "200" ] && echo 1 || echo 0)" \
+       "код $c ${l:-без Location}"
+  done
+done
+for p in /admin/ /lp/newlanding/; do
   r=$(reqs caseadvisory.uz "$p"); l=$(loc "$r"); c=$(code "$r")
   ck "$p отдаётся с .uz" "$([ -z "$l" ] && [ "$c" = "200" ] && echo 1 || echo 0)" \
      "код $c ${l:-без Location}"
@@ -148,6 +165,28 @@ done
 r=$(reqs caseadvisory.uz "/Taxtapul/"); l=$(loc "$r"); c=$(code "$r")
 ck "/Taxtapul/ с большой буквы не уводится на .com" \
    "$([ -z "$l" ] && echo 1 || echo 0)" "код $c ${l:-без Location}"
+
+echo
+echo "--- 2c. Служебные файлы в корне остаются на .uz"
+# Подтверждение прав на домен, уехавшее на .com, перестаёт что-либо подтверждать.
+for p in /robots.txt /yandex_1234567890abcdef.html /google1234567890abcdef.html; do
+  r=$(reqs caseadvisory.uz "$p"); l=$(loc "$r"); c=$(code "$r")
+  ck "$p отдаётся с .uz" "$([ -z "$l" ] && [ "$c" = "200" ] && echo 1 || echo 0)" \
+     "код $c ${l:-без Location}"
+done
+
+echo
+echo "--- 2d. Старые адреса доводят до нового, а не на .com"
+r=$(reqs caseadvisory.uz "/restaurant"); l=$(loc "$r")
+ck "/restaurant -> /mercure-restaurant/ на .uz" \
+   "$(echo "$l" | grep -q '^https\?://caseadvisory.uz/mercure-restaurant/$' && echo 1 || echo 0)" "$l"
+# Слаг из панели: takhtapul через kh. Раньше такая ссылка уезжала на .com.
+r=$(reqs caseadvisory.uz "/takhtapul/"); l=$(loc "$r")
+ck "/takhtapul/ (слаг панели) -> /taxtapul/ на .uz" \
+   "$(echo "$l" | grep -q '^https\?://caseadvisory.uz/taxtapul/$' && echo 1 || echo 0)" "$l"
+r=$(reqs caseadvisory.uz "/taktapul/uz/"); l=$(loc "$r")
+ck "/taktapul/uz/ -> /taxtapul/uz/ с сохранением языка" \
+   "$(echo "$l" | grep -q '^https\?://caseadvisory.uz/taxtapul/uz/$' && echo 1 || echo 0)" "$l"
 # Похожее имя не должно попадать в исключение по случайному совпадению начала строки.
 r=$(reqs caseadvisory.uz "/takhtapul-old"); l=$(loc "$r")
 ck "похожий путь takhtapul-old всё же уходит на .com" \
