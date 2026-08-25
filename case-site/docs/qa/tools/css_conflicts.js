@@ -1,19 +1,19 @@
-/* CASE OS — аудитор конфликтов CSS между модулями.
+/* CASE OS - аудитор конфликтов CSS между модулями.
 
-   Зачем: половина табличных багов v4.46–v4.48 была из-за того, что правило одного модуля молча
-   перебивало правило другого. Классика — `.ux-table-viewport thead th{top:0!important}` из
+   Зачем: половина табличных багов v4.46-v4.48 была из-за того, что правило одного модуля молча
+   перебивало правило другого. Классика - `.ux-table-viewport thead th{top:0!important}` из
    v3515-ux глушило вертикальные смещения шапки из v432-data-grid; искали три релиза.
 
    Принцип (важный): конфликт засчитывается ТОЛЬКО если в живом DOM есть элемент, попадающий
    ПОД ОБА правила сразу. Совпадения «оба про th, но в разных таблицах» отсекаются. Это тот же
    подход, что и с проверкой отрисовки: доверяем факту, а не теории.
 
-   Ещё: декларации читаются из авторского cssText, а не из развёрнутого style-объекта — иначе
+   Ещё: декларации читаются из авторского cssText, а не из развёрнутого style-объекта - иначе
    один `background:` превращается в девять мнимых конфликтов.
 
    Запуск: node css_conflicts.js /path/to/os [--all]
-     без флага — только конфликты с !important (то, что реально ломает вёрстку);
-     --all      — включая обычные переопределения. */
+     без флага - только конфликты с !important (то, что реально ломает вёрстку);
+     --all      - включая обычные переопределения. */
 'use strict';
 const { chromium } = require('playwright-core');
 const path = require('path'), fs = require('fs'), http = require('http');
@@ -81,7 +81,7 @@ function auditInPage(onlyImportant) {
         const A = sheets[list[i].ri], B = sheets[list[j].ri];
         if (A.owner === B.owner) continue;
         if (onlyImportant && !list[i].important && !list[j].important) continue;
-        if (list[i].val === list[j].val && list[i].important === list[j].important) continue; // одинаковое — не конфликт
+        if (list[i].val === list[j].val && list[i].important === list[j].important) continue; // одинаковое - не конфликт
         let hit = 0, sample = '';
         for (const sa of A.selector.split(',')) {
           const setA = matchSet(sa.trim()); if (!setA.size) continue;
@@ -108,10 +108,11 @@ srv.listen(0, '127.0.0.1', async () => {
   const page = await browser.newPage({ viewport: { width: 1600, height: 900 } });
   await page.goto(base + '/index.html?demo=1', { waitUntil: 'networkidle' });
   await page.waitForTimeout(700);
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = 'ASH'; doLogin(); });
   await page.waitForTimeout(600);
 
-  /* модули вставляют стили лениво — обходим разделы и проверяем на каждом */
+  /* модули вставляют стили лениво - обходим разделы и проверяем на каждом */
   const views = ['registry', 'brands', 'plans', 'dates', 'docs', 'v32_sales', 'users', 'dash'];
   const all = new Map(); let rulesRead = 0, owners = new Set();
   for (const v of views) {
@@ -135,7 +136,7 @@ srv.listen(0, '127.0.0.1', async () => {
   console.log(`режим: ${SHOW_ALL ? 'все переопределения' : 'только с !important'}`);
   console.log(`конфликтов, подтверждённых на реальных элементах: ${list.length}\n`);
   list.slice(0, 30).forEach((c, i) => {
-    console.log(`${i + 1}. «${c.prop}» — сталкиваются на ${c.elements} элем. (${c.sample}), раздел «${c.view}»`);
+    console.log(`${i + 1}. «${c.prop}» - сталкиваются на ${c.elements} элем. (${c.sample}), раздел «${c.view}»`);
     console.log(`     [${c.a.owner}] ${c.a.selector}`);
     console.log(`        → ${c.prop}: ${c.a.val}${c.a.important ? ' !important' : ''}${c.a.media ? '  @' + c.a.media : ''}`);
     console.log(`     [${c.b.owner}] ${c.b.selector}`);

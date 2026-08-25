@@ -121,11 +121,21 @@
   };
   var GROUP_ORDER=['mywork','projects','advisory','leasing','property','finance','data','products','team','admin'];
   var ALL=MODULES.map(function(m){return m.v;});
+  /* Разделы, которые открываются только с правом admin: core.js гасит их и в меню
+     («if(n[0]==='users'&&!R().admin)»), и на отрисовке — renderAdminModules и
+     renderAdminSystem показывают замок. Список нужен, чтобы не класть их в рабочую
+     область роли, которой они всё равно недоступны. */
+  var ADMIN_ONLY_VIEWS=['users','admin_modules','admin_system'];
   var NAV_ORDER=MODULES.filter(function(m){return m.nav;}).map(function(m){return m.v;});
 
   var CURRENT_CORE=['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','plans','feasibility','mep','lift','map','geoanalytics','bench','kpi','org','study','rating','users','admin_modules','admin_system'];
   var DEFAULTS={
     ASH:ALL.slice(), CFO:ALL.slice(), ADM:ALL.slice(),
+    /* v4.64.0: DIR — все рабочие разделы, кроме трёх административных. Права роли уже
+       закрывают их (admin:false), но держать их в рабочей области бессмысленно: человек
+       видел бы пункты меню, которые всё равно откроют замок. Список исключений здесь, а
+       не в коде отрисовки, чтобы администратор мог при желании изменить набор в «Модулях». */
+    DIR:ALL.filter(function(v){return ADMIN_ONLY_VIEWS.indexOf(v)<0;}),
     BA:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','geoanalytics','bench','kpi','org','study','rating'],
     AG:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
     AGX:['dash','work_tasks','work_kanban','brands','v32_investors'],
@@ -333,4 +343,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.47.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.64.0';

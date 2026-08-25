@@ -3,7 +3,7 @@
 const { chromium } = require('playwright-core');
 const fs = require('fs'); const path = require('path');
 const FILE = process.argv[2] || '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
-let failed = 0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' — '+d)); if(!c)failed++;};
+let failed = 0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' - '+d)); if(!c)failed++;};
 (async () => {
   const tmp = path.join(__dirname, 'indep'); fs.rmSync(tmp,{recursive:true,force:true}); fs.mkdirSync(tmp,{recursive:true});
   const dst = path.join(tmp, 'CASE_OS_Geo_Analytics.html');
@@ -14,7 +14,7 @@ let failed = 0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefine
   const pg = await b.newPage({ viewport:{width:1400,height:900} });
   const errs=[]; pg.on('pageerror',e=>errs.push(e.message));
   const blocked=[];
-  /* Ни одного внешнего запроса не пропускаем — совсем */
+  /* Ни одного внешнего запроса не пропускаем - совсем */
   await pg.route('**/*', r => { const u=r.request().url();
     if(u.startsWith('file://')||u.startsWith('data:')||u.startsWith('blob:'))return r.continue();
     blocked.push(u); return r.abort(); });
@@ -50,8 +50,8 @@ let failed = 0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefine
   ck('отчёт по точке строится', rep>200, 'символов в отчёте: '+rep);
 
   const ext = blocked.filter(u=>!/^file:/.test(u));
-  ck('файл не требует внешних загрузок для работы', true, 'заблокировано внешних запросов: '+ext.length+(ext.length?' (тайлы карты — ожидаемо)':''));
-  console.log('   первые из них:', ext.slice(0,3).map(u=>u.slice(0,60)).join(' | ')||'—');
+  ck('файл не требует внешних загрузок для работы', true, 'заблокировано внешних запросов: '+ext.length+(ext.length?' (тайлы карты - ожидаемо)':''));
+  console.log('   первые из них:', ext.slice(0,3).map(u=>u.slice(0,60)).join(' | ')||'-');
 
   await pg.screenshot({path:path.join(__dirname,'indep.png'),clip:{x:0,y:0,width:1400,height:700}});
   await b.close();

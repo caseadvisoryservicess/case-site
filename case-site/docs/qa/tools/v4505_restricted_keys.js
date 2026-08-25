@@ -3,7 +3,7 @@
    Жалоба: при каждом сохранении всплывало «⚠ НЕ сохранено: USERS, Бенчмарки, ROLES,
    AUDIT, Геоаналитика, CASE_PARTNERS», и сотрудник решил, что не сохраняется ничего.
 
-   Разбор: сервер при чтении вырезает разделы, недоступные роли, — клиент их не получает.
+   Разбор: сервер при чтении вырезает разделы, недоступные роли, - клиент их не получает.
    Но у клиента для них есть ВСТРОЕННЫЕ значения по умолчанию, и они непустые, поэтому
    фильтр пустых разделов из v4.50.0 их не отсекал. Они уходили на сервер, тот их честно
    отклонял и перечислял в ответе. Своя правка при этом сохранялась: сервер пишет
@@ -22,7 +22,7 @@ const RESTRICTED = ['USERS', 'ROLES', 'AUDIT', 'BENCH', 'GEO_DATA', 'CASE_PARTNE
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -48,9 +48,9 @@ function check(name, cond, detail) {
 
   check('вход прошёл без ошибок сценария', errs.length === 0, errs[0] || 'ошибок нет');
 
-  /* Правка в РАЗРЕШЁННОМ разделе — она обязана сохраниться */
+  /* Правка в РАЗРЕШЁННОМ разделе - она обязана сохраниться */
   await pg.evaluate(() => {
-    if (typeof OBJECTS !== 'undefined' && OBJECTS[0]) OBJECTS[0].name = 'CASE Mall — проверка';
+    if (typeof OBJECTS !== 'undefined' && OBJECTS[0]) OBJECTS[0].name = 'CASE Mall - проверка';
     if (typeof persist === 'function') persist();
   });
   await pg.waitForTimeout(3000);
@@ -63,7 +63,7 @@ function check(name, cond, detail) {
 
   const saved = (state.appState.data.OBJECTS || [])[0];
   check('правка в разрешённом разделе доехала до сервера',
-    saved && saved.name === 'CASE Mall — проверка', saved ? saved.name : 'нет данных');
+    saved && saved.name === 'CASE Mall - проверка', saved ? saved.name : 'нет данных');
 
   const txt = await pg.evaluate(() => document.body.innerText);
   check('предупреждения «НЕ сохранено» нет', !/НЕ сохранено/i.test(txt),
@@ -77,7 +77,7 @@ function check(name, cond, detail) {
   check('клиент принял список закрытых разделов', got === RESTRICTED.length,
     'получено ' + got + ' из ' + RESTRICTED.length);
 
-  /* Старый сервер без restricted_keys — поведение не должно ломаться */
+  /* Старый сервер без restricted_keys - поведение не должно ломаться */
   state.restrictedKeys = undefined;
   await pg.reload({ waitUntil: 'networkidle' });
   await pg.waitForTimeout(1200);
@@ -88,7 +88,7 @@ function check(name, cond, detail) {
   });
   await pg.waitForTimeout(2600);
   const after = await pg.evaluate(() => (typeof OBJECTS !== 'undefined' && OBJECTS[0]) ? OBJECTS[0].name : null);
-  check('со старым сервером вход и данные в порядке', after === 'CASE Mall — проверка', String(after));
+  check('со старым сервером вход и данные в порядке', after === 'CASE Mall - проверка', String(after));
   check('ошибок сценария по-прежнему нет', errs.length === 0, errs[0] || 'ошибок нет');
 
   await b.close(); srv.close();

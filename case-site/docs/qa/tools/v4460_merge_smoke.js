@@ -1,4 +1,4 @@
-/* v4.46.0 — смоук слияния: owner-report кнопки, ux-system активен, fail-closed BRJ/AGX, BSH read-only */
+/* v4.46.0 - смоук слияния: owner-report кнопки, ux-system активен, fail-closed BRJ/AGX, BSH read-only */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -17,7 +17,8 @@ srv.listen(0,'127.0.0.1',async()=>{
  const errs=[];page.on('pageerror',e=>errs.push(e.message));
  await page.goto(base+'/index.html?demo=1',{waitUntil:'networkidle'});
  await page.waitForTimeout(700);
- await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
+  await page.waitForSelector('#luser',{timeout:15000});   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
+await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
  await page.waitForTimeout(700);
 
  const sys=await page.evaluate(()=>({
@@ -48,7 +49,7 @@ srv.listen(0,'127.0.0.1',async()=>{
    await page.evaluate(()=>{try{caseOwnerReportClose();}catch(e){}});
  }
 
- // BRJ: fail-closed — реестр недоступен даже через go()
+ // BRJ: fail-closed - реестр недоступен даже через go()
  await page.evaluate(()=>{logout();});
  await page.waitForTimeout(500);
  await page.evaluate(()=>{const s=document.getElementById('luser');s.value='BRJ';doLogin();});

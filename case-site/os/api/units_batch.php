@@ -6,6 +6,11 @@ $u = require_login();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') fail('Метод не поддерживается', 405);
 if (in_array((string)($u['role_key'] ?? ''), ['AGX','BSH','BRJ'], true)) fail('Для этой роли LCR доступен только для просмотра', 403);
 if (empty($u['edit']) && empty($u['admin'])) fail('Нет прав на изменение LCR', 403);
+/* P0-SEC-02: этот эндпоинт делает upsert и удаление помещений пачкой, то есть меняет состав
+   объекта. Права edit для такого мало: агент аренды по описанию роли ведёт показы и брони,
+   а здесь мог массово перезаписать реестр или удалить помещения. Структурные операции
+   требуют отдельного права (lib.php: unit_can_change_structure). */
+if (!unit_can_change_structure($u)) fail('Массовое изменение состава помещений доступно ролям с правом на финансы или планировки', 403);
 $b = body();
 $upserts = isset($b['upserts']) && is_array($b['upserts']) ? $b['upserts'] : [];
 $deletes = isset($b['deletes']) && is_array($b['deletes']) ? $b['deletes'] : [];

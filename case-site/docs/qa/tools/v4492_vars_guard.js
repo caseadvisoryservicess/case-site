@@ -36,8 +36,8 @@ srv.listen(0,'127.0.0.1',async()=>{
     const n1=u.vars.length;
     saveVarsLive(id,'A, B, C'); await new Promise(r=>setTimeout(r,300));
     return {послеДобавления:n1,послеУдаленияОдного:u.vars.length};},prep.id);
-  rec('добавление одного — без вопросов', quiet.послеДобавления===4, JSON.stringify(quiet));
-  rec('удаление одного — без вопросов', quiet.послеУдаленияОдного===3, JSON.stringify(quiet));
+  rec('добавление одного - без вопросов', quiet.послеДобавления===4, JSON.stringify(quiet));
+  rec('удаление одного - без вопросов', quiet.послеУдаленияОдного===3, JSON.stringify(quiet));
   rec('нет JS-ошибок', errs.filter(e=>!/favicon/.test(e)).length===0, errs.slice(0,2).join(' | '));
   console.log(JSON.stringify({summary:{pass:results.filter(r=>r.status==='PASS').length,fail:results.filter(r=>r.status==='FAIL').length},results},null,1));
   await b.close();srv.close();

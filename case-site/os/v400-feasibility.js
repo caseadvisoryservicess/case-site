@@ -66,7 +66,7 @@
     var rec=F.current;
     el.innerHTML=''
       +'<section class="feas-v4">'
-      +'<div class="feas-v4-head">'
+      +'<div class="feas-v4-head ph">'
       +'<div><div class="feas-v4-kicker">CASE OS v4.9.3</div><h2>'+h(tr('Финансовая модель проекта','Loyiha moliyaviy modeli','Project financial model'))+'</h2><p>'+h(tr('Инвестиционная оценка торговых центров, гостиниц, бизнес-центров и mixed-use проектов.','Savdo markazlari, mehmonxonalar, biznes markazlari va mixed-use loyihalarini investitsion baholash.','Investment appraisal for malls, hotels, business centres and mixed-use projects.'))+'</p></div>'
       +'<div class="feas-v4-access"><b>'+h(tr('НАСТРАИВАЕМЫЙ ДОСТУП','SOZLANADIGAN RUXSAT','CONFIGURABLE ACCESS'))+'</b><span>'+h(tr('права задаёт администратор','ruxsatni administrator belgilaydi','administrator-controlled workspace'))+'</span></div>'
       +'</div>'

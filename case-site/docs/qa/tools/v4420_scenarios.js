@@ -1,4 +1,4 @@
-/* CASE OS v4.42.0 — сценарные проверки релиза:
+/* CASE OS v4.42.0 - сценарные проверки релиза:
    1) «Версии планировок» не сворачивает меню (+ 6 регрессионных сценариев аккордеона)
    2) страница «Пользователи»: права ролей внутри карточки матрицы, отдельной таблицы нет
    3) таблицы data-grid растянуты на ширину карточки
@@ -77,7 +77,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
       view: (typeof S !== 'undefined' && S.view) || ''
     };
   });
-  rec('nav: клик «Версии планировок» — меню НЕ свернулось', !menuRes.err && menuRes.openAfter >= menuRes.openedBefore, JSON.stringify(menuRes));
+  rec('nav: клик «Версии планировок» - меню НЕ свернулось', !menuRes.err && menuRes.openAfter >= menuRes.openedBefore, JSON.stringify(menuRes));
   rec('nav: группа «Версий планировок» открыта и активна', menuRes.planOpen && menuRes.planActive && menuRes.activeV === 'plan_master' && menuRes.view === 'plan_master');
   rec('nav: посторонняя открытая группа осталась открытой', menuRes.otherStillOpen);
 
@@ -88,27 +88,27 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     const openN = () => groups().filter(g => g.classList.contains('open')).length;
     const gA = groups().find(g => g.classList.contains('has-active'));
     const gB = groups().find(g => g !== gA && !g.classList.contains('open')) || groups().find(g => g !== gA);
-    // 1: открыть чужую группу — активная не закрылась
+    // 1: открыть чужую группу - активная не закрылась
     gB.querySelector('.nav-group-btn').click();
     out.s1 = gB.classList.contains('open') && gA.classList.contains('open');
-    // 2: повторный клик — закрылась только она
+    // 2: повторный клик - закрылась только она
     gB.querySelector('.nav-group-btn').click();
     out.s2 = !gB.classList.contains('open') && gA.classList.contains('open');
-    // 3: переход в другой раздел — его группа открыта, счётчик открытых не уменьшился
+    // 3: переход в другой раздел - его группа открыта, счётчик открытых не уменьшился
     gB.querySelector('.nav-group-btn').click();
     const before = openN();
     const link = gB.querySelector('a[data-v]');
     link.click();
     out.s3 = gB.classList.contains('has-active') && openN() >= before;
-    // 4: перерисовка того же экрана — меню не тронуто
+    // 4: перерисовка того же экрана - меню не тронуто
     const snap = groups().map(g => g.classList.contains('open')).join(',');
     go(S.view);
     out.s4 = groups().map(g => g.classList.contains('open')).join(',') === snap;
-    // 5: устаревший caseNavClose — no-op
+    // 5: устаревший caseNavClose - no-op
     const beforeClose = openN();
     caseNavClose();
     out.s5 = openN() === beforeClose;
-    // 6: caseNavSync — has-active только у группы активного пункта
+    // 6: caseNavSync - has-active только у группы активного пункта
     caseNavSync();
     out.s6 = groups().filter(g => g.classList.contains('has-active')).length === 1;
     return out;
@@ -161,9 +161,9 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     });
   }
   const fUsers = await tableFill('users');
-  rec('tables: «Пользователи» — таблица не уже карточки', fUsers.skip || fUsers.tw >= fUsers.ww - 4, JSON.stringify(fUsers));
+  rec('tables: «Пользователи» - таблица не уже карточки', fUsers.skip || fUsers.tw >= fUsers.ww - 4, JSON.stringify(fUsers));
   const fReg = await tableFill('registry');
-  rec('tables: «Реестр» — таблица не уже карточки', fReg.skip || fReg.tw >= fReg.ww - 4, JSON.stringify(fReg));
+  rec('tables: «Реестр» - таблица не уже карточки', fReg.skip || fReg.tw >= fReg.ww - 4, JSON.stringify(fReg));
 
   /* ---------- 4. Миграция BRJ ---------- */
   const seeded = await page.evaluate(() => {
@@ -197,9 +197,24 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     const cs = getComputedStyle(document.getElementById('quizPop'));
     const chat = document.getElementById('chatFab');
     const ccs = chat ? getComputedStyle(chat) : null;
-    return { right: cs.right, bottom: cs.bottom, left: cs.left, chatBottom: ccs ? ccs.bottom : '', agxExternal: !!(ROLES.AGX && ROLES.AGX.external) };
+    /* v4.58.0: проверяем не магическое число, а само требование - три плавающие кнопки
+       стоят в одной колонке справа и не наезжают друг на друга. Раньше тест закреплял
+       bottom:86px, и когда «наверх» и бейдж действительно перекрылись, он этого не заметил. */
+    const rects = ['quizPop', 'chatFab', 'toTop'].map(id => {
+      const el = document.getElementById(id); if (!el) return null;
+      const r = el.getBoundingClientRect();
+      return { id, top: Math.round(r.top), bottom: Math.round(r.bottom), right: Math.round(r.right) };
+    }).filter(Boolean);
+    let overlap = '';
+    for (let i = 0; i < rects.length; i++) for (let j = i + 1; j < rects.length; j++) {
+      const a = rects[i], b = rects[j];
+      if (a.top < b.bottom && b.top < a.bottom) overlap += a.id + '/' + b.id + ' ';
+    }
+    return { right: cs.right, bottom: cs.bottom, left: cs.left, chatBottom: ccs ? ccs.bottom : '',
+             agxExternal: !!(ROLES.AGX && ROLES.AGX.external), rects, overlap: overlap.trim() };
   });
-  rec('quiz: бейдж справа (right 18px, bottom 86px)', quiz.right === '18px' && quiz.bottom === '86px', JSON.stringify(quiz));
+  rec('quiz: бейдж прижат к правому краю', quiz.right === '18px', JSON.stringify(quiz.rects));
+  rec('плавающие кнопки не перекрывают друг друга', quiz.overlap === '', quiz.overlap || 'пересечений нет');
   rec('quiz: не перекрывает кнопку чата (бейдж выше)', parseInt(quiz.bottom) > parseInt(quiz.chatBottom || '20') + 54 - 1, quiz.chatBottom);
   rec('quiz: AGX помечен как внешний (гейт по роли активен)', quiz.agxExternal);
   await page.setViewportSize({ width: 800, height: 900 });

@@ -1,4 +1,4 @@
-/* CASE OS v4.33.0 — VM-тест P0-1: неизменяемый снапшот версии планировки + генерация LCR строго из снапшота.
+/* CASE OS v4.33.0 - VM-тест P0-1: неизменяемый снапшот версии планировки + генерация LCR строго из снапшота.
    Запуск: node p01_vm_test.js /path/to/os
    Извлекает P0-1-блок и planDiff из index.html, загружает v417-master-plan.js в песочницу и
    прогоняет сценарии ядра без браузера/БД. Пишет JSON-результат в stdout. */
@@ -8,7 +8,7 @@ const path = require('path');
 const vm = require('vm');
 
 const OS_DIR = process.argv[2] || '.';
-const html = (function(){var i=fs.readFileSync(path.join(OS_DIR,'index.html'),'utf8');var c=path.join(OS_DIR,'core.js');return i+(fs.existsSync(c)?fs.readFileSync(c,'utf8'):'');})(); /* v4.49: ядро вынесено в core.js — читаем оба файла */
+const html = (function(){var i=fs.readFileSync(path.join(OS_DIR,'index.html'),'utf8');var c=path.join(OS_DIR,'core.js');return i+(fs.existsSync(c)?fs.readFileSync(c,'utf8'):'');})(); /* v4.49: ядро вынесено в core.js - читаем оба файла */
 const v417 = fs.readFileSync(path.join(OS_DIR, 'v417-master-plan.js'), 'utf8');
 
 /* ---- извлечение кода из index.html ---- */
@@ -151,12 +151,12 @@ test('изменение PLAN_CODES после фиксации не влияе�
 /* 3. lcrScan: снапшот против живого чертежа */
 sb = makeSandbox();
 loadPlanA(sb);
-test('lcrScan(ver) читает снапшот, lcrScan() — живой чертёж', () => {
+test('lcrScan(ver) читает снапшот, lcrScan() - живой чертёж', () => {
   const v1 = sb.planVersionForCurrent('p1');
   loadPlanB(sb);
   const t = sb.masterTab; // модуль загружен
   ok(typeof sb.masterLcrApply === 'function', 'masterLcrApply есть');
-  // прямого доступа к lcrScan нет (замыкание) — проверяем через применение ниже; здесь проверяем данные снапшота
+  // прямого доступа к lcrScan нет (замыкание) - проверяем через применение ниже; здесь проверяем данные снапшота
   eq(v1.snapshot.planCodes['p1::A::1 этаж'].length, 2, 'в снапшоте A: 2 кода на 1 этаже');
   eq(sb.PLAN_CODES['p1::A::1 этаж'].length, 2, 'вживую: 2 кода (A-101, B-777)');
   ok(sb.PLAN_CODES['p1::A::1 этаж'].some(l => l.code === 'B-777'), 'вживую есть B-777');
@@ -236,11 +236,11 @@ test('P1-1: сделка защищает юнит по unitId; тот же ко
   const v1 = sb.CASE_LAYOUT_VERSIONS[0];
   sb.masterLcrApply('p1', { versionId: v1.id });
   eq(ua.area, 50, '(a) unitId-сделка защищает: площадь не тронута');
-  // (b) тот же код, но сделка другого проекта — НЕ защищает
+  // (b) тот же код, но сделка другого проекта - НЕ защищает
   sb.LEASE_COMMISSION_DEALS = [{ id: 'd2', unit: 'A-102', objectName: 'Проект p2' }];
   sb.masterLcrApply('p1', { versionId: v1.id });
   eq(ua.area, 80, '(b) сделка чужого проекта не защищает: площадь обновлена по снапшоту');
-  // (c) сделка без unitId и объекта — консервативная защита по коду
+  // (c) сделка без unitId и объекта - консервативная защита по коду
   ua.area = 50;
   sb.LEASE_COMMISSION_DEALS = [{ id: 'd3', unit: 'A-102' }];
   sb.masterLcrApply('p1', { versionId: v1.id });
@@ -280,8 +280,8 @@ test('drift чертежа ⇒ новая активная версия, ста�
 test('активная версия без снапшота получает заморозку вместо создания новой', () => {
   sb.CASE_LAYOUT_VERSIONS.forEach(v => { v.active = false; });
   sb.CASE_LAYOUT_VERSIONS.push({ id: 'lv_manual', projectId: 'p1', version: '2.0', type: 'leasing', status: 'working', active: true, handoverStatus: 'draft' });
-  loadPlanA(sb); // вернулись к плану A — checksum не совпадает ни с одним снапшотом? v1 совпадает!
-  // v1 (план A) существует со снапшотом — должен быть переиспользован раньше заморозки lv_manual
+  loadPlanA(sb); // вернулись к плану A - checksum не совпадает ни с одним снапшотом? v1 совпадает!
+  // v1 (план A) существует со снапшотом - должен быть переиспользован раньше заморозки lv_manual
   const got = sb.planVersionForCurrent('p1');
   eq(got.version, 'план-1', 'найдена версия со снапшотом того же чертежа (переиспользование приоритетнее)');
 });

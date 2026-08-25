@@ -1,6 +1,6 @@
 (function(){
 'use strict';
-var VERSION='4.46.1';
+var VERSION='4.58.0';
 var restoreSeq=0;
 
 function byId(id){return document.getElementById(id);}
@@ -17,10 +17,14 @@ function scrollKey(el,index){
   }
   if(el.classList&&el.classList.contains('asaas35-table-wrap'))return 'brands-table';
   if(el.classList&&el.classList.contains('geo-table-wrap'))return 'geo-table';
+  if(el.classList&&el.classList.contains('drawer'))return 'drawer';
   return 'index:'+index;
 }
 function scrollCandidates(){
-  var selectors=['#main','.tbl-scroll','.asaas35-table-wrap','.geo-table-wrap','.case-grid-scroll','.kanban','.tabs-scroll'];
+  /* v4.58.0: '.kanban' такого класса в системе нет — доска называется '.case49-kanban',
+     так что её прокрутка не сохранялась ни разу. Панель карточки '.drawer' тоже
+     прокручивается (index.html:248) и после сохранения прыгала в начало. */
+  var selectors=['#main','.tbl-scroll','.asaas35-table-wrap','.geo-table-wrap','.case-grid-scroll','.case49-kanban','.tabs-scroll','.drawer'];
   var seen=new Set(),out=[];
   selectors.forEach(function(sel){document.querySelectorAll(sel).forEach(function(el){if(!seen.has(el)){seen.add(el);out.push(el);}});});
   return out;
@@ -33,6 +37,7 @@ function findScroll(key,index){
   }
   if(key==='brands-table')return document.querySelector('.asaas35-table-wrap');
   if(key==='geo-table')return document.querySelector('.geo-table-wrap');
+  if(key==='drawer')return document.querySelector('.drawer');
   return scrollCandidates()[index]||null;
 }
 function capture(){
@@ -55,6 +60,15 @@ function restoreOne(snap){
     if(el&&document.body.contains(el)&&typeof el.focus==='function'){
       try{el.focus({preventScroll:true});if(snap.focus.start!=null&&el.setSelectionRange)el.setSelectionRange(snap.focus.start,snap.focus.end);}catch(e){}
     }
+  }
+  /* v4.58.0: раскрытые details собирались в capture(), но никогда не возвращались —
+     карточки портфеля и свёрнутые блоки схлопывались при каждой перерисовке */
+  if(snap.details&&snap.details.length){
+    var all=document.querySelectorAll('details');
+    snap.details.forEach(function(k,i){
+      var d=k.indexOf('id:')===0?byId(k.slice(3)):all[+k.slice(6)||i];
+      if(d&&d.tagName==='DETAILS')d.open=true;
+    });
   }
 }
 function restore(snap){
@@ -118,6 +132,8 @@ function refreshAfterServer(changed){
   return true;
 }
 window.CASE_LIVE_SYNC={version:VERSION,capture:capture,restore:restore,withPreservedUi:withPreservedUi,entitySaved:entitySaved,refreshAfterServer:refreshAfterServer};
+/* v4.58.0: регистрация переехала внутрь замыкания к единственному источнику версии.
+   Раньше здесь стоял литерал '4.47.0' при var VERSION='4.46.1' — числа разошлись и
+   прожили так десяток релизов, потому что сверку проходил литерал, а наружу шла переменная. */
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4451-live-sync']=VERSION;
 })();
-
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4451-live-sync']='4.47.0';

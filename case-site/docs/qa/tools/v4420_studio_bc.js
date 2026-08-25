@@ -1,4 +1,4 @@
-/* CASE OS v4.42.0 — проверка контролов БЦ в гео-студии (mock-авторизация).
+/* CASE OS v4.42.0 - проверка контролов БЦ в гео-студии (mock-авторизация).
    Запуск: node v4420_studio_bc.js /path/to/os */
 'use strict';
 const fs = require('fs');
@@ -14,7 +14,7 @@ function serve() {
     const srv = http.createServer((req, rsp) => {
       let p = decodeURIComponent(req.url.split('?')[0]);
       if (p === '/') p = '/index.html';
-      /* студия открывается только с авторизацией — мокаем auth + права рабочей области */
+      /* студия открывается только с авторизацией - мокаем auth + права рабочей области */
       if (p === '/api/auth.php') { rsp.writeHead(200, { 'Content-Type': 'application/json' }); rsp.end(JSON.stringify({ auth: true, user: { id: 'u1', name: 'QA', role_key: 'ASH', admin: true, edit: true }, csrf: 't' })); return; }
       if (p === '/api/workspace_access.php') { rsp.writeHead(200, { 'Content-Type': 'application/json' }); rsp.end(JSON.stringify({ allowed: true, can_edit: true })); return; }
       if (p.startsWith('/api/')) { rsp.writeHead(404); rsp.end('404'); return; }
@@ -53,7 +53,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   });
   rec('БЦ: есть все контролы HORECA-набора (цвет/размер/прозр/подписи/размер подписи/кластеры)',
     ctl.bcNa && ctl.bcR && ctl.bcO && ctl.bcLab && ctl.bcLS && ctl.bcClu, JSON.stringify(ctl));
-  rec('БЦ: диапазон размера подписи как у POI (8–20)', ctl.lsMin === '8' && ctl.lsMax === '20');
+  rec('БЦ: диапазон размера подписи как у POI (8-20)', ctl.lsMin === '8' && ctl.lsMax === '20');
   rec('студия: markerClusterGroup доступен', ctl.cluster);
   rec('студия: данные БЦ загружены', ctl.bcCount > 0, 'BC: ' + ctl.bcCount);
 

@@ -1,4 +1,4 @@
-/* CASE OS — аудит ролей и безопасности (статический).
+/* CASE OS - аудит ролей и безопасности (статический).
    1) Консистентность реестров: каталог модулей (v3520) ↔ validViews (index.html) ↔ серверные списки (api/lib.php).
    2) Ролевые списки: клиентские DEFAULTS ↔ серверные ROLE-списки.
    3) API: каждый эндпоинт должен требовать авторизацию (или быть явно публичным).
@@ -20,12 +20,17 @@ out.info.push('каталог модулей (v3520): ' + moduleIds.length);
 
 /* ---- 2. validViews ядра ---- */
 const idx = read('index.html');
-const vvM = idx.match(/const validViews=\[([^\]]+)\]/);
+/* v4.59.0: список видов переехал из index.html в core.js ещё в v4.49.0 (коммит 2ec18cd,
+   «ядро вынесено из index.html»), и с тех пор эта строка падала на null - аудит прав
+   ролей десять релизов не запускался вовсе. Ищем в обоих файлах. */
+const vvSrc = /const validViews=\[/.test(idx) ? idx : read('core.js');
+const vvM = vvSrc.match(/const validViews=\[([^\]]+)\]/);
+if (!vvM) { console.error('!! не найден список validViews ни в index.html, ни в core.js'); process.exit(1); }
 const validViews = [...vvM[1].matchAll(/'([a-z0-9_]+)'/g)].map(m => m[1]);
 const vvSet = new Set(validViews);
-out.info.push('validViews (index.html): ' + validViews.length);
+out.info.push('validViews (' + (vvSrc === idx ? 'index.html' : 'core.js') + '): ' + validViews.length);
 
-/* каталог ⊆ validViews (после динамической досыпки — проверяем статически и помечаем чем закрыто) */
+/* каталог ⊆ validViews (после динамической досыпки - проверяем статически и помечаем чем закрыто) */
 moduleIds.filter(v => !vvSet.has(v)).forEach(v =>
   finding('info', 'модуль «' + v + '» отсутствует в статическом validViews (закрывается динамической синхронизацией P1-5 из v3520)'));
 validViews.filter(v => !modSet.has(v) && v !== 'chat').forEach(v =>
@@ -85,11 +90,11 @@ fs.readdirSync(path.join(OS, 'api')).filter(f => f.endsWith('.php')).forEach(f =
   const cliOnly = CLI_GUARD.test(src.slice(0, 3000));
   const includesLib = /require[^;]*lib\.php/.test(src);
   if (!hasAuth && !cliOnly && !PUBLIC_OK.has(f)) {
-    finding(includesLib ? 'warn' : 'crit', 'api/' + f + ': не найдено явной проверки авторизации' + (includesLib ? ' (подключает lib.php — проверить, вызывает ли она auth сама)' : ''));
+    finding(includesLib ? 'warn' : 'crit', 'api/' + f + ': не найдено явной проверки авторизации' + (includesLib ? ' (подключает lib.php - проверить, вызывает ли она auth сама)' : ''));
   }
   if (cliOnly && !hasAuth) out.info.push('api/' + f + ': CLI-only (веб-запросы отклоняются 403)');
   if (/\$_GET|\$_POST|\$_REQUEST/.test(src) && !/htmlspecialchars|json_out|intval|\(int\)|preg_match|filter_var/.test(src)) {
-    finding('info', 'api/' + f + ': прямое чтение GET/POST без видимой валидации — проверить руками');
+    finding('info', 'api/' + f + ': прямое чтение GET/POST без видимой валидации - проверить руками');
   }
 });
 
@@ -103,5 +108,5 @@ if (!/Strict-Transport-Security/.test(csp)) finding('warn', '.htaccess: нет H
 /* ---- вывод ---- */
 const crit = out.findings.filter(f => f.sev === 'crit').length;
 const warn = out.findings.filter(f => f.sev === 'warn').length;
-console.log(JSON.stringify({ suite: 'CASE OS roles & security static audit', date: '2026-07-24', crit, warn, info: out.findings.filter(f => f.sev === 'info').length, notes: out.info, findings: out.findings }, null, 2));
+console.log(JSON.stringify({ suite: 'CASE OS roles & security static audit', date: new Date().toISOString().slice(0,10), crit, warn, info: out.findings.filter(f => f.sev === 'info').length, notes: out.info, findings: out.findings }, null, 2));
 process.exit(crit ? 2 : 0);

@@ -8,12 +8,18 @@
   var CENTER={lat:41.31110,lng:69.27970};
   var GEO_POI={hotels:[],shopping:[],street_retail:[],supermarkets:[],markets:[],restaurants:[],cafes:[],fast_food:[],parks:[],playgrounds:[],entertainment:[],sports:[],education:[],residential:[],warehouses:[],parking:[],transport_hubs:[],culture:[],tourism:[],finance:[],government:[],fuel_auto:[],mahallas:[]};
   var GEO_POI_LAYERS={},GEO_POI_RENDERER=null,GEO_POI_LOADING={},GEO_POI_LABSTYLE={};
+  // Сколько точек слоя реально нарисовано на экране — это и показывает легенда карты.
+  // Держим отдельно от длины массива: в массиве весь город, на экране — только видимое.
+  var GEO_POI_VIS={};
   var POI_DEFS={
     hotels:{label:'Гостиницы и апарт-отели',short:'Гостиница',icon:'H',color:'#7B4BA1',fields:[['category','Категория / звёзды','text'],['keys','Номерной фонд / keys','number'],['operator','Оператор / бренд','text'],['adr','ADR','number'],['occupancy','Загрузка, %','number'],['revpar','RevPAR','number'],['facilities','F&B, SPA, MICE и сервисы','textarea']]},
-    shopping:{label:'ТРЦ и торговые центры',short:'ТРЦ / ТЦ',icon:'Т',color:'#C55A11',fields:[['format','Формат / класс центра','text'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['floors','Этажей','number'],['anchors','Якорные арендаторы','textarea'],['tenants','Арендаторы / tenant mix','textarea'],['rentRange','Ставки аренды по этажам','textarea'],['occupancy','Заполняемость, %','number'],['parkingSpaces','Парковочных мест','number'],['annualFootfall','Посещаемость в год','number'],['floorPlans','Планировки / ссылки','textarea']]},
+    /* Поля openYear / landArea / tenantsCount / fbCount добавлены под слайд
+       «Конкурентная среда» — именно эти колонки команда заполняет вручную
+       в презентациях по рынку (год открытия, участок, число точек и из них F&B). */
+    shopping:{label:'ТРЦ и торговые центры',short:'ТРЦ / ТЦ',icon:'Т',color:'#C55A11',fields:[['format','Формат / класс центра','text'],['openYear','Год открытия','number'],['landArea','Участок, м²','number'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['floors','Этажей','number'],['tenantsCount','Точек (арендаторов)','number'],['fbCount','Из них F&B','number'],['anchors','Якорные арендаторы','textarea'],['tenants','Арендаторы / tenant mix','textarea'],['rentRange','Ставки аренды по этажам','textarea'],['occupancy','Заполняемость, %','number'],['parkingSpaces','Парковочных мест','number'],['annualFootfall','Посещаемость в год','number'],['floorPlans','Планировки / ссылки','textarea']]},
     street_retail:{label:'Стрит-ритейл',short:'Стрит-ритейл',icon:'R',color:'#D9822B',fields:[['format','Формат помещения','text'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['frontage','Фронт / витрина, м','number'],['floors','Этажей','number'],['rentRange','Ставка аренды','text'],['tenant','Арендатор / категория','text'],['footTraffic','Пешеходный трафик','number']]},
     supermarkets:{label:'Супермаркеты и продуктовый ритейл',short:'Супермаркет',icon:'S',color:'#3E8E41',fields:[['format','Формат','text'],['chain','Сеть','text'],['salesArea','Торговая площадь, м²','number'],['parkingSpaces','Парковочных мест','number'],['hours','Режим работы','text'],['delivery','Доставка','text']]},
-    markets:{label:'Рынки и базары',short:'Рынок',icon:'Б',color:'#8A6D3B',fields:[['format','Тип рынка','text'],['area','Площадь, м²','number'],['units','Торговых мест','number'],['hours','Режим работы','text'],['parkingSpaces','Парковочных мест','number'],['footTraffic','Посещаемость / трафик','number']]},
+    markets:{label:'Рынки и базары',short:'Рынок',icon:'Б',color:'#8A6D3B',fields:[['format','Тип рынка','text'],['openYear','Год открытия','number'],['landArea','Участок, м²','number'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['floors','Этажей','number'],['area','Площадь, м²','number'],['units','Торговых мест','number'],['fbCount','Из них F&B','number'],['rentRange','Ставка аренды','text'],['hours','Режим работы','text'],['parkingSpaces','Парковочных мест','number'],['footTraffic','Посещаемость / трафик','number']]},
     restaurants:{label:'Рестораны',short:'Ресторан',icon:'Р',color:'#B33A3A',fields:[['cuisinePrimary','Основная кухня (для сортировки)','text'],['cuisines','Кухни / теги (через |)','textarea'],['alcoholStatus','Алкоголь','select',[['unknown','Не проверено'],['yes','Есть'],['no','Нет'],['limited','Ограниченный ассортимент / только пиво-вино'],['seasonal','Сезонно / только мероприятия']]],['alcoholTypes','Виды алкоголя (пиво | вино | крепкий | коктейли)','text'],['alcoholVerification','Как проверен алкоголь','select',[['not_checked','Не проверено'],['official_menu','Официальное меню / сайт'],['phone','Подтверждено по телефону'],['field','Подтверждено при выезде'],['owner','Подтверждено владельцем']]],['alcoholSourceUrl','Источник по алкоголю','text'],['segment','Сегмент','text'],['seats','Посадочных мест','number'],['avgCheck','Средний чек','number'],['hours','Режим работы','text'],['terrace','Терраса','text'],['delivery','Доставка','text']]},
     cafes:{label:'Кафе и кофейни',short:'Кафе',icon:'К',color:'#A36A3E',fields:[['cuisinePrimary','Основная кухня / формат (для сортировки)','text'],['cuisines','Кухни / теги (через |)','textarea'],['alcoholStatus','Алкоголь','select',[['unknown','Не проверено'],['yes','Есть'],['no','Нет'],['limited','Ограниченный ассортимент / только пиво-вино'],['seasonal','Сезонно / только мероприятия']]],['alcoholTypes','Виды алкоголя (пиво | вино | крепкий | коктейли)','text'],['alcoholVerification','Как проверен алкоголь','select',[['not_checked','Не проверено'],['official_menu','Официальное меню / сайт'],['phone','Подтверждено по телефону'],['field','Подтверждено при выезде'],['owner','Подтверждено владельцем']]],['alcoholSourceUrl','Источник по алкоголю','text'],['format','Формат','text'],['chain','Сеть','text'],['seats','Посадочных мест','number'],['avgCheck','Средний чек','number'],['hours','Режим работы','text'],['terrace','Терраса','text'],['delivery','Доставка','text']]},
     fast_food:{label:'Фастфуд и QSR',short:'Фастфуд',icon:'F',color:'#D9534F',fields:[['format','Формат','text'],['chain','Сеть','text'],['seats','Посадочных мест','number'],['avgCheck','Средний чек','number'],['hours','Режим работы','text'],['driveThru','Drive-through','text'],['delivery','Доставка','text']]},
@@ -66,6 +72,36 @@
     optician:'Оптика', variety_store:'Товары по одной цене / разное', department_store:'Универсальные магазины', convenience:'Универсальные магазины',
     gift_shop:'Подарки и сувениры', toys:'Игрушки и детские товары', florist:'Цветы'
   };
+  /* Подтипы образования и общепита — человеческими словами. OSM отдаёт сырой тег
+     (school, training, restaurant), и в отчётах это выглядело как «training: 12».
+     Набор и правила совпадают с автономной версией карты, чтобы цифры сходились.
+     Чайхану OSM отдельным тегом НЕ размечает — она приходит обычным рестораном,
+     поэтому национальный сегмент выделяем по названию. */
+  var EDU_SUBTYPES={school:'Школа',university:'Университет / вуз',college:'Колледж / лицей',
+    kindergarten:'Детский сад',language_school:'Языковая школа',
+    music_school:'Музыкальная / художественная',driving_school:'Автошкола',
+    training:'Курсы / учебный центр',educational_institution:'Курсы / учебный центр'};
+  var FNB_SUBTYPES={restaurant:'Ресторан',cafe:'Кафе / кофейня',ice_cream:'Кафе / кофейня',
+    coffee:'Кафе / кофейня',tea:'Кафе / кофейня',fast_food:'Фастфуд / QSR',food_court:'Фудкорт'};
+  var TEA_RE=/чайхан|choyxona|choyhona|чойхон|милли таом/i, CANTEEN_RE=/столов|ошхона|oshxona/i;
+  /* v4.59.0: транспорт разбивается по видам узла — для аренды остановка городского автобуса
+     под окнами и аэропорт в двадцати километрах это совершенно разные вещи, а в легенде они
+     до этого складывались в одно число */
+  var TRANSPORT_SUBTYPES={bus_stop:'Остановка автобуса',bus_station:'Автовокзал',
+    tram_stop:'Остановка трамвая',station:'Станция (метро / ж/д)',halt:'Станция (метро / ж/д)',
+    aerodrome:'Аэропорт'};
+  function poiSubtypeLabel(cat,x){
+    var raw=String((x&&x.subtype)||'').toLowerCase(), name=String((x&&x.name)||'');
+    if(cat==='education')return EDU_SUBTYPES[raw]||'Другое учебное заведение';
+    if(cat==='transport_hubs')return TRANSPORT_SUBTYPES[raw]||String((x&&x.hubType)||'Транспортный узел');
+    if(cat==='restaurants'||cat==='cafes'||cat==='fast_food'){
+      if(TEA_RE.test(name))return 'Чайхана / национальная';
+      if(CANTEEN_RE.test(name))return 'Столовая';
+      return FNB_SUBTYPES[raw]||'Общепит, прочее';
+    }
+    if(cat==='street_retail')return retailSubtypeLabel(raw);
+    return raw||'';
+  }
   var GEO_RETAIL_SUB_ON={};
   function retailSubtypeLabel(raw){return STREET_RETAIL_SUBTYPES[String(raw||'').toLowerCase()]||'Прочее';}
   function retailSubtypeList(){ // отсортированный список меток без дублей + «Прочее» в конце
@@ -125,9 +161,19 @@
     bc:[
       ['Основное',[['name','Название','text'],['district','Район','text'],['provider','Источник','text'],['status','Рабочий статус','text']]],
       ['Локация',[['address','Адрес','textarea'],['lat','Широта','lat'],['lng','Долгота','lng']]],
-      ['Параметры здания',[['class','Класс БЦ','text'],['floors','Этажей','number'],['gla','GLA, м²','number'],['gba','GBA, м²','number'],['parking','Парковочных мест','number'],['year','Год постройки','number']]],
+      /* Набор полей для офисного здания — то, по чему команда сравнивает БЦ.
+         Состав согласован с владельцем: лишние инженерные и договорные поля убраны,
+         чтобы карточку реально заполняли, а не пролистывали. */
+      ['Параметры здания',[['class','Класс БЦ (A+/A/B+/B/C)','text'],['year','Год постройки','number'],['yearReno','Год реконструкции','number'],
+        ['floors','Этажей','number'],['gba','GBA (общая), м²','number'],['gla','GLA (арендопригодная), м²','number'],
+        ['typicalFloor','Типовой этаж, м²','number'],['parking','Парковочных мест','number'],
+        ['layout','Планировка (open space / кабинетная)','text'],['finish','Отделка (shell&core / с отделкой)','text']]],
       ['Контакты',[['website','Сайт','text'],['socials','Социальные сети','textarea'],['phone','Телефон','text']]],
-      ['Коммерческие данные',[['rent','Аренда, $/м²/мес','number'],['avail','Свободная площадь, м²','number'],['sale','Продажа, $/м²','number'],['psrc','Источник цены','text'],['pdate','Дата цены','date']]],
+      ['Коммерческие данные',[['rent','Аренда, $/м²/мес','number'],['rentRange','Ставка диапазоном (напр. 15-35)','text'],
+        ['avail','Свободная площадь, м²','number'],
+        ['sale','Продажа, $/м²','number'],['psrc','Источник цены','text'],['pdate','Дата цены','date']]],
+      ['Арендаторы и собственник',[['anchors','Якорные арендаторы','textarea'],['tenants','Профиль арендаторов','textarea'],
+        ['owner','Собственник / управляющая компания','text']]],
       ['Оценка и заметки',[['rating','Рейтинг','number'],['reviews','Количество отзывов','number'],['comment','Комментарий','textarea']]],
       ['Мастер-база',[['master_id','ID мастер-базы','text'],['seed_object_id','ID исходного seed','text'],['source_count','Количество источников','number'],['data_confidence','Уровень доверия','text'],['coordinate_accuracy','Точность координат','text'],['possible_duplicate','Возможный дубль','text'],['duplicate_group_id','Группа дублей','text'],['sourceUrl','Ссылка на источник','text']]],
       ['Ручная проверка',[['_verification','Статус проверки','select',[['online','Онлайн, не проверено'],['needs_review','Нужна ручная проверка'],['verified','Подтверждено вручную']]],['_sourceDate','Дата источника','date'],['_checkedBy','Проверил','text'],['_checkedAt','Дата проверки','date'],['_note','Примечание проверки','textarea']]]
@@ -450,7 +496,7 @@
     '#geoColMenu .geo-m-sec small{margin-left:auto;font-size:9px;color:#a29a92;font-weight:650}'+
     '#geoColMenu .geo-m-field{display:block;margin:0}#geoColMenu .geo-m-field>span{display:none}'+
     '#geoColMenu input[type=search],#geoColMenu input[type=text]{display:block;width:100%;min-width:0;height:32px;font-family:inherit;font-size:11.5px;padding:6px 8px;border:1px solid #d9d2c7;border-radius:7px;background:#fff;color:#1c1f26;outline:none}'+
-    '#geoColMenu input[type=search]:focus,#geoColMenu input[type=text]:focus{border-color:#9E0000;box-shadow:0 0 0 2px rgba(158,0,0,.08)}'+
+    '#geoColMenu input[type=search]:focus,#geoColMenu input[type=text]:focus{border-color:#9E0000;box-shadow:0 0 0 3px rgba(158,0,0,.28)}'+
     '#geoColMenu input[type=checkbox]{width:15px;height:15px;min-width:15px;margin:1px 0 0;accent-color:#9E0000;padding:0;border:0}'+
     '#geoColMenu .geo-m-links{display:flex;align-items:center;gap:5px;font-size:10.5px;margin:6px 0 5px;white-space:nowrap}#geoColMenu .geo-m-links a{color:#9E0000;text-decoration:none}#geoColMenu .geo-m-links a:hover{text-decoration:underline}'+
     '#geoColMenu .geo-m-vals{height:min(230px,34vh);min-height:76px;overflow-y:auto;overflow-x:hidden;border:1px solid #ece7e0;border-radius:8px;padding:4px;background:#fff;scrollbar-gutter:stable}'+
@@ -620,7 +666,21 @@
     GEO_POI_CONTROLS_BUILT=true;
   }
   function poiRowRefresh(k){var row=document.querySelector('.geo-poi-row[data-poi-k="'+k+'"]');if(!row)return;var cnt=row.querySelector('#geoLayerCount-'+k);if(cnt)cnt.textContent=GEO_POI_LOADING[k]?'загрузка…':GEO_POI[k].length;row.classList.toggle('geo-poi-empty',!GEO_POI_LOADING[k]&&!GEO_POI[k].length);}
-  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([x.subtype,x.district].filter(Boolean).join(' · '))+'</p>'+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
+  /* v4.61.1: у остановки в карточке главное — номера маршрутов, и человек ждёт их
+     увидеть так же, как в Яндексе или 2ГИС: кликнул по остановке — вот номера. Раньше
+     они шли одной строкой среди прочих полей и терялись. Рисуем их значками по видам
+     транспорта, отдельным блоком над остальным. */
+  var MODE_COLOR={'автобус':'#0d7a6f','троллейбус':'#2878B5','маршрутка':'#B3541E','трамвай':'#8F5E99','метро':'#9E0000'};
+  function routesBadges(routes){
+    if(!routes)return '';
+    return '<div class="geo-routes">'+String(routes).split(' · ').map(function(part){
+      var p=part.split(':'),mode=(p[0]||'').trim(),nums=(p[1]||'').split(',');
+      var col=MODE_COLOR[mode]||'#4a443c';
+      return '<div class="geo-routes-row"><span class="geo-routes-mode">'+esc(mode)+'</span>'
+        +nums.map(function(n){n=n.trim();return n?'<b style="background:'+col+'">'+esc(n)+'</b>':'';}).join('')+'</div>';
+    }).join('')+'</div>';
+  }
+  function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([poiSubtypeLabel(k,x),x.district].filter(Boolean).join(' · '))+'</p>'+(k==='transport_hubs'?(x.routes?routesBadges(x.routes):'<p class="geo-routes-none">Маршруты по этой остановке в OpenStreetMap не размечены</p>'):'')+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
   function renderPoiLayer(k){if(!map||!window.L||!POI_DEFS[k])return;if(!GEO_POI_RENDERER)GEO_POI_RENDERER=L.svg({padding:.25});var g=GEO_POI_LAYERS[k];
    // Кластеризация маркеров (Leaflet.markercluster) — при поднятом лимите 2000 точек/слой без
    // неё карта превращается в кашу и тормозит. На близком зуме (>=17) кластеры распадаются на
@@ -630,7 +690,8 @@
    if(!g){g=GEO_POI_LAYERS[k]=(_wantClu
        ?L.markerClusterGroup({chunkedLoading:true,disableClusteringAtZoom:17,maxClusterRadius:48,spiderfyOnMaxZoom:true,showCoverageOnHover:false})
        :L.layerGroup()).addTo(map);g._geoClu=_wantClu;}
-   g.clearLayers();var cb=document.getElementById('geoLayer-'+k),count=document.getElementById('geoLayerCount-'+k);if(count)count.textContent=GEO_POI[k].length;if(!cb||!cb.checked)return;
+   g.clearLayers();var cb=document.getElementById('geoLayer-'+k),count=document.getElementById('geoLayerCount-'+k);if(count)count.textContent=GEO_POI[k].length;
+   if(!cb||!cb.checked){if(GEO_POI_VIS[k]){GEO_POI_VIS[k]=0;geoLegendRefresh();}return;}
    var d=POI_DEFS[k],VB=typeof vbox==='function'?vbox():null;
    var radius=(d.radius!=null?d.radius:6),op=(d.opacity!=null?d.opacity:92)/100,showLab=!!d.labels;
    // Размер подписи регулируется по слою (ползунок «размер подписи»). Значение из настройки —
@@ -642,6 +703,7 @@
    GEO_POI_LABSTYLE[k]=fs;
    var st=document.getElementById('geoPoiLabStyle');if(!st){st=document.createElement('style');st.id='geoPoiLabStyle';document.head.appendChild(st);}
    st.textContent=Object.keys(GEO_POI_LABSTYLE).map(function(kk){return '.leaflet-tooltip.geo-poi-lab-'+kk+'{font-size:'+(+GEO_POI_LABSTYLE[kk]).toFixed(1)+'px}';}).join('');
+   var nvis=0;
    GEO_POI[k].forEach(function(x,i){var la=+x.lat,ln=+x.lng;if(!Number.isFinite(la)||!Number.isFinite(ln)||VB&&!VB.contains([la,ln]))return;
     // подкатегории стрит-ритейла переключаются независимо от родительского слоя
     // (независимый разбор категорий: "каждая категория и подкатегория индивидуально редактируемая").
@@ -651,13 +713,20 @@
     // Точки без подписей (было всегда так - только всплывающая подсказка по наведению) vs
     // постоянная подпись на карте, когда для слоя включена галочка «подписи» (независимый
     // аудит: "при постановке галочки на карте появляются только точки, надписей нет").
-    if(showLab)m.bindTooltip(esc(x.name||d.short),{permanent:true,direction:'top',className:'geo-poi-lab geo-poi-lab-'+k,offset:[0,-radius-2]});
-    else m.bindTooltip(esc(x.name||d.short),{sticky:true});
+    /* v4.59.0: у остановки главное - какие маршруты на ней останавливаются. Держать это
+       только в карточке значит заставлять кликать по каждой точке; показываем при наведении. */
+    var tip=esc(x.name||d.short);
+    if(k==='transport_hubs'&&x.routes)tip+='<br><span style="color:#6f6a63">'+esc(x.routes)+'</span>';
+    if(showLab)m.bindTooltip(tip,{permanent:true,direction:'top',className:'geo-poi-lab geo-poi-lab-'+k,offset:[0,-radius-2]});
+    else m.bindTooltip(tip,{sticky:true});
     m.on('click',function(ev){L.DomEvent.stopPropagation(ev);if(typeof markSel==='function')markSel(la,ln);m.openPopup();});m.addTo(g);
    // SVG-рендерер (не canvas) - у маркера есть настоящий DOM-элемент, поэтому можно дать ему
    // доступное имя для скринридеров (независимый аудит: "map marker accessibility-name issues").
    try{var el=m.getElement&&m.getElement();if(el){el.setAttribute('role','img');el.setAttribute('aria-label',(x.name||d.short||'точка')+' - '+(d.short||k));}}catch(e){}
-  });}
+    nvis++;
+  });
+   GEO_POI_VIS[k]=nvis;geoLegendRefresh();}
+  function geoLegendRefresh(){try{if(typeof window.updateLegend==='function')window.updateLegend();}catch(e){}}
   function renderPoiLayers(){ensurePoiLayerControls();Object.keys(POI_DEFS).forEach(renderPoiLayer);}
   function geoFetchPoiLayer(k){
     if(GEO_POI_LOADING[k])return Promise.resolve();
@@ -665,20 +734,50 @@
     if(!VB){var d=CENTER;VB={getSouth:function(){return d.lat-0.09;},getWest:function(){return d.lng-0.14;},getNorth:function(){return d.lat+0.09;},getEast:function(){return d.lng+0.14;}};}
     GEO_POI_LOADING[k]=true;poiRowRefresh(k);
     var url='api/gis_proxy.php?mode=poi&provider=osm&category='+encodeURIComponent(k)+'&south='+VB.getSouth()+'&west='+VB.getWest()+'&north='+VB.getNorth()+'&east='+VB.getEast();
-    return fetch(url,{credentials:'same-origin',cache:'no-store'}).then(function(r){return r.json();}).then(function(j){
+    /* v4.61.1: раньше здесь стоял просто r.json(). Если сервер отвечал страницей ошибки
+       (500, редирект на вход, HTML от хостинга), разбор падал и человек видел загадочное
+       «Unexpected token <». Теперь читаем как текст и говорим, что именно пришло. */
+    return fetch(url,{credentials:'same-origin',cache:'no-store'}).then(function(r){
+      return r.text().then(function(t){
+        var j=null; try{j=JSON.parse(t);}catch(e){}
+        if(!j)return {ok:false,_http:r.status,_raw:t.slice(0,160)};
+        j._http=r.status; return j;
+      });
+    }).then(function(j){
       GEO_POI_LOADING[k]=false;
       if(j&&j.ok&&Array.isArray(j.rows)){
         GEO_POI[k]=j.rows;
-        markDataset(k);commit('загружен слой «'+(POI_DEFS[k]||{}).label+'» из OSM: '+j.rows.length);
+        /* v4.59.0: по транспорту говорим не только сколько точек, но и сколько из них с
+           маршрутами и не обрезали ли выборку — иначе «загружено 2000» скрывает, что в зоне
+           их было 5400 и половина без единого маршрута */
+        var note='загружен слой «'+(POI_DEFS[k]||{}).label+'» из OSM: '+j.rows.length;
+        if(k==='transport_hubs'){
+          if(typeof j.withRoutes==='number')note+=', с маршрутами '+j.withRoutes;
+          if(typeof j.routesFound==='number')note+=', маршрутов в зоне '+j.routesFound;
+          if(j.truncated)note+=' (в зоне '+j.total+', показаны первые '+j.rows.length+' по числу маршрутов — уменьшите участок карты)';
+        }
+        markDataset(k);commit(note);
+        if(k==='transport_hubs'&&j.truncated)toastGeo('Транспорт: в зоне '+j.total+' узлов, показаны '+j.rows.length+' с наибольшим числом маршрутов. Уменьшите участок карты, чтобы взять все.');
         if(k==='street_retail')refreshRetailSubPanel();
       }else{
         var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
-        toastGeo((j&&j.message)||'Не удалось загрузить слой из OSM.');
+        /* v4.61.1: причину отказа отдавали в поле error (так делает fail() в api/lib.php),
+           а читали только message — из-за этого ЛЮБАЯ ошибка сервера превращалась в
+           «Не удалось загрузить слой из OSM», и понять, что именно случилось, было нельзя.
+           Читаем оба поля и добавляем код ответа: по нему сразу видно, дело в файле на
+           сервере, в правах или во внешнем сервисе. */
+        var why=(j&&(j.message||j.error))||'';
+        if(!why&&j&&j._raw)why='сервер ответил не JSON: '+j._raw;
+        if(!why)why='причина неизвестна';
+        if(j&&j._http&&j._http!==200)why+=' (ответ сервера '+j._http+')';
+        if(j&&j.error==='Unknown category')
+          why='на сервере нет сбора для слоя «'+((POI_DEFS[k]||{}).label||k)+'»: файл api/gis_proxy.php старше остальной папки /os. Перезалейте папку целиком.';
+        toastGeo('Слой «'+((POI_DEFS[k]||{}).label||k)+'» не загрузился - '+why);
       }
       poiRowRefresh(k);
     }).catch(function(e){
       GEO_POI_LOADING[k]=false;var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
-      toastGeo('Ошибка сети при загрузке слоя: '+e.message);poiRowRefresh(k);
+      toastGeo('Слой «'+((POI_DEFS[k]||{}).label||k)+'» не загрузился - сеть недоступна или запрос отклонён: '+e.message);poiRowRefresh(k);
     });
   }
   function toastGeo(msg){try{if(typeof toast==='function'){toast(msg);return;}}catch(e){}try{alert(msg);}catch(e2){}}
@@ -876,27 +975,52 @@
   function geoRenderProj(){
     var p=(typeof active==='function')?active():PROJECTS[Object.keys(PROJECTS)[0]];
     var pi=document.getElementById('projInfo'),plat=+(p&&p.lat),plng=+(p&&p.lng);
-    if(pi&&p)pi.innerHTML=esc(p.name)+'<br>Район: <b>'+esc(p.district||'—')+'</b><br>'+(Number.isFinite(plat)?plat.toFixed(5):'—')+', '+(Number.isFinite(plng)?plng.toFixed(5):'—')+(p.verification!=='verified'?'<br><span style="color:#9b6b00">требуется проверка</span>':'');
+    if(pi&&p){
+      /* v4.58.0: было четыре строки текста подряд, где имя проекта дублировало выпадающий
+         список прямо над ним, а «Район: —» не сообщало ничего. Подписанные строки: слева -
+         что это, справа - значение; отсутствие данных названо словами, а не прочерком. */
+      var okc=Number.isFinite(plat)&&Number.isFinite(plng);
+      pi.innerHTML='<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
+        +(p.district?esc(p.district):'не определён')+'</span></div>'
+        +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
+        +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
+        +(p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+    }
     try{if(typeof renderRings==='function')renderRings();}catch(e){}
     try{if(typeof catchSummary==='function')catchSummary();}catch(e){}
     if(!map||!window.L||!gProj)return;
     gProj.clearLayers();GEO_PROJ_MARKERS={};
+    var lp=document.getElementById('lProj'),showOther=!lp||lp.checked,pfV=0,pfN=0;
     Object.keys(PROJECTS).forEach(function(id){
       var q=PROJECTS[id],la=+q.lat,ln=+q.lng;
       if(!Number.isFinite(la)||!Number.isFinite(ln)||q.mapHidden)return;
       if(GEO_EXTERNAL&&!q.extVisible)return;
       var isActive=(p&&String(id)===String(p.id)),color=geoObjColorOf(q),mk;
+      // Кроме текущего проекта (он и есть точка расчёта) все наши объекты можно скрыть
+      // одной галочкой: раньше на карте просто висели безымянные янтарные кружки,
+      // которые нельзя было ни опознать, ни выключить.
+      if(!isActive&&!showOther)return;
+      if(!isActive){(q.verification==='verified')?pfV++:pfN++;}
       if(isActive){
         var ic=L.divIcon({className:'',html:'<div style="background:'+color+';width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
         mk=L.marker([la,ln],{icon:ic}).bindTooltip('★ '+esc(q.name),{permanent:true,direction:'top',className:'dlab'});
       }else{
         var rad=Number.isFinite(+q.markerSize)&&+q.markerSize>0?+q.markerSize:6;
-        mk=L.circleMarker([la,ln],{radius:rad,color:'#fff',weight:1.5,fillColor:color,fillOpacity:.85}).bindTooltip(esc(q.name));
+        mk=L.circleMarker([la,ln],{radius:rad,color:'#fff',weight:1.5,fillColor:color,fillOpacity:.85})
+          .bindTooltip('<b>'+esc(q.name)+'</b><br><small>Наш проект CASE'
+            +(q.city||q.district?' · '+esc(q.city||q.district):'')
+            +(q.verification==='verified'?'':' · требует проверки')
+            +'<br>клик — открыть карточку</small>');
       }
       mk.bindPopup(geoObjPopup(id),{maxWidth:300});
       mk.on('click',function(){var s=document.getElementById('proj');if(s&&s.value!==String(id)){s.value=String(id);if(typeof universalProfile==='function')universalProfile();}mk.openPopup();});
       mk.addTo(gProj);GEO_PROJ_MARKERS[String(id)]=mk;
     });
+    // легенда карты показывает, сколько наших проектов на экране и что значат цвета
+    /* VIS объявлен через let — свойством window он НЕ становится, поэтому обращаемся
+       к нему по имени из общей области видимости страницы, а не через window. */
+    try{if(typeof VIS==='object'&&VIS)VIS.pf={v:pfV,n:pfN};
+        if(typeof window.updateLegend==='function')window.updateLegend();}catch(e){}
     if(!GEO_PROJ_CENTERED&&Number.isFinite(plat)&&Number.isFinite(plng)){try{map.setView([plat,plng],11);}catch(e){}GEO_PROJ_CENTERED=true;}
   }
   window.geoObjFocus=function(id){
@@ -956,6 +1080,75 @@
   /* Ускорение первой загрузки: НЕ держим готовность на 2.5-МБ мастер-наборе. Сначала грузим
      оболочку и карту (boot → готовность прячет загрузчик), а тяжёлую мастер-базу (медицина/аптеки)
      тянем в фоне и до-рисовываем, когда пришла. Так карта появляется за ~1с, а не за 4-5с. */
+  /* Мост для карты: легенда, отчёт по точке и модель зон живут в geoanalytics-studio.html,
+     а точки городских объектов — здесь. Наружу отдаём только чтение. */
+  /* v4.62.0: пространственный индекс по слоям POI.
+     countIn перебирал ВЕСЬ слой на каждый вопрос «сколько объектов в радиусе». Для отчёта по
+     одной точке это незаметно, а модель зон пригодности спрашивает по каждой ячейке сетки:
+     на 5000 ячеек и 2000 объектов в слое выходило десять миллионов вычислений расстояния
+     в главном потоке, и карта вставала. Раскладываем точки по клеткам 0.01 градуса (примерно
+     1.1 км) и смотрим только те клетки, что попадают в радиус — ровно тот же приём, что уже
+     работает для населения, медицины и бизнес-центров. Индекс строится лениво и сбрасывается
+     при перезагрузке слоя, иначе он врал бы про старые данные. */
+  var GEO_POI_IX={};
+  function poiIndex(k){
+    var rows=GEO_POI[k]||[];
+    var ix=GEO_POI_IX[k];
+    if(ix&&ix.n===rows.length&&ix.src===rows)return ix;
+    var b={};
+    for(var i=0;i<rows.length;i++){
+      var a=+rows[i].lat,c=+rows[i].lng;
+      if(!Number.isFinite(a)||!Number.isFinite(c))continue;
+      var key=Math.floor(a/0.01)+'_'+Math.floor(c/0.01);
+      (b[key]=b[key]||[]).push(rows[i]);
+    }
+    ix=GEO_POI_IX[k]={b:b,n:rows.length,src:rows};
+    return ix;
+  }
+  function poiNear(k,la,ln,km){
+    if(typeof hav!=='function')return [];
+    var ix=poiIndex(k),out=[];
+    var dLa=km/111.32,dLn=km/(111.32*Math.cos(la*Math.PI/180)||1);
+    for(var i=Math.floor((la-dLa)/0.01);i<=Math.floor((la+dLa)/0.01);i++)
+      for(var j=Math.floor((ln-dLn)/0.01);j<=Math.floor((ln+dLn)/0.01);j++){
+        var a=ix.b[i+'_'+j];
+        if(a)for(var t=0;t<a.length;t++)out.push(a[t]);
+      }
+    return out;
+  }
+  window.CASE_GEO_POI={
+    label:function(k){return (POI_DEFS[k]||{}).label||k;},
+    color:function(k){return (POI_DEFS[k]||{}).color||'#888';},
+    keys:function(){return Object.keys(POI_DEFS);},
+    groups:function(){return POI_CATEGORY_GROUPS;},
+    total:function(k){return (GEO_POI[k]||[]).length;},
+    visible:function(){var o={};Object.keys(GEO_POI_VIS).forEach(function(k){if(GEO_POI_VIS[k])o[k]=GEO_POI_VIS[k];});return o;},
+    on:function(k){var cb=document.getElementById('geoLayer-'+k);return !!(cb&&cb.checked);},
+    toggle:function(k){var cb=document.getElementById('geoLayer-'+k);if(!cb)return;
+      cb.checked=!cb.checked;cb.dispatchEvent(new Event('change',{bubbles:true}));},
+    countIn:function(cats,la,ln,km){
+      var n=0;(cats||[]).forEach(function(k){poiNear(k,la,ln,km).forEach(function(x){
+        if(hav(la,ln,+x.lat,+x.lng)<=km)n++;});});
+      return n;},
+    breakdown:function(cats,la,ln,km){
+      var o={};(cats||[]).forEach(function(k){var c=0;poiNear(k,la,ln,km).forEach(function(x){
+        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
+        if(typeof hav==='function'&&hav(la,ln,a,b)<=km)c++;});if(c)o[k]=c;});
+      return o;},
+    has:function(cats){return (cats||[]).some(function(k){return (GEO_POI[k]||[]).length>0;});},
+    subtypeLabel:poiSubtypeLabel,
+    // весь набор записей слоя — для карточек конкурентов в выгрузке
+    rows:function(k){return (GEO_POI[k]||[]).slice();},
+    // разбивка по человеческим подтипам: {'Школа':12,'Курсы / учебный центр':5}
+    subtypes:function(cats,la,ln,km){
+      var o={};(cats||[]).forEach(function(k){(GEO_POI[k]||[]).forEach(function(x){
+        var a=+x.lat,b=+x.lng;if(!Number.isFinite(a)||!Number.isFinite(b))return;
+        if(typeof hav==='function'&&hav(la,ln,a,b)<=km){var lb=poiSubtypeLabel(k,x)||'Прочее';o[lb]=(o[lb]||0)+1;}});});
+      return o;}
+  };
   function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
   auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});
 })();
+/* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
+   теперь объявляет себя, а студия сверяет его с картой из index.html */
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.62.0';

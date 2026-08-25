@@ -1,4 +1,4 @@
-/* CASE OS v4.33.0 — полный браузерный QA (Playwright + локальный статик-сервер, ?demo=1).
+/* CASE OS v4.33.0 - полный браузерный QA (Playwright + локальный статик-сервер, ?demo=1).
    Запуск: node verify_full_qa.js /path/to/os
    Поднимает http://127.0.0.1:PORT из папки os/, входит в демо-режим, проверяет смоук всех
    основных экранов и P0-1 (снапшоты версий планировок + генерация LCR из снапшота). */
@@ -58,6 +58,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
   rec('boot: страница отвечает 200', !!resp && resp.status() === 200, String(resp && resp.status()));
   await page.waitForTimeout(1200);
   rec('boot: экран входа показан', await page.evaluate(() => !document.getElementById('login').classList.contains('hidden')));
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   const roles = await page.evaluate(() => Array.from(document.getElementById('luser').options).map(o => o.value));
   rec('boot: в демо-режиме доступен выбор ролей', roles.length > 3, roles.length + ' ролей');
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = s.options[0].value; doLogin(); });
@@ -95,7 +96,7 @@ function rec(name, okv, extra) { results.push({ test: name, status: okv ? 'PASS'
     PLAN_CODES[pid + '::QA-Т::99 этаж'] = [{ code: 'QA-901', area: 999 }, { code: 'QA-903', area: 77 }];
     out.checksumB = planCurrentChecksum(pid);
     out.snapshotSurvivedDrift = v1.snapshot.checksum === out.checksumA && v1.snapshot.planCodes[pid + '::QA-Т::99 этаж'][0].area === 111;
-    /* генерация из снапшота v1 — должна создать юниты плана A, а не B */
+    /* генерация из снапшота v1 - должна создать юниты плана A, а не B */
     masterLcrApply(pid, { versionId: v1.id });
     const created = U.filter(u => u.obj === pid && u.layoutVersionId === v1.id);
     out.gen901 = created.some(u => u.code === 'QA-901' && u.area === 111);

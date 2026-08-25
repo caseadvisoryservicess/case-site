@@ -288,7 +288,7 @@ const USERS=[
  {u:'extagent',name:'Внешний партнёр',role:'AGX',title:'Внешний агент',projects:['ca']},
  {u:'hilola',name:'Hilola Omonullaeva',role:'HO',title:'Администратор аренды (тыл)'},
  {u:'beksulton',name:'Beksulton Shaxridinov',role:'BSH',title:'Архитектор'},
- {u:'humoyun',name:'Humoyun Mirkamolov',role:'HM',title:'Менеджер по консалтингу'},
+ {u:'humoyun',name:'Humoyun Mirkamolov',role:'DIR',title:'Директор'},
  {u:'cfo',name:'Abdulaziz Rakhimov',role:'CFO',title:'Финансовый директор'},
  {u:'junior',name:'Младший администратор данных',role:'BRJ',title:'Бренды и геоданные'},
 ];
@@ -301,6 +301,11 @@ const ROLES={
  HO:{label:'Администратор аренды (тыл)',leasing:true,finance:true,edit:true,approve:false,reportsTo:'BA',rights:['Реестр и даты','Бюджет / Факт / NOI','Документы','Координация']},
  BSH:{label:'Архитектор',leasing:true,finance:false,edit:true,approve:false,plans:true,reportsTo:'ASH',rights:['Загрузка чертежей','Интерактивный план','Реестр (просмотр)','Без финансов']},
  HM:{label:'Менеджер по консалтингу',leasing:true,finance:true,edit:false,approve:false,reportsTo:'ASH',rights:['Только просмотр','Методология / QC','Финансы видны','Без правок']},
+ /* v4.64.0: полный доступ к работе без администрирования. Отличие от ADM ровно одно —
+    admin:false, и этого достаточно: разделы «Доступ», «Модули» и «Система» закрыты не
+    только в меню, но и на отрисовке (renderAdminModules / renderAdminSystem), поэтому
+    попасть в них по прямому переходу тоже нельзя. */
+ DIR:{label:'Директор (без администрирования)',leasing:true,finance:true,edit:true,approve:true,plans:true,admin:false,geoEdit:true,reportsTo:'ASH',rights:['Все рабочие разделы','Финансы / NOI','Виза по ставкам','Загрузка планов','Геоданные: правка','Без управления доступами']},
  CFO:{label:'Финансовый директор',leasing:true,finance:true,edit:true,approve:true,plans:true,admin:true,geoEdit:true,reportsTo:'ASH',rights:['Полный доступ','Все финансы / NOI','Виза по ставкам','Все дашборды','Геоданные: правка']},
  BRJ:{label:'Младший администратор данных',leasing:true,finance:false,edit:true,approve:false,plans:false,brandsOnly:true,geoEdit:true,reportsTo:'BA',rights:['База брендов','Геоаналитика: ввод и проверка','Внутренний чат','Без финансов и реестра']},
 };
@@ -319,8 +324,12 @@ const STAT={vac:'Вакант',neg:'Переговоры',off:'Предложе�
 const STCLS={vac:'st-vac',neg:'st-neg',off:'st-off',os:'st-os',cs:'st-cs',cd:'st-cd',res:'st-res'};
 const STAT_UZ={vac:'Boʻsh',neg:'Muzokara',off:'Taklif qilindi',os:'Taklif imzolandi',cs:'Shartnoma imzolanmoqda',cd:'Shartnoma imzolandi',res:'Rezerv'};
 const STAT_EN={vac:'Vacant',neg:'Negotiation',off:'Offered',os:'Offer signed',cs:'Contract signing',cd:'Contract signed',res:'Reserved'};
-const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]):LANG==='en'?(STAT_EN[k]||STAT[k]):STAT[k];
-const stTl=(k,lang)=>lang==='uz'?(STAT_UZ[k]||STAT[k]):lang==='en'?(STAT_EN[k]||STAT[k]):STAT[k];
+/* v4.58.0: у незнакомого статуса (пришёл из импорта CSV или из старой записи) stT возвращал
+   undefined, и planSVG падал на planLabel(u).toUpperCase() — весь экран «Планировки» оставался
+   пустым без единого слова о причине. Отдаём сам код статуса, как это давно делает ssT: экран
+   строится, а странное значение видно глазами и его можно поправить в реестре. */
+const stT=k=>LANG==='uz'?(STAT_UZ[k]||STAT[k]||k||''):LANG==='en'?(STAT_EN[k]||STAT[k]||k||''):(STAT[k]||k||'');
+const stTl=(k,lang)=>lang==='uz'?(STAT_UZ[k]||STAT[k]||k||''):lang==='en'?(STAT_EN[k]||STAT[k]||k||''):(STAT[k]||k||'');
 const OCCK=['cd','cs','os'];
 const brokerRole={'Хилола':'HO','Нодир':'AG','Азиз':'ASH','Внешний партнёр':'AGX'};
 const brokerUser={'Хилола':'hilola','Нодир':'nodir','Азиз':'aziz','Внешний партнёр':'extagent'};
@@ -1418,15 +1427,20 @@ function renderDash(){
  const offered=sU.filter(u=>u.status==='off').length,loi=sU.filter(u=>u.status==='os'||u.status==='cs').length;
  const occUnits=sU.filter(u=>OCCK.indexOf(u.status)>=0&&u.rate);
  const avgRate=occUnits.length?occUnits.reduce((s,u)=>s+u.rate,0)/occUnits.length:0;
- const avgOcc=Math.round(scope.reduce((s,o)=>s+occPct(o.id),0)/scope.length*100);
- const avgSc=Math.round(scope.reduce((s,o)=>s+o.sc,0)/scope.length);
+ /* v4.58.0: складывали o.sc по всем проектам, а у проекта без сервис-чарджа поля просто нет —
+    undefined в сумме давал NaN, и на главном экране висело «NaN%». Ноль тут тоже неправда:
+    «нет данных» и «ноль процентов» — разные утверждения, и второе вводит в заблуждение. */
+ const occRows=scope.filter(o=>Number.isFinite(occPct(o.id)));
+ const avgOcc=occRows.length?Math.round(occRows.reduce((s,o)=>s+occPct(o.id),0)/occRows.length*100):null;
+ const scRows=scope.filter(o=>Number.isFinite(parseFloat(o.sc)));
+ const avgSc=scRows.length?Math.round(scRows.reduce((s,o)=>s+parseFloat(o.sc),0)/scRows.length):null;
  const lost=sU.filter(u=>u.gap<0).reduce((s,u)=>s+u.gap,0);
  const id=S.obj,us=unitsOf(id);
  const byStat=Object.keys(STAT).map(k=>({k,area:us.filter(u=>u.status===k).reduce((s,u)=>s+u.area,0),n:us.filter(u=>u.status===k).length})).filter(x=>x.n);
  const maxA=Math.max(...byStat.map(x=>x.area),1);
  const C=2*Math.PI*52,off=C*(1-totOcc/totGla);
  $('main').innerHTML=`
- <div class="ph"><h1>${t('dash')}</h1><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>${S.obj!=='ALL'?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Объект</button>`:''}`:''}${R().leasing?`<button class="btn ghost sm" onclick="logActivity()">+ Активность</button>`:''}${R().finance?`<button class="btn ghost sm" onclick="ownerReport()">Отчёт (PDF)</button>`:''}<span class="pill">${curObj().plan||''}</span></div></div>
+ <div class="ph"><h1>${t('dash')}</h1><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">${R().admin?`<button class="btn ghost sm" onclick="addObjectForm()">+ Объект</button>${S.obj!=='ALL'?`<button class="btn ghost sm" onclick="addObjectForm('${S.obj}')">✎ Объект</button>`:''}`:''}${R().leasing?`<button class="btn ghost sm" onclick="logActivity()">+ Активность</button>`:''}${R().finance?`<button class="btn ghost sm" onclick="ownerReport()">Отчёт (PDF)</button>`:''}${curObj().plan?`<span class="pill">${curObj().plan}</span>`:''}</div></div>
  <p class="sub">${S.obj==='ALL'?t('allobj'):t('objectlb')+': '+curObj().name} · ${t('rolelb')}: ${R().label}</p>
  ${dashAlertHTML()}
  ${S.dashDatesOpen?datesCardHTML():''}
@@ -1438,9 +1452,9 @@ function renderDash(){
   </div>
   ${actionCenterHTML(scope,sU)}
   <div class="card"><h3>${t('avg')} <span class="mut">${S.obj==='ALL'?t('portfolio'):curObj().name}</span></h3><div class="kpis" style="margin-bottom:0">
-  <div class="kpi"><div class="lab">${t('avgocc')}</div><div class="val">${avgOcc}%</div><div class="sub2">${t('byobj')}</div></div>
-  <div class="kpi"><div class="lab">${t('avgrate')}</div><div class="val">${avgRate.toFixed(1)}<small> $/м²</small></div><div class="sub2">${t('byocc')}</div></div>
-  <div class="kpi"><div class="lab">${t('avgsc')}</div><div class="val">${avgSc}%</div><div class="sub2">${t('ofrent')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgocc')}</div><div class="val">${avgOcc==null?'-':avgOcc+'%'}</div><div class="sub2">${t('byobj')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgrate')}</div><div class="val">${avgRate?avgRate.toFixed(1):'-'}${avgRate?'<small> $/м²</small>':''}</div><div class="sub2">${t('byocc')}</div></div>
+  <div class="kpi"><div class="lab">${t('avgsc')}</div><div class="val">${avgSc==null?'-':avgSc+'%'}</div><div class="sub2">${t('ofrent')}</div></div>
   <div class="kpi"><div class="lab">${t('lossvac')}</div><div class="val">${fin?fmt(Math.abs(lost)):'•••'}</div><div class="sub2">${t('permonth')}</div></div>
  </div></div>
  <div class="grid2">
@@ -1488,7 +1502,7 @@ function toggleDashDates(){S.dashDatesOpen=!S.dashDatesOpen;renderDash();}
 function datesCardHTML(){const list=allDates().filter(d=>(S.obj==='ALL'||d.obj===S.obj));const cnt=n=>list.filter(d=>d.days>=0&&d.days<=n).length;
  const legend=`<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;margin-bottom:10px">`+[['≤7 дн','#fdeaea','var(--red-d)'],['≤30 дн','#fdf3e0','var(--amber)'],['≤60 дн','#fff8ec','var(--amber)'],['≤90 дн','#e4eefb','var(--blue)']].map(x=>`<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot" style="background:${x[1]};border:1px solid ${x[2]}"></span>${x[0]}</span>`).join('')+`</div>`;
  return `<div class="card"><h3>${t('dates')} <button class="btn ghost sm" style="float:right" onclick="toggleDashDates()">✕</button></h3><div class="kpis"><div class="kpi"><div class="lab">≤ 7 дней</div><div class="val">${cnt(7)}</div></div><div class="kpi"><div class="lab">≤ 30 дней</div><div class="val">${cnt(30)}</div></div><div class="kpi"><div class="lab">≤ 60 дней</div><div class="val">${cnt(60)}</div></div><div class="kpi"><div class="lab">≤ 90 дней</div><div class="val">${cnt(90)}</div></div></div>
- ${legend}${list.length?list.map(d=>{const b=dateBand(d.days);return `<div style="display:flex;gap:13px;align-items:center;padding:10px 2px;border-bottom:1px solid #f0eeec"><div style="width:58px;text-align:center;border-radius:10px;padding:6px 0;font-weight:800;font-size:15px;background:${b.bg};color:${b.fg}">${d.days}<div style="font-size:8.5px">${d.days<0?'просроч':'дней'}</div></div><div style="flex:1"><b>${d.type}</b><div style="font-size:11.5px;color:var(--muted)">${d.who} · ${objById(d.obj).name} · ${d.code}</div></div><div style="font-size:11.5px;color:#555;font-weight:600">${dateRU(d.date)}</div></div>`;}).join(''):'<div style="color:var(--muted);font-size:12.5px;padding:6px">Срочных дат нет.</div>'}<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Production: авто-алерты в Telegram/почту ответственному за 90 / 60 / 30 / 7 дней до даты.</div></div>`;}
+ ${legend}${list.length?list.map(d=>{const b=dateBand(d.days);return `<div style="display:flex;gap:13px;align-items:center;padding:10px 2px;border-bottom:1px solid #f0eeec"><div style="width:58px;text-align:center;border-radius:10px;padding:6px 0;font-weight:800;font-size:15px;background:${b.bg};color:${b.fg}">${d.days}<div style="font-size:9px">${d.days<0?'просроч':'дней'}</div></div><div style="flex:1"><b>${d.type}</b><div style="font-size:11.5px;color:var(--muted)">${d.who} · ${objById(d.obj).name} · ${d.code}</div></div><div style="font-size:11.5px;color:#555;font-weight:600">${dateRU(d.date)}</div></div>`;}).join(''):'<div style="color:var(--muted);font-size:12.5px;padding:6px">Срочных дат нет.</div>'}<div style="font-size:11.5px;color:var(--muted);margin-top:8px">Production: авто-алерты в Telegram/почту ответственному за 90 / 60 / 30 / 7 дней до даты.</div></div>`;}
 function logActivity(){const me=AGENTS.find(a=>a.role===S.role);const kinds=[['touch','Касание'],['meet','Встреча'],['view','Показ'],['loi','LOI'],['sign','Подписание']];
  $('drawer').innerHTML='<div class="dh"><span class="x" onclick="closeDrawer()">×</span><h2>Быстрая активность</h2><div class="s">'+esc(me?me.name:S.user.name)+' · '+esc(nowStr())+'</div></div><div class="dbody">'+(me?'':'<div class="banner warn">Для вашей роли личные KPI не ведутся — запись попадёт только в общий журнал.</div>')+'<div style="display:flex;flex-direction:column;gap:8px">'+kinds.map(k=>'<button class="btn ghost" style="justify-content:flex-start;text-align:left" onclick="addActivity(\''+k[0]+'\')">+ '+k[1]+'</button>').join('')+'</div><div class="sect">Последние записи ('+ACTLOG.length+')</div>'+(ACTLOG.length?ACTLOG.slice(0,15).map(a=>'<div style="font-size:12px;border-bottom:1px solid #f2f0ed;padding:5px 0"><b>'+esc(a.kindLabel)+'</b> <span style="color:#6d6d6d">'+esc(a.at)+'</span><br>'+esc(a.by)+(a.obj&&objById(a.obj)?' · '+esc(objById(a.obj).name):'')+'</div>').join(''):'<div style="color:var(--muted);font-size:12px">Пока нет записей</div>')+'</div>';
  openDrawerUI();localize();}
@@ -1531,14 +1545,19 @@ function renderRegistry(){
   $('main').innerHTML=`<div class="ph"><h1>${t('registry')}</h1></div><p class="sub">${allObj?t('allobj'):curObj().name} · журнал отказов с причиной - не предлагать повторно + рыночные сигналы</p>${tabs}<div class="card">${buildTable('refus',rcols,list)}${canEditR?'<div style="margin-top:10px"><button class="btn sm" onclick="addRefus()">+ '+t('add')+' отказ</button></div>':''}</div><div style="font-size:11.5px;color:var(--muted)">Сигнал: спрос на локации у метро/вузов; крупные F&B ждут якорей (KFC/BK).</div>${footNote()}`;
   return;
  }
- const fr=S.regFilter;fr.country=fr.country||'Все';fr.city=fr.city||'Все';const mine=myBrokerName();const forceMine=!!(R().ownOnly&&mine);const canEdit=(typeof caseCanEditRegistry==='function'?caseCanEditRegistry():R().edit);S.regSel=S.regSel||[];const selSet=S.regSel;const showBlk=(allObj||hasBlocks(S.obj));
+ const fr=S.regFilter;fr.country=fr.country||'Все';fr.city=fr.city||'Все';const mine=myBrokerName();const forceMine=!!(R().ownOnly&&mine);const canEdit=(typeof caseCanEditRegistry==='function'?caseCanEditRegistry():R().edit);
+ /* P0-SEC-02: состав помещений - это не «правка», а изменение объекта. Сервер теперь
+    требует на такие операции право на финансы или планировки (units_batch.php,
+    lib.php: unit_can_change_structure). Кнопки должны спрашивать ровно то же, иначе
+    агент жмёт «Импорт CSV» и получает 403 вместо объяснения. */
+ const canStruct=canEdit&&!!(R().admin||R().finance||R().plans);S.regSel=S.regSel||[];const selSet=S.regSel;const showBlk=(allObj||hasBlocks(S.obj));
  let fus=us.filter(u=>(fr.status==='Все'||u.status===fr.status)&&(fr.cat==='Все'||u.cat===fr.cat)&&((fr.block||'Все')==='Все'||unitBlock(u)===fr.block)&&((fr.floor||'Все')==='Все'||floorLabel(u.floor)===fr.floor)&&((forceMine||S.regMine)?(mine&&u.broker===mine):true)&&(allObj?((fr.country==='Все'||objCountry(objById(u.obj))===fr.country)&&(fr.city==='Все'||objById(u.obj).city===fr.city)):true)&&(!fr.q||(u.code+' '+(u.merged||[]).join(' ')+' '+u.vars.join(' ')+' '+u.sub+' '+(u.format||'')+' '+(u.concept||'')+' '+(u.zone||'')).toLowerCase().indexOf(fr.q.toLowerCase())>=0)&&regColMatch(u));
  const rs=S.regSort;if(rs){let gv={code:u=>u.code,block:u=>unitBlock(u),floor:u=>floorLabel(u.floor),cat:u=>u.cat,area:u=>u.area,rate:u=>u.rate,budget:u=>uBudget(u),total:u=>u.total,vars:u=>u.vars.length,broker:u=>u.broker||'',status:u=>stT(u.status)}[rs.k];let numk=['area','rate','budget','total','vars'].indexOf(rs.k)>=0;if(!gv&&/^[bf]_/.test(rs.k)){const _lc=lcrColByKey(rs.k);if(_lc){gv=_lc.get;numk=true;}} /* денежные столбцы Бюджет/Факт */if(gv)fus=fus.slice().sort((a,b)=>{let va=gv(a),vb=gv(b);if(numk)return((+va||0)-(+vb||0))*rs.dir;va=(va==null?'':String(va));vb=(vb==null?'':String(vb));return va.localeCompare(vb,'ru',{numeric:true,sensitivity:'base'})*rs.dir;});} /* натуральная сортировка кодов (B1_2 < B1_10) */
  const hq=fr.q;
  const rows=fus.map(u=>{const ch=selSet.indexOf(u.id)>=0;if(S.regEdit&&canEdit)return regEditRow(u,showBlk,allObj,ch);return `<tr class="click" onclick="openUnit('${u.id}')">
   ${canEdit?`<td class="selcol" onclick="event.stopPropagation()"><input type="checkbox" ${ch?'checked':''} onclick="regToggleSel('${u.id}',this.checked)"></td>`:''}
   <td><b>${u.merged&&u.merged.length?hlt(u.merged.join(' + '),hq):hlt(u.code,hq)}</b>${u.merged?' <span class="pill" title="Объединённое помещение — площадь можно уточнить в карточке (стены/коридоры)">объед.</span>':''}${allObj?`<div style="font-size:10px;color:#6d6d6d">${esc(objById(u.obj).name)} · ${esc(objCountry(objById(u.obj)))}, ${esc(objById(u.obj).city)}</div>`:''}</td>${showBlk?`<td>${unitBlock(u)?esc(unitBlock(u)):'<span style="color:#6d6d6d">-</span>'}</td>`:''}<td>${esc(floorLabel(u.floor))}</td>
-  <td>${hlt(u.cat,hq)}<div style="font-size:10px;color:#6d6d6d">${u.sub}</div></td>
+  <td>${hlt(u.cat,hq)}${u.sub?`<div style="font-size:10px;color:#6d6d6d">${u.sub}</div>`:''}</td>
   <td class="num">${fmtA(u.area)}${u.terr?'<div style="font-size:10px;color:#6d6d6d">+'+fmtA(u.terr)+' терр.</div>':''}</td>
   ${lcrBudVis().map(c=>`<td data-colkey="${c.k}" class="num grp-bud">${lcrCellVal(u,c,fin)}</td>`).join('')}${lcrFacVis().map(c=>`<td data-colkey="${c.k}" class="num grp-fac">${lcrCellVal(u,c,fin)}</td>`).join('')}
   <td>${(u.offers&&u.offers.length)?u.offers.map(of=>{const d=Math.ceil((new Date(of.validUntil)-TODAY)/86400000);return `<div style="white-space:nowrap;font-size:11px" title="КП ${esc(of.no||'')}${of.rev>1?' ред.'+of.rev:''}${of.rate?' · '+of.rate+' $/м²':''} · агент ${esc(of.by||'')}">⚑ <b>${esc(brandCloak(of.to))}</b> · <span style="color:${d<0?'var(--red-d)':(d<=3?'var(--amber,#e08600)':'#777')}">${d<0?'просрочено':'до '+dateRU(of.validUntil)}</span></div>`;}).join('')+varBullets(u.vars.filter(v=>!(u.offers||[]).some(of=>of.to===v)),hq):(u.vars.length?`<span class="pill">${u.vars.length}</span>${varBullets(u.vars,hq)}`:'<span style="color:#6d6d6d">-</span>')}</td>
@@ -1558,10 +1577,10 @@ function renderRegistry(){
   forceMine?`<span class="thbtn on case-action-item" data-priority="88" title="Ограничение роли: видны только ваши сделки">Только свои</span>`:(mine?`<button class="thbtn case-action-item${S.regMine?' on':''}" data-priority="88" onclick="S.regMine=!S.regMine;saveTblPrefs();renderRegistry()">Мои сделки</button>`:''),
   R().admin?`<button class="btn ghost sm case-action-item" data-priority="70" onclick="addObjectForm()">+ Объект</button>`:'',
   (R().admin&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="65" onclick="addObjectForm('${S.obj}')">✎ Изменить объект</button>`:'',
-  canEdit?`<button class="btn ghost sm case-action-item" data-priority="55" onclick="importRegCSV()">⬆ Импорт CSV</button>`:'',
+  canStruct?`<button class="btn ghost sm case-action-item" data-priority="55" onclick="importRegCSV()">⬆ Импорт CSV</button>`:'',
   `<select class="case-action-item" data-priority="50" onchange="var v=this.value;this.value='';if(v==='csv'){exportRegCSV();}else if(v){exportLCRExcel(v);}" style="font-family:inherit;font-size:12px;padding:6px 8px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--ink)" title="Экспорт реестра"><option value="">⬇ Экспорт…</option><option value="ru">Excel — Русский</option><option value="uz">Excel — Oʻzbekcha</option><option value="en">Excel — English</option><option value="csv">CSV</option></select>`,
-  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="35" onclick="fillBlocksFromCodes()">⬓ Блоки из кодов</button>`:'',
-  (canEdit&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="30" onclick="recalcGLAfromUnits()" title="Пересчитать GLA объекта из суммы площадей юнитов">∑ GLA из юнитов</button>`:'',
+  (canStruct&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="35" onclick="fillBlocksFromCodes()">⬓ Блоки из кодов</button>`:'',
+  (canStruct&&S.obj!=='ALL')?`<button class="btn ghost sm case-action-item" data-priority="30" onclick="recalcGLAfromUnits()" title="Пересчитать GLA объекта из суммы площадей юнитов">∑ GLA из юнитов</button>`:'',
   `<button class="btn ghost sm case-action-item" data-priority="20" onclick="if(window.CASE_GRID)CASE_GRID.resetWidths('reg_units');else tblColReset('reg_units')">↔ Сбросить ширину</button>`
  ].filter(Boolean).join('');
  const toolbar=`<div class="case-adaptive-actions" data-adaptive-actions="lcr">${actionItems}<details class="moremenu case-action-more"><summary class="btn ghost sm">⋯ Ещё</summary><div class="moremenu-pop"></div></details></div>`;
@@ -1620,6 +1639,20 @@ function regPlanMismatchBanner(){if(S.obj==='ALL')return '';let onP=0,inR=0,aD=0
 function saveCellLive(id,field,v){const u=U.find(x=>x.id===id);if(!u)return;const _pb=u.broker,_ps=u.status;if(field==='area')u.area=+v||0;else if(field==='rate')u.rate=+v||0;else if(field==='budget')u.budget=+v||0;else if(field==='budLand'||field==='factLand'||field==='capex')u[field]=+v||0;else if(field==='block')u.block=(v||'').trim();else if(field==='code')u.code=(v||'').trim()||u.code;else u[field]=v;if(field==='area'||field==='rate'||field==='status'){u.total=Math.round((u.area||0)*(u.rate||0));u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);}if(field==='broker'||field==='status')commTrack(u,_pb,_ps);tryPersist();regLiveRefresh(u,field);}
 function refreshViewKeepScroll(){/* v4.44.1: после сохранения из карточки/модалки обновляем экран ЗА ней,
  сохраняя прокрутку — раньше таблица показывала старые значения до перезагрузки страницы */
+ /* v4.58.0: тело ниже осталось только как запасной вариант. Оно сопоставляло полосы
+    прокрутки ПО НОМЕРУ в списке, поэтому после merge/split (когда на дашборде появляется
+    или исчезает карточка) прокрутку применяло к чужой таблице, и восстанавливало один раз
+    сразу — а v432-data-grid раскладывает ширины столбцов ещё 120 мс спустя и сдвигает всё
+    обратно. CASE_LIVE_SYNC сопоставляет по ключу таблицы, помнит горизонтальную прокрутку
+    окна, каретку и повторяет восстановление до 520 мс. Через эту функцию идут 17 вторичных
+    операций ЛСР (объединение, разделение, отказы, даты, комментарии), поэтому подменяем
+    одну точку, а не 17 вызовов. */
+ if(window.CASE_LIVE_SYNC&&typeof CASE_LIVE_SYNC.withPreservedUi==='function'){
+  return CASE_LIVE_SYNC.withPreservedUi(function(){
+   if(document.querySelector('#main #geoFrame, #main #feasFrame'))return;   /* студии в iframe не трогаем */
+   go(S.view);
+  });
+ }
  try{
   const sc=[...document.querySelectorAll('#main .tbl-scroll')].map(el=>({l:el.scrollLeft,t:el.scrollTop}));
   const y=window.scrollY;
@@ -1743,7 +1776,21 @@ function bulkMerge(){if(!R().edit){alert('Недостаточно прав.');r
  S.regSel=[base.id];audit('Массовое объединение помещений',base.code+' ← '+rest.map(u=>u.code).join(', '));persist();renderRegistry();setTimeout(()=>openUnit(base.id),60);}
 function importRegCSV(){if(!R().edit)return;const inp=document.createElement('input');inp.type='file';inp.accept='.csv,text/csv';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const rows=parseCSV(r.result);if(rows.length<2){alert('CSV пустой или без строк данных.');return;}const head=rows[0].map(h=>String(h).trim().toLowerCase());const find=(...n)=>{for(const x of n){const i=head.indexOf(x);if(i>=0)return i;}return -1;};const ix={code:find('код','code'),block:find('блок','block'),floor:find('этаж','floor'),cat:find('категория','cat','category'),sub:find('подкатегория','sub'),area:find('площадь м²','площадь','area'),terr:find('терраса м²','терраса','terr'),rate:find('ставка $/м²','ставка','rate'),budget:find('бюджет $/м²','бюджет','budget'),status:find('статус','status'),broker:find('брокер','broker')};if(ix.code<0){alert('Не найдена колонка «Код».');return;}const oid=S.obj==='ALL'?'ca':S.obj;const statMap={};Object.keys(STAT).forEach(k=>statMap[STAT[k].toLowerCase()]=k);let upd=0,add=0;for(let i=1;i<rows.length;i++){const rw=rows[i];const code=(rw[ix.code]||'').trim();if(!code)continue;const g=k=>ix[k]>=0?String(rw[ix[k]]||'').trim():'';let u=U.find(x=>x.obj===oid&&x.code===code);const stRaw=g('status').toLowerCase();const st=statMap[stRaw]||(u?u.status:'vac');if(u){if(ix.block>=0&&g('block'))u.block=g('block');if(ix.area>=0&&g('area'))u.area=+g('area')||u.area;if(ix.rate>=0&&g('rate'))u.rate=+g('rate')||u.rate;if(ix.budget>=0&&g('budget'))u.budget=+g('budget')||u.budget;if(ix.broker>=0)u.broker=g('broker')||u.broker;if(ix.status>=0)u.status=st;if(ix.cat>=0&&g('cat'))u.cat=g('cat');if(ix.sub>=0)u.sub=g('sub')||u.sub;u.total=Math.round(u.area*u.rate);u.gap=(OCCK.indexOf(u.status)>=0)?0:-(u.total);u.hist.push([iso(TODAY),'Импорт CSV ('+S.user.name+')']);upd++;}else{const nu=unit(oid,code,g('floor')||'1 этаж',+g('area')||0,+g('terr')||0,g('cat')||'Услуги',g('sub'),+g('rate')||0,0,0,st,g('broker'),[],[],'');if(ix.block>=0&&g('block'))nu.block=g('block');if(ix.budget>=0)nu.budget=+g('budget')||0;nu.total=Math.round(nu.area*nu.rate);nu.gap=(OCCK.indexOf(nu.status)>=0)?0:-(nu.total);nu.hist.push([iso(TODAY),'Создано импортом CSV ('+S.user.name+')']);U.push(nu);add++;}}audit('Импорт реестра CSV','обновлено '+upd+', добавлено '+add);persist();alert('Импорт реестра: обновлено '+upd+', добавлено '+add+'.');renderRegistry();}catch(ex){alert('Ошибка чтения CSV: '+(ex&&ex.message||ex));}};r.readAsText(f,'utf-8');};inp.click();}
 function fillBlocksFromCodes(){if(!R().edit||S.obj==='ALL')return;const us=unitsOf(S.obj);const prev={};us.forEach(u=>{const b=blockFromCode(u.code);if(b)prev[u.code]=b;});const sample=Object.keys(prev).slice(0,8).map(c=>c+' → '+prev[c]).join(', ');if(!Object.keys(prev).length){alert('Не удалось определить блоки из кодов. Коды должны быть вида «B1_107», «A-12» и т.п.');return;}if(!confirm('Заполнить поле «Блок» из префикса кода у помещений без блока?\n\nНапример: '+sample+(Object.keys(prev).length>8?' …':'')+'\n\nУже заданные блоки не меняются.'))return;let n=0;us.forEach(u=>{if(!unitBlock(u)&&prev[u.code]){u.block=prev[u.code];n++;}});audit('Блоки из кодов',S.obj+' · '+n+' шт.');persist();alert('Проставлено блоков: '+n+'. Проверьте в фильтре «Блок».');renderRegistry();}
-function exportRegCSV(){const us=unitsOf(S.obj);const fin=R().finance;const cols=['Объект','Страна','Город','Код','Блок','Этаж','Категория','Подкатегория','Площадь м²','Терраса м²','Ставка $/м²','Бюджет $/м²','Аренда/мес','Бюджет/мес','Статус','Брокер','Варианты'];const rows=us.map(u=>{const o=objById(u.obj);return [o.name,objCountry(o),o.city,u.code,unitBlock(u),u.floor,u.cat,u.sub,u.area,u.terr||0,u.rate||0,uBudget(u),fin?(u.total||0):'',fin?uBudgetTotal(u):'',STAT[u.status]||u.status,u.broker||'',u.vars.join('; ')];});downloadCSV('LCR_'+(S.obj==='ALL'?'portfolio':S.obj)+'_'+iso(TODAY)+'.csv',cols,rows);}
+function exportRegCSV(){
+ /* P0-SEC-01: раньше флаг finance закрывал только два столбца из четырёх, а «Ставка $/м²»
+    и «Бюджет $/м²» выгружались всегда. Роль, которой экран показывает «•••», скачивала
+    настоящие цифры одной кнопкой. Теперь финансовые столбцы не пустеют, а отсутствуют:
+    пустая колонка «Ставка» и сама сообщает, что поле есть, и провоцирует вопросы. */
+ const us=unitsOf(S.obj);const fin=!!R().finance;
+ const base=['Объект','Страна','Город','Код','Блок','Этаж','Категория','Подкатегория','Площадь м²','Терраса м²'];
+ const money=['Ставка $/м²','Бюджет $/м²','Аренда/мес','Бюджет/мес'];
+ const tail=['Статус','Брокер','Варианты'];
+ const cols=fin?base.concat(money,tail):base.concat(tail);
+ const rows=us.map(u=>{const o=objById(u.obj);
+  const head=[o.name,objCountry(o),o.city,u.code,unitBlock(u),u.floor,u.cat,u.sub,u.area,u.terr||0];
+  const fee=fin?[u.rate||0,uBudget(u),u.total||0,uBudgetTotal(u)]:[];
+  return head.concat(fee,[STAT[u.status]||u.status,u.broker||'',u.vars.join('; ')]);});
+ downloadCSV('LCR_'+(S.obj==='ALL'?'portfolio':S.obj)+'_'+iso(TODAY)+'.csv',cols,rows);}
 function downloadCSV(fname,cols,rows){const q=v=>{v=(v==null?'':String(v));if(/^[=+\-@]/.test(v))v="'"+v;return /[",;\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;};const csv=[cols.map(q).join(';')].concat(rows.map(r=>r.map(q).join(';'))).join('\r\n');const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fname;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 function downloadXLS(fn,tableHtml){const html='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>LCR</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>'+tableHtml+'</body></html>';const blob=new Blob(['﻿'+html],{type:'application/vnd.ms-excel'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);}
 const LCR_T={
@@ -3784,7 +3831,7 @@ const DOCREG=[];let _doc=0;
 let DOC_CONTACTS=[];  /* заполняется вручную: кнопка «+» в форме документа */
 const COMPANY={legal:'ООО «Case Real Estate Advisory»',inn:'ИНН 300 000 000',addr:'г. Ташкент, Узбекистан',phone:'+998 71 200 00 00',email:'office@case.uz'};
 function companyReqs(){return `<div style="font-size:9px;color:#6d6d6d;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:10px">${esc(COMPANY.legal)} · ${esc(COMPANY.inn)} · ${esc(COMPANY.addr)} · тел. ${esc(COMPANY.phone)} · ${esc(COMPANY.email)}</div>`;}
-function stampHTML(){return `<div style="margin-top:6px"><div style="display:inline-block;width:96px;height:96px;border:2px solid #9E0000;border-radius:50%;color:#9E0000;text-align:center;font-size:8px;font-weight:700;line-height:1.25;padding:10px;box-sizing:border-box;transform:rotate(-7deg);opacity:.85">CASE ADVISORY<br>• М.П. •<br>Ташкент · Узбекистан</div></div>`;}
+function stampHTML(){return `<div style="margin-top:6px"><div style="display:inline-block;width:96px;height:96px;border:2px solid #9E0000;border-radius:50%;color:#9E0000;text-align:center;font-size:9px;font-weight:700;line-height:1.25;padding:10px;box-sizing:border-box;transform:rotate(-7deg);opacity:.85">CASE ADVISORY<br>• М.П. •<br>Ташкент · Узбекистан</div></div>`;}
 const TXT_INTRO=[
  {ru:'(не добавлять)',uz:'(qoʻshilmasin)',en:'(none)'},
  {ru:'Благодарим за интерес к нашему проекту и проявленное доверие. Мы внимательно изучили профиль вашего бренда и убеждены, что он органично дополнит концепцию объекта и будет востребован среди наших посетителей.',uz:'Loyihamizga bildirgan qiziqishingiz va ishonchingiz uchun minnatdormiz. Brendingiz profilini diqqat bilan oʻrganib chiqdik va u obyekt konsepsiyasini uygʻun toʻldirishiga hamda mehmonlarimiz orasida talabga ega boʻlishiga ishonamiz.',en:'Thank you for your interest in our project and the trust you have shown. We have carefully studied your brand profile and are confident it will organically complement the property concept and be in demand among our visitors.'},
@@ -4150,4 +4197,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.51.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.70.2';

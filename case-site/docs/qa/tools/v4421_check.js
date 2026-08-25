@@ -1,4 +1,4 @@
-/* CASE OS v4.42.1 — миграция 4421 (все роли) + предупреждение о rejected_keys */
+/* CASE OS v4.42.1 - миграция 4421 (все роли) + предупреждение о rejected_keys */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -17,7 +17,8 @@ srv.listen(0,'127.0.0.1',async()=>{
  const errs=[];page.on('pageerror',e=>errs.push(e.message));
  await page.goto(base+'/index.html?demo=1',{waitUntil:'networkidle'});
  await page.waitForTimeout(600);
- await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
+  await page.waitForSelector('#luser',{timeout:15000});   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
+await page.evaluate(()=>{const s=document.getElementById('luser');s.value='ASH';doLogin();});
  await page.waitForTimeout(500);
 
  /* сеем обрезанные шаблоны BRJ и HO со схемой 4420 (прошлая миграция уже прошла) */
@@ -38,7 +39,7 @@ srv.listen(0,'127.0.0.1',async()=>{
    _warnRejectedKeys({rejected_keys:['BRANDS','GEO_DATA','U:L2_5']});
    await new Promise(r=>setTimeout(r,150));
    const t1=[...document.querySelectorAll('#toastBox div')].map(x=>x.textContent);
-   _warnRejectedKeys({rejected_keys:['BRANDS']}); /* повтор — не должен спамить */
+   _warnRejectedKeys({rejected_keys:['BRANDS']}); /* повтор - не должен спамить */
    await new Promise(r=>setTimeout(r,150));
    const t2=[...document.querySelectorAll('#toastBox div')].map(x=>x.textContent);
    return {t1,t2};

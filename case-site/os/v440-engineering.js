@@ -27,7 +27,7 @@
     if(!canOpen(v)){el.innerHTML='<div class="card" style="max-width:720px;margin:36px auto"><h2 style="margin-top:0">'+h(tr(d.title[0],d.title[1],d.title[2]))+'</h2><p style="color:var(--muted)">'+h(tr('Доступ к инженерным калькуляторам — у команды консалтинга/Advisory и лизинга.','Kirish konsalting va ijara jamoasiga.','Access is limited to the consulting/advisory and leasing team.'))+'</p></div>';return;}
     el.innerHTML=''
       +'<section class="eng-v44">'
-      +'<div class="eng-v44-head"><div><div class="eng-v44-kicker">CASE OS · '+h(tr('Инженерия','Muhandislik','Engineering'))+'</div>'
+      +'<div class="eng-v44-head ph"><div><div class="eng-v44-kicker">CASE OS · '+h(tr('Инженерия','Muhandislik','Engineering'))+'</div>'
       +'<h2>'+h(tr(d.title[0],d.title[1],d.title[2]))+'</h2></div>'
       +'<div style="display:flex;gap:8px"><button class="btn ghost sm" onclick="try{openGuide(\''+v+'\')}catch(e){}">❓ '+h(tr('Инструкция','Yoʻriqnoma','Guide'))+'</button>'
       +'<button class="btn ghost sm" onclick="engV44Full(\''+v+'\')">⛶ '+h(tr('На весь экран','To‘liq ekran','Full screen'))+'</button></div></div>'

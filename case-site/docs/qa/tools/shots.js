@@ -28,6 +28,7 @@ srv.listen(0, '127.0.0.1', async () => {
   await page.goto(base + '/index.html?demo=1', { waitUntil: 'domcontentloaded' });
   await page.waitForTimeout(1200);
   await page.screenshot({ path: path.join(OUT, '00-login.png') });
+  await page.waitForSelector('#luser', { timeout: 15000 });   /* форма входа появляется после boot модулей, фиксированной паузы не хватает */
   await page.evaluate(() => { const s = document.getElementById('luser'); s.value = s.options[0].value; doLogin(); });
   await page.waitForTimeout(1000);
   const views = VIEWS.length ? VIEWS : ['dash', 'registry', 'plans', 'plan_master', 'brands', 'docs'];

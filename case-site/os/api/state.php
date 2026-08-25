@@ -38,6 +38,9 @@ function redact_shared_state(array $data, array $u): array {
     if (isset($data[$key]) && is_array($data[$key])) $data[$key] = $ownBy($data[$key], $field);
   }
   if (isset($data['CASE_PARTNERS']) && is_array($data['CASE_PARTNERS'])) $data['CASE_PARTNERS'] = $ownBy($data['CASE_PARTNERS'], 'owner');
+  /* P0-SEC-01: помещения уходили этой роли со ставками и бюджетом, хотя экран их маскирует.
+     Маскировка на экране защитой не является - значение видно и в DevTools, и в выгрузке. */
+  if (isset($data['U']) && is_array($data['U'])) $data['U'] = redact_units_for($data['U'], $u);
   return $data;
 }
 
@@ -445,6 +448,15 @@ if ($m === 'POST') {
     else unset($incoming['GEO_DATA']);
   }
 
+  /* P0-SEC-01, обратная сторона: роль без права finance получила помещения БЕЗ денег и
+     сохраняет весь state целиком. Приняв его как есть, мы стёрли бы ставки у всех.
+     Финансовые поля каждого помещения берём из серверной копии по идентификатору. */
+  if (!can('admin') && !can('finance') && isset($incoming['U']) && is_array($incoming['U'])) {
+    $oldUnits = (isset($oldData['U']) && is_array($oldData['U'])) ? $oldData['U'] : [];
+    $before = $incoming['U'];
+    $incoming['U'] = restore_unit_finance($incoming['U'], $oldUnits, $u);
+    if ($before !== $incoming['U']) $rejectedKeys[] = 'U.finance';
+  }
   if (!can('admin') && !can('finance')) {
     $me = owner_identity($u); // единая функция (lib.php) - P2-04
     foreach (['BRAND_REQUESTS'=>'broker','SALES_ASSETS'=>'broker','SALES_BUYERS'=>'broker',
