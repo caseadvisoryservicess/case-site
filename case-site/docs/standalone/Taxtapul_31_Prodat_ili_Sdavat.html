@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Тахтапул, 31 — продать или сдавать: когда и сколько</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0D0D0D; --red:#A91D20; --grey:#6E6A66; --grey2:#9C9893; --line:#D8D5D1; --pale:#F4F3F1; --paper:#FFFFFF;
+  --input:#FFF3C4; --input-key:#FFFF00; --input-ink:#0000FF;
+  --serif:"DM Serif Display",Georgia,"Times New Roman",serif; --sans:Inter,Arial,Helvetica,sans-serif;
+}
+*{box-sizing:border-box}
+html{font-size:15px}
+body{margin:0;overflow-x:hidden;font-family:var(--sans);color:var(--ink);background:var(--paper);line-height:1.45;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:var(--serif);font-weight:400;margin:0}
+button{font:inherit;cursor:pointer}
+input,select{font:inherit;color:var(--ink)}
+.wrap{max-width:1280px;margin:0 auto;padding:0 28px}
+abbr[title]{text-decoration:underline dotted;cursor:help}
+
+/* header */
+.top{border-bottom:2px solid var(--ink)}
+.top .wrap{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;padding-top:22px;padding-bottom:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.brand .mark{width:44px;height:44px;background:var(--red);color:#fff;font-family:var(--serif);font-size:15px;display:flex;align-items:center;justify-content:center;letter-spacing:.04em;flex:none}
+.brand .t1{font-family:var(--serif);font-size:26px;line-height:1.05}
+.brand .t2{color:var(--grey);font-size:13px;margin-top:3px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.btn{border:1px solid var(--ink);background:#fff;padding:8px 14px;border-radius:2px}
+.btn:hover{background:var(--pale)}
+.btn.red{background:var(--red);border-color:var(--red);color:#fff}
+.btn.red:hover{background:#8f181b}
+.btn.sm{padding:6px 10px;font-size:12.5px}
+.badge{font-size:12px;color:var(--red);border:1px solid var(--red);border-radius:999px;padding:2px 9px;white-space:nowrap}
+.badge[hidden]{display:none}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:3px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+.toast.on{opacity:1}
+
+/* how-to */
+.howto{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;padding:16px 0;border-bottom:1px solid var(--line);font-size:13px;color:var(--grey)}
+.howto div{display:flex;gap:10px;align-items:flex-start}
+.howto b{flex:none;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center}
+.howto span{padding-top:2px}
+.howto span em{font-style:normal;color:var(--ink);font-weight:500}
+
+/* timeline hero */
+.hero{padding:22px 0 10px;border-bottom:1px solid var(--line)}
+.hero-head{display:flex;justify-content:space-between;gap:24px;align-items:flex-start;flex-wrap:wrap}
+.hero .q{font-size:14px;color:var(--grey);max-width:72ch}
+.hero .q.right{text-align:right;flex:none}
+.moment{font-family:var(--serif);font-size:38px;line-height:1.1;margin:4px 0 6px}
+.moment .sub{display:block;font-family:var(--sans);font-size:14px;color:var(--grey);margin-top:6px}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 14px}
+.chip{border:1px solid var(--line);background:#fff;padding:6px 12px;border-radius:999px;font-size:13px;color:var(--ink)}
+.chip:hover{border-color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.chip.best{box-shadow:inset 0 0 0 1px var(--red)}
+.slider-wrap{position:relative;padding:0 0 4px}
+input[type=range].tl{width:100%;margin:0;height:34px;background:transparent;-webkit-appearance:none;appearance:none;cursor:pointer}
+input[type=range].tl:focus{outline:none}
+input[type=range].tl::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range].tl::-moz-range-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range].tl::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 0 0 1.5px var(--red);margin-top:-9px}
+input[type=range].tl::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--red);border:3px solid #fff;box-shadow:0 0 0 1.5px var(--red)}
+input[type=range].tl:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(169,29,32,.35)}
+.ticks{position:relative;height:16px;font-size:12px;color:var(--grey);margin-top:-2px}
+.ticks span{position:absolute;white-space:nowrap}
+.chart{width:100%;height:auto;display:block;margin-top:4px}
+.legend{display:flex;gap:18px;font-size:12px;color:var(--grey);margin:6px 0 0;flex-wrap:wrap}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid var(--ink)}
+.legend i.red{border-color:var(--red)}
+.legend i.zone{width:14px;height:10px;border:0;background:repeating-linear-gradient(135deg,#e9e7e3 0 3px,#f7f6f4 3px 6px)}
+.legend i.dot{width:10px;height:10px;border:2px solid var(--red);border-radius:50%;background:#fff}
+
+/* KPI strip */
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-bottom:1px solid var(--line)}
+.kpi{padding:18px 18px 16px 0;border-right:1px solid var(--line);margin-right:18px}
+.kpi:nth-child(4n){border-right:0;margin-right:0}
+.kpi .l{font-size:12.5px;color:var(--grey);min-height:2.6em}
+.kpi .v{font-family:var(--serif);font-size:30px;line-height:1.05;margin-top:6px;white-space:nowrap}
+.kpi .v.neg{color:var(--red)}
+.kpi .s{font-size:12.5px;color:var(--grey);margin-top:5px}
+.verdict{padding:16px 0 18px;border-bottom:1px solid var(--line);font-size:15px;max-width:82ch}
+.verdict b{font-weight:600}
+.verdict p{margin:0 0 8px}
+.verdict p:last-child{margin:0}
+.verdict .why{font-size:13.5px;color:var(--grey)}
+
+/* two columns */
+.cols{display:grid;grid-template-columns:330px minmax(0,1fr);gap:40px;padding:26px 0 40px}
+.cols>aside,.cols>main{min-width:0}
+aside h2{font-size:22px;margin-bottom:6px}
+aside .hint{font-size:12.5px;color:var(--grey);margin-bottom:10px;line-height:1.4}
+aside .hint i{display:inline-block;width:12px;height:12px;border:1px solid var(--line);vertical-align:-2px;margin-right:2px}
+.warnings{font-size:12.5px;color:var(--red);margin:0 0 10px;padding:0 0 0 16px;line-height:1.4}
+.warnings:empty{display:none}
+details{border-top:1px solid var(--line)}
+details:last-of-type{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;padding:12px 0;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";color:var(--grey);font-weight:400;font-size:18px}
+details[open] summary::after{content:"–"}
+.field{display:grid;grid-template-columns:1fr 104px;gap:10px;align-items:center;padding:6px 0}
+.field label{font-size:13px;line-height:1.3}
+.field label small{display:block;color:var(--grey);font-size:11.5px;margin-top:1px}
+.field input[type=number],.field select{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:2px;background:var(--input);color:var(--input-ink);font-weight:600;text-align:right}
+.field select{text-align:left;font-weight:500;color:var(--ink)}
+.field input[type=number]:focus,.field select:focus{outline:2px solid var(--red);outline-offset:1px}
+.field .calc{text-align:right;font-size:13px;color:var(--grey)}
+.field.key input{background:var(--input-key)}
+.field input[type=checkbox]{justify-self:end;width:20px;height:20px;accent-color:var(--red)}
+.subnote{font-size:12px;color:var(--grey);padding:4px 0 8px;line-height:1.35}
+.field.wide{grid-template-columns:1fr 158px}
+.field.wide select{font-size:12.5px;padding:6px 6px}
+.field.wide .pair{display:flex;gap:6px;align-items:center}
+.field.wide .pair input[type=number]{padding:6px 4px}
+.field.wide .pair input.mo{flex:1;min-width:0}
+.field.wide .pair input.yr{width:66px;flex:none}
+.field.wide .pair span{font-size:11px;color:var(--grey)}
+.autofill{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 0 10px;font-size:12.5px;color:var(--grey)}
+.autofill input[type=number]{width:56px;padding:5px 4px;border:1px solid var(--line);background:#fff;border-radius:2px;text-align:right}
+
+main h2{font-size:22px;margin:0 0 10px}
+main section{margin-bottom:34px}
+.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{text-align:right;font-weight:500;color:var(--grey);font-size:12px;padding:6px 8px;border-bottom:1px solid var(--ink);vertical-align:bottom}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+td{text-align:right;padding:7px 8px;border-bottom:1px solid var(--line);white-space:nowrap;font-variant-numeric:tabular-nums}
+tr.sel td{background:var(--pale)}
+tr.click{cursor:pointer}
+tr.click:hover td{background:#faf9f7}
+td.neg{color:var(--red)}
+td .best{display:inline-block;font-size:10.5px;color:#fff;background:var(--red);padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle}
+td .date{display:block;font-size:11.5px;color:var(--grey);font-weight:400}
+tfoot td{font-weight:600;border-top:1px solid var(--ink);border-bottom:0}
+caption{caption-side:bottom;text-align:left;font-size:12.5px;color:var(--grey);padding-top:8px}
+.note{font-size:12.5px;color:var(--grey);margin-top:8px;max-width:80ch;line-height:1.45}
+.details-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px 30px;font-size:13.5px}
+.details-grid div{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:6px 0}
+.details-grid div span:last-child{font-variant-numeric:tabular-nums;font-weight:500;text-align:right;white-space:nowrap}
+.details-grid div.h{border-bottom:1px solid var(--ink);font-weight:600;padding-top:14px;grid-column:1/-1}
+.details-grid div.h:first-child{padding-top:0}
+.gloss{font-size:13.5px;max-width:82ch}
+.gloss dt{font-weight:600;margin-top:10px}
+.gloss dd{margin:2px 0 0;color:var(--grey)}
+footer{border-top:2px solid var(--ink);padding:18px 0 40px;font-size:12.5px;color:var(--grey);line-height:1.5}
+footer h3{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);margin:0 0 6px}
+footer ul{margin:0 0 14px;padding-left:18px;max-width:90ch}
+footer li{margin:0 0 4px}
+footer p{max-width:90ch}
+
+@media (max-width:980px){
+  .cols{grid-template-columns:minmax(0,1fr);gap:26px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi .v{white-space:normal;font-size:24px}
+  .kpi{padding-right:10px;margin-right:10px}
+  .kpi:nth-child(2n){border-right:0;margin-right:0}
+  .moment{font-size:28px}
+  .details-grid{grid-template-columns:1fr}
+  .howto{grid-template-columns:1fr;gap:8px}
+  .hero .q.right{text-align:left}
+  .wrap{padding:0 16px}
+}
+@media print{
+  .actions,aside .hint,.howto,.legend,.toast{display:none}
+  .cols{grid-template-columns:1fr}
+  details{break-inside:avoid}
+  details:not([open])>*:not(summary){display:block}
+  body{font-size:12px}
+  .kpi .v{font-size:22px}
+  main section{break-inside:avoid}
+}
+@media (prefers-reduced-motion:no-preference){ .chip,.btn{transition:background .12s,border-color .12s} }
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="brand">
+    <div class="mark">CASE</div>
+    <div><div class="t1">Тахтапул, 31</div><div class="t2">Продать или сдавать — когда и сколько. Интерактивный расчёт для собственника</div></div>
+  </div>
+  <div class="actions">
+    <span class="badge" id="badgeChanged" hidden title="Исходные данные отличаются от базовых">данные изменены</span>
+    <button class="btn sm" id="btnCopy" type="button" title="Скопировать итоговые цифры текстом — для письма или отчёта">Скопировать итог</button>
+    <button class="btn sm" id="btnExport" type="button" title="Сохранить все исходные данные в файл, чтобы передать коллеге">Сохранить сценарий</button>
+    <button class="btn sm" id="btnImport" type="button" title="Загрузить сохранённый файл сценария">Загрузить сценарий</button>
+    <input type="file" id="fileImport" accept="application/json,.json" hidden>
+    <button class="btn sm" id="btnPrint" type="button">Распечатать</button>
+    <button class="btn sm" id="btnReset" type="button">Сбросить к базовым</button>
+  </div>
+</div></header>
+
+<div class="wrap howto">
+  <div><b>1</b><span><em>Проверьте исходные данные</em> в левой колонке. Жёлтые поля можно менять — расчёт обновляется сразу.</span></div>
+  <div><b>2</b><span><em>Выберите момент сделки</em>: кнопками, ползунком, щелчком по графику или по строке таблицы.</span></div>
+  <div><b>3</b><span><em>Сравните варианты</em> в карточках и таблице. Лучший по NPV отмечен красным. Итог можно скопировать текстом.</span></div>
+</div>
+
+<section class="hero"><div class="wrap">
+  <div class="hero-head">
+    <div class="q">Здесь показано, сколько собственник получит чистыми, если продать здание в выбранный момент. До ввода — предпродажа: покупатель платит по графику, стройку заканчиваете вы. После ввода — продажа готового здания, пустого или с арендаторами. Все суммы — после комиссии и налога, в долларах без НДС.</div>
+    <div class="q right" id="todayLabel"></div>
+  </div>
+  <h1 class="moment" id="momentTitle"></h1>
+  <div class="chips" id="chips"></div>
+  <div class="slider-wrap">
+    <input type="range" class="tl" id="mSlider" min="0" max="144" step="1" value="24" aria-label="Момент продажи, месяцев от сегодня">
+    <div class="ticks" id="ticks"></div>
+  </div>
+  <svg class="chart" id="curve" viewBox="0 0 1200 350" preserveAspectRatio="none" role="img" aria-label="Прибыль и NPV в зависимости от момента продажи"></svg>
+  <div class="legend"><span><i class="zone"></i>стройка</span><span><i class="dot"></i>лучший момент по NPV</span><span><i class="red"></i>выбранный момент</span><span>Нажмите на график, чтобы выбрать момент</span></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="kpis" id="kpis"></div>
+  <div class="verdict" id="verdict"></div>
+</div></section>
+
+<div class="wrap cols">
+<aside>
+  <h2>Исходные данные</h2>
+  <div class="hint"><i style="background:var(--input)"></i> жёлтые поля — можно менять. <i style="background:var(--input-key)"></i> ярко-жёлтые — ключевые цифры, их подтверждают риелтор и заказчик. Серые значения считаются сами.</div>
+  <ul class="warnings" id="warnings"></ul>
+
+  <details open><summary>Объект и стройка</summary>
+    <div class="field"><label>Арендопригодная площадь (<abbr title="Gross Leasable Area — площадь, которую можно сдать или продать">GLA</abbr>), м²</label><input type="number" id="gla" step="0.1" min="0"></div>
+    <div class="field"><label>Общая площадь здания (<abbr title="Gross Building Area — вся площадь здания, включая лестницы, технические помещения и т.п.">GBA</abbr>), м²</label><input type="number" id="gba" step="0.1" min="0"></div>
+    <div class="field wide"><label>Сегодня <small>месяц и год начала расчёта</small></label><div class="pair"><select id="startMonth" class="mo"></select><input type="number" id="startYear" class="yr" step="1"></div></div>
+    <div class="field"><label>Осталось строить, месяцев <small>0 — здание уже готово</small></label><input type="number" id="mc" step="1" min="0" max="48"></div>
+    <div class="field key"><label>Осталось вложить в стройку, $/м² GBA <small>все работы до shell &amp; core, проектирование, резерв</small></label><input type="number" id="capexGba" step="10" min="0"></div>
+    <div class="field"><label>Итого вложить до ввода <small>тратится равными долями каждый месяц</small></label><div class="calc" id="capexTotal"></div></div>
+    <div class="field key"><label>Земля и уже вложенные деньги, $ <small>балансовая стоимость сегодня — нужна для налога</small></label><input type="number" id="land" step="10000" min="0"></div>
+    <div class="field"><label>Считать уже вложенные деньги инвестицией <small>выкл — расчёт «от сегодня»: прошлые затраты одинаковы для всех вариантов и на выбор не влияют. Вкл — полная картина по проекту</small></label><input type="checkbox" id="inclSunk"></div>
+  </details>
+
+  <details open><summary>Продажа</summary>
+    <div class="subnote">Цены продажи по моментам сделки, $/м² GLA — заполняет риелтор. До ввода — предпродажа: покупатель платит по графику, стройку заканчиваете вы и передаёте готовое здание при вводе. Между точками цена меняется плавно.</div>
+    <div id="priceTable"></div>
+    <div class="subnote" style="padding-top:8px">Быстрое заполнение от цены при вводе: до ввода — со скидкой (сегодня максимальная, к вводу — ноль), после ввода — с ростом в год.</div>
+    <div class="autofill">скидка сегодня <input type="number" id="afDisc" step="5" value="20" min="0" max="90" title="дисконт предпродажи сегодня, %"><span>%</span> · рост <input type="number" id="afGrowth" step="0.5" value="3" min="-20" max="50" title="рост цены после ввода, % в год"><span>%/год</span> <button class="btn sm" type="button" id="btnAutofill">Заполнить</button></div>
+    <div class="field"><label>Срок продажи всех лотов, месяцев <small>1 — сделка сразу; лоты продаются равными долями</small></label><input type="number" id="saleDur" step="1" min="1" max="36"></div>
+    <div class="field"><label>Комиссия риелтора, % от цены</label><input type="number" id="comm" step="0.5" min="0" max="20"></div>
+    <div class="subnote">Рассрочка для покупателя</div>
+    <div class="field"><label>Срок рассрочки, месяцев <small>0 — вся сумма при сделке</small></label><input type="number" id="instMonths" step="1" min="0" max="60"></div>
+    <div class="field"><label>Первый взнос при сделке, %</label><input type="number" id="dp" step="5" min="0" max="100"></div>
+    <div class="field"><label>Надбавка к цене за рассрочку, %</label><input type="number" id="markup" step="1" min="0" max="50"></div>
+    <div class="subnote">Если продавать после аренды</div>
+    <div class="field wide"><label>Непроданные лоты во время продажи</label><select id="saleTenants"><option value="stay">Арендаторы остаются, аренда идёт</option><option value="vacant">Освобождаются, без аренды</option></select></div>
+  </details>
+
+  <details open><summary>Аренда</summary>
+    <div class="field key"><label>Ставка аренды, $/м² GLA в месяц <small>средняя по этажам, без коммунальных и эксплуатации (net lease)</small></label><input type="number" id="rent" step="0.5" min="0"></div>
+    <div class="field"><label>Аренда в год при 100% заполнении</label><div class="calc" id="rentYear"></div></div>
+    <div class="field"><label>Заполнено в первый месяц, %</label><input type="number" id="occ0" step="5" min="0" max="100"></div>
+    <div class="field"><label>Стабильная заполняемость, %</label><input type="number" id="occStab" step="1" min="0" max="100"></div>
+    <div class="field"><label>Выход на стабильную заполняемость, месяцев</label><input type="number" id="ramp" step="1" min="0" max="60"></div>
+    <div class="field"><label>Арендные каникулы новым арендаторам, месяцев</label><input type="number" id="rentFree" step="0.5" min="0" max="12"></div>
+    <div class="field"><label>Комиссия за сдачу, % годовой аренды <small>брокеру, за каждый новый договор</small></label><input type="number" id="letComm" step="0.1" min="0" max="100"></div>
+    <div class="field"><label>Паркинг и прочий доход, $ в месяц <small>при полном заполнении</small></label><input type="number" id="park" step="10" min="0"></div>
+    <div class="field"><label>Расходы собственника, $/м² GBA в месяц <small>охрана, лифт, фасад, места общего пользования</small></label><input type="number" id="opex" step="0.1" min="0"></div>
+    <div class="field"><label>Управление, % от дохода</label><input type="number" id="mgmt" step="0.5" min="0" max="50"></div>
+    <div class="field"><label>Резерв на ремонт, % от дохода</label><input type="number" id="reserve" step="0.5" min="0" max="50"></div>
+    <div class="field"><label>Индексация ставки, % в год <small>со второго года эксплуатации</small></label><input type="number" id="idx" step="0.5" min="-20" max="50"></div>
+  </details>
+
+  <details><summary>Ставки и налоги</summary>
+    <div class="field"><label>Ставка дисконтирования, % годовых <small>под какой процент вы могли бы разместить деньги с тем же риском</small></label><input type="number" id="disc" step="0.5" min="0" max="60"></div>
+    <div class="field"><label>Налог на прибыль, %</label><input type="number" id="cit" step="0.5" min="0" max="60"></div>
+    <div class="field"><label>Налог на имущество, % в год <small>от балансовой стоимости</small></label><input type="number" id="ptax" step="0.1" min="0" max="10"></div>
+    <div class="field"><label>Страхование, % в год <small>от балансовой стоимости</small></label><input type="number" id="ins" step="0.1" min="0" max="10"></div>
+    <div class="field"><label>Амортизация для налога, % в год <small>уменьшает налог на прибыль от аренды</small></label><input type="number" id="dep" step="0.5" min="0" max="50"></div>
+  </details>
+</aside>
+
+<main>
+  <section>
+    <h2>Ключевые моменты — что вы получите</h2>
+    <div class="tw"><table id="keyTable"></table></div>
+    <div class="note">Нажмите строку, чтобы выбрать момент. «Вложить» — деньги, которые ещё нужно потратить на стройку. «Прибыль» — всё, что вы получите чистыми, минус вложения. «NPV» — та же прибыль, но пересчитанная на сегодняшний день: доллар через пять лет стоит меньше, чем доллар сегодня. Именно по NPV честно сравнивать сделку сейчас и сделку через несколько лет.</div>
+  </section>
+
+  <section>
+    <h2 id="detailTitle">Выбранный момент — подробно</h2>
+    <div class="details-grid" id="detailGrid"></div>
+  </section>
+
+  <section>
+    <h2>Деньги по годам — выбранный момент</h2>
+    <svg class="chart" id="cum" viewBox="0 0 900 220" preserveAspectRatio="none" role="img" aria-label="Накопленный денежный поток"></svg>
+    <div class="tw"><table id="yearTable"></table></div>
+  </section>
+
+  <section>
+    <h2>Что если — насколько устойчив вывод</h2>
+    <div class="tw"><table id="sensTable"></table></div>
+    <div class="note">Каждая строка меняет одно исходное значение и оставляет остальные как есть. Если лучший момент не меняется, вывод устойчив к этому допущению. Если меняется — это допущение стоит уточнить в первую очередь.</div>
+  </section>
+
+  <section>
+    <h2>Словарь</h2>
+    <dl class="gloss">
+      <dt>Предпродажа</dt><dd>Продажа до ввода здания. Покупатель платит по графику (взнос и рассрочка), собственник заканчивает стройку и передаёт готовое здание при вводе. Цена ниже, чем у готового здания, зато деньги приходят раньше.</dd>
+      <dt>Прибыль за период</dt><dd>Всё, что собственник получит чистыми (после комиссии, расходов и налога), минус всё, что ещё нужно вложить. Без учёта того, когда именно приходят деньги.</dd>
+      <dt>NPV (чистая приведённая стоимость)</dt><dd>Та же прибыль, но каждая сумма уменьшена в зависимости от того, как долго её ждать, по ставке дисконтирования. Отвечает на вопрос «сколько этот вариант стоит в сегодняшних деньгах». Чем выше — тем лучше.</dd>
+      <dt>Ставка дисконтирования</dt><dd>Доходность, под которую собственник мог бы разместить деньги с сопоставимым риском. Чем она выше, тем меньше ценятся деньги в будущем и тем выгоднее продать раньше.</dd>
+      <dt>IRR (доходность на вложения)</dt><dd>Годовая ставка, которую приносит вариант на вложенные в стройку деньги. Если IRR выше ставки дисконтирования, вариант выгоднее, чем просто разместить деньги.</dd>
+      <dt>Окупаемость</dt><dd>Момент, когда полученные деньги полностью покрыли вложенные. «Сразу» — если вложений не требуется или взносы покупателя с самого начала покрывают стройку.</dd>
+      <dt>Балансовая стоимость</dt><dd>Земля плюс все затраты на стройку минус начисленная амортизация. От неё считаются налог на имущество, страхование и налог на прибыль при продаже (цена минус комиссия минус балансовая стоимость).</dd>
+      <dt>GLA / GBA</dt><dd>GLA — площадь, которую можно сдать или продать; по ней считаются аренда и цена продажи. GBA — вся площадь здания; по ней считаются стройка и расходы на эксплуатацию.</dd>
+    </dl>
+  </section>
+</main>
+</div>
+
+<footer><div class="wrap">
+  <h3>Как считаем</h3>
+  <ul id="howCalc">
+    <li>Стройка идёт за счёт собственника равными долями каждый месяц до ввода. Долг не привлекается.</li>
+    <li>Цены продажи задаёт риелтор по моментам сделки; между точками цена меняется плавно, за последней точкой — не меняется.</li>
+    <li>Продажа до ввода — предпродажа: покупатель платит по графику (взнос и рассрочка), собственник заканчивает стройку и передаёт здание при вводе. Налог на прибыль считается от полной себестоимости — земля и вся стройка.</li>
+    <li>При продаже при вводе лоты продаются пустыми, без аренды. Лоты продаются равными долями в течение срока продажи.</li>
+    <li>Если здание сдавалось до продажи, то по выбору в настройках либо арендаторы остаются в непроданных лотах и те приносят аренду до своей продажи, либо лоты освобождаются и продаются без арендаторов. Новых арендаторов после начала продажи не ищут.</li>
+    <li id="taxLine"></li>
+    <li>Земля и уже вложенные деньги — прошлые затраты. По умолчанию расчёт ведётся «от сегодня»: прошлые вложения входят только в балансовую стоимость для налога. Переключатель в разделе «Объект и стройка» включает их в общий результат по проекту.</li>
+    <li>Все суммы в долларах США без НДС. Инфляция отдельно не учитывается: цены и индексация аренды заданы в номинальных долларах.</li>
+  </ul>
+  <p>Подготовлено CASE Real Estate Advisory. Показатели носят прогнозный характер и не гарантируют будущий результат. Цены, ставки и стоимость строительства — предварительные ориентиры, подлежат подтверждению риелтором и заказчиком по смете. Не является оценкой рыночной стоимости, налоговой консультацией или публичной офертой.</p>
+</div></footer>
+<div class="toast" id="toast"></div>
+
+<script>
+// =====================================================================================
+//  РАСЧЁТНОЕ ЯДРО. Месячные денежные потоки: «достроить → продать в месяц M»
+//  или «достроить → сдавать → продать в месяц M». Все суммы USD без НДС, после налога.
+//  Месяц 0 = сегодня. Стройка — месяцы 1..mc. Эксплуатация — с месяца mc+1.
+//
+//  ЧТО МЕНЯТЬ: базовые значения ниже (DEFAULTS). Каждое поле подписано.
+//  Те же значения можно менять в левой колонке страницы — они сохраняются в браузере.
+// =====================================================================================
+const DEFAULTS = {
+  startYear: 2026, startMonth: 9,          // «сегодня» — месяц (1..12) и год начала расчёта
+  gla: 1855, gba: 2299,                    // м²: арендопригодная площадь и общая площадь здания
+  mc: 24,                                  // осталось строить, месяцев (0 — здание готово)
+  capexGba: 690,                           // осталось вложить в стройку, $/м² GBA (работы, проектирование, резерв)
+  land: 500000,                            // земля + уже вложенные деньги, $ (балансовая стоимость сегодня)
+  inclSunk: false,                         // true — считать уже вложенные деньги инвестицией в месяце 0
+  prices: { now: 1200, m6: 1275, m12: 1350, done: 1500, y1: 1545, y3: 1640, y5: 1740, y10: 2015 },
+                                           // цены риелтора, $/м² GLA: сейчас, через 6 и 12 мес (предпродажа),
+                                           // при вводе, через 1 / 3 / 5 / 10 лет после ввода
+  saleDur: 24,                             // срок продажи всех лотов после выбранного момента, месяцев
+  saleTenants: 'stay',                     // после аренды: 'stay' — арендаторы остаются в непроданных лотах, 'vacant' — освобождаются
+  comm: 3,                                 // комиссия риелтора, % от цены
+  instMonths: 24, dp: 30, markup: 0,       // рассрочка: срок (мес), первый взнос %, надбавка к цене %
+  rent: 14.26,                             // ставка аренды, $/м² GLA в месяц (net lease)
+  occ0: 40, occStab: 92, ramp: 18,         // заполнено в 1-й месяц %, стабильная заполняемость %, месяцев до неё
+  rentFree: 2, letComm: 8.3,               // арендные каникулы, мес; комиссия за сдачу, % годовой аренды
+  park: 150,                               // паркинг и прочий доход, $ в месяц при 100% заполнении
+  opex: 1.0, mgmt: 3, reserve: 2,          // расходы собственника $/м² GBA в мес; управление % дохода; резерв % дохода
+  idx: 3,                                  // индексация ставки, % в год со 2-го года эксплуатации
+  disc: 12,                                // ставка дисконтирования, % годовых
+  cit: 15, ptax: 1.5, ins: 0.2, dep: 5,    // налог на прибыль %; налог на имущество % в год; страхование % в год; амортизация % в год
+};
+
+function pct(v) { return v / 100; }
+
+function monthlyIRR(cf) {
+  // годовая IRR по месячным потокам, или null, если не определена
+  let hasNeg = false, hasPos = false;
+  for (const v of cf) { if (v < -1e-9) hasNeg = true; if (v > 1e-9) hasPos = true; }
+  if (!hasNeg || !hasPos) return null;
+  const f = r => { let s = 0, d = 1; for (let m = 0; m < cf.length; m++) { s += cf[m] * d; d /= (1 + r); } return s; };
+  let lo = -0.08, hi = 0.5;               // границы месячной ставки
+  let flo = f(lo), fhi = f(hi);
+  if (flo * fhi > 0) return null;
+  for (let i = 0; i < 100; i++) { const mid = (lo + hi) / 2, fm = f(mid); if (flo * fm <= 0) { hi = mid; fhi = fm; } else { lo = mid; flo = fm; } }
+  const r = (lo + hi) / 2;
+  return Math.pow(1 + r, 12) - 1;
+}
+
+function payback(cf) {
+  // месяц, в котором накопленный поток впервые становится неотрицательным после того, как был отрицательным
+  let cum = 0, everNeg = false;
+  for (let m = 0; m < cf.length; m++) {
+    const prev = cum; cum += cf[m];
+    if (cum < -1e-9) { everNeg = true; continue; }
+    if (everNeg && prev < 0) return m - 1 + (-prev) / cf[m];
+  }
+  return everNeg ? null : (cum > 1e-9 ? 0 : null);
+}
+
+function anchors(p) {
+  // точки графика цен риелтора; состав зависит от срока стройки
+  const mc = Math.max(0, Math.round(p.mc)); const list = [];
+  if (mc > 0) list.push({ id: 'now', m: 0, label: 'Сейчас — предпродажа' });
+  if (mc > 6) list.push({ id: 'm6', m: 6, label: 'Через 6 месяцев — предпродажа' });
+  if (mc > 12) list.push({ id: 'm12', m: 12, label: 'Через 12 месяцев — предпродажа' });
+  list.push({ id: 'done', m: mc, label: mc > 0 ? 'При вводе — готовое здание' : 'Сейчас — готовое здание' });
+  list.push({ id: 'y1', m: mc + 12, label: 'Через 1 год после ввода' });
+  list.push({ id: 'y3', m: mc + 36, label: 'Через 3 года после ввода' });
+  list.push({ id: 'y5', m: mc + 60, label: 'Через 5 лет после ввода' });
+  list.push({ id: 'y10', m: mc + 120, label: 'Через 10 лет после ввода' });
+  return list;
+}
+function priceAt(p, M) {   // $/м² GLA: линейно между точками, за краями — без изменений
+  const an = anchors(p).map(a => ({ m: a.m, v: Number(p.prices[a.id]) || 0 }));
+  if (M <= an[0].m) return an[0].v;
+  for (let i = 1; i < an.length; i++) if (M <= an[i].m) { const a = an[i - 1], b = an[i]; return b.m === a.m ? b.v : a.v + (b.v - a.v) * (M - a.m) / (b.m - a.m); }
+  return an[an.length - 1].v;
+}
+
+function runModel(p, M) {
+  const mc = Math.max(0, Math.round(p.mc));
+  M = Math.max(0, Math.round(M));
+  const D = Math.max(1, Math.round(p.saleDur)), T = Math.max(0, Math.round(p.instMonths));
+  const H = Math.max(M + D + T + 1, mc + 1) + 1;
+  const cf = new Array(H).fill(0), inv = new Array(H).fill(0), saleNet = new Array(H).fill(0), rentNet = new Array(H).fill(0);
+  const rentGross = new Array(H).fill(0), noiArr = new Array(H).fill(0), occArr = new Array(H).fill(0);
+  const capexTotal = p.capexGba * p.gba;
+  const capexM = mc > 0 ? capexTotal / mc : 0;
+  // стройку всегда заканчивает собственник (предпродажа = форвардная сделка с передачей при вводе)
+  for (let m = 1; m <= mc; m++) { cf[m] -= capexM; inv[m] = -capexM; }
+  if (p.inclSunk) { cf[0] -= p.land; inv[0] -= p.land; }
+  const book = p.land + capexTotal;                 // балансовая стоимость до амортизации
+  const Pc = priceAt(p, mc) * p.gla;                // цена готового здания при вводе по графику риелтора
+  const cit = pct(p.cit), comm = pct(p.comm), idxR = pct(p.idx);
+  const occ0 = pct(p.occ0), occS = pct(p.occStab), ramp = Math.max(0, Math.round(p.ramp));
+  const occAt = (op) => (ramp <= 0 ? occS : (op <= 1 ? Math.min(occS, occ0) : Math.min(occS, occ0 + (occS - occ0) * Math.min(1, (op - 1) / ramp))));
+
+  // ---- аренда (только если M > mc): эксплуатация с mc+1, пока лоты не проданы
+  const lastLease = (M > mc) ? (p.saleTenants === 'vacant' ? M - 1 : M + D - 1) : mc;
+  let prevA = 0, depAcc = 0, lossCF = 0, rentTaxTotal = 0, rentOpexTotal = 0;
+  for (let m = mc + 1; m <= lastLease; m++) {
+    const op = m - mc;                              // месяц эксплуатации 1..
+    const yr = Math.floor((op - 1) / 12);           // год эксплуатации 0..
+    const idx = Math.pow(1 + idxR, yr);
+    const occ = occAt(Math.min(op, M - mc));        // после начала продажи новых арендаторов не ищут
+    const unsold = (m < M) ? 1 : Math.max(0, 1 - (m - M) / D);
+    const A = p.gla * occ * unsold;
+    const dA = Math.max(0, A - prevA); prevA = A;
+    const rent = A * p.rent * idx;
+    const park = p.park * occ * idx * unsold;
+    const egi = rent + park;
+    const costs = p.gba * p.opex * idx * unsold + egi * (pct(p.mgmt) + pct(p.reserve))
+      + book * (pct(p.ptax) + pct(p.ins)) / 12 * unsold + dA * p.rent * idx * (p.rentFree + 12 * pct(p.letComm));
+    const noi = egi - costs;
+    const depM = book * pct(p.dep) / 12 * unsold;
+    // налог на прибыль от аренды: убытки первых месяцев переносятся и уменьшают будущий налог, отрицательного налога нет
+    let taxable = noi - depM, tax = 0;
+    if (taxable < 0) lossCF += -taxable;
+    else { const use = Math.min(lossCF, taxable); lossCF -= use; tax = (taxable - use) * cit; }
+    const net = noi - tax;
+    cf[m] += net; rentNet[m] = net; rentGross[m] = egi; noiArr[m] = noi; occArr[m] = occ; rentTaxTotal += tax; rentOpexTotal += costs;
+    if (m <= M) depAcc += depM;
+  }
+  // показатели «в месяц»: последний полный месяц перед продажей и (если достигнут) первый месяц после выхода на стабильную заполняемость
+  let preSaleNetMonth = null, preSaleOcc = null, stabNetMonth = null, stabNoiMonth = null;
+  if (M > mc) {
+    const pm = Math.max(mc + 1, M - 1);
+    preSaleNetMonth = rentNet[pm]; preSaleOcc = occArr[pm];
+    const opStab = ramp + 2;
+    if (opStab <= M - mc) {   // «типичный» месяц: обычный налог, без переноса убытков
+      const noiS = noiArr[mc + opStab]; stabNoiMonth = noiS;
+      stabNetMonth = noiS - Math.max(0, noiS - book * pct(p.dep) / 12) * cit;
+    }
+  }
+
+  // ---- продажа в месяц M по графику риелтора
+  const priceM2 = priceAt(p, M);
+  let gross = priceM2 * p.gla;
+  const unfDisc = Pc > 0 ? 1 - gross / Pc : 0;    // к цене готового здания (отрицательно = выше)
+  gross = Math.max(0, gross) * (1 + (T > 0 ? pct(p.markup) : 0));
+  const bookAtSale = Math.max(0, book - depAcc);
+  const dpEff = T > 0 ? pct(p.dp) : 1;
+  // налог на прибыль от продажи: (цена − комиссия − балансовая стоимость), за вычетом непокрытых убытков аренды; отрицательного налога нет
+  const gainTotal = gross * (1 - comm) - bookAtSale;
+  const taxableSale = Math.max(0, gainTotal - lossCF);
+  let recTotal = 0, commTotal = 0, taxTotal = 0;
+  for (let k = 0; k < D; k++) {
+    const s = M + k, g = gross / D, taxLot = taxableSale / D * cit;
+    cf[s] -= g * comm; saleNet[s] -= g * comm; commTotal += g * comm;
+    const rec = (mm, amt) => { const tx = g > 0 ? taxLot * (amt / g) : 0; cf[mm] += amt - tx; saleNet[mm] += amt - tx; recTotal += amt; taxTotal += tx; };
+    rec(s, g * dpEff);
+    for (let j = 1; j <= T; j++) rec(s + j, g * (1 - dpEff) / T);
+  }
+  // ---- итоги
+  const disc = pct(p.disc);
+  let npv = 0, profit = 0, invTotal = 0, saleNetTotal = 0, rentNetTotal = 0, rentGrossTotal = 0;
+  for (let m = 0; m < H; m++) { npv += cf[m] / Math.pow(1 + disc, m / 12); profit += cf[m]; invTotal += inv[m]; saleNetTotal += saleNet[m]; rentNetTotal += rentNet[m]; rentGrossTotal += rentGross[m]; }
+  const pb = payback(cf);
+  return {
+    M, mc, H, cf, inv, saleNet, rentNet, gross, priceM2, unfDisc, Pc, capexTotal, invTotal, saleNetTotal, rentNetTotal, rentGrossTotal, rentTaxTotal, rentOpexTotal,
+    recTotal, commTotal, taxTotal, gainTotal, profit, npv, irr: monthlyIRR(cf), pb, pbOps: (pb === null ? null : (M >= mc ? Math.max(0, pb - mc) : null)),
+    preSaleNetMonth, preSaleOcc, stabNetMonth, stabNoiMonth, bookAtSale,
+  };
+}
+
+// сколько здание приносит чистыми в год на стабильной заполняемости, к цене готового здания (приблизительно, для пояснения)
+function stabilisedYield(p) {
+  const mc = Math.max(0, Math.round(p.mc)), ramp = Math.max(0, Math.round(p.ramp));
+  const r = runModel(p, mc + ramp + 2 + 12);
+  if (r.stabNetMonth === null || !(r.Pc > 0)) return null;
+  return r.stabNetMonth * 12 / r.Pc;
+}
+function priceGrowth(p) {   // средний рост цены в год за 10 лет после ввода по графику риелтора
+  const mc = Math.max(0, Math.round(p.mc)); const a = priceAt(p, mc), b = priceAt(p, mc + 120);
+  if (!(a > 0) || !(b > 0)) return null;
+  return Math.pow(b / a, 1 / 10) - 1;
+}
+</script>
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const MONTHS = ['январь','февраль','март','апрель','май','июнь','июль','август','сентябрь','октябрь','ноябрь','декабрь'];
+  const MONTHS_G = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
+  const KEY = 'taxtapul31-client-model-v2';
+  const NUM_IDS = ['gla','gba','startYear','mc','capexGba','land','saleDur','comm','instMonths','dp','markup',
+    'rent','occ0','occStab','ramp','rentFree','letComm','park','opex','mgmt','reserve','idx','disc','cit','ptax','ins','dep'];
+  const SEL_IDS = ['startMonth','saleTenants'];
+  const PRICE_IDS = ['now','m6','m12','done','y1','y3','y5','y10'];
+  let p = clone(DEFAULTS);
+  let M = DEFAULTS.mc;
+  let curveCache = null;
+
+  function clone(o) { return JSON.parse(JSON.stringify(o)); }
+  function num(v, d) { const x = parseFloat(v); return isNaN(x) ? d : x; }
+
+  // ---------- форматирование
+  const nbsp = ' ';
+  const fmtUSD = (v, dec = 0) => { if (v === null || v === undefined || isNaN(v)) return '—'; const neg = v < 0; const s = Math.abs(v).toFixed(dec).replace(/\B(?=(\d{3})+(?!\d))/g, nbsp); return (neg ? '−' : '') + '$' + s; };
+  const fmtPct = (v, dec = 1) => (v === null || v === undefined || isNaN(v)) ? '—' : (v * 100).toFixed(dec).replace('.', ',') + '%';
+  const fmtSigned = (v) => (v > 0 ? '+' : '') + fmtUSD(v);
+  const plural = (n, f) => { n = Math.abs(Math.round(n)); const a = n % 10, b = n % 100; return f[(a === 1 && b !== 11) ? 0 : (a >= 2 && a <= 4 && (b < 10 || b >= 20)) ? 1 : 2]; };
+  const yrs = n => `${n} ${plural(n, ['год', 'года', 'лет'])}`;
+  const mos = n => `${n} ${plural(n, ['месяц', 'месяца', 'месяцев'])}`;
+  function dateOf(m) { const t = (p.startMonth - 1) + m; const y = p.startYear + Math.floor(t / 12); return { y, mi: ((t % 12) + 12) % 12 }; }
+  const dateLabel = m => { const d = dateOf(m); return `${MONTHS[d.mi]} ${d.y}`; };
+  const dateLabelG = m => { const d = dateOf(m); return `${MONTHS_G[d.mi]} ${d.y}`; };
+  function spanLabel(months) { // «6 месяцев» / «1 год 6 месяцев» / «3 года»
+    const y = Math.floor(months / 12), mo = months % 12;
+    if (months === 0) return 'сейчас';
+    if (y === 0) return mos(mo);
+    return mo ? `${yrs(y)} ${mos(mo)}` : yrs(y);
+  }
+  function pbLabel(v) { if (v === null) return 'не окупается'; if (v < 0.5) return 'сразу'; const y = Math.floor(v / 12), mo = Math.round(v - y * 12); return y ? (mo && mo < 12 ? `${yrs(y)} ${mos(mo)}` : (mo === 12 ? yrs(y + 1) : yrs(y))) : mos(Math.max(1, mo)); }
+  function toast(t) { const el = $('toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(() => el.classList.remove('on'), 2200); }
+
+  // ---------- состояние <-> поля ввода
+  function readInputs() {
+    for (const id of NUM_IDS) { const v = parseFloat($(id).value); if (!isNaN(v)) p[id] = v; }
+    for (const id of SEL_IDS) p[id] = $(id).value;
+    p.inclSunk = $('inclSunk').checked;
+    p.startMonth = Math.min(12, Math.max(1, parseInt(p.startMonth, 10) || DEFAULTS.startMonth));
+    p.startYear = Math.round(p.startYear) || DEFAULTS.startYear;
+    p.mc = Math.max(0, Math.round(p.mc)); p.saleDur = Math.max(1, Math.round(p.saleDur)); p.instMonths = Math.max(0, Math.round(p.instMonths));
+    p.prices = Object.assign({}, p.prices);
+    for (const id of PRICE_IDS) { const el = $('price_' + id); if (el) { const v = parseFloat(el.value); if (!isNaN(v)) p.prices[id] = v; } }
+    save();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify({ p, M })); } catch (e) {} }
+  function writeInputs() {
+    for (const id of NUM_IDS) $(id).value = p[id];
+    for (const id of SEL_IDS) $(id).value = p[id];
+    $('inclSunk').checked = !!p.inclSunk;
+    renderPriceTable();
+    $('capexTotal').textContent = fmtUSD(p.capexGba * p.gba);
+    $('rentYear').textContent = fmtUSD(p.rent * p.gla * 12);
+  }
+  function isChanged() {
+    const a = Object.assign({}, p), b = Object.assign({}, DEFAULTS);
+    return JSON.stringify(a, Object.keys(b).sort()) !== JSON.stringify(b, Object.keys(b).sort()) || JSON.stringify(p.prices) !== JSON.stringify(DEFAULTS.prices);
+  }
+  function validate() {
+    const w = [];
+    if (p.gla > p.gba) w.push('GLA больше GBA — арендопригодная площадь не может быть больше общей.');
+    if (p.occ0 > p.occStab) w.push('Заполненность в первый месяц выше стабильной — проверьте раздел «Аренда».');
+    if (p.dp > 100 || p.dp < 0) w.push('Первый взнос должен быть от 0 до 100%.');
+    if (p.instMonths > 0 && p.dp >= 100) w.push('При первом взносе 100% рассрочка не нужна — поставьте срок рассрочки 0.');
+    for (const a of anchors(p)) if (!(Number(p.prices[a.id]) > 0)) w.push(`Не задана цена «${a.label}».`);
+    if (p.disc <= 0) w.push('Ставка дисконтирования 0% — NPV совпадёт с прибылью, сравнение по времени теряет смысл.');
+    $('warnings').innerHTML = w.map(t => `<li>${t}</li>`).join('');
+  }
+
+  // ---------- таблица цен риелтора (строки зависят от срока стройки и даты «сегодня»)
+  let priceRowsKey = '';
+  function renderPriceTable() {
+    const an = anchors(p); const key = an.map(a => a.id).join(',') + '|' + p.mc + '|' + p.startMonth + '|' + p.startYear;
+    const box = $('priceTable');
+    if (key !== priceRowsKey) {
+      box.innerHTML = an.map(a => `<div class="field key"><label>${a.label}<small>${dateLabel(a.m)} · <span id="ptot_${a.id}"></span></small></label><input type="number" id="price_${a.id}" step="10" min="0"></div>`).join('');
+      box.querySelectorAll('input').forEach(el => el.addEventListener('input', () => update(true)));
+      priceRowsKey = key;
+    }
+    for (const a of an) { $('price_' + a.id).value = p.prices[a.id]; $('ptot_' + a.id).textContent = 'за здание ' + fmtUSD((Number(p.prices[a.id]) || 0) * p.gla); }
+  }
+  function autofillPrices() {
+    const done = Number(p.prices.done) || 0, d0 = num($('afDisc').value, 0) / 100, g = num($('afGrowth').value, 0) / 100;
+    for (const a of anchors(p)) {
+      if (a.id === 'done') continue;
+      if (a.m < p.mc) p.prices[a.id] = Math.round(done * (1 - d0 * (p.mc - a.m) / p.mc) / 10) * 10;
+      else p.prices[a.id] = Math.round(done * Math.pow(1 + g, (a.m - p.mc) / 12) / 10) * 10;
+    }
+    renderPriceTable(); update(true); toast('Цены заполнены от цены при вводе');
+  }
+
+  // ---------- ключевые моменты
+  function keyMoments() {
+    const mc = p.mc; const list = [];
+    const add = (m, name) => { if (m >= 0 && m <= mc + 120 && !list.some(x => x.m === m)) list.push({ m, name }); };
+    add(0, mc > 0 ? 'Продать сейчас — предпродажа' : 'Продать сейчас');
+    if (mc > 6) add(6, 'Продать через 6 месяцев — предпродажа');
+    if (mc > 12) add(12, 'Продать через год — предпродажа');
+    if (mc > 0) add(mc, 'Продать при вводе, без аренды');
+    add(mc + 12, 'Сдавать 1 год, потом продать');
+    add(mc + 36, 'Сдавать 3 года, потом продать');
+    add(mc + 60, 'Сдавать 5 лет, потом продать');
+    add(mc + 120, 'Сдавать 10 лет, потом продать');
+    return list;
+  }
+  function momentName(m) {
+    const mc = p.mc;
+    if (m === 0) return mc > 0 ? 'Продать сейчас, до окончания стройки' : 'Продать сейчас';
+    if (m < mc) return `Продать через ${spanLabel(m)}, до окончания стройки`;
+    if (m === mc) return mc > 0 ? 'Достроить и продать при вводе' : 'Продать сейчас';
+    return `Сдавать ${spanLabel(m - mc)}, потом продать`;
+  }
+  function bestOf(arr) { let bestN = arr[0], bestP = arr[0]; for (const a of arr) { if (a.npv > bestN.npv) bestN = a; if (a.profit > bestP.profit) bestP = a; } return { bestN, bestP }; }
+
+  // ---------- отрисовка
+  function renderChips() {
+    const el = $('chips'); el.innerHTML = '';
+    const best = curveCache ? bestOf(curveCache).bestN.m : -1;
+    for (const k of keyMoments()) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip' + (k.m === M ? ' on' : '') + (k.m === best ? ' best' : '');
+      const mc = p.mc;
+      b.textContent = k.m === 0 ? 'Сейчас' : k.m < mc ? `Через ${spanLabel(k.m)}` : k.m === mc ? 'При вводе' : `Аренда ${spanLabel(k.m - mc)}`;
+      b.title = momentName(k.m) + ' — ' + dateLabel(k.m);
+      b.addEventListener('click', () => { M = k.m; $('mSlider').value = M; update(false); });
+      el.appendChild(b);
+    }
+  }
+  function renderTicks() {
+    const mc = p.mc, max = mc + 120; const el = $('ticks'); el.innerHTML = '';
+    const pts = [[0, 'сегодня'], [mc, mc > 0 ? 'ввод' : ''], [mc + 60, '+5 лет аренды'], [max, '+10 лет']];
+    for (const [m, t] of pts) { if (!t) continue; const s = document.createElement('span'); s.textContent = t; s.style.left = (m / max * 100) + '%'; s.style.transform = m === 0 ? 'none' : (m === max ? 'translateX(-100%)' : 'translateX(-50%)'); el.appendChild(s); }
+  }
+  function computeCurve(pp = p) {
+    const max = pp.mc + 120; const arr = [];
+    for (let m = 0; m <= max; m++) { const r = runModel(pp, m); arr.push({ m, profit: r.profit, npv: r.npv }); }
+    if (pp === p) curveCache = arr;
+    return arr;
+  }
+  const narrow = () => window.innerWidth < 700;
+  function renderCurve() {
+    const arr = curveCache || computeCurve(); const svg = $('curve'); const W = narrow() ? 420 : 1200, L = 10, R = 10; const FS = narrow() ? 13 : 12; const PH = narrow() ? 180 : 150, GAP = narrow() ? 24 : 20;
+    svg.setAttribute('viewBox', `0 0 ${W} ${PH * 2 + GAP + 30}`);
+    const max = p.mc + 120; const x = m => L + (W - L - R) * m / max;
+    let s = `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#f7f6f4"/><line x1="0" y1="0" x2="0" y2="6" stroke="#e6e4e0" stroke-width="3"/></pattern></defs>`;
+    const sel = arr[Math.min(M, arr.length - 1)];
+    const best = bestOf(arr).bestN;
+    const panel = (key, T, Hh, color, title) => {
+      let lo = 0, hi = 0; for (const a of arr) { lo = Math.min(lo, a[key]); hi = Math.max(hi, a[key]); }
+      if (hi === lo) hi = lo + 1; const span = hi - lo; lo -= span * 0.08; hi += span * 0.3;
+      const y = v => T + Hh * (1 - (v - lo) / (hi - lo));
+      if (p.mc > 0) s += `<rect x="${x(0)}" y="${T}" width="${x(p.mc) - x(0)}" height="${Hh}" fill="url(#hatch)"/>`;
+      const step = niceStep((hi - lo) / 3);
+      for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) {
+        s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${Math.abs(v) < 1e-6 ? '#0D0D0D' : '#e6e4e0'}" stroke-width="${Math.abs(v) < 1e-6 ? 1.2 : 1}"/>`;
+        s += `<text x="${W - R - 2}" y="${y(v) - 3}" font-size="${FS - 1}" text-anchor="end" fill="#9C9893" font-family="Inter,Arial,sans-serif">${fmtShort(v)}</text>`;
+      }
+      if (p.mc > 0) s += `<line x1="${x(p.mc)}" x2="${x(p.mc)}" y1="${T}" y2="${T + Hh}" stroke="#9C9893" stroke-dasharray="3 3"/>`;
+      s += `<rect x="${L}" y="${T + 2}" width="${title.length * (FS * 0.58) + 10}" height="18" fill="#fff" opacity=".92"/><text x="${L + 5}" y="${T + 15}" font-size="${FS}" fill="${color}" font-family="Inter,Arial,sans-serif" font-weight="600">${title}</text>`;
+      s += `<path d="${arr.map((a, i) => (i ? 'L' : 'M') + x(a.m).toFixed(1) + ' ' + y(a[key]).toFixed(1)).join(' ')}" fill="none" stroke="${color}" stroke-width="2.2" vector-effect="non-scaling-stroke"/>`;
+      if (key === 'npv') s += `<circle cx="${x(best.m)}" cy="${y(best.npv)}" r="5" fill="#fff" stroke="#A91D20" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+      s += `<line x1="${x(M)}" x2="${x(M)}" y1="${T}" y2="${T + Hh}" stroke="#A91D20" stroke-width="1.5" vector-effect="non-scaling-stroke"/>`;
+      s += `<circle cx="${x(M)}" cy="${y(sel[key])}" r="5" fill="${color}" vector-effect="non-scaling-stroke"/>`;
+      const right = x(M) > W * 0.78; const lx = right ? x(M) - 9 : x(M) + 9, anchor = right ? 'end' : 'start';
+      const py = y(sel[key]); const ly = (py < T + 34) ? py + 18 : py - 9;
+      s += `<text x="${lx}" y="${ly}" font-size="${FS}" text-anchor="${anchor}" fill="${color}" font-family="Inter,Arial,sans-serif" font-weight="600">${fmtShort(sel[key])}</text>`;
+    };
+    panel('profit', 8, PH, '#0D0D0D', 'Прибыль за период после налога');
+    panel('npv', 8 + PH + GAP, PH, '#A91D20', 'NPV — прибыль в сегодняшних деньгах');
+    s += `<text x="${x(M) > W * 0.78 ? x(M) - 9 : x(M) + 9}" y="${PH * 2 + GAP + 26}" font-size="${FS - 1}" text-anchor="${x(M) > W * 0.78 ? 'end' : 'start'}" fill="#6E6A66" font-family="Inter,Arial,sans-serif">${dateLabel(M)}</text>`;
+    svg.innerHTML = s;
+  }
+  function niceStep(raw) { const e = Math.pow(10, Math.floor(Math.log10(Math.abs(raw) || 1))); const f = raw / e; const n = f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10; return n * e; }
+  function fmtShort(v) { const a = Math.abs(v); const sgn = v < 0 ? '−' : ''; if (a >= 1e6) return sgn + '$' + (a / 1e6).toFixed(2).replace('.', ',') + ' млн'; if (a >= 1e3) return sgn + '$' + Math.round(a / 1e3) + ' тыс.'; return sgn + '$' + Math.round(a); }
+
+  function renderKpis(r) {
+    const mc = p.mc; const cells = [];
+    cells.push([p.inclSunk ? 'Вложения — уже вложенные и стройка' : 'Вложить в стройку', fmtUSD(-r.invTotal), (p.inclSunk ? `включая уже вложенные ${fmtUSD(p.land)}; ` : '') + (mc > 0 ? `стройку заканчиваете вы — ввод ${dateLabel(mc)}` : 'здание готово')]);
+    cells.push(['Получите от продажи, чистыми', fmtUSD(r.saleNetTotal), `цена ${fmtUSD(r.gross)} минус комиссия и налог`]);
+    let rentSub;
+    if (r.M > mc) {
+      rentSub = `≈ ${fmtUSD(r.preSaleNetMonth)} в месяц перед продажей (заполнено ${fmtPct(r.preSaleOcc, 0)})`;
+      rentSub += p.saleTenants === 'vacant' ? '; к продаже лоты освобождаются' : '; арендаторы остаются в непроданных лотах';
+    } else rentSub = 'аренды нет — лоты продаются пустыми';
+    cells.push(['Получите от аренды, чистыми', r.M > mc ? fmtUSD(r.rentNetTotal) : '—', rentSub]);
+    cells.push(['Прибыль за период, после налога', fmtUSD(r.profit), p.inclSunk ? 'всё полученное минус все вложения, включая прошлые' : 'всё полученное минус вложения от сегодня']);
+    cells.push(['NPV — прибыль в сегодняшних деньгах', fmtUSD(r.npv), `по ставке ${fmtPct(p.disc / 100, 0)} годовых; чем выше, тем лучше`]);
+    cells.push(['Доходность на вложения (IRR)', r.irr === null ? '—' : fmtPct(r.irr), r.irr === null ? (r.invTotal === 0 ? 'вложений нет' : 'не определена') : (r.irr >= p.disc / 100 ? `выше ставки дисконтирования ${fmtPct(p.disc / 100, 0)}` : `ниже ставки дисконтирования ${fmtPct(p.disc / 100, 0)}`)]);
+    cells.push(['Окупаемость вложений от сегодня', r.invTotal === 0 ? '—' : pbLabel(r.pb), r.invTotal === 0 ? '' : r.pb === null ? 'полученные деньги не покрывают вложения' : r.pb > 0.5 ? dateLabel(Math.round(r.pb)) : 'взносы покупателя покрывают стройку с самого начала']);
+    cells.push(['Окупаемость от ввода в эксплуатацию', r.pbOps === null ? '—' : pbLabel(r.pbOps), r.M >= mc && mc > 0 ? `ввод — ${dateLabel(mc)}` : mc > 0 ? 'сделка до ввода — считайте от сегодня' : 'здание готово — считайте от сегодня']);
+    $('kpis').innerHTML = cells.map(([l, v, s]) => `<div class="kpi"><div class="l">${l}</div><div class="v${(v.startsWith('−')) ? ' neg' : ''}">${v}</div><div class="s">${s}</div></div>`).join('');
+  }
+  function renderVerdict(r) {
+    const { bestN, bestP } = bestOf(curveCache);
+    const mc = p.mc;
+    let html = `<p><b>Лучший момент по NPV — ${momentName(bestN.m).toLowerCase()}</b> (${dateLabel(bestN.m)}): NPV ${fmtUSD(bestN.npv)}, прибыль ${fmtUSD(bestN.profit)}. `;
+    if (bestP.m !== bestN.m) html += `Наибольшая прибыль без учёта стоимости денег — ${momentName(bestP.m).toLowerCase()} (${fmtUSD(bestP.profit)}), но её нужно ждать ${spanLabel(bestP.m)}, и в сегодняшних деньгах она стоит меньше. `;
+    if (r.M !== bestN.m) html += `Выбранный момент уступает лучшему на ${fmtUSD(bestN.npv - r.npv)} NPV. `;
+    if (r.M < mc) html += `Предпродажа: цена на ${fmtPct(Math.max(0, r.unfDisc), 0)} ниже цены при вводе, зато деньги начинают поступать на ${spanLabel(mc - r.M)} раньше; стройку вы заканчиваете сами и передаёте здание при вводе (${dateLabel(mc)}).`;
+    html += '</p>';
+    // почему так: доходность аренды + рост цены против ставки дисконтирования
+    const y = stabilisedYield(p), g = priceGrowth(p), d = p.disc / 100;
+    if (y !== null && g !== null) {
+      const tot = y + g;
+      html += `<p class="why"><b>Почему так.</b> Готовое здание в аренде приносит примерно ${fmtPct(y, 1)} в год чистыми к своей цене, а цена по графику риелтора растёт примерно на ${fmtPct(g, 1)} в год — вместе около ${fmtPct(tot, 1)}. Деньги вы оцениваете по ${fmtPct(d, 0)} годовых. `;
+      html += tot < d
+        ? `Ожидание приносит меньше, чем стоят деньги, поэтому каждый год аренды снижает NPV — выгоднее продавать раньше.`
+        : `Ожидание приносит больше, чем стоят деньги, поэтому держать здание в аренде выгодно — NPV растёт со временем.`;
+      html += ` Это грубая оценка: она не учитывает налог при продаже, заполнение здания и рассрочку, поэтому точный ответ — в таблице ниже.</p>`;
+    }
+    $('verdict').innerHTML = html;
+  }
+  function renderKeyTable() {
+    const rows = keyMoments().map(k => Object.assign({ name: k.name }, runModel(p, k.m)));
+    const { bestN } = bestOf(rows);
+    let h = '<thead><tr><th>Момент продажи</th><th>Вложить</th><th>От продажи, чистыми</th><th>От аренды, чистыми</th><th>Прибыль</th><th>NPV</th><th>IRR</th><th>Окупаемость от сегодня</th></tr></thead><tbody>';
+    for (const r of rows) {
+      h += `<tr class="click${r.M === M ? ' sel' : ''}" data-m="${r.M}"><td>${r.name}${r === bestN ? '<span class="best">лучший NPV</span>' : ''}<span class="date">${dateLabel(r.M)}</span></td>`;
+      h += `<td>${fmtUSD(-r.invTotal)}</td><td>${fmtUSD(r.saleNetTotal)}</td><td>${r.M > p.mc ? fmtUSD(r.rentNetTotal) : '—'}</td><td class="${r.profit < 0 ? 'neg' : ''}"><b>${fmtUSD(r.profit)}</b></td><td class="${r.npv < 0 ? 'neg' : ''}"><b>${fmtUSD(r.npv)}</b></td><td>${r.irr === null ? '—' : fmtPct(r.irr)}</td><td>${r.invTotal === 0 ? '—' : pbLabel(r.pb)}</td></tr>`;
+    }
+    h += '</tbody>';
+    const t = $('keyTable'); t.innerHTML = h;
+    t.querySelectorAll('tr.click').forEach(tr => tr.addEventListener('click', () => { M = parseInt(tr.dataset.m, 10); $('mSlider').value = M; update(false); }));
+    return rows;
+  }
+  function renderDetails(r) {
+    const mc = p.mc; const g = [];
+    $('detailTitle').textContent = `${momentName(r.M)} — ${dateLabel(r.M)}`;
+    g.push(['h', 'Продажа']);
+    g.push([r.M < mc ? 'Цена предпродажи по графику риелтора, $/м² GLA' : 'Цена здания по графику риелтора, $/м² GLA', fmtUSD(r.priceM2)]);
+    g.push(['Цена здания на этот момент' + (p.instMonths > 0 && p.markup > 0 ? ' (с надбавкой за рассрочку)' : ''), fmtUSD(r.gross)]);
+    if (mc > 0 && r.M !== mc) g.push([r.M < mc ? 'Ниже цены при вводе на' : 'К цене при вводе', (r.M < mc ? fmtPct(r.unfDisc, 0) : (r.unfDisc <= 0 ? '+' : '−') + fmtPct(Math.abs(r.unfDisc), 0))]);
+    if (r.M < mc) g.push(['Передача здания покупателю', `при вводе — ${dateLabel(mc)}; стройку заканчиваете вы`]);
+    g.push(['Условия оплаты', p.instMonths > 0 ? `${p.dp}% при сделке, остаток за ${mos(p.instMonths)}${p.markup > 0 ? `, надбавка ${p.markup}%` : ''}` : '100% при сделке']);
+    g.push(['Срок продажи всех лотов', mos(p.saleDur)]);
+    g.push(['Комиссия риелтора', fmtUSD(-r.commTotal)]);
+    g.push(['Балансовая стоимость на момент продажи', fmtUSD(r.bookAtSale)]);
+    g.push(['Прибыль от продажи для налога', fmtUSD(r.gainTotal)]);
+    g.push([`Налог на прибыль от продажи (${fmtPct(p.cit / 100, 0)})`, fmtUSD(-r.taxTotal)]);
+    g.push(['Чистыми от продажи', fmtUSD(r.saleNetTotal)]);
+    if (r.M > mc) {
+      g.push(['h', 'Аренда']);
+      g.push(['Аренда до продажи', `${spanLabel(r.M - mc)}, с ${dateLabelG(mc + 1)}`]);
+      g.push(['Непроданные лоты во время продажи', p.saleTenants === 'vacant' ? 'освобождаются, аренда прекращается' : (p.saleDur > 1 ? `арендаторы остаются, аренда ещё до ${mos(p.saleDur - 1)}` : 'арендаторы остаются')]);
+      g.push(['Валовой доход от аренды за период', fmtUSD(r.rentGrossTotal)]);
+      g.push(['Расходы собственника за период', fmtUSD(-r.rentOpexTotal)]);
+      g.push(['Налог на прибыль от аренды за период', fmtUSD(-r.rentTaxTotal)]);
+      g.push(['Чистыми от аренды', fmtUSD(r.rentNetTotal)]);
+      g.push([`Чистый доход в месяц перед продажей (заполнено ${fmtPct(r.preSaleOcc, 0)})`, fmtUSD(r.preSaleNetMonth)]);
+      g.push(['Чистый доход в месяц на стабильной заполняемости', r.stabNetMonth === null ? 'не достигается до продажи' : fmtUSD(r.stabNetMonth)]);
+      if (r.stabNoiMonth !== null && r.gross > 0) g.push(['Доход от аренды к цене продажи (до налога, в год)', fmtPct(r.stabNoiMonth * 12 / r.gross, 1)]);
+    }
+    g.push(['h', 'Итог']);
+    if (p.inclSunk) g.push(['Уже вложено до сегодня (земля и затраты)', fmtUSD(-p.land)]);
+    g.push([p.inclSunk ? 'Вложения в стройку от сегодня до ввода' : 'Вложения в стройку до ввода', fmtUSD(r.invTotal + (p.inclSunk ? p.land : 0))]);
+    if (p.inclSunk) g.push(['Всего вложено в проект', fmtUSD(r.invTotal)]);
+    g.push(['Прибыль после налога', fmtUSD(r.profit)]);
+    g.push([`NPV по ставке ${fmtPct(p.disc / 100, 0)}`, fmtUSD(r.npv)]);
+    g.push(['IRR', r.irr === null ? '—' : fmtPct(r.irr)]);
+    g.push(['Последнее поступление денег', dateLabel(lastCashMonth(r))]);
+    $('detailGrid').innerHTML = g.map(([a, b]) => a === 'h' ? `<div class="h"><span>${b}</span></div>` : `<div><span>${a}</span><span>${b}</span></div>`).join('');
+  }
+  function lastCashMonth(r) { let last = 0; for (let m = 0; m < r.cf.length; m++) if (Math.abs(r.cf[m]) > 1e-6) last = m; return last; }
+  function renderCum(r) {
+    const svg = $('cum'); const W = narrow() ? 420 : 900, Hh = narrow() ? 300 : 220, L = 10, R = 10, T = 18, B = 26; const FS = narrow() ? 12 : 11;
+    svg.setAttribute('viewBox', `0 0 ${W} ${Hh}`);
+    const last = Math.max(12, lastCashMonth(r)); const cum = []; let c = 0; for (let m = 0; m <= last; m++) { c += r.cf[m]; cum.push(c); }
+    let lo = Math.min(0, ...cum), hi = Math.max(0, ...cum); if (hi === lo) hi = lo + 1; const pad = (hi - lo) * .08; lo -= pad; hi += pad;
+    const x = m => L + (W - L - R) * m / last, y = v => T + (Hh - T - B) * (1 - (v - lo) / (hi - lo));
+    let s = `<defs><pattern id="hatch2" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#f7f6f4"/><line x1="0" y1="0" x2="0" y2="6" stroke="#e6e4e0" stroke-width="3"/></pattern></defs>`;
+    if (p.mc > 0) s += `<rect x="${x(0)}" y="${T}" width="${x(Math.min(p.mc, last)) - x(0)}" height="${Hh - T - B}" fill="url(#hatch2)"/>`;
+    const step = niceStep((hi - lo) / 4);
+    for (let v = Math.ceil(lo / step) * step; v <= hi; v += step) { s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="${Math.abs(v) < 1e-6 ? '#0D0D0D' : '#e6e4e0'}"/><text x="${L + 2}" y="${y(v) - 3}" font-size="${FS}" fill="#9C9893" font-family="Inter,Arial,sans-serif">${fmtShort(v)}</text>`; }
+    const area = 'M' + x(0) + ' ' + y(0) + ' ' + cum.map((v, m) => 'L' + x(m).toFixed(1) + ' ' + y(v).toFixed(1)).join(' ') + ' L' + x(last) + ' ' + y(0) + ' Z';
+    s += `<path d="${area}" fill="rgba(169,29,32,.08)"/>`;
+    s += `<path d="M${cum.map((v, m) => x(m).toFixed(1) + ' ' + y(v).toFixed(1)).join(' L')}" fill="none" stroke="#A91D20" stroke-width="2.2" vector-effect="non-scaling-stroke"/>`;
+    s += `<line x1="${x(r.M)}" x2="${x(r.M)}" y1="${T}" y2="${Hh - B}" stroke="#0D0D0D" stroke-dasharray="3 3"/><text x="${x(r.M) + 5}" y="${T + 12}" font-size="${FS}" fill="#0D0D0D" font-family="Inter,Arial,sans-serif">продажа</text>`;
+    if (r.pb !== null && r.pb > 0) s += `<circle cx="${x(r.pb)}" cy="${y(0)}" r="5" fill="#fff" stroke="#0D0D0D" stroke-width="2" vector-effect="non-scaling-stroke"/><text x="${x(r.pb) + 8}" y="${y(0) + 15}" font-size="${FS}" fill="#0D0D0D" font-family="Inter,Arial,sans-serif">окупаемость</text>`;
+    for (let m = 0; m <= last; m += 12) s += `<text x="${x(m)}" y="${Hh - 8}" font-size="${FS}" fill="#9C9893" text-anchor="${m === 0 ? 'start' : 'middle'}" font-family="Inter,Arial,sans-serif">${dateOf(m).y}</text>`;
+    svg.innerHTML = s;
+  }
+  function renderYearTable(r) {
+    const last = lastCashMonth(r); const nY = Math.floor(last / 12) + 1;
+    let h = `<thead><tr><th>Период</th><th>${p.inclSunk ? 'Вложения (прошлые + стройка)' : 'Вложения в стройку'}</th><th>От продажи, чистыми</th><th>От аренды, чистыми</th><th>Итого за период</th><th>Нарастающим итогом</th></tr></thead><tbody>`;
+    let cum = 0, tI = 0, tS = 0, tR = 0;
+    for (let yy = 0; yy < nY; yy++) {
+      let i = 0, sN = 0, rN = 0; const m0 = yy * 12, m1 = Math.min(last, m0 + 11);
+      for (let m = m0; m <= m1; m++) { i += r.inv[m] || 0; sN += r.saleNet[m] || 0; rN += r.rentNet[m] || 0; }
+      const tot = i + sN + rN; cum += tot; tI += i; tS += sN; tR += rN;
+      const lab = `${dateLabel(m0)} — ${dateLabel(m1)}`;
+      h += `<tr><td>${yy + 1}-й год<span class="date">${lab}</span></td><td class="${i < 0 ? 'neg' : ''}">${i ? fmtUSD(i) : '—'}</td><td>${sN ? fmtUSD(sN) : '—'}</td><td>${rN ? fmtUSD(rN) : '—'}</td><td class="${tot < 0 ? 'neg' : ''}"><b>${fmtUSD(tot)}</b></td><td class="${cum < 0 ? 'neg' : ''}">${fmtUSD(cum)}</td></tr>`;
+    }
+    h += `</tbody><tfoot><tr><td>Итого</td><td class="${tI < 0 ? 'neg' : ''}">${fmtUSD(tI)}</td><td>${fmtUSD(tS)}</td><td>${tR ? fmtUSD(tR) : '—'}</td><td class="${cum < 0 ? 'neg' : ''}">${fmtUSD(cum)}</td><td></td></tr></tfoot>`;
+    $('yearTable').innerHTML = h + (p.inclSunk ? `<caption>В 1-й год включены уже вложенные ${fmtUSD(p.land)} (земля и затраты до сегодняшнего дня).</caption>` : `<caption>Уже вложенные ${fmtUSD(p.land)} (земля и затраты до сегодня) здесь не показаны: это прошлые деньги, одинаковые для всех моментов; они учтены в балансовой стоимости для налога. Включить их в расчёт можно переключателем в разделе «Объект и стройка».</caption>`);
+  }
+
+  // ---------- «Что если»: одно допущение меняется, остальные как есть
+  function renderSens(r) {
+    const base = bestOf(curveCache).bestN;
+    const scale = (obj, k) => { const o = clone(obj); for (const id of PRICE_IDS) o.prices[id] = Math.round(o.prices[id] * k); return o; };
+    const cases = [
+      ['Как задано', p, M],
+      ['Цены продажи −10%', scale(p, 0.9), M],
+      ['Цены продажи +10%', scale(p, 1.1), M],
+      ['Ставка аренды −10%', Object.assign(clone(p), { rent: p.rent * 0.9 }), M],
+      ['Ставка аренды +10%', Object.assign(clone(p), { rent: p.rent * 1.1 }), M],
+      ['Стройка дороже на 10%', Object.assign(clone(p), { capexGba: p.capexGba * 1.1 }), M],
+      ['Стройка дольше на 6 месяцев', Object.assign(clone(p), { mc: p.mc + 6 }), M >= p.mc ? M + 6 : M],
+      ['Заполняемость медленнее (срок ×1,5)', Object.assign(clone(p), { ramp: Math.round(p.ramp * 1.5) }), M],
+      [`Ставка дисконтирования ${(p.disc - 3).toFixed(0)}%`, Object.assign(clone(p), { disc: Math.max(0, p.disc - 3) }), M],
+      [`Ставка дисконтирования ${(p.disc + 3).toFixed(0)}%`, Object.assign(clone(p), { disc: p.disc + 3 }), M],
+    ];
+    let h = '<thead><tr><th>Если…</th><th>Лучший момент по NPV</th><th>NPV лучшего</th><th>NPV выбранного момента</th><th>Прибыль выбранного</th></tr></thead><tbody>';
+    for (const [name, pp, mm] of cases) {
+      const arr = pp === p ? curveCache : computeCurve(pp);
+      const b = bestOf(arr).bestN; const sel = runModel(pp, mm);
+      const nm = momentNameFor(pp, b.m); const changed = b.m !== base.m && pp !== p;
+      h += `<tr${pp === p ? ' class="sel"' : ''}><td>${name}</td><td style="text-align:left;white-space:normal">${nm}${changed ? '<span class="best" style="background:#0D0D0D">меняется</span>' : ''}</td><td class="${b.npv < 0 ? 'neg' : ''}"><b>${fmtUSD(b.npv)}</b></td><td class="${sel.npv < 0 ? 'neg' : ''}">${fmtUSD(sel.npv)}${pp === p ? '' : ` <span class="date" style="display:inline">(${fmtSigned(sel.npv - r.npv)})</span>`}</td><td class="${sel.profit < 0 ? 'neg' : ''}">${fmtUSD(sel.profit)}</td></tr>`;
+    }
+    $('sensTable').innerHTML = h + '</tbody>';
+  }
+  function momentNameFor(pp, m) {
+    const mc = pp.mc;
+    if (m === 0) return mc > 0 ? 'сейчас, предпродажа' : 'сейчас';
+    if (m < mc) return `через ${spanLabel(m)}, предпродажа`;
+    if (m === mc) return 'при вводе';
+    return `сдавать ${spanLabel(m - mc)}, потом продать`;
+  }
+
+  // ---------- текстовый итог для письма или отчёта
+  function summaryText(r, rows) {
+    const { bestN } = bestOf(curveCache);
+    const L = [];
+    L.push(`Тахтапул, 31 — продать или сдавать. Расчёт CASE, сегодня — ${dateLabel(0)}${p.mc > 0 ? `, ввод — ${dateLabel(p.mc)}` : ''}.`);
+    L.push(`Все суммы USD без НДС, чистыми после комиссии и налога.`);
+    L.push('');
+    L.push(`Выбранный момент: ${momentName(r.M)} (${dateLabel(r.M)})`);
+    L.push(`  Вложить в стройку: ${fmtUSD(-r.invTotal)}`);
+    L.push(`  От продажи, чистыми: ${fmtUSD(r.saleNetTotal)} (цена ${fmtUSD(r.gross)}, ${fmtUSD(r.priceM2)}/м² GLA)`);
+    if (r.M > p.mc) L.push(`  От аренды, чистыми: ${fmtUSD(r.rentNetTotal)} за ${spanLabel(r.M - p.mc)}`);
+    L.push(`  Прибыль после налога: ${fmtUSD(r.profit)}`);
+    L.push(`  NPV по ставке ${fmtPct(p.disc / 100, 0)}: ${fmtUSD(r.npv)}`);
+    L.push(`  IRR: ${r.irr === null ? '—' : fmtPct(r.irr)}; окупаемость от сегодня: ${r.invTotal === 0 ? '—' : pbLabel(r.pb)}`);
+    L.push('');
+    L.push(`Лучший момент по NPV: ${momentName(bestN.m)} (${dateLabel(bestN.m)}) — NPV ${fmtUSD(bestN.npv)}, прибыль ${fmtUSD(bestN.profit)}.`);
+    L.push('');
+    L.push('Ключевые моменты: момент | вложить | от продажи | от аренды | прибыль | NPV | IRR');
+    for (const k of rows) L.push(`  ${k.name} (${dateLabel(k.M)}) | ${fmtUSD(-k.invTotal)} | ${fmtUSD(k.saleNetTotal)} | ${k.M > p.mc ? fmtUSD(k.rentNetTotal) : '—'} | ${fmtUSD(k.profit)} | ${fmtUSD(k.npv)} | ${k.irr === null ? '—' : fmtPct(k.irr)}`);
+    L.push('');
+    L.push('Основные допущения:');
+    L.push(`  GLA ${p.gla} м², GBA ${p.gba} м²; осталось строить ${mos(p.mc)}, вложить ${fmtUSD(p.capexGba * p.gba)} (${fmtUSD(p.capexGba)}/м² GBA); земля и уже вложено ${fmtUSD(p.land)}${p.inclSunk ? ' (учтены как инвестиция)' : ' (только для налога)'}.`);
+    L.push(`  Цены риелтора, $/м² GLA: ${anchors(p).map(a => `${a.label.toLowerCase()} — ${p.prices[a.id]}`).join('; ')}.`);
+    L.push(`  Продажа: срок ${mos(p.saleDur)}, комиссия ${p.comm}%, рассрочка ${p.instMonths > 0 ? `${mos(p.instMonths)}, взнос ${p.dp}%, надбавка ${p.markup}%` : 'нет'}; непроданные лоты — ${p.saleTenants === 'vacant' ? 'освобождаются' : 'арендаторы остаются'}.`);
+    L.push(`  Аренда: ${fmtUSD(p.rent, 2)}/м² GLA в месяц, заполнение ${p.occ0}% → ${p.occStab}% за ${mos(p.ramp)}, каникулы ${p.rentFree} мес, комиссия за сдачу ${p.letComm}% годовой аренды, паркинг ${fmtUSD(p.park)}/мес, расходы ${fmtUSD(p.opex, 2)}/м² GBA в мес, управление ${p.mgmt}%, резерв ${p.reserve}%, индексация ${p.idx}%/год.`);
+    L.push(`  Ставки: дисконтирование ${p.disc}%, налог на прибыль ${p.cit}%, налог на имущество ${p.ptax}%, страхование ${p.ins}%, амортизация ${p.dep}%.`);
+    L.push('');
+    L.push('Подготовлено CASE Real Estate Advisory. Прогнозные показатели, не являются оценкой рыночной стоимости.');
+    return L.join('\n');
+  }
+  let lastRows = [], lastR = null;
+  function copySummary() {
+    const t = summaryText(lastR, lastRows);
+    const done = () => toast('Итог скопирован — вставьте в письмо или отчёт');
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(done, () => fallbackCopy(t, done));
+    else fallbackCopy(t, done);
+  }
+  function fallbackCopy(t, done) { const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { toast('Не удалось скопировать'); } document.body.removeChild(ta); }
+
+  // ---------- сценарий: сохранить в файл / загрузить из файла
+  function exportScenario() {
+    const data = { file: 'taxtapul31-scenario', version: 2, savedAt: new Date().toISOString(), p, M };
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = `Taxtapul31_scenario_${dateOf(0).y}-${String(dateOf(0).mi + 1).padStart(2, '0')}.json`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast('Сценарий сохранён в файл');
+  }
+  function importScenario(file) {
+    const rd = new FileReader();
+    rd.onload = () => {
+      try {
+        const d = JSON.parse(rd.result); const src = d && d.p ? d.p : d;
+        if (!src || typeof src !== 'object' || !src.prices) throw new Error('bad');
+        p = Object.assign(clone(DEFAULTS), src, { prices: Object.assign({}, DEFAULTS.prices, src.prices) });
+        M = Number.isFinite(d.M) ? d.M : p.mc;
+        priceRowsKey = ''; writeInputs(); update(true); toast('Сценарий загружен');
+      } catch (e) { toast('Файл не похож на сценарий этого расчёта'); }
+    };
+    rd.readAsText(file);
+  }
+
+  function update(recompute = true) {
+    readInputs(); validate();
+    const max = p.mc + 120; const sl = $('mSlider'); sl.max = max; if (!Number.isFinite(M) || M > max) M = Math.min(max, p.mc); if (M < 0) M = 0; sl.value = M;
+    $('todayLabel').textContent = `Сегодня — ${dateLabel(0)}` + (p.mc > 0 ? `. Ввод здания — ${dateLabel(p.mc)}` : '. Здание готово');
+    renderPriceTable();
+    $('capexTotal').textContent = fmtUSD(p.capexGba * p.gba); $('rentYear').textContent = fmtUSD(p.rent * p.gla * 12);
+    $('taxLine').textContent = `Налог на прибыль ${fmtPct(p.cit / 100, 1)} считается с прибыли от аренды (доход минус расходы минус амортизация; убытки первых месяцев переносятся и уменьшают будущий налог) и с прибыли от продажи (цена минус комиссия минус балансовая стоимость), при рассрочке — по мере поступления денег. Отрицательного налога нет.`;
+    $('badgeChanged').hidden = !isChanged();
+    if (recompute || !curveCache) computeCurve();
+    const r = runModel(p, M); lastR = r;
+    $('momentTitle').innerHTML = `${momentName(M)}<span class="sub">${M === 0 ? 'сделка сегодня' : 'сделка — ' + dateLabel(M)}${M > p.mc ? `; аренда с ${dateLabelG(p.mc + 1)}` : ''}</span>`;
+    renderChips(); renderTicks(); renderCurve(); renderKpis(r); renderVerdict(r); lastRows = renderKeyTable(); renderDetails(r); renderCum(r); renderYearTable(r); renderSens(r);
+    save();
+  }
+
+  // ---------- запуск
+  (function init() {
+    const sm = $('startMonth'); MONTHS.forEach((n, i) => { const o = document.createElement('option'); o.value = i + 1; o.textContent = n; sm.appendChild(o); });
+    try { const saved = JSON.parse(localStorage.getItem(KEY) || 'null'); if (saved && saved.p && saved.p.prices) { p = Object.assign(clone(DEFAULTS), saved.p, { prices: Object.assign({}, DEFAULTS.prices, saved.p.prices) }); M = Number.isFinite(saved.M) ? saved.M : p.mc; } } catch (e) {}
+    writeInputs();
+    for (const id of NUM_IDS.concat(SEL_IDS)) $(id).addEventListener('input', () => update(true));
+    $('inclSunk').addEventListener('change', () => update(true));
+    $('mSlider').addEventListener('input', () => { M = parseInt($('mSlider').value, 10); update(false); });
+    $('curve').addEventListener('click', ev => { const rect = ev.currentTarget.getBoundingClientRect(); const fx = (ev.clientX - rect.left) / rect.width; const W = narrow() ? 420 : 1200, L = 10, R = 10; const mm = Math.round(((fx * W) - L) / (W - L - R) * (p.mc + 120)); M = Math.max(0, Math.min(p.mc + 120, mm)); $('mSlider').value = M; update(false); });
+    $('btnAutofill').addEventListener('click', autofillPrices);
+    $('btnReset').addEventListener('click', () => { p = clone(DEFAULTS); M = DEFAULTS.mc; priceRowsKey = ''; writeInputs(); update(true); toast('Возвращены базовые значения'); });
+    $('btnPrint').addEventListener('click', () => window.print());
+    $('btnCopy').addEventListener('click', copySummary);
+    $('btnExport').addEventListener('click', exportScenario);
+    $('btnImport').addEventListener('click', () => $('fileImport').click());
+    $('fileImport').addEventListener('change', ev => { const f = ev.target.files && ev.target.files[0]; if (f) importScenario(f); ev.target.value = ''; });
+    let rt; window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => update(false), 150); });
+    update(true);
+  })();
+})();
+</script>
+</body>
+</html>
