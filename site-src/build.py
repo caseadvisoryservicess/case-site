@@ -1136,9 +1136,23 @@ def page_case(lang, case):
     ]
     block = "".join("""<div class="case-row reveal"><div class="case-row__k">%s</div>
 <div class="case-row__v">%s</div></div>""" % (esc(k), v) for k, v in rows)
-    out.append('<section class="section"><div class="wrap"><div class="case-block">%s</div>'
-               '<p class="mt-lg"><a class="arrow-link" href="%s">%s</a></p></div></section>'
-               % (block, path_for(lang, "projects"), esc(L["ui"]["back_to_projects"])))
+    idx = facts.CASE_SLUGS.index(case["slug"])
+    prev_c = facts.CASES[(idx - 1) % len(facts.CASES)]
+    next_c = facts.CASES[(idx + 1) % len(facts.CASES)]
+    nav_cases = """<nav class="casenav" aria-label="%(label)s">
+<a class="casenav__side" href="%(prev)s"><span class="casenav__k">%(plabel)s</span><b>%(pname)s</b></a>
+<a class="casenav__mid" href="%(all)s">%(alllabel)s</a>
+<a class="casenav__side casenav__side--next" href="%(next)s"><span class="casenav__k">%(nlabel)s</span><b>%(nname)s</b></a>
+</nav>""" % {
+        "label": esc(L["projects"]["h1"]),
+        "prev": case_path(lang, prev_c["slug"]), "plabel": esc(L["ui"]["prev_case"]),
+        "pname": esc(L["cases"][prev_c["slug"]]["name"]),
+        "next": case_path(lang, next_c["slug"]), "nlabel": esc(L["ui"]["next_case"]),
+        "nname": esc(L["cases"][next_c["slug"]]["name"]),
+        "all": path_for(lang, "projects"), "alllabel": esc(L["ui"]["back_to_projects"]),
+    }
+    out.append('<section class="section"><div class="wrap"><div class="case-block">%s</div>%s</div></section>'
+               % (block, nav_cases))
     out.append(cta_strip(lang))
     out.append("</main>")
     out.append(foot(lang))
@@ -1319,6 +1333,45 @@ def page_legal(lang, key):
     return "".join(out)
 
 
+def page_404():
+    """Одна страница на весь сайт, сразу на трёх языках.
+
+    Гадать, на каком языке пришёл человек по битой ссылке, бессмысленно,
+    поэтому предлагаем все три входа."""
+    lang = facts.DEFAULT_LANG
+    L = LANGS[lang]
+    title = "404"
+    out = [head(lang, "home", "404: " + L["ui"]["nf_title"], L["ui"]["nf_lead"],
+                canonical_path="/404.html")]
+    out.append(nav(lang, "home"))
+    out.append('<main id="main">')
+    blocks = []
+    for code in facts.LANGS:
+        M = LANGS[code]
+        links = "".join(
+            '<li><a class="link" href="%s">%s</a></li>' % (path_for(code, k), esc(v))
+            for k, v in M["nav"][:4])
+        blocks.append("""<div class="nf__col">
+<p class="mono-label">%(label)s</p>
+<h2>%(t)s</h2>
+<p class="small muted">%(l)s</p>
+<p class="mt-md"><a class="btn btn--ghost" href="%(home)s">%(cta)s<i class="btn__arrow"></i></a></p>
+<ul class="nf__links mt-md">%(links)s</ul>
+</div>""" % {
+            "label": esc(M["name"]), "t": esc(M["ui"]["nf_title"]),
+            "l": esc(M["ui"]["nf_lead"]), "home": path_for(code, "home"),
+            "cta": esc(M["ui"]["nf_cta"]), "links": links,
+        })
+    out.append("""<section class="section"><div class="wrap">
+<p class="num nf__code" aria-hidden="true">404</p>
+<h1 class="sr">404</h1>
+<div class="nf">%s</div>
+</div></section>""" % "".join(blocks))
+    out.append("</main>")
+    out.append(foot(lang))
+    return "".join(out)
+
+
 # ----------------------------------------------------------------- служебные файлы
 def build_robots():
     allowed = ["OAI-SearchBot", "ChatGPT-User", "Claude-SearchBot", "Claude-User",
@@ -1481,6 +1534,8 @@ def build_redirects():
     ht = ["# Сгенерировано site-src/build.py. Правки вносите в facts.REDIRECT_MAP.",
           "RewriteEngine On",
           "",
+          "ErrorDocument 404 /404.html",
+          "",
           "# CASE OS и админка остаются на своём хосте, их не трогаем.",
           "RewriteRule ^os/ - [L]",
           "RewriteRule ^admin/ - [L]",
@@ -1598,6 +1653,8 @@ def main():
         files.append(write(path_for(lang, "conflicts"), page_legal(lang, "conflicts")))
         for c in facts.CASES:
             files.append(write(case_path(lang, c["slug"]), page_case(lang, c)))
+
+    files.append(write("/404.html", page_404()))
 
     build_robots()
     build_sitemap()

@@ -1,6 +1,8 @@
 # Сгенерировано site-src/build.py. Правки вносите в facts.REDIRECT_MAP.
 RewriteEngine On
 
+ErrorDocument 404 /404.html
+
 # CASE OS и админка остаются на своём хосте, их не трогаем.
 RewriteRule ^os/ - [L]
 RewriteRule ^admin/ - [L]

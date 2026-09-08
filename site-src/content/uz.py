@@ -32,6 +32,11 @@ L = {
         "shown": "Koʻrsatilgan",
         "of": "dan",
         "projects_word": "loyiha",
+        "prev_case": "Oldingi keys",
+        "next_case": "Keyingi keys",
+        "nf_title": "Bunday sahifa yoʻq",
+        "nf_lead": "Manzil eskirgan yoki xato yozilgan. Saytning eski manzillari yangilariga oʻtkazilgan, bu esa xaritaga tushmagan.",
+        "nf_cta": "Bosh sahifaga",
     },
 
     "nav": [

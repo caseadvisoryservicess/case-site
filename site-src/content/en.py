@@ -31,6 +31,11 @@ L = {
         "shown": "Showing",
         "of": "of",
         "projects_word": "projects",
+        "prev_case": "Previous case",
+        "next_case": "Next case",
+        "nf_title": "This page does not exist",
+        "nf_lead": "The address is out of date or mistyped. Old addresses were redirected to new ones; this one is not on the map.",
+        "nf_cta": "Go to the homepage",
     },
 
     "nav": [
