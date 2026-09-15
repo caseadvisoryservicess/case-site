@@ -84,7 +84,7 @@
     {v:'market_data',g:'data',icon:'▥',ru:'Рыночные данные',uz:'Bozor ma’lumotlari',en:'Market data',nav:true,future:true},
     {v:'macro_data',g:'data',icon:'◫',ru:'Макроэкономика',uz:'Makroiqtisodiyot',en:'Macroeconomics',nav:true,future:true},
     {v:'bench',g:'data',icon:'◈',ru:'Бенчмаркинг',uz:'Benchmarking',en:'Benchmarking',nav:true},
-    {v:'data_quality',g:'data',icon:'✓',ru:'Качество и источники данных',uz:'Ma’lumot sifati va manbalar',en:'Data quality and sources',nav:true,future:true},
+    {v:'data_quality',g:'data',icon:'✓',ru:'Качество и источники данных',uz:'Ma’lumot sifati va manbalar',en:'Data quality and sources',nav:true}, /* v4.71.0: раздел стал настоящим (происхождение чисел), флаг future снят */
     {v:'data_import_export',g:'data',icon:'⇅',ru:'Импорт и экспорт данных',uz:'Ma’lumot import va eksporti',en:'Data import and export',nav:true,future:true},
 
     {v:'product_intelligence',g:'products',icon:'◎',ru:'CASE Intelligence',uz:'CASE Intelligence',en:'CASE Intelligence',nav:true,future:true},
@@ -343,4 +343,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.64.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.71.0';

@@ -209,12 +209,14 @@ function asaas_workspace_hard_allowed(array $u, string $view): bool {
   return true;
 }
 function asaas_future_module_ids(): array {
+  // v4.71.0: data_quality снят из будущих - раздел стал настоящим (происхождение чисел),
+  // зеркало флага future в os/v3520-workspaces.js.
   return ['project_handover','project_contracts','advisory_research','advisory_concept','advisory_area',
     'advisory_business_plan','leasing_opening','manage_portfolio','facility_management','equipment_registry',
     'maintenance','tenant_contracts','asset_management','property_budget','noi_performance','capex_management',
     'owner_reports','finance_dashboard','finance_income','finance_expenses','finance_invoices','finance_receivables',
     'finance_payables','finance_treasury','finance_payroll','finance_project_pnl','finance_department_pnl','finance_budget',
-    'market_data','macro_data','data_quality','data_import_export','product_intelligence','product_market','product_living',
+    'market_data','macro_data','data_import_export','product_intelligence','product_market','product_living',
     'product_manage','product_subscriptions','admin_workflows','admin_directories','admin_integrations'];
 }
 function asaas_module_status(array $state, string $view): string {
@@ -642,4 +644,99 @@ function restore_unit_finance(array $incomingRows, array $oldRows, array $u): ar
 // ведёт показы и брони, а не структуру объекта.
 function unit_can_change_structure(array $u): bool {
   return !empty($u['admin']) || !empty($u['finance']) || !empty($u['plans']);
+}
+
+// ── v4.71.0: происхождение чисел (карта PROV в общем состоянии) ─────────────────
+// Всё, что относится к разбору и проверке записи, живёт здесь, а не в provenance.php:
+// эндпоинт нельзя проверить без базы, а функции - можно, и v4710_provenance_api.php
+// именно это и делает.
+
+// Сущности и поля, за которыми происхождение ведётся. Список закрытый намеренно: открыв
+// его, мы получили бы происхождение у полей вроде «комментарий», где оно ничего не значит,
+// и потеряли бы возможность сказать «по ставкам подтверждено 62%».
+function prov_fields(): array {
+  return [
+    'unit'   => ['rate','area','status','budget','total'],
+    'object' => ['gba','gla','levels','vacancy'],
+    'bench'  => ['rate','area'],
+    'brand'  => ['rate'],
+  ];
+}
+function prov_conf_values(): array   { return ['verified','asking','modelled']; }
+function prov_source_values(): array { return ['landlord','broker','tenant','deal','listing','field','registry','document','osm','calculated','other']; }
+function prov_method_values(): array { return ['call','visit','document','registry','deal']; }
+
+// Ключ имеет вид «сущность:идентификатор:поле». Разбор строгий: свободный ключ означал бы,
+// что карта со временем наполнится записями, которые ничему не соответствуют, а доля
+// подтверждённых данных перестанет считаться. Возвращает null, если ключ не подходит.
+function prov_parse_key(string $key): ?array {
+  // \z, а не $: в PCRE $ совпадает и перед завершающим переводом строки, и ключ с «\n» на
+  // конце прошёл бы проверку, став отдельной записью-призраком рядом с настоящей.
+  if (!preg_match('~^(unit|object|bench|brand):([A-Za-z0-9_\-]{1,64}):([A-Za-z0-9_]{1,40})\z~', $key, $m)) return null;
+  $fields = prov_fields();
+  if (!isset($fields[$m[1]]) || !in_array($m[3], $fields[$m[1]], true)) return null;
+  return ['entity'=>$m[1], 'id'=>$m[2], 'field'=>$m[3]];
+}
+
+// Финансовые ключи: те, чьё поле входит в unit_finance_fields(). Запись происхождения не
+// содержит самой цифры, но содержит имя источника - свободный текст, куда сотрудник
+// запросто впишет «Ромашка, 25$». Поэтому роль без права finance этих записей не видит.
+function prov_is_finance_key(string $key): bool {
+  $p = prov_parse_key($key);
+  return $p !== null && in_array($p['field'], unit_finance_fields(), true);
+}
+
+// Очистить присланную запись. Бросает InvalidArgumentException с текстом для клиента.
+// Для conf=verified автор и дата ставятся сервером: подтверждение имеет цену (снимает с
+// числа оговорки и уходит в материалы клиенту), и если дату с автором присылает браузер,
+// подтвердить чужим именем и задним числом можно правкой одного поля в DevTools.
+function prov_clean_record($rec, array $u, ?string $today = null): array {
+  $today = $today ?? date('Y-m-d');
+  if (!is_array($rec)) throw new InvalidArgumentException('Запись происхождения должна быть объектом');
+  $conf = (string)($rec['conf'] ?? '');
+  if (!in_array($conf, prov_conf_values(), true)) throw new InvalidArgumentException('Недопустимая уверенность: '.$conf);
+  $src = (string)($rec['src'] ?? 'other');
+  if (!in_array($src, prov_source_values(), true)) $src = 'other';
+  $how = (string)($rec['how'] ?? '');
+  if ($how !== '' && !in_array($how, prov_method_values(), true)) $how = '';
+
+  // Будущая дата отклоняется: цифра, «проверенная» завтра, не устареет никогда, и правило
+  // 90/180 дней обошли бы одной опечаткой.
+  $at = substr(trim((string)($rec['at'] ?? '')), 0, 10);
+  if ($at === '' || !preg_match('~^\d{4}-\d{2}-\d{2}$~', $at)) $at = $today;
+  if ($at > $today) throw new InvalidArgumentException('Дата наблюдения не может быть в будущем');
+
+  $by = mb_substr(trim((string)($rec['by'] ?? '')), 0, 80);
+  if ($conf === 'verified') {
+    $by = (string)($u['name'] ?? '-');
+    $at = $today;
+    if ($how === '') $how = 'call';
+  }
+  return [
+    'conf'  => $conf,
+    'src'   => $src,
+    'name'  => mb_substr(trim((string)($rec['name'] ?? '')), 0, 160),
+    'at'    => $at,
+    'by'    => $by,
+    'how'   => $how,
+    'basis' => mb_substr(trim((string)($rec['basis'] ?? '')), 0, 120),
+    'note'  => mb_substr(trim((string)($rec['note'] ?? '')), 0, 400),
+  ];
+}
+
+// Вырезать финансовые записи перед отправкой роли без права finance. Ключи удаляются, а не
+// обнуляются - по той же причине, что и в redact_units_for.
+function redact_prov_for(array $prov, array $u): array {
+  if (unit_can_see_finance($u)) return $prov;
+  foreach (array_keys($prov) as $k) if (prov_is_finance_key((string)$k)) unset($prov[$k]);
+  return $prov;
+}
+
+// Вернуть финансовые записи на место при сохранении всего состояния ролью без finance:
+// она получила карту без них и, сохранив state целиком, стёрла бы их у всех.
+function restore_prov_finance(array $incoming, array $old, array $u): array {
+  if (unit_can_see_finance($u)) return $incoming;
+  foreach (array_keys($incoming) as $k) if (prov_is_finance_key((string)$k)) unset($incoming[$k]);
+  foreach ($old as $k => $v) if (prov_is_finance_key((string)$k)) $incoming[$k] = $v;
+  return $incoming;
 }

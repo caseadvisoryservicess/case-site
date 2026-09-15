@@ -41,6 +41,9 @@ function redact_shared_state(array $data, array $u): array {
   /* P0-SEC-01: помещения уходили этой роли со ставками и бюджетом, хотя экран их маскирует.
      Маскировка на экране защитой не является - значение видно и в DevTools, и в выгрузке. */
   if (isset($data['U']) && is_array($data['U'])) $data['U'] = redact_units_for($data['U'], $u);
+  /* v4.71.0: запись происхождения не содержит цифры, но содержит имя источника - свободный
+     текст, куда сотрудник запросто впишет «Ромашка, 25$». Финансовые ключи PROV режем так же. */
+  if (isset($data['PROV']) && is_array($data['PROV'])) $data['PROV'] = redact_prov_for($data['PROV'], $u);
   return $data;
 }
 
@@ -58,7 +61,8 @@ function all_shared_state_keys(): array {
     'SUPPLIER_COMMISSION_LEDGER',
     'CASE_CLIENTS','CASE_OPPORTUNITIES','CASE_PROPOSALS','CASE_CONTRACTS','CASE_SCOPE_ITEMS',
     'CASE_SCOPE_CHANGES','CASE_TASKS','CASE_DELIVERABLES','CASE_LAYOUT_VERSIONS','CASE_DECISIONS',
-    'CASE_DOCUMENT_TEMPLATES','CASE_WORKFLOW_SETTINGS','CASE_PORTFOLIO_PROJECTS','CASE_PROPOSAL_CATALOG','OWNER_REPORTS'];
+    'CASE_DOCUMENT_TEMPLATES','CASE_WORKFLOW_SETTINGS','CASE_PORTFOLIO_PROJECTS','CASE_PROPOSAL_CATALOG','OWNER_REPORTS',
+    'PROV'];
 }
 // === P0-01 (независимый deep-review v4.8.1) ==================================
 // Раньше здесь был ОДИН широкий статический список ключей на почти все не-админские
@@ -115,19 +119,19 @@ function workspace_view_keys(): array {
     'project_workspace'=>['CASE_TASKS','CASE_SCOPE_ITEMS','CASE_DELIVERABLES','CASE_CONTRACTS','CASE_LAYOUT_VERSIONS','CASE_DECISIONS'],
     'project_layouts'=>['CASE_LAYOUT_VERSIONS','PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT'],
     'leasing_layouts'=>['CASE_LAYOUT_VERSIONS','PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT'],
-    'plan_master'=>['CASE_LAYOUT_VERSIONS','PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT','PLAN_IGNORED_CODES','U','OBJECTS','CHANGES'],
+    'plan_master'=>['CASE_LAYOUT_VERSIONS','PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT','PLAN_IGNORED_CODES','U','OBJECTS','CHANGES','PROV'],
     'leasing_portfolio_map'=>['CASE_PORTFOLIO_PROJECTS','MAPCFG'],
     'document_templates'=>['CASE_DOCUMENT_TEMPLATES'],
-    'case_projects'=>['OBJECTS'],
+    'case_projects'=>['OBJECTS','PROV'],
     'map'=>['MAPCFG','GEO_DATA','CASE_PORTFOLIO_PROJECTS','OBJECTS'],
     'analytics_hub'=>['GEO_DATA','MAPCFG'],
     'geoanalytics'=>['GEO_DATA','MAPCFG'],
-    'registry'=>['OBJECTS','U','CHANGES','PROJECT_PPT','PLAN_IGNORED_CODES'],
+    'registry'=>['OBJECTS','U','CHANGES','PROJECT_PPT','PLAN_IGNORED_CODES','PROV'],
     'dates'=>['OBJECTS'],
     'plans'=>['PLANUP','PLANSVG','PLAN_LABELPOS','PLAN_CODES','PLAN_STRUCT'],
     'brands'=>['BRANDS'],
     'docs'=>['DOCREG','DOC_CONTACTS','KPSEQ'],
-    'bench'=>['BENCH','REFUSALS'],
+    'bench'=>['BENCH','REFUSALS','PROV'],
     'v32_requests'=>['BRAND_REQUESTS'],
     'v32_investors'=>['INVESTOR_REQUESTS'],
     'v32_demand'=>['BRAND_REQUESTS','INVESTOR_REQUESTS'],
@@ -456,6 +460,12 @@ if ($m === 'POST') {
     $before = $incoming['U'];
     $incoming['U'] = restore_unit_finance($incoming['U'], $oldUnits, $u);
     if ($before !== $incoming['U']) $rejectedKeys[] = 'U.finance';
+  }
+  if (!can('admin') && !can('finance') && isset($incoming['PROV']) && is_array($incoming['PROV'])) {
+    $oldProv = (isset($oldData['PROV']) && is_array($oldData['PROV'])) ? $oldData['PROV'] : [];
+    $before = $incoming['PROV'];
+    $incoming['PROV'] = restore_prov_finance($incoming['PROV'], $oldProv, $u);
+    if ($before !== $incoming['PROV']) $rejectedKeys[] = 'PROV.finance';
   }
   if (!can('admin') && !can('finance')) {
     $me = owner_identity($u); // единая функция (lib.php) - P2-04
