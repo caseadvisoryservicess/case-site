@@ -21,15 +21,22 @@
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
   # v4.35 (P2): HSTS — только по HTTPS (env=HTTPS), год; без preload/includeSubDomains,
   # чтобы не заблокировать соседние поддомены хостинга.
-  Header always set Strict-Transport-Security "max-age=31536000" env=HTTPS
+  # v4.70.3: условие env=HTTPS снято. Оно завязывало HSTS на ту же переменную, что и флаг
+  # Secure у cookie, поэтому за прокси обе защиты пропадали одновременно: cookie уходила
+  # открыто, и браузер при этом не поднимал http до https сам. На http-ответе заголовок
+  # браузером игнорируется, так что безусловная выдача вреда не несёт.
+  Header always set Strict-Transport-Security "max-age=31536000"
   # v4.35 (P2): CSP. 'unsafe-inline'/'unsafe-eval' вынужденные: платформа — один файл с
   # inline-скриптами и onclick-обработчиками, jszip использует Function. Политика всё равно
   # закрывает главное: чужие домены скриптов, form-action, base-uri, встраивание в чужие фреймы.
   # Карт-тайлы (img) и внешние API — только https.
+  # v4.70.3: то же самое повторилось с Яндекс.Картами. core.js:3039 подключает
+  # api-maps.yandex.ru, а в script-src его не было: пользователь, честно введя ключ,
+  # получал баннер «Проверьте API-ключ и подключение» - хотя резала своя же политика.
   # v4.50.3: политика запрещала ровно то, что страница грузит сама — PptxGenJS с jsDelivr
   # и шрифты Google. Из-за этого выгрузка в PPTX на боевом Apache падала, а типографика
   # откатывалась на запасной шрифт. Перечислены ровно эти источники, не https: целиком.
-  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://api-maps.yandex.ru; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
 </IfModule>
 
 Options -Indexes

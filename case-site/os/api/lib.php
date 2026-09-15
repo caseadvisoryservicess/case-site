@@ -20,12 +20,25 @@ ini_set('session.use_only_cookies', '1');
 // обед/встречу, сессия умирала, и все сохранения (ЛСР, гео) молча падали с 401 —
 // «данные не сохраняются». Клиент дополнительно держит сессию keepalive-пингом.
 ini_set('session.gc_maxlifetime', '43200');
+// v4.70.3: схема бралась только из $_SERVER['HTTPS']. Если TLS терминируется на прокси
+// или CDN перед Apache, эта переменная до PHP не доходит, и сессионная cookie уходит без
+// Secure по открытому http. Тот же учёт X-Forwarded-Proto уже сделан в правиле
+// переадресации домена (hosting/caseadvisory.uz/.htaccess) - держим PHP и Apache в одной
+// логике. Заголовок берём первым значением из списка: за цепочкой прокси там «https, http».
+$caseHttps = (!empty($_SERVER['HTTPS']) && strtolower((string)$_SERVER['HTTPS']) !== 'off')
+  || (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
+      && strtolower(trim(explode(',', (string)$_SERVER['HTTP_X_FORWARDED_PROTO'])[0])) === 'https')
+  || (isset($_SERVER['HTTP_X_FORWARDED_SSL'])
+      && strtolower((string)$_SERVER['HTTP_X_FORWARDED_SSL']) === 'on')
+  || ((int)($_SERVER['SERVER_PORT'] ?? 0) === 443);
+// Жёстко true ставить нельзя: config.local-xampp.php - рабочий конфиг под http://localhost,
+// и при безусловном Secure браузер не сохранит cookie, а разработка получит вечный 401.
 session_set_cookie_params([
   'lifetime'=>43200,
   'path'=>'/',
   'httponly'=>true,
   'samesite'=>'Lax',
-  'secure'=>(!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+  'secure'=>$caseHttps
 ]);
 session_name('caseos');
 session_start();
