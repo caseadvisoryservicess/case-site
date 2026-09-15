@@ -8,11 +8,12 @@ import json
 import os
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, 'samsung_report.html')
+MAPS = os.path.abspath(os.path.join(HERE, '..', '..', 'deliverables', 'samsung-bc'))
+OUT = os.path.join(MAPS, 'samsung_report.html')
 
 
 def img(name):
-    with open(os.path.join(HERE, name), 'rb') as f:
+    with open(os.path.join(MAPS, name), 'rb') as f:
         return 'data:image/png;base64,' + base64.b64encode(f.read()).decode()
 
 

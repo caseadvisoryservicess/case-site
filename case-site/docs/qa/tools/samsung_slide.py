@@ -33,6 +33,8 @@ from matplotlib.lines import Line2D
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OS_DIR = os.path.join(ROOT, 'os')
+OUT = os.path.join(ROOT, 'docs', 'deliverables', 'samsung-bc')
+os.makedirs(OUT, exist_ok=True)
 
 SAMSUNG = (41.34874282632705, 69.28821941229232)
 LAT0 = 41.33
@@ -281,7 +283,7 @@ def build():
             'uybor.uz, soffice.uz, 07.2026. Границы районов - 2024.',
             fontsize=7.4, color=MUTED, va='bottom', linespacing=1.75)
 
-    out = os.path.join(HERE, 'samsung_catchment_slide.png')
+    out = os.path.join(OUT, 'samsung_catchment_slide.png')
     fig.savefig(out, dpi=150, facecolor=PAPER)
     plt.close(fig)
     print('готово:', out)

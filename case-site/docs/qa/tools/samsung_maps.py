@@ -34,7 +34,8 @@ import numpy as np
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, '..', '..', '..'))
 OS_DIR = os.path.join(ROOT, 'os')
-OUT = HERE
+OUT = os.path.join(ROOT, 'docs', 'deliverables', 'samsung-bc')
+os.makedirs(OUT, exist_ok=True)
 
 SAMSUNG = (41.34874282632705, 69.28821941229232)
 LAT0 = 41.31
