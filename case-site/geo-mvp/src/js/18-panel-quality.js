@@ -615,16 +615,23 @@
 
     lines.push(t('quality.coverage.headline.backlog'));
 
+    var demo = D.containsDemo(scope);
+
     return card([
       el('h3', { text: t('quality.coverage.headline.title') }),
       el('div.stack', {}, lines.map(function (line) { return el('p', { text: line }); })),
+      /* D4 — every figure computed over a set that includes synthetic records
+         says so on the figure, not only in the banner. */
       el('div.stats', {}, [
         statTile({ label: t('quality.coverage.stat.full'), display: F.int(full.length),
-                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }) }),
+                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }),
+                   containsDemo: demo }),
         statTile({ label: t('quality.coverage.stat.partial'), display: F.int(partial.length),
-                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }) }),
+                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }),
+                   containsDemo: demo }),
         statTile({ label: t('quality.coverage.stat.empty'), display: F.int(none.length),
-                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }) }),
+                   coverageText: t('quality.coverage.stat.fields', { m: F.int(cov.length) }),
+                   containsDemo: demo }),
         criticalIndexTile(scope)
       ])
     ]);
@@ -633,6 +640,7 @@
   function criticalIndexTile(scope) {
     var idx = QA.coverageIndex(scope);
     return statTile({
+      containsDemo: D.containsDemo(scope),
       label: t('quality.coverage.stat.index'),
       display: idx.value === null ? F.UNKNOWN : F.pct(idx.value * 100, 0),
       sufficient: idx.total > 0,
@@ -834,9 +842,14 @@
     return String(str).replace(TOKEN, '').replace(/\s{2,}/g, ' ').replace(EDGE, '');
   }
 
+  /* A record name is scraped data: it can be 50 characters of Cyrillic. `.btn`
+     is `white-space: nowrap`, which would push the card past the viewport at
+     375px, so every button whose label is DATA rather than UI copy wraps. */
+  var WRAP = 'white-space:normal;text-align:left;min-width:0';
+
   function openButton(rec) {
     return el('button.btn.btn--quiet.btn--sm', {
-      type: 'button', text: recordName(rec),
+      type: 'button', style: WRAP, text: recordName(rec),
       'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
       onclick: function () { openRecord(rec.id); }
     });
@@ -1059,7 +1072,7 @@
         el('td.tbl__num', { text: F.int(i + 1) }),
         el('th', { scope: 'row', 'class': 'tbl__rowhd' }, [
           el('button.btn.btn--quiet.btn--sm', {
-            type: 'button', text: recordName(rec),
+            type: 'button', style: WRAP, text: recordName(rec),
             'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
             onclick: function () { openRecord(rec.id); }
           }),
@@ -1218,16 +1231,10 @@
       row(fieldLabel(k), k === 'askingRent' ? F.rent(v) : String(v));
     });
 
-    return el('div.stack', {}, [
-      el('div.row', {}, [
-        el('button.btn.btn--quiet.btn--sm', {
-          type: 'button', text: recordName(rec),
-          'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
-          onclick: function () { openRecord(rec.id); }
-        }),
-        demoBadge(rec),
-        classBadge(rec)
-      ]),
+    /* A grid item's default `min-width: auto` is min-content, so one long
+       address would widen the whole card rather than wrapping inside it. */
+    return el('div.stack', { style: 'min-width:0;overflow-wrap:anywhere' }, [
+      el('div.row', {}, [openButton(rec), demoBadge(rec), classBadge(rec)]),
       el('div.micro', { text: rec.id }),
       el('div.kv', {}, kv),
       el('div', {}, [confChip(D.recordConfidence(rec))]),
@@ -1288,7 +1295,9 @@
 
     return el('section.dupe', { 'aria-label': c.records.map(recordName).join(' / ') }, [
       el('div.row', {}, [
-        el('span.chip', {}, [el('span.chip__label', { text: c.kindText })]),
+        el('span.chip', { style: 'white-space:normal;min-width:0' },
+           [el('span.chip__label', { style: 'white-space:normal;overflow:visible',
+                                     text: c.kindText })]),
         el('span.micro', {
           text: c.distanceM < 1
             ? t('quality.dupes.sameSpot')

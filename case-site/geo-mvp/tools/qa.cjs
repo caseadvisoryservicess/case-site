@@ -656,6 +656,52 @@ function watch(page) {
       await page.close();
     }
 
+    // Print: the chrome goes, the figures and their denominators stay, and the
+    // demo banner appears if and ONLY if demo mode is on. A report that wrongly
+    // declares its own figures synthetic is as damaging as one that hides that
+    // they are.
+    const pr = await ctx.newPage();
+    await pr.goto(FILE, { waitUntil: 'load' });
+    await pr.waitForTimeout(900);
+    await pr.evaluate(() => {
+      const tri = GEO.data.observed().filter(x => x.name === 'Trilliant')[0];
+      GEO.state.set({ selectedId: tri.id, rightRail: 'open', rightTab: 'property',
+                      radius: { id: tri.id, km: [1, 3, 5] } }, { source: 'user', action: 'qa' });
+      document.documentElement.setAttribute('data-print', 'property');
+    });
+    await pr.emulateMedia({ media: 'print' });
+    await pr.waitForTimeout(400);
+    const printed = await pr.evaluate(() => {
+      const gone = sel => {
+        const e = document.querySelector(sel);
+        return !e || getComputedStyle(e).display === 'none';
+      };
+      const txt = document.body.innerText || '';
+      return {
+        chromeHidden: ['.hdr', '.rail--left', '.tabbar', '#mapchrome', '#toasts'].every(gone),
+        propertyVisible: !gone('#pane-property'),
+        keepsDenominators: /Based on \d+ of \d+/.test(txt),
+        keepsCollectionDate: /19 Jul 2026/.test(txt),
+        demoBannerOff: gone('#demobar'),
+      };
+    });
+    check('print: interface chrome is hidden', printed.chromeHidden);
+    check('print: the property analysis is kept', printed.propertyVisible);
+    check('print: denominators survive onto paper', printed.keepsDenominators);
+    check('print: the collection date is on the page', printed.keepsCollectionDate);
+    check('print: no demo banner when demo mode is off', printed.demoBannerOff);
+
+    const demoPrinted = await pr.evaluate(() => {
+      GEO.data.setDemoMode(true);
+      GEO.state.set({ demoMode: true }, { source: 'user', action: 'qa' });
+      const shown = getComputedStyle(document.getElementById('demobar')).display !== 'none';
+      GEO.data.setDemoMode(false);
+      GEO.state.set({ demoMode: false }, { source: 'user', action: 'qa' });
+      return shown;
+    });
+    check('print: the demo banner DOES print when demo mode is on', demoPrinted === true);
+    await pr.close();
+
     const rm = await ctx.newPage();
     await rm.emulateMedia({ reducedMotion: 'reduce' });
     await rm.goto(FILE, { waitUntil: 'load' });

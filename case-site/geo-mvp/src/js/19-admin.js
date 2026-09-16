@@ -89,6 +89,9 @@
     'admin.records.col.verified': 'Last verified',
     'admin.records.col.actions': 'Edit',
     'admin.records.sort.asc': 'Sorted ascending',
+    'admin.records.sort.dir.asc': 'Ascending — switch to descending',
+    'admin.records.sort.dir.desc': 'Descending — switch to ascending',
+    'admin.records.card.aria': 'Records, {n} shown',
     'admin.records.sort.desc': 'Sorted descending',
     'admin.records.editedBadge': 'Edited locally',
     'admin.records.addedBadge': 'Added locally — not verified',
@@ -126,10 +129,12 @@
     'admin.undo.available': 'Undo {what}',
     'admin.undo.cleared': 'The undo history was cleared because the whole dataset was replaced.',
 
+    'admin.changes.count.fields.one': '1 field',
+    'admin.changes.count.fields.other': '{n} fields',
+    'admin.changes.summary.line': '{records} with local changes, {fields} edited.',
     'admin.changes.added.title': 'Added',
     'admin.changes.changed.title': 'Changed',
     'admin.changes.deleted.title': 'Deleted',
-    'admin.changes.field': '{field}',
     'admin.changes.revertRecord': 'Revert every field on this record',
     'admin.changes.revertRecord.confirm': 'Revert {n} fields on "{name}"?',
     'admin.changes.revertRecord.body': 'Every edited field returns to the value shipped with the prototype. Nothing else on the record changes.',
@@ -160,7 +165,7 @@
     'admin.io.demo.state.on': 'Demo records are ON. Figures may include synthetic values.',
     'admin.io.demo.state.off': 'Demo records are OFF. Every figure is drawn from observed records only.',
     'admin.io.reset.title': 'Start again',
-    'admin.reset.restore.count': '{changed} edited records, {added} added records and {deleted} deleted records are discarded.',
+    'admin.reset.restore.count': 'Discarded: {changed} edited, {added} added, {deleted} deleted.',
     'admin.reset.restore.nothing': 'There are no local changes, so this would change nothing.',
     'admin.reset.full.count': 'This clears {n} stored keys, including edits, the demo setting and the chosen language.',
     'admin.storage.kb': '{n} KB',
@@ -204,8 +209,10 @@
    *  table has not caught up with falls back to the registry rather than
    *  printing a key at the reader. */
   function fieldLabel(key) {
-    var s = t('field.' + key);
-    return s === 'field.' + key ? S.label(key) : s;
+    // `has()` rather than calling `t()` and comparing: a miss through `t()` is
+    // logged as a defect, and a field whose label the table has not caught up
+    // with is a gap to fall back from, not an error to report on every render.
+    return GEO.i18n.has('field.' + key) ? t('field.' + key) : S.label(key);
   }
 
   /* The registry's group labels are English literals in the schema; D14 says
@@ -448,10 +455,19 @@
     if (dBadge) nameKids.push(dBadge);
     var lBadge = localBadge(rec);
     if (lBadge) nameKids.push(lBadge);
-    nameKids.push(el('div.micro', { text: U.isKnown(rec.address) ? rec.address : rec.id }));
 
     return el('tr', {}, [
-      el('th.tbl__rowhd', { scope: 'row' }, [el('div.row.row--tight', {}, nameKids)]),
+      // `.tbl th` upper-cases and tracks out its text, which is right for a
+      // column label and wrong for a row header that holds DATA: these names are
+      // largely Cyrillic and a name is not ours to re-case. `nowrap` is dropped
+      // for the same reason — a long name should wrap, not stretch the table.
+      el('th.tbl__rowhd', {
+        scope: 'row',
+        style: 'text-transform:none;letter-spacing:0;white-space:normal'
+      }, [
+        el('div.row.row--tight', {}, nameKids),
+        el('div.micro', { text: U.isKnown(rec.address) ? rec.address : rec.id })
+      ]),
       el('td', {}, [U.isKnown(rec.districtKey)
         ? el('span', { text: GEO.data.districtName(rec.districtKey) })
         : unknownNode()]),
@@ -472,6 +488,79 @@
         'aria-label': t('admin.records.open', { name: nameOf(rec) }),
         onclick: function () { openRecord(rec.id, 'adm-edit-' + rec.id); }
       })])
+    ]);
+  }
+
+  /* IA §2.3: below 768 px the Records table becomes a CARD LIST. Eight columns
+     squeezed into 375 px is the "shrunken panel" §26 forbids — the cells
+     collapse and the values disappear behind their own headers. A card keeps
+     every field visible with its own label, which is what the reader needs from
+     a data workspace on a phone. */
+  function isPhone(state) { return state.bp === 'xs' || state.bp === 'xxs'; }
+
+  function kvRow(label, valueNode) {
+    return el('div.kv__row', {}, [
+      el('span.kv__k', { text: label }),
+      el('span.kv__v', {}, [valueNode])
+    ]);
+  }
+
+  function recordCard(rec) {
+    var comp = GEO.quality ? GEO.quality.completeness(rec) : null;
+    var lv = (rec._meta && rec._meta.lastVerifiedAt) || null;
+    var rentText = valueText(rec, S.byKey.askingRent);
+
+    var head = [el('span', { text: nameOf(rec) })];
+    var db = demoBadge(rec);
+    if (db) head.push(db);
+    var lb = localBadge(rec);
+    if (lb) head.push(lb);
+
+    return el('li.card.card--flat.stack', {}, [
+      el('div.row.row--tight', {}, head),
+      el('div.micro', { text: U.isKnown(rec.address) ? rec.address : rec.id }),
+      el('div.kv', {}, [
+        kvRow(t('admin.records.col.district'), U.isKnown(rec.districtKey)
+          ? el('span', { text: GEO.data.districtName(rec.districtKey) }) : unknownNode()),
+        kvRow(t('admin.records.col.class'), U.isKnown(rec.officeClass)
+          ? el('span.badge.badge--class', { 'data-class': rec.officeClass,
+                                            text: enumLabel('officeClass', rec.officeClass) })
+          : el('span.badge.badge--class', { 'data-class': 'unknown', text: t('value.class.unknown') })),
+        kvRow(t('admin.records.col.rent'), rentText ? el('span', { text: rentText }) : unknownNode()),
+        kvRow(t('admin.records.col.completeness'), el('span', {
+          text: comp ? t('common.of', { n: F.int(comp.known), m: F.int(comp.total) }) : F.UNKNOWN
+        })),
+        kvRow(t('admin.records.col.confidence'), confidenceChip(GEO.data.recordConfidence(rec))),
+        kvRow(t('admin.records.col.verified'), U.isKnown(lv)
+          ? el('span', { text: F.date(lv) })
+          : el('span.unk', { text: t('detail.quality.neverVerified') }))
+      ]),
+      el('div.row', {}, [el('button.btn.btn--quiet.btn--sm', {
+        type: 'button', id: 'adm-edit-' + rec.id, text: t('common.edit'),
+        'aria-label': t('admin.records.open', { name: nameOf(rec) }),
+        onclick: function () { openRecord(rec.id, 'adm-edit-' + rec.id); }
+      })])
+    ]);
+  }
+
+  /** The card list has no column headers to click, so the same sort lives in a
+   *  select plus a direction toggle — one control, not a hidden gesture. */
+  function sortControl() {
+    return el('div.row', {}, [
+      el('label.field__label', { for: 'adm-sort', text: t('list.sort.label') }),
+      el('select.select', {
+        id: 'adm-sort',
+        onchange: function (e) { view.sort = e.target.value; view.page = 1; redraw(); }
+      }, SORTS.map(function (def) {
+        return el('option', { value: def.key, selected: view.sort === def.key, text: t(def.labelKey) });
+      })),
+      el('button.btn.btn--quiet.btn--sm', {
+        type: 'button',
+        text: view.dir === 'asc' ? '\u25B2' : '\u25BC',
+        'aria-label': t(view.dir === 'asc' ? 'admin.records.sort.dir.asc' : 'admin.records.sort.dir.desc'),
+        title: t(view.dir === 'asc' ? 'admin.records.sort.dir.asc' : 'admin.records.sort.dir.desc'),
+        onclick: function () { view.dir = view.dir === 'asc' ? 'desc' : 'asc'; view.page = 1; redraw(); }
+      })
     ]);
   }
 
@@ -562,6 +651,12 @@
             onclick: function () { view.q = ''; redraw(); }
           }) : null
         ])
+      ]);
+    } else if (isPhone(state)) {
+      body = el('div.stack', {}, [
+        sortControl(),
+        el('ul.stack', { 'aria-label': t('admin.records.card.aria', { n: F.int(shown.length) }) },
+           shown.map(recordCard))
       ]);
     } else {
       body = el('table.tbl.tbl--zebra', {}, [
@@ -860,8 +955,9 @@
 
     var hints = [];
     if (fd.unit) hints.push(fd.unit);
-    var help = t('field.' + fd.key + '.help');
-    if (help !== 'field.' + fd.key + '.help') hints.push(help);
+    // Only a handful of fields carry a help sentence; the rest are self-evident
+    // from their label and unit, so the absence is normal and not a missing key.
+    if (GEO.i18n.has('field.' + fd.key + '.help')) hints.push(t('field.' + fd.key + '.help'));
     if (fd.required) hints.push(t('admin.form.required'));
     if (fd.type === 'tenantList') hints.push(t('admin.form.tenants.disabled'));
 
@@ -906,9 +1002,13 @@
     }
     var warn = el('p.field__err', { id: 'adm-district-warn', role: 'alert', hidden: true });
     view.form.nodes.districtWarn = warn;
-    var useBtn = el('button.btn.btn--quiet.btn--sm', { type: 'button', hidden: true });
+    var useBtn = el('button.btn.btn--quiet.btn--sm', { type: 'button' });
+    // The button lives in its own `.row` so it keeps its natural width inside
+    // the `.stack`; the ROW is what gets hidden, so no empty gap is left behind.
+    var useRow = el('div.row', { hidden: true }, [useBtn]);
     view.form.nodes.districtUse = useBtn;
-    return el('div.stack', {}, [el('div.row', {}, kids), warn, useBtn]);
+    view.form.nodes.districtUseRow = useRow;
+    return el('div.stack', {}, [el('div.row', {}, kids), warn, useRow]);
   }
 
   /* ------------------------------------------------------- provenance (D-06…D-08) */
@@ -1146,9 +1246,9 @@
         warn.textContent = t('admin.form.district.noGeometry');
       }
     }
-    if (useBtn) {
+    if (useBtn && f.nodes.districtUseRow) {
       if (dc && dc.kind === 'mismatch') {
-        useBtn.hidden = false;
+        f.nodes.districtUseRow.hidden = false;
         useBtn.textContent = t('admin.form.district.use', { name: GEO.data.districtName(dc.key) });
         useBtn.onclick = function () {
           setValue('districtKey', dc.key);
@@ -1156,7 +1256,7 @@
           if (sel) sel.value = dc.key;
         };
       } else {
-        useBtn.hidden = true;
+        f.nodes.districtUseRow.hidden = true;
       }
     }
 
@@ -1516,8 +1616,13 @@
       return el('div.stack.stack--lg', {}, head);
     }
 
+    // The shipped `admin.changes.summary` reads "1 records changed"; English
+    // needs two forms, so the counts go through the plural helper instead.
     head.push(el('p.micro', {
-      text: t('admin.changes.summary', { records: F.int(real.length), fields: F.int(fieldCount) })
+      text: t('admin.changes.summary.line', {
+        records: GEO.i18n.plural('common.count.records', real.length),
+        fields: GEO.i18n.plural('admin.changes.count.fields', fieldCount)
+      })
     }));
     head.push(el('p.micro', { text: t('admin.changes.note') }));
 
@@ -1592,8 +1697,11 @@
     var all = allRecords();
     var demoAll = all.filter(function (r) { return r.recordType === 'DEMO'; }).length;
     var demoRows = rows.filter(function (r) { return r.recordType === 'DEMO'; }).length;
-    var filtersText = GEO.filters && GEO.filters.describe
-      ? GEO.filters.describe(state.filters) : t('common.none');
+    // `describe()` returns an empty string when nothing is filtered, and a
+    // sentence that trails off after "matching the current filters:" reads as a
+    // rendering bug rather than as "no filters".
+    var described = GEO.filters && GEO.filters.describe ? GEO.filters.describe(state.filters) : '';
+    var filtersText = described && described.trim() ? described : t('common.none');
 
     var jsonNotes = [el('p.micro', { text: t('admin.io.exportJson.note') }),
                      el('p.micro', { text: t('admin.io.exportJson.contents', { n: F.int(all.length) }) })];
@@ -1623,14 +1731,16 @@
           el('span.reason', { id: 'adm-csv-why', text: t('admin.io.exportCsv.none') })
         ]);
 
+    // A button placed directly in a `.stack` (a flex column) stretches to full
+    // width and centres its label; wrapping it in a `.row` keeps it its own size.
     return el('section.card.card--flat', {}, [
       sectionTitle(t('admin.io.export.title')),
       el('div.stack', {}, [
-        el('button.btn.btn--quiet', {
+        el('div.row', {}, [el('button.btn.btn--quiet', {
           type: 'button', text: t('admin.io.exportJson'), onclick: exportJson
-        })
+        })])
       ].concat(jsonNotes)),
-      el('div.stack', {}, [csvBtn].concat(csvNotes))
+      el('div.stack', {}, [el('div.row', {}, [csvBtn])].concat(csvNotes))
     ]);
   }
 
@@ -1714,10 +1824,10 @@
         el('p.insufficient__why', { text: r.message }),
         el('p.insufficient__why', { text: t('error.import.unchanged') })
       ]));
-      kids.push(el('button.btn.btn--quiet.btn--sm', {
+      kids.push(el('div.row', {}, [el('button.btn.btn--quiet.btn--sm', {
         type: 'button', text: t('common.dismiss'),
         onclick: function () { view.report = null; redraw(); }
-      }));
+      })]));
       return el('div.stack', {}, kids);
     }
 
@@ -1866,14 +1976,17 @@
           }),
           el('span.reason', { id: 'adm-restore-why', text: t('admin.reset.restore.nothing') })
         ]);
+    // The disabled button already carries its reason; repeating it below would
+    // say the same sentence twice in four lines.
+    var restoreNote = changes.length ? el('p.micro', { text: restoreBody }) : null;
 
     return el('section.card.card--flat', {}, [
       sectionTitle(t('admin.io.reset.title')),
       // D15: two distinct commands. Collapsing them into one "reset" is what
       // the build contract forbids, because they lose different things.
-      el('div.stack', {}, [restoreBtn, el('p.micro', { text: restoreBody })]),
+      el('div.stack', {}, [el('div.row', {}, [restoreBtn]), restoreNote]),
       el('div.stack', {}, [
-        el('button.btn.btn--danger', {
+        el('div.row', {}, [el('button.btn.btn--danger', {
           type: 'button', text: t('admin.reset.full'),
           onclick: function () {
             GEO.boot.confirm(t('admin.reset.full.confirm'),
@@ -1881,7 +1994,7 @@
                              t('admin.reset.full.count', { n: F.int(keys) }),
                              t('admin.reset.full'), fullReset, true);
           }
-        }),
+        })]),
         el('p.micro', { text: t('admin.reset.full.body') }),
         el('p.micro', { text: t('boot.hashReset') })
       ]),
@@ -1934,13 +2047,13 @@
    *  is wired once and only ever has its `aria-selected` restated — an
    *  idempotent write either module can make safely. */
   function syncTabs(state) {
-    Q.$$('#overlay-data .overlay__tab').forEach(function (b) {
+    Q.$$('#overlay-data [data-datatab]').forEach(function (b) {
       b.setAttribute('aria-selected', b.dataset.datatab === state.dataTab ? 'true' : 'false');
     });
   }
 
   function signature(state, rows) {
-    return [state.dataTab, state.demoMode ? '1' : '0', state.role, GEO.i18n.locale,
+    return [state.dataTab, state.bp, state.demoMode ? '1' : '0', state.role, GEO.i18n.locale,
             String(dataVersion), String(rows.length), String(state.editingId || ''),
             view.form ? (view.form.isNew ? 'new' : 'edit:' + view.form.id) : '-',
             view.q, view.sort, view.dir, String(view.page),
@@ -2028,15 +2141,17 @@
     if (!overlay) return;
     wired = true;
 
-    // Shared chrome: the first of the two workspace modules to load wires the
-    // sub-nav, and the marker stops the second one doubling the handler.
-    if (!overlay.dataset.tabsWired) {
-      overlay.dataset.tabsWired = '1';
-      Q.$$('.overlay__tab', overlay).forEach(function (b) {
-        b.addEventListener('click', function () {
-          GEO.state.set({ overlay: 'data', dataTab: b.dataset.datatab },
-                        { source: 'user', action: 'admin:tab', summary: b.dataset.datatab });
-        });
+    // Shared chrome. 18-panel-quality needs the same six buttons, so both
+    // modules guard on the SAME element and the SAME flag — whichever loads
+    // first wires them once. A second listener would fire a second identical
+    // set() and cost a second render for one click.
+    var tabs = Q.$('.overlay__tabs', overlay);
+    if (tabs && tabs.dataset.wired !== '1') {
+      tabs.dataset.wired = '1';
+      Q.on(tabs, 'click', '[data-datatab]', function (e, btn) {
+        GEO.state.set({ dataTab: btn.dataset.datatab },
+                      { source: 'user', action: 'data:tab',
+                        summary: 'Data workspace: ' + btn.dataset.datatab });
       });
     }
 

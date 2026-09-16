@@ -126,10 +126,13 @@
   .layer__acts,
   .form__foot { display: none !important; }
 
-  /* The demo banner is the one piece of chrome that MUST print. A page of
-     figures that silently includes synthetic records is exactly the artefact
-     D4 exists to prevent, and paper outlives the session it was printed in. */
-  .demobar {
+  /* The demo banner is the one piece of chrome that MUST print — WHEN IT IS ON.
+     A page of figures that silently includes synthetic records is exactly the
+     artefact D4 exists to prevent, and paper outlives the session it was printed
+     in. But `display:flex !important` unqualified also overrides [hidden], so a
+     perfectly ordinary report printed a banner declaring its own figures "not
+     market evidence". Both failures are the same bug; :not([hidden]) fixes both. */
+  .demobar:not([hidden]) {
     display: flex !important;
     border: 0.5pt solid #000000;
     background: transparent;
