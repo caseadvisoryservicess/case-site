@@ -1207,9 +1207,19 @@
     'analytics.chart.col.critical': 'Critical',
     'analytics.chart.criticalNote': 'Fields marked critical are the ones a commercial decision needs.',
     'analytics.chart.yes': 'Yes',
-    'analytics.chart.ofTotal': '{pct} of {total}',
+    'analytics.chart.ofTotal': '{n} of {m}',
     'analytics.chart.tip.plain': '{label}: {value}',
     'analytics.chart.empty': 'Nothing to plot for the current selection.',
+    'analytics.coverage.action.field': 'Show the records missing {field}',
+
+    /* --- map (§9, §10) --- */
+    'map.radius.label': '{km} km — {n} properties',
+    'map.legend.confidence.note': 'Confidence describes the evidence behind a record, not whether it is right. Most of this dataset came from one source on one date.',
+    'map.legend.completeness.note': 'How many of the eight commercially critical fields a record holds. This is the encoding with real variance in this dataset.',
+    // §10 / D5: the slot exists so the architecture is visible, and it is empty
+    // because inventing station coordinates would be exactly what §2.2 forbids.
+    'map.layers.context.reason': 'No verified source is loaded in this build. Metro, road and landmark layers need a dataset we can cite — import a GeoJSON to populate this.',
+    'map.layers.analysis.open': 'Open the Layers panel',
     'empty.property.action.map': 'Pick one on the map'
   };
 

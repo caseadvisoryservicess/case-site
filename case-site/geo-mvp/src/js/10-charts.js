@@ -144,6 +144,12 @@
     return m;
   }
 
+  /* Axis ticks land on clean numbers, so printing "20.0" where the tick is 20
+     adds a decimal the data never claimed. */
+  function autoNum(v) {
+    return F.num(v, Math.abs(v - Math.round(v)) < 1e-9 ? 0 : 1);
+  }
+
   function truncate(s, maxPx, px) {
     s = String(s === null || s === undefined ? '' : s);
     if (textW(s, px) <= maxPx) return s;
@@ -592,7 +598,7 @@
     var share = shareText(row, total);
     var line = (total > 0 && share !== null)
       ? t('analytics.chart.tooltip', { category: row.label, n: valueText, m: F.int(total), pct: share })
-      : t('analytics.chart.tip.plain', { category: row.label, value: valueText });
+      : t('analytics.chart.tip.plain', { label: row.label, value: valueText });
     meta(inst, key, {
       line: line,
       extra: null,
@@ -798,18 +804,16 @@
       var cx = padL + band * i + band / 2;
       var x = cx - th / 2;
 
-      labels.push(svgEl('text.c-cat' + (r.unknown ? '.c-cat--unknown' : ''), {
+      /* A suppressed column has no mark at all — a column of zero height would
+         read as a measured zero. Its category label carries the recessive
+         unknown style and the table view states the reason in full. */
+      var suppressed = typeof r.value !== 'number';
+      labels.push(svgEl('text.c-cat' + (r.unknown || suppressed ? '.c-cat--unknown' : ''), {
         x: n2(cx), y: n2(baseY + 14), 'text-anchor': 'middle',
         text: truncate(r.label, band - 2, TICK_PX)
       }));
 
-      if (typeof r.value !== 'number') {
-        labels.push(svgEl('text.c-tick', {
-          x: n2(cx), y: n2(baseY - 6), 'text-anchor': 'middle', text: '·'
-        }));
-        registerBarMeta(inst, spec, r, key, fmtV, total);
-        return;
-      }
+      if (suppressed) return;
 
       var len = sy(r.value);
       marks.push({
@@ -879,8 +883,10 @@
       x1: n2(padL), y1: n2(axisY), x2: n2(padL + plotW), y2: n2(axisY)
     })]);
 
+    /* Mean / median rules are labelled in words beside the plot: a bare dashed
+       line is a threshold the reader has to guess at. */
     var marks = [], labels = [];
-    (spec.refs || []).forEach(function (ref, i) {
+    (spec.refs || []).forEach(function (ref) {
       if (typeof ref.value !== 'number') return;
       var x = sx(ref.value);
       labels.push(svgEl('line.c-ref', { x1: n2(x), y1: n2(padT - 8), x2: n2(x), y2: n2(padT + LANE_H) }));
@@ -889,7 +895,6 @@
         'text-anchor': x > padL + plotW - 60 ? 'end' : 'start',
         text: ref.label
       }));
-      void i;
     });
 
     pts.forEach(function (p, i) {
@@ -905,11 +910,11 @@
       if (spec.onPointClick) {
         attrs.tabindex = '0';
         attrs.role = 'button';
-        attrs['aria-label'] = t('analytics.chart.tip.plain', { category: p.label, value: fmtV(p.value) });
+        attrs['aria-label'] = t('analytics.chart.tip.plain', { label: p.label, value: fmtV(p.value) });
       }
       marks.push({ key: key, tag: 'circle', attrs: attrs });
       meta(inst, key, {
-        line: t('analytics.chart.tip.plain', { category: p.label, value: fmtV(p.value) }),
+        line: t('analytics.chart.tip.plain', { label: p.label, value: fmtV(p.value) }),
         extra: p.sub || null,
         note: spec.coverageText || null,
         onActivate: spec.onPointClick ? function (ev) { spec.onPointClick(p, ev); } : null
@@ -918,13 +923,12 @@
     syncMarks(inst.gMarks, marks);
     Q.fill(inst.gLab, labels);
 
-    var axis = [];
+    var axis = [], tickFmt = spec.tickFormat || autoNum;
     ticksInRange(d0, d1, U.clamp(Math.round(plotW / 80), 2, 7)).forEach(function (v) {
-      var x = sx(v);
-      var half = textW((spec.tickFormat || fmtV)(v), TICK_PX) / 2;
+      var half = textW(tickFmt(v), TICK_PX) / 2;
       axis.push(svgEl('text.c-tick', {
-        x: n2(U.clamp(x, padL + half, padL + plotW - half)), y: n2(padT + LANE_H + 14),
-        'text-anchor': 'middle', text: (spec.tickFormat || fmtV)(v)
+        x: n2(U.clamp(sx(v), padL + half, Math.max(padL + half, padL + plotW - half))),
+        y: n2(padT + LANE_H + 14), 'text-anchor': 'middle', text: tickFmt(v)
       }));
     });
     if (spec.axisTitle) {
@@ -968,6 +972,14 @@
      for two touching segments. The pair `n of N` is the datum here rather than
      decoration, so it is rendered as a recessive value column in a text token —
      never as a number riding the mark. */
+  function rowHit(spec, row, attrs) {
+    if (!spec.onRowClick) return attrs;
+    attrs.tabindex = '0';
+    attrs.role = 'button';
+    attrs['aria-label'] = t('analytics.coverage.action.field', { field: row.label });
+    return attrs;
+  }
+
   function drawCoverage(inst) {
     var spec = inst.spec, rows = spec.rows || [];
     var W = measure(inst);
@@ -1000,33 +1012,37 @@
       var cy = y + COV_TH / 2 + 4;
       var share = r.N > 0 ? r.n / r.N : 0;
       var knownLen = scaleW * share;
-      var label = r.label + (r.critical ? ' *' : '');
 
+      /* The critical mark is an asterisk keyed to a footnote, not a colour:
+         "critical" has to survive greyscale print and colour-vision
+         deficiency. The label is truncated BEFORE the mark is appended, so
+         the mark is never the character that gets cut. */
       labels.push(svgEl('text.c-cat' + (r.n ? '' : '.c-cat--unknown'), {
         x: n2(gutter - 8), y: n2(cy), 'text-anchor': 'end',
-        text: truncate(label, gutter - 12, CAT_PX)
+        text: truncate(r.label, gutter - 12 - (r.critical ? 10 : 0), CAT_PX) + (r.critical ? ' *' : '')
       }));
 
       if (knownLen > 0.5) {
         marks.push({
           key: key + ':known', tag: 'path',
-          attrs: interactive(
-            spec.onRowClick ? { onBarClick: spec.onRowClick } : {}, r,
-            { 'class': 'c-bar' + (spec.onRowClick ? ' c-bar--clickable' : ''),
-              d: hBarPath(x0, y, knownLen, COV_TH, END_R) })
+          attrs: rowHit(spec, r, {
+            'class': 'c-bar' + (spec.onRowClick ? ' c-bar--clickable' : ''),
+            d: hBarPath(x0, y, knownLen, COV_TH, END_R)
+          })
         });
       }
 
-      /* A: the unknown remainder is always drawn and always hatched. */
+      /* A: the unknown remainder is always drawn and always hatched. The 2px
+         gap is the mark spec's rule for two touching segments of one row. */
       var unkStart = x0 + (knownLen > 0.5 ? knownLen + SEG_GAP : 0);
       var unkLen = x0 + scaleW - unkStart;
       if (unkLen > 0.5 && r.n < r.N) {
         marks.push({
           key: key + ':unknown', tag: 'path',
-          attrs: paint(inst, {}, { unknown: true }, {
+          attrs: rowHit(spec, r, paint(inst, {}, { unknown: true }, {
             'class': 'c-bar c-bar--unknown',
             d: hBarPath(unkStart, y, unkLen, COV_TH, END_R)
-          })
+          }))
         });
       }
 
@@ -1058,9 +1074,9 @@
     });
     Q.fill(inst.gAxis, axis);
 
-    /* The asterisk needs its key, and the note line is the only place to put
-       it that survives greyscale and colour-vision deficiency. */
-    if (anyCritical && !spec.note) setText(inst.note, t('analytics.chart.criticalNote'));
+    /* The asterisk needs its key. The '* ' prefix is punctuation tying the mark
+       to the sentence, not a string — the sentence itself is translated. */
+    if (anyCritical && !spec.note) setText(inst.note, '* ' + t('analytics.chart.criticalNote'));
 
     svgFrame(inst, W, H, !!spec.onRowClick);
   }
@@ -1081,7 +1097,7 @@
           cells: [{
             text: r.label,
             action: spec.onRowClick ? function (ev) { spec.onRowClick(r, ev); } : null,
-            actionLabel: spec.onRowClick ? t('analytics.coverage.action') : null
+            actionLabel: spec.onRowClick ? t('analytics.coverage.action.field', { field: r.label }) : null
           }, {
             text: t('analytics.chart.ofTotal', { n: F.int(r.n), m: F.int(r.N) }), num: true
           }, {

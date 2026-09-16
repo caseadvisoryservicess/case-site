@@ -26,7 +26,7 @@
   e1462f10f502  vendor/leaflet.js
   1e4e1d22972a  vendor/leaflet.markercluster.js
   4dd413553bf8  src/js/00-core.js
-  6baaa76e6d5f  src/js/01-i18n.js
+  47804a869835  src/js/01-i18n.js
   31d936db9dde  src/js/02-schema.js
   3ea5b259593f  src/js/03-data.js
   28243831818b  src/js/04-quality.js
@@ -35,13 +35,16 @@
   10c67bad1a7f  src/js/07-search.js
   d20489987cd6  src/js/08-analytics.js
   48173d9d9c88  src/js/09-geo.js
-  051fb05c3df4  src/js/10-charts.js
+  b3fec2e66b47  src/js/10-charts.js
+  e18c3b2da455  src/js/11-map.js
   d403104e1da8  src/js/12-panel-filters.js
   95dbc500051a  src/js/13-panel-list.js
   194f1de1f6a2  src/js/14-panel-detail.js
-  271e12d23ef4  src/js/20-ai-tools.js
+  23206e91d3df  src/js/15-panel-analytics.js
+  bab86f38dc2b  src/js/16-panel-compare.js
+  e40a2dc375f0  src/js/20-ai-tools.js
   b05c09031351  src/js/21-ai-intents.js
-  99daf2fea238  src/js/22-ai-engine.js
+  f4d4cc39e875  src/js/22-ai-engine.js
   2c6d7775bf92  src/js/24-selftest.js
   21fa92d2d484  src/js/99-boot.js
   ae8fbb00eb63  data/seed.json
@@ -6790,9 +6793,19 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'analytics.chart.col.critical': 'Critical',
     'analytics.chart.criticalNote': 'Fields marked critical are the ones a commercial decision needs.',
     'analytics.chart.yes': 'Yes',
-    'analytics.chart.ofTotal': '{pct} of {total}',
+    'analytics.chart.ofTotal': '{n} of {m}',
     'analytics.chart.tip.plain': '{label}: {value}',
     'analytics.chart.empty': 'Nothing to plot for the current selection.',
+    'analytics.coverage.action.field': 'Show the records missing {field}',
+
+    /* --- map (§9, §10) --- */
+    'map.radius.label': '{km} km — {n} properties',
+    'map.legend.confidence.note': 'Confidence describes the evidence behind a record, not whether it is right. Most of this dataset came from one source on one date.',
+    'map.legend.completeness.note': 'How many of the eight commercially critical fields a record holds. This is the encoding with real variance in this dataset.',
+    // §10 / D5: the slot exists so the architecture is visible, and it is empty
+    // because inventing station coordinates would be exactly what §2.2 forbids.
+    'map.layers.context.reason': 'No verified source is loaded in this build. Metro, road and landmark layers need a dataset we can cite — import a GeoJSON to populate this.',
+    'map.layers.analysis.open': 'Open the Layers panel',
     'empty.property.action.map': 'Pick one on the map'
   };
 
@@ -11354,6 +11367,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return m;
   }
 
+  /* Axis ticks land on clean numbers, so printing "20.0" where the tick is 20
+     adds a decimal the data never claimed. */
+  function autoNum(v) {
+    return F.num(v, Math.abs(v - Math.round(v)) < 1e-9 ? 0 : 1);
+  }
+
   function truncate(s, maxPx, px) {
     s = String(s === null || s === undefined ? '' : s);
     if (textW(s, px) <= maxPx) return s;
@@ -11497,10 +11516,10 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     inst.cov = el('p.chart__cov.coverage', {});
     inst.note = el('p.chart__cov.coverage', { hidden: true });
+    inst.hd = el('div.chart__hd', {}, [inst.title, inst.toggle]);
 
     inst.node = el('section.chart', { role: 'group', 'aria-labelledby': id + '-title' },
-                   [inst.hd = el('div.chart__hd', {}, [inst.title, inst.toggle]),
-                    inst.viewBox, inst.cov, inst.note]);
+                   [inst.hd, inst.viewBox, inst.cov, inst.note]);
 
     wirePlot(inst);
     if (inst.key) container.appendChild(inst.node);
@@ -11679,16 +11698,6 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return o;
   }
 
-  function tipLine(label, valueText, total) {
-    if (!(total > 0)) return t('analytics.chart.tip.plain', { category: label, value: valueText });
-    return t('analytics.chart.tooltip', {
-      category: label, n: valueText, m: F.int(total),
-      pct: F.pct(0, 0) === '' ? '' : F.pct((toNum(valueText) === null ? 0 : 0), 0)
-    });
-  }
-
-  function toNum(v) { return typeof v === 'number' ? v : null; }
-
   /* ============================================================== table ==== */
 
   /* The table view is not a fallback, it is the guarantee: no value in this
@@ -11812,7 +11821,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var share = shareText(row, total);
     var line = (total > 0 && share !== null)
       ? t('analytics.chart.tooltip', { category: row.label, n: valueText, m: F.int(total), pct: share })
-      : t('analytics.chart.tip.plain', { category: row.label, value: valueText });
+      : t('analytics.chart.tip.plain', { label: row.label, value: valueText });
     meta(inst, key, {
       line: line,
       extra: null,
@@ -11865,7 +11874,6 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     rows.forEach(function (r, i) {
       if (r.unknown) direct.push(unknownLabel(r, fmtV));
       else if (i === top) direct.push(fmtV(r.value));
-      else if (typeof r.value !== 'number') direct.push(t('common.insufficient'));
     });
     var labelPad = direct.length ? U.clamp(maxTextW(direct, TICK_PX) + 12, 44, 150) : 8;
 
@@ -11904,9 +11912,11 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       }));
 
       if (typeof r.value !== 'number') {
-        /* B: a suppressed mean is not a zero-length bar. It says so in words. */
+        /* B: a suppressed mean is not a zero-length bar. It says so in words,
+           on the plot, where the bar the reader is looking for would be. */
         labels.push(svgEl('text.c-tick', {
-          x: n2(x0 + 4), y: n2(cy), 'text-anchor': 'start', text: t('common.insufficient')
+          x: n2(x0 + 4), y: n2(cy), 'text-anchor': 'start',
+          text: truncate(t('common.insufficient'), scaleW + labelPad - 8, TICK_PX)
         }));
         registerBarMeta(inst, spec, r, key, fmtV, total);
         return;
@@ -12017,18 +12027,16 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       var cx = padL + band * i + band / 2;
       var x = cx - th / 2;
 
-      labels.push(svgEl('text.c-cat' + (r.unknown ? '.c-cat--unknown' : ''), {
+      /* A suppressed column has no mark at all — a column of zero height would
+         read as a measured zero. Its category label carries the recessive
+         unknown style and the table view states the reason in full. */
+      var suppressed = typeof r.value !== 'number';
+      labels.push(svgEl('text.c-cat' + (r.unknown || suppressed ? '.c-cat--unknown' : ''), {
         x: n2(cx), y: n2(baseY + 14), 'text-anchor': 'middle',
         text: truncate(r.label, band - 2, TICK_PX)
       }));
 
-      if (typeof r.value !== 'number') {
-        labels.push(svgEl('text.c-tick', {
-          x: n2(cx), y: n2(baseY - 6), 'text-anchor': 'middle', text: '·'
-        }));
-        registerBarMeta(inst, spec, r, key, fmtV, total);
-        return;
-      }
+      if (suppressed) return;
 
       var len = sy(r.value);
       marks.push({
@@ -12098,8 +12106,10 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       x1: n2(padL), y1: n2(axisY), x2: n2(padL + plotW), y2: n2(axisY)
     })]);
 
+    /* Mean / median rules are labelled in words beside the plot: a bare dashed
+       line is a threshold the reader has to guess at. */
     var marks = [], labels = [];
-    (spec.refs || []).forEach(function (ref, i) {
+    (spec.refs || []).forEach(function (ref) {
       if (typeof ref.value !== 'number') return;
       var x = sx(ref.value);
       labels.push(svgEl('line.c-ref', { x1: n2(x), y1: n2(padT - 8), x2: n2(x), y2: n2(padT + LANE_H) }));
@@ -12108,7 +12118,6 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
         'text-anchor': x > padL + plotW - 60 ? 'end' : 'start',
         text: ref.label
       }));
-      void i;
     });
 
     pts.forEach(function (p, i) {
@@ -12124,11 +12133,11 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       if (spec.onPointClick) {
         attrs.tabindex = '0';
         attrs.role = 'button';
-        attrs['aria-label'] = t('analytics.chart.tip.plain', { category: p.label, value: fmtV(p.value) });
+        attrs['aria-label'] = t('analytics.chart.tip.plain', { label: p.label, value: fmtV(p.value) });
       }
       marks.push({ key: key, tag: 'circle', attrs: attrs });
       meta(inst, key, {
-        line: t('analytics.chart.tip.plain', { category: p.label, value: fmtV(p.value) }),
+        line: t('analytics.chart.tip.plain', { label: p.label, value: fmtV(p.value) }),
         extra: p.sub || null,
         note: spec.coverageText || null,
         onActivate: spec.onPointClick ? function (ev) { spec.onPointClick(p, ev); } : null
@@ -12137,13 +12146,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     syncMarks(inst.gMarks, marks);
     Q.fill(inst.gLab, labels);
 
-    var axis = [];
+    var axis = [], tickFmt = spec.tickFormat || autoNum;
     ticksInRange(d0, d1, U.clamp(Math.round(plotW / 80), 2, 7)).forEach(function (v) {
-      var x = sx(v);
-      var half = textW((spec.tickFormat || fmtV)(v), TICK_PX) / 2;
+      var half = textW(tickFmt(v), TICK_PX) / 2;
       axis.push(svgEl('text.c-tick', {
-        x: n2(U.clamp(x, padL + half, padL + plotW - half)), y: n2(padT + LANE_H + 14),
-        'text-anchor': 'middle', text: (spec.tickFormat || fmtV)(v)
+        x: n2(U.clamp(sx(v), padL + half, Math.max(padL + half, padL + plotW - half))),
+        y: n2(padT + LANE_H + 14), 'text-anchor': 'middle', text: tickFmt(v)
       }));
     });
     if (spec.axisTitle) {
@@ -12187,6 +12195,14 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
      for two touching segments. The pair `n of N` is the datum here rather than
      decoration, so it is rendered as a recessive value column in a text token —
      never as a number riding the mark. */
+  function rowHit(spec, row, attrs) {
+    if (!spec.onRowClick) return attrs;
+    attrs.tabindex = '0';
+    attrs.role = 'button';
+    attrs['aria-label'] = t('analytics.coverage.action.field', { field: row.label });
+    return attrs;
+  }
+
   function drawCoverage(inst) {
     var spec = inst.spec, rows = spec.rows || [];
     var W = measure(inst);
@@ -12219,33 +12235,37 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       var cy = y + COV_TH / 2 + 4;
       var share = r.N > 0 ? r.n / r.N : 0;
       var knownLen = scaleW * share;
-      var label = r.label + (r.critical ? ' *' : '');
 
+      /* The critical mark is an asterisk keyed to a footnote, not a colour:
+         "critical" has to survive greyscale print and colour-vision
+         deficiency. The label is truncated BEFORE the mark is appended, so
+         the mark is never the character that gets cut. */
       labels.push(svgEl('text.c-cat' + (r.n ? '' : '.c-cat--unknown'), {
         x: n2(gutter - 8), y: n2(cy), 'text-anchor': 'end',
-        text: truncate(label, gutter - 12, CAT_PX)
+        text: truncate(r.label, gutter - 12 - (r.critical ? 10 : 0), CAT_PX) + (r.critical ? ' *' : '')
       }));
 
       if (knownLen > 0.5) {
         marks.push({
           key: key + ':known', tag: 'path',
-          attrs: interactive(
-            spec.onRowClick ? { onBarClick: spec.onRowClick } : {}, r,
-            { 'class': 'c-bar' + (spec.onRowClick ? ' c-bar--clickable' : ''),
-              d: hBarPath(x0, y, knownLen, COV_TH, END_R) })
+          attrs: rowHit(spec, r, {
+            'class': 'c-bar' + (spec.onRowClick ? ' c-bar--clickable' : ''),
+            d: hBarPath(x0, y, knownLen, COV_TH, END_R)
+          })
         });
       }
 
-      /* A: the unknown remainder is always drawn and always hatched. */
+      /* A: the unknown remainder is always drawn and always hatched. The 2px
+         gap is the mark spec's rule for two touching segments of one row. */
       var unkStart = x0 + (knownLen > 0.5 ? knownLen + SEG_GAP : 0);
       var unkLen = x0 + scaleW - unkStart;
       if (unkLen > 0.5 && r.n < r.N) {
         marks.push({
           key: key + ':unknown', tag: 'path',
-          attrs: paint(inst, {}, { unknown: true }, {
+          attrs: rowHit(spec, r, paint(inst, {}, { unknown: true }, {
             'class': 'c-bar c-bar--unknown',
             d: hBarPath(unkStart, y, unkLen, COV_TH, END_R)
-          })
+          }))
         });
       }
 
@@ -12277,9 +12297,9 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     });
     Q.fill(inst.gAxis, axis);
 
-    /* The asterisk needs its key, and the note line is the only place to put
-       it that survives greyscale and colour-vision deficiency. */
-    if (anyCritical && !spec.note) setText(inst.note, t('analytics.chart.criticalNote'));
+    /* The asterisk needs its key. The '* ' prefix is punctuation tying the mark
+       to the sentence, not a string — the sentence itself is translated. */
+    if (anyCritical && !spec.note) setText(inst.note, '* ' + t('analytics.chart.criticalNote'));
 
     svgFrame(inst, W, H, !!spec.onRowClick);
   }
@@ -12300,7 +12320,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
           cells: [{
             text: r.label,
             action: spec.onRowClick ? function (ev) { spec.onRowClick(r, ev); } : null,
-            actionLabel: spec.onRowClick ? t('analytics.coverage.action') : null
+            actionLabel: spec.onRowClick ? t('analytics.coverage.action.field', { field: r.label }) : null
           }, {
             text: t('analytics.chart.ofTotal', { n: F.int(r.n), m: F.int(r.N) }), num: true
           }, {
@@ -12443,6 +12463,1440 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       refresh(inst);
     });
   });
+}(window));
+
+</script>
+<script>
+/* ==== src/js/11-map.js ==== */
+/* ===========================================================================
+ * 11-map — the Leaflet map: divIcon markers, districts, radii, AI layers
+ *
+ * Brief §9, §10, §16; build contract T2, T7, T8, D5; visual-system §3.
+ *
+ * Four things here are not obvious and are the reason this file looks the way
+ * it does.
+ *
+ * 1. T2 — THERE ARE NO IMAGE ASSETS. `vendor/leaflet.js` derives its marker
+ *    image path from the `<script>` element's `src`, and the assembler INLINES
+ *    that script, so it has no `src` and every default icon 404s. Therefore:
+ *    `L.divIcon` exclusively, never `L.Icon.Default`, never `L.Control.Layers`
+ *    (it loads `layers.png`). The layer control below is our own, mounted into
+ *    `#maplayers-panel`, which the shell already ships. The only network
+ *    requests this module may cause are OSM tiles.
+ *
+ * 2. THE LETTER INSIDE THE CIRCLE IS THE POINT (visual-system §3). Identity
+ *    never depends on colour alone, so every mark carries its class letter
+ *    (`A+ A B+ B C ?`), its confidence initial, or its recorded-field count.
+ *    The label colour is derived MECHANICALLY at runtime from the resolved
+ *    fill — white at >= 4.5:1 against white, otherwise ink — so re-tuning the
+ *    ramp in `01-tokens.css` cannot silently leave an unreadable label behind.
+ *
+ * 3. CANVAS CANNOT WEAR A CSS CLASS. `preferCanvas: true` is required for the
+ *    district polygons to stay smooth, but a canvas-rendered path ignores
+ *    `className`, so its colours have to be passed to Leaflet as values. They
+ *    are read from the CSS custom properties rather than retyped, keeping
+ *    `01-tokens.css` the single source of truth. The radius rings go the other
+ *    way — they use the SVG renderer precisely so the `.geo-radius--draw`
+ *    sweep in `05-map.css` can run.
+ *
+ * 4. EVERYTHING WORKS WITH ZERO TILES (T7). A tile failure swaps the basemap
+ *    for the neutral graticule and posts one notice; markers, polygons, radii,
+ *    labels, clustering and every figure carry on untouched.
+ *
+ * State discipline: this module reads the state object it is handed and writes
+ * only through `GEO.state.set`. It owns R3/R4 — `#map`, `.mapchrome`,
+ * `#maplayers-panel`, `#maplegend`, `#map-notice` — and touches nothing else.
+ * ========================================================================= */
+(function (w) {
+  'use strict';
+
+  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt, S = GEO.schema;
+  var t = GEO.i18n.t;
+  var M = GEO.map = {};
+
+  /* ------------------------------------------------------------ constants */
+
+  var TASHKENT = [41.3111, 69.2797];
+  var MIN_ZOOM = 10;                 /* M-05: the city fits at z10; below it is noise */
+  var MAX_ZOOM = 18;
+  var FIT_PADDING = 48;              /* M-06 */
+  var TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
+  var OSM_COPYRIGHT = 'https://www.openstreetmap.org/copyright';
+
+  /* X-E1: one failed tile is a hiccup, eight in five seconds is an outage. */
+  var TILE_FAIL_LIMIT = 8;
+  var TILE_FAIL_WINDOW_MS = 5000;
+
+  /* T8, verbatim. */
+  var CLUSTER = {
+    disableClusteringAtZoom: 13,
+    maxClusterRadius: 40,
+    spiderfyOnMaxZoom: true
+  };
+
+  var ENCODINGS = ['officeClass', 'confidence', 'completeness'];
+
+  var CLASS_KEY = { 'A+': 'aPlus', 'A': 'a', 'B+': 'bPlus', 'B': 'b', 'C': 'c' };
+  var CONF_LETTER = { High: 'H', Medium: 'M', Low: 'L', Unknown: '?' };
+
+  /* Token name per encoding value. The CSS already fills the pin from these;
+     they are repeated here only for the legend swatches (which have no data
+     attribute for confidence/completeness) and for the mechanical ink rule. */
+  var CLASS_TOKEN = {
+    'A+': '--class-aplus', 'A': '--class-a', 'B+': '--class-bplus',
+    'B': '--class-b', 'C': '--class-c'
+  };
+  var CONF_TOKEN = {
+    High: '--conf-high', Medium: '--conf-medium',
+    Low: '--conf-low', Unknown: '--conf-unknown'
+  };
+  var CMPL_TOKEN = {
+    good: '--class-aplus', partial: '--class-bplus',
+    minimal: '--class-c', none: '--class-unknown'
+  };
+
+  /* ------------------------------------------------- view bookkeeping only */
+  /* None of this is application data. Records live in `GEO.data`, application
+     state lives in `GEO.state`; what is held here is a Leaflet handle, a render
+     signature (a string) and a couple of DOM restoration hints. */
+
+  var map = null;
+  var tiles = null;
+  var cluster = null;
+  var canvasRenderer = null;
+  var svgRenderer = null;
+
+  var markers = {};            /* id -> { marker, sig } */
+  var districtLayers = {};     /* key -> L.GeoJSON */
+  var radiusGroup = null;
+  var contextGroup = null;
+  var layerGroups = {};        /* aiLayer id -> L.LayerGroup of its own artefacts */
+
+  var districtSig = null;
+  var legendSig = null;
+  var layerPanelSig = null;
+  var lastFitToken = null;
+  var lastSelected = null;
+  var legendCollapsed = null;  /* M-10: null until the first render knows the breakpoint */
+  var tileFails = [];
+  var chromeWired = false;
+  var registered = false;
+  var railsBeforeFullscreen = null;
+
+  /* ========================================================================
+   * Colour: resolve the visual system once, then do arithmetic on it
+   * ===================================================================== */
+
+  var palette = null;
+
+  /** Read a CSS custom property, falling back to the visual-system hex so the
+   *  map still draws if the stylesheet has not applied yet. */
+  function token(name, fallback) {
+    if (!palette) {
+      palette = { _cs: w.getComputedStyle(document.documentElement), _v: {} };
+    }
+    if (palette._v[name] === undefined) {
+      var raw = '';
+      try { raw = palette._cs.getPropertyValue(name); } catch (e) { raw = ''; }
+      raw = String(raw || '').trim();
+      palette._v[name] = raw || fallback;
+    }
+    return palette._v[name];
+  }
+
+  var WHITE = '#FFFFFF';
+  var INK = '#1A1714';
+
+  function channel(c) {
+    c = c / 255;
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+
+  function luminance(hex) {
+    var h = String(hex).trim().replace('#', '');
+    if (h.length === 3) h = h[0] + h[0] + h[1] + h[1] + h[2] + h[2];
+    if (h.length !== 6) return 0;
+    return 0.2126 * channel(parseInt(h.slice(0, 2), 16)) +
+           0.7152 * channel(parseInt(h.slice(2, 4), 16)) +
+           0.0722 * channel(parseInt(h.slice(4, 6), 16));
+  }
+
+  function contrast(a, b) {
+    var la = luminance(a), lb = luminance(b);
+    return (Math.max(la, lb) + 0.05) / (Math.min(la, lb) + 0.05);
+  }
+
+  /**
+   * visual-system §3: "use white when contrast(fill, #FFFFFF) >= 4.5, otherwise
+   * ink" — stated as mechanical, with no judgement, so it is computed rather
+   * than transcribed. On the shipped ramp this yields white on A+/A/B+ and ink
+   * on B/C, which is what the table says; the value of computing it is that a
+   * future ramp edit cannot leave an unreadable label behind.
+   */
+  function labelInk(fill) {
+    return contrast(fill, WHITE) >= 4.5 ? WHITE : INK;
+  }
+
+  /* ---------------------------------------------------------------- motion */
+
+  /** §25 / IA §6.5: reduced motion disables map pan-zoom easing as well as
+   *  transitions, so every view change has to ask before it animates. */
+  function animates() {
+    var mode = document.documentElement.getAttribute('data-motion');
+    if (mode === 'full') return true;
+    if (mode === 'reduce') return false;
+    try { return !w.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+    catch (e) { return true; }
+  }
+
+  function viewOpts(extra) {
+    var o = { animate: animates() };
+    if (!o.animate) o.duration = 0;
+    return extra ? Object.assign(o, extra) : o;
+  }
+
+  /** M-02: a tooltip that needs a hover is a trap on touch, where a tap selects. */
+  function hasHover() {
+    try { return !w.matchMedia('(hover: none)').matches; }
+    catch (e) { return true; }
+  }
+
+  /* ========================================================================
+   * Marks
+   * ===================================================================== */
+
+  function completenessOf(rec) {
+    if (GEO.quality && GEO.quality.completeness) {
+      try { return GEO.quality.completeness(rec); } catch (e) { /* fall through */ }
+    }
+    var n = 0;
+    S.criticalFields.forEach(function (k) { if (U.isKnown(rec[k])) n++; });
+    return { known: n, total: S.criticalFields.length,
+             band: n === 0 ? 'none' : (n <= 2 ? 'minimal' : (n <= 5 ? 'partial' : 'good')) };
+  }
+
+  /**
+   * What one record looks like under the active encoding.
+   * `attr` is the data attribute the CSS fills from; `fill` and `ink` are the
+   * resolved values, used for the legend swatch and the mechanical label rule.
+   * Unknown is always the neutral and never a step of the ramp (§36).
+   */
+  function encode(rec, mode) {
+    if (mode === 'confidence') {
+      var c = GEO.data.recordConfidence(rec);
+      var cf = token(CONF_TOKEN[c] || '--conf-unknown', '#8A8178');
+      return { attr: 'data-conf', key: c, letter: CONF_LETTER[c] || '?',
+               fill: cf, ink: labelInk(cf), unknown: c === 'Unknown' };
+    }
+    if (mode === 'completeness') {
+      var b = completenessOf(rec);
+      var bf = token(CMPL_TOKEN[b.band] || '--class-unknown', '#8A8178');
+      // The digit is the count of recorded critical fields: more informative
+      // than a letter and, unlike a band name, it cannot be confused with a grade.
+      return { attr: 'data-cmpl', key: b.band, letter: String(b.known),
+               fill: bf, ink: labelInk(bf), unknown: b.band === 'none' };
+    }
+    var known = U.isKnown(rec.officeClass);
+    var k = known ? rec.officeClass : 'unknown';
+    var f = token(known ? CLASS_TOKEN[rec.officeClass] : '--class-unknown', '#8A8178');
+    return { attr: 'data-class', key: k, letter: known ? rec.officeClass : '?',
+             fill: f, ink: labelInk(f), unknown: !known };
+  }
+
+  /** D6: an unresolved duplicate group is disclosed on the map, never merged away. */
+  function isDuplicate(rec) {
+    var m = rec._meta || {};
+    return !!(m.possibleDuplicate ||
+              (m.duplicateGroupId && m.duplicateVerdict !== 'different_buildings'));
+  }
+
+  function pinClasses(rec, flags) {
+    var c = ['pin'];
+    if (flags.selected) c.push('pin--selected');
+    else if (flags.hover) c.push('pin--hover');
+    if (rec.recordType === 'DEMO') c.push('pin--demo');
+    if (isDuplicate(rec)) c.push('pin--dupe');
+    if (flags.inLayer) c.push('pin--layer');
+    if (flags.muted) c.push('pin--muted');
+    return c.join(' ');
+  }
+
+  /** The icon. `html` is given as an Element — Leaflet 1.9 appends it rather
+   *  than assigning innerHTML — so no data-derived string is ever parsed. */
+  function pinIcon(rec, mode, flags) {
+    var e = encode(rec, mode);
+    var attrs = { 'class': pinClasses(rec, flags), 'aria-hidden': 'true' };
+    attrs[e.attr] = e.key;
+    attrs.style = 'color:' + e.ink;                 /* the mechanical label rule */
+    var pin = el('span', attrs, [el('span.pin__label', { text: e.letter })]);
+    return L.divIcon({
+      className: 'geo-marker' + (flags.selected ? ' geo-marker--top' : ''),
+      iconSize: [26, 26],
+      iconAnchor: [13, 13],
+      html: pin
+    });
+  }
+
+  /** M-02: name · class · district · confidence, built as NODES because the
+   *  name and the address are third-party scraped text and must never be parsed
+   *  as markup. */
+  function tooltipNode(rec) {
+    var cls = U.isKnown(rec.officeClass) ? rec.officeClass : t('value.class.unknown');
+    var conf = GEO.data.recordConfidence(rec);
+    var kids = [
+      el('span', { text: t('map.tooltip', {
+        name: rec.name || F.UNKNOWN,
+        'class': cls,
+        district: GEO.data.districtName(rec.districtKey)
+      }) }),
+      el('span.coverage', { text: t('map.tooltip.confidence',
+        { level: t('value.confidence.' + String(conf).toLowerCase()) }) })
+    ];
+    if (rec.recordType === 'DEMO') kids.push(el('span.coverage', { text: t('map.legend.demo') }));
+    if (isDuplicate(rec)) kids.push(el('span.coverage', { text: t('map.legend.duplicate') }));
+    return el('div', {}, kids);
+  }
+
+  /* ========================================================================
+   * init
+   * ===================================================================== */
+
+  /**
+   * @param containerId  the shell's map node id
+   * @param opts         { centre, zoom } — optional initial view
+   */
+  M.init = function (containerId, opts) {
+    if (map) return map;
+    if (!w.L) throw new Error('Leaflet is not loaded');
+    opts = opts || {};
+
+    var node = document.getElementById(containerId || 'map');
+    if (!node) throw new Error('No map container "' + (containerId || 'map') + '"');
+
+    canvasRenderer = L.canvas({ padding: 0.5 });
+    svgRenderer = L.svg({ padding: 0.5 });
+
+    map = L.map(node, {
+      center: opts.centre || TASHKENT,
+      zoom: opts.zoom || 12,
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      preferCanvas: true,           /* districts and coverage hulls go to canvas */
+      renderer: canvasRenderer,
+      zoomControl: false,           /* M-05: .mapchrome is the only zoom UI */
+      attributionControl: true,     /* T7: mandatory and never removed */
+      fadeAnimation: animates(),
+      zoomAnimation: animates(),
+      markerZoomAnimation: animates()
+    });
+
+    // M-13: the map is ONE tab stop, not 148. The results list is the accessible
+    // equivalent path to every record, so the container says so out loud rather
+    // than leaving a keyboard user to discover that markers are unreachable.
+    node.setAttribute('role', 'application');
+    node.setAttribute('aria-label', t('map.aria') + ' ' + t('map.kbdNote'));
+
+    tiles = L.tileLayer(TILE_URL, {
+      minZoom: MIN_ZOOM,
+      maxZoom: MAX_ZOOM,
+      // Authored markup, not data: the one place an HTML string is legitimate.
+      attribution: '<a href="' + OSM_COPYRIGHT + '" target="_blank" rel="noreferrer">' +
+                   t('map.attribution') + '</a>'
+    });
+    tiles.on('tileerror', onTileError);
+    tiles.on('tileload', onTileLoad);
+    tiles.addTo(map);
+
+    L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
+
+    cluster = L.markerClusterGroup({
+      disableClusteringAtZoom: CLUSTER.disableClusteringAtZoom,
+      maxClusterRadius: CLUSTER.maxClusterRadius,
+      spiderfyOnMaxZoom: CLUSTER.spiderfyOnMaxZoom,
+      showCoverageOnHover: true,
+      zoomToBoundsOnClick: true,
+      animate: animates(),
+      chunkedLoading: true,
+      // T8: a cluster is CHROME. The hull it draws on hover is chrome too, so it
+      // wears --line-strong and an ink wash, never the data colour.
+      polygonOptions: {
+        renderer: canvasRenderer,
+        color: token('--line-strong', '#CFC9BF'), weight: 1,
+        fillColor: token('--ink', '#1A1714'), fillOpacity: 0.04
+      },
+      iconCreateFunction: clusterIcon
+    });
+    map.addLayer(cluster);
+
+    radiusGroup = L.layerGroup().addTo(map);
+    contextGroup = L.layerGroup().addTo(map);
+
+    // Offline at boot is known before a single tile is requested (X-E1).
+    if (w.navigator && w.navigator.onLine === false) setTiles(false);
+
+    wireMapEvents();
+    wireChrome();
+
+    // The rails animate `grid-template-columns` on `.app__body`, so the map's box
+    // really does change size. One invalidateSize when the transition ENDS is
+    // correct and cheap; doing it per frame would be sixty layouts per open.
+    var body = Q.$('.app__body');
+    if (body) {
+      body.addEventListener('transitionend', function (e) {
+        if (e.target === body && e.propertyName === 'grid-template-columns') M.invalidate();
+      });
+    }
+    w.addEventListener('resize', U.debounce(function () { M.invalidate(); }, 150));
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+
+    register();
+    map.whenReady(function () { M.invalidate(); });
+    return map;
+  };
+
+  M.instance = function () { return map; };
+  M.isReady = function () { return !!map; };
+
+  M.invalidate = function () {
+    if (map) map.invalidateSize({ animate: false, pan: false });
+  };
+
+  /* ------------------------------------------------------------- clusters */
+
+  /** T8 / visual-system §3: surface fill, --line-strong border, ink count. The
+   *  size band is geometry only — it never becomes a colour scale. */
+  function clusterIcon(c) {
+    var n = c.getChildCount();
+    var size = n < 10 ? 34 : (n < 100 ? 40 : 46);
+    var box = el('span.geo-cluster', { 'aria-hidden': 'true' },
+                 [el('span', { text: F.int(n) })]);
+    return L.divIcon({
+      className: 'marker-cluster',
+      iconSize: [size, size],
+      iconAnchor: [size / 2, size / 2],
+      html: box
+    });
+  }
+
+  /* ------------------------------------------------------------ map events */
+
+  function wireMapEvents() {
+    // The live viewport belongs in the one state object like everything else,
+    // but a write per frame would append a session-log line per frame. It is
+    // written once the movement has settled, and only when it actually changed.
+    var push = U.debounce(function () {
+      if (!map) return;
+      var c = map.getCenter(), z = map.getZoom();
+      var s = GEO.state.get();
+      if (s.map && s.map.zoom === z &&
+          Math.abs(s.map.centre[0] - c.lat) < 1e-6 &&
+          Math.abs(s.map.centre[1] - c.lng) < 1e-6) return;
+      GEO.state.set({ map: { centre: [c.lat, c.lng], zoom: z } },
+                    { source: 'system', action: 'map:view', summary: 'Map view moved' });
+    }, 500);
+
+    map.on('moveend', push);
+    map.on('zoomend', function () { push(); syncZoomButtons(); });
+  }
+
+  /* ------------------------------------------------------------ tile state */
+
+  function onTileError() {
+    var now = Date.now();
+    tileFails.push(now);
+    tileFails = tileFails.filter(function (ts) { return now - ts < TILE_FAIL_WINDOW_MS; });
+    if (tileFails.length >= TILE_FAIL_LIMIT) setTiles(false);
+  }
+
+  function onTileLoad() {
+    tileFails = [];
+    if (!GEO.state.get().tilesOk) setTiles(true);
+  }
+
+  function setTiles(ok) {
+    var wrap = Q.$('.mapwrap');
+    if (wrap) wrap.dataset.tiles = ok ? 'on' : 'off';
+    // M-11: the attribution link stays — it is mandatory — but it is greyed and
+    // says why it cannot be followed rather than pretending to work.
+    Q.$$('.leaflet-control-attribution a[href="' + OSM_COPYRIGHT + '"]').forEach(function (a) {
+      if (ok) { a.removeAttribute('data-offline'); a.removeAttribute('title'); }
+      else { a.setAttribute('data-offline', 'true'); a.setAttribute('title', t('map.attribution.offline')); }
+    });
+    if (GEO.state.get().tilesOk !== ok) {
+      GEO.state.set({ tilesOk: ok }, { source: 'system', action: 'map:tiles',
+        summary: ok ? 'Map tiles available' : 'Map tiles unavailable — data unaffected' });
+    }
+  }
+
+  function retryTiles() {
+    tileFails = [];
+    setTiles(true);
+    if (tiles) tiles.redraw();
+  }
+
+  /**
+   * R10-adjacent but map-owned: `#map-notice` carries the two things that are
+   * true of the MAP rather than of the app. Both can be true at once, so they
+   * stack instead of overwriting each other.
+   */
+  function renderNotice(state, rows) {
+    var box = Q.$('#map-notice');
+    if (!box) return;
+    var kids = [];
+
+    if (!state.tilesOk) {
+      kids.push(el('span', { text: t('map.tiles.offline') + ' ' + t('map.tiles.fallback') }));
+      kids.push(el('button.btn.btn--quiet.btn--sm', {
+        type: 'button', text: t('common.retry'), onclick: retryTiles
+      }));
+    }
+    if (!rows.length) kids.push(el('span', { text: t('map.empty') }));
+
+    Q.fill(box, kids);
+    box.hidden = kids.length === 0;
+  }
+
+  /* ========================================================================
+   * Records
+   * ===================================================================== */
+
+  /**
+   * §57: a layer is a saved result set, so its members stay on the map even when
+   * the live filters would hide them — otherwise "show me that layer" would
+   * silently return fewer properties than the layer says it holds.
+   */
+  function layerMembership(state) {
+    var member = {}, any = false;
+    (state.aiLayers || []).forEach(function (l) {
+      if (!l.visible) return;
+      any = true;
+      (l.recordIds || []).forEach(function (id) { member[id] = true; });
+    });
+    return { ids: member, any: any };
+  }
+
+  /**
+   * Draw the current result set.
+   * Markers are reconciled, never rebuilt wholesale: only the pins whose
+   * appearance actually changed get a new icon, so selecting a property costs
+   * two `setIcon` calls rather than 148.
+   */
+  M.renderRecords = function (rows, state) {
+    if (!map || !cluster) return;
+    if (!state.layerVisibility || state.layerVisibility.properties === false) {
+      clearMarkers();
+      return;
+    }
+
+    var mode = ENCODINGS.indexOf(state.markerEncoding) >= 0 ? state.markerEncoding : 'officeClass';
+    var lm = layerMembership(state);
+
+    var inResults = {};
+    rows.forEach(function (r) { inResults[r.id] = true; });
+
+    var wanted = rows.slice();
+    Object.keys(lm.ids).forEach(function (id) {
+      if (inResults[id]) return;
+      var rec = GEO.data.get(id);
+      if (rec) wanted.push(rec);
+    });
+
+    var keep = {}, add = [], drop = [];
+    wanted.forEach(function (rec) {
+      if (!U.isKnown(rec.lat) || !U.isKnown(rec.lng)) return;   // never plot a guess
+      keep[rec.id] = true;
+
+      var flags = {
+        selected: state.selectedId === rec.id,
+        hover: state.hoverId === rec.id,
+        inLayer: !!lm.ids[rec.id],
+        // "Muted" means context rather than focus: a record kept only because a
+        // layer needs it, or a non-member while a layer is the thing being read.
+        muted: !inResults[rec.id] || (lm.any && !lm.ids[rec.id])
+      };
+      var sig = [mode, flags.selected ? 1 : 0, flags.hover ? 1 : 0,
+                 flags.inLayer ? 1 : 0, flags.muted ? 1 : 0].join('');
+
+      var entry = markers[rec.id];
+      if (!entry) {
+        var marker = L.marker([rec.lat, rec.lng], {
+          icon: pinIcon(rec, mode, flags),
+          keyboard: false,                  /* M-13: the list is the keyboard path */
+          riseOnHover: false,
+          zIndexOffset: flags.selected ? 1000 : 0,
+          title: ''                         /* no browser tooltip; ours is richer */
+        });
+        marker.on('click', function () { select(rec.id); });
+        marker.on('mouseover', function () { setHover(rec.id); });
+        marker.on('mouseout', function () { setHover(null); });
+        if (hasHover()) {
+          marker.bindTooltip(tooltipNode(rec), { direction: 'top', offset: [0, -14], opacity: 1 });
+        }
+        markers[rec.id] = { marker: marker, sig: sig };
+        add.push(marker);
+      } else if (entry.sig !== sig) {
+        entry.sig = sig;
+        entry.marker.setIcon(pinIcon(rec, mode, flags));
+        entry.marker.setZIndexOffset(flags.selected ? 1000 : 0);
+      }
+    });
+
+    Object.keys(markers).forEach(function (id) {
+      if (keep[id]) return;
+      drop.push(markers[id].marker);
+      delete markers[id];
+    });
+
+    if (drop.length) cluster.removeLayers(drop);
+    if (add.length) cluster.addLayers(add);
+
+    if (state.selectedId !== lastSelected) {
+      lastSelected = state.selectedId;
+      expandSelectedCluster(state.selectedId);
+    }
+  };
+
+  function clearMarkers() {
+    if (cluster) cluster.clearLayers();
+    markers = {};
+    lastSelected = null;
+  }
+
+  /**
+   * C6b / T8: a selected property that is swallowed by a cluster is invisible,
+   * which makes "select from the list" look broken. Spiderfying the containing
+   * cluster reveals it WITHOUT moving the viewport — `zoomToShowLayer` would
+   * yank the map out from under the reader.
+   */
+  function expandSelectedCluster(id) {
+    if (!id || !cluster || !markers[id]) return;
+    var marker = markers[id].marker;
+    setTimeout(function () {
+      try {
+        var parent = cluster.getVisibleParent(marker);
+        if (parent && parent !== marker && typeof parent.spiderfy === 'function') parent.spiderfy();
+      } catch (e) { GEO.log.warn('cluster expand failed', e); }
+    }, 0);
+  }
+
+  function select(id) {
+    GEO.state.set({ selectedId: id, rightRail: 'open', rightTab: 'property' },
+                  { source: 'user', action: 'map:select',
+                    summary: 'Selected ' + ((GEO.data.get(id) || {}).name || id) });
+  }
+
+  function setHover(id) {
+    if (GEO.state.get().hoverId === id) return;
+    GEO.state.set({ hoverId: id }, { source: 'user', action: 'map:hover' });
+  }
+
+  /* ------------------------------------------------------------- encoding */
+
+  /** S-04. The only writer is `GEO.state.set`; the re-render follows from the
+   *  subscription, exactly as it would if the assistant had set it. */
+  M.setEncoding = function (mode) {
+    if (ENCODINGS.indexOf(mode) < 0) {
+      GEO.log.warn('map: unknown marker encoding', mode);
+      return GEO.state.get();
+    }
+    return GEO.state.set({ markerEncoding: mode },
+      { source: 'user', action: 'map:encoding',
+        summary: 'Markers coloured by ' + t('map.legend.' + encodingKey(mode)) });
+  };
+
+  function encodingKey(mode) {
+    return mode === 'confidence' ? 'confidence' : (mode === 'completeness' ? 'completeness' : 'class');
+  }
+
+  /* ========================================================================
+   * Legend
+   * ===================================================================== */
+
+  function legendRow(swatchKey, fill, label, count) {
+    var sw = el('span.maplegend__swatch', { 'aria-hidden': 'true' });
+    // The unknown swatch is hatched by the stylesheet, so it must NOT be given
+    // an inline background — the texture is what carries it in greyscale (§5).
+    if (swatchKey === 'unknown') sw.setAttribute('data-class', 'unknown');
+    else if (fill) sw.style.background = fill;
+    return el('div.maplegend__row', {}, [
+      sw,
+      el('span', { text: label }),
+      el('span.maplegend__count', { text: F.int(count) })
+    ]);
+  }
+
+  /**
+   * The legend carries its own denominator. A ramp with no counts under it is a
+   * colour key; a ramp with counts is a statement about coverage, which is what
+   * §36 asks every number on screen to be.
+   */
+  M.renderLegend = function (state, rows) {
+    var box = Q.$('#maplegend');
+    if (!box) return;
+
+    var mode = ENCODINGS.indexOf(state.markerEncoding) >= 0 ? state.markerEncoding : 'officeClass';
+    if (legendCollapsed === null) {
+      legendCollapsed = (state.bp === 's' || state.bp === 'xs' || state.bp === 'xxs' || state.bp === 'm');
+    }
+
+    var counts = {}, unknownCount = 0, order, labelOf, tokenOf, coverageField;
+
+    if (mode === 'confidence') {
+      order = ['High', 'Medium', 'Low'];
+      tokenOf = function (k) { return token(CONF_TOKEN[k], '#8A8178'); };
+      labelOf = function (k) { return t('value.confidence.' + k.toLowerCase()); };
+      coverageField = t('map.legend.confidence');
+      rows.forEach(function (r) {
+        var c = GEO.data.recordConfidence(r);
+        if (c === 'Unknown') unknownCount++; else counts[c] = (counts[c] || 0) + 1;
+      });
+    } else if (mode === 'completeness') {
+      order = ['good', 'partial', 'minimal'];
+      tokenOf = function (k) { return token(CMPL_TOKEN[k], '#8A8178'); };
+      labelOf = function (k) { return t('value.completeness.' + k); };
+      coverageField = t('map.legend.completeness');
+      rows.forEach(function (r) {
+        var b = completenessOf(r).band;
+        if (b === 'none') unknownCount++; else counts[b] = (counts[b] || 0) + 1;
+      });
+    } else {
+      order = S.enums.officeClass;
+      tokenOf = function (k) { return token(CLASS_TOKEN[k], '#8A8178'); };
+      labelOf = function (k) { return t('value.class.' + CLASS_KEY[k]); };
+      coverageField = F.lower(S.label('officeClass'));
+      rows.forEach(function (r) {
+        if (U.isKnown(r.officeClass)) counts[r.officeClass] = (counts[r.officeClass] || 0) + 1;
+        else unknownCount++;
+      });
+    }
+
+    var known = rows.length - unknownCount;
+    var demoCount = rows.filter(function (r) { return r.recordType === 'DEMO'; }).length;
+    var dupeCount = rows.filter(isDuplicate).length;
+
+    var sig = [mode, rows.length, unknownCount, demoCount, dupeCount,
+               legendCollapsed ? 1 : 0,
+               order.map(function (k) { return counts[k] || 0; }).join(',')].join('|');
+    if (sig === legendSig && box.firstChild) return;
+    legendSig = sig;
+
+    var body = el('div.maplegend__body', {}, order.map(function (k) {
+      return legendRow(k, tokenOf(k), labelOf(k), counts[k] || 0);
+    }));
+
+    // Never dropped: hiding the unknown bucket would misrepresent coverage (§5).
+    body.appendChild(legendRow('unknown', null,
+      mode === 'completeness' ? t('value.completeness.none') : t('map.legend.unknown'),
+      unknownCount));
+
+    // The glyph rows explain the two marks that are NOT part of the ramp. Their
+    // swatches are drawn inline rather than reusing `.pin--demo` / `.pin--dupe`,
+    // whose pseudo-elements are positioned against a `.pin` that does not exist
+    // here — a legend key that quietly renders nothing is worse than no key.
+    if (demoCount) {
+      body.appendChild(el('div.maplegend__row', {}, [
+        el('span.maplegend__swatch', { 'aria-hidden': 'true',
+          style: 'background:transparent;box-shadow:none;border:2px dashed ' +
+                 token('--line-strong', '#CFC9BF') }),
+        el('span', { text: t('map.legend.demo') }),
+        el('span.maplegend__count', { text: F.int(demoCount) })
+      ]));
+    }
+    if (dupeCount) {
+      body.appendChild(el('div.maplegend__row', {}, [
+        el('span.maplegend__swatch', { 'aria-hidden': 'true', text: '✱',
+          style: 'display:flex;align-items:center;justify-content:center;' +
+                 'background:' + token('--surface', '#FFFFFF') + ';color:' + INK +
+                 ';font-size:9px;box-shadow:0 0 0 1px ' + token('--line-strong', '#CFC9BF') }),
+        el('span', { text: t('map.legend.duplicate') }),
+        el('span.maplegend__count', { text: F.int(dupeCount) })
+      ]));
+    }
+
+    body.appendChild(el('p.coverage', { text: GEO.i18n.coverageLine(known, rows.length, coverageField) }));
+    body.appendChild(el('p.coverage', {
+      text: mode === 'confidence' ? t('map.legend.confidence.note')
+          : mode === 'completeness' ? t('map.legend.completeness.note')
+          : t('map.legend.unknown.note')
+    }));
+
+    var head = el('button.maplegend__hd', {
+      type: 'button',
+      'aria-expanded': legendCollapsed ? 'false' : 'true',
+      title: legendCollapsed ? t('map.legend.expand') : t('map.legend.collapse'),
+      onclick: function () {
+        legendCollapsed = !legendCollapsed;
+        legendSig = null;
+        M.renderLegend(GEO.state.get(), rows);
+      }
+    }, [
+      el('span', { text: t('map.legend.title') + ' — ' + t('map.legend.' + encodingKey(mode)) }),
+      el('span', { 'aria-hidden': 'true', text: legendCollapsed ? '▸' : '▾' })
+    ]);
+
+    box.dataset.collapsed = legendCollapsed ? 'true' : 'false';
+    Q.fill(box, [head, body]);
+  };
+
+  /* ========================================================================
+   * Districts (D1 — geometry is authoritative, so the polygon is the truth)
+   * ===================================================================== */
+
+  function districtStyle(on, empty) {
+    var red = token('--case-red', '#B01F22');
+    return {
+      renderer: canvasRenderer,
+      // Canvas ignores className, but it is set anyway so an SVG fallback, a
+      // print stylesheet and the DOM inspector all still read correctly.
+      className: 'geo-district' + (on ? ' geo-district--on' : '') + (empty ? ' geo-district--empty' : ''),
+      color: on ? red : token('--line-strong', '#CFC9BF'),
+      weight: on ? 2 : 1,
+      opacity: 1,
+      fill: true,
+      fillColor: on ? red : token('--ink', '#1A1714'),
+      fillOpacity: on ? 0.07 : 0.04,
+      // A dashed edge says "zero records here, and we know it" — a recorded
+      // zero, not a gap in the data (Yangihayot and Bektemir, per the oracle).
+      dashArray: empty ? '4 3' : null,
+      interactive: true
+    };
+  }
+
+  /**
+   * @param districts  [{ key, name, geometry }] — `GEO.data.districts()`, which
+   *                   is `window.GEO_DISTRICTS` matched onto the seed's district
+   *                   list at load.
+   * @param rows       optional; the result set the per-district counts describe.
+   *                   Defaults to the current selection rather than to nothing,
+   *                   because a zero count is drawn as a dashed "recorded zero"
+   *                   and inventing twelve of those would be a lie.
+   */
+  M.renderDistricts = function (districts, state, rows) {
+    if (!map) return;
+    var visible = !state.layerVisibility || state.layerVisibility.districts !== false;
+    var labels = !!(state.layerVisibility && state.layerVisibility.labels);
+    var list = districts || GEO.data.districts();
+    var selected = (state.filters && state.filters.districts) || [];
+    if (!rows) rows = GEO.boot && GEO.boot.visible ? GEO.boot.visible(state) : [];
+
+    var counts = {};
+    rows.forEach(function (r) {
+      if (U.isKnown(r.districtKey)) counts[r.districtKey] = (counts[r.districtKey] || 0) + 1;
+    });
+
+    var sig = [visible ? 1 : 0, labels ? 1 : 0, selected.slice().sort().join(','),
+               list.map(function (d) { return d.key + ':' + (counts[d.key] || 0); }).join('|')].join('#');
+    if (sig === districtSig) return;
+    districtSig = sig;
+
+    Object.keys(districtLayers).forEach(function (k) {
+      map.removeLayer(districtLayers[k]);
+      delete districtLayers[k];
+    });
+    if (!visible) return;
+
+    list.forEach(function (d) {
+      if (!d.geometry) return;                       // no invented boundaries (§2.2)
+      var count = counts[d.key] || 0;
+      var on = selected.indexOf(d.key) >= 0;
+      var base = districtStyle(on, count === 0);
+
+      var gj = L.geoJSON(d.geometry, { style: base, renderer: canvasRenderer });
+
+      var label = el('span', {}, [
+        el('strong', { text: d.name }),
+        document.createTextNode(' · ' + F.int(count))
+      ]);
+      gj.bindTooltip(label, {
+        permanent: labels, direction: 'center', className: 'geo-dlabel',
+        opacity: 1, sticky: !labels
+      });
+
+      gj.on('mouseover', function () {
+        gj.setStyle({ fillOpacity: on ? 0.10 : 0.09 });
+      });
+      gj.on('mouseout', function () {
+        gj.setStyle({ fillOpacity: base.fillOpacity });
+      });
+      // M-04: a polygon click is the same filter as the L-05 checkbox, written
+      // to the same place — which is what keeps the two from disagreeing.
+      gj.on('click', function (e) {
+        if (e && e.originalEvent) L.DomEvent.stop(e.originalEvent);
+        toggleDistrict(d.key);
+      });
+
+      gj.addTo(map);
+      if (gj.bringToBack) gj.bringToBack();
+      districtLayers[d.key] = gj;
+    });
+  };
+
+  function toggleDistrict(key) {
+    var s = GEO.state.get();
+    var next = (s.filters.districts || []).slice();
+    var i = next.indexOf(key);
+    if (i >= 0) next.splice(i, 1); else next.push(key);
+    GEO.state.set({ filters: { districts: next } },
+      { source: 'user', action: 'map:districtFilter',
+        summary: (i >= 0 ? 'Removed ' : 'Added ') + GEO.data.districtName(key) + ' district filter' });
+  }
+
+  /* ========================================================================
+   * Radius rings (§16)
+   * ===================================================================== */
+
+  /**
+   * @param analysis  `GEO.geo.locationAnalysis(...)`, or null to clear.
+   *
+   * Rendered with the SVG renderer rather than the map's canvas default, so the
+   * `.geo-radius` classes — including the 200 ms sweep, which reduced motion
+   * collapses to a static circle — actually apply.
+   */
+  M.renderRadius = function (analysis) {
+    if (!map || !radiusGroup) return;
+    radiusGroup.clearLayers();
+    if (!analysis || !analysis.subject) return;
+
+    var subj = analysis.subject;
+    if (!U.isKnown(subj.lat) || !U.isKnown(subj.lng)) return;
+    var origin = [subj.lat, subj.lng];
+    var emphasis = analysis.competitiveBandKm;
+
+    // Largest first so the small rings stay clickable-through and on top.
+    analysis.bands.slice().sort(function (a, b) { return b.km - a.km; }).forEach(function (band) {
+      var on = band.km === emphasis;
+      L.circle(origin, {
+        renderer: svgRenderer,
+        radius: band.km * 1000,
+        className: 'geo-radius' + (on ? ' geo-radius--on' : '') + (animates() ? ' geo-radius--draw' : ''),
+        color: token('--case-red', '#B01F22'),
+        weight: on ? 2 : 1.5,
+        opacity: on ? 1 : 0.45,
+        fillColor: token('--case-red', '#B01F22'),
+        fillOpacity: on ? 0.06 : 0.03,
+        interactive: false
+      }).addTo(radiusGroup);
+
+      // Each ring is labelled with its band AND its count: a circle with no
+      // number on it is decoration, and the three counts have to be readable
+      // together because the bands are cumulative (§7 of the build contract).
+      var dLat = (band.km * 1000) / 111320;
+      var chip = el('span.geo-radius-label', {
+        style: 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-block',
+        text: t('map.radius.label', { km: F.num(band.km, 0), n: F.int(band.count) })
+      });
+      L.marker([origin[0] + dLat, origin[1]], {
+        interactive: false,
+        keyboard: false,
+        icon: L.divIcon({ className: 'geo-marker', iconSize: [96, 20], iconAnchor: [48, 10], html: chip })
+      }).addTo(radiusGroup);
+    });
+  };
+
+  /* ========================================================================
+   * AI layers (§57) — a saved result set, not a live rule
+   * ===================================================================== */
+
+  /**
+   * Member markers are handled in `renderRecords` (they wear `.pin--layer`, and
+   * non-members are muted rather than deleted). This function owns everything
+   * ELSE a layer may put on the map — today, the ring a layer built from a
+   * radius search carries with it. Removing a layer removes its group whole,
+   * which is the §9 "removing a layer removes its map artefacts, circles
+   * included" guarantee expressed as structure rather than as a checklist.
+   */
+  M.renderAiLayers = function (layers) {
+    if (!map) return;
+    layers = layers || [];
+
+    var live = {};
+    layers.forEach(function (l) { if (l.visible) live[l.id] = l; });
+
+    Object.keys(layerGroups).forEach(function (id) {
+      if (live[id]) return;
+      map.removeLayer(layerGroups[id]);
+      delete layerGroups[id];
+    });
+
+    Object.keys(live).forEach(function (id) {
+      if (layerGroups[id]) return;
+      var layer = live[id];
+      var group = L.layerGroup();
+      var cm = layer.criteriaMachine || {};
+      var origin = cm.originId ? GEO.data.get(cm.originId) : null;
+      var km = Number(cm.radiusKm || cm.withinKm);
+
+      if (origin && U.isKnown(origin.lat) && U.isKnown(origin.lng) && km > 0) {
+        L.circle([origin.lat, origin.lng], {
+          renderer: svgRenderer,
+          radius: km * 1000,
+          className: 'geo-radius' + (animates() ? ' geo-radius--draw' : ''),
+          color: token('--case-red', '#B01F22'),
+          weight: 1.5, opacity: 0.45,
+          fillColor: token('--case-red', '#B01F22'), fillOpacity: 0.03,
+          interactive: false
+        }).addTo(group);
+      }
+
+      group.addTo(map);
+      layerGroups[id] = group;
+    });
+  };
+
+  /* ========================================================================
+   * Context layers (D5) — present, empty, and honest about why
+   * ===================================================================== */
+
+  /* §10 allows context layers only if they can be done reliably, and §2.2
+     forbids inventing coordinates. There is no metro dataset in this repo and
+     the Overpass API is blocked by network policy, so the slot ships EMPTY and
+     DISABLED with its reason on screen. Drop a GeoJSON into
+     `GEO_SEED.contextLayers` and the control enables itself — no code change. */
+  var CONTEXT_KINDS = [
+    { id: 'metro', labelKey: 'map.layers.metro' },
+    { id: 'roads', labelKey: 'map.layers.roads' },
+    { id: 'landmarks', labelKey: 'map.layers.landmarks' }
+  ];
+
+  function contextSource(kind) {
+    var seed = w.GEO_SEED;
+    var bag = seed && seed.contextLayers;
+    var gj = bag && bag[kind];
+    return (gj && gj.features && gj.features.length) ? gj : null;
+  }
+
+  function contextAvailable() {
+    return CONTEXT_KINDS.some(function (k) { return !!contextSource(k.id); });
+  }
+
+  function renderContext(state) {
+    if (!contextGroup) return;
+    contextGroup.clearLayers();
+    if (!state.layerVisibility || !state.layerVisibility.context) return;
+
+    CONTEXT_KINDS.forEach(function (kind) {
+      var gj = contextSource(kind.id);
+      if (!gj) return;
+      L.geoJSON(gj, {
+        renderer: canvasRenderer,
+        style: { color: token('--text-3', '#6E665C'), weight: 1.5, opacity: 0.7, fill: false },
+        // T2 again: a GeoJSON point would otherwise get L.Icon.Default and 404.
+        pointToLayer: function (feature, latlng) {
+          return L.marker(latlng, {
+            interactive: false, keyboard: false,
+            icon: L.divIcon({
+              className: 'geo-marker', iconSize: [10, 10], iconAnchor: [5, 5],
+              html: el('span', {
+                'aria-hidden': 'true',
+                style: 'display:block;width:10px;height:10px;border-radius:50%;background:' +
+                       token('--text-3', '#6E665C') + ';box-shadow:0 0 0 2px ' +
+                       token('--marker-ring', '#FFFFFF')
+              })
+            })
+          });
+        }
+      }).addTo(contextGroup);
+    });
+  }
+
+  /* ========================================================================
+   * Layer control — ours, because L.Control.Layers loads layers.png (T2)
+   * ===================================================================== */
+
+  function checkbox(label, opts) {
+    var input = el('input', { type: 'checkbox' });
+    input.checked = !!opts.checked;
+    input.disabled = !!opts.disabled;
+    if (opts.onchange) {
+      input.addEventListener('change', function () { opts.onchange(input.checked); });
+    }
+    var text = el('span.check__text', { text: label });
+    if (opts.count !== undefined && opts.count !== null) {
+      text.appendChild(el('span.check__count', { text: F.int(opts.count) }));
+    }
+    var row = el('label.check', {}, [input, text]);
+    if (!opts.disabled || !opts.reason) return row;
+    // §29: a disabled control states WHY, as real text in the flow — a tooltip
+    // is not an accessible reason.
+    return el('div', {}, [row, el('span.reason', { text: opts.reason })]);
+  }
+
+  /**
+   * Returns a wired layer-control node. It is mounted into `#maplayers-panel`
+   * here; any other panel that wants the same control calls this and mounts the
+   * result into its own DOM, so there is one implementation, not two.
+   */
+  M.layerControl = function (state, rows) {
+    var vis = state.layerVisibility || {};
+    var hasRadius = !!state.radius;
+    var ctxOn = contextAvailable();
+
+    function setVis(key, on, label) {
+      var patch = {};
+      patch[key] = on;
+      GEO.state.set({ layerVisibility: patch },
+        { source: 'user', action: 'map:layer:' + key,
+          summary: (on ? 'Shown: ' : 'Hidden: ') + label });
+    }
+
+    var base = el('div.fgroup', {}, [
+      el('h3.fgroup__hd', { text: t('map.layers.base') }),
+      el('div.fgroup__body', {}, [
+        checkbox(t('map.layers.properties', { n: F.int(rows.length) }), {
+          checked: vis.properties !== false,
+          onchange: function (on) { setVis('properties', on, t('map.layers.properties', { n: F.int(rows.length) })); }
+        }),
+        checkbox(t('map.layers.districts'), {
+          checked: vis.districts !== false,
+          onchange: function (on) { setVis('districts', on, t('map.layers.districts')); }
+        }),
+        checkbox(t('map.layers.labels'), {
+          checked: !!vis.labels,
+          onchange: function (on) { setVis('labels', on, t('map.layers.labels')); }
+        }),
+        checkbox(t('map.layers.radius'), {
+          checked: hasRadius && vis.radius !== false,
+          disabled: !hasRadius,
+          reason: hasRadius ? null : t('map.layers.radius.disabled'),
+          onchange: function (on) { setVis('radius', on, t('map.layers.radius')); }
+        })
+      ])
+    ]);
+
+    var context = el('div.fgroup' + (ctxOn ? '' : '.fgroup--disabled'), {}, [
+      el('h3.fgroup__hd', { text: t('map.layers.context') }),
+      el('div.fgroup__body', {}, CONTEXT_KINDS.map(function (kind) {
+        var have = !!contextSource(kind.id);
+        return checkbox(t(kind.labelKey), {
+          checked: have && !!vis.context,
+          disabled: !have,
+          reason: have ? null : t('map.layers.context.reason'),
+          onchange: function (on) { setVis('context', on, t(kind.labelKey)); }
+        });
+      })),
+      el('p.fgroup__note', { text: t('map.layers.context.note') })
+    ]);
+
+    var analysis = el('div.fgroup', {}, [
+      el('h3.fgroup__hd', { text: t('map.layers.analysis') }),
+      el('div.fgroup__body', {}, [
+        el('p.fgroup__note', { text: t('map.layer.note') }),
+        el('button.btn.btn--quiet.btn--sm', {
+          type: 'button',
+          text: t('map.layers.analysis.open'),
+          onclick: function () {
+            GEO.state.set({ rightRail: 'open', rightTab: 'layers' },
+              { source: 'user', action: 'map:openLayersTab' });
+          }
+        })
+      ])
+    ]);
+
+    return el('div', {}, [base, context, analysis]);
+  };
+
+  function renderLayerPanel(state, rows) {
+    var box = Q.$('#maplayers-panel');
+    if (!box || box.hidden) return;
+    var sig = [rows.length, JSON.stringify(state.layerVisibility || {}),
+               state.radius ? 1 : 0, contextAvailable() ? 1 : 0].join('|');
+    if (sig === layerPanelSig && box.firstChild) return;
+    layerPanelSig = sig;
+    Q.fill(box, [M.layerControl(state, rows)]);
+  }
+
+  function toggleLayerPanel(force) {
+    var box = Q.$('#maplayers-panel');
+    var btn = Q.$('#map-layers');
+    if (!box) return;
+    var open = force === undefined ? box.hidden : force;
+    box.hidden = !open;
+    if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    if (open) {
+      layerPanelSig = null;
+      var s = GEO.state.get();
+      renderLayerPanel(s, GEO.boot ? GEO.boot.visible(s) : []);
+      var first = box.querySelector('input, button');
+      if (first) first.focus();
+    }
+  }
+
+  /* ========================================================================
+   * Viewport commands
+   * ===================================================================== */
+
+  M.fit = function (rows) {
+    if (!map) return;
+    var b = GEO.geo.bounds(rows || []);
+    if (!b) return;                            /* M-06 disables the button instead */
+    map.fitBounds(b, viewOpts({ padding: [FIT_PADDING, FIT_PADDING], maxZoom: 16 }));
+  };
+
+  /** M-07: back to the whole city. Filters and selection are deliberately left
+   *  alone — "reset view" is a camera command, not an analysis command. */
+  M.reset = function () {
+    if (!map) return;
+    var s = GEO.state.get();
+    var all = GEO.boot ? GEO.boot.scope(s)
+                       : GEO.data.workingSet({ demoMode: s.demoMode });
+    var b = GEO.geo.bounds(all);
+    if (b) map.fitBounds(b, viewOpts({ padding: [FIT_PADDING, FIT_PADDING] }));
+    else map.setView(TASHKENT, 12, viewOpts());
+  };
+
+  M.zoomTo = function (record, zoom) {
+    if (!map || !record) return;
+    if (!U.isKnown(record.lat) || !U.isKnown(record.lng)) {
+      GEO.log.warn('map: cannot zoom to a record without coordinates', record.id);
+      return;
+    }
+    map.setView([record.lat, record.lng],
+                Math.min(MAX_ZOOM, zoom || 16), viewOpts());
+  };
+
+  /* ------------------------------------------------------------ fullscreen */
+
+  function fullscreenElement() {
+    return document.fullscreenElement || document.webkitFullscreenElement || null;
+  }
+
+  /**
+   * M-08. The Fullscreen API is blocked in some browsers on `file://`, and a
+   * button that does nothing is worse than no button (§29) — so the fallback is
+   * a real full-viewport mode, not an apology.
+   */
+  M.toggleFullscreen = function () {
+    var wrap = Q.$('.mapwrap');
+    if (!wrap) return;
+
+    if (fullscreenElement() || wrap.dataset.full === 'true') {
+      if (fullscreenElement()) {
+        (document.exitFullscreen || document.webkitExitFullscreen || function () {}).call(document);
+      }
+      exitCssFullscreen(wrap);
+      return;
+    }
+
+    var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+    var started = false;
+    if (req) {
+      try {
+        var p = req.call(wrap);
+        started = true;
+        if (p && p.catch) p.catch(function () { enterCssFullscreen(wrap); });
+      } catch (e) { started = false; }
+    }
+    if (!started) enterCssFullscreen(wrap);
+    applyFullscreenRails(true);
+  };
+
+  /* `inset` is not understood by the old Safari this must open in, so the four
+     sides are set individually. The z-index is a token, never a bare integer
+     (01-tokens.css owns the ladder). */
+  var FULL_SIDES = { position: 'fixed', top: '0px', right: '0px', bottom: '0px', left: '0px' };
+
+  function enterCssFullscreen(wrap) {
+    wrap.dataset.full = 'true';
+    Object.keys(FULL_SIDES).forEach(function (k) { wrap.style.setProperty(k, FULL_SIDES[k]); });
+    wrap.style.setProperty('z-index', 'var(--z-modal)');
+    applyFullscreenRails(true);
+    M.invalidate();
+  }
+
+  function exitCssFullscreen(wrap) {
+    delete wrap.dataset.full;
+    Object.keys(FULL_SIDES).forEach(function (k) { wrap.style.removeProperty(k); });
+    wrap.style.removeProperty('z-index');
+    applyFullscreenRails(false);
+    M.invalidate();
+  }
+
+  /** P9: fullscreen closes the right rail and collapses the left one; leaving it
+   *  restores exactly what was there before, which is why the previous pair is
+   *  remembered rather than guessed. */
+  function applyFullscreenRails(on) {
+    var s = GEO.state.get();
+    if (on) {
+      if (railsBeforeFullscreen) return;
+      railsBeforeFullscreen = { leftRail: s.leftRail, rightRail: s.rightRail };
+      GEO.state.set({ leftRail: 'collapsed', rightRail: 'closed' },
+        { source: 'user', action: 'map:fullscreen', summary: 'Full screen map' });
+    } else {
+      if (!railsBeforeFullscreen) return;
+      var restore = railsBeforeFullscreen;
+      railsBeforeFullscreen = null;
+      GEO.state.set(restore, { source: 'user', action: 'map:fullscreen:exit',
+                               summary: 'Left full screen' });
+    }
+  }
+
+  function onFullscreenChange() {
+    var wrap = Q.$('.mapwrap');
+    if (!wrap) return;
+    if (!fullscreenElement() && wrap.dataset.full !== 'true') applyFullscreenRails(false);
+    syncFullscreenButton();
+    M.invalidate();
+  }
+
+  function syncFullscreenButton() {
+    var btn = Q.$('#map-full');
+    var wrap = Q.$('.mapwrap');
+    if (!btn || !wrap) return;
+    var on = !!fullscreenElement() || wrap.dataset.full === 'true';
+    btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    btn.setAttribute('aria-label', on ? t('map.fullscreen.exit') : t('map.fullscreen'));
+    btn.setAttribute('title', on ? t('map.fullscreen.exit') : t('map.fullscreen'));
+  }
+
+  /* ------------------------------------------------------------ map chrome */
+
+  function syncZoomButtons() {
+    if (!map) return;
+    var z = map.getZoom();
+    var zin = Q.$('#map-zoom-in'), zout = Q.$('#map-zoom-out');
+    if (zin) {
+      zin.disabled = z >= MAX_ZOOM;
+      zin.setAttribute('title', z >= MAX_ZOOM ? t('map.zoomIn.disabled') : t('map.zoomIn'));
+    }
+    if (zout) {
+      zout.disabled = z <= MIN_ZOOM;
+      zout.setAttribute('title', z <= MIN_ZOOM ? t('map.zoomOut.disabled') : t('map.zoomOut'));
+    }
+  }
+
+  function wireChrome() {
+    if (chromeWired) return;
+    chromeWired = true;
+
+    var zin = Q.$('#map-zoom-in'), zout = Q.$('#map-zoom-out');
+    if (zin) zin.addEventListener('click', function () { map.zoomIn(1, viewOpts()); });
+    if (zout) zout.addEventListener('click', function () { map.zoomOut(1, viewOpts()); });
+
+    var fit = Q.$('#map-fit');
+    if (fit) {
+      fit.addEventListener('click', function () {
+        var s = GEO.state.get();
+        M.fit(GEO.boot ? GEO.boot.visible(s) : []);
+      });
+    }
+
+    var reset = Q.$('#map-reset');
+    if (reset) reset.addEventListener('click', function () { M.reset(); });
+
+    var full = Q.$('#map-full');
+    if (full) full.addEventListener('click', function () { M.toggleFullscreen(); });
+
+    var layers = Q.$('#map-layers');
+    if (layers) layers.addEventListener('click', function () { toggleLayerPanel(); });
+
+    // The layer popover closes like any popover: Escape, or a click outside it.
+    document.addEventListener('keydown', function (e) {
+      if (e.key !== 'Escape') return;
+      var box = Q.$('#maplayers-panel');
+      if (box && !box.hidden) { toggleLayerPanel(false); if (layers) layers.focus(); }
+    });
+    document.addEventListener('click', function (e) {
+      var box = Q.$('#maplayers-panel');
+      if (!box || box.hidden) return;
+      if (box.contains(e.target) || (layers && layers.contains(e.target))) return;
+      toggleLayerPanel(false);
+    });
+
+    syncZoomButtons();
+    syncFullscreenButton();
+  }
+
+  function syncChrome(state, rows) {
+    var fit = Q.$('#map-fit');
+    if (fit) {
+      fit.disabled = !rows.length;
+      fit.setAttribute('title', rows.length ? t('map.fit') : t('map.fit.disabled'));
+    }
+    syncZoomButtons();
+    syncFullscreenButton();
+  }
+
+  /* ========================================================================
+   * The subscription — everything above is driven from here
+   * ===================================================================== */
+
+  /**
+   * The map view is part of the one state object, so an external writer can move
+   * the camera. It is applied only when the PATCH asked for it: the live view is
+   * also written back on `moveend`, so reacting to any difference would let a
+   * stale snapshot (a click landing inside the write-back's debounce window)
+   * snap the map back under the reader's hand.
+   */
+  function applyStateView(state, patch, meta) {
+    if (!patch || !patch.map) return;
+    if (meta && meta.source === 'system') return;          // that is our own write-back
+    if (!patch.map.centre && patch.map.zoom === undefined) return;
+    var centre = patch.map.centre || state.map.centre;
+    var zoom = patch.map.zoom === undefined ? map.getZoom() : patch.map.zoom;
+    map.setView(centre, zoom, viewOpts());
+  }
+
+  function radiusAnalysis(state, scope) {
+    if (!state.radius) return null;
+    if (state.layerVisibility && state.layerVisibility.radius === false) return null;
+    var subj = GEO.data.get(state.radius.id);
+    if (!subj) return null;
+    try {
+      // Computed over the SCOPE, not the filtered rows: "74 within 3 km" is a
+      // statement about the market, and a filter must not quietly shrink it.
+      return GEO.geo.locationAnalysis(subj, scope, { bandsKm: state.radius.km });
+    } catch (e) {
+      GEO.log.error('map: location analysis failed', e);
+      return null;
+    }
+  }
+
+  function render(state, rows, scope, patch, meta) {
+    if (!map) return;
+
+    applyStateView(state, patch, meta);
+
+    M.renderDistricts(GEO.data.districts(), state, rows);
+    M.renderRecords(rows, state);
+    M.renderRadius(radiusAnalysis(state, scope || rows));
+    M.renderAiLayers(state.aiLayers);
+    renderContext(state);
+    M.renderLegend(state, rows);
+    renderNotice(state, rows);
+    renderLayerPanel(state, rows);
+    syncChrome(state, rows);
+
+    // `fitToken` is a request, not a value: bumping it asks for a fit exactly
+    // once, so a fit cannot be re-applied on every unrelated state change.
+    if (lastFitToken === null) { lastFitToken = state.map.fitToken; M.fit(rows); }
+    else if (state.map.fitToken !== lastFitToken) {
+      lastFitToken = state.map.fitToken;
+      M.fit(rows);
+    }
+  }
+
+  M.render = render;
+
+  function register() {
+    if (registered) return;
+    if (GEO.boot && GEO.boot.registerPanel) {
+      registered = true;
+      GEO.boot.registerPanel(render);
+      return;
+    }
+    // Standalone fallback so the map still follows state if it is initialised
+    // outside the normal boot sequence (the self-test harness does this).
+    registered = true;
+    GEO.state.subscribe(function (state) {
+      var rows = GEO.data.workingSet({ demoMode: state.demoMode,
+                                       excludeSuspectedNonBc: state.excludeSuspectedNonBc });
+      var filtered = GEO.filters ? GEO.filters.apply(rows, state.filters) : rows;
+      render(state, filtered, rows);
+    });
+  }
+
+  GEO.on('data:loaded', function () { if (map) register(); });
 }(window));
 
 </script>
@@ -15334,6 +16788,1888 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
 </script>
 <script>
+/* ==== src/js/15-panel-analytics.js ==== */
+/* ===========================================================================
+ * 15-panel-analytics — the Analytics tab (§14, §36; IA §5.5, A-01…A-07)
+ *
+ * This is the panel that either earns the product's credibility or spends it.
+ * Four decisions are worth knowing before reading the code.
+ *
+ * A. A CARD IS NEVER HIDDEN FOR HAVING NO DATA.
+ *    Five of the eight §14 metrics have zero coverage on the observed set
+ *    (GLA, available area, occupancy, vacancy, status). Dropping them would
+ *    leave a tidy dashboard that answers only the questions this dataset
+ *    happens to answer — the most flattering lie available here. They are
+ *    grouped under "Not yet collected" with their 0-of-N coverage stated, and
+ *    they move back up by themselves under demo mode or after an edit (D11).
+ *    The test is derived (`n === 0`), never a hard-coded list of field names.
+ *
+ * B. EVERY FIGURE CARRIES ITS DENOMINATOR — ON SCREEN AND IN THE EXPORT.
+ *    The metric object owns `n`, `N` and `coverageText`; this file renders the
+ *    coverage line under every card and every chart, and writes n, N and the
+ *    coverage sentence into each row of the CSV. A consultant who cannot get
+ *    the numbers out of a tool has a demo, not an instrument (M10).
+ *
+ * C. NOTHING DERIVED IS CACHED.
+ *    The only things held between renders are a render signature (a string)
+ *    and a data-version counter. Export and print recompute from the live
+ *    state rather than from whatever was on screen, so a figure in a file can
+ *    never be one edit older than the figure on the panel.
+ *
+ * D. THE CHART MODULE OWNS THE PIXELS; THIS FILE OWNS THE QUESTION.
+ *    Every chart is handed to `GEO.charts` as a spec. When a chart cannot be
+ *    drawn, the panel falls back to the TABLE view of the same spec — every
+ *    value present, none gated behind colour or hover (A-04, visual-system
+ *    §10) — because the honest failure of a chart is a table, not a hole.
+ * ========================================================================= */
+(function (w) {
+  'use strict';
+
+  var GEO = w.GEO, Q = GEO.dom, el = Q.el, U = GEO.util, S = GEO.schema,
+      F = GEO.fmt, A = GEO.analytics, t = GEO.i18n.t;
+
+  var PANE = '#pane-analytics';
+
+  /* Strings this panel needs that the shipped table does not carry yet. They
+     are written INTO `GEO.i18n.en` rather than kept in a private map, so D14
+     still holds: one table, one lookup, one translator export. A key already
+     defined in 01-i18n always wins — this never overwrites shipped copy. */
+  var ADDED = {
+    'analytics.metrics.title': 'Metrics',
+    'analytics.notCollected.title': 'Not yet collected',
+    'analytics.notCollected.body': 'Nothing in the current selection has a recorded value for these. The cards stay, with their 0-of-{m} coverage, because a hidden card reads as a question nobody asked.',
+    'analytics.filters.active': 'Active filters: {list}',
+    'analytics.filters.none': 'No filters are active.',
+    'analytics.export.analysis': 'Export analysis',
+    'analytics.export.analysis.note': 'Writes every figure on this panel with its n, its N and the active filters.',
+    'analytics.export.done': 'Analysis exported — {n} figures with their denominators',
+    'analytics.export.col.section': 'Section',
+    'analytics.export.col.item': 'Item',
+    'analytics.export.col.value': 'Value',
+    'analytics.export.col.n': 'Recorded (n)',
+    'analytics.export.col.N': 'In selection (N)',
+    'analytics.export.col.coverage': 'Coverage',
+    'analytics.table.share': 'Share of selection',
+    'analytics.chart.empty': 'No properties are in the current selection, so there is nothing to plot.',
+    'analytics.chart.district.coverage': 'District is recorded for all {m} properties.',
+    'analytics.chart.unknownNotFilter': 'The filters have no "only unrecorded" option, so this bar is a denominator, not a link. The Data workspace lists the records behind it.',
+    'analytics.chart.binFilterNote': 'Bands are left-closed and right-open. The filter is inclusive at both ends, so a value sitting exactly on an upper edge is admitted by the band below it as well.',
+    'analytics.strip.median': 'Median {value}. Range {min} to {max}.',
+    'analytics.strip.iqr': 'Middle half (Q1–Q3): {q1} to {q3}.',
+    'analytics.strip.select': 'Select {name}',
+    'analytics.coverage.lead': 'This is the chart a professional collection programme would change: every figure above is capped by these bars.',
+    'analytics.coverage.openData': 'Open the coverage view in the Data workspace',
+    'analytics.formula.count': 'A count of the records in the current selection. A count of zero is a measured fact, so it is always published.',
+    'analytics.formula.sum': 'The {n} recorded values added together. Records with nothing recorded are excluded, never counted as zero.',
+    'analytics.formula.mean': 'The {n} recorded values added together, divided by {n}. Records with nothing recorded are excluded, never counted as zero.',
+    'analytics.formula.median': 'The middle of the {n} recorded values, sorted; at an even count, the mean of the two central values.',
+    'analytics.formula.split': 'Records counted by recorded status. The {n} whose status is not recorded are in neither group and are not implied to be either.',
+    'analytics.metric.excluded.more': '{n} more are not listed here.'
+  };
+  Object.keys(ADDED).forEach(function (k) {
+    if (!GEO.i18n.has(k, 'en')) GEO.i18n.en[k] = ADDED[k];
+  });
+
+  /* View bookkeeping only. `sig` is a string and `dataVersion` is a counter —
+     no record, no metric and no chart series is held here (decision C). */
+  var lastSig = null;
+  var dataVersion = 0;
+
+  /* The §7.6 field list: the 8 critical fields plus the three that identify a
+     record at all. Derived from the registry, so adding a critical field adds
+     a bar without touching this file. */
+  var COVERAGE_EXTRA = ['name', 'address', 'districtKey'];
+
+  /* A metric popover over 132 excluded records is a scroll, not a disclosure;
+     the rest are named by count and reachable in the Data workspace. */
+  var EXCLUDED_SHOWN = 25;
+
+  /* ---------------------------------------------------------------- labels */
+
+  var ENUM_KEYS = {
+    officeClass: { 'A+': 'value.class.aPlus', 'A': 'value.class.a', 'B+': 'value.class.bPlus',
+                   'B': 'value.class.b', 'C': 'value.class.c' },
+    status: { 'Operating': 'value.status.operating', 'Under construction': 'value.status.construction',
+              'Planned': 'value.status.planned', 'Renovation': 'value.status.renovation' }
+  };
+
+  function enumLabel(enumKey, value) {
+    var map = ENUM_KEYS[enumKey];
+    var key = map ? map[value] : null;
+    return key ? t(key) : String(value);
+  }
+
+  function fieldLabel(key) {
+    return GEO.i18n.has('field.' + key) ? t('field.' + key) : S.label(key);
+  }
+
+  /** The §14/§36 denominator sentence, always through the one accessor. */
+  function coverageLine(n, N, label) {
+    return GEO.i18n.coverageLine(n, N, F.lower(label));
+  }
+
+  /** D4: a demo record is badged wherever it appears, including inside a
+   *  popover list and inside a chart's point label. */
+  function demoBadge() {
+    return el('span.badge.badge--demo', {
+      text: t('common.demo.badge'), title: t('value.recordType.demo')
+    });
+  }
+
+  function demoCount(rows) {
+    return rows.filter(function (r) { return r.recordType === 'DEMO'; }).length;
+  }
+
+  /** The most recent verification date across the selection. Shown in words on
+   *  the panel and in the export header: a figure without a date is a rumour. */
+  function lastVerified(rows) {
+    var best = null;
+    rows.forEach(function (r) {
+      var v = r._meta && r._meta.lastVerifiedAt;
+      if (U.isKnown(v) && (best === null || v > best)) best = v;
+    });
+    return best;
+  }
+
+  function isSmall(bp) { return bp === 's' || bp === 'xs' || bp === 'xxs'; }
+
+  /* ================================================================ modals */
+  /* GEO.boot.dialog plus one correction, the same one 14-panel-detail makes:
+     99-boot's global Escape handler also listens on `document`, so a plain Esc
+     inside a dialog would close the dialog AND the rail behind it. Capturing
+     Escape on `#dialog` keeps the key meaning exactly one thing (P5), and
+     leaves Tab to the helper's own focus trap. */
+  function modal(opts) {
+    var box = Q.$('#dialog');
+    var handle = null;
+
+    function release() { box.removeEventListener('keydown', onKey, true); }
+
+    function onKey(e) {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      release();
+      if (handle) handle.close();
+    }
+
+    handle = GEO.boot.dialog({
+      title: opts.title,
+      body: opts.body,
+      actions: [{ label: t('common.close'), primary: true, run: release }]
+    });
+    box.addEventListener('keydown', onKey, true);
+    return handle;
+  }
+
+  /* ========================================================= metric cards */
+
+  /* The card label comes from the string table, keyed by what the metric IS
+     (kind + field) rather than by position, so re-ordering `dashboard()` can
+     never re-label a card. A metric this map does not know falls back to the
+     label the analytics module gave it. */
+  var CARD_KEYS = {
+    'count:': 'analytics.metric.count',
+    'sum:gla': 'analytics.metric.glaSum',
+    'mean:askingRent': 'analytics.metric.rentMean.long',
+    'median:askingRent': 'analytics.metric.rentMedian',
+    'sum:availableArea': 'analytics.metric.availableSum',
+    'mean:occupancyPct': 'analytics.metric.occupancyMean',
+    'mean:vacancyPct': 'analytics.metric.vacancyMean',
+    'split:status': 'analytics.metric.statusSplit'
+  };
+
+  function metricId(m) { return m.kind + ':' + (m.field || ''); }
+
+  function metricLabel(m) {
+    var key = CARD_KEYS[metricId(m)];
+    return (key && GEO.i18n.has(key)) ? t(key) : m.label;
+  }
+
+  /**
+   * The value slot has exactly three outcomes and no fourth: a number, a
+   * measured split, or the words. Never blank, never a dash, and never a zero
+   * standing in for an unknown — `vacancyPct: 0` prints "0%" from the metric's
+   * own display, which is how a measured zero stays distinguishable (§36).
+   */
+  function metricValue(m) {
+    if (!m.sufficient) return t('common.insufficient');
+    if (m.kind === 'split') {
+      return t('analytics.metric.split', {
+        operating: F.int(m.value.operating), pipeline: F.int(m.value.pipeline)
+      });
+    }
+    return m.display;
+  }
+
+  function metricCard(m, rows) {
+    var poor = !m.sufficient;
+    var kids = [
+      el('span.stat__label', { text: metricLabel(m) }),
+      el('span.stat__value', { text: metricValue(m) })
+    ];
+    // A-07: the reason replaces the number and names the missing field. It is
+    // rendered as text, not as a link — it never offers to "estimate anyway".
+    if (poor && m.reason) kids.push(el('span.reason', { text: m.reason }));
+    // R3: the denominator line is part of the card permanently, not only
+    // inside the popover.
+    kids.push(el('span.coverage.stat__cov', { text: m.coverageText }));
+    if (m.containsDemo) kids.push(el('span.stat__demo', {}, [demoBadge()]));
+
+    return el('button.stat' + (poor ? '.stat--insufficient' : ''), {
+      type: 'button',
+      'data-metric': metricId(m),
+      title: t('analytics.metric.open'),
+      'aria-label': metricLabel(m) + ': ' + metricValue(m) + '. ' +
+                    m.coverageText + ' ' + t('analytics.metric.open'),
+      onclick: function () { openMetric(m, rows); }
+    }, kids);
+  }
+
+  function formulaText(m) {
+    if (m.kind === 'count') return t('analytics.formula.count');
+    if (m.kind === 'split') return t('analytics.formula.split', { n: F.int(m.N - m.n) });
+    if (m.kind === 'sum') return t('analytics.formula.sum', { n: F.int(m.n) });
+    if (m.kind === 'median') return t('analytics.formula.median', { n: F.int(m.n) });
+    if (m.kind === 'mean') return t('analytics.formula.mean', { n: F.int(m.n) });
+    return null;
+  }
+
+  /** The records a metric left out, by name. Not a count in the abstract: the
+   *  point of A-02 is that "excluded for missing data" is checkable. */
+  function excludedRecords(m, rows) {
+    if (!m.field) return [];
+    return rows.filter(function (r) { return !U.isKnown(r[m.field]); });
+  }
+
+  function openMetric(m, rows) {
+    var kids = [];
+
+    kids.push(el('p.stat__value', { text: metricValue(m) }));
+    kids.push(el('p.coverage', { text: m.coverageText }));
+    if (!m.sufficient && m.reason) kids.push(el('p.muted', { text: m.reason }));
+
+    var formula = formulaText(m);
+    if (formula) {
+      kids.push(el('h3.sectitle', { text: t('analytics.metric.formula') }));
+      kids.push(el('p', { text: formula }));
+    }
+
+    // §8 of the analytics rules: the qualifier lives in the label, and the
+    // reason weighting is impossible here is stated with its own coverage.
+    if (m.weighting) {
+      var glaCov = A.coverage(rows, 'gla');
+      kids.push(el('p.micro', {
+        text: t('analytics.metric.weighting', {
+          how: t('common.unweighted'), n: F.int(glaCov.n), m: F.int(glaCov.N)
+        })
+      }));
+    }
+
+    (m.notes || []).forEach(function (note) {
+      kids.push(el('p.micro', { text: note }));
+    });
+
+    var ex = excludedRecords(m, rows);
+    if (ex.length) {
+      kids.push(el('h3.sectitle', { text: t('analytics.metric.excluded', { n: F.int(ex.length) }) }));
+      kids.push(el('p.micro', { text: t('analytics.metric.excluded.note') }));
+      kids.push(el('ul.stack', {}, ex.slice(0, EXCLUDED_SHOWN).map(function (r) {
+        return el('li.row.row--tight', {}, [
+          el('span', { text: U.isKnown(r.name) ? r.name : F.UNKNOWN }),
+          r.recordType === 'DEMO' ? demoBadge() : null
+        ]);
+      })));
+      if (ex.length > EXCLUDED_SHOWN) {
+        kids.push(el('p.micro', {
+          text: t('analytics.metric.excluded.more', { n: F.int(ex.length - EXCLUDED_SHOWN) })
+        }));
+      }
+    }
+
+    modal({ title: metricLabel(m), body: el('div.stack', {}, kids) });
+  }
+
+  /* ============================================================== charts */
+
+  /**
+   * One canonical spec shape for all five charts.
+   *
+   * `rows` is the spelling the repository already uses for a chart series
+   * (22-ai-engine's `out.chart`); `series` is the spelling in the AI
+   * architecture's tool contract. Both point at the SAME array, so a chart
+   * module written against either reading finds the data — and neither can
+   * drift from the other, because there is only one array.
+   */
+  function specFor(o) {
+    o.series = o.rows;
+    if (o.onSelect) o.onClick = o.onSelect;       // same function, two names
+    return o;
+  }
+
+  function item(o) {
+    var N = o.N || 0;
+    var share = N ? (100 * o.value / N) : null;
+    return {
+      key: o.key, label: o.label, value: o.value,
+      n: o.value, N: N,
+      unknown: !!o.unknown,
+      selectable: !!o.selectable,
+      ordinal: o.ordinal || null,
+      share: share,
+      shareText: N ? F.pct(share, 1) : F.UNKNOWN,
+      actionLabel: o.selectable ? t('analytics.chart.filterAction', { category: o.label }) : null,
+      tooltip: t('analytics.chart.tooltip', {
+        category: o.label, n: F.int(o.value), m: F.int(N),
+        pct: N ? F.pct(share, 1) : F.UNKNOWN
+      })
+    };
+  }
+
+  /** The table view's data, which is also what the CSV export writes. One
+   *  shaping, so the chart, the table and the file can never disagree. `n` and
+   *  `N` travel with each row so the export keeps its denominator column. */
+  function tableOf(columns, items) {
+    return {
+      columns: columns,
+      rows: items.map(function (it) {
+        return { key: it.key, unknown: it.unknown, n: it.value, N: it.N,
+                 cells: [it.label, F.int(it.value), it.shareText] };
+      })
+    };
+  }
+
+  /* --- chart 1 · business centres by district ---------------------------- */
+  function districtSpec(rows) {
+    var groups = A.byDistrict(rows);
+    var unknown = null, known = [];
+    groups.forEach(function (g) { if (g.unknown) { unknown = g; } else { known.push(g); } });
+
+    /* §7.2: count descending, ties alphabetical by DISPLAY name, and the
+       zero-count districts kept at the bottom. Yangihayot and Bektemir hold no
+       records: that is a true zero in this dataset, not missing data, and a
+       chart that dropped them would imply the city has ten districts. */
+    known.sort(function (a, b) {
+      return b.count - a.count || (a.label < b.label ? -1 : (a.label > b.label ? 1 : 0));
+    });
+
+    var items = known.map(function (g) {
+      return item({ key: g.key, label: g.label, value: g.count, N: rows.length, selectable: true });
+    });
+    // districtKey is required by the schema, so there is normally no unknown
+    // bucket at all (§7.0.1). It is drawn only if one somehow exists.
+    if (unknown && unknown.count) {
+      items.push(item({ key: null, label: unknown.label, value: unknown.count,
+                        N: rows.length, unknown: true }));
+    }
+
+    return specFor({
+      id: 'district', kind: 'bar',
+      title: t('analytics.chart.district'),
+      categoryAxis: t('analytics.axis.district'),
+      valueAxis: t('analytics.axis.count'),
+      rows: items,
+      N: rows.length,
+      coverageText: !rows.length
+        ? t('common.coverage.empty')
+        : ((unknown && unknown.count)
+            ? coverageLine(rows.length - unknown.count, rows.length, fieldLabel('districtKey'))
+            : t('analytics.chart.district.coverage', { m: F.int(rows.length) })),
+      insufficient: rows.length ? null : t('analytics.chart.empty'),
+      table: tableOf([t('analytics.axis.district'), t('analytics.axis.count'),
+                      t('analytics.table.share')], items),
+      onSelect: function (it) { applyDistrict(it); }
+    });
+  }
+
+  /* --- chart 2 · business centres by class ------------------------------- */
+  function classSpec(rows) {
+    var groups = A.byClass(rows);                 // fixed ordinal order, unknown last
+    var cov = A.coverage(rows, 'officeClass');
+
+    /* The hatched "Class not recorded" bar is the largest bar in this dataset
+       (132 of 148). Hiding it would be the single most misleading thing this
+       application could do, so it is drawn at every n, labelled with its count,
+       and excluded from nothing except the ordinal ramp it is not part of. */
+    var items = groups.map(function (g) {
+      return item({
+        key: g.unknown ? null : g.key,
+        label: g.unknown ? t('value.class.unknown') : enumLabel('officeClass', g.key),
+        value: g.count, N: rows.length,
+        unknown: g.unknown,
+        ordinal: g.unknown ? null : g.key,
+        selectable: !g.unknown
+      });
+    });
+
+    return specFor({
+      id: 'class', kind: 'bar', ordinal: true,
+      title: t('analytics.chart.class'),
+      categoryAxis: t('analytics.axis.class'),
+      valueAxis: t('analytics.axis.count'),
+      rows: items,
+      N: rows.length,
+      coverageText: coverageLine(cov.n, cov.N, fieldLabel('officeClass')),
+      note: t('analytics.chart.unknownNote'),
+      insufficient: rows.length ? null : t('analytics.chart.empty'),
+      table: tableOf([t('analytics.axis.class'), t('analytics.axis.count'),
+                      t('analytics.table.share')], items),
+      onSelect: function (it) { applyClass(it); }
+    });
+  }
+
+  /* --- distributions (charts 3 and 4) ------------------------------------ */
+
+  function binLabel(bin, fmt) {
+    if (bin.lo === null || bin.lo === undefined) return t('analytics.bin.under', { max: fmt(bin.hi) });
+    if (bin.hi === null || bin.hi === undefined) return t('analytics.bin.over', { min: fmt(bin.lo) });
+    return t('analytics.bin.range', { min: fmt(bin.lo), max: fmt(bin.hi) });
+  }
+
+  function binItems(hist, N, fmt, selectable) {
+    var items = hist.series.map(function (bin) {
+      var it = item({ key: null, label: binLabel(bin, fmt), value: bin.count,
+                      N: N, selectable: selectable });
+      it.lo = (bin.lo === undefined) ? null : bin.lo;
+      it.hi = (bin.hi === undefined) ? null : bin.hi;
+      return it;
+    });
+    // The unknown column is always last and always drawn, at any count (§5).
+    items.push(item({ key: null, label: hist.unknown.label, value: hist.unknown.count,
+                      N: N, unknown: true }));
+    return items;
+  }
+
+  /** Tukey hinges: at an odd count the median belongs to both halves. Used only
+   *  at n ≥ 8, where a middle-half band is a description rather than a claim. */
+  function hinges(values) {
+    var s = values.slice().sort(function (a, b) { return a - b; });
+    var n = s.length, half = Math.floor(n / 2);
+    return {
+      q1: A.median(s.slice(0, n % 2 ? half + 1 : half)),
+      q3: A.median(s.slice(half))
+    };
+  }
+
+  function rentSpec(rows) {
+    var d = A.rentDistribution(rows);
+    var fmt = function (v) { return F.num(v, 0); };
+    var un = d.histogram.unknown;
+    var unknownLine = t('analytics.chart.unknownBar', { n: F.int(un.count) });
+
+    if (!d.n) {
+      // n = 0 on the ladder: no axis is drawn, because an empty axis implies a
+      // measured zero everywhere. The reason names the missing field.
+      return specFor({
+        id: 'rent', kind: 'insufficient',
+        title: t('analytics.chart.rent'),
+        rows: [],
+        N: rows.length,
+        coverageText: d.coverageText,
+        note: unknownLine,
+        insufficient: A.metric(rows, 'askingRent', 'mean').reason,
+        table: { columns: [t('analytics.axis.rent'), t('analytics.axis.count')],
+                 rows: [{ key: null, unknown: true, n: un.count, N: rows.length,
+                          cells: [un.label, F.int(un.count)] }] }
+      });
+    }
+
+    if (d.form === 'strip') {
+      /* D10 / §7.1. Sixteen points across seven bins is noise that implies a
+         distribution the sample cannot support; sixteen points on a number line
+         are sixteen facts. The unknown block is stated in words beside the plot
+         because a strip plot has no bar to carry it. */
+      var vals = d.points.map(function (p) { return p.value; });
+      var notes = [];
+      var stats = null;
+
+      if (d.n >= A.MIN_N) {
+        stats = { median: A.median(vals), min: d.min, max: d.max };
+        notes.push(t('analytics.strip.median', {
+          value: F.rent(stats.median), min: F.rent(d.min), max: F.rent(d.max)
+        }));
+        if (d.n >= 8) {
+          var h = hinges(vals);
+          stats.q1 = h.q1;
+          stats.q3 = h.q3;
+          notes.push(t('analytics.strip.iqr', { q1: F.rent(h.q1), q3: F.rent(h.q3) }));
+        }
+      } else {
+        // 1–2 values: the individual facts, with no median and no quartiles.
+        notes.push(t('analytics.strip.note', { n: F.int(d.n) }));
+      }
+      notes.push(unknownLine);
+
+      var points = d.points.map(function (p) {
+        var rec = GEO.data.get(p.id);
+        var demo = !!(rec && rec.recordType === 'DEMO');
+        var name = U.isKnown(p.name) ? p.name : F.UNKNOWN;
+        return {
+          id: p.id,
+          // The DEMO mark is baked into the label as well as flagged, so it
+          // survives a renderer that does not know about record types (D4).
+          label: demo ? name + ' · ' + t('common.demo.badge') : name,
+          value: p.value, valueText: F.rent(p.value),
+          demo: demo, ordinal: p.officeClass || null, selectable: true
+        };
+      }).sort(function (a, b) { return a.value - b.value; });
+
+      return specFor({
+        id: 'rent', kind: 'strip',
+        title: t('analytics.chart.rent'),
+        valueAxis: t('analytics.axis.rent'),
+        rows: points, points: points, stats: stats,
+        N: rows.length,
+        coverageText: d.coverageText,
+        note: notes.join(' '),
+        table: {
+          columns: [t('field.name'), t('analytics.axis.rent')],
+          // One row is one recorded value on one building, so it has no
+          // denominator of its own; the chart's coverage line carries it.
+          rows: points.map(function (p) {
+            return { key: p.id, unknown: false, n: null, N: rows.length,
+                     cells: [p.label, p.valueText] };
+          })
+        },
+        onSelect: function (p) { selectRecord(p); }
+      });
+    }
+
+    var items = binItems(d.histogram, rows.length, fmt, true);
+    return specFor({
+      id: 'rent', kind: 'column',
+      title: t('analytics.chart.rent'),
+      categoryAxis: t('analytics.axis.rent'),
+      valueAxis: t('analytics.axis.count'),
+      rows: items,
+      N: rows.length,
+      coverageText: d.coverageText,
+      note: t('analytics.chart.binFilterNote'),
+      table: tableOf([t('analytics.axis.rent'), t('analytics.axis.count'),
+                      t('analytics.table.share')], items),
+      onSelect: function (it) { applyRange(it, 'rentMin', 'rentMax'); }
+    });
+  }
+
+  function glaSpec(rows) {
+    var d = A.glaDistribution(rows);
+    var items = binItems(d.histogram, rows.length, F.int, d.sufficient);
+    var table = tableOf([t('analytics.axis.gla'), t('analytics.axis.count'),
+                         t('analytics.table.share')], items);
+
+    /* D11: the chart ships and renders its insufficient state on the observed
+       set (0 of 148), and becomes live under demo mode or after an editor
+       entry. Dropping it would hide the gap it exists to report. */
+    if (!d.sufficient) {
+      return specFor({
+        id: 'gla', kind: 'insufficient',
+        title: t('analytics.chart.gla'),
+        rows: [], N: rows.length,
+        coverageText: d.coverageText,
+        note: t('analytics.chart.unknownBar', { n: F.int(d.histogram.unknown.count) }),
+        insufficient: d.reason,
+        table: table
+      });
+    }
+
+    return specFor({
+      id: 'gla', kind: 'column',
+      title: t('analytics.chart.gla'),
+      categoryAxis: t('analytics.axis.gla'),
+      valueAxis: t('analytics.axis.count'),
+      rows: items,
+      N: rows.length,
+      coverageText: d.coverageText,
+      note: t('analytics.chart.binFilterNote'),
+      table: table,
+      onSelect: function (it) { applyRange(it, 'glaMin', 'glaMax'); }
+    });
+  }
+
+  /* --- chart 5 · data coverage by field ---------------------------------- */
+  function coverageSpec(rows) {
+    var wanted = S.criticalFields.concat(COVERAGE_EXTRA);
+    var items = A.fieldCoverage(rows)
+      .filter(function (c) { return wanted.indexOf(c.key) >= 0; })
+      .map(function (c) {
+        return {
+          key: c.key, label: fieldLabel(c.key),
+          value: c.n, n: c.n, N: c.N, pct: c.pct,
+          critical: c.critical, unknown: false, selectable: false,
+          shareText: F.pct(100 * c.pct, 0),
+          tooltip: t('analytics.coverage.row', {
+            field: fieldLabel(c.key), n: F.int(c.n), m: F.int(c.N)
+          })
+        };
+      });
+
+    return specFor({
+      id: 'coverage', kind: 'coverage',
+      title: t('analytics.chart.coverage'),
+      categoryAxis: t('analytics.axis.field'),
+      valueAxis: t('analytics.axis.count'),
+      lead: t('analytics.coverage.lead'),
+      rows: items,
+      N: rows.length,
+      coverageText: t('analytics.coverage.note'),
+      insufficient: rows.length ? null : t('analytics.chart.empty'),
+      table: {
+        columns: [t('analytics.axis.field'), t('analytics.export.col.n'),
+                  t('analytics.table.share')],
+        rows: items.map(function (it) {
+          return { key: it.key, unknown: false, n: it.n, N: it.N,
+                   cells: [it.label, t('common.of', { n: F.int(it.n), m: F.int(it.N) }),
+                           it.shareText] };
+        })
+      }
+    });
+  }
+
+  /* --------------------------------------------------------- chart drawing */
+
+  function tableNode(table) {
+    var head = el('thead', {}, [
+      el('tr', {}, table.columns.map(function (c, i) {
+        return el(i ? 'th.tbl__num' : 'th', { scope: 'col', text: c });
+      }))
+    ]);
+    var body = el('tbody', {}, table.rows.map(function (r) {
+      return el('tr', r.unknown ? { 'data-unknown': 'true' } : {}, r.cells.map(function (c, i) {
+        return i === 0 ? el('th', { scope: 'row', text: c })
+                       : el('td.tbl__num', { text: c });
+      }));
+    }));
+    return el('table.chart__table.tbl', {}, [head, body]);
+  }
+
+  /* What the panel draws when `GEO.charts` is absent or throws: the TABLE view
+     of the same spec. Every value is present and none is gated behind colour or
+     hover, which is the A-04 requirement anyway — so the degraded panel is
+     still readable, exportable and honest, just not graphical. */
+  function fallbackChart(spec) {
+    var body = spec.insufficient
+      ? el('div.insufficient', {}, [
+          el('div.insufficient__title', { text: t('common.insufficient') }),
+          el('p.insufficient__why', { text: spec.insufficient })
+        ])
+      : tableNode(spec.table);
+
+    return el('section.chart', { 'aria-label': spec.title }, [
+      el('div.chart__hd', {}, [
+        el('div.chart__title', {}, [
+          el('span', { text: spec.title }),
+          spec.categoryAxis ? el('span.chart__sub', { text: spec.categoryAxis }) : null
+        ])
+      ]),
+      body,
+      spec.note ? el('p.micro', { text: spec.note }) : null,
+      el('p.coverage.chart__cov', { text: spec.coverageText })
+    ]);
+  }
+
+  /** Hand the spec to the chart module; fall back to its table on any failure.
+   *  `insufficient` is routed to the module's own state renderer when it has
+   *  one, because the plot area — and only the plot area — is what it replaces. */
+  function drawChart(spec) {
+    var C = GEO.charts;
+    var name = spec.insufficient ? 'insufficient'
+             : spec.kind === 'bar' ? 'barChart'
+             : spec.kind === 'column' ? 'columnChart'
+             : spec.kind === 'strip' ? 'stripPlot'
+             : spec.kind === 'coverage' ? 'coverageBars'
+             : 'render';
+    var fn = null;
+    if (C) {
+      if (typeof C[name] === 'function') fn = C[name];
+      else if (typeof C.render === 'function') fn = C.render;
+    }
+    var node = null;
+    if (fn) {
+      try { node = fn.call(C, spec); }
+      catch (e) {
+        GEO.log.error('charts.' + name + ' threw — showing the table view instead', e);
+        node = null;
+      }
+    }
+    return (node && node.nodeType === 1) ? node : fallbackChart(spec);
+  }
+
+  /* ============================================================== actions */
+
+  /* A-03. Clicking a mark applies the matching filter and shows the results
+     list, so the chart is a way of asking a question rather than a picture of
+     an answer. Every write goes through GEO.state.set, which is what keeps the
+     manual filter controls in step (§59). */
+
+  function showResults(state) {
+    var p = { leftRail: 'open', leftTab: 'results' };
+    // P3: on a phone at most one panel may cover the map, so the rail the user
+    // is reading yields to the list it just sent them to.
+    if (isSmall(state.bp)) p.rightRail = 'closed';
+    return p;
+  }
+
+  /** The unknown bar is not a control: the filter model has no "only
+   *  unrecorded" predicate, so instead of a silent no-op the bar says why. */
+  function notFilterable() {
+    if (GEO.boot && GEO.boot.toast) GEO.boot.toast(t('analytics.chart.unknownNotFilter'));
+  }
+
+  function applyDistrict(it) {
+    if (!it || it.unknown || !it.key) { notFilterable(); return; }
+    var state = GEO.state.get();
+    GEO.state.set(Object.assign({ filters: { districts: [it.key] } }, showResults(state)),
+      { source: 'user', action: 'analytics:filter:district',
+        summary: t('analytics.chart.filterAction', { category: it.label }) });
+  }
+
+  function applyClass(it) {
+    if (!it || it.unknown || !it.key) { notFilterable(); return; }
+    var state = GEO.state.get();
+    GEO.state.set(Object.assign({ filters: { classes: [it.key] } }, showResults(state)),
+      { source: 'user', action: 'analytics:filter:class',
+        summary: t('analytics.chart.filterAction', { category: it.label }) });
+  }
+
+  function applyRange(it, minKey, maxKey) {
+    if (!it || it.unknown) { notFilterable(); return; }
+    var state = GEO.state.get();
+    var f = {};
+    f[minKey] = (it.lo === undefined) ? null : it.lo;
+    f[maxKey] = (it.hi === undefined) ? null : it.hi;
+    GEO.state.set(Object.assign({ filters: f }, showResults(state)),
+      { source: 'user', action: 'analytics:filter:range',
+        summary: t('analytics.chart.filterAction', { category: it.label }) });
+  }
+
+  /** A strip-plot dot is one building, so clicking it selects that building
+   *  rather than filtering to a band of one. */
+  function selectRecord(p) {
+    if (!p || !p.id || !GEO.data.get(p.id)) return;
+    GEO.state.set({ selectedId: p.id, rightRail: 'open', rightTab: 'property' },
+      { source: 'user', action: 'analytics:select',
+        summary: t('analytics.strip.select', { name: p.label }) });
+  }
+
+  function openCoverageWorkspace() {
+    GEO.state.set({ overlay: 'data', dataTab: 'coverage' },
+      { source: 'user', action: 'analytics:openCoverage' });
+  }
+
+  /* ================================================================ export */
+
+  function csvCell(v) {
+    var s = (v === null || v === undefined) ? '' : String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function csvRow(cells) { return cells.map(csvCell).join(','); }
+
+  /**
+   * A-05 / M10. The figures on screen, their n, their N and their coverage
+   * sentence, under a header block naming the filters, the selection size, the
+   * collection date and the assumed rent unit. Recomputed from live state at
+   * the moment of the click, never from what happened to be rendered.
+   */
+  function exportAnalysis(state, rows, scope) {
+    var model = buildModel(state, rows, scope);
+    var lines = [];
+    var figures = 0;
+
+    lines.push('# ' + GEO.PRODUCT.name + ' ' + GEO.PRODUCT.version + ' — ' +
+               t('analytics.title') + ' — ' + F.date(GEO.date.today()));
+    lines.push('# ' + t('analytics.scope', { n: F.int(rows.length), m: F.int(scope.length) }));
+    lines.push('# ' + model.filterText);
+    lines.push('# ' + A.coverageStatement(rows));
+    lines.push('# ' + model.verifiedText);
+    if (model.stalenessNote) lines.push('# ' + model.stalenessNote);
+    lines.push('# ' + t('common.assumedUnit'));
+    if (GEO.data.containsDemo(rows)) {
+      lines.push('# ' + t('common.demo.included', { n: F.int(demoCount(rows)) }));
+    }
+
+    lines.push(csvRow([t('analytics.export.col.section'), t('analytics.export.col.item'),
+                       t('analytics.export.col.value'), t('analytics.export.col.n'),
+                       t('analytics.export.col.N'), t('analytics.export.col.coverage')]));
+
+    model.cards.forEach(function (m) {
+      var section = (model.empty.indexOf(m) >= 0)
+        ? t('analytics.notCollected.title') : t('analytics.metrics.title');
+      lines.push(csvRow([section, metricLabel(m), metricValue(m),
+                         F.int(m.n), F.int(m.N), m.coverageText]));
+      figures++;
+    });
+
+    model.specs.forEach(function (spec) {
+      if (spec.insufficient) {
+        lines.push(csvRow([spec.title, t('common.insufficient'), spec.insufficient,
+                           '', F.int(spec.N), spec.coverageText]));
+        figures++;
+      }
+      (spec.table.rows || []).forEach(function (r) {
+        lines.push(csvRow([spec.title, r.cells[0], r.cells[1],
+                           r.n === null || r.n === undefined ? '' : F.int(r.n),
+                           F.int(r.N === undefined ? spec.N : r.N),
+                           spec.coverageText]));
+        figures++;
+      });
+    });
+
+    GEO.boot.download(lines.join('\n'),
+                      'geo-mvp-analysis-' + GEO.date.today() + '.csv', 'text/csv');
+    GEO.boot.toast(t('analytics.export.done', { n: F.int(figures) }));
+  }
+
+  /* A-06. The print stylesheet keys off `html[data-print]` and prints the
+     running header and footer from body attributes, so the collection date is
+     on every page whatever was printed. */
+  function printPanel(state, rows, scope) {
+    var model = buildModel(state, rows, scope);
+    var root = document.documentElement;
+    var previous = root.getAttribute('data-print');
+    var done = false;
+
+    function restore() {
+      if (done) return;
+      done = true;
+      if (previous === null) root.removeAttribute('data-print');
+      else root.setAttribute('data-print', previous);
+      document.body.removeAttribute('data-print-header');
+      document.body.removeAttribute('data-print-footer');
+      w.removeEventListener('afterprint', restore);
+    }
+
+    root.setAttribute('data-print', 'analytics');
+    document.body.setAttribute('data-print-header',
+      GEO.PRODUCT.name + ' · ' + t('analytics.title') + ' · ' +
+      t('analytics.scope', { n: F.int(rows.length), m: F.int(scope.length) }));
+    document.body.setAttribute('data-print-footer',
+      model.verifiedText + ' · ' + A.coverageStatement(rows));
+    w.addEventListener('afterprint', restore);
+
+    try { w.print(); }
+    catch (e) {
+      GEO.log.error('window.print() was refused', e);
+      GEO.boot.toast(t('error.print'));
+    }
+    restore();
+  }
+
+  /* ================================================================ model */
+
+  /**
+   * Everything the panel shows, derived from the rows it was handed. Called on
+   * every render AND by export and print, so a file can never carry a figure
+   * the screen does not (decision C).
+   */
+  function buildModel(state, rows, scope) {
+    var cards = A.dashboard(rows);
+    var live = [], empty = [];
+
+    cards.forEach(function (m) {
+      /* "Structurally empty" is derived, never a hard-coded list: a metric
+         with no recorded value anywhere in the selection. The same test moves
+         a card back up by itself the moment demo mode or an edit supplies a
+         value (D11) — which is the UX-8 demonstration. */
+      if (m.kind !== 'count' && m.n === 0) empty.push(m); else live.push(m);
+    });
+
+    var summary = null;
+    if (GEO.quality && GEO.quality.datasetSummary) {
+      try { summary = GEO.quality.datasetSummary(rows); }
+      catch (e) { GEO.log.warn('quality.datasetSummary threw', e); }
+    }
+
+    var describe = (GEO.filters && GEO.filters.describe) ? GEO.filters.describe(state.filters) : '';
+
+    return {
+      cards: cards,
+      live: live,
+      empty: empty,
+      specs: [districtSpec(rows), classSpec(rows), rentSpec(rows), glaSpec(rows), coverageSpec(rows)],
+      filterText: (GEO.state.activeFilterCount(state.filters) && describe)
+        ? t('analytics.filters.active', { list: describe })
+        : t('analytics.filters.none'),
+      verifiedText: t('detail.quality.verified', { date: F.date(lastVerified(rows)) }),
+      stalenessNote: summary ? summary.stalenessNote : null
+    };
+  }
+
+  /* =============================================================== drawing */
+
+  function actionsRow(state, rows) {
+    var none = rows.length === 0;
+    var kids = [
+      el('button.btn.btn--quiet.btn--sm', {
+        type: 'button',
+        text: t('analytics.export.analysis'),
+        disabled: none ? true : null,
+        title: none ? t('analytics.export.disabled') : t('analytics.export.analysis.note'),
+        onclick: function () {
+          var s = GEO.state.get();
+          exportAnalysis(s, GEO.boot.visible(s), GEO.boot.scope(s));
+        }
+      }),
+      el('button.btn.btn--quiet.btn--sm', {
+        type: 'button',
+        text: t('analytics.print'),
+        onclick: function () {
+          var s = GEO.state.get();
+          printPanel(s, GEO.boot.visible(s), GEO.boot.scope(s));
+        }
+      })
+    ];
+    // §29: a disabled control states why, visibly — not only in a tooltip.
+    if (none) kids.push(el('span.reason.reason--inline', { text: t('analytics.export.disabled') }));
+    else kids.push(el('span.micro', { text: t('analytics.export.note') }));
+    return el('div.row', {}, kids);
+  }
+
+  function headerBlock(state, rows, scope, model) {
+    var active = GEO.state.activeFilterCount(state.filters);
+    var kids = [];
+
+    // A-01. The scope line is what makes a screenshot of this panel
+    // self-describing: analytics cover the FILTERED set, not the selection.
+    kids.push(el('div.scope', {}, [
+      el('span', { text: t('analytics.scope', { n: F.int(rows.length), m: F.int(scope.length) }) }),
+      active ? el('button.btn.btn--quiet.btn--sm', {
+        type: 'button', text: t('analytics.scope.clear'),
+        onclick: function () {
+          GEO.state.resetFilters({ source: 'user', action: 'analytics:clearFilters',
+                                   summary: t('analytics.scope.clear') });
+        }
+      }) : null
+    ]));
+
+    kids.push(el('p.micro', { text: model.filterText }));
+    kids.push(el('p.coverage', { text: A.coverageStatement(rows) }));
+    kids.push(el('p.micro', { text: model.verifiedText }));
+    if (model.stalenessNote) kids.push(el('p.micro', { text: model.stalenessNote }));
+    if (state.selectedId) kids.push(el('p.micro', { text: t('analytics.scope.selection') }));
+
+    if (GEO.data.containsDemo(rows)) {
+      kids.push(el('p.row.row--tight', {}, [
+        demoBadge(),
+        el('span.micro', { text: t('analytics.demo', { n: F.int(demoCount(rows)) }) })
+      ]));
+    }
+
+    kids.push(actionsRow(state, rows));
+    return el('header.stack', {}, kids);
+  }
+
+  function statsBlock(model, rows) {
+    var kids = [
+      el('h3.sectitle', { text: t('analytics.metrics.title') }),
+      el('div.stats', {}, model.live.map(function (m) { return metricCard(m, rows); }))
+    ];
+
+    /* The caveats the headline count carries — unresolved duplicate pairs and
+       records whose own name says they are a company — are rendered beside the
+       cards, not only inside the popover. A supply figure that may double-count
+       says so where it is read (§2.7). */
+    var notes = [];
+    model.cards.forEach(function (m) {
+      (m.notes || []).forEach(function (n) { notes.push(n); });
+    });
+    if (notes.length) {
+      kids.push(el('div.stack', {}, notes.map(function (n) { return el('p.micro', { text: n }); })));
+    }
+
+    if (model.empty.length) {
+      kids.push(el('h3.sectitle', { text: t('analytics.notCollected.title') }));
+      kids.push(el('p.micro', { text: t('analytics.notCollected.body', { m: F.int(rows.length) }) }));
+      kids.push(el('div.stats', {}, model.empty.map(function (m) { return metricCard(m, rows); })));
+    }
+
+    return el('section.stack', { 'aria-label': t('analytics.metrics.title') }, kids);
+  }
+
+  function draw(pane, state, rows, scope) {
+    var model = buildModel(state, rows, scope);
+    var kids = [headerBlock(state, rows, scope, model), statsBlock(model, rows)];
+
+    model.specs.forEach(function (spec) {
+      if (spec.lead) kids.push(el('p.micro', { text: spec.lead }));
+      kids.push(drawChart(spec));
+      if (spec.id === 'coverage') {
+        // D-13 lives in the Data workspace: the filter model cannot express
+        // "records missing field X", so this opens the view that can list them
+        // rather than pretending a bar is a filter.
+        var external = state.role === 'external';
+        var btn = el('button.btn.btn--quiet.btn--sm', {
+          type: 'button',
+          text: t('analytics.coverage.openData'),
+          disabled: external ? true : null,
+          onclick: function () { openCoverageWorkspace(); }
+        });
+        kids.push(el('div.row', {}, [
+          btn,
+          external ? el('span.reason.reason--inline', { text: t('hdr.data.hiddenExternal') }) : null
+        ]));
+      }
+    });
+
+    Q.fill(pane, [el('div.stack.stack--lg', {}, kids)]);
+  }
+
+  /* --------------------------------------------------------------- render */
+
+  /* The slice of state this panel depends on. `hoverId` is deliberately absent:
+     a pointer crossing the results list must not redraw five charts. */
+  function signature(state, rows, scope) {
+    return [state.rightTab, state.rightRail, state.bp, state.role,
+            state.demoMode, state.excludeSuspectedNonBc, state.selectedId,
+            scope.length, rows.length, dataVersion, GEO.i18n.locale,
+            (GEO.filters && GEO.filters.toHash) ? GEO.filters.toHash(state.filters) : '',
+            rows.map(function (r) { return r.id; }).join(',')].join('|');
+  }
+
+  function render(state, rows, scope) {
+    var pane = Q.$(PANE);
+    if (!pane) return;
+
+    // While the tab is hidden there is nothing to keep in step; clearing the
+    // signature guarantees a full redraw the moment it is shown again.
+    if (state.rightRail !== 'open' || state.rightTab !== 'analytics') { lastSig = null; return; }
+
+    var sig = signature(state, rows, scope);
+    if (sig === lastSig) return;
+    lastSig = sig;
+
+    draw(pane, state, rows, scope);
+  }
+
+  /* An edit arrives as an empty patch that 99-boot re-broadcasts, and a locale
+     change arrives outside state entirely, so neither is visible in the
+     signature. Both bump a counter that is. */
+  GEO.on('data:changed', function () { dataVersion += 1; lastSig = null; });
+  GEO.on('i18n:locale', function () { dataVersion += 1; lastSig = null; });
+
+  /* `99-boot.js` is LAST in the manifest and opens with `GEO.boot = {}`, so at
+     panel-load time `GEO.boot.registerPanel` does not exist yet. DOMContentLoaded
+     is the seam: every inline script has run by then, and because this listener
+     is added while 15 loads — before 99-boot adds its own — registration lands
+     before `B.start()` subscribes the renderer. */
+  function registerWithBoot() {
+    if (!GEO.boot || !GEO.boot.registerPanel) return false;
+    GEO.boot.registerPanel(render);
+    return true;
+  }
+
+  if (!registerWithBoot()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!registerWithBoot()) {
+          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable — the Analytics tab will not render');
+        }
+      });
+    } else {
+      setTimeout(function () {
+        if (!registerWithBoot()) {
+          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable — the Analytics tab will not render');
+        }
+      }, 0);
+    }
+  }
+}(window));
+
+</script>
+<script>
+/* ==== src/js/16-panel-compare.js ==== */
+/* ===========================================================================
+ * 16-panel-compare — the comparison overlay (R7 · brief §15, IA §5.8)
+ *
+ * Four decisions shape this file.
+ *
+ * A. NO WINNER. EVER. (§15, C-11)
+ *    Nothing here ranks, sorts, bolds, arrows or colours a cell as "better".
+ *    A difference may be marked as a DIFFERENCE — one muted word next to the
+ *    row label — and that is the whole of it. The judgement belongs to the
+ *    reader, who knows things about these buildings that this dataset does
+ *    not. A footer line says so in as many words.
+ *
+ * B. THE EMPTY ROWS ARE THE PRODUCT.
+ *    On this dataset most comparison rows are "Not recorded" in every column.
+ *    Dropping them would flatter the data; showing them all inline would bury
+ *    the four rows that carry information. So rows are ordered: every field
+ *    known for at least one column first, then a collapsed group headed "No
+ *    data for any selected property" holding the rest — present, counted, one
+ *    click away. What nobody has collected is itself market intelligence
+ *    (§37), and the honest treatment of it is collapsed-but-present.
+ *
+ * C. EVERY CELL CARRIES ITS PROVENANCE.
+ *    A value without its confidence and its verification date is a number
+ *    with no standing. Each populated cell renders a confidence dot WITH its
+ *    word (§2.3, visual-system §4 — a bare dot is a defect) and the date the
+ *    value was last verified. Unknown renders as `GEO.fmt.UNKNOWN` in muted
+ *    type: never 0, never a dash, never blank (§36).
+ *
+ * D. THE PANEL HOLDS NO DATA.
+ *    Between renders this module keeps a signature string, three view flags
+ *    and one DOM reference for focus return. Records are re-derived from
+ *    `GEO.data.get()` on every draw.
+ * ========================================================================= */
+(function (w) {
+  'use strict';
+
+  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt, S = GEO.schema;
+  var t = GEO.i18n.t;
+
+  var BODY = '#compare-body';
+  var OVERLAY = '#overlay-compare';
+  var TITLE = '#compare-title';
+
+  var MIN_COLS = 2;                 // C-05: below this there is nothing to compare
+  var MAX_COLS = 4;                 // C-06 / §15: a fifth column is refused, not squeezed
+  var ADD_RESULTS = 6;              // rows offered by the in-overlay add search
+  var TENANT_NAMES = 3;             // named tenants per cell before "+n more"
+
+  /* ---------------------------------------------------------- string table */
+  /* D14: 100 % of user-visible strings live in ONE table, so the keys this
+     panel needs that `01-i18n.js` does not ship yet are written INTO that
+     table rather than kept locally — the coverage check, the translator
+     export and the missing-key lint all keep seeing every string. The guard
+     makes this a no-op once the keys are folded into 01-i18n.js, so a string
+     is never defined twice. */
+  var ADDED = {
+    'compare.group.recorded': 'Recorded for at least one property',
+    'compare.group.noData': 'No data for any selected property',
+    'compare.group.noData.count': '{n} fields',
+    'compare.group.noData.body':
+      'These fields hold no value for any property in this comparison. They are listed rather than dropped: a field nobody has collected is a fact about the market, not an empty row.',
+    'compare.differs': 'Values differ',
+    'compare.hiddenIdentical': '{n} rows hidden — every selected property holds the same value.',
+    'compare.add.scope': 'Searches the {n} properties in the current results.',
+    'compare.add.none': 'No property in the current results matches "{q}".',
+    'compare.add.already': 'Already in this comparison',
+    'compare.row.distance.note': 'Straight-line (haversine) distance from {name}, the first column.',
+    'compare.row.distance.self': 'Reference property',
+    'compare.distance.km': '{km} km',
+    'compare.distance.m': '{m} m',
+    'compare.list.more': 'and {n} more',
+    'compare.aria.table': 'Comparison of {n} properties, one column each',
+    'compare.csv.title': '{product} — property comparison',
+    'compare.csv.date': 'Exported {date}',
+    'compare.csv.unknown': '"Not recorded" means the value has never been collected. It does not mean zero.',
+    'compare.csv.colConfidence': '{name} — confidence',
+    'compare.csv.colVerified': '{name} — last verified'
+  };
+  Object.keys(ADDED).forEach(function (k) {
+    if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
+  });
+
+  /* ------------------------------------------------------------ enum → key */
+  /* Enum VALUES are UI vocabulary, not data, so each has a string key (IA
+     §9.3). Only the vocabularies this table renders are listed; a value the
+     map has never seen prints verbatim rather than being swallowed. */
+  var ENUM_KEYS = {
+    officeClass: { 'A+': 'value.class.aPlus', 'A': 'value.class.a', 'B+': 'value.class.bPlus',
+                   'B': 'value.class.b', 'C': 'value.class.c' },
+    status: { 'Operating': 'value.status.operating', 'Under construction': 'value.status.construction',
+              'Planned': 'value.status.planned', 'Renovation': 'value.status.renovation' },
+    confidence: { High: 'value.confidence.high', Medium: 'value.confidence.medium',
+                  Low: 'value.confidence.low', Unknown: 'value.confidence.unknown' },
+    collectionStatus: { not_collected: 'value.collection.notCollected', partial: 'value.collection.partial',
+                        complete: 'value.collection.complete', confirmed_empty: 'value.collection.confirmedEmpty' },
+    amenity: { 'restaurant': 'value.amenity.restaurant', 'cafe': 'value.amenity.cafe',
+               'retail': 'value.amenity.retail', 'gym': 'value.amenity.gym',
+               'conference room': 'value.amenity.conference', 'reception': 'value.amenity.reception',
+               'security': 'value.amenity.security', 'underground parking': 'value.amenity.undergroundParking',
+               'surface parking': 'value.amenity.surfaceParking', 'EV charging': 'value.amenity.evCharging',
+               'bicycle parking': 'value.amenity.bicycleParking', 'backup generator': 'value.amenity.generator' }
+  };
+
+  function enumLabel(vocab, value) {
+    var key = (ENUM_KEYS[vocab] || {})[value];
+    return key ? t(key) : String(value);
+  }
+
+  /* --------------------------------------------------------- view state */
+  /* None of this is application data: two booleans, a query string, a render
+     signature and one element reference for focus return (decision D). */
+  var view = { differingOnly: false, noDataOpen: false, q: '' };
+  var sig = null;
+  var dataVersion = 0;
+  var isOpen = false;
+  var opener = null;
+  var wired = false;
+
+  /* =====================================================================
+   * 1. THE ROW MODEL
+   * =================================================================== */
+
+  function tenantName(entry) {
+    if (!entry) return null;
+    if (typeof entry === 'string') return entry;
+    return U.isKnown(entry.name) ? entry.name : null;
+  }
+
+  function listText(names, total) {
+    var shown = names.join(', ');
+    return total > names.length
+      ? shown + ' ' + t('compare.list.more', { n: F.int(total - names.length) })
+      : shown;
+  }
+
+  function tenantsText(rec) {
+    var list = Array.isArray(rec.tenants) ? rec.tenants : [];
+    var named = [];
+    list.forEach(function (e) {
+      var n = tenantName(e);
+      if (n && named.length < TENANT_NAMES) named.push(n);
+    });
+    // §36 / D6: "confirmed empty" is a RECORDED fact and must not read as a
+    // gap. `tenants: []` alone cannot say which of the two it is; the status
+    // field can, so it is what decides.
+    if (!list.length) {
+      return rec.tenantsStatus === 'confirmed_empty' ? t('value.collection.confirmedEmpty') : null;
+    }
+    return named.length ? listText(named, list.length)
+                        : GEO.i18n.plural('common.count.records', list.length);
+  }
+
+  function amenitiesText(rec) {
+    var list = Array.isArray(rec.amenities) ? rec.amenities : [];
+    if (!list.length) {
+      return rec.amenitiesStatus === 'confirmed_empty' ? t('value.collection.confirmedEmpty') : null;
+    }
+    var named = list.slice(0, TENANT_NAMES).map(function (a) { return enumLabel('amenity', a); });
+    return listText(named, list.length);
+  }
+
+  /** The display string for one field, or `null` when the field is unknown —
+   *  `null` is what sends the cell to the "Not recorded" treatment. */
+  function valueText(rec, fd) {
+    var v = rec[fd.key];
+    if (fd.key === 'tenants') return tenantsText(rec);
+    if (fd.key === 'amenities') return amenitiesText(rec);
+    if (!U.isKnown(v)) return null;
+    if (fd.key === 'districtKey') return GEO.data.districtName(v);
+    if (fd.key === 'officeClass') return enumLabel('officeClass', v);
+    if (fd.key === 'status') return enumLabel('status', v);
+    if (fd.unit === 'm²') return F.area(v);
+    if (fd.unit === 'USD/m²/month') return F.rent(v, 'm²/month');
+    // A recorded 8 prints "8%", a recorded 7.5 prints "7.5%": the stored
+    // precision is shown, never padded into a precision the source never had.
+    if (fd.unit === '%') return F.pct(v, Math.round(v) === v ? 0 : 1);
+    if (fd.type === 'year' || fd.type === 'integer') return F.int(v);
+    return F.num(v, Math.round(v) === v ? 0 : 1) + (fd.unit ? ' ' + fd.unit : '');
+  }
+
+  function verifiedAt(rec, fieldKey) {
+    var ev = fieldKey ? GEO.data.evidence(rec, fieldKey) : null;
+    // Field-level date first: a field re-verified in the editor carries its
+    // own date and must not inherit the record's (D8).
+    return (ev && ev.lastVerifiedAt) || (rec._meta && rec._meta.lastVerifiedAt) || null;
+  }
+
+  function fieldCell(rec, fd) {
+    var text = valueText(rec, fd);
+    var known = text !== null;
+    var statusText = null;
+    if (fd.statusField) {
+      var st = rec[fd.statusField] || 'not_collected';
+      statusText = t(fd.key === 'tenants' ? 'detail.tenants.status' : 'detail.amenities.status',
+                     { status: enumLabel('collectionStatus', st) });
+    }
+    return {
+      text: known ? text : null,
+      known: known,
+      confidence: known ? GEO.data.confidenceOf(rec, fd.key) : null,
+      verified: known ? verifiedAt(rec, fd.key) : null,
+      note: statusText
+    };
+  }
+
+  function plainCell(text, opts) {
+    opts = opts || {};
+    return { text: text === null || text === undefined ? null : String(text),
+             known: text !== null && text !== undefined,
+             confidence: opts.confidence || null,
+             verified: opts.verified || null,
+             note: opts.note || null };
+  }
+
+  function distanceText(metres) {
+    return metres < 1000 ? t('compare.distance.m', { m: F.int(Math.round(metres)) })
+                         : t('compare.distance.km', { km: F.num(metres / 1000, 1) });
+  }
+
+  function completenessOf(rec) {
+    if (GEO.quality && GEO.quality.completeness) {
+      try { return GEO.quality.completeness(rec).text; } catch (e) { /* fall through */ }
+    }
+    var m = S.criticalFields.length, n = 0;
+    S.criticalFields.forEach(function (k) { if (U.isKnown(rec[k])) n++; });
+    return t('common.of', { n: F.int(n), m: F.int(m) });
+  }
+
+  /** Distance, confidence, completeness and last-verified: derived rows that
+   *  are always known, so they always sit in the "recorded" group. They close
+   *  the table because they describe the RECORD rather than the building. */
+  function derivedRows(recs) {
+    var reference = recs[0];
+    var hasRefCoords = U.isKnown(reference.lat) && U.isKnown(reference.lng);
+
+    return [
+      {
+        id: 'distance',
+        label: t('compare.row.distance'),
+        note: hasRefCoords ? t('compare.row.distance.note', { name: nameOf(reference) }) : null,
+        cells: recs.map(function (r, i) {
+          if (i === 0) return plainCell(t('compare.row.distance.self'));
+          if (!hasRefCoords || !U.isKnown(r.lat) || !U.isKnown(r.lng)) return plainCell(null);
+          return plainCell(distanceText(GEO.geo.between(reference, r)));
+        })
+      },
+      {
+        id: 'confidence',
+        label: t('compare.row.confidence'),
+        note: t('quality.confidence.legend'),
+        cells: recs.map(function (r) {
+          var level = GEO.data.recordConfidence(r);
+          return plainCell(level === 'Unknown' ? t('value.confidence.unknown')
+                                               : t('quality.confidence.dotLabel', { level: enumLabel('confidence', level) }),
+                           { confidence: level });
+        })
+      },
+      {
+        id: 'completeness',
+        label: t('compare.row.completeness'),
+        note: t('quality.completeness.explain', { m: F.int(S.criticalFields.length) }),
+        cells: recs.map(function (r) { return plainCell(completenessOf(r)); })
+      },
+      {
+        id: 'lastVerified',
+        label: t('field.lastVerifiedAt'),
+        note: null,
+        cells: recs.map(function (r) {
+          var lv = verifiedAt(r, null);
+          return plainCell(U.isKnown(lv) ? F.date(lv) : null);
+        })
+      }
+    ];
+  }
+
+  /** A row differs when its columns do not all hold the same thing. Marked as
+   *  DIFFERENT, never as better (decision A). All-unknown rows are identical
+   *  by definition, which is also what C-07 requires of the toggle. */
+  function markDiffering(row) {
+    var first = null, differs = false, knownCount = 0;
+    row.cells.forEach(function (c, i) {
+      var key = c.known ? '1 ' + c.text : '0';
+      if (c.known) knownCount++;
+      if (i === 0) first = key; else if (key !== first) differs = true;
+    });
+    row.known = knownCount > 0;
+    row.differs = differs;
+    return row;
+  }
+
+  function buildRows(recs) {
+    var rows = S.compareFields.map(function (key) {
+      var fd = S.byKey[key];
+      return markDiffering({
+        id: key,
+        label: t('field.' + key) === 'field.' + key ? S.label(key) : t('field.' + key),
+        note: null,
+        cells: recs.map(function (r) { return fieldCell(r, fd); })
+      });
+    });
+    derivedRows(recs).forEach(function (r) { rows.push(markDiffering(r)); });
+    return rows;
+  }
+
+  /* =====================================================================
+   * 2. RENDERING
+   * =================================================================== */
+
+  function nameOf(rec) { return U.isKnown(rec.name) ? rec.name : F.UNKNOWN; }
+
+  function confidenceChip(level) {
+    var label = level === 'Unknown'
+      ? t('value.confidence.unknown')
+      : t('quality.confidence.dotLabel', { level: enumLabel('confidence', level) });
+    // §2.7 / visual-system §4: the dot NEVER appears without its word.
+    return el('span.conf', { 'data-conf': level }, [
+      el('span.conf__dot', { 'aria-hidden': 'true' }),
+      el('span.conf__label', { text: label })
+    ]);
+  }
+
+  function cellNode(cell, rowId) {
+    var kids = [];
+    if (!cell.known) {
+      kids.push(el('span.unk', { text: F.UNKNOWN }));
+    } else if (rowId === 'confidence') {
+      // The confidence row IS a confidence chip; a second copy below it would
+      // say the same thing twice.
+      kids.push(confidenceChip(cell.confidence));
+    } else {
+      kids.push(el('div', { text: cell.text }));
+    }
+    if (cell.note) kids.push(el('div.micro', { text: cell.note }));
+    if (cell.known && cell.confidence && rowId !== 'confidence') {
+      kids.push(el('div', {}, [confidenceChip(cell.confidence)]));
+    }
+    if (cell.known && cell.verified) {
+      kids.push(el('div.micro', { text: t('detail.quality.verified', { date: F.date(cell.verified) }) }));
+    }
+    return el('td.cmp__val', { 'data-known': cell.known ? 'true' : 'false' }, kids);
+  }
+
+  function rowNode(row) {
+    var head = [el('span', { text: row.label })];
+    // Marked as different — never as better, never with colour or an arrow.
+    if (row.differs) head.push(el('span.cmp__colmeta', { text: t('compare.differs') }));
+    if (row.note) head.push(el('span.cmp__colmeta', { text: row.note }));
+
+    return el('tr', {}, [el('th.cmp__rowhd', { scope: 'row' }, head)].concat(
+      row.cells.map(function (c) { return cellNode(c, row.id); })
+    ));
+  }
+
+  function columnHead(rec, count) {
+    var meta = [GEO.data.districtName(rec.districtKey),
+                U.isKnown(rec.officeClass) ? enumLabel('officeClass', rec.officeClass)
+                                           : t('value.class.unknown')].join(' · ');
+    var kids = [];
+
+    // C-08. Not a `.btn`: the print sheet hides `.btn`, and a printed
+    // comparison with no column names is not a comparison.
+    kids.push(el('button.cmp__colname', {
+      type: 'button', text: nameOf(rec), title: t('compare.open', { name: nameOf(rec) }),
+      onclick: function () {
+        GEO.state.set({ overlay: null, selectedId: rec.id, rightRail: 'open', rightTab: 'property' },
+                      { source: 'user', action: 'compare:open', summary: nameOf(rec) });
+      }
+    }));
+    // D4: a synthetic record is badged everywhere it appears.
+    if (rec.recordType === 'DEMO') kids.push(el('span.badge.badge--demo', { text: t('common.demo.badge') }));
+    kids.push(el('span.cmp__colmeta', { text: meta }));
+
+    if (count > MIN_COLS) {
+      kids.push(el('button.btn.btn--icon', {
+        type: 'button', text: '×',
+        'aria-label': t('compare.removeColumn', { name: nameOf(rec) }),
+        onclick: function () { removeColumn(rec.id); }
+      }));
+    } else {
+      // §29: the control is disabled with its reason visible, not missing.
+      var reasonId = 'cmp-min-' + rec.id;
+      kids.push(el('button.btn.btn--icon', {
+        type: 'button', disabled: true, text: '×',
+        'aria-label': t('compare.removeColumn', { name: nameOf(rec) }),
+        'aria-describedby': reasonId
+      }));
+      kids.push(el('span.reason', { id: reasonId, text: t('compare.min') }));
+    }
+    return el('th', { scope: 'col' }, kids);
+  }
+
+  function table(recs, rows) {
+    var span = recs.length + 1;
+    var recorded = rows.filter(function (r) { return r.known; });
+    var empty = rows.filter(function (r) { return !r.known; });
+
+    var shownRecorded = view.differingOnly
+      ? recorded.filter(function (r) { return r.differs; })
+      : recorded;
+    var hiddenIdentical = recorded.length - shownRecorded.length;
+
+    var head = el('thead', {}, [
+      el('tr', {}, [el('th.cmp__rowhd', { scope: 'col' }, [
+        el('span', { text: t('compare.group.recorded') })
+      ])].concat(recs.map(function (r) { return columnHead(r, recs.length); })))
+    ]);
+
+    var bodies = [el('tbody', {}, shownRecorded.map(rowNode))];
+
+    // Decision B: the no-data group is present, counted and collapsed — never
+    // dropped. The `Show only differing rows` toggle suppresses it entirely,
+    // because every one of its rows is identical in every column (C-07).
+    if (empty.length && !view.differingOnly) {
+      var headBtn = el('button.btn.btn--quiet.btn--sm', {
+        type: 'button',
+        'aria-expanded': view.noDataOpen ? 'true' : 'false',
+        'aria-controls': 'cmp-nodata',
+        text: (view.noDataOpen ? '▾ ' : '▸ ') + t('compare.group.noData'),
+        onclick: function () { view.noDataOpen = !view.noDataOpen; redraw(); }
+      });
+      bodies.push(el('tbody', {}, [
+        el('tr', {}, [el('th.cmp__rowhd', { scope: 'row', colspan: String(span) }, [
+          headBtn,
+          el('span.cmp__colmeta', { text: t('compare.group.noData.count', { n: F.int(empty.length) }) }),
+          el('span.cmp__colmeta', { text: t('compare.group.noData.body') })
+        ])])
+      ]));
+      bodies.push(el('tbody#cmp-nodata', { hidden: !view.noDataOpen }, empty.map(rowNode)));
+    }
+
+    var tbl = el('table.cmp__table', {}, [
+      el('caption.vh', { text: t('compare.aria.table', { n: F.int(recs.length) }) }),
+      head
+    ].concat(bodies));
+
+    return {
+      node: el('div.cmp__scroll', {}, [tbl]),
+      hiddenIdentical: hiddenIdentical,
+      hiddenEmpty: view.differingOnly ? empty.length : 0,
+      emptyCount: empty.length
+    };
+  }
+
+  /* --------------------------------------------------------------- the bar */
+  function addSearch(rows, recs) {
+    var full = recs.length >= MAX_COLS;
+    var kids = [];
+
+    var input = el('input.input', {
+      type: 'search', id: 'cmp-add', value: view.q, autocomplete: 'off', spellcheck: 'false',
+      placeholder: t('compare.add.placeholder'), disabled: full,
+      'aria-describedby': 'cmp-add-hint',
+      oninput: function (e) { view.q = e.target.value; redraw(true); }
+    });
+
+    kids.push(el('label.field__label', { for: 'cmp-add', text: t('compare.add') }));
+    kids.push(input);
+    kids.push(el('span.reason', { id: 'cmp-add-hint',
+      text: full ? t('compare.limit') : t('compare.add.scope', { n: F.int(rows.length) }) }));
+
+    var out = [el('div.field', {}, kids)];
+    if (full || !view.q.trim()) return out;
+
+    var staged = {};
+    recs.forEach(function (r) { staged[r.id] = true; });
+    var res = GEO.search
+      ? GEO.search.query(rows, view.q, { limit: ADD_RESULTS, districts: false })
+      : { items: [] };
+
+    if (!res.items.length) {
+      out.push(el('p.micro', { text: t('compare.add.none', { q: view.q }) }));
+      return out;
+    }
+    out.push(el('div.stack', {}, res.items.map(function (item) {
+      var rec = item.record;
+      var already = !!staged[rec.id];
+      return el('button.btn.btn--quiet.btn--sm', {
+        type: 'button', disabled: already,
+        text: nameOf(rec) + ' · ' + GEO.data.districtName(rec.districtKey) +
+              (already ? ' — ' + t('compare.add.already') : ''),
+        onclick: function () { addColumn(rec.id); }
+      });
+    })));
+    return out;
+  }
+
+  function bar(rows, recs) {
+    var kids = [];
+
+    kids.push(el('label.check', {}, [
+      el('input', {
+        type: 'checkbox', checked: view.differingOnly,
+        onchange: function (e) { view.differingOnly = !!e.target.checked; redraw(); }
+      }),
+      el('span.check__text', { text: t('compare.differing') })
+    ]));
+
+    kids.push(el('button.btn.btn--quiet.btn--sm.push', {
+      type: 'button', text: t('compare.export'),
+      onclick: function () { exportCsv(recs); }
+    }));
+    kids.push(el('button.btn.btn--quiet.btn--sm', {
+      type: 'button', text: t('compare.print'), onclick: printCompare
+    }));
+
+    return [el('div.cmp__bar', {}, kids),
+            el('div.cmp__bar', {}, addSearch(rows, recs))];
+  }
+
+  /* ------------------------------------------------------------ empty state */
+  function emptyState() {
+    // IA §7: an empty state names the CAUSE and offers the ESCAPE.
+    return el('div.empty.empty--center', {}, [
+      el('p.empty__title', { text: t('empty.compare.title') }),
+      el('p.empty__body', { text: t('empty.compare.body') }),
+      el('div.empty__actions', {}, [
+        el('button.btn.btn--primary.btn--sm', {
+          type: 'button', text: t('empty.compare.action'),
+          onclick: function () {
+            GEO.state.set({ overlay: null, leftRail: 'open', leftTab: 'results' },
+                          { source: 'user', action: 'compare:openList' });
+          }
+        })
+      ])
+    ]);
+  }
+
+  /* ----------------------------------------------------------------- draw */
+  function draw(body, state, rows) {
+    var recs = state.compare.map(function (id) { return GEO.data.get(id); })
+                            .filter(function (r) { return !!r; });
+
+    if (recs.length < MIN_COLS) {
+      Q.fill(body, [el('div.cmp', {}, [emptyState()])]);
+      return;
+    }
+
+    var model = buildRows(recs);
+    var built = table(recs, model);
+    var foot = [];
+
+    if (view.differingOnly && built.hiddenIdentical) {
+      foot.push(el('p.cmp__foot', { text: t('compare.hiddenIdentical', { n: F.int(built.hiddenIdentical) }) }));
+    }
+    if (built.hiddenEmpty) {
+      foot.push(el('p.cmp__foot', { text: t('compare.hiddenRows', { n: F.int(built.hiddenEmpty) }) }));
+    }
+    if (recs.some(function (r) { return r.recordType === 'DEMO'; })) {
+      foot.push(el('p.cmp__foot', {
+        text: t('analytics.demo', {
+          n: F.int(recs.filter(function (r) { return r.recordType === 'DEMO'; }).length)
+        })
+      }));
+    }
+    // Decision A, stated on screen and in the export.
+    foot.push(el('p.cmp__foot', { text: t('compare.noWinner') }));
+
+    Q.fill(body, [el('div.cmp', {}, bar(rows, recs).concat([built.node]).concat(foot))]);
+  }
+
+  /* =====================================================================
+   * 3. ACTIONS
+   * =================================================================== */
+
+  function removeColumn(id) {
+    var s = GEO.state.get();
+    if (s.compare.length <= MIN_COLS) { GEO.boot.toast(t('compare.min')); return; }
+    var rec = GEO.data.get(id);
+    GEO.state.set({ compare: s.compare.filter(function (x) { return x !== id; }) },
+                  { source: 'user', action: 'compare:remove', summary: rec ? nameOf(rec) : id });
+  }
+
+  function addColumn(id) {
+    var s = GEO.state.get();
+    if (s.compare.indexOf(id) >= 0) return;
+    // §15: a fifth column is refused out loud. Silently dropping it, or
+    // silently swapping one out, would lose the user's selection without
+    // saying so.
+    if (s.compare.length >= MAX_COLS) { GEO.boot.toast(t('toast.compareFull')); return; }
+    var rec = GEO.data.get(id);
+    view.q = '';
+    GEO.state.set({ compare: s.compare.concat([id]) },
+                  { source: 'user', action: 'compare:add', summary: rec ? nameOf(rec) : id });
+  }
+
+  function close() {
+    GEO.state.set({ overlay: null }, { source: 'user', action: 'compare:close' });
+  }
+
+  /* ------------------------------------------------------------ CSV (C-09) */
+  function csvCell(v) {
+    if (v === null || v === undefined) return '';
+    var s = String(v);
+    return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+
+  function exportCsv(recs) {
+    var rows = buildRows(recs);
+    var demo = recs.filter(function (r) { return r.recordType === 'DEMO'; });
+
+    var head = [
+      '# ' + t('compare.csv.title', { product: GEO.PRODUCT.name }),
+      '# ' + t('compare.csv.date', { date: F.date(GEO.date.today()) }),
+      '# ' + t('compare.csv.unknown'),
+      '# ' + t('compare.noWinner')
+    ];
+    if (demo.length) head.push('# ' + t('common.demo.included', { n: F.int(demo.length) }));
+
+    // Three columns per property: the value, the confidence behind it and the
+    // date it was last verified. A comparison that travels without its
+    // provenance is the artefact this product exists to replace.
+    var cols = [t('compare.title')];
+    recs.forEach(function (r) {
+      cols.push(nameOf(r));
+      cols.push(t('compare.csv.colConfidence', { name: nameOf(r) }));
+      cols.push(t('compare.csv.colVerified', { name: nameOf(r) }));
+    });
+
+    var lines = [cols.map(csvCell).join(',')];
+    rows.forEach(function (row) {
+      var line = [row.label];
+      row.cells.forEach(function (c) {
+        line.push(c.known ? c.text : F.UNKNOWN);
+        line.push(c.confidence ? enumLabel('confidence', c.confidence) : '');
+        line.push(c.verified ? F.date(c.verified) : '');
+      });
+      lines.push(line.map(csvCell).join(','));
+    });
+
+    GEO.boot.download(head.join('\n') + '\n' + lines.join('\n'),
+                      'geo-mvp-comparison-' + GEO.date.today() + '.csv', 'text/csv');
+    GEO.boot.toast(t('toast.exported'));
+  }
+
+  /* ---------------------------------------------------------- print (C-10) */
+  function printCompare() {
+    var root = document.documentElement;
+    var done = false;
+    function cleanup() {
+      if (done) return;
+      done = true;
+      delete root.dataset.print;
+      w.removeEventListener('afterprint', cleanup);
+    }
+    // 09-print keys the "only the overlay prints" rules off this attribute.
+    root.dataset.print = 'compare';
+    w.addEventListener('afterprint', cleanup);
+    try { w.print(); }
+    catch (e) { GEO.boot.toast(t('error.print')); cleanup(); return; }
+    setTimeout(cleanup, 1000);          // engines that never fire `afterprint`
+  }
+
+  /* =====================================================================
+   * 4. FOCUS (C-04, IA §6.2)
+   * =================================================================== */
+
+  /* The element that opened the overlay is whatever last held focus outside
+     it — the tray button, a list card, the `C` shortcut's focus owner or an
+     assistant response action. Recording it here means focus return works for
+     all of them without any of them having to tell us. */
+  function trackOpener(e) {
+    var n = e.target;
+    if (!n || n === document.body || !n.closest) return;
+    if (n.closest(OVERLAY)) return;
+    opener = n;
+  }
+
+  function focusHeading() {
+    var h = Q.$(TITLE);
+    if (!h) return;
+    // The heading, not the close button: a screen-reader user must hear WHAT
+    // opened (IA §6.2).
+    h.setAttribute('tabindex', '-1');
+    h.focus();
+  }
+
+  function restoreFocus() {
+    var target = (opener && document.contains(opener) && !opener.disabled) ? opener : null;
+    if (!target) target = Q.$('#btn-open-compare');
+    if (target && target.offsetParent === null) target = Q.$('#results-list');
+    // Never `document.body`: if nothing survives, leave focus where it is.
+    if (target && target.focus) target.focus();
+  }
+
+  /* =====================================================================
+   * 5. RENDER
+   * =================================================================== */
+
+  function signature(state, rows) {
+    return [state.compare.join('|'), state.demoMode ? '1' : '0', state.role,
+            GEO.i18n.locale, String(dataVersion), String(rows.length),
+            view.differingOnly ? '1' : '0', view.noDataOpen ? '1' : '0', view.q].join(' ');
+  }
+
+  /** A view-only change (a disclosure, the differing-rows toggle, the add
+   *  query) redraws this panel and nothing else. It is not an application
+   *  event and does not belong in the §61 session log. */
+  function redraw(keepFocus) {
+    var body = Q.$(BODY);
+    if (!body || !isOpen) return;
+    var active = document.activeElement;
+    var id = keepFocus && active ? active.id : null;
+    var caret = (id && active.setSelectionRange && active.type === 'search') ? active.selectionStart : null;
+    sig = null;
+    render(GEO.state.get(), GEO.boot.visible(GEO.state.get()));
+    if (!id) return;
+    var back = document.getElementById(id);
+    if (!back) return;
+    back.focus();
+    if (caret !== null && back.setSelectionRange) {
+      try { back.setSelectionRange(caret, caret); } catch (e) { /* not a text input */ }
+    }
+  }
+
+  function render(state, rows) {
+    var body = Q.$(BODY);
+    if (!body) return;
+
+    if (state.overlay !== 'compare') {
+      if (isOpen) { isOpen = false; sig = null; restoreFocus(); }
+      return;
+    }
+
+    var justOpened = !isOpen;
+    if (justOpened) {
+      isOpen = true;
+      view.q = '';
+      sig = null;
+    }
+
+    var s = signature(state, rows);
+    if (s === sig) return;
+    sig = s;
+    draw(body, state, rows);
+    if (justOpened) focusHeading();
+  }
+
+  /* =====================================================================
+   * 6. WIRING
+   * =================================================================== */
+
+  function wire() {
+    if (wired) return;
+    var overlay = Q.$(OVERLAY);
+    if (!overlay) return;
+    wired = true;
+
+    document.addEventListener('focusin', trackOpener);
+
+    overlay.addEventListener('keydown', function (e) {
+      if (e.key === 'Tab') {
+        if (GEO.boot && GEO.boot.trapFocus) GEO.boot.trapFocus(overlay, e);
+        return;
+      }
+      if (e.key === 'Escape') {
+        // Handled here and stopped here: 99-boot's global handler ignores keys
+        // typed inside an input, so the add-search box would otherwise be a
+        // place where Esc does nothing.
+        e.preventDefault();
+        e.stopPropagation();
+        close();
+      }
+    });
+
+    // The overlay header's Print button is shell markup with no owner but
+    // this panel; wiring it here is what stops it being a dead control (§29).
+    var print = Q.$('#compare-print');
+    if (print) print.addEventListener('click', printCompare);
+  }
+
+  /* A dataset edit changes a cell's contents without changing the id set, so
+     the signature has to move with it or the table would show stale values. */
+  GEO.on('data:changed', function () { dataVersion += 1; });
+  GEO.on('i18n:locale', function () { dataVersion += 1; });
+
+  /* 99-boot is the LAST module in the manifest, so `GEO.boot` does not exist
+     while this file is evaluated. `data:loaded` fires from inside boot's
+     start(), after the repository is populated and before the first state
+     broadcast — early enough to catch the opening render. */
+  var registered = false;
+  function registerPanel() {
+    if (registered || !GEO.boot || !GEO.boot.registerPanel) return;
+    registered = true;
+    wire();
+    GEO.boot.registerPanel(render);
+  }
+  registerPanel();
+  GEO.on('data:loaded', registerPanel);
+}(window));
+
+</script>
+<script>
 /* ==== src/js/20-ai-tools.js ==== */
 /* ===========================================================================
  * 20-ai-tools — the assistant's tool registry
@@ -15449,15 +18785,25 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     if (c.n > 0) return null;
     var label = S.label(field);
     var whole = A.coverage(scope(ctx), field);
+    // Two different problems wear the same shape. If the whole dataset has the
+    // field but the current selection does not, the data is fine and the FILTER
+    // is in the way — and the way out is to clear it, not to collect anything.
+    var filterCaused = whole.n > 0;
     return {
       unavailable: true,
       field: field,
-      answer: label + ' is recorded for 0 of the ' + F.int(c.N) + ' ' +
-              F.plural(c.N, 'property', 'properties') + ' in the current selection' +
-              (whole.N !== c.N ? ' (and for ' + whole.n + ' of ' + whole.N + ' in the whole dataset)' : '') +
-              ', so this cannot be answered from the data held.',
-      required: 'A recorded ' + GEO.fmt.lower(label) + ' per building.',
-      coverage: { n: c.n, N: c.N, field: field }
+      filterCaused: filterCaused,
+      answer: filterCaused
+        ? label + ' is recorded for ' + whole.n + ' of ' + whole.N +
+          ' properties in the dataset, but for none of the ' + F.int(c.N) +
+          ' in the current selection — the active filters exclude every property that has it.'
+        : label + ' is recorded for 0 of the ' + F.int(c.N) + ' ' +
+          F.plural(c.N, 'property', 'properties') + ' in the current selection' +
+          ', so this cannot be answered from the data held.',
+      required: filterCaused
+        ? null
+        : 'A recorded ' + GEO.fmt.lower(label) + ' per building.',
+      coverage: { n: c.n, N: c.N, field: field, wholeN: whole.n, wholeTotal: whole.N }
     };
   }
   T._requireCoverage = requireCoverage;
@@ -16441,10 +19787,24 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     out.origin = AI.ORIGIN.UNAVAILABLE;
     out.answer = gate.answer;
     out.dataCoverage = S.label(gate.field) + ': ' + gate.coverage.n + ' of ' +
-                       gate.coverage.N + ' properties in the current selection.';
+                       gate.coverage.N + ' in the current selection' +
+                       (gate.coverage.wholeTotal
+                         ? ', ' + gate.coverage.wholeN + ' of ' + gate.coverage.wholeTotal + ' in the dataset.'
+                         : '.');
     out.limitations.push('No figure has been produced, and the previous selection is unchanged.');
     if (gate.required) out.limitations.push('To answer this we would need: ' + gate.required);
-    out.suggestions = alternatives || [];
+
+    // Offering back the query that just failed is a dead end. When a filter is
+    // what stands in the way, the useful next move is to remove it.
+    if (gate.filterCaused) {
+      out.limitations.push('Clearing the filters would make this answerable from the data already held.');
+      out.suggestions = ['Clear all filters']
+        .concat((alternatives || []).filter(function (a) {
+          return a.toLowerCase().indexOf(String(out.trace.intent || '')) < 0;
+        }));
+    } else {
+      out.suggestions = alternatives || [];
+    }
     return out;
   }
 

@@ -90,10 +90,24 @@
     out.origin = AI.ORIGIN.UNAVAILABLE;
     out.answer = gate.answer;
     out.dataCoverage = S.label(gate.field) + ': ' + gate.coverage.n + ' of ' +
-                       gate.coverage.N + ' properties in the current selection.';
+                       gate.coverage.N + ' in the current selection' +
+                       (gate.coverage.wholeTotal
+                         ? ', ' + gate.coverage.wholeN + ' of ' + gate.coverage.wholeTotal + ' in the dataset.'
+                         : '.');
     out.limitations.push('No figure has been produced, and the previous selection is unchanged.');
     if (gate.required) out.limitations.push('To answer this we would need: ' + gate.required);
-    out.suggestions = alternatives || [];
+
+    // Offering back the query that just failed is a dead end. When a filter is
+    // what stands in the way, the useful next move is to remove it.
+    if (gate.filterCaused) {
+      out.limitations.push('Clearing the filters would make this answerable from the data already held.');
+      out.suggestions = ['Clear all filters']
+        .concat((alternatives || []).filter(function (a) {
+          return a.toLowerCase().indexOf(String(out.trace.intent || '')) < 0;
+        }));
+    } else {
+      out.suggestions = alternatives || [];
+    }
     return out;
   }
 

@@ -112,15 +112,25 @@
     if (c.n > 0) return null;
     var label = S.label(field);
     var whole = A.coverage(scope(ctx), field);
+    // Two different problems wear the same shape. If the whole dataset has the
+    // field but the current selection does not, the data is fine and the FILTER
+    // is in the way — and the way out is to clear it, not to collect anything.
+    var filterCaused = whole.n > 0;
     return {
       unavailable: true,
       field: field,
-      answer: label + ' is recorded for 0 of the ' + F.int(c.N) + ' ' +
-              F.plural(c.N, 'property', 'properties') + ' in the current selection' +
-              (whole.N !== c.N ? ' (and for ' + whole.n + ' of ' + whole.N + ' in the whole dataset)' : '') +
-              ', so this cannot be answered from the data held.',
-      required: 'A recorded ' + GEO.fmt.lower(label) + ' per building.',
-      coverage: { n: c.n, N: c.N, field: field }
+      filterCaused: filterCaused,
+      answer: filterCaused
+        ? label + ' is recorded for ' + whole.n + ' of ' + whole.N +
+          ' properties in the dataset, but for none of the ' + F.int(c.N) +
+          ' in the current selection — the active filters exclude every property that has it.'
+        : label + ' is recorded for 0 of the ' + F.int(c.N) + ' ' +
+          F.plural(c.N, 'property', 'properties') + ' in the current selection' +
+          ', so this cannot be answered from the data held.',
+      required: filterCaused
+        ? null
+        : 'A recorded ' + GEO.fmt.lower(label) + ' per building.',
+      coverage: { n: c.n, N: c.N, field: field, wholeN: whole.n, wholeTotal: whole.N }
     };
   }
   T._requireCoverage = requireCoverage;

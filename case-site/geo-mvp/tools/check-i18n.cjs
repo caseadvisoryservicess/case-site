@@ -25,6 +25,21 @@ global.window = {
 require(I18N);
 const en = global.window.GEO.i18n.en;
 
+// A panel may ship its own defaults and write them into `GEO.i18n.en` at load
+// (`if (!GEO.i18n.has(k)) GEO.i18n.en[k] = ADDED[k]`), which keeps ONE table at
+// runtime while letting a module carry the copy it owns. Statically, those keys
+// look missing. Collect every `'a.b.c': '…'` literal pair from the modules and
+// treat them as defined — over-approximating here is safe, because the runtime
+// probe in qa.cjs is what actually proves nothing leaks to the screen.
+const declared = new Set();
+for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
+  if (!f.endsWith('.js') || f === '01-i18n.js') continue;
+  const src = fs.readFileSync(path.join(R, 'src/js', f), 'utf8');
+  for (const m of src.matchAll(/^\s*['"]([a-z][\w]*(?:\.[\w]+)+)['"]\s*:\s*['"]/gm)) {
+    declared.add(m[1]);
+  }
+}
+
 const used = new Map();   // key -> [files]
 for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
   if (!f.endsWith('.js') || f === '01-i18n.js') continue;
@@ -51,12 +66,16 @@ for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
 // (`t('value.confidence.' + level)`). It is never looked up as written, so it is
 // reported separately rather than stubbed — the ENUMERATED keys are what matter.
 const prefixes = [...used.keys()].filter(k => k.endsWith('.')).sort();
-const missing = [...used.keys()].filter(k => !k.endsWith('.') && !(k in en)).sort();
+const missing = [...used.keys()]
+  .filter(k => !k.endsWith('.') && !(k in en) && !declared.has(k)).sort();
 const unused = Object.keys(en).filter(k => !used.has(k)).sort();
 
 console.log(`table: ${Object.keys(en).length} keys   referenced: ${used.size}   ` +
             `missing: ${missing.length}   unreferenced: ${unused.length}   ` +
             `computed prefixes: ${prefixes.length}`);
+if (declared.size) {
+  console.log(`         ${declared.size} further keys are declared by panels and merged into the table at load`);
+}
 
 if (prefixes.length) {
   console.log('\nCOMPUTED KEYS — the enumerated suffixes must exist; this audit cannot check them:');

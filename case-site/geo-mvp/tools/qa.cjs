@@ -139,6 +139,24 @@ function watch(page) {
     check('no unresolved i18n keys rendered on the default screen',
           leaks.length === 0, leaks.slice(0, 8).join(', '));
 
+    // A DIFFERENT failure from a missing key, and invisible to the check above:
+    // the key exists and resolves, but the caller passed variables under other
+    // names, so "{n} of {m}" reaches the screen verbatim.
+    const placeholders = await page.evaluate(() => {
+      const out = new Set();
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = walk.nextNode())) {
+        const tag = n.parentElement && n.parentElement.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+        const m = n.textContent.match(/\{[a-zA-Z][\w]*\}/g);
+        if (m) m.forEach(x => out.add(x + '  in "' + n.textContent.trim().slice(0, 40) + '"'));
+      }
+      return [...out];
+    });
+    check('no unsubstituted {placeholders} rendered',
+          placeholders.length === 0, placeholders.slice(0, 5).join(' | '));
+
     await shot(page, '01-desktop-1440');
     await page.close();
   }
@@ -360,6 +378,9 @@ function watch(page) {
       a = await ask('Which buildings need data verification?');
       check('AI-6 produces a verification queue', a.unavailable !== true, a.answer);
 
+      // §63 gives each scenario its own starting state; AI-5 left a data-quality
+      // filter applied, and carrying it into AI-7 would test a different question.
+      await page.evaluate(() => GEO.state.clearAnalysis({ source: 'user', action: 'qa' }));
       a = await ask('Compare the three largest properties currently on the map');
       check('AI-7a refuses "largest" with no size data', a.unavailable === true, a.answer);
 
