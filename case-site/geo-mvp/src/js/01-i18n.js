@@ -1155,6 +1155,22 @@
     'filter.flags.note': 'Filter by what the data-quality checks found, rather than by a property attribute.',
     'filter.option.count': '{label} ({n})',
     'filter.range.observed': 'Recorded values run {min} to {max}',
+    'filter.flags.suspected': 'Probably not an office building',
+    'filter.flags.demo': 'Demo record (synthetic)',
+
+    /* --- results list (§12) --- */
+    'common.open': 'Open',
+    'common.compare': 'Compare',
+    'list.showMore': 'Show {n} more',
+    'list.card.completeness': '{n} of {total} key fields recorded',
+    // Rather than printing five "Not recorded" rows per card, name the absence once.
+    'list.card.missing': 'No {fields} recorded',
+    'list.card.duplicate.why': 'Shares a coordinate with another record — one of them may be a duplicate.',
+    'list.card.edited.why': 'Changed in this browser. Not saved to any shared source.',
+    'list.sort.nameDesc': 'Name Z to A',
+    'list.sort.glaDesc': 'GLA, large to small',
+    'list.sort.glaAsc': 'GLA, small to large',
+    'list.sort.verified': 'Last verified, oldest first',
     'empty.property.action.map': 'Pick one on the map'
   };
 

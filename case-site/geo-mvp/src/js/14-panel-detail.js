@@ -46,17 +46,15 @@
      The guard makes this block a no-op the moment the keys are folded into
      01-i18n.js, so there is never a second definition of one string. */
   var ADDED = {
-    'detail.ask.prefill': 'Show competitors within {km} km of {name}',
-    'detail.action.copyCoords.disabled': 'No coordinates recorded for this property',
-    'detail.provenance.qc': 'QC status',
-    'detail.provenance.profile': 'Evidence profile',
-    'detail.quality.freshness': 'Verification status',
-    'detail.quality.missingFields': 'Critical fields not recorded: {fields}',
-    'detail.quality.sourceNote': 'Collection note',
-    'detail.quality.sourceNote.origin': 'Quoted exactly as recorded by {source}, unedited and untranslated — it is the collector’s own instruction about what still needs checking.',
-    'detail.tenants.floor': 'Floor {floor}',
-    'detail.tenants.count': '{n} recorded',
-    'empty.property.action.map': 'Go to the map',
+    /* P-03 pre-fills a question the engine can actually answer. The shipped
+       `detail.ask.prefill` ("Tell me about {name}") matches no entry in the
+       21-ai-intents catalogue and would land on "That question was not
+       recognised", which turns a working control into a dead end (§29). This
+       phrasing hits the `competitors` intent, which is also what P-03 specifies. */
+    'detail.ask.prefill.competitors': 'Show competitors within {km} km of {name}',
+
+    /* The qcStatus vocabulary. `detail.provenance.qc` (the row label) ships;
+       its four values do not. */
     'value.qc.unreviewed': 'Not reviewed',
     'value.qc.needsCheck': 'Needs checking',
     'value.qc.accepted': 'Accepted',
@@ -180,7 +178,7 @@
         // A year is an identifier, not a quantity: 2022, never "2,022".
         return { known: true, text: String(v), numeric: true };
       case 'coord':
-        return { known: true, text: F.num(v, 6), numeric: true };
+        return { known: true, text: coordNum(v, 6), numeric: true };
       case 'integer':
         return { known: true, text: F.int(v), numeric: true };
       case 'number':
@@ -192,10 +190,22 @@
                  text: v.map(function (x) { return enumLabel(fd.enumKey, x); }).join(', '),
                  numeric: false };
       case 'tenantList':
-        return { known: true, text: t('detail.tenants.count', { n: F.int(v.length) }), numeric: false };
+        return { known: true,
+                 text: v.map(function (x) { return x && x.name ? x.name : F.UNKNOWN; }).join(', '),
+                 numeric: false };
       default:
         return { known: true, text: String(v), numeric: false };
     }
+  }
+
+  /* GEO.fmt.num groups thousands with a lookahead that also fires inside the
+     FRACTIONAL part, so `F.num(41.342585, 4)` prints "41.3,426". A coordinate
+     has no thousands to group and four or six decimals to protect, so it is
+     formatted here instead of being routed through the shared helper. The core
+     bug is worth fixing in 00-core; this panel must not print a comma into a
+     latitude while it waits. */
+  function coordNum(v, dp) {
+    return U.isKnown(v) ? Number(v).toFixed(dp) : F.UNKNOWN;
   }
 
   function numberText(v, fd) {
@@ -511,7 +521,7 @@
 
   /* ------------------------------------------------------------- location */
   function coordText(rec) {
-    return t('detail.coords', { lat: F.num(rec.lat, COORD_DP), lng: F.num(rec.lng, COORD_DP) });
+    return t('detail.coords', { lat: coordNum(rec.lat, COORD_DP), lng: coordNum(rec.lng, COORD_DP) });
   }
 
   function locationSection(rec) {

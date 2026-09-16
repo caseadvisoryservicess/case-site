@@ -31,9 +31,19 @@ for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
   const src = fs.readFileSync(path.join(R, 'src/js', f), 'utf8');
   // t('key'), t("key"), GEO.i18n.t('key') — only literal keys can be checked, which
   // is the point: a computed key is invisible to this audit, so modules should avoid one.
-  for (const m of src.matchAll(/\bt\(\s*['"]([\w.]+)['"]/g)) {
-    if (!used.has(m[1])) used.set(m[1], []);
-    used.get(m[1]).push(f);
+  // Two shapes: a direct call `t('a.b')`, and a key stored in a data structure
+  // (`labelKey: 'a.b'`) that is passed to t() later. The second shape is how the
+  // filter rail declares its controls, and missing it is how two keys reached the
+  // rendered page unresolved.
+  const patterns = [
+    /\bt\(\s*['"]([\w.]+)['"]/g,
+    /\b(?:labelKey|titleKey|i18nKey|msgKey|noteKey|reasonKey)\s*:\s*['"]([\w.]+)['"]/g,
+  ];
+  for (const re of patterns) {
+    for (const m of src.matchAll(re)) {
+      if (!used.has(m[1])) used.set(m[1], []);
+      used.get(m[1]).push(f);
+    }
   }
 }
 

@@ -1,0 +1,54 @@
+{
+ "shell": "src/shell.html",
+ "output": "index.partial.html",
+ "css": {
+  "vendor": [
+   "vendor/leaflet.css"
+  ],
+  "app": [
+   "src/styles/01-tokens.css",
+   "src/styles/02-base.css",
+   "src/styles/03-layout.css",
+   "src/styles/04-components.css",
+   "src/styles/05-map.css",
+   "src/styles/06-charts.css",
+   "src/styles/07-panels.css",
+   "src/styles/08-responsive.css",
+   "src/styles/09-print.css"
+  ]
+ },
+ "js": {
+  "vendor": [
+   "vendor/leaflet.js",
+   "vendor/leaflet.markercluster.js"
+  ],
+  "app": [
+   "src/js/00-core.js",
+   "src/js/01-i18n.js",
+   "src/js/02-schema.js",
+   "src/js/03-data.js",
+   "src/js/04-quality.js",
+   "src/js/05-state.js",
+   "src/js/08-analytics.js",
+   "src/js/09-geo.js",
+   "src/js/12-panel-filters.js",
+   "src/js/13-panel-list.js",
+   "src/js/14-panel-detail.js",
+   "src/js/20-ai-tools.js",
+   "src/js/21-ai-intents.js",
+   "src/js/22-ai-engine.js",
+   "src/js/24-selftest.js",
+   "src/js/99-boot.js"
+  ]
+ },
+ "data": {
+  "seed": {
+   "file": "data/seed.json",
+   "global": "GEO_SEED"
+  },
+  "districts": {
+   "file": "data/tashkent_districts.simplified.geojson",
+   "global": "GEO_DISTRICTS"
+  }
+ }
+}
