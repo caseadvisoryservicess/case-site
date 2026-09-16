@@ -46,6 +46,9 @@ run node tools/test-filters.cjs
 step "Search — script folding and district aliases"
 run node tools/test-search.cjs
 
+step "Assistant — the eight §63 scenarios and the §62 refusals"
+run node tools/test-assistant.cjs
+
 step "i18n key audit"
 run node tools/check-i18n.cjs
 

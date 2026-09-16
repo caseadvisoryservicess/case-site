@@ -83,6 +83,17 @@
     catch (e) { GEO.log.error('filters.apply threw', e); return rows; }
   }
 
+  /** The state keys one filter group owns. 06-filters publishes this as
+   *  `FL.GROUPS`, and taking it from there rather than repeating it keeps the
+   *  panel and the predicate engine from drifting apart over time. */
+  function groupKeys(group, fallback) {
+    if (GEO.filters && GEO.filters.GROUPS) {
+      var hit = GEO.filters.GROUPS.filter(function (g) { return g.key === group; })[0];
+      if (hit && hit.keys) return hit.keys;
+    }
+    return fallback;
+  }
+
   /** Cross-filtering (L-05): a group's option counts are computed against every
    *  OTHER active filter, so ticking Yunusobod does not make every other
    *  district read (0) and strand the user. */
@@ -93,6 +104,19 @@
     return applyFilters(scope, f);
   }
 
+  /** Chip and option labels go through the filter module's own vocabulary where
+   *  it has one, so a chip in this panel reads the same as the sentence in an
+   *  export header or an AI layer's criteria. */
+  function valueLabel(kind, value, fallback) {
+    if (GEO.filters && GEO.filters.valueLabel) {
+      try {
+        var s = GEO.filters.valueLabel(kind, value);
+        if (usable(s)) return s;
+      } catch (e) { /* fall through */ }
+    }
+    return fallback;
+  }
+
   function countBy(rows, fn) {
     var o = {};
     rows.forEach(function (r) {
@@ -101,6 +125,17 @@
       o[k] = (o[k] || 0) + 1;
     });
     return o;
+  }
+
+  /**
+   * `GEO.i18n.t` returns the KEY itself when a string is missing, deliberately,
+   * so the gap is visible on screen. That is right in the module that owns the
+   * string and wrong here: a reason line reading `filter.disabled.none` tells a
+   * tester nothing, and this panel can always derive a real sentence instead.
+   * So a borrowed string that still looks like a dotted key is not used.
+   */
+  function usable(s) {
+    return typeof s === 'string' && s !== '' && !/^[a-z][\w]*(\.[\w]+)+$/.test(s);
   }
 
   /** Read one entry out of whatever shape 06-filters returns — a map keyed by
@@ -136,11 +171,12 @@
       var n = (e && typeof e.n === 'number') ? e.n : c.n;
       var N = (e && typeof e.N === 'number') ? e.N : c.N;
       var open = (e && typeof e.available === 'boolean') ? e.available : n > 0;
+      var derived = open ? null : t('filter.disabled.zero', {
+        m: F.int(N), field: F.lower(S.label(spec.field))
+      });
       out[spec.key] = {
         key: spec.key, field: spec.field, n: n, N: N, available: open,
-        reason: (e && e.reason) || (open ? null : t('filter.disabled.zero', {
-          m: F.int(N), field: F.lower(S.label(spec.field))
-        }))
+        reason: (e && usable(e.reason)) ? e.reason : derived
       };
     });
     return out;
@@ -295,13 +331,15 @@
     options.forEach(function (o) {
       var input = el('input', { type: 'checkbox', value: o.value });
       var count = el('span.check__count');
-      var text = el('span.check__text', {}, [document.createTextNode(o.label), count]);
+      var label = document.createTextNode(o.label || '');
+      var text = el('span.check__text', {}, [label, count]);
       var lab = el('label.check', o.title ? { title: o.title } : {}, [input, text]);
       input.addEventListener('change', function () {
         toggleIn(filterKey, o.value, input.checked);
       });
       g.body.appendChild(lab);
-      boxes.push({ value: o.value, input: input, count: count });
+      boxes.push({ value: o.value, input: input, count: count, label: label,
+                   fullLabelKey: o.fullLabelKey || null });
     });
     g.boxes = boxes;
     g.filterKey = filterKey;
@@ -309,7 +347,17 @@
     g.sync = function (selected, counts) {
       boxes.forEach(function (b) {
         b.input.checked = (selected || []).indexOf(b.value) >= 0;
-        b.count.textContent = countText((counts && counts[b.value]) || 0);
+        var n = (counts && counts[b.value]) || 0;
+        if (b.fullLabelKey) {
+          // Some options are worth more than their name: a completeness band
+          // means nothing until it says which counts it covers, so those strings
+          // carry the whole sentence AND the number, and the generic count span
+          // stands down rather than printing the figure twice.
+          b.label.nodeValue = t(b.fullLabelKey, { n: F.int(n) });
+          b.count.textContent = '';
+        } else {
+          b.count.textContent = countText(n);
+        }
       });
     };
     return g;
@@ -449,7 +497,7 @@
     u.parkingIn = el('input.input.input--num', { type: 'number', id: parkId, min: '0', step: '1' });
     u.parking = group(t('filter.parking.label'));
     u.parking.body.appendChild(el('label.field', { for: parkId }, [
-      el('span.field__label', { text: t('filter.parking.label') }), u.parkingIn
+      el('span.vh', { text: t('filter.parking.label') }), u.parkingIn
     ]));
     u.parkingIn.addEventListener('change', function () {
       commitNumber('parkingMin', 'parkingSpaces', u.parkingIn.value);
@@ -466,9 +514,7 @@
 
     u.completeness = checkGroup(t('filter.completeness.label'), 'completeness',
       COMPLETENESS_BANDS.map(function (b) {
-        // The band label already carries its own count slot in the table, so the
-        // generic (n) span is suppressed for this group by using the full string.
-        return { value: b, label: t('value.completeness.' + b) };
+        return { value: b, fullLabelKey: 'filter.completeness.' + b };
       }));
     u.completeness.setNote(t('filter.completeness.note', { m: F.int(S.criticalFields.length) }));
 
@@ -645,7 +691,7 @@
 
     // The L-06 headline: selecting grades drops the unrecorded, and says so.
     if ((f.classes || []).length) {
-      var base = baseFor(scope, f, ['classes', 'includeUnknownClass']);
+      var base = baseFor(scope, f, groupKeys('classes', ['classes', 'includeUnknownClass']));
       var noClass = base.filter(function (r) { return !U.isKnown(r.officeClass); }).length;
       if (noClass) out.push(t('filter.excluded.class', { n: F.int(noClass) }));
     }
@@ -703,10 +749,10 @@
 
     /* --- district ------------------------------------------------------ */
     u.districts.sync(f.districts,
-      countBy(baseFor(scope, f, ['districts']), function (r) { return r.districtKey; }));
+      countBy(baseFor(scope, f, groupKeys('districts', ['districts'])), function (r) { return r.districtKey; }));
 
     /* --- class --------------------------------------------------------- */
-    var classBase = baseFor(scope, f, ['classes', 'includeUnknownClass']);
+    var classBase = baseFor(scope, f, groupKeys('classes', ['classes', 'includeUnknownClass']));
     var classCounts = countBy(classBase, function (r) { return r.officeClass; });
     u.classes.sync(f.classes, classCounts);
     u.unknownClass.checked = !!f.includeUnknownClass;
@@ -714,7 +760,7 @@
 
     /* --- status: the canonical zero-coverage control -------------------- */
     u.statuses.sync(f.statuses,
-      countBy(baseFor(scope, f, ['statuses']), function (r) { return r.status; }));
+      countBy(baseFor(scope, f, groupKeys('statuses', ['statuses'])), function (r) { return r.status; }));
     u.statuses.setEnabled(avail.statuses.available, avail.statuses.reason);
 
     /* --- rent ----------------------------------------------------------- */
@@ -745,7 +791,7 @@
     u.parking.setEnabled(avail.parking.available, avail.parking.reason);
     u.parking.setNote(observedNote(avail.parking, rng.parkingSpaces, 0));
 
-    var amenBase = baseFor(scope, f, ['amenities']);
+    var amenBase = baseFor(scope, f, groupKeys('amenities', ['amenities']));
     var amenCounts = {};
     S.enums.amenity.forEach(function (a) {
       amenCounts[a] = amenBase.filter(function (r) {
@@ -760,18 +806,18 @@
     // confidence is single-valued. A zero-count option stays selectable and
     // produces the named empty state rather than a dead control (L-13).
     u.confidence.sync(f.confidence,
-      countBy(baseFor(scope, f, ['confidence']), function (r) {
+      countBy(baseFor(scope, f, groupKeys('confidence', ['confidence'])), function (r) {
         return GEO.data.recordConfidence(r);
       }));
     u.completeness.sync(f.completeness,
-      countBy(baseFor(scope, f, ['completeness']), function (r) {
+      countBy(baseFor(scope, f, groupKeys('completeness', ['completeness'])), function (r) {
         return completenessOf(r).band;
       }));
     u.freshness.sync(f.freshness,
-      countBy(baseFor(scope, f, ['freshness']), function (r) { return freshnessOf(r); }));
+      countBy(baseFor(scope, f, groupKeys('freshness', ['freshness'])), function (r) { return freshnessOf(r); }));
 
     /* --- flags and scope -------------------------------------------------- */
-    var flagBase = baseFor(scope, f, ['flags']);
+    var flagBase = baseFor(scope, f, groupKeys('flags', ['flags']));
     var flagCounts = {};
     FLAGS.forEach(function (fl) {
       flagCounts[fl.key] = flagBase.filter(fl.test).length;

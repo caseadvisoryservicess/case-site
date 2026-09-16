@@ -77,11 +77,22 @@
     });
   }
 
-  /** The rows the assistant is currently talking about. §58: a follow-up
-   *  ("only those above $30") narrows the PREVIOUS result, it does not start over. */
-  function currentRows(ctx) {
+  /**
+   * The rows the assistant is currently talking about.
+   *
+   * By default this is whatever the FILTERS select — the same set the map and the
+   * list are showing — because that is what a user means by "these". Only an
+   * explicit refinement ("only those above $30") narrows the previous RESULT set,
+   * and the caller says so by passing `preferLastResult`.
+   *
+   * Inheriting the last result silently is worse than it sounds: after asking for
+   * competitors within 3 km, a fresh question like "show properties with poor data
+   * quality" would answer about those 74 records while appearing to answer about
+   * the dataset, and the denominator would look plausible either way.
+   */
+  function currentRows(ctx, preferLastResult) {
     var s = ctx.state;
-    if (s.aiSession.lastResultIds && s.aiSession.lastResultIds.length) {
+    if (preferLastResult && s.aiSession.lastResultIds && s.aiSession.lastResultIds.length) {
       var want = {};
       s.aiSession.lastResultIds.forEach(function (id) { want[id] = true; });
       var rows = scope(ctx).filter(function (r) { return want[r.id]; });

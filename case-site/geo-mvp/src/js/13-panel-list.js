@@ -232,7 +232,23 @@
         var n = ex && (ex.narrowest || ex.narrowestFilter);
         if (n && (n.key || n.label)) {
           return { key: n.key || null,
-                   label: n.label || t(FILTER_LABELS[n.key] || 'common.filter') };
+                   label: n.label || t(FILTER_LABELS[n.key] || 'filter.title') };
+        }
+        // `explain` reports, per group, how many records that group alone
+        // removed from the set that passed every other filter. The largest of
+        // those IS the narrowest filter, already computed — no need to re-probe.
+        var by = ex && ex.excludedBy;
+        if (by) {
+          var best = null;
+          Object.keys(by).forEach(function (k) {
+            var e = by[k];
+            if (!e || !e.excluded) return;
+            if (!best || e.excluded > best.excluded) best = e;
+          });
+          if (best) {
+            return { key: best.key, excluded: best.excluded,
+                     label: labelForGroup(best.key, best.label) };
+          }
         }
       } catch (e) { GEO.log.warn('filters.explain threw — probing locally', e); }
     }

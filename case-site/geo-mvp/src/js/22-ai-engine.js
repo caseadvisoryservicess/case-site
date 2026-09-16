@@ -107,10 +107,22 @@
     out.trace.slots = plan.slots || null;
 
     var scope = AI._scope(c);
-    var current = AI._currentRows(c);
+    var current = AI._currentRows(c, !!plan.narrowing);
 
     try {
-      out = dispatch(plan, out, c, scope, current);
+      if (plan.needsSelection) {
+        // Caught here rather than in dispatch: the plan has no steps to run, so
+        // letting it through produces an exception and a "something went wrong",
+        // when the honest answer is simply that nothing is selected yet (§44).
+        out.answer = plan.error;
+        out.origin = AI.ORIGIN.UNAVAILABLE;
+        out.unavailable = true;
+        out.dataCoverage = A.coverageStatement(scope);
+        out.limitations.push('Nothing on the map, in the filters or in the selection has changed.');
+        out.suggestions = ['Show Class A and A+ business centres', 'Show data coverage'];
+      } else {
+        out = dispatch(plan, out, c, scope, current);
+      }
     } catch (e) {
       GEO.log.error('assistant failed', e);
       out.answer = 'Something went wrong while answering that. The dataset has not been changed.';
@@ -141,18 +153,26 @@
     return res;
   }
 
-  function finish(out, rows, coverageFields) {
+  /**
+   * @param base  the population the answer was drawn FROM. Coverage is reported
+   *              against this, not against the result: after filtering to class
+   *              A and A+, "office class is recorded for 12 of 12" is true and
+   *              useless, because the 132 records the filter excluded for having
+   *              no recorded class are exactly what the reader needs to know about.
+   */
+  function finish(out, rows, coverageFields, base) {
     out.resultIds = rows.map(function (r) { return r.id; });
     out.resultCount = rows.length;
+    var pop = base && base.length ? base : rows;
     if (!out.dataCoverage) {
       var parts = (coverageFields || []).map(function (f) {
-        var cv = A.coverage(rows, f);
-        return S.label(f) + ' is recorded for ' + cv.n + ' of ' + cv.N + ' matching ' +
+        var cv = A.coverage(pop, f);
+        return S.label(f) + ' is recorded for ' + cv.n + ' of ' + cv.N + ' ' +
                F.plural(cv.N, 'property', 'properties') +
                (cv.N - cv.n ? '. ' + (cv.N - cv.n) + ' have no recorded ' + F.lower(S.label(f)) +
                               ' and are excluded from any figure that uses it.' : '.');
       });
-      out.dataCoverage = parts.join(' ') || A.coverageStatement(rows);
+      out.dataCoverage = parts.join(' ') || A.coverageStatement(pop);
     }
     var dw = demoWarning(rows);
     if (dw) out.limitations.push(dw);
@@ -272,8 +292,12 @@
           criteriaHuman: name, criteriaMachine: plan.filters
         }, ctx()));
 
+        // A colon rather than "match", because `describe()` produces phrases of
+        // several shapes — "class A, A+", "in Mirobod", "asking rent from 30" — and
+        // only the colon reads correctly after all of them. Its letters are also
+        // left alone: lowercasing "class A, A+" would yield "class a, a+".
         out.answer = F.int(rows.length) + ' ' + F.plural(rows.length, 'property', 'properties') +
-                     ' match ' + name.toLowerCase() + '.';
+                     ' — ' + name + '.';
         out.origin = AI.ORIGIN.PLATFORM;
         out.analysis = describeSet(rows);
 
@@ -290,7 +314,7 @@
               'that is an absence of data, not evidence that they are a different class.');
           }
         }
-        return finish(out, rows, covFields);
+        return finish(out, rows, covFields, base);
       }
 
       /* ------------------------------------------------- rank_districts */
