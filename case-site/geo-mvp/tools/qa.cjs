@@ -157,6 +157,64 @@ function watch(page) {
     check('no unsubstituted {placeholders} rendered',
           placeholders.length === 0, placeholders.slice(0, 5).join(' | '));
 
+    // Sweep every surface, not just the one the app opens on. A key behind a tab
+    // or a modal is exactly where an unresolved string survives: nobody looks.
+    const SURFACES = [
+      ['analytics',       { rightRail: 'open', rightTab: 'analytics' }],
+      ['assistant',       { rightRail: 'open', rightTab: 'ai' }],
+      ['layers',          { rightRail: 'open', rightTab: 'layers' }],
+      ['results list',    { leftRail: 'open', leftTab: 'results' }],
+      ['data · records',  { overlay: 'data', dataTab: 'records' }],
+      ['data · coverage', { overlay: 'data', dataTab: 'coverage' }],
+      ['data · quality',  { overlay: 'data', dataTab: 'quality' }],
+      ['data · dupes',    { overlay: 'data', dataTab: 'dupes' }],
+      ['data · changes',  { overlay: 'data', dataTab: 'changes' }],
+      ['data · io',       { overlay: 'data', dataTab: 'io' }],
+    ];
+    for (const [name, patch] of SURFACES) {
+      const bad = await page.evaluate(async (p2) => {
+        GEO.state.set(p2, { source: 'user', action: 'qa' });
+        await new Promise(r => setTimeout(r, 120));
+        const out = new Set();
+        const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        const keyish = /^[a-z][a-z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*){1,4}\.?$/;
+        let n;
+        while ((n = walk.nextNode())) {
+          const tag = n.parentElement && n.parentElement.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+          const txt = n.textContent.trim();
+          if (txt && keyish.test(txt)) out.add(txt);
+          const ph = txt.match(/\{[a-zA-Z][\w]*\}/g);
+          if (ph) ph.forEach(x => out.add(x));
+        }
+        return [...out];
+      }, patch);
+      check(`no unresolved strings on: ${name}`, bad.length === 0, bad.slice(0, 5).join(', '));
+    }
+    // A property must be selected for the property tab to have anything to show.
+    const propBad = await page.evaluate(async () => {
+      const tri = GEO.data.observed().filter(x => x.name === 'Trilliant')[0];
+      GEO.state.set({ overlay: null, selectedId: tri.id, rightRail: 'open', rightTab: 'property',
+                      radius: { id: tri.id, km: [1, 3, 5] } }, { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 200));
+      const out = new Set();
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const keyish = /^[a-z][a-z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*){1,4}\.?$/;
+      let n;
+      while ((n = walk.nextNode())) {
+        const tag = n.parentElement && n.parentElement.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+        const txt = n.textContent.trim();
+        if (txt && keyish.test(txt)) out.add(txt);
+        const ph = txt.match(/\{[a-zA-Z][\w]*\}/g);
+        if (ph) ph.forEach(x => out.add(x));
+      }
+      return [...out];
+    });
+    check('no unresolved strings on: property + location',
+          propBad.length === 0, propBad.slice(0, 5).join(', '));
+    await page.evaluate(() => GEO.state.clearAnalysis({ source: 'user', action: 'qa' }));
+
     await shot(page, '01-desktop-1440');
     await page.close();
   }

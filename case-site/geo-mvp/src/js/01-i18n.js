@@ -106,6 +106,12 @@
     'common.count.records.other': '{n} records',
     'common.count.results.one': '{n} result',
     'common.count.results.other': '{n} results',
+    'common.count.pairs.one': '{n} pair',
+    'common.count.pairs.other': '{n} pairs',
+    'common.count.groups.one': '{n} group',
+    'common.count.groups.other': '{n} groups',
+    'common.count.fields.one': '{n} field',
+    'common.count.fields.other': '{n} fields',
     'common.count.sources.one': '{n} source',
     'common.count.sources.other': '{n} sources',
     'common.coverage': 'Based on {n} of {m} properties with verified {field}.',
@@ -1059,22 +1065,22 @@
      * --------------------------------------------------------------------- */
     'quality.issue.missingCritical.title': 'No commercial data recorded',
     'quality.issue.missingCritical.detail':
-      '{n} properties hold none of the fields a commercial decision needs — class, status, GLA, floors, asking rent, vacancy, parking or year opened. They are real buildings with real locations; nothing has been collected about them yet. {examples}',
+      '{n} of {m} properties hold none of the {k} fields a commercial decision needs — class, status, GLA, floors, asking rent, vacancy, parking or year opened. They are real buildings with real locations; nothing has been collected about them yet.',
     'quality.issue.missingCritical.action': 'Show these on the map',
 
     'quality.issue.duplicateCoordinate.title': 'Exact coordinate collisions',
     'quality.issue.duplicateCoordinate.detail':
-      '{n} records share a coordinate with another record, in {groups} groups. Each pair is either one building listed twice or two businesses at one address — the source does not say which. Until they are adjudicated, every district count and radius count may overstate supply. {examples}',
+      '{records} records share a coordinate with another record, in {groups} groups. Each pair is either one building listed twice or two businesses at one address — the source does not say which. Until they are adjudicated, every district count and radius count may overstate supply. {examples}',
     'quality.issue.duplicateCoordinate.action': 'Review these pairs',
 
     'quality.issue.duplicateProximity.title': 'Unflagged near-duplicates',
     'quality.issue.duplicateProximity.detail':
-      '{n} records sit within {m} m of another record without the source having flagged them. Found by recomputing the distances rather than trusting the flag. {examples}',
+      '{pairs} pairs sit within {m} m of each other without the source having flagged them. Found by recomputing the distances rather than trusting the flag. {examples}',
     'quality.issue.duplicateProximity.action': 'Review these pairs',
 
     'quality.issue.duplicateName.title': 'Similar names at similar addresses',
     'quality.issue.duplicateName.detail':
-      '{n} records carry a name close to another record that is also close by. Name similarity alone is not evidence — two buildings can share a word — so only pairs that are near each other as well are listed. {examples}',
+      '{pairs} pairs carry similar names AND sit close together. Name similarity alone is not evidence — two buildings can share a word, and "Neus" and "NEXUS" are 8 km apart — so only pairs that are near each other as well are listed. {examples}',
     'quality.issue.duplicateName.action': 'Review these pairs',
 
     'quality.issue.districtConflict.detail':
@@ -1104,7 +1110,7 @@
     'quality.issue.examples.more': 'and {n} more',
     'quality.issue.item.missingCritical': '{name} — {district}',
     'quality.issue.item.dupeGroup': '{names} share one coordinate',
-    'quality.issue.item.dupePair': '{a} and {b}, {m} m apart',
+    'quality.issue.item.dupePair': '{a} and {b}, {d} m apart',
     'quality.issue.item.namePair': '{a} and {b} — {why}',
     'quality.issue.item.outOfBounds': '{name} at {lat}, {lng}',
     'quality.issue.item.valueConflict': '{name} — {reason}',
@@ -1118,7 +1124,7 @@
     'quality.value.availableExceedsGla': 'available area exceeds GLA',
 
     'quality.confidence.summary':
-      'High {high} · Medium {medium} · Low {low} · Not verified {unknown}, across {n} properties.',
+      'High {high} · Medium {medium} · Low {low} · Not verified {unknown}.',
     'quality.freshness.nothingToVerify': 'Nothing recorded, so there is nothing to re-verify yet.',
     'quality.summary.stalenessDiscriminates':
       'Every record shares one collection date ({date}), so age cannot separate them yet. The ranking below is driven by missing fields and flagged issues instead; staleness starts to discriminate as soon as a second verification date exists.',
