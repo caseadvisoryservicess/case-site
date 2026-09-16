@@ -83,6 +83,9 @@
     'quality.coverage.headline.full': 'Recorded for all {m} records: {list}.',
     'quality.coverage.headline.partial': 'Recorded for some: {list}. The best covered is {field}, at {n} of {m} ({pct}).',
     'quality.coverage.headline.none': 'Nothing recorded at all for {n} of the {m} fields in the registry, including {list}.',
+    'quality.coverage.headline.critical': 'Of the {k} critical fields a commercial decision needs, {a} carry any recorded value at all: {list}. The other {b} are recorded for no property in the dataset: {missing}.',
+    'quality.coverage.headline.criticalNone': 'None of the {k} critical fields a commercial decision needs carries a recorded value for any property: {missing}.',
+    'quality.coverage.headline.criticalItem': '{field} {n} of {m} ({pct})',
     'quality.coverage.headline.backlog': 'Read that as a collection backlog rather than a platform defect. Each bar below is a line item a field-collection programme would work through, in the order the verification backlog on the Quality tab ranks them.',
     'quality.coverage.stat.full': 'Fields recorded for every record',
     'quality.coverage.stat.partial': 'Fields recorded for some records',
@@ -128,6 +131,7 @@
     'quality.freshness.title': 'Freshness',
     'quality.freshness.cannotSeparate': 'Staleness cannot separate these records yet — read the count as "all of them" or "none of them", not as a ranking.',
     'quality.split.share': '{n} of {m}',
+    'quality.split.allRecords': 'Counted over all {m} records in the dataset; every record falls in exactly one band.',
     'quality.checks.title': 'Review queues',
     'quality.checks.summary': '{n} of {m} checks found something. Each queue is a real list of record ids, not a badge.',
     'quality.checks.clean.title': 'Checks that found nothing',
@@ -137,6 +141,7 @@
     'quality.issue.why': 'Why it matters',
     'quality.issue.list': 'List the {n} records',
     'quality.issue.listGroups': 'List the {n} groups',
+    'quality.issue.listPairs': 'List the {n} pairs',
     'quality.issue.hide': 'Hide the list',
     'quality.issue.openRecord': 'Open this record',
     'quality.issue.reviewDupes': 'Review these pairs',
@@ -184,7 +189,7 @@
     'quality.dupes.pairs.one': '{n} possible duplicate pair',
     'quality.dupes.pairs.other': '{n} possible duplicate pairs',
     'quality.dupes.headline': '{records} records · {pairs} unresolved · counted as {counted}',
-    'quality.dupes.headline.cov': 'Source-flagged coordinate groups {g}, pairs under {d} m apart {p}, similar names {n}. {resolved} have a verdict recorded.',
+    'quality.dupes.headline.cov': 'Three checks over all {records} records: {g} source-flagged coordinate groups, {p} unflagged pairs under {d} m apart, {n} similar-name pairs — {total} candidates in all, of which {resolved} carry a verdict.',
     'quality.dupes.kind.coordinate': 'Flagged by the source — identical coordinates',
     'quality.dupes.kind.proximity': 'Found by coordinate proximity — under {m} m apart',
     'quality.dupes.kind.name': 'Similar names, close together — {why}',
@@ -291,6 +296,17 @@
     return U.isKnown(rec.name) ? rec.name : F.UNKNOWN;
   }
 
+  /* Coordinates are fixed-decimal, never thousands-separated: `GEO.fmt.num`
+     groups digits, and "41.29,970" is not a latitude. Four places is the
+     precision the detail panel publishes, and the two must agree. */
+  var COORD_DP = 4;
+
+  function coordText(rec) {
+    if (!U.isKnown(rec.lat) || !U.isKnown(rec.lng)) return F.UNKNOWN;
+    return t('detail.coords', { lat: Number(rec.lat).toFixed(COORD_DP),
+                                lng: Number(rec.lng).toFixed(COORD_DP) });
+  }
+
   /* ============================================================== fragments */
 
   /** §2.3 / visual-system §4: a confidence dot NEVER appears without its word. */
@@ -328,11 +344,14 @@
   /** Severity is carried by a word first and a colour second — the status scale
       sits below the 3:1 mark floor by design, and the label is the mitigation. */
   function severityChip(sev) {
-    return el('span.dq-sev', { 'data-sev': sev,
-      'aria-label': t('quality.issue.severity.label', { level: t('quality.issue.severity.' + sev) }) }, [
-      el('span.dq-sev__dot', { 'aria-hidden': 'true' }),
-      el('span', { text: t('quality.issue.severity.' + sev) })
-    ]);
+    /* The word carries the severity; `data-sev` is the hook a stylesheet can
+       colour later. It is never a dot on its own — the status scale sits below
+       the 3:1 mark floor by design and the label is the mitigation (visual §4). */
+    return el('span.badge.badge--flag.dq-sev', {
+      dataset: { sev: sev },
+      'aria-label': t('quality.issue.severity.label', { level: t('quality.issue.severity.' + sev) }),
+      text: t('quality.issue.severity.' + sev)
+    });
   }
 
   function coverageLine(text) { return el('p.coverage', { text: text }); }
@@ -365,13 +384,23 @@
     ]);
   }
 
+  /**
+   * Every table here is wider than a phone: `.tbl` headers do not wrap, and the
+   * backlog carries six columns. The table therefore scrolls inside its own box
+   * rather than scrolling the workspace sideways — a horizontal scrollbar on the
+   * page is the 375px failure the build contract names. The inline overflow is
+   * the floor, so the behaviour does not depend on a stylesheet rule that has
+   * not been written yet; `.dq-scroll` is the hook for when it is.
+   */
   function tableOf(headCells, bodyRows, caption) {
-    return el('table.tbl.tbl--zebra', {}, [
-      caption ? el('caption', { text: caption }) : null,
-      el('thead', {}, [el('tr', {}, headCells.map(function (h) {
-        return el('th', { scope: 'col', 'class': h.num ? 'tbl__num' : null, text: h.text });
-      }))]),
-      el('tbody', {}, bodyRows)
+    return el('div.dq-scroll', { style: 'overflow-x:auto;max-width:100%' }, [
+      el('table.tbl.tbl--zebra', {}, [
+        caption ? el('caption', { text: caption }) : null,
+        el('thead', {}, [el('tr', {}, headCells.map(function (h) {
+          return el('th', { scope: 'col', 'class': h.num ? 'tbl__num' : null, text: h.text });
+        }))]),
+        el('tbody', {}, bodyRows)
+      ])
     ]);
   }
 
@@ -563,6 +592,27 @@
         n: F.int(none.length), m: F.int(cov.length),
         list: none.slice(0, 6).map(function (r) { return r.label; }).join(', ') }));
     }
+
+    /* The commercial half of the story, stated over the critical fields rather
+       than over the whole registry: "11% or 0%" is the sentence this tab exists
+       to make, and it is derived so it cannot outlive the numbers. */
+    var crit = cov.filter(function (r) { return r.critical; });
+    var critHas = crit.filter(function (r) { return r.n > 0; });
+    var critNone = crit.filter(function (r) { return r.n === 0; });
+    if (crit.length) {
+      lines.push(critHas.length
+        ? t('quality.coverage.headline.critical', {
+            k: F.int(crit.length), a: F.int(critHas.length), b: F.int(critNone.length),
+            list: critHas.map(function (r) {
+              return t('quality.coverage.headline.criticalItem', {
+                field: r.label, n: F.int(r.n), m: F.int(r.N), pct: F.pct(r.pct * 100, 0) });
+            }).join(', '),
+            missing: critNone.map(function (r) { return r.label; }).join(', ') })
+        : t('quality.coverage.headline.criticalNone', {
+            k: F.int(crit.length),
+            missing: critNone.map(function (r) { return r.label; }).join(', ') }));
+    }
+
     lines.push(t('quality.coverage.headline.backlog'));
 
     return card([
@@ -740,7 +790,7 @@
       el('div', {}, bands.order.map(function (b) {
         return splitRow(el('span', { text: QA.bandLabel(b) }), bands.counts[b], bands.N);
       })),
-      coverageLine(F.coverage(bands.N, bands.N, 'a completeness band')),
+      coverageLine(t('quality.split.allRecords', { m: F.int(bands.N) })),
       el('p.reason', { text: t('quality.completeness.explain', { m: F.int(S.criticalFields.length) }) })
     ]);
   }
@@ -753,7 +803,7 @@
       el('div', {}, order.map(function (k) {
         return splitRow(freshChip(k), ds.freshness[k] || 0, ds.records);
       })),
-      coverageLine(F.coverage(ds.records, ds.records, 'a verification date')),
+      coverageLine(t('quality.split.allRecords', { m: F.int(ds.records) })),
       /* D8 — the disclosure is COMPUTED, and it is rendered against the counts
          it qualifies rather than at the bottom of the tab. */
       ds.stalenessDiscriminates
@@ -768,25 +818,80 @@
 
   /* --------------------------------------------------------- issue queues */
 
+  /* 04-quality composes each queue's sentences from the shipped string table, and
+     three of those keys declare a variable the caller does not pass: `{examples}`
+     on two details, `{district}` on the missing-critical item, `{m}` on the pair
+     item. `t()` deliberately leaves an unresolved token VISIBLE so the gap is
+     findable — right for a log, wrong for a panel a client reads. So the tokens
+     are stripped for display and every fact they would have carried is rebuilt
+     here from the record, group or pair that 04-quality already hands over. The
+     upstream gap stays in `GEO.log`, where it belongs, instead of on screen. */
+  var TOKEN = /\s*\{\w+\}/g;
+  var EDGE = /^[\s\u2014\u2013\u00b7,:;-]+|[\s\u2014\u2013\u00b7,:;-]+$/g;
+
+  function safeText(str) {
+    if (!U.isKnown(str)) return '';
+    return String(str).replace(TOKEN, '').replace(/\s{2,}/g, ' ').replace(EDGE, '');
+  }
+
+  function openButton(rec) {
+    return el('button.btn.btn--quiet.btn--sm', {
+      type: 'button', text: recordName(rec),
+      'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
+      onclick: function () { openRecord(rec.id); }
+    });
+  }
+
+  function verifiedLine(rec) {
+    return el('span.coverage', { text: t('detail.quality.verified',
+      { date: F.date((rec._meta || {}).lastVerifiedAt) }) });
+  }
+
+  /** Both sides of a duplicate candidate, each openable, with the distance that
+   *  made it a candidate — the fact the shipped item string drops. */
+  function pairRow(records, distanceM, why) {
+    var bits = [distanceM < 1 ? t('quality.dupes.sameSpot')
+                              : t('quality.dupes.apart', { d: F.num(distanceM, 0) })];
+    if (why) bits.push(why);
+    var names = [];
+    records.forEach(function (rec) {
+      if (names.length) names.push(el('span.sep', { text: '·' }));
+      names.push(openButton(rec));
+      var badge = demoBadge(rec);
+      if (badge) names.push(badge);
+    });
+    return el('div.qrow', {}, [
+      el('div.stack', {}, [
+        el('div.row', {}, names),
+        el('span.micro', { text: bits.join(' · ') })
+      ])
+    ]);
+  }
+
   function issueItems(e) {
+    if (e.groups) {
+      return e.groups.map(function (g) { return pairRow(g.records, g.maxDistanceM, null); });
+    }
+    if (e.pairs) {
+      return e.pairs.map(function (p) {
+        return pairRow(p.records, p.distanceM, p.why
+          ? t('quality.issue.name.why.' + p.why, { n: F.int(QA.NAME_EDIT_MAX) })
+          : null);
+      });
+    }
     return e.items.map(function (it) {
       var id = it.id || (it.ids && it.ids[0]) || null;
       var rec = id ? D.get(id) : null;
+      var text = safeText(it.text);
+      if (!rec) return el('div.qrow', {}, [el('span', { text: text })]);
+      var facts = [D.districtName(rec.districtKey), QA.completeness(rec).text];
       return el('div.qrow', {}, [
         el('div.stack', {}, [
-          el('div.row', {}, [
-            el('span', { text: it.text }),
-            rec ? demoBadge(rec) : null
-          ]),
-          rec ? el('span.coverage', {
-            text: t('detail.quality.verified', { date: F.date((rec._meta || {}).lastVerifiedAt) })
-          }) : null
-        ]),
-        id ? el('button.btn.btn--quiet.btn--sm.push', {
-          type: 'button', text: t('quality.issue.openRecord'),
-          'aria-label': t('quality.issue.openRecord') + ' — ' + it.text,
-          onclick: function () { openRecord(id); }
-        }) : null
+          el('div.row', {}, [openButton(rec), demoBadge(rec), classBadge(rec)]),
+          text && text !== recordName(rec) ? el('span.micro', { text: text }) : null,
+          el('span.micro', { text: facts.join(' · ') }),
+          verifiedLine(rec)
+        ])
       ]);
     });
   }
@@ -829,27 +934,29 @@
       notes.push(t('quality.issue.noFilter'));
     }
 
-    var groups = e.groups || e.pairs || null;
-    var listLabel = groups
-      ? t('quality.issue.listGroups', { n: F.int(groups.length) })
-      : t('quality.issue.list', { n: F.int(e.items.length) });
+    var listN = e.groups ? e.groups.length : (e.pairs ? e.pairs.length : e.items.length);
+    var listLabel = e.groups ? t('quality.issue.listGroups', { n: F.int(listN) })
+                  : e.pairs  ? t('quality.issue.listPairs',  { n: F.int(listN) })
+                             : t('quality.issue.list',       { n: F.int(listN) });
 
     return el('section.card.stack', { 'aria-label': e.title }, [
       el('div.row', {}, [
         severityChip(e.severity),
         el('h4', { text: e.title }),
-        el('span.badge.push', { text: t('quality.issue.records', { n: F.int(e.n) }) })
+        el('span.chip.push', {}, [
+          el('span.chip__label', { text: t('quality.issue.records', { n: F.int(e.n) }) })
+        ])
       ]),
-      el('p', { text: e.detail }),
+      el('p', { text: safeText(e.detail) }),
       el('div', {}, [
         el('div.sectitle', { text: t('quality.issue.why') }),
         el('p', { text: t('quality.why.' + e.type) })
       ]),
       el('div.row', {}, controls),
       notes.length ? el('p.reason', { text: notes.join(' ') }) : null,
-      e.items.length
+      listN
         ? disclosure('issue:' + e.type, listLabel, t('quality.issue.hide'),
-                     F.int(e.items.length), function () { return issueItems(e); })
+                     F.int(listN), function () { return issueItems(e); })
         : null
     ]);
   }
@@ -1104,9 +1211,7 @@
 
     row(fieldLabel('address'), U.isKnown(rec.address) ? rec.address : F.UNKNOWN);
     row(fieldLabel('districtKey'), D.districtName(rec.districtKey));
-    row(t('field.coordinates'),
-        (U.isKnown(rec.lat) && U.isKnown(rec.lng))
-          ? F.num(rec.lat, 5) + ', ' + F.num(rec.lng, 5) : F.UNKNOWN);
+    row(t('field.coordinates'), coordText(rec));
     DUPE_FIELDS.forEach(function (k) {
       var v = rec[k];
       if (!U.isKnown(v)) { row(fieldLabel(k), F.UNKNOWN); return; }
@@ -1155,18 +1260,25 @@
     return t('quality.dupes.effect.undecided', { n: F.int(c.records.length) });
   }
 
+  /* `.seg__btn` is the shipped segmented control, but it is 28px high and a
+     verdict is a decision a reviewer commits to — it gets the full 32px target
+     (44px at touch widths, where `--hit` changes under it). The chosen verdict
+     is carried by `aria-pressed` and by the filled button, and again in words by
+     the "Verdict recorded" line beside it, so it never depends on fill alone. */
   function verdictControl(c) {
     var current = candidateVerdict(c);
     var names = c.records.map(recordName).join(' / ');
-    return el('div.seg', { role: 'group', 'aria-label': t('quality.dupes.verdict.aria', { names: names }) },
-      VERDICTS.map(function (v) {
-        return el('button.seg__btn', {
-          type: 'button',
-          'aria-pressed': current === v ? 'true' : 'false',
-          text: t(VERDICT_I18N[v]),
-          onclick: function () { writeVerdict(c.ids, v); }
-        });
-      }));
+    return el('div.row.row--tight', {
+      role: 'group', 'aria-label': t('quality.dupes.verdict.aria', { names: names })
+    }, VERDICTS.map(function (v) {
+      var on = current === v;
+      return el('button.btn.btn--sm' + (on ? '.btn--primary' : '.btn--quiet'), {
+        type: 'button',
+        'aria-pressed': on ? 'true' : 'false',
+        text: t(VERDICT_I18N[v]),
+        onclick: function () { writeVerdict(c.ids, v); }
+      });
+    }));
   }
 
   function dupeCard(c, inScope) {
@@ -1176,7 +1288,7 @@
 
     return el('section.dupe', { 'aria-label': c.records.map(recordName).join(' / ') }, [
       el('div.row', {}, [
-        el('span.badge.badge--flag', { text: c.kindText }),
+        el('span.chip', {}, [el('span.chip__label', { text: c.kindText })]),
         el('span.micro', {
           text: c.distanceM < 1
             ? t('quality.dupes.sameSpot')
@@ -1224,10 +1336,12 @@
                                { n: F.int(unresolved.length) }),
         counted: F.int(scope.length) }) }),
       coverageLine(t('quality.dupes.headline.cov', {
+        records: F.int(review.length),
         g: F.int(dupes.coordinateGroups.length),
         d: F.int(QA.PROXIMITY_M),
         p: F.int(dupes.proximityPairs.length),
         n: F.int(dupes.namePairs.length),
+        total: F.int(list.length),
         resolved: F.int(resolved) })),
       el('p', { text: t('quality.dupes.lead') }),
       el('p.reason', { text: t('quality.dupes.note') })

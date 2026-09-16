@@ -293,19 +293,17 @@
 
     switch (fd.type) {
       case 'number':
-      case 'coord': {
-        // Accept "34,8" (comma decimal, common in RU/UZ input) and "$34.8 /m2".
-        var t = String(raw).trim().replace(/\s/g, '').replace(/^[$€₽]/, '').replace(',', '.');
-        t = t.replace(/[^0-9.\-]/g, '');
-        var n = parseFloat(t);
-        if (isNaN(n)) return { value: null, error: S.label(fieldKey) + ': "' + raw + '" is not a number.' };
-        return { value: n };
-      }
+      case 'coord':
       case 'integer':
       case 'year': {
-        var i = parseInt(String(raw).replace(/[^0-9\-]/g, ''), 10);
-        if (isNaN(i)) return { value: null, error: S.label(fieldKey) + ': "' + raw + '" is not a whole number.' };
-        return { value: i };
+        var n = parseNumeric(raw);
+        if (n === null) {
+          return { value: null, error: S.label(fieldKey) + ': "' + raw + '" is not a number.' };
+        }
+        if (fd.type === 'integer' || fd.type === 'year') {
+          return { value: Math.round(n) };
+        }
+        return { value: n };
       }
       case 'enum': {
         var allowed = S.enums[fd.enumKey] || [];
@@ -326,6 +324,44 @@
         return { value: String(raw).trim() };
     }
   };
+
+  /**
+   * Pull a number out of what a person actually types.
+   *
+   * Deleting every non-numeric character looks equivalent and is not: "$34.8 /m2"
+   * becomes "34.82", because the unit's own digit joins the number. A rent of
+   * $34.80 silently becomes $34.82, and nothing in the UI can tell. So this
+   * matches the FIRST numeric run and ignores whatever surrounds it.
+   *
+   * Decimal comma vs thousands separator is genuinely ambiguous, and both appear
+   * in this market: "34,8" means 34.8 and "1,250" means 1250. The rule is the one
+   * a reader applies — a single comma with one or two digits after it is a
+   * decimal; anything else is a group separator.
+   */
+  function parseNumeric(raw) {
+    var t = String(raw).trim().replace(/\u00a0|\s/g, '');
+    if (!t) return null;
+
+    var m = /-?\d[\d.,]*/.exec(t);
+    if (!m) return null;
+    var num = m[0];
+
+    var commas = (num.match(/,/g) || []).length;
+    var dots = (num.match(/\./g) || []).length;
+
+    if (commas && !dots) {
+      num = /,\d{1,2}$/.test(num) ? num.replace(',', '.')   // 34,8  -> 34.8
+                                   : num.replace(/,/g, ''); // 1,250 -> 1250
+    } else {
+      num = num.replace(/,/g, '');                          // 1,250.5 -> 1250.5
+    }
+    // A stray trailing separator ("34." from "34.m2") is not part of the number.
+    num = num.replace(/\.$/, '');
+
+    var v = parseFloat(num);
+    return isNaN(v) ? null : v;
+  }
+  S.parseNumeric = parseNumeric;
 
   /** A record with every key present and every value unknown. The full key set is
    *  always emitted so that `null` means "unknown", never "the key is missing". */

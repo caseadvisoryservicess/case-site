@@ -108,6 +108,22 @@
         GEO.util.isKnown(0) === true && GEO.util.isKnown('') === false &&
         GEO.util.isKnown(null) === false && GEO.util.isKnown([]) === false);
 
+    /* --- editor input coercion ------------------------------------------ */
+    /* A CRE analyst types what is on the listing, not what a parser wants. Deleting
+       every non-numeric character looked equivalent and was not: "$34.8 /m2" became
+       34.82, because the unit's own digit joined the number — a rent silently wrong
+       by two cents with nothing in the UI to show it. */
+    [['34,8', 34.8], ['$34.8 /m2', 34.8], ['34.8 USD/m²/month', 34.8],
+     ['1,250', 1250], ['1,250.5', 1250.5], ['$1,250 per m2', 1250],
+     ['12 000', 12000], ['0', 0], ['', null], ['abc', null]].forEach(function (c) {
+      eq('coerce: ' + JSON.stringify(c[0]) + ' → ' + JSON.stringify(c[1]),
+         S.coerce('askingRent', c[0]).value, c[1]);
+    });
+    has('coerce: unparseable input reports an error rather than guessing',
+        !!S.coerce('askingRent', 'abc').error);
+    eq('coerce: "12 floors" is 12', S.coerce('floors', '12 floors').value, 12);
+    eq('coerce: "built 2019" is 2019', S.coerce('yearOpened', 'built 2019').value, 2019);
+
     /* --- coverage ------------------------------------------------------- */
     eq('coverage: name', A.coverage(obs, 'name').n, 148);
     eq('coverage: districtKey', A.coverage(obs, 'districtKey').n, 148);
