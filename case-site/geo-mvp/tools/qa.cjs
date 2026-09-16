@@ -482,6 +482,40 @@ function watch(page) {
     const page = await freshPage(ctx);
     const w = watch(page);
 
+    // §9.3 — no user-visible string may be a raw i18n key. The static audit
+    // (tools/check-i18n.cjs) sees `t('literal')` and nothing else, so it reports
+    // "missing: 0" while fourteen COMPUTED prefixes — `t('value.flag.' + v)` and
+    // friends — go unchecked. Five of those keys were in fact absent, and because
+    // `t()` returns the key on a miss, the CSV export's filter header read
+    // "flagged value.flag.duplicate": a file that leaves the app and reaches a
+    // client. This check drives the real enumerations through the real call sites
+    // and tests the OUTPUT, so it needs no list of key names to keep in step.
+    const KEYISH = /^[a-z][a-zA-Z0-9]*(\.[a-zA-Z0-9_+-]+)+$/;
+    const raw = await page.evaluate(() => {
+      const bad = [], FL = GEO.filters;
+      const flag = (where, v) => { if (typeof v === 'string' && v) bad.push(where + ': ' + v); };
+
+      // every enumerated value, through the label function the UI actually calls
+      [['flag', FL.FLAGS], ['completeness', FL.COMPLETENESS_BANDS],
+       ['freshness', (FL.FRESHNESS_STATES || []).concat(['unknown'])],
+       ['confidence', ['High', 'Medium', 'Low', 'Unknown']]
+      ].forEach(([kind, vals]) => (vals || []).forEach(v =>
+        flag('valueLabel(' + kind + ',' + v + ')', FL.valueLabel(kind, v))));
+
+      // every disabled filter's reason, as the panel would print it
+      (FL.availability(GEO.data.workingSet()) || []).forEach(e => {
+        flag('availability(' + e.key + ').reason', e.reason);
+        flag('availability(' + e.key + ').coverageText', e.coverageText);
+      });
+
+      // describe(): on screen, in the CSV header, and as a saved layer's name
+      const f = GEO.state.get().filters;
+      flag('describe(flags)', FL.describe(Object.assign({}, f, { flags: FL.FLAGS.slice() })));
+      return bad;
+    });
+    const rawHits = raw.filter(s => KEYISH.test(s.split(': ').slice(1).join(': ')));
+    check('no computed i18n key resolves to itself', rawHits.length === 0, rawHits.join(' | '));
+
     // §29 — no control may be inert. Every visible, enabled button must either carry
     // a handler-bearing id/data hook, or be disabled with a reason the user can read.
     const controls = await page.evaluate(() => {

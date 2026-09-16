@@ -225,6 +225,17 @@
     'value.freshness.ageing': 'Ageing',
     'value.freshness.stale': 'Stale',
     'value.freshness.unknown': 'Never verified',
+
+    /* The five data flags, as they read inside `describe()`'s "flagged {list}"
+       phrase — so they are lower-case noun phrases, not sentence-case labels.
+       `describe()` is not only on screen: it becomes the CSV export's filter
+       header and a saved map layer's name, both of which outlive the session.
+       Without these, that header read "flagged value.flag.duplicate". */
+    'value.flag.districtConflict': 'district-label conflicts',
+    'value.flag.duplicate': 'possible duplicates',
+    'value.flag.suspectedNonBc': 'suspected non-office entities',
+    'value.flag.editedLocally': 'locally edited records',
+    'value.flag.demo': 'demo records',
     'value.collection.notCollected': 'Not collected',
     'value.collection.partial': 'Partly collected',
     'value.collection.complete': 'Complete',
@@ -381,6 +392,11 @@
     'filter.excluded.demo': 'Demo records are excluded. Turn them on in Settings to include them.',
     'filter.disabled.coverage': '{n} of {m} records have a recorded {field}',
     'filter.disabled.zero': '0 of {m} records have a recorded {field}. This filter enables itself as soon as one does.',
+    /* `entry()` in 06-filters.js falls back to this when a filter has no
+       coverage and the caller named no specific reason. The counts travel
+       separately in `coverageText`, so this is the sentence, not the figure. */
+    'filter.disabled.none': 'No record carries this value yet. The filter enables itself as soon as one does.',
+    'filter.flags.none': 'No data-quality flag is raised on the current set.',
     'filter.name.label': 'Property name',
     'filter.name.placeholder': 'Name or former name',
     'filter.district.label': 'District',

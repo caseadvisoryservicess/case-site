@@ -60,6 +60,7 @@
     'ai.how.noTools': 'No tools were called — the answer came from the intent catalogue alone.',
     'ai.how.noSlots': 'No values were read from your question.',
     'ai.how.argsTrimmed': 'Long id lists are shown as a count.',
+    'ai.how.itemCount': '[{n} items]',
     'ai.how.recordsLabel': 'Records',
     'ai.how.elapsedLabel': 'Elapsed',
     'ai.how.engineLabel': 'Engine',
@@ -82,7 +83,6 @@
     'ai.context.lastResult': 'Last result: {n} properties',
     'ai.context.lastResult.none': 'Last result: none',
     'ai.context.clearResult': 'Forget the last result set',
-    'ai.context.clearResult.disabled': 'There is no previous result to forget',
     'ai.context.note': 'Words like "it", "this building" and "only those…" are resolved from this, so they are predictable rather than magic.',
 
     /* --- session log (§61) --- */
@@ -112,10 +112,8 @@
     'map.layer.clearAll.confirm': 'Remove every analysis layer?',
     'map.layer.clearAll.body': '{n} layers are removed, with their markers and any circles they own. The properties themselves, the filters and the dataset are untouched.',
     'map.layer.records': 'Record ids held',
-    'map.layer.vsFilter': 'A layer keeps the properties that matched when it was made. A filter is re-evaluated every time anything changes — edit a record and a filter result moves, a layer does not.',
-    /* 11-map.js asks for this key on the button that jumps here; without it the
-       raw key would be printed as the button label. */
-    'map.layers.analysis.open': 'Open the Layers tab'
+    'map.layer.missing': '{n} of the {m} records this layer saved are no longer in the dataset.',
+    'map.layer.vsFilter': 'A layer keeps the properties that matched when it was made. A filter is re-evaluated every time anything changes — edit a record and a filter result moves, a layer does not.'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -126,6 +124,13 @@
   var LOG_ROWS = 200;          /* session-log rows drawn; the export holds all  */
   var ARG_ITEMS = 6;           /* array length shown verbatim in the trace      */
   var COMPARE_MAX = 4;         /* §15 — the compare overlay takes 2 to 4        */
+  var CHIPS = 8;               /* I-03 — eight suggested prompts                */
+  var CHIPS_SMALL = 3;         /* …three where the pane is a sheet (IA P4)      */
+
+  /* Breakpoints where the assistant is a bottom sheet rather than a docked
+     rail. The composer must stay reachable there, so the apparatus above it
+     (suggestions, context) is cut to fit rather than pushing it off-screen. */
+  var SMALL = { s: true, xs: true, xxs: true };
 
   /* ORIGIN -> the `data-prov` hook 07-panels.css styles, and its label key.
      Border treatment and wording carry the distinction, never hue alone. */
@@ -387,7 +392,7 @@
       /* Length, not depth, decides: a 148-id list is noise, but
          `classes: ["A","A+"]` three levels down is the argument the reader
          opened the disclosure to check. */
-      if (v.length > ARG_ITEMS) return '[' + F.int(v.length) + ']';
+      if (v.length > ARG_ITEMS) return t('ai.how.itemCount', { n: F.int(v.length) });
       return v.map(function (x) { return compactValue(x, depth + 1); });
     }
     if (typeof v === 'object') {
@@ -765,6 +770,7 @@
     var log = Q.$('#ai-log');
     if (log) clearLog(log);
     renderLog();
+    renderTools();
     var s = GEO.state.get();
     renderSuggestions(s);
     renderContext(s);
@@ -831,13 +837,17 @@
                       before: snap, inCount: inCount, undone: false });
 
     var box = Q.$('#ai-input');
-    if (box) { box.value = ''; autoGrow(box); }
+    /* Focus returns to the composer, because a suggestion chip is replaced by a
+       new set the moment it is used — leaving the keyboard standing on a node
+       that no longer exists. */
+    if (box) { box.value = ''; autoGrow(box); box.focus(); }
 
     /* `AI.ask` writes state — and therefore renders — before it returns, so the
        new turn has to be drawn here rather than waiting for a render that has
        already happened. */
     var s = GEO.state.get();
     renderLog();
+    renderTools();
     renderSuggestions(s);
     renderContext(s);
     syncSend();
@@ -891,17 +901,24 @@
     var byId = {};
     cat.forEach(function (c) { byId[c.id] = c.examples || []; });
 
+    /* On a sheet the chips would push the composer off the bottom, and once a
+       conversation exists every answer carries its own follow-up chips — so
+       there the standing set is shown while the log is empty and then stands
+       down. Nothing is lost: the same prompts can still be typed. */
+    var cap = SMALL[state.bp] ? CHIPS_SMALL : CHIPS;
+    if (SMALL[state.bp] && transcript.length) return [];
+
     var out = [];
     suggestionIds(state).forEach(function (id) {
       var ex = byId[id];
-      if (ex && ex.length && out.length < 7) out.push(ex[0]);
+      if (ex && ex.length && out.length < cap - 1) out.push(ex[0]);
     });
 
     /* The refusal case, taken from the catalogue rather than written here. */
     var refusal = (byId.filter || []).filter(function (s) { return /m2|m²/i.test(s); })[0];
     if (refusal && out.indexOf(refusal) < 0) out.push(refusal);
 
-    return U.uniq(out).slice(0, 8);
+    return U.uniq(out).slice(0, cap);
   }
 
   function renderSuggestions(state) {
@@ -912,13 +929,16 @@
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
 
-    Q.fill(box, [el('span.micro', { text: t('ai.suggest.title') })].concat(
-      prompts.map(function (p) {
-        return el('button.chip.chip--suggest', {
-          type: 'button', text: p,
-          onclick: function () { ask(p); }
-        });
-      })));
+    box.hidden = !prompts.length;
+    Q.fill(box, prompts.length
+      ? [el('span.micro', { text: t('ai.suggest.title') })].concat(
+          prompts.map(function (p) {
+            return el('button.chip.chip--suggest', {
+              type: 'button', text: p,
+              onclick: function () { ask(p); }
+            });
+          }))
+      : []);
   }
 
   /**
@@ -938,14 +958,18 @@
     var last = state.aiSession.lastResultIds;
     var lastN = last ? last.length : 0;
 
+    var small = !!SMALL[state.bp];
     var sig = [state.selectedId || '', filterText, String(lastN), GEO.i18n.locale,
-               String(dataVersion)].join(';');
+               String(dataVersion), small ? '1' : '0'].join(';');
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
 
     var chips = [];
 
-    chips.push(el('span.chip.chip--ctx', {}, [
+    /* `chip--ctx` carries the accent, so it is worn only when there IS a
+       selection: highlighting an absence reads as a warning about something
+       the reader has not done wrong. */
+    chips.push(el('span.chip' + (rec ? '.chip--ctx' : ''), {}, [
       el('span.chip__label', {
         text: rec ? t('ai.context.selected', { name: nameOf(rec) }) : t('ai.context.none')
       })
@@ -976,11 +1000,14 @@
       ]));
     }
 
-    Q.fill(box, [
-      el('p.micro', { text: t('ai.context.title') }),
-      el('div.fchips', {}, chips),
-      el('p.micro', { text: t('ai.context.note') })
-    ]);
+    /* The chips themselves are the §44 disclosure and are never dropped; the
+       two explanatory lines are, on a sheet, where the composer needs the
+       room more than the reader needs the sentence twice. */
+    Q.fill(box, small
+      ? [el('div.fchips', {}, chips)]
+      : [el('p.micro', { text: t('ai.context.title') }),
+         el('div.fchips', {}, chips),
+         el('p.micro', { text: t('ai.context.note') })]);
   }
 
   /* =====================================================================
@@ -1090,30 +1117,42 @@
     var box = Q.$('#ai-tools');
     if (!box) return;
     var entries = GEO.state.sessionLog();
+    var small = !!SMALL[GEO.state.get().bp];
     var sig = [String(entries.length), view.logOpen ? '1' : '0', String(transcript.length),
-               GEO.i18n.locale].join(';');
+               GEO.i18n.locale, small ? '1' : '0'].join(';');
     if (box.dataset.sig === sig) return;
     box.dataset.sig = sig;
 
-    withFocus(box, function () { fillTools(box, entries); });
+    withFocus(box, function () { fillTools(box, entries, small); });
   }
 
-  function fillTools(box, entries) {
-    Q.fill(box, [
-      el('div.row', {}, [
-        el('span.micro', { text: t('ai.session.count', { n: F.int(transcript.length) }) }),
-        el('button.btn.btn--quiet.btn--sm.push', {
-          type: 'button', text: t('ai.exportLog'), onclick: exportLog
-        }),
-        el('button.btn.btn--quiet.btn--sm', {
-          type: 'button', text: t('ai.newSession'), onclick: newSession
-        })
-      ]),
-      disclosure('ai-log-body', t('ai.log.title'), t('ai.log.title'),
-                 F.int(entries.length), view.logOpen,
-                 function () { view.logOpen = !view.logOpen; renderTools(); },
-                 function () { return logTable(entries); })
+  function sessionRow() {
+    return el('div.row', {}, [
+      el('span.micro', { text: t('ai.session.count', { n: F.int(transcript.length) }) }),
+      el('button.btn.btn--quiet.btn--sm.push', {
+        type: 'button', text: t('ai.exportLog'), onclick: exportLog
+      }),
+      el('button.btn.btn--quiet.btn--sm', {
+        type: 'button', text: t('ai.newSession'), onclick: newSession
+      })
     ]);
+  }
+
+  /**
+   * On a sheet the two buttons wrap onto three lines and cost the conversation
+   * half its height, so there they move inside the disclosure — the log, the
+   * export and the reset are one subject, and collapsing them together is
+   * honest rather than hiding a control: the header names what is inside.
+   */
+  function fillTools(box, entries, small) {
+    var body = function () {
+      return (small ? [sessionRow()] : []).concat(logTable(entries));
+    };
+    var disc = disclosure('ai-log-body', t('ai.log.title'), t('ai.log.title'),
+                          F.int(entries.length), view.logOpen,
+                          function () { view.logOpen = !view.logOpen; renderTools(); },
+                          body);
+    Q.fill(box, small ? [disc] : [sessionRow(), disc]);
   }
 
   /* =====================================================================
@@ -1159,16 +1198,22 @@
 
   function clearAllLayers(state) {
     var n = state.aiLayers.length;
+    /* Only rings a LAYER owns go with it. A radius the reader drew from the
+       Property tab is their own analysis, and "Clear all analysis layers" has
+       no business removing it. */
+    var ownsRadius = state.aiLayers.some(function (l) {
+      var subject = radiusSubjectOf(l);
+      return !!(subject && state.radius && state.radius.id === subject);
+    });
+
     GEO.boot.confirm(t('map.layer.clearAll.confirm'),
       t('map.layer.clearAll.body', { n: F.int(n) }),
       t('map.layer.clearAll'),
       function () {
-        /* Every ring belongs to some layer or to the Property tab's own
-           analysis; clearing all layers clears the rings they own, which in
-           practice is the radius currently on the map. */
-        GEO.state.set({ aiLayers: [], radius: null },
-                      { source: 'user', action: 'layer:clearAll',
-                        summary: t('toast.layersCleared', { n: F.int(n) }) });
+        var patch = { aiLayers: [] };
+        if (ownsRadius) patch.radius = null;
+        GEO.state.set(patch, { source: 'user', action: 'layer:clearAll',
+                               summary: t('toast.layersCleared', { n: F.int(n) }) });
         GEO.boot.toast(t('toast.layersCleared', { n: F.int(n) }));
       }, true);
   }
@@ -1246,6 +1291,15 @@
         el('p.empty__title', { text: t('empty.layer.title') }),
         el('p.empty__body', { text: t('empty.layer.body', { criteria: layer.criteriaHuman || layer.name }) })
       ]));
+    } else if (records.length < layer.count) {
+      /* The count is what the layer SAVED. Records deleted since are gone from
+         the map, and a layer that quietly shrank while still claiming its
+         original count would be the same lie as a metric without a
+         denominator (§36, §57). */
+      kids.push(el('p.micro', {
+        text: t('map.layer.missing', { n: F.int(layer.count - records.length),
+                                       m: F.int(layer.count) })
+      }));
     }
 
     /* Y-09 — the rule and the machine criteria side by side. Showing both is
@@ -1292,7 +1346,9 @@
       }));
     }
 
-    if (layer.count && GEO.map && GEO.map.fit) {
+    /* Y-10 — enabled on the records that still EXIST, not on the saved count:
+       a button that fits the map to nothing is a button that does nothing. */
+    if (records.length && GEO.map && GEO.map.fit) {
       acts.push(el('button.btn.btn--quiet.btn--sm', {
         type: 'button', text: t('map.layer.zoom'),
         onclick: function () { GEO.map.fit(recordsOf(layer.recordIds)); }
@@ -1377,7 +1433,11 @@
     }
 
     kids.push(el('div.fgroup', {}, section));
-    kids.push(el('p.layers__footnote', { text: t('map.layers.context.note') }));
+    /* The base-layer control already carries the D5 statement inside its
+       Context group. Repeating it here would print the same paragraph twice;
+       it is only added when that control could not be mounted, because the
+       reason those layers are empty must never go missing (§10, D5). */
+    if (!base) kids.push(el('p.layers__footnote', { text: t('map.layers.context.note') }));
 
     withFocus(pane, function () {
       Q.fill(pane, [el('section.stack', { 'aria-label': t('layers.title') }, kids)]);
@@ -1403,11 +1463,13 @@
     if (!pane) return;
     var log = Q.$('#ai-log'), form = Q.$('#ai-form');
     if (log && !Q.$('#ai-tools')) {
-      /* `flex:none` inline because `.ai__tools` is a class this module adds and
-         the pane is a flex column: without it an open session log could squeeze
-         the conversation it sits above. */
+      /* Inline, in tokens, because `.ai__tools` is a class this module
+         introduces and 07-panels.css does not carry it yet. `flex:none` is
+         load-bearing rather than cosmetic: the pane is a flex column, and
+         without it an open session log would squeeze the conversation. */
       pane.insertBefore(el('div.ai__tools#ai-tools', {
-        role: 'group', 'aria-label': t('ai.log.title'), style: 'flex:none'
+        role: 'group', 'aria-label': t('ai.log.title'),
+        style: 'flex:none;padding:var(--s-2) var(--s-4);border-bottom:1px solid var(--line)'
       }), log);
     }
     if (form && !Q.$('#ai-context')) {
