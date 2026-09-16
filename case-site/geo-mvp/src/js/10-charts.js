@@ -115,7 +115,7 @@
            'V' + n2(y + h - r) +
            'A' + n2(r) + ',' + n2(r) + ' 0 0 1 ' + n2(x1 - r) + ',' + n2(y + h) +
            'H' + n2(x) + 'Z';
-    }
+  }
 
   /** Vertical column: square on the baseline (bottom), rounded at the top. */
   function vBarPath(x, baseY, len, wdt, r) {
@@ -443,12 +443,14 @@
   /* ============================================================ tooltip ==== */
 
   function showTip(inst, mark) {
-    var meta = inst.meta[mark.getAttribute('data-mkey')];
-    if (!meta) return;
+    var m = inst.meta[mark.getAttribute('data-mkey')];
+    if (!m) return;
+    /* Category, value with its share, and the coverage caveat — the tooltip
+       repeats the denominator rather than showing a number on its own. */
     Q.fill(inst.tip, [
-      el('div.chart__tip-title', { text: meta.line }),
-      meta.extra ? el('div.chart__tip-val', { text: meta.extra }) : null,
-      meta.note ? el('div.chart__tip-note', { text: meta.note }) : null
+      el('div.chart__tip-title', { text: m.line }),
+      m.extra ? el('div.chart__tip-val', { text: m.extra }) : null,
+      m.note ? el('div.chart__tip-note', { text: m.note }) : null
     ]);
     inst.tip.hidden = false;
 
@@ -709,7 +711,10 @@
       });
       registerBarMeta(inst, spec, r, key, fmtV, total);
 
-      if (r.unknown || i === top) {
+      /* Selective direct labels: the top bar, the unknown bar — and a measured
+         zero, which otherwise draws nothing at all and would be indistinguishable
+         from "we never looked" (§36). */
+      if (r.unknown || i === top || r.value === 0) {
         labels.push(svgEl('text.c-label', {
           x: n2(x0 + len + 6), y: n2(cy), 'text-anchor': 'start',
           text: r.unknown ? unknownLabel(r, fmtV) : fmtV(r.value)
@@ -825,7 +830,8 @@
       });
       registerBarMeta(inst, spec, r, key, fmtV, total);
 
-      if (r.unknown || i === top) {
+      /* Top column, unknown column, and any measured zero — see drawBars. */
+      if (r.unknown || i === top || r.value === 0) {
         var txt = r.unknown ? unknownLabel(r, fmtV) : fmtV(r.value);
         var half = textW(txt, TICK_PX) / 2;
         var anchor = (cx - half < padL) ? 'start' : ((cx + half > padL + plotW) ? 'end' : 'middle');

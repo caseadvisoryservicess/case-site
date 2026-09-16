@@ -105,6 +105,7 @@
   var districtSig = null;
   var legendSig = null;
   var layerPanelSig = null;
+  var radiusSig = null;
   var lastFitToken = null;
   var lastSelected = null;
   var legendCollapsed = null;  /* M-10: null until the first render knows the breakpoint */
@@ -240,28 +241,39 @@
               (m.duplicateGroupId && m.duplicateVerdict !== 'different_buildings'));
   }
 
-  function pinClasses(rec, flags) {
+  function pinClasses(flags) {
     var c = ['pin'];
-    if (flags.selected) c.push('pin--selected');
-    else if (flags.hover) c.push('pin--hover');
-    if (rec.recordType === 'DEMO') c.push('pin--demo');
-    if (isDuplicate(rec)) c.push('pin--dupe');
+    if (flags.selected) c.push('pin--selected');     /* r19 + the case-red outer ring */
+    else if (flags.hover) c.push('pin--hover');      /* r16 */
+    if (flags.demo) c.push('pin--demo');             /* dashed surface ring (D4) */
+    if (flags.dupe) c.push('pin--dupe');             /* notch glyph (D6) */
     if (flags.inLayer) c.push('pin--layer');
     if (flags.muted) c.push('pin--muted');
     return c.join(' ');
   }
 
+  /**
+   * Everything about one pin that can change its appearance, as one string.
+   * The ENCODED value is part of it, not just the encoding mode: editing a
+   * record's office class must repaint its marker, and a signature built only
+   * from selection state would leave the old colour and the old letter on screen.
+   */
+  function pinSignature(enc, flags) {
+    return [enc.attr, enc.key, enc.letter, enc.ink,
+            flags.selected ? 1 : 0, flags.hover ? 1 : 0, flags.demo ? 1 : 0,
+            flags.dupe ? 1 : 0, flags.inLayer ? 1 : 0, flags.muted ? 1 : 0].join('|');
+  }
+
   /** The icon. `html` is given as an Element — Leaflet 1.9 appends it rather
    *  than assigning innerHTML — so no data-derived string is ever parsed. */
-  function pinIcon(rec, mode, flags) {
-    var e = encode(rec, mode);
-    var attrs = { 'class': pinClasses(rec, flags), 'aria-hidden': 'true' };
-    attrs[e.attr] = e.key;
-    attrs.style = 'color:' + e.ink;                 /* the mechanical label rule */
-    var pin = el('span', attrs, [el('span.pin__label', { text: e.letter })]);
+  function pinIcon(enc, flags) {
+    var attrs = { 'class': pinClasses(flags), 'aria-hidden': 'true' };
+    attrs[enc.attr] = enc.key;
+    attrs.style = 'color:' + enc.ink;               /* the mechanical label rule */
+    var pin = el('span', attrs, [el('span.pin__label', { text: enc.letter })]);
     return L.divIcon({
       className: 'geo-marker' + (flags.selected ? ' geo-marker--top' : ''),
-      iconSize: [26, 26],
+      iconSize: [26, 26],                           /* r13; hover and selection scale it */
       iconAnchor: [13, 13],
       html: pin
     });
@@ -537,37 +549,45 @@
       if (!U.isKnown(rec.lat) || !U.isKnown(rec.lng)) return;   // never plot a guess
       keep[rec.id] = true;
 
+      var enc = encode(rec, mode);
       var flags = {
         selected: state.selectedId === rec.id,
         hover: state.hoverId === rec.id,
+        demo: rec.recordType === 'DEMO',
+        dupe: isDuplicate(rec),
         inLayer: !!lm.ids[rec.id],
         // "Muted" means context rather than focus: a record kept only because a
         // layer needs it, or a non-member while a layer is the thing being read.
         muted: !inResults[rec.id] || (lm.any && !lm.ids[rec.id])
       };
-      var sig = [mode, flags.selected ? 1 : 0, flags.hover ? 1 : 0,
-                 flags.inLayer ? 1 : 0, flags.muted ? 1 : 0].join('');
+      var sig = pinSignature(enc, flags);
 
       var entry = markers[rec.id];
       if (!entry) {
         var marker = L.marker([rec.lat, rec.lng], {
-          icon: pinIcon(rec, mode, flags),
+          icon: pinIcon(enc, flags),
           keyboard: false,                  /* M-13: the list is the keyboard path */
           riseOnHover: false,
           zIndexOffset: flags.selected ? 1000 : 0,
           title: ''                         /* no browser tooltip; ours is richer */
         });
-        marker.on('click', function () { select(rec.id); });
-        marker.on('mouseover', function () { setHover(rec.id); });
+        var id = rec.id;
+        marker.on('click', function () { select(id); });
+        marker.on('mouseover', function () { setHover(id); });
         marker.on('mouseout', function () { setHover(null); });
         if (hasHover()) {
-          marker.bindTooltip(tooltipNode(rec), { direction: 'top', offset: [0, -14], opacity: 1 });
+          // Bound as a FUNCTION so the content is rebuilt each time it opens: a
+          // record edited in the Data workspace must not keep showing the old
+          // name and the old class in its tooltip.
+          marker.bindTooltip(function () {
+            return tooltipNode(GEO.data.get(id) || rec);
+          }, { direction: 'top', offset: [0, -14], opacity: 1 });
         }
         markers[rec.id] = { marker: marker, sig: sig };
         add.push(marker);
       } else if (entry.sig !== sig) {
         entry.sig = sig;
-        entry.marker.setIcon(pinIcon(rec, mode, flags));
+        entry.marker.setIcon(pinIcon(enc, flags));
         entry.marker.setZIndexOffset(flags.selected ? 1000 : 0);
       }
     });
@@ -850,11 +870,10 @@
         gj.setStyle({ fillOpacity: base.fillOpacity });
       });
       // M-04: a polygon click is the same filter as the L-05 checkbox, written
-      // to the same place — which is what keeps the two from disagreeing.
-      gj.on('click', function (e) {
-        if (e && e.originalEvent) L.DomEvent.stop(e.originalEvent);
-        toggleDistrict(d.key);
-      });
+      // to the same place — which is what keeps the two from disagreeing. The
+      // native event is deliberately NOT stopped, so the layer popover still
+      // closes the way a click outside any popover should close it.
+      gj.on('click', function () { toggleDistrict(d.key); });
 
       gj.addTo(map);
       if (gj.bringToBack) gj.bringToBack();
@@ -885,6 +904,16 @@
    */
   M.renderRadius = function (analysis) {
     if (!map || !radiusGroup) return;
+
+    // The rings are redrawn only when they would actually differ. Without this
+    // guard the 200 ms sweep would replay on every unrelated state change — a
+    // pointer crossing the results list would make the map twitch.
+    var sig = !analysis || !analysis.subject ? null
+      : [analysis.subject.id, analysis.competitiveBandKm,
+         analysis.bands.map(function (b) { return b.km + ':' + b.count; }).join(',')].join('|');
+    if (sig === radiusSig) return;
+    radiusSig = sig;
+
     radiusGroup.clearLayers();
     if (!analysis || !analysis.subject) return;
 
@@ -1041,11 +1070,7 @@
     if (opts.onchange) {
       input.addEventListener('change', function () { opts.onchange(input.checked); });
     }
-    var text = el('span.check__text', { text: label });
-    if (opts.count !== undefined && opts.count !== null) {
-      text.appendChild(el('span.check__count', { text: F.int(opts.count) }));
-    }
-    var row = el('label.check', {}, [input, text]);
+    var row = el('label.check', {}, [input, el('span.check__text', { text: label })]);
     if (!opts.disabled || !opts.reason) return row;
     // §29: a disabled control states WHY, as real text in the flow — a tooltip
     // is not an accessible reason.
@@ -1293,18 +1318,22 @@
 
   /* ------------------------------------------------------------ map chrome */
 
+  /* §29: no inert controls. A map button that cannot act is disabled AND says
+     why — and because these are icon buttons with no room for inline text, the
+     reason goes into the accessible name as well as the tooltip, so it is not
+     available only to a mouse. */
+  function stateButton(node, disabled, label, reason) {
+    if (!node) return;
+    node.disabled = disabled;
+    node.setAttribute('title', disabled ? reason : label);
+    node.setAttribute('aria-label', disabled ? label + ' — ' + reason : label);
+  }
+
   function syncZoomButtons() {
     if (!map) return;
     var z = map.getZoom();
-    var zin = Q.$('#map-zoom-in'), zout = Q.$('#map-zoom-out');
-    if (zin) {
-      zin.disabled = z >= MAX_ZOOM;
-      zin.setAttribute('title', z >= MAX_ZOOM ? t('map.zoomIn.disabled') : t('map.zoomIn'));
-    }
-    if (zout) {
-      zout.disabled = z <= MIN_ZOOM;
-      zout.setAttribute('title', z <= MIN_ZOOM ? t('map.zoomOut.disabled') : t('map.zoomOut'));
-    }
+    stateButton(Q.$('#map-zoom-in'), z >= MAX_ZOOM, t('map.zoomIn'), t('map.zoomIn.disabled'));
+    stateButton(Q.$('#map-zoom-out'), z <= MIN_ZOOM, t('map.zoomOut'), t('map.zoomOut.disabled'));
   }
 
   function wireChrome() {
@@ -1333,11 +1362,16 @@
     if (layers) layers.addEventListener('click', function () { toggleLayerPanel(); });
 
     // The layer popover closes like any popover: Escape, or a click outside it.
+    // Captured rather than bubbled, so an Escape aimed at the popover does not
+    // also reach the global handler and close the right rail behind it.
     document.addEventListener('keydown', function (e) {
       if (e.key !== 'Escape') return;
       var box = Q.$('#maplayers-panel');
-      if (box && !box.hidden) { toggleLayerPanel(false); if (layers) layers.focus(); }
-    });
+      if (!box || box.hidden) return;
+      e.stopPropagation();
+      toggleLayerPanel(false);
+      if (layers) layers.focus();
+    }, true);
     document.addEventListener('click', function (e) {
       var box = Q.$('#maplayers-panel');
       if (!box || box.hidden) return;
@@ -1349,12 +1383,8 @@
     syncFullscreenButton();
   }
 
-  function syncChrome(state, rows) {
-    var fit = Q.$('#map-fit');
-    if (fit) {
-      fit.disabled = !rows.length;
-      fit.setAttribute('title', rows.length ? t('map.fit') : t('map.fit.disabled'));
-    }
+  function syncChrome(rows) {
+    stateButton(Q.$('#map-fit'), !rows.length, t('map.fit'), t('map.fit.disabled'));
     syncZoomButtons();
     syncFullscreenButton();
   }
@@ -1407,12 +1437,16 @@
     M.renderLegend(state, rows);
     renderNotice(state, rows);
     renderLayerPanel(state, rows);
-    syncChrome(state, rows);
+    syncChrome(rows);
 
     // `fitToken` is a request, not a value: bumping it asks for a fit exactly
     // once, so a fit cannot be re-applied on every unrelated state change.
-    if (lastFitToken === null) { lastFitToken = state.map.fitToken; M.fit(rows); }
-    else if (state.map.fitToken !== lastFitToken) {
+    // R3 opens fitted to all records, which is the one fit nobody asks for.
+    if (lastFitToken === null) {
+      lastFitToken = state.map.fitToken;
+      M.invalidate();            // the rails may still have been settling
+      M.fit(rows);
+    } else if (state.map.fitToken !== lastFitToken) {
       lastFitToken = state.map.fitToken;
       M.fit(rows);
     }

@@ -40,6 +40,7 @@
    "src/js/14-panel-detail.js",
    "src/js/15-panel-analytics.js",
    "src/js/16-panel-compare.js",
+   "src/js/17-panel-location.js",
    "src/js/20-ai-tools.js",
    "src/js/21-ai-intents.js",
    "src/js/22-ai-engine.js",

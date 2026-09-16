@@ -2,34 +2,42 @@
  * 15-panel-analytics — the Analytics tab (§14, §36; IA §5.5, A-01…A-07)
  *
  * This is the panel that either earns the product's credibility or spends it.
- * Four decisions are worth knowing before reading the code.
+ * Five decisions are worth knowing before reading the code.
  *
  * A. A CARD IS NEVER HIDDEN FOR HAVING NO DATA.
  *    Five of the eight §14 metrics have zero coverage on the observed set
  *    (GLA, available area, occupancy, vacancy, status). Dropping them would
- *    leave a tidy dashboard that answers only the questions this dataset
- *    happens to answer — the most flattering lie available here. They are
- *    grouped under "Not yet collected" with their 0-of-N coverage stated, and
- *    they move back up by themselves under demo mode or after an edit (D11).
- *    The test is derived (`n === 0`), never a hard-coded list of field names.
+ *    leave a tidy dashboard answering only the questions this dataset happens
+ *    to answer — the most flattering lie available here. They are grouped
+ *    under "Not yet collected" with their 0-of-N coverage stated, and they
+ *    move back up by themselves under demo mode or after an edit (D11). The
+ *    test is derived (`metric.n === 0`), never a hard-coded list of fields.
  *
- * B. EVERY FIGURE CARRIES ITS DENOMINATOR — ON SCREEN AND IN THE EXPORT.
+ * B. EVERY FIGURE CARRIES ITS DENOMINATOR — ON SCREEN AND IN THE FILE.
  *    The metric object owns `n`, `N` and `coverageText`; this file renders the
  *    coverage line under every card and every chart, and writes n, N and the
- *    coverage sentence into each row of the CSV. A consultant who cannot get
+ *    coverage sentence into every row of the CSV. A consultant who cannot get
  *    the numbers out of a tool has a demo, not an instrument (M10).
  *
  * C. NOTHING DERIVED IS CACHED.
- *    The only things held between renders are a render signature (a string)
- *    and a data-version counter. Export and print recompute from the live
- *    state rather than from whatever was on screen, so a figure in a file can
- *    never be one edit older than the figure on the panel.
+ *    The only things held between renders are a render signature (a string), a
+ *    data-version counter and five empty mount elements. Export and print
+ *    recompute from live state rather than from what happens to be on screen,
+ *    so a figure in a file can never be one edit older than the panel.
  *
  * D. THE CHART MODULE OWNS THE PIXELS; THIS FILE OWNS THE QUESTION.
- *    Every chart is handed to `GEO.charts` as a spec. When a chart cannot be
- *    drawn, the panel falls back to the TABLE view of the same spec — every
- *    value present, none gated behind colour or hover (A-04, visual-system
- *    §10) — because the honest failure of a chart is a table, not a hole.
+ *    10-charts mounts an instance INTO a container and keeps it alive (resize
+ *    observer, chart/table toggle, mark transitions). So the five containers
+ *    are created once and re-attached on each redraw — building a fresh div per
+ *    render would orphan an instance, and its observer, every time the panel
+ *    re-rendered. If a chart cannot be drawn at all, the container gets the
+ *    TABLE of the same numbers: the honest failure of a chart is a table.
+ *
+ * E. A BAR THAT CANNOT FILTER SAYS SO.
+ *    Clicking a district, a class or a bin applies that filter (A-03). The
+ *    unknown bar cannot: the filter model has no "only unrecorded" predicate.
+ *    Rather than a silent no-op (§29) it explains itself and points at the Data
+ *    workspace, which can list those records.
  * ========================================================================= */
 (function (w) {
   'use strict';
@@ -58,12 +66,11 @@
     'analytics.export.col.n': 'Recorded (n)',
     'analytics.export.col.N': 'In selection (N)',
     'analytics.export.col.coverage': 'Coverage',
-    'analytics.table.share': 'Share of selection',
-    'analytics.chart.empty': 'No properties are in the current selection, so there is nothing to plot.',
     'analytics.chart.district.coverage': 'District is recorded for all {m} properties.',
-    'analytics.chart.unknownNotFilter': 'The filters have no "only unrecorded" option, so this bar is a denominator, not a link. The Data workspace lists the records behind it.',
+    'analytics.chart.unknownNotFilter': 'The filters have no "only unrecorded" option, so that bar is a denominator, not a link. The Data workspace lists the records behind it.',
     'analytics.chart.binFilterNote': 'Bands are left-closed and right-open. The filter is inclusive at both ends, so a value sitting exactly on an upper edge is admitted by the band below it as well.',
     'analytics.strip.median': 'Median {value}. Range {min} to {max}.',
+    'analytics.strip.medianRef': 'Median {value}',
     'analytics.strip.iqr': 'Middle half (Q1–Q3): {q1} to {q3}.',
     'analytics.strip.select': 'Select {name}',
     'analytics.coverage.lead': 'This is the chart a professional collection programme would change: every figure above is capped by these bars.',
@@ -72,26 +79,29 @@
     'analytics.formula.sum': 'The {n} recorded values added together. Records with nothing recorded are excluded, never counted as zero.',
     'analytics.formula.mean': 'The {n} recorded values added together, divided by {n}. Records with nothing recorded are excluded, never counted as zero.',
     'analytics.formula.median': 'The middle of the {n} recorded values, sorted; at an even count, the mean of the two central values.',
-    'analytics.formula.split': 'Records counted by recorded status. The {n} whose status is not recorded are in neither group and are not implied to be either.',
+    'analytics.formula.split': 'Records counted by recorded status. The {n} whose status is not recorded are in neither group, and are not implied to be either.',
     'analytics.metric.excluded.more': '{n} more are not listed here.'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.has(k, 'en')) GEO.i18n.en[k] = ADDED[k];
   });
 
-  /* View bookkeeping only. `sig` is a string and `dataVersion` is a counter —
-     no record, no metric and no chart series is held here (decision C). */
+  /* View bookkeeping only. `sig` is a string, `dataVersion` a counter and
+     `mounts` five empty elements — no record, metric or series is held here. */
   var lastSig = null;
   var dataVersion = 0;
+  var mounts = {};
 
-  /* The §7.6 field list: the 8 critical fields plus the three that identify a
-     record at all. Derived from the registry, so adding a critical field adds
-     a bar without touching this file. */
+  /* §7.6: the 8 critical fields plus the three that identify a record at all.
+     Derived from the registry, so a new critical field gains a bar by itself. */
   var COVERAGE_EXTRA = ['name', 'address', 'districtKey'];
 
-  /* A metric popover over 132 excluded records is a scroll, not a disclosure;
-     the rest are named by count and reachable in the Data workspace. */
+  /* A popover listing 132 excluded records is a scroll, not a disclosure; the
+     rest are named by count and reachable in the Data workspace. */
   var EXCLUDED_SHOWN = 25;
+
+  /* D10 §7.1: a median needs 3 values, a middle-half band needs 8. */
+  var IQR_MIN_N = 8;
 
   /* ---------------------------------------------------------------- labels */
 
@@ -117,8 +127,8 @@
     return GEO.i18n.coverageLine(n, N, F.lower(label));
   }
 
-  /** D4: a demo record is badged wherever it appears, including inside a
-   *  popover list and inside a chart's point label. */
+  /** D4: a demo record is badged wherever it appears — including inside a
+   *  popover list and inside a chart point's own label. */
   function demoBadge() {
     return el('span.badge.badge--demo', {
       text: t('common.demo.badge'), title: t('value.recordType.demo')
@@ -129,8 +139,8 @@
     return rows.filter(function (r) { return r.recordType === 'DEMO'; }).length;
   }
 
-  /** The most recent verification date across the selection. Shown in words on
-   *  the panel and in the export header: a figure without a date is a rumour. */
+  /** The most recent verification date in the selection. On the panel and in
+   *  the export header: a figure without a date is a rumour. */
   function lastVerified(rows) {
     var best = null;
     rows.forEach(function (r) {
@@ -174,9 +184,9 @@
   /* ========================================================= metric cards */
 
   /* The card label comes from the string table, keyed by what the metric IS
-     (kind + field) rather than by position, so re-ordering `dashboard()` can
-     never re-label a card. A metric this map does not know falls back to the
-     label the analytics module gave it. */
+     (kind + field) rather than by its position, so re-ordering `dashboard()`
+     can never re-label a card. A metric this map does not know keeps the label
+     the analytics module gave it. */
   var CARD_KEYS = {
     'count:': 'analytics.metric.count',
     'sum:gla': 'analytics.metric.glaSum',
@@ -196,10 +206,10 @@
   }
 
   /**
-   * The value slot has exactly three outcomes and no fourth: a number, a
-   * measured split, or the words. Never blank, never a dash, and never a zero
-   * standing in for an unknown — `vacancyPct: 0` prints "0%" from the metric's
-   * own display, which is how a measured zero stays distinguishable (§36).
+   * The value slot has three outcomes and no fourth: a number, a measured
+   * split, or the words. Never blank, never a dash, and never a zero standing
+   * in for an unknown — `vacancyPct: 0` prints "0%" from the metric's own
+   * display, which is how a measured zero stays distinguishable (§36).
    */
   function metricValue(m) {
     if (!m.sufficient) return t('common.insufficient');
@@ -217,8 +227,8 @@
       el('span.stat__label', { text: metricLabel(m) }),
       el('span.stat__value', { text: metricValue(m) })
     ];
-    // A-07: the reason replaces the number and names the missing field. It is
-    // rendered as text, not as a link — it never offers to "estimate anyway".
+    // A-07: the reason replaces the number and names what is missing. It is
+    // text, not a link — it never offers to "estimate anyway".
     if (poor && m.reason) kids.push(el('span.reason', { text: m.reason }));
     // R3: the denominator line is part of the card permanently, not only
     // inside the popover.
@@ -244,8 +254,8 @@
     return null;
   }
 
-  /** The records a metric left out, by name. Not a count in the abstract: the
-   *  point of A-02 is that "excluded for missing data" is checkable. */
+  /** The records a metric left out, by name. The point of A-02 is that
+   *  "excluded for missing data" is checkable, not merely asserted. */
   function excludedRecords(m, rows) {
     if (!m.field) return [];
     return rows.filter(function (r) { return !U.isKnown(r[m.field]); });
@@ -264,8 +274,8 @@
       kids.push(el('p', { text: formula }));
     }
 
-    // §8 of the analytics rules: the qualifier lives in the label, and the
-    // reason weighting is impossible here is stated with its own coverage.
+    // Analytics rules §8: the qualifier lives in the label, and the reason
+    // weighting is impossible here is stated with its own coverage.
     if (m.weighting) {
       var glaCov = A.coverage(rows, 'gla');
       kids.push(el('p.micro', {
@@ -275,9 +285,7 @@
       }));
     }
 
-    (m.notes || []).forEach(function (note) {
-      kids.push(el('p.micro', { text: note }));
-    });
+    (m.notes || []).forEach(function (note) { kids.push(el('p.micro', { text: note })); });
 
     var ex = excludedRecords(m, rows);
     if (ex.length) {
@@ -299,53 +307,41 @@
     modal({ title: metricLabel(m), body: el('div.stack', {}, kids) });
   }
 
-  /* ============================================================== charts */
+  /* =============================================================== charts */
 
-  /**
-   * One canonical spec shape for all five charts.
-   *
-   * `rows` is the spelling the repository already uses for a chart series
-   * (22-ai-engine's `out.chart`); `series` is the spelling in the AI
-   * architecture's tool contract. Both point at the SAME array, so a chart
-   * module written against either reading finds the data — and neither can
-   * drift from the other, because there is only one array.
-   */
-  function specFor(o) {
-    o.series = o.rows;
-    if (o.onSelect) o.onClick = o.onSelect;       // same function, two names
-    return o;
+  /* 10-charts' own shapers carry the unknown bucket through and keep a
+     suppressed mean as `null` rather than as a zero. They are used in
+     preference to mapping groups by hand — the hand-written version is exactly
+     where an unknown bucket gets dropped. The local equivalents run only if the
+     chart module is unavailable, and follow the same two rules. */
+  function rowsFromGroups(groups) {
+    if (GEO.charts && GEO.charts.rowsFromGroups) return GEO.charts.rowsFromGroups(groups);
+    return (groups || []).map(function (g) {
+      return { key: g.key, label: g.label, value: g.count, unknown: !!g.unknown, rows: g.rows };
+    });
   }
 
-  function item(o) {
-    var N = o.N || 0;
-    var share = N ? (100 * o.value / N) : null;
-    return {
-      key: o.key, label: o.label, value: o.value,
-      n: o.value, N: N,
-      unknown: !!o.unknown,
-      selectable: !!o.selectable,
-      ordinal: o.ordinal || null,
-      share: share,
-      shareText: N ? F.pct(share, 1) : F.UNKNOWN,
-      actionLabel: o.selectable ? t('analytics.chart.filterAction', { category: o.label }) : null,
-      tooltip: t('analytics.chart.tooltip', {
-        category: o.label, n: F.int(o.value), m: F.int(N),
-        pct: N ? F.pct(share, 1) : F.UNKNOWN
-      })
-    };
+  function rowsFromHistogram(h) {
+    if (GEO.charts && GEO.charts.rowsFromHistogram) return GEO.charts.rowsFromHistogram(h);
+    var out = (h.series || []).map(function (b, i) {
+      return { key: 'bin-' + i, label: b.label, value: b.count, unknown: false, rows: b.rows };
+    });
+    if (h.unknown) {
+      out.push({ key: '__unknown__', label: h.unknown.label, value: h.unknown.count,
+                 unknown: true, rows: h.unknown.rows });
+    }
+    return out;
   }
 
-  /** The table view's data, which is also what the CSV export writes. One
-   *  shaping, so the chart, the table and the file can never disagree. `n` and
-   *  `N` travel with each row so the export keeps its denominator column. */
-  function tableOf(columns, items) {
-    return {
-      columns: columns,
-      rows: items.map(function (it) {
-        return { key: it.key, unknown: it.unknown, n: it.value, N: it.N,
-                 cells: [it.label, F.int(it.value), it.shareText] };
-      })
-    };
+  /** The bin edges travel with the row so a click can turn a band back into a
+   *  range filter without the handler re-deriving them from a label. */
+  function attachEdges(items, hist) {
+    (hist.series || []).forEach(function (bin, i) {
+      if (!items[i]) return;
+      items[i].lo = (bin.lo === undefined) ? null : bin.lo;
+      items[i].hi = (bin.hi === undefined) ? null : bin.hi;
+    });
+    return items;
   }
 
   /* --- chart 1 · business centres by district ---------------------------- */
@@ -354,103 +350,68 @@
     var unknown = null, known = [];
     groups.forEach(function (g) { if (g.unknown) { unknown = g; } else { known.push(g); } });
 
-    /* §7.2: count descending, ties alphabetical by DISPLAY name, and the
-       zero-count districts kept at the bottom. Yangihayot and Bektemir hold no
-       records: that is a true zero in this dataset, not missing data, and a
-       chart that dropped them would imply the city has ten districts. */
+    /* §7.2: count descending, ties alphabetical by DISPLAY name, zero-count
+       districts kept at the bottom. Yangihayot and Bektemir hold no records:
+       that is a true zero in this dataset, not missing data, and a chart that
+       dropped them would quietly shorten the city to ten districts. */
     known.sort(function (a, b) {
       return b.count - a.count || (a.label < b.label ? -1 : (a.label > b.label ? 1 : 0));
     });
 
-    var items = known.map(function (g) {
-      return item({ key: g.key, label: g.label, value: g.count, N: rows.length, selectable: true });
-    });
     // districtKey is required by the schema, so there is normally no unknown
-    // bucket at all (§7.0.1). It is drawn only if one somehow exists.
-    if (unknown && unknown.count) {
-      items.push(item({ key: null, label: unknown.label, value: unknown.count,
-                        N: rows.length, unknown: true }));
-    }
+    // bucket at all (§7.0.1); it is drawn only if one somehow exists.
+    var ordered = (unknown && unknown.count) ? known.concat([unknown]) : known;
 
-    return specFor({
-      id: 'district', kind: 'bar',
+    return {
+      id: 'district', kind: 'bar', render: 'barChart',
       title: t('analytics.chart.district'),
-      categoryAxis: t('analytics.axis.district'),
-      valueAxis: t('analytics.axis.count'),
-      rows: items,
-      N: rows.length,
-      coverageText: !rows.length
-        ? t('common.coverage.empty')
+      rows: rowsFromGroups(ordered),
+      total: rows.length,
+      axisTitle: t('analytics.axis.count'),
+      categoryLabel: t('analytics.axis.district'),
+      valueLabel: t('analytics.axis.count'),
+      coverageText: !rows.length ? t('common.coverage.empty')
         : ((unknown && unknown.count)
             ? coverageLine(rows.length - unknown.count, rows.length, fieldLabel('districtKey'))
             : t('analytics.chart.district.coverage', { m: F.int(rows.length) })),
-      insufficient: rows.length ? null : t('analytics.chart.empty'),
-      table: tableOf([t('analytics.axis.district'), t('analytics.axis.count'),
-                      t('analytics.table.share')], items),
-      onSelect: function (it) { applyDistrict(it); }
-    });
+      insufficient: rows.length ? null : { reason: t('analytics.chart.empty') },
+      onBarClick: function (row) { applyDistrict(row); }
+    };
   }
 
   /* --- chart 2 · business centres by class ------------------------------- */
   function classSpec(rows) {
     var groups = A.byClass(rows);                 // fixed ordinal order, unknown last
     var cov = A.coverage(rows, 'officeClass');
+    var items = rowsFromGroups(groups);
 
     /* The hatched "Class not recorded" bar is the largest bar in this dataset
        (132 of 148). Hiding it would be the single most misleading thing this
        application could do, so it is drawn at every n, labelled with its count,
-       and excluded from nothing except the ordinal ramp it is not part of. */
-    var items = groups.map(function (g) {
-      return item({
-        key: g.unknown ? null : g.key,
-        label: g.unknown ? t('value.class.unknown') : enumLabel('officeClass', g.key),
-        value: g.count, N: rows.length,
-        unknown: g.unknown,
-        ordinal: g.unknown ? null : g.key,
-        selectable: !g.unknown
-      });
+       and left out of nothing except the ordinal ramp it is not a step of. */
+    items.forEach(function (r) {
+      if (!r.unknown) r.label = enumLabel('officeClass', r.key);
     });
 
-    return specFor({
-      id: 'class', kind: 'bar', ordinal: true,
+    return {
+      id: 'class', kind: 'bar', render: 'barChart', ordinal: true,
       title: t('analytics.chart.class'),
-      categoryAxis: t('analytics.axis.class'),
-      valueAxis: t('analytics.axis.count'),
       rows: items,
-      N: rows.length,
+      total: rows.length,
+      axisTitle: t('analytics.axis.count'),
+      categoryLabel: t('analytics.axis.class'),
+      valueLabel: t('analytics.axis.count'),
       coverageText: coverageLine(cov.n, cov.N, fieldLabel('officeClass')),
       note: t('analytics.chart.unknownNote'),
-      insufficient: rows.length ? null : t('analytics.chart.empty'),
-      table: tableOf([t('analytics.axis.class'), t('analytics.axis.count'),
-                      t('analytics.table.share')], items),
-      onSelect: function (it) { applyClass(it); }
-    });
+      insufficient: rows.length ? null : { reason: t('analytics.chart.empty') },
+      onBarClick: function (row) { applyClass(row); }
+    };
   }
 
-  /* --- distributions (charts 3 and 4) ------------------------------------ */
-
-  function binLabel(bin, fmt) {
-    if (bin.lo === null || bin.lo === undefined) return t('analytics.bin.under', { max: fmt(bin.hi) });
-    if (bin.hi === null || bin.hi === undefined) return t('analytics.bin.over', { min: fmt(bin.lo) });
-    return t('analytics.bin.range', { min: fmt(bin.lo), max: fmt(bin.hi) });
-  }
-
-  function binItems(hist, N, fmt, selectable) {
-    var items = hist.series.map(function (bin) {
-      var it = item({ key: null, label: binLabel(bin, fmt), value: bin.count,
-                      N: N, selectable: selectable });
-      it.lo = (bin.lo === undefined) ? null : bin.lo;
-      it.hi = (bin.hi === undefined) ? null : bin.hi;
-      return it;
-    });
-    // The unknown column is always last and always drawn, at any count (§5).
-    items.push(item({ key: null, label: hist.unknown.label, value: hist.unknown.count,
-                      N: N, unknown: true }));
-    return items;
-  }
+  /* --- charts 3 and 4 · distributions ------------------------------------ */
 
   /** Tukey hinges: at an odd count the median belongs to both halves. Used only
-   *  at n ≥ 8, where a middle-half band is a description rather than a claim. */
+   *  at n ≥ 8, where a middle-half band describes rather than claims. */
   function hinges(values) {
     var s = values.slice().sort(function (a, b) { return a - b; });
     var n = s.length, half = Math.floor(n / 2);
@@ -460,53 +421,35 @@
     };
   }
 
-  function rentSpec(rows) {
+  function rentSpec(rows, state) {
     var d = A.rentDistribution(rows);
-    var fmt = function (v) { return F.num(v, 0); };
-    var un = d.histogram.unknown;
-    var unknownLine = t('analytics.chart.unknownBar', { n: F.int(un.count) });
+    var unknownLine = t('analytics.chart.unknownBar', { n: F.int(d.histogram.unknown.count) });
+    var rentFmt = function (v) { return F.rent(v); };
 
-    if (!d.n) {
-      // n = 0 on the ladder: no axis is drawn, because an empty axis implies a
-      // measured zero everywhere. The reason names the missing field.
-      return specFor({
-        id: 'rent', kind: 'insufficient',
-        title: t('analytics.chart.rent'),
-        rows: [],
-        N: rows.length,
-        coverageText: d.coverageText,
-        note: unknownLine,
-        insufficient: A.metric(rows, 'askingRent', 'mean').reason,
-        table: { columns: [t('analytics.axis.rent'), t('analytics.axis.count')],
-                 rows: [{ key: null, unknown: true, n: un.count, N: rows.length,
-                          cells: [un.label, F.int(un.count)] }] }
-      });
-    }
-
+    /* D10 §7.1, the form ladder. At n = 0 there is no axis: an empty axis
+       implies a measured zero everywhere. Below 30 the individual values are
+       plotted, because a 7-bin histogram over 16 points implies a distribution
+       the sample cannot support. */
     if (d.form === 'strip') {
-      /* D10 / §7.1. Sixteen points across seven bins is noise that implies a
-         distribution the sample cannot support; sixteen points on a number line
-         are sixteen facts. The unknown block is stated in words beside the plot
-         because a strip plot has no bar to carry it. */
       var vals = d.points.map(function (p) { return p.value; });
-      var notes = [];
-      var stats = null;
+      var notes = [], refs = [];
 
       if (d.n >= A.MIN_N) {
-        stats = { median: A.median(vals), min: d.min, max: d.max };
+        var med = A.median(vals);
+        refs.push({ value: med, label: t('analytics.strip.medianRef', { value: rentFmt(med) }) });
         notes.push(t('analytics.strip.median', {
-          value: F.rent(stats.median), min: F.rent(d.min), max: F.rent(d.max)
+          value: rentFmt(med), min: rentFmt(d.min), max: rentFmt(d.max)
         }));
-        if (d.n >= 8) {
+        if (d.n >= IQR_MIN_N) {
           var h = hinges(vals);
-          stats.q1 = h.q1;
-          stats.q3 = h.q3;
-          notes.push(t('analytics.strip.iqr', { q1: F.rent(h.q1), q3: F.rent(h.q3) }));
+          notes.push(t('analytics.strip.iqr', { q1: rentFmt(h.q1), q3: rentFmt(h.q3) }));
         }
-      } else {
+      } else if (d.n) {
         // 1–2 values: the individual facts, with no median and no quartiles.
         notes.push(t('analytics.strip.note', { n: F.int(d.n) }));
       }
+      // A strip plot has no bar to carry the unknown block, so it is stated in
+      // words beside the plot — shown in every form, never dropped (§7.1).
       notes.push(unknownLine);
 
       var points = d.points.map(function (p) {
@@ -514,85 +457,72 @@
         var demo = !!(rec && rec.recordType === 'DEMO');
         var name = U.isKnown(p.name) ? p.name : F.UNKNOWN;
         return {
-          id: p.id,
-          // The DEMO mark is baked into the label as well as flagged, so it
-          // survives a renderer that does not know about record types (D4).
+          key: p.id, id: p.id,
+          // The DEMO mark is written into the label as well as flagged, so it
+          // survives a renderer that knows nothing about record types (D4).
           label: demo ? name + ' · ' + t('common.demo.badge') : name,
-          value: p.value, valueText: F.rent(p.value),
-          demo: demo, ordinal: p.officeClass || null, selectable: true
+          value: p.value,
+          sub: U.isKnown(p.officeClass) ? enumLabel('officeClass', p.officeClass)
+                                        : t('value.class.unknown'),
+          selected: state.selectedId === p.id
         };
-      }).sort(function (a, b) { return a.value - b.value; });
+      });
 
-      return specFor({
-        id: 'rent', kind: 'strip',
+      return {
+        id: 'rent', kind: 'strip', render: 'stripPlot',
         title: t('analytics.chart.rent'),
-        valueAxis: t('analytics.axis.rent'),
-        rows: points, points: points, stats: stats,
-        N: rows.length,
+        points: points,
+        min: d.min, max: d.max,
+        total: rows.length,
+        valueFormat: rentFmt,
+        tickFormat: function (v) { return F.num(v, 0); },
+        axisTitle: t('analytics.axis.rent'),
+        categoryLabel: t('field.name'),
+        valueLabel: fieldLabel('askingRent'),
+        refs: refs,
         coverageText: d.coverageText,
         note: notes.join(' '),
-        table: {
-          columns: [t('field.name'), t('analytics.axis.rent')],
-          // One row is one recorded value on one building, so it has no
-          // denominator of its own; the chart's coverage line carries it.
-          rows: points.map(function (p) {
-            return { key: p.id, unknown: false, n: null, N: rows.length,
-                     cells: [p.label, p.valueText] };
-          })
-        },
-        onSelect: function (p) { selectRecord(p); }
-      });
+        insufficient: d.n ? null : { reason: A.metric(rows, 'askingRent', 'mean').reason },
+        onPointClick: function (p) { selectRecord(p); }
+      };
     }
 
-    var items = binItems(d.histogram, rows.length, fmt, true);
-    return specFor({
-      id: 'rent', kind: 'column',
+    return {
+      id: 'rent', kind: 'column', render: 'columnChart',
       title: t('analytics.chart.rent'),
-      categoryAxis: t('analytics.axis.rent'),
-      valueAxis: t('analytics.axis.count'),
-      rows: items,
-      N: rows.length,
+      rows: attachEdges(rowsFromHistogram(d.histogram), d.histogram),
+      total: rows.length,
+      axisTitle: t('analytics.axis.count'),
+      categoryLabel: t('analytics.axis.rent'),
+      valueLabel: t('analytics.axis.count'),
       coverageText: d.coverageText,
       note: t('analytics.chart.binFilterNote'),
-      table: tableOf([t('analytics.axis.rent'), t('analytics.axis.count'),
-                      t('analytics.table.share')], items),
-      onSelect: function (it) { applyRange(it, 'rentMin', 'rentMax'); }
-    });
+      onBarClick: function (row) { applyRange(row, 'rentMin', 'rentMax'); }
+    };
   }
 
   function glaSpec(rows) {
     var d = A.glaDistribution(rows);
-    var items = binItems(d.histogram, rows.length, F.int, d.sufficient);
-    var table = tableOf([t('analytics.axis.gla'), t('analytics.axis.count'),
-                         t('analytics.table.share')], items);
 
     /* D11: the chart ships and renders its insufficient state on the observed
        set (0 of 148), and becomes live under demo mode or after an editor
-       entry. Dropping it would hide the gap it exists to report. */
-    if (!d.sufficient) {
-      return specFor({
-        id: 'gla', kind: 'insufficient',
-        title: t('analytics.chart.gla'),
-        rows: [], N: rows.length,
-        coverageText: d.coverageText,
-        note: t('analytics.chart.unknownBar', { n: F.int(d.histogram.unknown.count) }),
-        insufficient: d.reason,
-        table: table
-      });
-    }
-
-    return specFor({
-      id: 'gla', kind: 'column',
+       entry — which is the UX-8 demonstration. Dropping it would hide the gap
+       it exists to report. The bins stay readable in the table view either way. */
+    return {
+      id: 'gla', kind: 'column', render: 'columnChart',
       title: t('analytics.chart.gla'),
-      categoryAxis: t('analytics.axis.gla'),
-      valueAxis: t('analytics.axis.count'),
-      rows: items,
-      N: rows.length,
+      rows: attachEdges(rowsFromHistogram(d.histogram), d.histogram),
+      total: rows.length,
+      axisTitle: t('analytics.axis.count'),
+      categoryLabel: t('analytics.axis.gla'),
+      valueLabel: t('analytics.axis.count'),
+      valueFormat: F.int,
       coverageText: d.coverageText,
-      note: t('analytics.chart.binFilterNote'),
-      table: table,
-      onSelect: function (it) { applyRange(it, 'glaMin', 'glaMax'); }
-    });
+      note: d.sufficient ? t('analytics.chart.binFilterNote')
+                         : t('analytics.chart.unknownBar', { n: F.int(d.histogram.unknown.count) }),
+      insufficient: d.sufficient ? null : { reason: d.reason },
+      onBarClick: d.sufficient ? function (row) { applyRange(row, 'glaMin', 'glaMax'); } : null
+    };
   }
 
   /* --- chart 5 · data coverage by field ---------------------------------- */
@@ -601,158 +531,167 @@
     var items = A.fieldCoverage(rows)
       .filter(function (c) { return wanted.indexOf(c.key) >= 0; })
       .map(function (c) {
-        return {
-          key: c.key, label: fieldLabel(c.key),
-          value: c.n, n: c.n, N: c.N, pct: c.pct,
-          critical: c.critical, unknown: false, selectable: false,
-          shareText: F.pct(100 * c.pct, 0),
-          tooltip: t('analytics.coverage.row', {
-            field: fieldLabel(c.key), n: F.int(c.n), m: F.int(c.N)
-          })
-        };
+        return { key: c.key, label: fieldLabel(c.key), n: c.n, N: c.N, critical: !!c.critical };
       });
 
-    return specFor({
-      id: 'coverage', kind: 'coverage',
+    /* No `onRowClick`: its accessible name promises "show the records missing
+       this field", and the filter model cannot express that. The button under
+       the chart opens the workspace that can (D-13) — §29 again. `note` is
+       left free so the chart's own critical-field footnote survives. */
+    return {
+      id: 'coverage', kind: 'coverage', render: 'coverageBars',
       title: t('analytics.chart.coverage'),
-      categoryAxis: t('analytics.axis.field'),
-      valueAxis: t('analytics.axis.count'),
       lead: t('analytics.coverage.lead'),
       rows: items,
-      N: rows.length,
+      total: rows.length,
+      categoryLabel: t('analytics.axis.field'),
       coverageText: t('analytics.coverage.note'),
-      insufficient: rows.length ? null : t('analytics.chart.empty'),
-      table: {
-        columns: [t('analytics.axis.field'), t('analytics.export.col.n'),
-                  t('analytics.table.share')],
-        rows: items.map(function (it) {
-          return { key: it.key, unknown: false, n: it.n, N: it.N,
-                   cells: [it.label, t('common.of', { n: F.int(it.n), m: F.int(it.N) }),
-                           it.shareText] };
-        })
-      }
-    });
+      insufficient: rows.length ? null : { reason: t('analytics.chart.empty') }
+    };
   }
 
   /* --------------------------------------------------------- chart drawing */
 
-  function tableNode(table) {
-    var head = el('thead', {}, [
-      el('tr', {}, table.columns.map(function (c, i) {
-        return el(i ? 'th.tbl__num' : 'th', { scope: 'col', text: c });
-      }))
-    ]);
-    var body = el('tbody', {}, table.rows.map(function (r) {
-      return el('tr', r.unknown ? { 'data-unknown': 'true' } : {}, r.cells.map(function (c, i) {
-        return i === 0 ? el('th', { scope: 'row', text: c })
-                       : el('td.tbl__num', { text: c });
-      }));
-    }));
-    return el('table.chart__table.tbl', {}, [head, body]);
+  /** One shaping of a spec into rows of text, used by the CSV export and by the
+   *  table the panel draws if a chart cannot be. Two consumers, one source. */
+  function figuresOf(spec) {
+    var fmt = spec.valueFormat || F.int;
+    var out = [];
+
+    if (spec.insufficient) {
+      out.push({ item: t('common.insufficient'), value: spec.insufficient.reason,
+                 n: null, N: spec.total });
+    }
+    if (spec.kind === 'coverage') {
+      (spec.rows || []).forEach(function (r) {
+        out.push({ item: r.label, value: t('common.of', { n: F.int(r.n), m: F.int(r.N) }),
+                   n: r.n, N: r.N, unknown: !r.n });
+      });
+    } else if (spec.kind === 'strip') {
+      (spec.points || []).forEach(function (p) {
+        out.push({ item: p.label, value: fmt(p.value), n: null, N: spec.total });
+      });
+    } else {
+      (spec.rows || []).forEach(function (r) {
+        var known = typeof r.value === 'number';
+        out.push({ item: r.label, value: known ? fmt(r.value) : t('common.insufficient'),
+                   n: known ? r.value : null, N: spec.total, unknown: !!r.unknown });
+      });
+    }
+    return out;
   }
 
-  /* What the panel draws when `GEO.charts` is absent or throws: the TABLE view
-     of the same spec. Every value is present and none is gated behind colour or
-     hover, which is the A-04 requirement anyway — so the degraded panel is
-     still readable, exportable and honest, just not graphical. */
+  /* What the panel draws if `GEO.charts` is missing or throws: the table of the
+     same numbers. Every value present, none gated behind colour or hover —
+     which is the A-04 requirement anyway, so the degraded panel is still
+     readable, printable and exportable, just not graphical. */
   function fallbackChart(spec) {
-    var body = spec.insufficient
-      ? el('div.insufficient', {}, [
-          el('div.insufficient__title', { text: t('common.insufficient') }),
-          el('p.insufficient__why', { text: spec.insufficient })
-        ])
-      : tableNode(spec.table);
+    var figures = figuresOf(spec);
+    var head = el('tr', {}, [
+      el('th', { scope: 'col', text: spec.categoryLabel || t('analytics.chart.col.category') }),
+      el('th.tbl__num', { scope: 'col', text: spec.valueLabel || t('analytics.chart.col.value') })
+    ]);
+    var body = figures.map(function (f) {
+      return el('tr', { 'data-unknown': f.unknown ? 'true' : null }, [
+        el('th', { scope: 'row', text: f.item }),
+        el('td.tbl__num', { text: f.value })
+      ]);
+    });
 
     return el('section.chart', { 'aria-label': spec.title }, [
       el('div.chart__hd', {}, [
         el('div.chart__title', {}, [
           el('span', { text: spec.title }),
-          spec.categoryAxis ? el('span.chart__sub', { text: spec.categoryAxis }) : null
+          spec.categoryLabel ? el('span.chart__sub', { text: spec.categoryLabel }) : null
         ])
       ]),
-      body,
+      el('table.chart__table.tbl', {}, [el('thead', {}, [head]), el('tbody', {}, body)]),
       spec.note ? el('p.micro', { text: spec.note }) : null,
       el('p.coverage.chart__cov', { text: spec.coverageText })
     ]);
   }
 
-  /** Hand the spec to the chart module; fall back to its table on any failure.
-   *  `insufficient` is routed to the module's own state renderer when it has
-   *  one, because the plot area — and only the plot area — is what it replaces. */
+  /** The container is created once per chart and reused, because 10-charts
+   *  keeps a live instance per container (decision D). */
+  function mountFor(id) {
+    if (!mounts[id]) mounts[id] = el('div', { 'data-chart': id });
+    return mounts[id];
+  }
+
   function drawChart(spec) {
+    var host = mountFor(spec.id);
     var C = GEO.charts;
-    var name = spec.insufficient ? 'insufficient'
-             : spec.kind === 'bar' ? 'barChart'
-             : spec.kind === 'column' ? 'columnChart'
-             : spec.kind === 'strip' ? 'stripPlot'
-             : spec.kind === 'coverage' ? 'coverageBars'
-             : 'render';
     var fn = null;
     if (C) {
-      if (typeof C[name] === 'function') fn = C[name];
+      if (typeof C[spec.render] === 'function') fn = C[spec.render];
       else if (typeof C.render === 'function') fn = C.render;
     }
-    var node = null;
+
+    var ok = false;
     if (fn) {
-      try { node = fn.call(C, spec); }
+      try { ok = !!fn.call(C, host, spec); }
       catch (e) {
-        GEO.log.error('charts.' + name + ' threw — showing the table view instead', e);
-        node = null;
+        GEO.log.error('charts.' + spec.render + ' threw — showing the table instead', e);
+        ok = false;
       }
     }
-    return (node && node.nodeType === 1) ? node : fallbackChart(spec);
+    if (!ok) Q.fill(host, [fallbackChart(spec)]);
+    return host;
   }
 
   /* ============================================================== actions */
 
   /* A-03. Clicking a mark applies the matching filter and shows the results
-     list, so the chart is a way of asking a question rather than a picture of
-     an answer. Every write goes through GEO.state.set, which is what keeps the
-     manual filter controls in step (§59). */
+     list, so a chart is a way of asking a question rather than a picture of an
+     answer. Every write goes through GEO.state.set, which is what keeps the
+     manual filter controls in step with it (§59). */
 
   function showResults(state) {
     var p = { leftRail: 'open', leftTab: 'results' };
-    // P3: on a phone at most one panel may cover the map, so the rail the user
-    // is reading yields to the list it just sent them to.
+    // P3: on a phone at most one panel may cover the map, so the rail the
+    // reader is in yields to the list it just sent them to.
     if (isSmall(state.bp)) p.rightRail = 'closed';
     return p;
   }
 
-  /** The unknown bar is not a control: the filter model has no "only
-   *  unrecorded" predicate, so instead of a silent no-op the bar says why. */
+  /** Decision E: the unknown bar is not a control, and says so rather than
+   *  doing nothing when it is clicked. */
   function notFilterable() {
-    if (GEO.boot && GEO.boot.toast) GEO.boot.toast(t('analytics.chart.unknownNotFilter'));
+    if (GEO.boot && GEO.boot.toast) {
+      GEO.boot.toast(t('analytics.chart.unknownNotFilter'), {
+        label: t('common.nav.data'),
+        run: function () { openCoverageWorkspace(); }
+      });
+    }
   }
 
-  function applyDistrict(it) {
-    if (!it || it.unknown || !it.key) { notFilterable(); return; }
+  function applyFilter(patch, row) {
     var state = GEO.state.get();
-    GEO.state.set(Object.assign({ filters: { districts: [it.key] } }, showResults(state)),
-      { source: 'user', action: 'analytics:filter:district',
-        summary: t('analytics.chart.filterAction', { category: it.label }) });
+    GEO.state.set(Object.assign({ filters: patch }, showResults(state)),
+      { source: 'user', action: 'analytics:filter',
+        summary: t('analytics.chart.filterAction', { category: row.label }) });
   }
 
-  function applyClass(it) {
-    if (!it || it.unknown || !it.key) { notFilterable(); return; }
-    var state = GEO.state.get();
-    GEO.state.set(Object.assign({ filters: { classes: [it.key] } }, showResults(state)),
-      { source: 'user', action: 'analytics:filter:class',
-        summary: t('analytics.chart.filterAction', { category: it.label }) });
+  function applyDistrict(row) {
+    if (!row || row.unknown || !row.key) { notFilterable(); return; }
+    applyFilter({ districts: [row.key] }, row);
   }
 
-  function applyRange(it, minKey, maxKey) {
-    if (!it || it.unknown) { notFilterable(); return; }
-    var state = GEO.state.get();
-    var f = {};
-    f[minKey] = (it.lo === undefined) ? null : it.lo;
-    f[maxKey] = (it.hi === undefined) ? null : it.hi;
-    GEO.state.set(Object.assign({ filters: f }, showResults(state)),
-      { source: 'user', action: 'analytics:filter:range',
-        summary: t('analytics.chart.filterAction', { category: it.label }) });
+  function applyClass(row) {
+    if (!row || row.unknown || !row.key) { notFilterable(); return; }
+    applyFilter({ classes: [row.key] }, row);
+  }
+
+  function applyRange(row, minKey, maxKey) {
+    if (!row || row.unknown) { notFilterable(); return; }
+    var patch = {};
+    patch[minKey] = (row.lo === undefined) ? null : row.lo;
+    patch[maxKey] = (row.hi === undefined) ? null : row.hi;
+    applyFilter(patch, row);
   }
 
   /** A strip-plot dot is one building, so clicking it selects that building
-   *  rather than filtering to a band of one. */
+   *  rather than filtering the market down to a band of one. */
   function selectRecord(p) {
     if (!p || !p.id || !GEO.data.get(p.id)) return;
     GEO.state.set({ selectedId: p.id, rightRail: 'open', rightTab: 'property' },
@@ -775,9 +714,9 @@
   function csvRow(cells) { return cells.map(csvCell).join(','); }
 
   /**
-   * A-05 / M10. The figures on screen, their n, their N and their coverage
-   * sentence, under a header block naming the filters, the selection size, the
-   * collection date and the assumed rent unit. Recomputed from live state at
+   * A-05 / M10. The figures on screen, each with its n, its N and its coverage
+   * sentence, under a header block naming the filters, the selection, the
+   * verification date and the assumed rent unit. Recomputed from live state at
    * the moment of the click, never from what happened to be rendered.
    */
   function exportAnalysis(state, rows, scope) {
@@ -810,15 +749,10 @@
     });
 
     model.specs.forEach(function (spec) {
-      if (spec.insufficient) {
-        lines.push(csvRow([spec.title, t('common.insufficient'), spec.insufficient,
-                           '', F.int(spec.N), spec.coverageText]));
-        figures++;
-      }
-      (spec.table.rows || []).forEach(function (r) {
-        lines.push(csvRow([spec.title, r.cells[0], r.cells[1],
-                           r.n === null || r.n === undefined ? '' : F.int(r.n),
-                           F.int(r.N === undefined ? spec.N : r.N),
+      figuresOf(spec).forEach(function (f) {
+        lines.push(csvRow([spec.title, f.item, f.value,
+                           f.n === null || f.n === undefined ? '' : F.int(f.n),
+                           F.int(f.N === undefined || f.N === null ? spec.total : f.N),
                            spec.coverageText]));
         figures++;
       });
@@ -829,18 +763,18 @@
     GEO.boot.toast(t('analytics.export.done', { n: F.int(figures) }));
   }
 
-  /* A-06. The print stylesheet keys off `html[data-print]` and prints the
-     running header and footer from body attributes, so the collection date is
-     on every page whatever was printed. */
+  /* A-06. The print stylesheet keys off `html[data-print]` and prints its
+     running header and footer from body attributes, so the denominator and the
+     verification date are on every page whatever was printed. */
   function printPanel(state, rows, scope) {
     var model = buildModel(state, rows, scope);
     var root = document.documentElement;
     var previous = root.getAttribute('data-print');
-    var done = false;
+    var restored = false;
 
     function restore() {
-      if (done) return;
-      done = true;
+      if (restored) return;
+      restored = true;
       if (previous === null) root.removeAttribute('data-print');
       else root.setAttribute('data-print', previous);
       document.body.removeAttribute('data-print-header');
@@ -855,6 +789,10 @@
     document.body.setAttribute('data-print-footer',
       model.verifiedText + ' · ' + A.coverageStatement(rows));
     w.addEventListener('afterprint', restore);
+
+    // Charts are measured from their container, and print gives them a
+    // different one; re-measuring first keeps the paper copy in proportion.
+    if (GEO.charts && GEO.charts.redrawAll) GEO.charts.redrawAll();
 
     try { w.print(); }
     catch (e) {
@@ -876,10 +814,9 @@
     var live = [], empty = [];
 
     cards.forEach(function (m) {
-      /* "Structurally empty" is derived, never a hard-coded list: a metric
-         with no recorded value anywhere in the selection. The same test moves
-         a card back up by itself the moment demo mode or an edit supplies a
-         value (D11) — which is the UX-8 demonstration. */
+      /* "Structurally empty" is derived, never a hard-coded list: a metric with
+         no recorded value anywhere in the selection. The same test moves a card
+         back up by itself the moment demo mode or an edit supplies a value. */
       if (m.kind !== 'count' && m.n === 0) empty.push(m); else live.push(m);
     });
 
@@ -889,15 +826,16 @@
       catch (e) { GEO.log.warn('quality.datasetSummary threw', e); }
     }
 
-    var describe = (GEO.filters && GEO.filters.describe) ? GEO.filters.describe(state.filters) : '';
+    var described = (GEO.filters && GEO.filters.describe) ? GEO.filters.describe(state.filters) : '';
 
     return {
       cards: cards,
       live: live,
       empty: empty,
-      specs: [districtSpec(rows), classSpec(rows), rentSpec(rows), glaSpec(rows), coverageSpec(rows)],
-      filterText: (GEO.state.activeFilterCount(state.filters) && describe)
-        ? t('analytics.filters.active', { list: describe })
+      specs: [districtSpec(rows), classSpec(rows), rentSpec(rows, state),
+              glaSpec(rows), coverageSpec(rows)],
+      filterText: (GEO.state.activeFilterCount(state.filters) && described)
+        ? t('analytics.filters.active', { list: described })
         : t('analytics.filters.none'),
       verifiedText: t('detail.quality.verified', { date: F.date(lastVerified(rows)) }),
       stalenessNote: summary ? summary.stalenessNote : null
@@ -929,8 +867,9 @@
       })
     ];
     // §29: a disabled control states why, visibly — not only in a tooltip.
-    if (none) kids.push(el('span.reason.reason--inline', { text: t('analytics.export.disabled') }));
-    else kids.push(el('span.micro', { text: t('analytics.export.note') }));
+    kids.push(el('span.reason.reason--inline', {
+      text: none ? t('analytics.export.disabled') : t('analytics.export.analysis.note')
+    }));
     return el('div.row', {}, kids);
   }
 
@@ -938,8 +877,9 @@
     var active = GEO.state.activeFilterCount(state.filters);
     var kids = [];
 
-    // A-01. The scope line is what makes a screenshot of this panel
-    // self-describing: analytics cover the FILTERED set, not the selection.
+    /* A-01. The scope line is what makes a screenshot of this panel
+       self-describing: the figures cover the FILTERED set, not the selection,
+       and the reader is told so on every render rather than left to assume. */
     kids.push(el('div.scope', {}, [
       el('span', { text: t('analytics.scope', { n: F.int(rows.length), m: F.int(scope.length) }) }),
       active ? el('button.btn.btn--quiet.btn--sm', {
@@ -974,10 +914,10 @@
       el('div.stats', {}, model.live.map(function (m) { return metricCard(m, rows); }))
     ];
 
-    /* The caveats the headline count carries — unresolved duplicate pairs and
+    /* The caveats the headline count carries — unresolved duplicate pairs, and
        records whose own name says they are a company — are rendered beside the
        cards, not only inside the popover. A supply figure that may double-count
-       says so where it is read (§2.7). */
+       has to say so where it is read (§2.7). */
     var notes = [];
     model.cards.forEach(function (m) {
       (m.notes || []).forEach(function (n) { notes.push(n); });
@@ -995,6 +935,22 @@
     return el('section.stack', { 'aria-label': t('analytics.metrics.title') }, kids);
   }
 
+  function coverageActions(state) {
+    // D-13 lives in the Data workspace: the filter model cannot express
+    // "records missing field X", so this opens the view that can list them
+    // instead of pretending a bar is a filter.
+    var external = state.role === 'external';
+    return el('div.row', {}, [
+      el('button.btn.btn--quiet.btn--sm', {
+        type: 'button',
+        text: t('analytics.coverage.openData'),
+        disabled: external ? true : null,
+        onclick: function () { openCoverageWorkspace(); }
+      }),
+      external ? el('span.reason.reason--inline', { text: t('hdr.data.hiddenExternal') }) : null
+    ]);
+  }
+
   function draw(pane, state, rows, scope) {
     var model = buildModel(state, rows, scope);
     var kids = [headerBlock(state, rows, scope, model), statsBlock(model, rows)];
@@ -1002,22 +958,7 @@
     model.specs.forEach(function (spec) {
       if (spec.lead) kids.push(el('p.micro', { text: spec.lead }));
       kids.push(drawChart(spec));
-      if (spec.id === 'coverage') {
-        // D-13 lives in the Data workspace: the filter model cannot express
-        // "records missing field X", so this opens the view that can list them
-        // rather than pretending a bar is a filter.
-        var external = state.role === 'external';
-        var btn = el('button.btn.btn--quiet.btn--sm', {
-          type: 'button',
-          text: t('analytics.coverage.openData'),
-          disabled: external ? true : null,
-          onclick: function () { openCoverageWorkspace(); }
-        });
-        kids.push(el('div.row', {}, [
-          btn,
-          external ? el('span.reason.reason--inline', { text: t('hdr.data.hiddenExternal') }) : null
-        ]));
-      }
+      if (spec.id === 'coverage') kids.push(coverageActions(state));
     });
 
     Q.fill(pane, [el('div.stack.stack--lg', {}, kids)]);
@@ -1051,8 +992,8 @@
   }
 
   /* An edit arrives as an empty patch that 99-boot re-broadcasts, and a locale
-     change arrives outside state entirely, so neither is visible in the
-     signature. Both bump a counter that is. */
+     change arrives outside state entirely, so neither shows up in the
+     signature. Both force exactly one redraw. */
   GEO.on('data:changed', function () { dataVersion += 1; lastSig = null; });
   GEO.on('i18n:locale', function () { dataVersion += 1; lastSig = null; });
 
