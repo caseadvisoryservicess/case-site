@@ -585,7 +585,10 @@
   Q.issues = function (rows, opts) {
     opts = opts || {};
     var out = [];
-    var dupes = Q.duplicates(rows);
+    // Building the duplicate index is the expensive part (≈20 ms at 156 rows,
+    // O(n²)). A panel that also renders the queue builds it once and passes it
+    // to both rather than paying twice for the same answer.
+    var dupes = opts.duplicates || Q.duplicates(rows);
 
     /* --- missing critical data (the `none` completeness band) ------------- */
     var none = rows.filter(function (r) { return Q.completeness(r).band === 'none'; });

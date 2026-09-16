@@ -37,11 +37,21 @@ for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
   }
 }
 
-const missing = [...used.keys()].filter(k => !(k in en)).sort();
+// A key ending in '.' is the literal prefix of a key built by concatenation
+// (`t('value.confidence.' + level)`). It is never looked up as written, so it is
+// reported separately rather than stubbed — the ENUMERATED keys are what matter.
+const prefixes = [...used.keys()].filter(k => k.endsWith('.')).sort();
+const missing = [...used.keys()].filter(k => !k.endsWith('.') && !(k in en)).sort();
 const unused = Object.keys(en).filter(k => !used.has(k)).sort();
 
 console.log(`table: ${Object.keys(en).length} keys   referenced: ${used.size}   ` +
-            `missing: ${missing.length}   unreferenced: ${unused.length}`);
+            `missing: ${missing.length}   unreferenced: ${unused.length}   ` +
+            `computed prefixes: ${prefixes.length}`);
+
+if (prefixes.length) {
+  console.log('\nCOMPUTED KEYS — the enumerated suffixes must exist; this audit cannot check them:');
+  for (const k of prefixes) console.log(`  ${k}<suffix>   (${[...new Set(used.get(k))].join(', ')})`);
+}
 
 if (missing.length) {
   console.log('\nMISSING — t() will render the key itself:');
@@ -72,13 +82,33 @@ if (process.argv.includes('--fix') && missing.length) {
   ].join('\n');
 
   let src = fs.readFileSync(I18N, 'utf8');
-  const marker = /(\n\s*\};\s*\n)(?=[\s\S]*I\.ru|[\s\S]*i18n\.ru)/;
-  const at = src.indexOf('\n  };', src.indexOf('I.en = {') >= 0 ? src.indexOf('I.en = {') : 0);
-  if (at < 0) {
-    console.error('\ncheck-i18n --fix: could not find the end of the English table; add the keys by hand.');
+
+  // Find the END of the `I.en = { … }` object by matching braces from its opening,
+  // ignoring braces inside string literals. Searching for the first `\n  };` finds a
+  // nested object instead and splices the stubs into the middle of the table.
+  const open = src.indexOf('I.en = {');
+  if (open < 0) {
+    console.error('\ncheck-i18n --fix: could not find `I.en = {`; add the keys by hand.');
     process.exit(2);
   }
-  src = src.slice(0, at) + '\n' + block + src.slice(at);
+  let i = src.indexOf('{', open), depth = 0, quote = null, close = -1;
+  for (; i < src.length; i++) {
+    const ch = src[i], prev = src[i - 1];
+    if (quote) { if (ch === quote && prev !== '\\') quote = null; continue; }
+    if (ch === "'" || ch === '"' || ch === '`') { quote = ch; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) { close = i; break; } }
+  }
+  if (close < 0) {
+    console.error('\ncheck-i18n --fix: unbalanced braces in the English table.');
+    process.exit(2);
+  }
+
+  // The table's last entry may have no trailing comma, in which case appending an
+  // entry straight after it is a syntax error.
+  const head = src.slice(0, close).replace(/\s+$/, '');
+  const needsComma = !/[,{]$/.test(head);
+  src = head + (needsComma ? ',' : '') + block + '\n' + src.slice(close);
   fs.writeFileSync(I18N, src);
   console.log(`\nappended ${missing.length} stub keys to ${path.relative(R, I18N)} — review the wording.`);
   process.exit(0);

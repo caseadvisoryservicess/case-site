@@ -47,6 +47,7 @@
      01-i18n.js, so there is never a second definition of one string. */
   var ADDED = {
     'detail.ask.prefill': 'Show competitors within {km} km of {name}',
+    'detail.action.copyCoords.disabled': 'No coordinates recorded for this property',
     'detail.provenance.qc': 'QC status',
     'detail.provenance.profile': 'Evidence profile',
     'detail.quality.freshness': 'Verification status',
@@ -415,19 +416,26 @@
     if (!fields.length) return null;
 
     var label = GROUP_KEYS[group.key] ? t(GROUP_KEYS[group.key]) : group.label;
-    var body;
+    var body, count;
 
-    if (group.key === 'tenants') body = tenantsBody(rec);
-    else if (group.key === 'amenities') body = amenitiesBody(rec);
-    else body = [el('div.kv', {}, fields.map(function (fd) { return kvRow(rec, fd); }))];
+    // A list section counts its entries; a field section counts its filled
+    // fields. "0 of 1" would be a true but useless thing to say about tenants.
+    if (group.key === 'tenants') {
+      body = tenantsBody(rec);
+      count = t('detail.tenants.count', { n: F.int((rec.tenants || []).length) });
+    } else if (group.key === 'amenities') {
+      body = amenitiesBody(rec);
+      count = t('detail.tenants.count', { n: F.int((rec.amenities || []).length) });
+    } else {
+      body = [el('div.kv', {}, fields.map(function (fd) { return kvRow(rec, fd); }))];
+      count = t('common.of', { n: F.int(filledCount(rec, fields)), m: F.int(fields.length) });
+    }
 
     if (group.key === 'commercial' && U.isKnown(rec.askingRent)) {
       body.push(el('p.coverage', { text: t('detail.rentUnitNote') }));
     }
 
-    return disclosure(group.key, label,
-                      t('common.of', { n: F.int(filledCount(rec, fields)), m: F.int(fields.length) }),
-                      body);
+    return disclosure(group.key, label, count, body);
   }
 
   /* ------------------------------------------------------------- tenants */
@@ -715,7 +723,7 @@
         })
       ]),
       el('div.kv__row', {}, [
-        el('span.kv__k', { text: t('value.entity.unreviewed') }),
+        el('span.kv__k', { text: t('quality.entity.title') }),
         el('span.kv__v', { text: enumLabel('entityReview', meta.entityReview || 'unreviewed') }),
         el('span')
       ])
@@ -855,7 +863,8 @@
         onclick: function () { copy(coordText(rec), 'toast.coordsCopied'); }
       }));
     } else {
-      kids.push(disabledAction(t('detail.action.copyCoords'), F.UNKNOWN));
+      kids.push(disabledAction(t('detail.action.copyCoords'),
+                               t('detail.action.copyCoords.disabled')));
     }
 
     /* P-05 — open source, or say plainly why there is nothing to open */
@@ -935,9 +944,11 @@
       flags.push(el('div.stack', {}, [
         el('span.badge.badge--flag', { text: t('detail.dupe.badge') }),
         el('p.reason', { text: t('quality.dupes.note') }),
-        el('button.btn.btn--quiet.btn--sm', {
+        // The review queue lives in the Data workspace, which the External role
+        // cannot open (§60/X-9) — so the route to it is removed for that role
+        // rather than shown as a disabled control leading nowhere.
+        state.role === 'external' ? null : el('button.btn.btn--quiet.btn--sm', {
           type: 'button', text: t('detail.dupe.review'),
-          disabled: state.role === 'external',
           onclick: function () {
             GEO.state.set({ overlay: 'data', dataTab: 'dupes' },
               { source: 'user', action: 'admin:dupes', summary: rec.name });
@@ -1078,7 +1089,33 @@
     draw(pane, state, state.selectedId ? GEO.data.get(state.selectedId) : null);
   }
 
-  GEO.boot.registerPanel(render);
+  /* `99-boot.js` is LAST in the manifest and opens with `GEO.boot = {}`, so at
+     panel-load time `GEO.boot.registerPanel` does not exist yet and anything
+     queued on `GEO.boot` would be discarded a moment later. DOMContentLoaded is
+     the seam: every inline script has run by then, and because this listener is
+     added while 14 loads — before 99-boot adds its own — registration lands
+     before `B.start()` subscribes the renderer. */
+  function registerWithBoot() {
+    if (!GEO.boot || !GEO.boot.registerPanel) return false;
+    GEO.boot.registerPanel(render);
+    return true;
+  }
+
+  if (!registerWithBoot()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!registerWithBoot()) {
+          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable — the Property tab will not render');
+        }
+      });
+    } else {
+      setTimeout(function () {
+        if (!registerWithBoot()) {
+          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable — the Property tab will not render');
+        }
+      }, 0);
+    }
+  }
 
   /* A dataset edit arrives as an empty patch (99-boot re-broadcasts it), so the
      signature alone cannot see it. Nor can a locale switch. Both force one

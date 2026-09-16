@@ -1046,7 +1046,116 @@
     'a11y.chartTable': 'Chart data as a table',
     'a11y.confidenceDot': '{level} confidence',
     'a11y.dialogOpened': '{name} dialog opened',
-    'a11y.menuButton': 'Opens a menu'
+    'a11y.menuButton': 'Opens a menu',
+
+    /* -----------------------------------------------------------------------
+     * Data-quality workspace (§19, §37, §50).
+     *
+     * These strings do most of the product's honesty work, so they are written
+     * to say what was measured, why it matters commercially, and what to do —
+     * not just to name a category. A queue heading that reads "District label
+     * conflicts" tells a user nothing; one that says which value was used and
+     * why tells them whether to trust the chart.
+     * --------------------------------------------------------------------- */
+    'quality.issue.missingCritical.title': 'No commercial data recorded',
+    'quality.issue.missingCritical.detail':
+      '{n} properties hold none of the fields a commercial decision needs — class, status, GLA, floors, asking rent, vacancy, parking or year opened. They are real buildings with real locations; nothing has been collected about them yet. {examples}',
+    'quality.issue.missingCritical.action': 'Show these on the map',
+
+    'quality.issue.duplicateCoordinate.title': 'Exact coordinate collisions',
+    'quality.issue.duplicateCoordinate.detail':
+      '{n} records share a coordinate with another record, in {groups} groups. Each pair is either one building listed twice or two businesses at one address — the source does not say which. Until they are adjudicated, every district count and radius count may overstate supply. {examples}',
+    'quality.issue.duplicateCoordinate.action': 'Review these pairs',
+
+    'quality.issue.duplicateProximity.title': 'Unflagged near-duplicates',
+    'quality.issue.duplicateProximity.detail':
+      '{n} records sit within {m} m of another record without the source having flagged them. Found by recomputing the distances rather than trusting the flag. {examples}',
+    'quality.issue.duplicateProximity.action': 'Review these pairs',
+
+    'quality.issue.duplicateName.title': 'Similar names at similar addresses',
+    'quality.issue.duplicateName.detail':
+      '{n} records carry a name close to another record that is also close by. Name similarity alone is not evidence — two buildings can share a word — so only pairs that are near each other as well are listed. {examples}',
+    'quality.issue.duplicateName.action': 'Review these pairs',
+
+    'quality.issue.districtConflict.detail':
+      "{n} records carry a district label that disagrees with the boundary polygon containing their coordinates. The polygon is used, because it can be reproduced from the coordinates while a label cannot; the source's label is kept on the record. One of these is the highest asking rent in the dataset. {examples}",
+    'quality.issue.districtConflict.action': 'Show these on the map',
+
+    'quality.issue.suspectedNonBc.title': 'Probably not office buildings',
+    'quality.issue.suspectedNonBc.detail':
+      '{n} records have a name that describes a company, an association or an office of a firm rather than a building. They are counted in every figure until someone confirms or rejects them — they are flagged, never deleted, because deletion would be an unverified judgement. {examples}',
+    'quality.issue.suspectedNonBc.action': 'Review these records',
+
+    'quality.issue.nameQuality.title': 'Placeholder names',
+    'quality.issue.nameQuality.detail':
+      '{n} records carry a generic name that identifies no particular building — including one named after a district. They are probably real buildings that need a proper name, not records to remove. {examples}',
+    'quality.issue.nameQuality.action': 'Review these records',
+
+    'quality.issue.outOfBounds.title': 'Coordinates outside Tashkent',
+    'quality.issue.outOfBounds.detail':
+      '{n} records sit outside the expected coordinate envelope for the city. Usually a swapped latitude and longitude, or a typing error. {examples}',
+    'quality.issue.outOfBounds.action': 'Review these records',
+
+    'quality.issue.valueConflict.title': 'Values that contradict each other',
+    'quality.issue.valueConflict.detail':
+      '{n} records hold values that cannot all be true at once. They are stored exactly as entered — the platform records the market rather than arguing with it — but one of the values is wrong. {examples}',
+    'quality.issue.valueConflict.action': 'Review these records',
+
+    'quality.issue.examples.more': 'and {n} more',
+    'quality.issue.item.missingCritical': '{name} — {district}',
+    'quality.issue.item.dupeGroup': '{names} share one coordinate',
+    'quality.issue.item.dupePair': '{a} and {b}, {m} m apart',
+    'quality.issue.item.namePair': '{a} and {b} — {why}',
+    'quality.issue.item.outOfBounds': '{name} at {lat}, {lng}',
+    'quality.issue.item.valueConflict': '{name} — {reason}',
+
+    'quality.issue.name.why.identical': 'the same name after normalisation',
+    'quality.issue.name.why.edit': 'names differ by {n} characters or fewer',
+    'quality.issue.name.why.contains': 'one name contains the other',
+
+    'quality.value.occupancyVacancy': 'occupancy and vacancy do not sum to 100%',
+    'quality.value.areaMismatch': 'GLA exceeds GBA — lettable area cannot be larger than gross area',
+    'quality.value.availableExceedsGla': 'available area exceeds GLA',
+
+    'quality.confidence.summary':
+      'High {high} · Medium {medium} · Low {low} · Not verified {unknown}, across {n} properties.',
+    'quality.freshness.nothingToVerify': 'Nothing recorded, so there is nothing to re-verify yet.',
+    'quality.summary.stalenessDiscriminates':
+      'Every record shares one collection date ({date}), so age cannot separate them yet. The ranking below is driven by missing fields and flagged issues instead; staleness starts to discriminate as soon as a second verification date exists.',
+    'quality.summary.noDates': 'No verification dates are recorded.',
+    'quality.summary.fieldVerified.none':
+      'No record has been verified in the field. Every value is desk-collected from a single source.',
+
+    'quality.queue.field.verify': 'Re-verify {field}',
+    'quality.queue.field.confirm': 'Confirm {field}',
+    'quality.queue.field.collect': 'Collect {field}',
+    'quality.queue.reason.ageing': '{field} is approaching its re-verification date',
+    'quality.queue.reason.bounds': 'coordinates fall outside the city envelope',
+    'quality.queue.reason.commercial': 'carries commercial data a client would quote, so it must stay current',
+    'quality.queue.reason.conflict': 'district label disagrees with the boundary',
+    'quality.queue.reason.entity': 'may not be an office building',
+    'quality.queue.reason.nameQuality': 'name does not identify a specific building',
+
+    /* --- property detail (§13, §19) --- */
+    'detail.action.copyCoords.disabled': 'No coordinates recorded for this property',
+    'detail.ask.prefill': 'Tell me about {name}',
+    'detail.provenance.profile': 'Source profile',
+    'detail.provenance.qc': 'Quality-control status',
+    'detail.quality.freshness': 'Verification status',
+    'detail.quality.missingFields': 'Not yet recorded: {fields}',
+    'detail.quality.sourceNote': "Collector's note",
+    'detail.quality.sourceNote.origin':
+      'Written by whoever collected this record, and kept verbatim. It is their own instruction about what still needs checking.',
+    'detail.tenants.count': '{n} of {total} tenants recorded',
+    'detail.tenants.floor': 'Floor {floor}',
+
+    /* --- filter rail (§11) --- */
+    'filter.excluded.field': '{n} properties excluded — {field} not recorded',
+    'filter.flags.label': 'Data flags',
+    'filter.flags.note': 'Filter by what the data-quality checks found, rather than by a property attribute.',
+    'filter.option.count': '{label} ({n})',
+    'filter.range.observed': 'Recorded values run {min} to {max}',
+    'empty.property.action.map': 'Pick one on the map'
   };
 
   /* -------------------------------------------------------------------------
