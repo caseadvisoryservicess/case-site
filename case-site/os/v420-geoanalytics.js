@@ -196,7 +196,28 @@
     if(e.origin!==location.origin||!e.data||e.data.source!=='asaas-geo-v42')return;
     if(e.data.type==='asaas-geo-ready'){G.ready=true;var l=document.getElementById('geoLoader');if(l)l.style.display='none';loadGeoFresh().then(context);}
     else if(e.data.type==='asaas-geo-save')saveGeo(e.data.data,e.data.reason);
+    else if(e.data.type==='asaas-geo-assistant')assistantBridge(e.data);
   });
+  /* v4.72.0: мост гео-ассистента. Студия живёт в iframe и не имеет CSRF-токена, поэтому к
+     api/assistant.php ходит родитель тем же apiPOST, что и всё остальное. Ключ модели при
+     этом остаётся на сервере; сюда приходит только текст ответа и вызовы инструментов. */
+  async function assistantBridge(m){
+    var reqId=m.reqId,action=String(m.action||''),payload=(m.payload&&typeof m.payload==='object')?m.payload:{};
+    try{
+      var j;
+      if(action==='status'){
+        if(!BACKEND||typeof apiGET!=='function')j={ok:true,configured:false,demo:true};
+        else j=await apiGET('assistant.php?mode=status');
+      }else if(action==='tools'){
+        if(!BACKEND||typeof apiGET!=='function')throw new Error('демо-режим');
+        j=await apiGET('assistant.php?mode=tools');
+      }else if(action==='chat'){
+        if(!BACKEND||typeof apiPOST!=='function')throw new Error('Ассистент с моделью доступен только при подключённом сервере; в демо команды исполняются без модели.');
+        j=await apiPOST('assistant.php',payload);
+      }else throw new Error('неизвестное действие: '+action);
+      notifyFrame('asaas-geo-assistant-reply',{reqId:reqId,ok:true,data:j});
+    }catch(e){notifyFrame('asaas-geo-assistant-reply',{reqId:reqId,ok:false,error:String(e&&e.message||e)});}
+  }
   window.geoV42Project=function(id,opts){G.project=String(id||'');if(opts&&opts.probe)G.probeProjectId=G.project;/* v4.43.1: переход «Аналитика» из Карты объектов — студия сама откроет отчёт по точке проекта */context();};
   window.geoV42Recover=function(){if(!G.recoveryData||G.saving)return;var copy=JSON.parse(JSON.stringify(G.recoveryData));G.recoveryData=null;var b=document.getElementById('geoRecoverBtn');if(b)b.style.display='none';saveGeo(copy,'восстановление локальной копии Младшего администратора');};
   /* Серверная история геоданных: последние 50 снимков (таблица geo_state_history). Любой

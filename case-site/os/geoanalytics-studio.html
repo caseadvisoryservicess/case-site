@@ -2133,7 +2133,7 @@ async function probeAt(la,ln){
  gProbe.clearLayers();
  L.circleMarker([la,ln],{radius:7,color:'#9E0000',weight:3,fillColor:'#fff',fillOpacity:1}).on('click',ev=>{L.DomEvent.stopPropagation(ev);probeAt(la,ln);}).addTo(gProbe);
  [500,1000,1500].forEach(r=>L.circle([la,ln],{radius:r,color:'#9E0000',weight:1,opacity:.7,fill:false,dashArray:'4'}).addTo(gProbe));
- if(!POP){await ensureGeo();calibrate();}
+ if(typeof CAL==='undefined'||!CAL){await ensureGeo();calibrate();} /* v4.72.0: раньше стояло if(!POP), а POP непуст с самого старта (сырая сетка), и калибровка здесь не запускалась никогда: зонд считал по сырой сетке Kontur, завышенной примерно вдвое по городу */
  const km=r=>r/1000;
  const popIn=r=>{if(!POP)return null;let s=0;POP.forEach(h=>{if(hav(la,ln,h[0],h[1])<=km(r))s+=h[2];});return Math.round(s);};
  const bcArr=BC.map(eff).filter(b=>b.lat!=null);
@@ -2526,6 +2526,7 @@ setTimeout(initPop,800);
 <script src="v4530-geo-export.js?v=4.58.0"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
+<script src="v4720-geo-assistant.js?v=4.72.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span

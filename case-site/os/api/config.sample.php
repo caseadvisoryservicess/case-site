@@ -39,4 +39,10 @@ return [
   // Создать бота через @BotFather в Telegram, вписать токен сюда; получателей
   // настроить в api/notify_recipients.php (см. api/notify_recipients.sample.php).
   'telegram_bot_token' => '',
+
+  // v4.72.0: гео-ассистент в студии геоаналитики (api/assistant.php). Ключ Anthropic Console,
+  // вид sk-ant-... Без ключа ассистент работает в режиме команд (радиус, население, здания,
+  // дороги, цвета) без пересказа моделью. Ключ никогда не уходит в браузер.
+  'anthropic_api_key' => '',
+  'assistant_model' => 'claude-opus-5',
 ];

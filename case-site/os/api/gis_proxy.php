@@ -264,4 +264,54 @@ if ($mode === 'poi') {
   }
   json_out(['ok'=>false,'message'=>'POI proxy requires provider-specific Search API keys (Yandex / 2GIS / Google Places), or provider=osm (no key needed — OpenStreetMap Overpass).']);
 }
+/* v4.72.0: здания и дороги OSM для гео-ассистента. Чистые функции - в osm_lib.php, здесь
+   только сеть и кэш. Кэш в gis_analysis_cache: одна и та же рамка вокруг точки
+   запрашивается снова и снова (пользователь двигает радиус 500 -> 1000 -> 500), а Overpass
+   отвечает секундами и ограничивает частоту. Срок 30 дней: застройка меняется медленнее. */
+if ($mode === 'buildings' || $mode === 'roads') {
+  require_once __DIR__.'/osm_lib.php';
+  $radius = (int)($_GET['radius_m'] ?? 1000);
+  if ($radius < 50) $radius = 50;
+  if ($radius > osm_radius_limit_m()) $radius = osm_radius_limit_m();
+  $bbox = osm_bbox($lat, $lon, $radius);
+  $classes = null;
+  if ($mode === 'roads' && isset($_GET['classes']) && (string)$_GET['classes'] !== '') {
+    $classes = array_values(array_filter(array_map('trim', explode(',', (string)$_GET['classes']))));
+  }
+  $limit = osm_feature_limit($mode);
+  // Ключ кэша: точка с точностью ~10 м, радиус, классы. Точнее не нужно: сдвиг на метры
+  // не меняет состав зданий в круге.
+  $params = ['radius_m'=>$bbox['radius_m'], 'classes'=>$classes ? implode(',', $classes) : ''];
+  $ckLat = round($lat, 4); $ckLon = round($lon, 4);
+  $cached = null;
+  try {
+    $st = db()->prepare('SELECT result_json, created_at FROM gis_analysis_cache WHERE provider=? AND analysis_type=? AND lat=? AND lon=? AND parameters_json=? AND status=? AND (expires_at IS NULL OR expires_at > ?) ORDER BY id DESC LIMIT 1');
+    $st->execute(['osm', $mode, $ckLat, $ckLon, json_encode($params), 'ok', date('Y-m-d H:i:s')]);
+    $row = $st->fetch();
+    if ($row && is_string($row['result_json'] ?? null)) {
+      $cached = json_decode($row['result_json'], true);
+      if (is_array($cached)) $cached['_created_at'] = (string)($row['created_at'] ?? '');
+      else $cached = null;
+    }
+  } catch (Throwable $e) { $cached = null; /* таблицы может не быть на старой схеме: работаем без кэша */ }
+  if (is_array($cached) && isset($cached['rows'])) {
+    $prov = osm_provenance($mode, $bbox, count($cached['rows']), $cached['_created_at'] ?: null, true);
+    json_out(['ok'=>true, 'provider'=>'osm', 'mode'=>$mode, 'rows'=>$cached['rows'], 'provenance'=>$prov, 'truncated'=>!empty($cached['truncated'])]);
+  }
+  $ql = $mode === 'buildings' ? osm_buildings_ql($bbox, $limit) : osm_roads_ql($bbox, $limit, $classes);
+  $url = 'https://overpass-api.de/api/interpreter?' . http_build_query(['data' => $ql]);
+  $raw = @file_get_contents($url, false, stream_context_create(['http' => [
+    'timeout' => 55, 'method' => 'GET', 'header' => "User-Agent: CASE-OS/4.72 (geo assistant)\r\n",
+  ]]));
+  if ($raw === false) json_out(['ok' => false, 'message' => 'Overpass API недоступен с сервера (сеть или таймаут). Повторите позже.']);
+  $j = json_decode($raw, true);
+  if (!is_array($j) || !isset($j['elements'])) json_out(['ok' => false, 'message' => 'Overpass вернул неожиданный ответ.']);
+  $rows = $mode === 'buildings' ? osm_ways_to_buildings($j['elements'], $lat, $limit) : osm_ways_to_roads($j['elements'], $limit);
+  $truncated = count($rows) >= $limit;
+  try {
+    db()->prepare('INSERT INTO gis_analysis_cache (provider, analysis_type, object_id, lat, lon, parameters_json, result_json, status, expires_at) VALUES (?,?,?,?,?,?,?,?,?)')
+      ->execute(['osm', $mode, null, $ckLat, $ckLon, json_encode($params), json_encode(['rows'=>$rows, 'truncated'=>$truncated], JSON_UNESCAPED_UNICODE), 'ok', date('Y-m-d H:i:s', time() + 30 * 86400)]);
+  } catch (Throwable $e) { /* кэш необязателен */ }
+  json_out(['ok'=>true, 'provider'=>'osm', 'mode'=>$mode, 'rows'=>$rows, 'provenance'=>osm_provenance($mode, $bbox, count($rows)), 'truncated'=>$truncated]);
+}
 fail('Unsupported mode/provider',400);

@@ -92,3 +92,16 @@ The general `state.php` preserves server GEO_DATA when a stale full-state client
 Настройка изменяется только администратором. Сервер фильтрует effective workspace views,
 не принимает неизвестные ID/статусы и всегда оставляет активными `dash` и `users`, чтобы
 администратор не мог заблокировать доступ к настройкам. Отдельная SQL-миграция не требуется.
+
+## v4.72.0: гео-ассистент
+
+- `POST assistant.php` - ход диалога с моделью: `{messages, site, projects, lang}` -> `{ok, content, stop_reason, usage}`.
+  Ключ `anthropic_api_key` и модель `assistant_model` берутся из `config.php`; без ключа ответ `needs_key`,
+  и студия работает в режиме команд. Инструменты исполняются в браузере; сервер без состояния.
+- `GET assistant.php?mode=tools` - список инструментов (единственный источник, клиент берёт отсюда).
+- `GET assistant.php?mode=status` - настроен ли ключ и какая модель.
+- `GET gis_proxy.php?mode=buildings&provider=osm&lat&lon&radius_m` - контуры зданий OSM в радиусе (до 3 км),
+  с этажностью, типом, площадью пятна и строкой происхождения (ODbL, атрибуция обязательна).
+- `GET gis_proxy.php?mode=roads&provider=osm&lat&lon&radius_m[&classes=primary,secondary]` - линии дорог OSM.
+  Оба режима кэшируются в `gis_analysis_cache` на 30 дней (точка с точностью ~10 м + радиус + классы).
+- Чистые функции вынесены в `assistant_lib.php` и `osm_lib.php`, чтобы их проверял `docs/qa/tools/v4720_assistant_api.php`.
