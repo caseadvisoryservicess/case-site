@@ -507,3 +507,17 @@
    cursor change is the whole affordance, plus the mapnotice above it. */
 .mapwrap[data-pick="true"] #map,
 .mapwrap[data-pick="true"] .leaflet-container { cursor: crosshair; }
+
+/* ---------------------------------------------------------------------------
+ * Vendored-Leaflet image guards (build contract T2).
+ *
+ * `vendor/leaflet.css` references `images/marker-icon.png` and
+ * `images/layers-2x.png`, and neither file is vendored — we ship no `images/`
+ * directory at all. Nothing in this app should create the elements that use
+ * them: markers are `L.divIcon` exclusively, and the layer control is our own.
+ * But a 404 on a marker image renders as a *missing pin*, which looks like a
+ * data problem rather than an asset problem and is easy to stare past. These
+ * two rules make the request impossible rather than merely unlikely.
+ * ------------------------------------------------------------------------- */
+.leaflet-default-icon-path { background-image: none !important; }
+.leaflet-control-layers-toggle { background-image: none !important; }

@@ -305,6 +305,21 @@
    * record failed because the value is missing rather than because it did not
    * match — the whole basis of `explain()`.
    */
+  /* Confidence, completeness and freshness are each derived from a record's
+     evidence, and `explain()` re-tests every record against every predicate to
+     work out what each filter cost. Without this the freshness filter alone
+     would recompute 04-quality's per-field clocks tens of thousands of times
+     for one panel render. The cache lives only for the duration of one call, so
+     it can never answer with a value from before an edit. */
+  function perCall(fn) {
+    var cache = {};
+    return function (rec) {
+      if (!rec.id) return fn(rec);
+      if (cache[rec.id] === undefined) cache[rec.id] = fn(rec);
+      return cache[rec.id];
+    };
+  }
+
   function buildPredicates(rows, f) {
     var preds = [];
 
@@ -364,21 +379,24 @@
        value for the first two, so neither can exclude anything for being
        unknown. Freshness can — a record that was never verified has no state. */
     if (f.confidence.length) {
+      var conf = perCall(confidenceOf);
       add('confidence', null, function (r) {
-        return f.confidence.indexOf(confidenceOf(r)) >= 0;
+        return f.confidence.indexOf(conf(r)) >= 0;
       }, null);
     }
 
     if (f.completeness.length) {
+      var band = perCall(completenessBand);
       add('completeness', null, function (r) {
-        return f.completeness.indexOf(completenessBand(r)) >= 0;
+        return f.completeness.indexOf(band(r)) >= 0;
       }, null);
     }
 
     if (f.freshness.length) {
+      var fresh = perCall(freshnessState);
       add('freshness', null, function (r) {
-        return f.freshness.indexOf(freshnessState(r)) >= 0;
-      }, function (r) { return FL.FRESHNESS_STATES.indexOf(freshnessState(r)) < 0; });
+        return f.freshness.indexOf(fresh(r)) >= 0;
+      }, function (r) { return FL.FRESHNESS_STATES.indexOf(fresh(r)) < 0; });
     }
 
     if (f.flags.length) {
@@ -542,9 +560,14 @@
     out.push(entry('completeness', null, t('filter.completeness.label'), ['completeness'],
                    { n: rows.length, N: rows.length }, true));
 
+    /* Coverage for freshness is the coverage of the date it is computed from.
+       Asking 04-quality for each record's full per-field state here would cost
+       ~12 ms on 148 records, on every render, to answer a question a single
+       `lastVerifiedAt` already answers. The FILTER still uses the exact state —
+       it just does not pay for it when nobody has asked for it. */
     var dated = 0;
     rows.forEach(function (r) {
-      if (FL.FRESHNESS_STATES.indexOf(freshnessState(r)) >= 0) dated++;
+      if (r._meta && U.isKnown(r._meta.lastVerifiedAt)) dated++;
     });
     out.push(entry('freshness', null, t('filter.freshness.label'), ['freshness'],
                    { n: dated, N: rows.length }, true));
