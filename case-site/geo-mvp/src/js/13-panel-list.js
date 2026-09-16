@@ -528,6 +528,9 @@
     if (!want) return;
     var li = list.querySelector('.rcard[data-id="' + cssEscape(want.id) + '"]');
     if (!li) return;
+    // The card that gets focus back also takes the list's single tab stop, or
+    // the next Tab would jump to a card the user is not looking at.
+    setRovingStop(list, li);
     var target = want.act ? li.querySelector('[data-act="' + want.act + '"]') : null;
     (target || li).focus();
   }
@@ -536,6 +539,20 @@
      survive them, not arbitrary user text — but quoting is still cheaper than
      trusting a scraped dataset. */
   function cssEscape(s) { return String(s).replace(/["\\]/g, '\\$&'); }
+
+  /**
+   * Roving tabindex (IA §6.2). The whole list is ONE tab stop, so 148 cards do
+   * not become 148 stops on the way to the map. The per-card Compare and Zoom
+   * buttons are pulled out of the tab order too and put back only on the active
+   * card — otherwise they would quietly reintroduce 296 of them.
+   */
+  function setRovingStop(list, li) {
+    Q.$$('.rcard', list).forEach(function (c) {
+      var on = c === li;
+      c.tabIndex = on ? 0 : -1;
+      Q.$$('[data-act]', c).forEach(function (b) { b.tabIndex = on ? 0 : -1; });
+    });
+  }
 
   /** Cheap pass: selection, hover and compare change often and do not need the
    *  148 cards rebuilding. */
@@ -562,11 +579,7 @@
       }
     });
 
-    // Roving tabindex (IA §6.2): one tab stop for the whole list, so 148 cards
-    // do not become 148 stops on the way to the map.
-    var cards = Q.$$('.rcard', list);
-    var focusIdx = active ? cards.indexOf(active) : 0;
-    cards.forEach(function (li, i) { li.tabIndex = i === focusIdx ? 0 : -1; });
+    setRovingStop(list, active || Q.$$('.rcard', list)[0] || null);
   }
 
   function render(state, rows, scope) {
@@ -689,8 +702,7 @@
       }
       if (!to) return;
       e.preventDefault();
-      cards.forEach(function (c) { c.tabIndex = -1; });
-      to.tabIndex = 0;
+      setRovingStop(list, to);
       to.focus();
     });
   }

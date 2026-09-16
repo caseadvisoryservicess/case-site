@@ -242,6 +242,16 @@
     return t('filter.option.count', { label: '', n: F.int(n) }).replace(/^\s+/, '');
   }
 
+  /* Several notes are two table strings stitched together, and not every locale
+     will punctuate them the same way. Joining here rather than baking a full
+     stop into the table keeps each string reusable on its own. */
+  function sentences() {
+    return Array.prototype.slice.call(arguments)
+      .filter(Boolean)
+      .map(function (s) { return /[.!?]$/.test(s) ? s : s + '.'; })
+      .join(' ');
+  }
+
   /**
    * One filter group: heading, body, an optional permanent note and the §29
    * reason line that appears whenever the group is disabled. The reason is text
@@ -710,11 +720,14 @@
     /* --- rent ----------------------------------------------------------- */
     u.rent.sync(f, rng.askingRent);
     u.rent.setEnabled(avail.rent.available, avail.rent.reason);
+    // R9: every rent figure in the product carries the assumed-unit footnote,
+    // because the source never states the unit. Saying so beside the control is
+    // cheaper than a reader assuming annual and being wrong by a factor of 12.
     u.rent.setNote(avail.rent.available
-      ? t('filter.rent.note', {
+      ? sentences(t('filter.rent.note', {
           n: F.int(avail.rent.n), m: F.int(avail.rent.N),
           excluded: F.int(avail.rent.N - avail.rent.n)
-        }) + ' ' + t('filter.rent.unit')
+        }), t('common.assumedUnit'))
       : null);
 
     /* --- advanced -------------------------------------------------------- */
@@ -790,13 +803,17 @@
     u.moreCount.textContent = advanced ? String(advanced) : '';
   }
 
+  /** An enabled range control still states its denominator: "7 of 156 records
+   *  have a recorded GLA" is the difference between a filter over the market
+   *  and a filter over the seven buildings somebody happened to measure. */
   function observedNote(av, range, dp) {
     if (!av.available || range.min === null) return null;
-    return t('filter.disabled.coverage', {
-      n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
-    }) + ' ' + t('filter.range.observed', {
-      min: F.num(range.min, dp), max: F.num(range.max, dp)
-    });
+    return sentences(
+      t('filter.disabled.coverage', {
+        n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
+      }),
+      t('filter.range.observed', { min: F.num(range.min, dp), max: F.num(range.max, dp) })
+    );
   }
 
   /* ========================================================= registration */

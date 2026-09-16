@@ -43,6 +43,9 @@ run node tools/test-intents.cjs
 step "Filter engine against the oracle"
 run node tools/test-filters.cjs
 
+step "Search — script folding and district aliases"
+run node tools/test-search.cjs
+
 step "i18n key audit"
 run node tools/check-i18n.cjs
 
