@@ -297,6 +297,15 @@
     return s === 'field.' + key ? S.label(key) : s;
   }
 
+  /** Decision B, in one place: rows known for at least one column lead, the
+   *  rest follow as a group. The table and the CSV both order by this, so the
+   *  export a reader opens beside the screen is not in a different order. */
+  function splitRows(rows) {
+    var recorded = [], empty = [];
+    rows.forEach(function (r) { (r.known ? recorded : empty).push(r); });
+    return { recorded: recorded, empty: empty };
+  }
+
   function buildRows(recs) {
     var rows = S.compareFields.map(function (key) {
       var fd = S.byKey[key];
@@ -400,8 +409,8 @@
 
   function table(recs, rows) {
     var span = recs.length + 1;
-    var recorded = rows.filter(function (r) { return r.known; });
-    var empty = rows.filter(function (r) { return !r.known; });
+    var split = splitRows(rows);
+    var recorded = split.recorded, empty = split.empty;
 
     var shownRecorded = view.differingOnly
       ? recorded.filter(function (r) { return r.differs; })
@@ -604,7 +613,8 @@
   }
 
   function exportCsv(recs) {
-    var rows = buildRows(recs);
+    var split = splitRows(buildRows(recs));
+    var rows = split.recorded.concat(split.empty);
     var demo = recs.filter(function (r) { return r.recordType === 'DEMO'; });
 
     var head = [

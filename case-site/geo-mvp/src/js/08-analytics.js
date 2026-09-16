@@ -84,10 +84,12 @@
     var vals = A.known(rows, field);
     var n = vals.length;
 
+    var fieldName = opts.coverageLabel || label;   // "GLA", not "Total known GLA"
+
     if (n === 0) {
       return finish({
         value: null, n: 0, sufficient: false,
-        reason: 'No property in the current selection has a recorded ' + F.lower(label) + '.'
+        reason: 'No property in the current selection has a recorded ' + F.lower(fieldName) + '.'
       });
     }
 
@@ -98,7 +100,7 @@
       return finish({
         value: null, n: n, sufficient: false,
         reason: 'Only ' + n + ' of ' + N + ' ' + F.plural(N, 'property', 'properties') +
-                ' ' + F.plural(n, 'has', 'have') + ' a recorded ' + F.lower(label) +
+                ' ' + F.plural(n, 'has', 'have') + ' a recorded ' + F.lower(fieldName) +
                 '. At least ' + A.MIN_N + ' are needed before an average is meaningful.'
       });
     }

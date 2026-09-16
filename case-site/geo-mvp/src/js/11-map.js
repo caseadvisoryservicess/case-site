@@ -964,7 +964,7 @@
     var emphasis = analysis.competitiveBandKm;
 
     // Largest first so the small rings stay clickable-through and on top.
-    analysis.bands.slice().sort(function (a, b) { return b.km - a.km; }).forEach(function (band) {
+    analysis.bands.slice().sort(function (a, b) { return b.km - a.km; }).forEach(function (band, i) {
       var on = band.km === emphasis;
       L.circle(origin, {
         renderer: svgRenderer,
@@ -981,12 +981,21 @@
       // Each ring is labelled with its band AND its count: a circle with no
       // number on it is decoration, and the three counts have to be readable
       // together because the bands are cumulative (§7 of the build contract).
-      var dLat = (band.km * 1000) / 111320;
+      // Spread the labels around the rings instead of stacking them all due
+      // north, where three chips and the markers underneath them pile onto one
+      // vertical line. Alternating bearings keeps each chip on its own ring and
+      // away from the others at every zoom.
+      var BEARINGS = [0, 52, -52, 100, -100];          // degrees from north
+      var brg = BEARINGS[i % BEARINGS.length] * Math.PI / 180;
+      var metres = band.km * 1000;
+      var dLat = (metres * Math.cos(brg)) / 111320;
+      var dLng = (metres * Math.sin(brg)) /
+                 (111320 * Math.cos(origin[0] * Math.PI / 180));
       var chip = el('span.geo-radius-label', {
         style: 'position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:inline-block',
         text: t('map.radius.label', { km: F.num(band.km, 0), n: F.int(band.count) })
       });
-      L.marker([origin[0] + dLat, origin[1]], {
+      L.marker([origin[0] + dLat, origin[1] + dLng], {
         interactive: false,
         keyboard: false,
         icon: L.divIcon({ className: 'geo-marker', iconSize: [160, 20], iconAnchor: [80, 10], html: chip })

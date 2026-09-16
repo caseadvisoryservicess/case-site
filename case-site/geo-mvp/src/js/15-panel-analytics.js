@@ -221,11 +221,30 @@
     return m.display;
   }
 
+  /**
+   * The unit is set smaller than the figure (visual-system §6), so the value is
+   * SPLIT for type — never reformatted. `metric.display` stays the single
+   * source of the number: "$32.2 /m²/month" becomes "$32.2" + "/m²/month", and
+   * anything without a space (a count, "0%") stays whole. The split card and
+   * the insufficient state are sentences, so they are left alone.
+   */
+  function valueParts(m) {
+    var text = metricValue(m);
+    if (!m.sufficient || m.kind === 'split') return { value: text, unit: null };
+    var i = text.indexOf(' ');
+    return i < 0 ? { value: text, unit: null }
+                 : { value: text.slice(0, i), unit: text.slice(i + 1) };
+  }
+
   function metricCard(m, rows) {
     var poor = !m.sufficient;
+    var parts = valueParts(m);
     var kids = [
       el('span.stat__label', { text: metricLabel(m) }),
-      el('span.stat__value', { text: metricValue(m) })
+      el('span.stat__value', {}, [
+        el('span', { text: parts.value }),
+        parts.unit ? el('span.stat__unit', { text: ' ' + parts.unit }) : null
+      ])
     ];
     // A-07: the reason replaces the number and names what is missing. It is
     // text, not a link — it never offers to "estimate anyway".
@@ -870,10 +889,13 @@
       })
     ];
     // §29: a disabled control states why, visibly — not only in a tooltip.
-    kids.push(el('span.reason.reason--inline', {
-      text: none ? t('analytics.export.disabled') : t('analytics.export.analysis.note')
-    }));
-    return el('div.row', {}, kids);
+    if (none) kids.push(el('span.reason.reason--inline', { text: t('analytics.export.disabled') }));
+
+    // What the file will contain, stated before it is asked for.
+    return el('div.stack', {}, [
+      el('div.row', {}, kids),
+      el('p.micro', { text: t('analytics.export.note') })
+    ]);
   }
 
   function headerBlock(state, rows, scope, model) {
