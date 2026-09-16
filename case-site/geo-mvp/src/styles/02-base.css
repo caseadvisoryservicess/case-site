@@ -1,0 +1,308 @@
+/* ===========================================================================
+ * 02-base — reset, typography, focus, reduced motion
+ *
+ * The floor every other stylesheet stands on. Three things here are not
+ * negotiable:
+ *   - the focus ring is never removed, only restyled (IA §6.2);
+ *   - nothing blocks first paint on a webfont (visual-system §6, IA L-S2);
+ *   - reduced motion collapses every duration to 0.01ms without removing the
+ *     state change itself (visual-system §9, IA §6.5).
+ *
+ * The Google Fonts @import lives at the top of 01-tokens.css — see the note
+ * there. This file only declares the stacks, which are complete and correct
+ * with no network: DM Serif Display → Georgia, Inter → system-ui.
+ * ========================================================================= */
+
+/* ------------------------------------------------------------------ reset */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html,
+body,
+h1, h2, h3, h4, h5, h6,
+p, figure, blockquote, dl, dd,
+ol, ul { margin: 0; padding: 0; }
+
+ol, ul { list-style: none; }
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  /* The map owns panning; the page must never rubber-band underneath it. */
+  overscroll-behavior: none;
+}
+
+body {
+  /* A flex column, not a block, so the notice bar (R10) and the demo banner
+     (D4) can take real flow space at the top while `.app` keeps its declared
+     100dvh and simply shrinks to fit. Without this either the banner overlaps
+     the header or the page grows a scrollbar — and the page must never
+     scroll (IA §2.4). */
+  display: flex;
+  flex-direction: column;
+  height: 100vh;               /* fallback for engines without dvh */
+  height: 100dvh;
+  overflow: hidden;
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Many regions are `display:flex`/`grid` and also carry the `hidden`
+   attribute as their closed state, so `hidden` needs to outrank them. */
+[hidden] { display: none !important; }
+
+img, svg, canvas { max-width: 100%; }
+img, svg { vertical-align: middle; }
+
+button, input, select, textarea {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+button { background: none; border: 0; cursor: pointer; }
+
+button:disabled,
+input:disabled,
+select:disabled,
+textarea:disabled,
+[aria-disabled="true"] { cursor: not-allowed; }
+
+table { border-collapse: collapse; border-spacing: 0; }
+
+a { color: var(--case-red); text-underline-offset: 2px; }
+a:hover { color: var(--case-red-dark); }
+
+hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: var(--s-4) 0;
+}
+
+/* -------------------------------------------------------------- typography */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  color: var(--text);
+}
+
+h1 { font-size: var(--fs-display-l); }
+h2 { font-size: var(--fs-display); }
+h3 { font-size: var(--fs-lg); }
+
+/* h4–h6 are in-panel labels, not display type: the serif is for headings the
+   reader scans, not for the twentieth sub-label in a form. */
+h4, h5, h6 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text);
+}
+
+small { font-size: var(--fs-xs); color: var(--text-3); }
+
+strong, b { font-weight: 600; }
+
+code, kbd, samp { font-family: var(--font-mono); font-size: var(--fs-sm); }
+
+kbd {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-chip);
+  padding: 1px 5px;
+  background: var(--surface-2);
+}
+
+/* Every numeral the user compares column-to-column is tabular. Applied here
+   as a utility and again on the specific components that need it, because a
+   metric that shifts width as it updates reads as instability. */
+.num,
+.tabular { font-variant-numeric: tabular-nums; }
+
+/* The ONE place "we don't know" is styled. Never a dash, never blank, never a
+   zero (§36). The text itself comes from GEO.fmt.UNKNOWN via i18n. */
+.unk {
+  color: var(--text-3);
+  font-style: normal;
+  font-size: inherit;
+}
+
+/* The denominator line. 11px / --text-3 / +0.01em, per visual-system §6. */
+.coverage {
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  letter-spacing: var(--tracking-micro);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* -------------------------------------------------------------- selection */
+::selection {
+  background: var(--data-soft);
+  color: var(--text);
+}
+
+/* ------------------------------------------------------------------ focus */
+/* Two rings, because one colour cannot serve both surfaces (IA §6.2, ratios
+   computed there):
+   - default: --case-red on --surface/--bg — 6.85:1 / 6.18:1
+   - on red fills: inset white + outer ink — ink directly on red is 2.61:1
+     and fails, so it is never used as the ring.
+   `:focus-visible` carries pointer interaction; `:focus` is retained so that
+   programmatic focus (dialog open, focus return on close) is always visible. */
+:focus {
+  outline: 2px solid var(--case-red);
+  outline-offset: 2px;
+}
+
+ /* Scoped, NOT blanket. A bare `:focus:not(:focus-visible){outline:none}`
+   also silences programmatic focus — and moving focus to a dialog's heading
+   (`tabindex="-1"`) is exactly the case IA §6.2 requires to be visible. Only
+   the controls where a mouse-click ring is pure noise opt out. */
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible),
+summary:focus:not(:focus-visible),
+[role="tab"]:focus:not(:focus-visible),
+[role="option"]:focus:not(:focus-visible) { outline: none; }
+
+/* Anything focused programmatically keeps its ring, always. */
+[tabindex="-1"]:focus { outline: 2px solid var(--case-red); outline-offset: 2px; }
+
+:focus-visible {
+  outline: 2px solid var(--case-red);
+  outline-offset: 2px;
+}
+
+.btn--primary:focus-visible,
+.on-red:focus-visible {
+  outline: 2px solid var(--text-on-red);   /* #FFF — 6.85:1 on --case-red */
+  outline-offset: -2px;
+  box-shadow: 0 0 0 2px var(--ink);
+}
+
+/* --------------------------------------------------- visually hidden text */
+.vh {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------- skip link */
+/* First focusable element on the page (H-14). Fixed, so it never occupies
+   flow space and never shifts the header. */
+.skiplink {
+  position: fixed;
+  top: var(--s-2);
+  left: var(--s-2);
+  z-index: var(--z-boot);
+  transform: translateY(-200%);
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-overlay);
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.skiplink:focus,
+.skiplink:focus-visible { transform: translateY(0); }
+
+/* ----------------------------------------------------------- scrollbars */
+/* Restrained: the scrollbar is chrome, and on a data tool it appears in
+   twenty places at once. Neutral track, no accent. */
+.rail__body,
+.overlay__body,
+.dialog__body,
+.list,
+.dw__body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+
+.rail__body::-webkit-scrollbar,
+.overlay__body::-webkit-scrollbar,
+.dialog__body::-webkit-scrollbar,
+.list::-webkit-scrollbar,
+.dw__body::-webkit-scrollbar { width: 10px; height: 10px; }
+
+.rail__body::-webkit-scrollbar-thumb,
+.overlay__body::-webkit-scrollbar-thumb,
+.dialog__body::-webkit-scrollbar-thumb,
+.list::-webkit-scrollbar-thumb,
+.dw__body::-webkit-scrollbar-thumb {
+  background: var(--line-strong);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.rail__body::-webkit-scrollbar-track,
+.overlay__body::-webkit-scrollbar-track,
+.dialog__body::-webkit-scrollbar-track,
+.list::-webkit-scrollbar-track,
+.dw__body::-webkit-scrollbar-track { background: transparent; }
+
+/* --------------------------------------------------------- reduced motion */
+/* Two switches, one outcome. `prefers-reduced-motion` is the system signal;
+   `data-motion` is the S-03 override, where "full" deliberately overrules the
+   system and "reduce" deliberately overrules its absence.
+   State changes still happen — they just do not move (§25). */
+@media (prefers-reduced-motion: reduce) {
+  :root:not([data-motion="full"]) {
+    --dur-panel: .01ms;
+    --dur-fast: .01ms;
+    --dur-hover: .01ms;
+    --dur-count: .01ms;
+    --dur-modal: .01ms;
+    --dur-layer: .01ms;
+    --dur-chart: .01ms;
+  }
+
+  :root:not([data-motion="full"]) *,
+  :root:not([data-motion="full"]) *::before,
+  :root:not([data-motion="full"]) *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+:root[data-motion="reduce"] {
+  --dur-panel: .01ms;
+  --dur-fast: .01ms;
+  --dur-hover: .01ms;
+  --dur-count: .01ms;
+  --dur-modal: .01ms;
+  --dur-layer: .01ms;
+  --dur-chart: .01ms;
+}
+
+:root[data-motion="reduce"] *,
+:root[data-motion="reduce"] *::before,
+:root[data-motion="reduce"] *::after {
+  animation-duration: .01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: .01ms !important;
+  scroll-behavior: auto !important;
+}

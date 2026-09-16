@@ -1,0 +1,202 @@
+/* ===========================================================================
+ * 01-tokens — every design decision, named once
+ *
+ * 10-visual-system.md §2/§3/§4/§8/§9 and 03-information-architecture.md
+ * §1.5/§2.2. Nothing below is invented: the hexes are the validated CASE
+ * palette, the ramp is the OKLCH-stepped ordinal scale, the z-scale is the
+ * IA's exact ladder.
+ *
+ * TWO HARD RULES THIS FILE EXISTS TO ENFORCE
+ *   1. No raw z-index literal anywhere outside this file. QA greps for it.
+ *   2. No colour literal in any other stylesheet. If a value is needed twice
+ *      it is a token; if it is needed once it is still a token, because the
+ *      next person will need it twice.
+ *
+ * WHY THE @import IS HERE AND NOT IN 02-base.css
+ *   build.py concatenates all nine stylesheets into ONE <style> element. CSS
+ *   requires @import to precede every other rule in a sheet, so it must be the
+ *   first statement of the *bundle* — i.e. the first line of the first file —
+ *   not the first line of 02-base.css, where it would be silently dropped by
+ *   the parser. display=swap means first paint never waits on it, and the
+ *   fallback stacks in --font-display / --font-ui carry the page unchanged
+ *   when the request fails, which on file:// with no network is the norm.
+ * ========================================================================= */
+@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+
+  /* ---------------------------------------------------------------- brand */
+  --case-red: #B01F22;          /* the one accent; also the single data colour */
+  --case-red-dark: #8E191B;     /* hover / active on red surfaces */
+  --ink: #1A1714;
+  --cream: #F5F3EF;
+
+  /* ------------------------------------------------------------- surfaces */
+  --bg: #F5F3EF;                /* app shell */
+  --surface: #FFFFFF;           /* cards, panels, chart surface */
+  --surface-2: #FAF9F7;         /* inset rows, table stripes */
+  --surface-3: #EFEBE4;         /* pressed / selected row, tile-less basemap */
+
+  /* ---------------------------------------------------------------- lines */
+  /* 1.33:1 and 1.65:1 — DECORATIVE ONLY. A control's boundary or state may
+     never be carried by these alone (visual-system §2, IA §6.4). */
+  --line: #E3DFD8;
+  --line-strong: #CFC9BF;
+
+  /* ----------------------------------------------------------------- text */
+  --text: #1A1714;              /* 17.85:1 on white */
+  --text-2: #5C554C;            /*  7.35:1 */
+  --text-3: #6E665C;            /*  5.65:1 — smallest text still passes body contrast */
+  --text-on-red: #FFFFFF;       /*  6.85:1 on --case-red */
+
+  /* ----------------------------------------------------------- data marks */
+  --data: #B01F22;              /* 6.85:1 on white — single-series bars */
+  --data-soft: #F0DEDD;         /* 10% wash / unselected state of a red mark */
+  --unknown: #8A8178;           /* the "no data" bucket — ALWAYS hatched as well */
+
+  /* ------------------------------------------- office-class ordinal ramp */
+  /* Single hue, monotone lightness, adjacent ΔL ≥ 0.06. Ordinal, NOT
+     categorical — the reader is meant to see A+ > A > B+ > B > C in the
+     lightness alone. `--class-unknown` is deliberately OUTSIDE the sequence:
+     "we do not know the class" is not a position between B and C (§36). */
+  --class-aplus: #74040c;
+  --class-a: #a20615;
+  --class-bplus: #bd3d39;
+  --class-b: #d4665e;
+  --class-c: #e78d84;
+  --class-unknown: #8A8178;
+
+  /* Label colour on each fill. Mechanical rule, no judgement:
+     white where contrast(fill, #FFF) >= 4.5, otherwise ink. */
+  --class-aplus-ink: #FFFFFF;   /* 11.90:1 */
+  --class-a-ink: #FFFFFF;       /*  8.16:1 */
+  --class-bplus-ink: #FFFFFF;   /*  5.40:1 */
+  --class-b-ink: #1A1714;       /*  4.98:1 (white would be 3.58:1 — fails) */
+  --class-c-ink: #1A1714;       /*  7.26:1 */
+  --class-unknown-ink: #FFFFFF; /*  3.82:1 mark contrast, label text is white */
+
+  /* --------------------------------------------- status / data confidence */
+  /* Reserved meaning. NEVER reused as a series colour. Medium (1.83:1) and
+     Low (2.64:1) sit below 3:1 on purpose — the mandatory text label is the
+     mitigation, and a dot without its label is a defect (visual-system §4). */
+  --status-good: #0ca30c;
+  --status-warn: #fab219;
+  --status-serious: #ec835a;
+  --status-neutral: #8A8178;
+
+  --conf-high: var(--status-good);
+  --conf-medium: var(--status-warn);
+  --conf-low: var(--status-serious);
+  --conf-unknown: var(--status-neutral);   /* hollow dot: 2px ring, no fill */
+
+  /* ---------------------------------------------------- demo-data banner */
+  /* D4's non-dismissible banner is the one surface that must read as a
+     warning from across the room without becoming a bright colour (§24).
+     It is a muted wash of the --status-warn hue, not a new accent, and it is
+     never used for anything else. 3.3:1 border, 9.9:1 text on the wash. */
+  --demo-bg: #FDF3DC;
+  --demo-line: #C08A16;
+  --demo-text: #4E3A0C;
+
+  /* --------------------------------------------------- mark construction */
+  --marker-ring: var(--surface);   /* the 2px surface ring that keeps pins legible */
+  --hatch-line: var(--surface);    /* 1px lines at 4px pitch over --unknown (§5) */
+  --tile-grid: var(--line);        /* 24px graticule shown when tiles are unavailable */
+
+  /* ------------------------------------------------------------ z-order */
+  /* IA §1.5, exact. Nothing else in the codebase may use a numeric z-index. */
+  --z-map: 0;             /* R3 — own stacking context; Leaflet's 200–800 lives inside */
+  --z-map-chrome: 10;     /* R4 map buttons, legend, scale */
+  --z-rail: 20;           /* R2, R5 when docked */
+  --z-tray: 30;           /* R6 compare tray */
+  --z-header: 40;         /* R1, R12 */
+  --z-popover: 50;        /* header menus, settings, provenance popovers, tooltips */
+  --z-scrim: 60;          /* overlay-rail and sheet backdrop */
+  --z-sheet: 70;          /* R2/R5 in overlay-drawer or sheet mode */
+  --z-modal-scrim: 80;    /* R7, R8, R9 backdrop */
+  --z-modal: 90;          /* R7, R8, R9 */
+  --z-notice: 95;         /* R10 notice bar + the demo banner */
+  --z-toast: 100;         /* R11 */
+  --z-boot: 110;          /* R13 — blocks everything */
+
+  /* Local stacking only — valid *inside* an element that already owns a
+     stacking context (a sticky table header, the selected marker inside the
+     map pane). Named so that no module needs to type a bare integer. */
+  --z-local-raised: 1;
+  --z-local-top: 2;
+
+  /* --------------------------------------------------------- layout track */
+  /* IA §2.2. Overridden per breakpoint in 08-responsive.css. */
+  --header-h: 56px;
+  --left-w: 320px;
+  --left-w-collapsed: 52px;
+  --right-w: 0px;              /* closed by default; opened by [data-right="open"] */
+  --map-min: 560px;            /* P1 floor — the map is never narrower than this */
+  --tabbar-h: 0px;             /* becomes 56px below 768px */
+  --rail-overlay-w: min(400px, 86vw);
+  --sheet-h: 72dvh;            /* per-sheet snap point, set inline by the panel modules */
+
+  /* ------------------------------------------------- radius / elevation */
+  --r-chip: 2px;               /* chips, inputs */
+  --r-btn: 4px;                /* buttons, chart data-ends */
+  --r-card: 8px;               /* cards, panels, overlays */
+  --r-sheet: 12px;             /* mobile sheet top corners */
+
+  /* The only two shadows in the system. §24 says subtle; nothing heavier
+     exists, and there are no gradients, blurs or glass surfaces anywhere. */
+  --shadow-card: 0 1px 2px rgba(26, 23, 20, .06);
+  --shadow-overlay: 0 8px 24px rgba(26, 23, 20, .12);
+
+  --scrim-bg: rgba(26, 23, 20, .4);
+
+  /* ------------------------------------------------------------- spacing */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;                 /* panel padding, card padding */
+  --s-5: 24px;                 /* section gap */
+  --s-6: 32px;
+  --s-7: 48px;
+
+  /* --------------------------------------------------------------- type */
+  --font-display: 'DM Serif Display', Georgia, 'Times New Roman', serif;
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto,
+             'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-display-l: 28px;        /* overlay titles */
+  --fs-display: 20px;          /* panel titles */
+  --fs-metric: 26px;           /* stat tile value — Inter 600, never the serif */
+  --fs-lg: 15px;
+  --fs-md: 14px;
+  --fs-body: 13px;             /* UI + data base */
+  --fs-sm: 12px;               /* axis ticks, table numerals */
+  --fs-xs: 11px;               /* coverage / denominator line */
+
+  --lh-tight: 1.2;
+  --lh-body: 1.45;
+
+  --tracking-display: -0.01em;
+  --tracking-metric: -0.02em;
+  --tracking-micro: 0.01em;    /* coverage line */
+  --tracking-caps: 0.06em;     /* small-caps section labels, provenance badges */
+
+  /* ------------------------------------------------------------- targets */
+  --hit: 32px;                 /* pointer minimum */
+  --hit-touch: 44px;           /* touch breakpoints (<1024) */
+
+  /* -------------------------------------------------------------- motion */
+  /* Nothing animates longer than 220ms (visual-system §9, IA §8).
+     The reduced-motion overrides live in 02-base.css. */
+  --dur-panel: 180ms;          /* rail / drawer / sheet open-close */
+  --dur-fast: 120ms;           /* selection, marker state, popover */
+  --dur-hover: 100ms;          /* card hover lift, marker hover */
+  --dur-count: 140ms;          /* filter result / counter update, chart↔table swap */
+  --dur-modal: 160ms;          /* modal enter, toast, tray, AI response, tab underline */
+  --dur-layer: 200ms;          /* AI layer add/remove, radius circle sweep */
+  --dur-chart: 220ms;          /* chart bar growth */
+
+  --ease-panel: cubic-bezier(.2, .8, .2, 1);
+  --ease-out: ease-out;
+  --ease-inout: ease-in-out;
+}

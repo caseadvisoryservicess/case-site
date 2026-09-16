@@ -1,0 +1,282 @@
+/* ===========================================================================
+ * 06-charts — inline SVG, single series, hand-rolled
+ *
+ * visual-system §7. There is no chart library: every chart in §14 plots ONE
+ * series, so a library's categorical palette would spend the colour channel
+ * re-encoding what bar length already shows.
+ *
+ * What CSS owns here and what 10-charts.js owns:
+ *   CSS  — fill, stroke, type, weight, hover, transitions, the table view.
+ *   JS   — all geometry: the ≤24px bar thickness, the 4px rounded data-end
+ *          with a square baseline (drawn as a path, because SVG `rx` rounds
+ *          all four corners), the 2px surface gap between adjacent bars, and
+ *          the tick values rounded to clean numbers.
+ *
+ * ONE RULE ABOVE THE REST (visual-system §5): the unknown bucket must never
+ * look like a measured value. It is `--unknown` PLUS a 45° hatch, always
+ * directly labelled with its count and the word Unknown, always shown and
+ * never dropped. `.c-bar--unknown` therefore sets no `fill` — 10-charts.js
+ * writes `fill="url(#geo-hatch)"` as a presentation attribute, and a `fill`
+ * declared here would win the cascade and silently flatten the texture.
+ * ========================================================================= */
+
+/* =============================================================== frame ==== */
+.chart {
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.chart + .chart { margin-top: var(--s-4); }
+
+.chart__hd {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  margin-bottom: var(--s-3);
+}
+
+/* No legend anywhere: each chart is single-series, so the title is what names
+   what is plotted (visual-system §7). Chart 2's ramp is explained by its own
+   category labels. */
+.chart__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+  line-height: var(--lh-tight);
+}
+
+.chart__sub {
+  margin-top: 2px;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+/* A-04. Required so no value is gated behind colour or hover. */
+.chart__toggle {
+  flex: none;
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+}
+
+.chart__toggle button {
+  min-height: 28px;
+  padding: 0 var(--s-2);
+  border-radius: 2px;
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.chart__toggle button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.chart__plot { position: relative; }
+
+.chart__svg {
+  display: block;
+  width: 100%;
+  overflow: visible;
+}
+
+/* Chart ⇄ table cross-fade (animation 11). */
+.chart__view { animation: geo-fade-in var(--dur-count) var(--ease-out); }
+
+@keyframes geo-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+/* The coverage line is not optional furniture — it is the chart's
+   denominator and renders under every one of them (§14/§36). */
+.chart__cov { margin-top: var(--s-2); }
+
+/* ================================================================ marks === */
+.c-bar {
+  fill: var(--data);
+  transition: width var(--dur-chart) var(--ease-panel),
+              height var(--dur-chart) var(--ease-panel),
+              y var(--dur-chart) var(--ease-panel),
+              d var(--dur-chart) var(--ease-panel),
+              fill-opacity var(--dur-hover) var(--ease-out);
+}
+
+/* A-03: clicking a bar applies the matching filter, so bars are real targets. */
+.c-bar--clickable { cursor: pointer; }
+
+.c-bar:hover,
+.c-bar--hover { fill-opacity: .85; }
+
+/* The unselected state of a red mark is the 10% wash, never a grey. */
+.c-bar--off { fill: var(--data-soft); }
+
+/* NO `fill` here. See the file header. */
+.c-bar--unknown {
+  stroke: var(--unknown);
+  stroke-width: 1;
+}
+
+/* The pattern's own two parts, referenced from <pattern id="geo-hatch">:
+   1px --surface lines at 4px pitch over an --unknown ground. Texture, not
+   hue — it survives greyscale print and colour-vision deficiency. */
+.c-hatch-bg { fill: var(--unknown); }
+.c-hatch-line { stroke: var(--hatch-line); stroke-width: 1; }
+
+/* Chart 2 plots office class, which IS the dimension, so it wears the ordinal
+   ramp. Every other chart is single-series --data. */
+.c-bar[data-class="A+"] { fill: var(--class-aplus); }
+.c-bar[data-class="A"]  { fill: var(--class-a); }
+.c-bar[data-class="B+"] { fill: var(--class-bplus); }
+.c-bar[data-class="B"]  { fill: var(--class-b); }
+.c-bar[data-class="C"]  { fill: var(--class-c); }
+
+/* ============================================================= scaffold === */
+/* 1px SOLID, never dashed, and recessive. A dashed gridline competes with the
+   data for attention and reads as a threshold that is not there. */
+.c-grid {
+  stroke: var(--line);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+.c-base {
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  shape-rendering: crispEdges;
+}
+
+/* ================================================================= type === */
+/* Text NEVER wears the data colour (visual-system §7). All chart type is
+   --text / --text-2 / --text-3, and all of it is tabular where it is numeric. */
+.c-axis,
+.c-tick {
+  fill: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.c-cat {
+  fill: var(--text-2);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+}
+
+.c-cat--unknown { fill: var(--text-3); font-style: italic; }
+
+/* Direct labels are selective: the top bar and the Unknown bar only. The rest
+   is carried by the axis and the hover tooltip, which keeps the plot quiet. */
+.c-label {
+  fill: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.c-axis-title {
+  fill: var(--text-3);
+  font-family: var(--font-ui);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-micro);
+}
+
+/* ============================================================= strip plot = */
+/* D10: below n = 30 the individual values are plotted, because a 7-bin
+   histogram over 16 points implies a distribution the data cannot support. */
+.c-strip-axis { stroke: var(--line-strong); stroke-width: 1; }
+
+.c-strip-dot {
+  fill: var(--data);
+  fill-opacity: .8;
+  stroke: var(--surface);
+  stroke-width: 1;
+  transition: r var(--dur-fast) var(--ease-out),
+              fill-opacity var(--dur-fast) var(--ease-out);
+}
+
+.c-strip-dot--clickable { cursor: pointer; }
+.c-strip-dot:hover,
+.c-strip-dot--hover { fill-opacity: 1; }
+
+.c-strip-dot--selected { stroke: var(--ink); stroke-width: 2; }
+
+/* Median / mean reference rules, labelled in words beside the plot. */
+.c-ref { stroke: var(--ink); stroke-width: 1; stroke-dasharray: 3 2; }
+.c-ref-label { fill: var(--text-2); font-family: var(--font-ui); font-size: var(--fs-xs); }
+
+/* =============================================================== tooltip == */
+/* Category, count, share and the coverage caveat (visual-system §7). Never
+   the only route to a value — that is what the table toggle is for. */
+.chart__tip {
+  position: absolute;
+  z-index: var(--z-popover);
+  max-width: 240px;
+  padding: var(--s-2);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-overlay);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  pointer-events: none;
+}
+
+.chart__tip-title { font-weight: 600; }
+.chart__tip-val { font-variant-numeric: tabular-nums; }
+.chart__tip-note { margin-top: var(--s-1); font-size: var(--fs-xs); color: var(--text-3); }
+
+/* ============================================================ table view == */
+.chart__table { width: 100%; font-size: var(--fs-sm); }
+
+.chart__table th {
+  padding: var(--s-1) var(--s-2);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--line-strong);
+}
+
+.chart__table td {
+  padding: var(--s-1) var(--s-2);
+  border-bottom: 1px solid var(--line);
+}
+
+.chart__table td.tbl__num,
+.chart__table th.tbl__num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* The unknown row is marked in the table too, so the two views agree. */
+.chart__table tr[data-unknown="true"] td { color: var(--text-3); font-style: italic; }
+
+/* ================================================= insufficient / empty === */
+/* E-06 / A-07. Replaces the plot area only — the title and the coverage line
+   stay, because the denominator is the explanation. */
+.chart--insufficient .chart__plot { display: none; }
+
+.chart__insufficient {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-height: 120px;
+  padding: var(--s-4);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+}
+
+.chart__insufficient-title { font-weight: 600; color: var(--text); }
+.chart__insufficient-why { font-size: var(--fs-sm); color: var(--text-2); max-width: 52ch; }

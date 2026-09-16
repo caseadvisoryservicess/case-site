@@ -1,0 +1,349 @@
+/* ===========================================================================
+ * 09-print — the three printable deliverables
+ *
+ * M10 / A-06 / C-10. A CRE consultant prints three things out of this tool:
+ * the property card, the comparison table and the location analysis. Each of
+ * them ends up in a client's hands detached from the app, so the print sheet
+ * carries an obligation the screen does not: every figure must arrive with
+ * its denominator and its collection date attached.
+ *
+ * RUNNING HEADER / FOOTER CONTRACT
+ *   Browsers do not let CSS put arbitrary content in @page margin boxes, and
+ *   a user-visible string may not be written in a stylesheet (IA §9.3). So
+ *   the two running lines are `attr()` reads of data attributes that 99-boot
+ *   sets from i18n in a `beforeprint` handler:
+ *
+ *     document.body.dataset.printHeader = t('print.header', {...});
+ *     document.body.dataset.printFooter = t('print.footer', {...});
+ *
+ *   The footer is where the dataset collection date lives, and `position:
+ *   fixed` is what repeats it on every printed page.
+ *
+ * WHAT PRINTS
+ *   `document.documentElement.dataset.print` is set to 'compare' or 'data'
+ *   before printing an open overlay, so the rails do not print behind it.
+ *   The `:has()` rules at the end do the same thing without JS where the
+ *   engine supports them; they are in their own blocks because an engine that
+ *   cannot parse `:has()` drops the whole rule it appears in.
+ *
+ * COLOURS
+ *   This is the only stylesheet that uses literal hexes instead of tokens,
+ *   deliberately. Paper is not --surface: the cream shell, the --line
+ *   hairlines and the --text-2/-3 greys were all validated against a lit
+ *   screen and several of them fall apart on a 600dpi office printer. Print
+ *   gets plain black text, mid-grey rules and no background washes.
+ * ========================================================================= */
+
+@media print {
+
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm 18mm;
+  }
+
+  /* C-10: up to four comparison columns fit one landscape page. Named pages
+     are ignored by older engines, which simply print portrait — the table is
+     still complete, just across two pages. */
+  @page landscape { size: A4 landscape; }
+
+  /* ------------------------------------------------------------- basics -- */
+  html, body {
+    height: auto;
+    overflow: visible;
+    background: #FFFFFF;
+    color: #000000;
+    font-size: 10pt;
+    line-height: 1.35;
+  }
+
+  body {
+    display: block;
+    /* Room for the running header and footer, which are fixed. */
+    padding: 10mm 0 8mm;
+  }
+
+  body::before {
+    content: attr(data-print-header);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding-bottom: 2mm;
+    border-bottom: 0.5pt solid #999999;
+    font-family: var(--font-ui);
+    font-size: 8pt;
+    color: #000000;
+  }
+
+  /* The denominator discipline, made literal: the dataset collection date is
+     on every page, whatever was printed. */
+  body::after {
+    content: attr(data-print-footer);
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding-top: 2mm;
+    border-top: 0.5pt solid #999999;
+    font-family: var(--font-ui);
+    font-size: 7.5pt;
+    color: #333333;
+  }
+
+  /* --------------------------------------------------------- chrome off -- */
+  .skiplink,
+  .notice,
+  .hdr,
+  .tabbar,
+  .rail--left,
+  .rail__tabs,
+  .rail__foot,
+  .rail__count,
+  .rail__collapse,
+  .rail__close,
+  .mapwrap,
+  .mapchrome,
+  .maplayers,
+  .maplegend,
+  .mapnotice,
+  .tray,
+  .toasts,
+  .scrim,
+  .dialog,
+  .boot,
+  .search__results,
+  .dw__nav,
+  .ai__form,
+  .ai__suggest,
+  .chart__toggle,
+  .prov,
+  .btn,
+  .mbtn,
+  .rcard__zoom,
+  .msg__actions,
+  .overlay__actions,
+  .cmp__bar,
+  .layer__acts,
+  .form__foot { display: none !important; }
+
+  /* The demo banner is the one piece of chrome that MUST print. A page of
+     figures that silently includes synthetic records is exactly the artefact
+     D4 exists to prevent, and paper outlives the session it was printed in. */
+  .demobar {
+    display: flex !important;
+    border: 0.5pt solid #000000;
+    background: transparent;
+    color: #000000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .demobar__off { display: none !important; }
+
+  /* ---------------------------------------------------- expand the shell - */
+  .app,
+  .app__body {
+    display: block;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .rail,
+  .rail--right {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: none;
+    transform: none;
+    visibility: visible;
+    overflow: visible;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .rail__body {
+    display: block;
+    overflow: visible;
+    height: auto;
+    max-height: none;
+    padding: 0;
+  }
+
+  /* Only the active tab panel prints: the others carry `hidden`, and print
+     must respect that or the reader gets four panels stacked. */
+  .rail__body[hidden] { display: none !important; }
+
+  .overlay {
+    position: static;
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: none;
+    transform: none;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    animation: none;
+  }
+
+  .overlay__hdr { border-bottom: 0.5pt solid #000000; padding: 0 0 2mm; }
+  .overlay__body { overflow: visible; height: auto; padding: 3mm 0 0; }
+  .overlay__tabs { display: none; }
+
+  .dw { display: block; }
+  .dw__body { overflow: visible; height: auto; }
+
+  /* ------------------------------------------------------------- type ---- */
+  .prop__title,
+  .overlay__title,
+  .dialog__title { font-family: var(--font-display); color: #000000; }
+
+  h1, h2, h3, h4 { break-after: avoid; page-break-after: avoid; }
+
+  .text, .muted, .kv__v, .block__body { color: #000000; }
+  .kv__k, .micro, .layer__by { color: #333333; }
+
+  /* Every number keeps its denominator, and the denominator never starts a
+     page on its own — it is part of the figure, not a footnote. */
+  .coverage,
+  .stat__cov,
+  .chart__cov {
+    display: block !important;
+    color: #333333;
+    font-size: 7.5pt;
+    break-inside: avoid;
+    break-before: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* `content-visibility:auto` skips rendering off-screen cards, which on
+     paper means blank space where the last 140 results should be. */
+  .rcard { content-visibility: visible; contain-intrinsic-size: auto; }
+
+  /* ---------------------------------------------------- property card ---- */
+  .prop__actions { display: none !important; }
+
+  .prop__sec,
+  .disc,
+  .stat,
+  .chart,
+  .band,
+  .compset__group,
+  .dupe,
+  .layer,
+  .msg {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Collapsed disclosures print open: a printed card that hides Tenants
+     because the reader had it closed on screen is a different document. */
+  .disc__wrap { grid-template-rows: 1fr !important; }
+  .disc__body { overflow: visible !important; padding-bottom: 2mm !important; }
+  .how__body { display: block !important; }
+
+  .card,
+  .stat,
+  .chart,
+  .layer {
+    border: 0.5pt solid #999999;
+    box-shadow: none;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .stats { grid-template-columns: repeat(3, 1fr); gap: 4mm; }
+
+  /* ------------------------------------------------ location analysis ---- */
+  .loc__bands { grid-template-columns: repeat(3, 1fr); }
+  .band { background: transparent; border: 0.5pt solid #999999; }
+  .loc__method { color: #333333; font-size: 7.5pt; }
+
+  /* --------------------------------------------------- comparison table -- */
+  .cmp { page: landscape; }
+
+  .cmp__scroll { overflow: visible; }
+
+  .cmp__table { width: 100%; font-size: 8pt; }
+
+  .cmp__table th,
+  .cmp__table td {
+    position: static;         /* sticky is meaningless on paper and breaks layout */
+    min-width: 0;
+    padding: 1.5mm 2mm;
+    border: 0.5pt solid #999999;
+    background: transparent;
+  }
+
+  /* Repeat the property names at the top of every page the table spills onto. */
+  .cmp__table thead { display: table-header-group; }
+  .cmp__table tfoot { display: table-footer-group; }
+  .cmp__table tr { break-inside: avoid; page-break-inside: avoid; }
+
+  /* C-11 holds on paper too: no cell is marked as a winner. */
+
+  /* ------------------------------------------------------------ tables --- */
+  .tbl, .chart__table { font-size: 8pt; }
+  .tbl thead, .chart__table thead { display: table-header-group; }
+  .tbl th, .tbl td,
+  .chart__table th, .chart__table td { border-color: #999999; }
+  .tbl--zebra tbody tr:nth-child(even) td { background: transparent; }
+
+  /* ------------------------------------------------------------ charts --- */
+  /* The fills carry the ordinal ramp and the hatch carries "unknown", so both
+     have to survive the browser's default background-stripping. The class
+     letter and the literal word "Unknown" still do the real work in
+     greyscale. */
+  .c-bar,
+  .c-hatch-bg,
+  .c-hatch-line,
+  .badge--class,
+  .conf__dot,
+  .fresh__dot,
+  .covrow__fill,
+  .covrow__bar,
+  .maplegend__swatch,
+  .pin {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .chart__svg { height: auto; max-height: 90mm; }
+  .chart__tip, .tip, .pop { display: none !important; }
+
+  /* -------------------------------------------------- provenance badges -- */
+  /* Printed without their fills; the wording is the signal and it is the part
+     that must survive a black-and-white office printer. */
+  .prov-badge {
+    border: 0.5pt solid #000000;
+    background: transparent;
+    color: #000000;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  /* --------------------------------------------- what prints when ------- */
+  /* Set by 99-boot in a `beforeprint` handler. */
+  html[data-print="compare"] .app,
+  html[data-print="data"] .app { display: none !important; }
+
+  html[data-print="compare"] #overlay-data,
+  html[data-print="data"] #overlay-compare { display: none !important; }
+
+  html[data-print="property"] .overlay,
+  html[data-print="analytics"] .overlay { display: none !important; }
+}
+
+/* The same decision without JS, for engines that understand `:has()`. Kept in
+   separate blocks: an engine that cannot parse the selector drops the whole
+   rule, and these are the only rules it may safely drop. */
+@media print {
+  body:has(#overlay-compare:not([hidden])) .app { display: none !important; }
+}
+
+@media print {
+  body:has(#overlay-data:not([hidden])) .app { display: none !important; }
+}

@@ -1,0 +1,2 @@
+# Headless-browser QA output (screenshots + report) — regenerate with `node tools/qa.cjs --shots`
+qa-out/
