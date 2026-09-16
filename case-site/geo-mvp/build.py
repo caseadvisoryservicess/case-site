@@ -6,8 +6,11 @@ Reads src/manifest.json and inlines every CSS file, JS module, vendor library an
 generated dataset into ONE self-contained index.html that opens directly from file://
 with no server, no build tooling and no network (except optional OSM map tiles).
 
-    python3 build.py            # build index.html
-    python3 build.py --check    # verify index.html is up to date (CI / QA)
+    python3 build.py             # build index.html
+    python3 build.py --check     # verify index.html is up to date (CI / QA)
+    python3 build.py --partial   # build from whatever modules exist yet, to
+                                 # index.partial.html — for testing mid-build.
+                                 # Never the deliverable; it is gitignored.
 
 The prototype is AUTHORED as modules under src/ (brief §30: keep conceptual modules
 separate) and SHIPPED as a single file (brief §29: one main HTML file, no build process
@@ -18,6 +21,16 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 MANIFEST = json.loads((ROOT / 'src' / 'manifest.json').read_text(encoding='utf-8'))
+
+if '--partial' in sys.argv:
+    # Drop manifest entries whose file does not exist yet, so the app can be
+    # loaded and driven in a browser before every module is written. A missing
+    # module makes its features inert rather than breaking the page, because
+    # every caller guards on the namespace it needs.
+    for group in ('css', 'js'):
+        for name, files in MANIFEST[group].items():
+            MANIFEST[group][name] = [f for f in files if (ROOT / f).exists()]
+    MANIFEST['output'] = 'index.partial.html'
 
 MARKER = re.compile(r'^(?P<indent>[ \t]*)<!--@(?P<kind>[A-Z_]+):(?P<name>[^>]+?)-->[ \t]*$', re.M)
 

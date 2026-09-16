@@ -1,2 +1,8 @@
 # Headless-browser QA output (screenshots + report) — regenerate with `node tools/qa.cjs --shots`
 qa-out/
+
+# Incremental-build scaffolding used while the modules were being written.
+# The real build is `python3 build.py` → index.html.
+index.partial.html
+build.partial.py
+src/manifest.partial.json
