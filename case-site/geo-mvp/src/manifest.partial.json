@@ -33,6 +33,7 @@
    "src/js/07-search.js",
    "src/js/08-analytics.js",
    "src/js/09-geo.js",
+   "src/js/10-charts.js",
    "src/js/12-panel-filters.js",
    "src/js/13-panel-list.js",
    "src/js/14-panel-detail.js",

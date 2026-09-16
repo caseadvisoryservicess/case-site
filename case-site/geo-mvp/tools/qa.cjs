@@ -56,8 +56,11 @@ function watch(page) {
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('requestfailed', r => {
     const u = r.url();
-    // Tile requests are expected to fail with no network; that is a designed state.
-    if (/tile\.openstreetmap\.org/.test(u)) return;
+    // Two external requests are OPTIONAL ENHANCEMENTS and are expected to fail when
+    // the file is opened with no network: map tiles (the app draws a graticule and
+    // says so) and the webfonts (typography falls back to Georgia / system-ui).
+    // Everything else is an asset the deliverable itself is missing, which is a bug.
+    if (/tile\.openstreetmap\.org|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u)) return;
     failed.push(u + ' — ' + (r.failure() && r.failure().errorText));
   });
   return { errors, failed, warnings };
@@ -86,8 +89,19 @@ function watch(page) {
 
     check('page loads from file://', await page.title() !== '');
     check('no console errors', w.errors.length === 0, w.errors.slice(0, 4).join(' | '));
-    check('no failed local requests (broken image/asset paths)',
+    check('no failed requests for assets the file should carry itself',
           w.failed.length === 0, w.failed.slice(0, 4).join(' | '));
+
+    // Offline typography must still be deliberate, not a browser default.
+    const fonts = await page.evaluate(() => {
+      const body = getComputedStyle(document.body).fontFamily;
+      const h = document.querySelector('.hdr__name');
+      return { body: body, display: h ? getComputedStyle(h).fontFamily : '' };
+    });
+    check('offline typography falls back to a named stack, not a browser default',
+          /Inter|system-ui|-apple-system/.test(fonts.body) &&
+          /DM Serif|Georgia|serif/.test(fonts.display),
+          `${fonts.body} / ${fonts.display}`);
 
     const boot = await page.evaluate(() => ({
       hasGEO: typeof window.GEO === 'object',

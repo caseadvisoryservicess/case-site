@@ -1192,6 +1192,24 @@
     'filter.describe.upTo': '{field} up to {max}',
     'filter.describe.atLeast': '{field} of at least {min}',
     'detail.ask.prefill.competitors': 'Show competitors within 3 km of {name}',
+
+    /* --- charts (§14) -------------------------------------------------------
+     * Every chart carries a table view, because a value gated behind hover or
+     * colour is a value some readers never get.
+     * --------------------------------------------------------------------- */
+    'analytics.chart.view': 'Show as a table',
+    'analytics.chart.col.category': 'Category',
+    'analytics.chart.col.value': 'Value',
+    'analytics.chart.col.share': 'Share',
+    'analytics.chart.col.property': 'Field',
+    'analytics.chart.col.recorded': 'Recorded',
+    'analytics.chart.col.missing': 'Not recorded',
+    'analytics.chart.col.critical': 'Critical',
+    'analytics.chart.criticalNote': 'Fields marked critical are the ones a commercial decision needs.',
+    'analytics.chart.yes': 'Yes',
+    'analytics.chart.ofTotal': '{pct} of {total}',
+    'analytics.chart.tip.plain': '{label}: {value}',
+    'analytics.chart.empty': 'Nothing to plot for the current selection.',
     'empty.property.action.map': 'Pick one on the map'
   };
 
