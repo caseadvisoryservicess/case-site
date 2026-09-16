@@ -108,7 +108,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
       probe: document.getElementById('lProbe').checked, noAi: !/anthropic|claude|openai/i.test(p.textContent),
       tools: Object.keys(A.TOOLS).sort().join(',') };
   });
-  ck('модуль 4.73.0 зарегистрирован', s0.ver === '4.73.0' && s0.mod === '4.73.0');
+  ck('модуль 4.73.1 зарегистрирован', s0.ver === '4.73.1' && s0.mod === '4.73.1');
   ck('заголовок «Гео-агент» с меткой «свой движок»', /Гео-агент/.test(s0.title) && s0.badge, s0.title);
   ck('панель и секции - карточки со скруглением 12px на бумаге CASE', s0.radius === '12px' && s0.sectRadius === '12px' && s0.sectBg === 'rgb(255, 255, 255)' && s0.leftBg === 'rgb(250, 248, 245)', [s0.radius, s0.sectRadius, s0.sectBg, s0.leftBg].join(' / '));
   ck('шапка агента тёмная, кнопка отправки круглая и в оксбладе CASE', s0.h3dark && s0.sendRed && s0.sendRound === '50%');

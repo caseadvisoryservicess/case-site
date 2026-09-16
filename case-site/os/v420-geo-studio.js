@@ -229,19 +229,38 @@
   function quality(){var out={online:0,needs_review:0,verified:0,total:0};['bc','medicine','pharmacies'].concat(Object.keys(POI_DEFS)).forEach(function(k){DATASETS[k].ref().forEach(function(r){var s=recordStatus(r);out[s]=(out[s]||0)+1;out.total++;});});out.total+=POP.length;out.online+=POP.length;return out;}
   function resetIndexes(){try{IXPOP=IXMED=IXBC=IXPH=null;DBB=null;}catch(e){}try{Object.keys(EDITS).forEach(function(k){delete EDITS[k];});}catch(e){}BC.forEach(function(b,i){b.id=i;});}
   function geoExcluded(){return (GEO_META&&GEO_META.excludedProjects&&typeof GEO_META.excludedProjects==='object')?GEO_META.excludedProjects:{};}
+  /* v4.73.1: проектов CASE в студии больше нет (решение владельца: студией пользуются клиенты,
+     наши проекты им не нужны). PROJECTS держит ровно одну запись - точку анализа; её задаёт
+     гео-агент («📍 Точка», координаты, адрес) через caseGeoSetPoint. Сохранённые гео-профили
+     проектов (GEO_PROFILES) не трогаем: они пришли из geoData и уходят обратно при сохранении
+     нетронутыми. Скрытый список #proj всё равно заполняется: его читают отчёт, выгрузка,
+     солнце и Хафф. Аргументы rows/selected сохранены ради старых вызовов и игнорируются. */
   function syncProjects(rows,selected){
-    var saved={};Object.keys(GEO_PROFILES).forEach(function(k){saved[k]=clone(GEO_PROFILES[k]);});
-    if(Array.isArray(rows)&&rows.length&&saved.project&&/^Новый (универсальный )?проект$/i.test(String(saved.project.name||'')))delete saved.project;
-    var ex=geoExcluded();
+    /* наследуем только свою точку (virtual): встроенный «Новый универсальный проект» из
+       разметки студии - это центр города по умолчанию, а не выбор пользователя */
+    var cur=(PROJECTS.project&&PROJECTS.project.virtual)?PROJECTS.project:null;
     Object.keys(PROJECTS).forEach(function(k){delete PROJECTS[k];});
-    (Array.isArray(rows)?rows:[]).forEach(function(o){if(ex[String(o.id)])return;var p=normalizeProject(Object.assign({},o,saved[String(o.id)]||{}));PROJECTS[p.id]=p;GEO_PROFILES[p.id]=clone(p);});
-    Object.keys(saved).forEach(function(k){if(ex[k]){delete GEO_PROFILES[k];return;}if(!PROJECTS[k]){PROJECTS[k]=normalizeProject(saved[k]);GEO_PROFILES[k]=clone(PROJECTS[k]);}});
-    if(!Object.keys(PROJECTS).length){var p=normalizeProject({id:'project'});PROJECTS[p.id]=p;GEO_PROFILES[p.id]=clone(p);}
-    var s=document.getElementById('proj'),want=String(selected||s&&s.value||Object.keys(PROJECTS)[0]);
-    if(s){s.innerHTML=Object.keys(PROJECTS).map(function(k){return '<option value="'+esc(k)+'">'+esc(PROJECTS[k].name||k)+'</option>';}).join('');s.value=PROJECTS[want]?want:Object.keys(PROJECTS)[0];}
+    var p=normalizeProject({id:'project',name:cur&&cur.name?cur.name:'Точка анализа',lat:cur?cur.lat:CENTER.lat,lng:cur?cur.lng:CENTER.lng});
+    p.virtual=true;p.pending=cur?!!cur.pending:true;p.district=cur&&cur.district?cur.district:'';p.verification='verified';
+    PROJECTS.project=p;
+    var s=document.getElementById('proj');
+    if(s){s.innerHTML='<option value="project">'+esc(p.name)+'</option>';s.value='project';}
   }
+  /* Точку анализа задаёт гео-агент: клик по карте, координаты или адрес. Ничего не сохраняем
+     на сервер: точка живёт в сеансе, как и слои агента. Возвращает точку с районом. */
+  window.caseGeoSetPoint=function(lat,lng,name){
+    var la=+lat,ln=+lng;if(!Number.isFinite(la)||!Number.isFinite(ln))return null;
+    var p=PROJECTS.project||active();p.lat=+la.toFixed(6);p.lng=+ln.toFixed(6);p.pending=false;p.name=String(name||'точка на карте').slice(0,120);
+    try{p.district=(typeof distFast==='function'&&distFast(p.lat,p.lng))||'';}catch(e){p.district='';}
+    var s=document.getElementById('proj');if(s){s.innerHTML='<option value="project">'+esc(p.name)+'</option>';s.value='project';}
+    try{geoRenderProj();}catch(e){}try{genericAnalytics();}catch(e){}
+    return {lat:p.lat,lng:p.lng,district:p.district,name:p.name};
+  };
+  window.caseGeoPoint=function(){var p=PROJECTS.project;return p?{lat:p.lat,lng:p.lng,district:p.district||'',name:p.name,pending:!!p.pending}:null;};
+  window.caseGeoCollectState=function(){return collectState();};
   function collectState(){
-    Object.keys(PROJECTS).forEach(function(k){GEO_PROFILES[k]=clone(PROJECTS[k]);});
+    /* точка анализа виртуальная и в сохранённые гео-профили не попадает */
+    Object.keys(PROJECTS).forEach(function(k){if(PROJECTS[k]&&PROJECTS[k].virtual)return;GEO_PROFILES[k]=clone(PROJECTS[k]);});
     /* На сервере храним ТОЛЬКО изменённые наборы (правки/удаления/добавления), а нетронутый
        встроенный справочник (2GIS-мастербаза ~тысячи объектов) не гоняем при каждом сохранении —
        иначе общий блоб состояния раздувается и упирается в лимиты памяти/размера PHP.
@@ -822,12 +841,20 @@
   openCard=function(id){var i=BC.findIndex(function(x){return x.id===id;});if(i>=0)return openDatasetRecord('bc',i);oldOpenCard(id);};
   try{CARDG.push(['Ручная проверка',[['Статус проверки','_verification'],['Дата источника','_sourceDate'],['Проверил','_checkedBy'],['Дата проверки','_checkedAt'],['Примечание проверки','_note','ta']]]);}catch(e){}
   saveCard=function(id){if(!GEO_CAN_EDIT){alert('Нет прав на редактирование.');return;}var b=BC.find(function(x){return x.id===id;});if(!b)return;document.querySelectorAll('#card [data-k]').forEach(function(el){var v=el.value.trim();b[el.dataset.k]=v;if(['lat','lng','gla','gba','parking','floors','rent','avail','sale','rating','reviews'].indexOf(el.dataset.k)>=0&&v!==''&&!isNaN(v))b[el.dataset.k]=+v;});if(!b._verification)b._verification='needs_review';b._checkedBy=b._checkedBy||(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'';b._checkedAt=b._verification==='verified'?(b._checkedAt||new Date().toISOString().slice(0,10)):b._checkedAt;b._updatedAt=new Date().toISOString();b._updatedBy=(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'manual';markDataset();commit('карточка БЦ: '+(b.name||id));resetIndexes();closeCard();refreshAll();};
-  function applyContext(c){GEO_CONTEXT=c||{};GEO_CAN_EDIT=!!c.editable;GEO_ADMIN_EDIT=!!c.adminEdit;GEO_EXTERNAL=!!c.external;if(GEO_EXTERNAL)GEO_CAN_EDIT=false;if(!GEO_ADMIN_EDIT)GEO_EDIT_MODE=false;try{geoApplyRoleUi();}catch(e){}if(c.geoRevision!=null){GEO_META.serverRevision=+c.geoRevision||0;}document.body.classList.toggle('dark',String(c.theme||'').toLowerCase()==='dark');if(c.geoData)applyState(c.geoData);else{syncProjects(c.projects||[],c.activeProjectId);refreshAll();}try{if(c.probeProjectId)geoAutoProbe(String(c.probeProjectId));}catch(e){}updateBanner();}
+  function applyContext(c){GEO_CONTEXT=c||{};GEO_CAN_EDIT=!!c.editable;GEO_ADMIN_EDIT=!!c.adminEdit;GEO_EXTERNAL=!!c.external;if(GEO_EXTERNAL)GEO_CAN_EDIT=false;if(!GEO_ADMIN_EDIT)GEO_EDIT_MODE=false;try{geoApplyRoleUi();}catch(e){}if(c.geoRevision!=null){GEO_META.serverRevision=+c.geoRevision||0;}document.body.classList.toggle('dark',String(c.theme||'').toLowerCase()==='dark');if(c.geoData)applyState(c.geoData);else{syncProjects(c.projects||[],c.activeProjectId);refreshAll();}
+    /* v4.73.1: «открой отчёт вот здесь» принимается точкой (probePoint), а по-старому - парой
+       probeProjectId + projects: координаты проекта становятся точкой анализа, сам список
+       проектов в студию не попадает. */
+    try{var pp=(c.probePoint&&typeof c.probePoint==='object')?c.probePoint:null;
+      if(!pp&&c.probeProjectId&&Array.isArray(c.projects)){var q=null;c.projects.forEach(function(o){if(!q&&o&&String(o.id)===String(c.probeProjectId))q=o;});if(q)pp={lat:q.lat,lng:q.lng,name:q.ru||q.name||''};}
+      if(pp)geoAutoProbe(pp);}catch(e){}
+    updateBanner();}
   var GEO_AUTOPROBED={};
-  function geoAutoProbe(pid){ /* v4.43.1: явный переход «Аналитика» — отчёт по точке проекта открывается сам, кликать по карте не нужно */
-    if(!pid||GEO_AUTOPROBED[pid])return;var p=PROJECTS[pid];if(!p)return;
-    var la=+p.lat,ln=+p.lng;if(!isFinite(la)||!isFinite(ln))return;
-    GEO_AUTOPROBED[pid]=1;
+  function geoAutoProbe(pt){ /* v4.43.1: явный переход «Аналитика» — отчёт по точке открывается сам, кликать по карте не нужно */
+    var la=+(pt&&pt.lat),ln=+(pt&&pt.lng);if(!isFinite(la)||!isFinite(ln))return;
+    var key=la.toFixed(5)+','+ln.toFixed(5);if(GEO_AUTOPROBED[key])return;
+    GEO_AUTOPROBED[key]=1;
+    try{window.caseGeoSetPoint(la,ln,pt.name||'точка анализа');}catch(e){}
     var tries=0;(function wait(){
       /* «map» в студии — top-level let (лексический глобал); window.map — это DOM-элемент
          <div id=map> (named access), у него нет setView. Берём именно лексический map. */
@@ -980,11 +1007,19 @@
          список прямо над ним, а «Район: —» не сообщало ничего. Подписанные строки: слева -
          что это, справа - значение; отсутствие данных названо словами, а не прочерком. */
       var okc=Number.isFinite(plat)&&Number.isFinite(plng);
-      pi.innerHTML='<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
-        +(p.district?esc(p.district):'не определён')+'</span></div>'
-        +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
-        +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
-        +(p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+      /* v4.73.1: у точки анализа до первого задания координаты не показываем (это центр города
+         по умолчанию, а не выбор пользователя), а подсказываем, как её поставить. */
+      if(p.virtual&&p.pending){
+        pi.innerHTML='<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">не задана</span></div>'
+          +'<div class="pi-chip">Нажмите «📍 Точка на карте» или спросите гео-агента: координаты или «адрес: …»</div>';
+      }else{
+        pi.innerHTML=(p.virtual?'<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">'+esc(p.name||'')+'</span></div>':'')
+          +'<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
+          +(p.district?esc(p.district):'не определён')+'</span></div>'
+          +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
+          +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
+          +(!p.virtual&&p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+      }
     }
     try{if(typeof renderRings==='function')renderRings();}catch(e){}
     try{if(typeof catchSummary==='function')catchSummary();}catch(e){}
@@ -1000,6 +1035,7 @@
       // одной галочкой: раньше на карте просто висели безымянные янтарные кружки,
       // которые нельзя было ни опознать, ни выключить.
       if(!isActive&&!showOther)return;
+      if(isActive&&q.virtual&&q.pending)return; /* v4.73.1: незаданную точку на карте не рисуем */
       if(!isActive){(q.verification==='verified')?pfV++:pfN++;}
       if(isActive){
         var ic=L.divIcon({className:'',html:'<div style="background:'+color+';width:20px;height:20px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,.5)"></div>',iconSize:[20,20],iconAnchor:[10,18]});
@@ -1151,4 +1187,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.62.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.73.1';

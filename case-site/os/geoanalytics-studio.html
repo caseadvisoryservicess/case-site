@@ -1020,13 +1020,17 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 </style></head><body class="geo-auth-pending">
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Universal Geo Analytics · preliminary online data</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
-<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT">Профиль проекта</button><button data-t="planT">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT">Объекты на карте</button></div>
+<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
-  <div class="sect"><h3 id="projH">Проект</h3><select id="proj" aria-labelledby="projH"><option value="project">Новый универсальный проект</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
-   <div class="styrow" style="margin-top:7px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке проекта">▣ Аналитика по проекту</button></div>
-   <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по выбранному проекту">⤓ Выгрузить PDF · Excel · PPTX</button>
-    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать - настройка своя у каждого проекта">⚙ Настройки</button></div>
+  <!-- v4.73.1: вместо списка проектов CASE - одна точка анализа. Список #proj остаётся в
+       разметке скрытым: его читают пять модулей (отчёт, выгрузка, солнце, Хафф, студия), и в нём
+       всегда ровно одна запись - текущая точка. Клиентам наши проекты не нужны (решение владельца). -->
+  <div class="sect"><h3 id="projH">Точка анализа</h3><select id="proj" class="hidden" aria-labelledby="projH" aria-hidden="true" tabindex="-1"><option value="project">Точка анализа</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
+   <div class="styrow" style="margin-top:7px"><button class="btn sec" id="btnPickPoint" style="font-size:11px" onclick="if(window.CASE_GEO_AGENT)CASE_GEO_AGENT.setPick(true)" title="кликните по карте, чтобы поставить точку; можно и словами в гео-агенте: координаты или «адрес: …»">📍 Точка на карте</button></div>
+   <div class="styrow" style="margin-top:4px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке анализа">▣ Аналитика по точке</button></div>
+   <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по точке анализа">⤓ Выгрузить PDF · Excel · PPTX</button>
+    <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать">⚙ Настройки</button></div>
    <div class="mini">Цифры те же, что на экране. Состав и радиусы - в настройках выгрузки.</div>
    <div class="styrow" style="margin-top:8px"><button class="btn sec" id="btnSunWind" style="font-size:11px"
      onclick="caseSunOpen()" title="ход солнца по выбранному дню, роза ветров по архиву наблюдений и направление киблы">☀ Солнце, ветер и кибла</button></div>
@@ -1075,9 +1079,6 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
    <div class="mini">1 · 3 · 5 км - каждая своим цветом.</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
-   <div class="geo-cat-title">Проекты CASE</div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lProj" checked> Проекты портфеля (наши объекты)</label></div>
-   <div class="styrow sub"><span class="mini"><span class="geo-dot" style="background:#14675B"></span> проверенные &nbsp; <span class="geo-dot" style="background:#A8792C"></span> требуют проверки · клик по точке переключает проект</span></div>
    <div class="geo-cat-title">Бизнес-центры</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="bcNa" value="#0d7a6f"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"></div>
@@ -1244,7 +1245,7 @@ document.getElementById('map').innerHTML='<div style="display:flex;height:100%;a
 }
 let RADII=[{km:1,on:true},{km:3,on:true},{km:5,on:true}],metroRaw=null,DISTGEO=null,REGGEO=null,ZONES=null;
 function hav(a,b,c,d){const R=6371,r=x=>x*Math.PI/180;const s=Math.sin(r(c-a)/2)**2+Math.cos(r(a))*Math.cos(r(c))*Math.sin(r(d-b)/2)**2;return R*2*Math.asin(Math.sqrt(s));}
-function proj(){const el=$('proj');return el?PROJECTS[el.value]:(PROJECTS[0]||null);} /* null-гард: в gate-режиме (без авторизации) панели нет — не сыпем ошибку в консоль */
+function proj(){const el=$('proj');return (el&&PROJECTS[el.value])||PROJECTS.project||PROJECTS[Object.keys(PROJECTS)[0]]||null;} /* null-гард: в gate-режиме (без авторизации) панели нет — не сыпем ошибку в консоль */
 function esc(s){return (s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 function socialLinks(s){if(!s)return '';return String(s).split(' | ').map(u=>`<a href="${esc(u)}" target="_blank">${esc(u.replace(/https?:\/\/(www\.)?/,'').split('/')[0])}</a>`).join(' · ');}
 function popContent(e,dkm,id){const fl=[e.in2gis?'2ГИС':'',e.ingoogle?'Google':'',e.inyandex?'Yandex':'',e.ingp?'GP':''].filter(Boolean).join(', ');
@@ -1796,7 +1797,6 @@ function lgdFilterSp(sp){$('medSp').value=sp;renderMed();}
 /* Клик по строке городского объекта в легенде убирает и возвращает слой:
    фильтровать там нечего — у каждой категории свой переключатель в панели. */
 function lgdTogglePoi(k){if(window.CASE_GEO_POI)window.CASE_GEO_POI.toggle(k);}
-function lgdTogglePf(){const cb=$('lProj');if(!cb)return;cb.checked=!cb.checked;renderProj();}
 function updateLegend(){
  const el=document.getElementById('mlgd'); if(!el)return;
  let n=0, h2='';
@@ -1818,15 +1818,7 @@ function updateLegend(){
  if($('lPharm')&&$('lPharm').checked){n+=VIS.ph;
   h2+='<div class="grp2">Аптеки</div>'
     +'<div class="li"><span class="dot" style="background:'+$('phC').value+'"></span>на экране<b>'+VIS.ph+'</b></div>';}
- // --- проекты портфеля CASE ---
- if($('lProj')&&$('lProj').checked&&VIS.pf&&(VIS.pf.v||VIS.pf.n)){
-  n+=VIS.pf.v+VIS.pf.n;
-  h2+='<div class="grp2">Проекты портфеля · '+(VIS.pf.v+VIS.pf.n)+'</div>';
-  if(VIS.pf.v)h2+='<div class="li" onclick="lgdTogglePf()" title="показать / скрыть проекты портфеля">'
-    +'<span class="dot" style="background:#14675B"></span>проверенные<b>'+VIS.pf.v+'</b></div>';
-  if(VIS.pf.n)h2+='<div class="li" onclick="lgdTogglePf()" title="показать / скрыть проекты портфеля">'
-    +'<span class="dot" style="background:#A8792C"></span>требуют проверки<b>'+VIS.pf.n+'</b></div>';
- }
+ /* v4.73.1: блока «Проекты портфеля» в легенде больше нет: проекты CASE в студию не передаются. */
  // --- городские объекты: F&B, образование, ритейл и остальные категории ---
  /* Раньше в легенде были только медицина, БЦ и аптеки, а полтора десятка слоёв
     городских объектов на ней не отражались вовсе. Числа берём те, что реально
@@ -2482,7 +2474,7 @@ function buildPanel(){
   s.appendChild(body);
   const key='s'+i;
   if(OPEN&&OPEN[key]===0)s.classList.add('closed');
-  else if(!OPEN&&!/^(проект|слои и стиль)$/i.test(hd.textContent.trim()))s.classList.add('closed'); // сначала только проект и слои
+  else if(!OPEN&&!/^(проект|точка анализа|слои и стиль)$/i.test(hd.textContent.trim()))s.classList.add('closed'); // сначала только точка анализа и слои
   hd.onclick=()=>{s.classList.toggle('closed');savePanel();};
  });
  // 3. настройки стиля прячем под шестерёнку у каждого слоя
@@ -2560,11 +2552,11 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="v420-geo-studio.js?v=4.62.0"></script>
-<script src="v4530-geo-export.js?v=4.58.0"></script>
+<script src="v420-geo-studio.js?v=4.73.1"></script>
+<script src="v4530-geo-export.js?v=4.73.1"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
-<script src="v4730-geo-agent.js?v=4.73.0"></script>
+<script src="v4730-geo-agent.js?v=4.73.1"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span

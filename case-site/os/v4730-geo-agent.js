@@ -38,7 +38,7 @@
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.73.0';
+  var VERSION = '4.73.1';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -235,10 +235,19 @@
 
   /* ── Отрисовка ───────────────────────────────────────────────────────────── */
 
+  /* v4.73.1: точка агента и «точка анализа» студии - одно и то же. Если студия даёт хук
+     caseGeoSetPoint, точку ставим через него (студия рисует свою метку со звездой и подписью,
+     показывает район и считает по ней отчёт и выгрузку), а свою метку не дублируем. */
+  function studioHook() { return typeof window.caseGeoSetPoint === 'function' ? window.caseGeoSetPoint : null; }
   function drawSite() {
     if (!hasL() || !ST.site) return;
     var g = group('site'); g.clearLayers(); var st = ST.styles.site;
+    if (studioHook()) return;
     L.circleMarker([ST.site.lat, ST.site.lon], { radius: 8, color: st.color, weight: st.weight, fillColor: st.fill, fillOpacity: 1 }).bindTooltip(esc(ST.site.name || 'точка')).addTo(g);
+  }
+  function syncStudioPoint() {
+    var hook = studioHook(); if (!hook || !ST.site) return;
+    try { var r = hook(ST.site.lat, ST.site.lon, ST.site.name); if (r && r.district) ST.site.district = r.district; } catch (e) {}
   }
   function renderZone() {
     if (!hasL()) return;
@@ -340,13 +349,13 @@
           var rs = j.results || [];
           if (!rs.length) throw new Error(T('noGeo', q));
           var r0 = rs[0];
-          ST.site = { lat: +r0.lat, lon: +r0.lon, name: r0.name || q }; drawSite();
+          ST.site = { lat: +r0.lat, lon: +r0.lon, name: r0.name || q }; drawSite(); syncStudioPoint();
           var M = mapObj(); if (M) try { M.setView([ST.site.lat, ST.site.lon], Math.max(M.getZoom(), 15)); } catch (e) {}
           return { ok: true, site: ST.site, query: q, candidates: rs.slice(0, 3).map(function (r) { return { name: r.name, lat: +r.lat, lon: +r.lon }; }), provenance: { conf: 'asking', source: 'Nominatim (OpenStreetMap), ODbL', method: 'поиск по адресу, взят первый результат', at: today() } };
         });
       }
       if (num(inp.lat) == null || num(inp.lon) == null || Math.abs(+inp.lat) > 90 || Math.abs(+inp.lon) > 180) throw new Error(T('needSite'));
-      ST.site = { lat: +inp.lat, lon: +inp.lon, name: inp.name || T('point') }; drawSite();
+      ST.site = { lat: +inp.lat, lon: +inp.lon, name: inp.name || T('point') }; drawSite(); syncStudioPoint();
       var M = mapObj(); if (M) try { M.setView([ST.site.lat, ST.site.lon], Math.max(M.getZoom(), 14)); } catch (e) {}
       return Promise.resolve({ ok: true, site: ST.site });
     },
@@ -577,6 +586,8 @@
 
   function detectLang(t) {
     if (/[а-яё]/i.test(t)) return 'ru';
+    /* одни координаты («41.31, 69.28») языка не выдают: остаёмся на прежнем */
+    if (!/[a-z]/i.test(t)) return ST.lang || 'ru';
     if (/\b(aholi|bino|yo.l|ko.cha|radius\w*da|zona|poligon|birlashtir|tozala|ajrat|manzil|yordam|tayyor|bekor|daqiqa|km ichida|qavat|rang|qil\b)/i.test(t)) return 'uz';
     return 'en';
   }
@@ -711,7 +722,7 @@
   function factHtml(name, res) {
     var h = '<div class="ga-fbody"><b>' + esc(TOOL_RU[name] || name) + '</b> ';
     switch (name) {
-      case 'set_site': h += esc(res.site.name) + ' · ' + res.site.lat.toFixed(5) + ', ' + res.site.lon.toFixed(5) + (res.provenance ? ' ' + provChip(res.provenance) : ''); break;
+      case 'set_site': h += esc(res.site.name) + ' · ' + res.site.lat.toFixed(5) + ', ' + res.site.lon.toFixed(5) + (res.site.district ? ' · ' + esc(res.site.district) : '') + (res.provenance ? ' ' + provChip(res.provenance) : ''); break;
       case 'draw_radius': h += res.radii_m.map(humanM).join(', '); break;
       case 'draw_isochrone': h += res.minutes + ' мин · ' + (res.area_m2 / 1e6).toFixed(1) + ' км² ' + provChip(res.provenance); break;
       case 'draw_polygon': h += res.drawing ? 'рисование: кликайте по карте' : res.points + ' точек · ' + (res.area_m2 / 1e6).toFixed(2) + ' км²'; break;
