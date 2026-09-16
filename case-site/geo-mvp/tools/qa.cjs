@@ -567,6 +567,30 @@ function watch(page) {
             m.overflowing.length === 0, m.overflowing.join(', '));
       check(`${vp.n} (${vp.w}px): no clipped text`,
             m.clipped.length === 0, m.clipped.join(' | '));
+
+      // Overlap is invisible to an overflow check: both elements are inside the
+      // viewport, just on top of each other. The map chrome is where it happens.
+      const overlaps = await page.evaluate(() => {
+        const ids = ['maplegend', 'map-notice', 'mapchrome', 'compare-tray'];
+        const boxes = ids.map(id => {
+          const el = document.getElementById(id);
+          if (!el || el.hidden || getComputedStyle(el).display === 'none') return null;
+          const r = el.getBoundingClientRect();
+          return r.width > 0 && r.height > 0 ? { id, r } : null;
+        }).filter(Boolean);
+        const hits = [];
+        for (let i = 0; i < boxes.length; i++) {
+          for (let j = i + 1; j < boxes.length; j++) {
+            const a = boxes[i].r, b = boxes[j].r;
+            const ov = Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left)) *
+                       Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+            if (ov > 16) hits.push(`${boxes[i].id} ↔ ${boxes[j].id} (${Math.round(ov)}px²)`);
+          }
+        }
+        return hits;
+      });
+      check(`${vp.n} (${vp.w}px): map chrome does not overlap itself`,
+            overlaps.length === 0, overlaps.join(', '));
       if (vp.w >= 1280) {
         check(`${vp.n} (${vp.w}px): map is at least 560px wide`, m.mapW >= 560, m.mapW);
       }

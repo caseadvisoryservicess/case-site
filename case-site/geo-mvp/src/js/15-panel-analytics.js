@@ -105,11 +105,11 @@
 
   /* ---------------------------------------------------------------- labels */
 
+  /* Office class is the only enum this panel renders as a category: the status
+     split is a sentence from the string table, not a list of enum labels. */
   var ENUM_KEYS = {
     officeClass: { 'A+': 'value.class.aPlus', 'A': 'value.class.a', 'B+': 'value.class.bPlus',
-                   'B': 'value.class.b', 'C': 'value.class.c' },
-    status: { 'Operating': 'value.status.operating', 'Under construction': 'value.status.construction',
-              'Planned': 'value.status.planned', 'Renovation': 'value.status.renovation' }
+                   'B': 'value.class.b', 'C': 'value.class.c' }
   };
 
   function enumLabel(enumKey, value) {
@@ -456,11 +456,14 @@
         var rec = GEO.data.get(p.id);
         var demo = !!(rec && rec.recordType === 'DEMO');
         var name = U.isKnown(p.name) ? p.name : F.UNKNOWN;
+        // The DEMO mark is written into the label as well as flagged, so it
+        // survives a renderer that knows nothing about record types (D4) — but
+        // only when the name does not already announce it, because "DEMO —
+        // Alpha Tower · DEMO" reads as a rendering bug rather than a warning.
+        var marked = demo && name.indexOf(t('common.demo.badge')) < 0;
         return {
           key: p.id, id: p.id,
-          // The DEMO mark is written into the label as well as flagged, so it
-          // survives a renderer that knows nothing about record types (D4).
-          label: demo ? name + ' · ' + t('common.demo.badge') : name,
+          label: marked ? name + ' · ' + t('common.demo.badge') : name,
           value: p.value,
           sub: U.isKnown(p.officeClass) ? enumLabel('officeClass', p.officeClass)
                                         : t('value.class.unknown'),

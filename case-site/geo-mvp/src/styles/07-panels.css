@@ -286,7 +286,14 @@
 }
 
 .stat {
-  display: block;
+  /* A column, not a block. The panel builds the card from <span>s, and inline
+     children would run the label, the value and the denominator together on one
+     line. Making the card a flex column turns its parts into flex items, which
+     stack regardless of the tag the panel chose — the layout no longer depends
+     on two independently written files agreeing about element display. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   padding: var(--s-3);
   text-align: left;

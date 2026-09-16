@@ -208,8 +208,8 @@
 
   /**
    * What one record looks like under the active encoding.
-   * `attr` is the data attribute the CSS fills from; `fill` and `ink` are the
-   * resolved values, used for the legend swatch and the mechanical label rule.
+   * `attr` is the data attribute the CSS fills from; `fill` is the resolved
+   * value and `ink` is the label colour the mechanical rule derives from it.
    * Unknown is always the neutral and never a step of the ramp (§36).
    */
   function encode(rec, mode) {
@@ -217,7 +217,7 @@
       var c = GEO.data.recordConfidence(rec);
       var cf = token(CONF_TOKEN[c] || '--conf-unknown', '#8A8178');
       return { attr: 'data-conf', key: c, letter: CONF_LETTER[c] || '?',
-               fill: cf, ink: labelInk(cf), unknown: c === 'Unknown' };
+               fill: cf, ink: labelInk(cf) };
     }
     if (mode === 'completeness') {
       var b = completenessOf(rec);
@@ -225,21 +225,62 @@
       // The digit is the count of recorded critical fields: more informative
       // than a letter and, unlike a band name, it cannot be confused with a grade.
       return { attr: 'data-cmpl', key: b.band, letter: String(b.known),
-               fill: bf, ink: labelInk(bf), unknown: b.band === 'none' };
+               fill: bf, ink: labelInk(bf) };
     }
     var known = U.isKnown(rec.officeClass);
     var k = known ? rec.officeClass : 'unknown';
     var f = token(known ? CLASS_TOKEN[rec.officeClass] : '--class-unknown', '#8A8178');
     return { attr: 'data-class', key: k, letter: known ? rec.officeClass : '?',
-             fill: f, ink: labelInk(f), unknown: !known };
+             fill: f, ink: labelInk(f) };
   }
 
-  /** D6: an unresolved duplicate group is disclosed on the map, never merged away. */
+  /* ------------------------------------------------------------ duplicates */
+  /* D6: duplicates are never auto-merged, so the map has to disclose them. The
+     interesting half of the problem is the three sub-30 m pairs the SOURCE did
+     not flag: `_meta.possibleDuplicate` alone would leave those looking like
+     two ordinary buildings. They come from `GEO.quality.duplicates()`, which is
+     an O(n²) proximity scan — a property of the DATASET, not of the filtered
+     rows, so it is computed once per dataset state and cached. */
+
+  var dupeIds = null, dupeKey = null, dataVersion = 0;
+
+  function unresolvedDuplicates() {
+    var s = GEO.state.get();
+    var key = [s.demoMode ? 1 : 0, s.excludeSuspectedNonBc ? 1 : 0, dataVersion].join(':');
+    if (key === dupeKey && dupeIds) return dupeIds;
+    dupeKey = key;
+    dupeIds = {};
+
+    if (!GEO.quality || !GEO.quality.duplicates) return dupeIds;
+    try {
+      var all = GEO.data.workingSet({ demoMode: s.demoMode,
+                                      excludeSuspectedNonBc: s.excludeSuspectedNonBc });
+      var d = GEO.quality.duplicates(all);
+      d.coordinateGroups.forEach(function (g) {
+        if (g.verdict !== 'undecided') return;
+        g.recordIds.forEach(function (id) { dupeIds[id] = true; });
+      });
+      // A pair counts as settled only when BOTH sides carry a verdict: one
+      // adjudicated record does not close the other's case.
+      d.proximityPairs.concat(d.namePairs).forEach(function (p) {
+        var a = (p.records[0]._meta || {}).duplicateVerdict || 'undecided';
+        var b = (p.records[1]._meta || {}).duplicateVerdict || 'undecided';
+        if (a !== 'undecided' && b !== 'undecided') return;
+        p.recordIds.forEach(function (id) { dupeIds[id] = true; });
+      });
+    } catch (e) {
+      GEO.log.warn('map: duplicate scan failed — falling back to the source flag', e);
+    }
+    return dupeIds;
+  }
+
   function isDuplicate(rec) {
     var m = rec._meta || {};
-    return !!(m.possibleDuplicate ||
-              (m.duplicateGroupId && m.duplicateVerdict !== 'different_buildings'));
+    if (m.duplicateVerdict === 'different_buildings') return false;
+    return !!(m.possibleDuplicate || unresolvedDuplicates()[rec.id]);
   }
+
+  GEO.on('data:changed', function () { dataVersion++; dupeKey = null; });
 
   function pinClasses(flags) {
     var c = ['pin'];
@@ -948,7 +989,7 @@
       L.marker([origin[0] + dLat, origin[1]], {
         interactive: false,
         keyboard: false,
-        icon: L.divIcon({ className: 'geo-marker', iconSize: [96, 20], iconAnchor: [48, 10], html: chip })
+        icon: L.divIcon({ className: 'geo-marker', iconSize: [160, 20], iconAnchor: [80, 10], html: chip })
       }).addTo(radiusGroup);
     });
   };

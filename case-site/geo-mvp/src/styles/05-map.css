@@ -410,12 +410,17 @@
 .mapwrap[data-tiles="off"] .leaflet-tile-pane { display: none; }
 
 .mapnotice {
+  /* TOP centre, not bottom. The legend is bottom-left and the scale bar is
+     bottom-right, so a bottom-centred notice collides with one or both as soon
+     as the map narrows — and this notice appears precisely when the map is at
+     its least legible. The top edge is free: the controls are top-right and the
+     notice is capped short of them. */
   position: absolute;
   left: 50%;
-  bottom: var(--s-3);
+  top: var(--s-3);
   transform: translateX(-50%);
   z-index: var(--z-map-chrome);
-  max-width: min(520px, calc(100% - var(--s-5)));
+  max-width: min(460px, calc(100% - 120px));
   padding: var(--s-2) var(--s-3);
   background: var(--surface);
   border: 1px solid var(--line-strong);

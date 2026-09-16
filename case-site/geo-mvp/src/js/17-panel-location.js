@@ -30,7 +30,7 @@
 (function (w) {
   'use strict';
 
-  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt, S = GEO.schema;
+  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt;
   var A = GEO.analytics, G = GEO.geo;
   var t = GEO.i18n.t;
 
@@ -65,8 +65,7 @@
     'location.competitive.manualNote': 'Added by hand, not by the rule above.',
     'location.competitive.showAll': 'Show all {n}',
     'location.competitive.showFewer': 'Show fewer',
-    'location.layer.name': 'Competitive set — {name}',
-    'location.zoomTo': 'Show {name} on the map'
+    'location.layer.name': 'Competitive set — {name}'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -257,6 +256,10 @@
     if (isNaN(km) || km < MIN_KM || km > MAX_KM) {
       view.customError = t('location.custom.error', { min: F.num(MIN_KM, 1), max: F.int(MAX_KM) });
       redraw();
+      // The field is re-created by the redraw, so focus has to be put back on
+      // it: the reader must be able to correct the value they just typed.
+      var again = Q.$('#loc-custom');
+      if (again) again.focus();
       return;
     }
     km = Math.round(km * 100) / 100;
@@ -276,26 +279,13 @@
                          : t('location.distance', { km: F.num(metres / 1000, 1) });
   }
 
-  function panTo(rec) {
-    // Pans the map WITHOUT changing the selection: selecting a competitor
-    // would swap the property panel out from under the analysis the reader is
-    // in the middle of. The map re-renders from state like everything else.
-    GEO.state.set({ map: { centre: [rec.lat, rec.lng], zoom: 16 } },
-                  { source: 'user', action: 'location:panTo', summary: nameOf(rec) });
-  }
-
   function entryRow(entry, action) {
     var rec = entry.record;
     var kids = [];
 
-    var name = el('button.compset__name', {
-      type: 'button', text: nameOf(rec),
-      'aria-label': t('location.zoomTo', { name: nameOf(rec) }),
-      onclick: function () {
-        if (U.isKnown(rec.lat) && U.isKnown(rec.lng)) panTo(rec);
-      }
-    });
-    kids.push(name);
+    // Plain text, not a control: the row already carries one action, and the
+    // print sheet hides `.btn` — a printed peer group must keep its names.
+    kids.push(el('span.compset__name', { text: nameOf(rec) }));
     if (rec.recordType === 'DEMO') kids.push(el('span.badge.badge--demo', { text: t('common.demo.badge') }));
     if (entry.manual) kids.push(el('span.chip', {}, [el('span.chip__label', { text: t('location.competitive.manual') })]));
     if (U.isKnown(entry.distanceM)) kids.push(el('span.compset__dist', { text: distanceText(entry.distanceM) }));
@@ -402,7 +392,7 @@
       kids.push(group(t('location.competitive.qualified', { n: F.int(set.qualified.length) }), null,
         set.qualified.map(function (q) { return entryRow(q, removeButton(state, q.record)); })));
     } else {
-      kids.push(group(t('location.competitive.qualified', { n: '0' }), null,
+      kids.push(group(t('location.competitive.qualified', { n: F.int(0) }), null,
         [el('p.empty__body', { text: t('location.competitive.empty') })]));
     }
 
@@ -440,12 +430,13 @@
 
     /* ---- excluded by the rule ---- */
     if (set.excluded.length) {
-      var body = el('div.disc__body', {},
+      var body = el('div.disc__body#loc-excluded', {},
         [el('p.micro', { text: t('location.competitive.excluded.note') })].concat(
           set.excluded.map(function (x) { return entryRow(x, addButton(state, x.record)); })));
       kids.push(el('div.disc', { 'data-open': view.excludedOpen ? 'true' : 'false' }, [
         el('button.disc__hd', {
           type: 'button', 'aria-expanded': view.excludedOpen ? 'true' : 'false',
+          'aria-controls': 'loc-excluded',
           text: t('location.competitive.excluded', { n: F.int(set.excluded.length) }),
           onclick: function () { view.excludedOpen = !view.excludedOpen; redraw(); }
         }),
@@ -577,14 +568,33 @@
   GEO.on('i18n:locale', function () { dataVersion += 1; });
 
   /* 99-boot is the LAST module in the manifest, so `GEO.boot` does not exist
-     while this file is evaluated. `data:loaded` fires from inside boot's
-     start(), before the first state broadcast. */
+     while this file is evaluated. This is deliberately the SAME seam that
+     14-panel-detail uses, and for a reason beyond symmetry: boot renders
+     panels in registration order, 14 owns the mount this module draws into,
+     and a listener added here — while 17 loads, after 14 added its own —
+     always fires second. Register through a different seam and this panel can
+     draw into a node 14 is about to replace. */
   var registered = false;
   function registerPanel() {
-    if (registered || !GEO.boot || !GEO.boot.registerPanel) return;
+    if (registered || !GEO.boot || !GEO.boot.registerPanel) return false;
     registered = true;
     GEO.boot.registerPanel(render);
+    return true;
   }
-  registerPanel();
-  GEO.on('data:loaded', registerPanel);
+
+  if (!registerPanel()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!registerPanel()) {
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+        }
+      });
+    } else {
+      setTimeout(function () {
+        if (!registerPanel()) {
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+        }
+      }, 0);
+    }
+  }
 }(window));

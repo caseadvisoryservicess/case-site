@@ -73,6 +73,7 @@
     'compare.csv.title': '{product} — property comparison',
     'compare.csv.date': 'Exported {date}',
     'compare.csv.unknown': '"Not recorded" means the value has never been collected. It does not mean zero.',
+    'compare.csv.colField': 'Field',
     'compare.csv.colConfidence': '{name} — confidence',
     'compare.csv.colVerified': '{name} — last verified'
   };
@@ -617,7 +618,7 @@
     // Three columns per property: the value, the confidence behind it and the
     // date it was last verified. A comparison that travels without its
     // provenance is the artefact this product exists to replace.
-    var cols = [t('compare.title')];
+    var cols = [t('compare.csv.colField')];
     recs.forEach(function (r) {
       cols.push(nameOf(r));
       cols.push(t('compare.csv.colConfidence', { name: nameOf(r) }));

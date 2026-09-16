@@ -18,9 +18,9 @@
   43833029a2f5  src/styles/02-base.css
   7e893af53da3  src/styles/03-layout.css
   1f46cb2f6091  src/styles/04-components.css
-  bf2404a5e31e  src/styles/05-map.css
+  001eba0f012d  src/styles/05-map.css
   378b090f8958  src/styles/06-charts.css
-  fa2725685f05  src/styles/07-panels.css
+  e716976e239c  src/styles/07-panels.css
   30c61ce31526  src/styles/08-responsive.css
   ad64e255b22f  src/styles/09-print.css
   e1462f10f502  vendor/leaflet.js
@@ -36,13 +36,13 @@
   d20489987cd6  src/js/08-analytics.js
   48173d9d9c88  src/js/09-geo.js
   2ceaef1009a9  src/js/10-charts.js
-  d10e3b80b327  src/js/11-map.js
+  925a9f846f9c  src/js/11-map.js
   d403104e1da8  src/js/12-panel-filters.js
   95dbc500051a  src/js/13-panel-list.js
   194f1de1f6a2  src/js/14-panel-detail.js
-  35377f0828de  src/js/15-panel-analytics.js
-  98dc090898e4  src/js/16-panel-compare.js
-  340a4f1bb6ee  src/js/17-panel-location.js
+  bdb01a77d3fc  src/js/15-panel-analytics.js
+  ab02c12b4056  src/js/16-panel-compare.js
+  d7e4ec03cc7b  src/js/17-panel-location.js
   e40a2dc375f0  src/js/20-ai-tools.js
   b05c09031351  src/js/21-ai-intents.js
   f4d4cc39e875  src/js/22-ai-engine.js
@@ -3096,12 +3096,17 @@ summary:focus:not(:focus-visible),
 .mapwrap[data-tiles="off"] .leaflet-tile-pane { display: none; }
 
 .mapnotice {
+  /* TOP centre, not bottom. The legend is bottom-left and the scale bar is
+     bottom-right, so a bottom-centred notice collides with one or both as soon
+     as the map narrows — and this notice appears precisely when the map is at
+     its least legible. The top edge is free: the controls are top-right and the
+     notice is capped short of them. */
   position: absolute;
   left: 50%;
-  bottom: var(--s-3);
+  top: var(--s-3);
   transform: translateX(-50%);
   z-index: var(--z-map-chrome);
-  max-width: min(520px, calc(100% - var(--s-5)));
+  max-width: min(460px, calc(100% - 120px));
   padding: var(--s-2) var(--s-3);
   background: var(--surface);
   border: 1px solid var(--line-strong);
@@ -3781,7 +3786,14 @@ summary:focus:not(:focus-visible),
 }
 
 .stat {
-  display: block;
+  /* A column, not a block. The panel builds the card from <span>s, and inline
+     children would run the label, the value and the denominator together on one
+     line. Making the card a flex column turns its parts into flex items, which
+     stack regardless of the tag the panel chose — the layout no longer depends
+     on two independently written files agreeing about element display. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   width: 100%;
   padding: var(--s-3);
   text-align: left;
@@ -12711,12 +12723,53 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
              fill: f, ink: labelInk(f), unknown: !known };
   }
 
-  /** D6: an unresolved duplicate group is disclosed on the map, never merged away. */
+  /* ------------------------------------------------------------ duplicates */
+  /* D6: duplicates are never auto-merged, so the map has to disclose them. The
+     interesting half of the problem is the three sub-30 m pairs the SOURCE did
+     not flag: `_meta.possibleDuplicate` alone would leave those looking like
+     two ordinary buildings. They come from `GEO.quality.duplicates()`, which is
+     an O(n²) proximity scan — a property of the DATASET, not of the filtered
+     rows, so it is computed once per dataset state and cached. */
+
+  var dupeIds = null, dupeKey = null, dataVersion = 0;
+
+  function unresolvedDuplicates() {
+    var s = GEO.state.get();
+    var key = [s.demoMode ? 1 : 0, s.excludeSuspectedNonBc ? 1 : 0, dataVersion].join(':');
+    if (key === dupeKey && dupeIds) return dupeIds;
+    dupeKey = key;
+    dupeIds = {};
+
+    if (!GEO.quality || !GEO.quality.duplicates) return dupeIds;
+    try {
+      var all = GEO.data.workingSet({ demoMode: s.demoMode,
+                                      excludeSuspectedNonBc: s.excludeSuspectedNonBc });
+      var d = GEO.quality.duplicates(all);
+      d.coordinateGroups.forEach(function (g) {
+        if (g.verdict !== 'undecided') return;
+        g.recordIds.forEach(function (id) { dupeIds[id] = true; });
+      });
+      // A pair counts as settled only when BOTH sides carry a verdict: one
+      // adjudicated record does not close the other's case.
+      d.proximityPairs.concat(d.namePairs).forEach(function (p) {
+        var a = (p.records[0]._meta || {}).duplicateVerdict || 'undecided';
+        var b = (p.records[1]._meta || {}).duplicateVerdict || 'undecided';
+        if (a !== 'undecided' && b !== 'undecided') return;
+        p.recordIds.forEach(function (id) { dupeIds[id] = true; });
+      });
+    } catch (e) {
+      GEO.log.warn('map: duplicate scan failed — falling back to the source flag', e);
+    }
+    return dupeIds;
+  }
+
   function isDuplicate(rec) {
     var m = rec._meta || {};
-    return !!(m.possibleDuplicate ||
-              (m.duplicateGroupId && m.duplicateVerdict !== 'different_buildings'));
+    if (m.duplicateVerdict === 'different_buildings') return false;
+    return !!(m.possibleDuplicate || unresolvedDuplicates()[rec.id]);
   }
+
+  GEO.on('data:changed', function () { dataVersion++; dupeKey = null; });
 
   function pinClasses(flags) {
     var c = ['pin'];
@@ -13425,7 +13478,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       L.marker([origin[0] + dLat, origin[1]], {
         interactive: false,
         keyboard: false,
-        icon: L.divIcon({ className: 'geo-marker', iconSize: [96, 20], iconAnchor: [48, 10], html: chip })
+        icon: L.divIcon({ className: 'geo-marker', iconSize: [160, 20], iconAnchor: [80, 10], html: chip })
       }).addTo(radiusGroup);
     });
   };
@@ -17298,11 +17351,14 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
         var rec = GEO.data.get(p.id);
         var demo = !!(rec && rec.recordType === 'DEMO');
         var name = U.isKnown(p.name) ? p.name : F.UNKNOWN;
+        // The DEMO mark is written into the label as well as flagged, so it
+        // survives a renderer that knows nothing about record types (D4) — but
+        // only when the name does not already announce it, because "DEMO —
+        // Alpha Tower · DEMO" reads as a rendering bug rather than a warning.
+        var marked = demo && name.indexOf(t('common.demo.badge')) < 0;
         return {
           key: p.id, id: p.id,
-          // The DEMO mark is written into the label as well as flagged, so it
-          // survives a renderer that knows nothing about record types (D4).
-          label: demo ? name + ' · ' + t('common.demo.badge') : name,
+          label: marked ? name + ' · ' + t('common.demo.badge') : name,
           value: p.value,
           sub: U.isKnown(p.officeClass) ? enumLabel('officeClass', p.officeClass)
                                         : t('value.class.unknown'),
@@ -17945,6 +18001,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'compare.csv.title': '{product} — property comparison',
     'compare.csv.date': 'Exported {date}',
     'compare.csv.unknown': '"Not recorded" means the value has never been collected. It does not mean zero.',
+    'compare.csv.colField': 'Field',
     'compare.csv.colConfidence': '{name} — confidence',
     'compare.csv.colVerified': '{name} — last verified'
   };
@@ -18489,7 +18546,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     // Three columns per property: the value, the confidence behind it and the
     // date it was last verified. A comparison that travels without its
     // provenance is the artefact this product exists to replace.
-    var cols = [t('compare.title')];
+    var cols = [t('compare.csv.colField')];
     recs.forEach(function (r) {
       cols.push(nameOf(r));
       cols.push(t('compare.csv.colConfidence', { name: nameOf(r) }));
@@ -18703,7 +18760,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 (function (w) {
   'use strict';
 
-  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt, S = GEO.schema;
+  var GEO = w.GEO, U = GEO.util, Q = GEO.dom, el = Q.el, F = GEO.fmt;
   var A = GEO.analytics, G = GEO.geo;
   var t = GEO.i18n.t;
 
@@ -18738,8 +18795,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'location.competitive.manualNote': 'Added by hand, not by the rule above.',
     'location.competitive.showAll': 'Show all {n}',
     'location.competitive.showFewer': 'Show fewer',
-    'location.layer.name': 'Competitive set — {name}',
-    'location.zoomTo': 'Show {name} on the map'
+    'location.layer.name': 'Competitive set — {name}'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -18930,6 +18986,10 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     if (isNaN(km) || km < MIN_KM || km > MAX_KM) {
       view.customError = t('location.custom.error', { min: F.num(MIN_KM, 1), max: F.int(MAX_KM) });
       redraw();
+      // The field is re-created by the redraw, so focus has to be put back on
+      // it: the reader must be able to correct the value they just typed.
+      var again = Q.$('#loc-custom');
+      if (again) again.focus();
       return;
     }
     km = Math.round(km * 100) / 100;
@@ -18949,26 +19009,13 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
                          : t('location.distance', { km: F.num(metres / 1000, 1) });
   }
 
-  function panTo(rec) {
-    // Pans the map WITHOUT changing the selection: selecting a competitor
-    // would swap the property panel out from under the analysis the reader is
-    // in the middle of. The map re-renders from state like everything else.
-    GEO.state.set({ map: { centre: [rec.lat, rec.lng], zoom: 16 } },
-                  { source: 'user', action: 'location:panTo', summary: nameOf(rec) });
-  }
-
   function entryRow(entry, action) {
     var rec = entry.record;
     var kids = [];
 
-    var name = el('button.compset__name', {
-      type: 'button', text: nameOf(rec),
-      'aria-label': t('location.zoomTo', { name: nameOf(rec) }),
-      onclick: function () {
-        if (U.isKnown(rec.lat) && U.isKnown(rec.lng)) panTo(rec);
-      }
-    });
-    kids.push(name);
+    // Plain text, not a control: the row already carries one action, and the
+    // print sheet hides `.btn` — a printed peer group must keep its names.
+    kids.push(el('span.compset__name', { text: nameOf(rec) }));
     if (rec.recordType === 'DEMO') kids.push(el('span.badge.badge--demo', { text: t('common.demo.badge') }));
     if (entry.manual) kids.push(el('span.chip', {}, [el('span.chip__label', { text: t('location.competitive.manual') })]));
     if (U.isKnown(entry.distanceM)) kids.push(el('span.compset__dist', { text: distanceText(entry.distanceM) }));
@@ -19075,7 +19122,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       kids.push(group(t('location.competitive.qualified', { n: F.int(set.qualified.length) }), null,
         set.qualified.map(function (q) { return entryRow(q, removeButton(state, q.record)); })));
     } else {
-      kids.push(group(t('location.competitive.qualified', { n: '0' }), null,
+      kids.push(group(t('location.competitive.qualified', { n: F.int(0) }), null,
         [el('p.empty__body', { text: t('location.competitive.empty') })]));
     }
 
@@ -19113,12 +19160,13 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     /* ---- excluded by the rule ---- */
     if (set.excluded.length) {
-      var body = el('div.disc__body', {},
+      var body = el('div.disc__body#loc-excluded', {},
         [el('p.micro', { text: t('location.competitive.excluded.note') })].concat(
           set.excluded.map(function (x) { return entryRow(x, addButton(state, x.record)); })));
       kids.push(el('div.disc', { 'data-open': view.excludedOpen ? 'true' : 'false' }, [
         el('button.disc__hd', {
           type: 'button', 'aria-expanded': view.excludedOpen ? 'true' : 'false',
+          'aria-controls': 'loc-excluded',
           text: t('location.competitive.excluded', { n: F.int(set.excluded.length) }),
           onclick: function () { view.excludedOpen = !view.excludedOpen; redraw(); }
         }),
@@ -19250,16 +19298,35 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
   GEO.on('i18n:locale', function () { dataVersion += 1; });
 
   /* 99-boot is the LAST module in the manifest, so `GEO.boot` does not exist
-     while this file is evaluated. `data:loaded` fires from inside boot's
-     start(), before the first state broadcast. */
+     while this file is evaluated. This is deliberately the SAME seam that
+     14-panel-detail uses, and for a reason beyond symmetry: boot renders
+     panels in registration order, 14 owns the mount this module draws into,
+     and a listener added here — while 17 loads, after 14 added its own —
+     always fires second. Register through a different seam and this panel can
+     draw into a node 14 is about to replace. */
   var registered = false;
   function registerPanel() {
-    if (registered || !GEO.boot || !GEO.boot.registerPanel) return;
+    if (registered || !GEO.boot || !GEO.boot.registerPanel) return false;
     registered = true;
     GEO.boot.registerPanel(render);
+    return true;
   }
-  registerPanel();
-  GEO.on('data:loaded', registerPanel);
+
+  if (!registerPanel()) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', function () {
+        if (!registerPanel()) {
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+        }
+      });
+    } else {
+      setTimeout(function () {
+        if (!registerPanel()) {
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+        }
+      }, 0);
+    }
+  }
 }(window));
 
 </script>
