@@ -1171,6 +1171,27 @@
     'list.sort.glaDesc': 'GLA, large to small',
     'list.sort.glaAsc': 'GLA, small to large',
     'list.sort.verified': 'Last verified, oldest first',
+
+    /* --- filter descriptions -----------------------------------------------
+     * These sentences leave the app: they head the CSV export, name the layers the
+     * assistant creates, and describe a shared URL. They have to read as a plain
+     * statement of what was selected, because someone will paste one into a report.
+     * --------------------------------------------------------------------- */
+    'filter.describe.q': 'matching "{q}"',
+    'filter.describe.districts': 'in {list}',
+    'filter.describe.classes': 'class {list}',
+    'filter.describe.classKnownOnly': 'excluding properties with no recorded class',
+    'filter.describe.statuses': 'status {list}',
+    'filter.describe.amenities': 'with {list}',
+    'filter.describe.confidence': '{list} confidence',
+    'filter.describe.completeness': 'completeness {list}',
+    'filter.describe.freshness': '{list}',
+    'filter.describe.flags': 'flagged {list}',
+    'filter.describe.between': '{field} {min} to {max}',
+    'filter.describe.from': '{field} from {min}',
+    'filter.describe.upTo': '{field} up to {max}',
+    'filter.describe.atLeast': '{field} of at least {min}',
+    'detail.ask.prefill.competitors': 'Show competitors within 3 km of {name}',
     'empty.property.action.map': 'Pick one on the map'
   };
 

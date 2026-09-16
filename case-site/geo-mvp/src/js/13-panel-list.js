@@ -40,9 +40,11 @@
      `shown` is a count, `focusWanted` is a DOM restoration hint. Records are
      never held here (decision C). */
   var sig = null;
+  var lastSetKey = null;
   var shown = PAGE;
   var dataVersion = 0;
   var focusWanted = null;
+  var wired = false;
 
   var CARD_FIELDS = ['askingRent', 'gla', 'vacancyPct', 'status'];
   var MISSING_FIELDS = ['address', 'askingRent', 'gla', 'vacancyPct', 'status'];
@@ -99,7 +101,9 @@
         return c === 'Unknown' ? null : S.enums.confidence.indexOf(c);
       },
       missingLabelKey: 'field.confidence' },
-    { id: 'verified.desc', labelKey: 'list.sort.verified', dir: 'desc',
+    // "oldest first": the re-verification backlog is the useful end of this
+    // sort, so ascending is what the label promises (§50).
+    { id: 'verified.asc', labelKey: 'list.sort.verified', dir: 'asc',
       value: function (r) {
         return (r._meta && U.isKnown(r._meta.lastVerifiedAt)) ? r._meta.lastVerifiedAt : null;
       },
@@ -147,7 +151,8 @@
   }
 
   function unknownGroupLabel(sort, n) {
-    var label = sort.missingLabelKey ? t(sort.missingLabelKey) : S.label(sort.missing);
+    var label = sort.missingLabelKey ? t(sort.missingLabelKey)
+              : (sort.missing ? S.label(sort.missing) : t('common.unknown'));
     return t('list.group.noValue', { field: F.lower(label), n: F.int(n) });
   }
 
@@ -317,7 +322,7 @@
     return String(v);
   }
 
-  function card(rec, state, tabbable) {
+  function card(rec, state) {
     var selected = state.selectedId === rec.id;
     var inCompare = state.compare.indexOf(rec.id) >= 0;
     var comp = completenessOf(rec);
@@ -366,7 +371,7 @@
       'aria-hidden': 'true', 'data-zero': comp.n === 0 ? 'true' : null
     }, [fill]));
     kids.push(el('div.coverage', {
-      text: t('list.card.completeness', { n: F.int(comp.n), m: F.int(comp.m) })
+      text: t('list.card.completeness', { n: F.int(comp.n), total: F.int(comp.m) })
     }));
     kids.push(el('div.coverage', {
       text: (rec._meta && U.isKnown(rec._meta.lastVerifiedAt))
@@ -383,7 +388,7 @@
       title: atLimit ? t('list.card.compare.limit') : null,
       'aria-label': (inCompare ? t('list.card.compare.remove') : t('list.card.compare')) +
                     (atLimit ? ' \u2014 ' + t('list.card.compare.limit') : ''),
-      text: inCompare ? t('common.selected') : t('common.compare')
+      text: inCompare ? t('detail.action.inCompare') : t('common.compare')
     });
 
     var canZoom = U.isKnown(rec.lat) && U.isKnown(rec.lng);
@@ -396,10 +401,12 @@
 
     kids.push(el('div.rcard__foot', {}, [compareBtn, el('span.push'), zoomBtn]));
 
+    // Every card starts outside the tab order; `syncStates` hands the single
+    // stop to the selected card (or the first one) immediately afterwards.
     return el('li.rcard', {
       role: 'listitem',
       dataset: { id: rec.id },
-      tabindex: tabbable ? '0' : '-1',
+      tabindex: '-1',
       'aria-current': selected ? 'true' : null
     }, kids);
   }
@@ -497,11 +504,12 @@
 
   /* ================================================================ render */
 
-  function signature(state, rows, sort) {
-    return [
-      sort.id, shown, dataVersion, state.demoMode ? 1 : 0, state.compare.length,
-      rows.length, rows.map(function (r) { return r.id; }).join(',')
-    ].join('|');
+  /* Which records are on screen, and in what state the data behind them is.
+     Selection, hover and compare deliberately do NOT appear here: they change
+     constantly and are handled by the cheap `syncStates` pass instead. */
+  function setKeyOf(state, rows) {
+    return [dataVersion, state.demoMode ? 1 : 0, rows.length,
+            rows.map(function (r) { return r.id; }).join(',')].join('|');
   }
 
   function rememberFocus(list) {
@@ -512,12 +520,12 @@
   }
 
   function restoreFocus(list) {
-    if (!focusWanted) return;
-    var li = list.querySelector('.rcard[data-id="' + cssEscape(focusWanted.id) + '"]');
+    var want = focusWanted;
     focusWanted = null;
+    if (!want) return;
+    var li = list.querySelector('.rcard[data-id="' + cssEscape(want.id) + '"]');
     if (!li) return;
-    var target = null;
-    if (focusWanted && focusWanted.act) target = li.querySelector('[data-act="' + focusWanted.act + '"]');
+    var target = want.act ? li.querySelector('[data-act="' + want.act + '"]') : null;
     (target || li).focus();
   }
 
@@ -542,7 +550,7 @@
       if (btn) {
         var atLimit = !inCompare && state.compare.length >= 4;
         btn.setAttribute('aria-pressed', String(inCompare));
-        btn.textContent = inCompare ? t('common.selected') : t('common.compare');
+        btn.textContent = inCompare ? t('detail.action.inCompare') : t('common.compare');
         if (atLimit) { btn.setAttribute('aria-disabled', 'true'); btn.title = t('list.card.compare.limit'); }
         else { btn.removeAttribute('aria-disabled'); btn.removeAttribute('title'); }
         btn.setAttribute('aria-label',
@@ -564,16 +572,15 @@
     list.setAttribute('role', 'list');
 
     var sort = currentSort(state);
-    var next = signature(state, rows, sort);
-    if (next === sig && list.firstChild) { syncStates(list, state); return; }
+    var setKey = setKeyOf(state, rows);
 
-    // A new result set starts at page one; paging within the same set does not.
-    var setChanged = sig === null ||
-      sig.split('|').slice(3).join('|') !== next.split('|').slice(3).join('|');
-    if (setChanged && shown !== PAGE) {
-      shown = PAGE;
-      next = signature(state, rows, sort);
-    }
+    // A new result set starts at page one; paging within one set does not, or
+    // "Show more" would undo itself on the next render.
+    if (lastSetKey !== null && lastSetKey !== setKey) shown = PAGE;
+    lastSetKey = setKey;
+
+    var next = [sort.id, shown, setKey].join('|');
+    if (next === sig && list.firstChild) { syncStates(list, state); return; }
     sig = next;
 
     rememberFocus(list);
@@ -588,22 +595,17 @@
     }
 
     var budget = shown;
-    var tabGiven = false;
-    parts.known.slice(0, budget).forEach(function (rec) {
-      var isSel = state.selectedId === rec.id;
-      kids.push(card(rec, state, isSel || (!tabGiven && !state.selectedId)));
-      if (isSel || !state.selectedId) tabGiven = true;
-    });
+    parts.known.slice(0, budget).forEach(function (rec) { kids.push(card(rec, state)); });
     budget -= Math.min(budget, parts.known.length);
 
+    // Decision B: the unknown block is always announced, even when the page cap
+    // means none of its cards are drawn yet — its count is the honest part.
     if (parts.unknown.length) {
       kids.push(el('li.list__group', { role: 'presentation' }, [
         document.createTextNode(unknownGroupLabel(sort, parts.unknown.length)),
         el('span.vh', { text: t('list.group.noValue.note') })
       ]));
-      parts.unknown.slice(0, budget).forEach(function (rec) {
-        kids.push(card(rec, state, false));
-      });
+      parts.unknown.slice(0, budget).forEach(function (rec) { kids.push(card(rec, state)); });
     }
 
     var drawn = Math.min(shown, rows.length);
@@ -632,8 +634,8 @@
 
   function wire() {
     var list = Q.$('#results-list');
-    if (!list || list.dataset.wired) return;
-    list.dataset.wired = '1';
+    if (!list || wired) return;
+    wired = true;
 
     list.addEventListener('click', function (e) {
       var act = e.target.closest ? e.target.closest('[data-act]') : null;

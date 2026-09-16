@@ -49,6 +49,7 @@
       selectedId: null,
       hoverId: null,
       compare: [],                         // record ids, 2–4 (§15)
+      bp: 'xl',                            // xxl|xl|l|m|s|xs|xxs — set by boot, updated on resize
       leftTab: 'filters',                  // filters | results     (§12 map | map+list)
       leftRail: 'open',                    // open | collapsed | closed
       rightTab: 'property',                // property | analytics | ai | layers

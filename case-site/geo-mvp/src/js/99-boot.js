@@ -378,6 +378,62 @@
     });
   }
 
+  /* ---------------------------------------------------------- breakpoints */
+  /* The rails are docked columns above 1280, overlay drawers from 768 to 1023 and
+     bottom sheets below that (IA P2-P4). The DEFAULT differs with them: on a small
+     screen the map must be what you see first, so booting with a drawer covering it
+     would be wrong. Without this, `leftRail` said "open" on a tablet while the CSS
+     parked the rail off-screen — state and rendering disagreeing, which is exactly
+     the class of bug the single-source-of-truth rule exists to prevent. */
+  B.BREAKPOINTS = [
+    { name: 'xxl', min: 1920 }, { name: 'xl', min: 1440 }, { name: 'l', min: 1280 },
+    { name: 'm', min: 1024 }, { name: 's', min: 768 }, { name: 'xs', min: 481 },
+    { name: 'xxs', min: 0 }
+  ];
+
+  B.breakpoint = function (width) {
+    var w = width || window.innerWidth;
+    for (var i = 0; i < B.BREAKPOINTS.length; i++) {
+      if (w >= B.BREAKPOINTS[i].min) return B.BREAKPOINTS[i].name;
+    }
+    return 'xxs';
+  };
+
+  B.defaultRails = function (bp) {
+    if (bp === 'l' || bp === 'xl' || bp === 'xxl') return { leftRail: 'open' };
+    if (bp === 'm') return { leftRail: 'collapsed' };
+    return { leftRail: 'closed' };          // s and below: the map leads
+  };
+
+  function wireBreakpoints() {
+    var last = B.breakpoint();
+    document.getElementById('app').dataset.bp = last;
+
+    var onResize = U.debounce(function () {
+      var bp = B.breakpoint();
+      if (bp === last) return;
+      var wasSmall = last === 's' || last === 'xs' || last === 'xxs';
+      var isSmall = bp === 's' || bp === 'xs' || bp === 'xxs';
+      last = bp;
+      document.getElementById('app').dataset.bp = bp;
+
+      var patch = { bp: bp };
+      // Crossing INTO drawer/sheet territory: at most one panel may cover the map,
+      // and neither should do so uninvited (P3, P4).
+      if (isSmall && !wasSmall) {
+        patch.leftRail = 'closed';
+        patch.rightRail = 'closed';
+      } else if (!isSmall && wasSmall) {
+        patch.leftRail = B.defaultRails(bp).leftRail;
+      }
+      GEO.state.set(patch, { source: 'system', action: 'viewport:' + bp,
+                             summary: 'Viewport is now ' + bp });
+    }, 150);
+
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+  }
+
   /* ------------------------------------------------------------- keyboard */
   function wireKeyboard() {
     document.addEventListener('keydown', function (e) {
@@ -470,11 +526,16 @@
     // fully-built state so every region draws from the same snapshot.
     GEO.state.subscribe(render);
 
+    wireBreakpoints();
+
+    var bp = B.breakpoint();
     var fromHash = readHash();
-    GEO.state.set({
+    GEO.state.set(Object.assign({
+      bp: bp,
       demoMode: GEO.data.demoMode(),
       filters: fromHash || GEO.state.defaults().filters
-    }, { source: 'boot', action: 'boot', summary: 'Application started' });
+    }, B.defaultRails(bp)),
+      { source: 'boot', action: 'boot', summary: 'Application started' });
 
     GEO.state.subscribe(function (s) { writeHash(s); });
     GEO.on('data:changed', function () {

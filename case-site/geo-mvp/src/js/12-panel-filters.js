@@ -232,6 +232,16 @@
   var seq = 0;
   function uid() { seq += 1; return 'fx-' + seq; }
 
+  /* `filter.option.count` is the whole option label, `{label} ({n})`. The count
+     is rendered in its own greyed span, so the label half is asked for empty and
+     the leading separator trimmed: the string table keeps ownership of the
+     punctuation, the stylesheet keeps ownership of the colour, and neither has
+     to know the other exists. A count of 0 is still printed — `Bektemir (0)` is
+     a fact about the dataset, not a reason to drop the option (L-05). */
+  function countText(n) {
+    return t('filter.option.count', { label: '', n: F.int(n) }).replace(/^\s+/, '');
+  }
+
   /**
    * One filter group: heading, body, an optional permanent note and the §29
    * reason line that appears whenever the group is disabled. The reason is text
@@ -289,8 +299,7 @@
     g.sync = function (selected, counts) {
       boxes.forEach(function (b) {
         b.input.checked = (selected || []).indexOf(b.value) >= 0;
-        var n = (counts && counts[b.value]) || 0;
-        b.count.textContent = t('filter.option.count', { n: F.int(n) });
+        b.count.textContent = countText((counts && counts[b.value]) || 0);
       });
     };
     return g;
@@ -691,8 +700,7 @@
     var classCounts = countBy(classBase, function (r) { return r.officeClass; });
     u.classes.sync(f.classes, classCounts);
     u.unknownClass.checked = !!f.includeUnknownClass;
-    u.unknownClassCount.textContent =
-      t('filter.option.count', { n: F.int(classCounts.__unknown__ || 0) });
+    u.unknownClassCount.textContent = countText(classCounts.__unknown__ || 0);
 
     /* --- status: the canonical zero-coverage control -------------------- */
     u.statuses.sync(f.statuses,
@@ -787,7 +795,7 @@
     return t('filter.disabled.coverage', {
       n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
     }) + ' ' + t('filter.range.observed', {
-      from: F.num(range.min, dp), to: F.num(range.max, dp)
+      min: F.num(range.min, dp), max: F.num(range.max, dp)
     });
   }
 

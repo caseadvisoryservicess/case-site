@@ -30,17 +30,17 @@
   31d936db9dde  src/js/02-schema.js
   3ea5b259593f  src/js/03-data.js
   28243831818b  src/js/04-quality.js
-  c4217b06850c  src/js/05-state.js
+  ec3059c66a21  src/js/05-state.js
   d20489987cd6  src/js/08-analytics.js
   48173d9d9c88  src/js/09-geo.js
-  3d6fb018e339  src/js/12-panel-filters.js
-  8a2223239b60  src/js/13-panel-list.js
-  9d69ba899936  src/js/14-panel-detail.js
+  fb8c6efdb873  src/js/12-panel-filters.js
+  65b1d9a321be  src/js/13-panel-list.js
+  e9a27377907c  src/js/14-panel-detail.js
   15aee3d66297  src/js/20-ai-tools.js
   b05c09031351  src/js/21-ai-intents.js
   919c8482eab2  src/js/22-ai-engine.js
   a537e28e29ca  src/js/24-selftest.js
-  371c9043d027  src/js/99-boot.js
+  e9de21864564  src/js/99-boot.js
   ae8fbb00eb63  data/seed.json
   b71eec09596b  data/tashkent_districts.simplified.geojson
 -->
@@ -8984,6 +8984,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       selectedId: null,
       hoverId: null,
       compare: [],                         // record ids, 2–4 (§15)
+      bp: 'xl',                            // xxl|xl|l|m|s|xs|xxs — set by boot, updated on resize
       leftTab: 'filters',                  // filters | results     (§12 map | map+list)
       leftRail: 'open',                    // open | collapsed | closed
       rightTab: 'property',                // property | analytics | ai | layers
@@ -10037,6 +10038,16 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
   var seq = 0;
   function uid() { seq += 1; return 'fx-' + seq; }
 
+  /* `filter.option.count` is the whole option label, `{label} ({n})`. The count
+     is rendered in its own greyed span, so the label half is asked for empty and
+     the leading separator trimmed: the string table keeps ownership of the
+     punctuation, the stylesheet keeps ownership of the colour, and neither has
+     to know the other exists. A count of 0 is still printed — `Bektemir (0)` is
+     a fact about the dataset, not a reason to drop the option (L-05). */
+  function countText(n) {
+    return t('filter.option.count', { label: '', n: F.int(n) }).replace(/^\s+/, '');
+  }
+
   /**
    * One filter group: heading, body, an optional permanent note and the §29
    * reason line that appears whenever the group is disabled. The reason is text
@@ -10094,8 +10105,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     g.sync = function (selected, counts) {
       boxes.forEach(function (b) {
         b.input.checked = (selected || []).indexOf(b.value) >= 0;
-        var n = (counts && counts[b.value]) || 0;
-        b.count.textContent = t('filter.option.count', { n: F.int(n) });
+        b.count.textContent = countText((counts && counts[b.value]) || 0);
       });
     };
     return g;
@@ -10496,8 +10506,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var classCounts = countBy(classBase, function (r) { return r.officeClass; });
     u.classes.sync(f.classes, classCounts);
     u.unknownClass.checked = !!f.includeUnknownClass;
-    u.unknownClassCount.textContent =
-      t('filter.option.count', { n: F.int(classCounts.__unknown__ || 0) });
+    u.unknownClassCount.textContent = countText(classCounts.__unknown__ || 0);
 
     /* --- status: the canonical zero-coverage control -------------------- */
     u.statuses.sync(f.statuses,
@@ -10592,7 +10601,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return t('filter.disabled.coverage', {
       n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
     }) + ' ' + t('filter.range.observed', {
-      from: F.num(range.min, dp), to: F.num(range.max, dp)
+      min: F.num(range.min, dp), max: F.num(range.max, dp)
     });
   }
 
@@ -10669,9 +10678,11 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
      `shown` is a count, `focusWanted` is a DOM restoration hint. Records are
      never held here (decision C). */
   var sig = null;
+  var lastSetKey = null;
   var shown = PAGE;
   var dataVersion = 0;
   var focusWanted = null;
+  var wired = false;
 
   var CARD_FIELDS = ['askingRent', 'gla', 'vacancyPct', 'status'];
   var MISSING_FIELDS = ['address', 'askingRent', 'gla', 'vacancyPct', 'status'];
@@ -10728,7 +10739,9 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
         return c === 'Unknown' ? null : S.enums.confidence.indexOf(c);
       },
       missingLabelKey: 'field.confidence' },
-    { id: 'verified.desc', labelKey: 'list.sort.verified', dir: 'desc',
+    // "oldest first": the re-verification backlog is the useful end of this
+    // sort, so ascending is what the label promises (§50).
+    { id: 'verified.asc', labelKey: 'list.sort.verified', dir: 'asc',
       value: function (r) {
         return (r._meta && U.isKnown(r._meta.lastVerifiedAt)) ? r._meta.lastVerifiedAt : null;
       },
@@ -10776,7 +10789,8 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
   }
 
   function unknownGroupLabel(sort, n) {
-    var label = sort.missingLabelKey ? t(sort.missingLabelKey) : S.label(sort.missing);
+    var label = sort.missingLabelKey ? t(sort.missingLabelKey)
+              : (sort.missing ? S.label(sort.missing) : t('common.unknown'));
     return t('list.group.noValue', { field: F.lower(label), n: F.int(n) });
   }
 
@@ -10946,7 +10960,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return String(v);
   }
 
-  function card(rec, state, tabbable) {
+  function card(rec, state) {
     var selected = state.selectedId === rec.id;
     var inCompare = state.compare.indexOf(rec.id) >= 0;
     var comp = completenessOf(rec);
@@ -10995,7 +11009,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       'aria-hidden': 'true', 'data-zero': comp.n === 0 ? 'true' : null
     }, [fill]));
     kids.push(el('div.coverage', {
-      text: t('list.card.completeness', { n: F.int(comp.n), m: F.int(comp.m) })
+      text: t('list.card.completeness', { n: F.int(comp.n), total: F.int(comp.m) })
     }));
     kids.push(el('div.coverage', {
       text: (rec._meta && U.isKnown(rec._meta.lastVerifiedAt))
@@ -11012,7 +11026,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       title: atLimit ? t('list.card.compare.limit') : null,
       'aria-label': (inCompare ? t('list.card.compare.remove') : t('list.card.compare')) +
                     (atLimit ? ' \u2014 ' + t('list.card.compare.limit') : ''),
-      text: inCompare ? t('common.selected') : t('common.compare')
+      text: inCompare ? t('detail.action.inCompare') : t('common.compare')
     });
 
     var canZoom = U.isKnown(rec.lat) && U.isKnown(rec.lng);
@@ -11025,10 +11039,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     kids.push(el('div.rcard__foot', {}, [compareBtn, el('span.push'), zoomBtn]));
 
+    // Every card starts outside the tab order; `syncStates` hands the single
+    // stop to the selected card (or the first one) immediately afterwards.
     return el('li.rcard', {
       role: 'listitem',
       dataset: { id: rec.id },
-      tabindex: tabbable ? '0' : '-1',
+      tabindex: '-1',
       'aria-current': selected ? 'true' : null
     }, kids);
   }
@@ -11126,11 +11142,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
   /* ================================================================ render */
 
-  function signature(state, rows, sort) {
-    return [
-      sort.id, shown, dataVersion, state.demoMode ? 1 : 0, state.compare.length,
-      rows.length, rows.map(function (r) { return r.id; }).join(',')
-    ].join('|');
+  /* Which records are on screen, and in what state the data behind them is.
+     Selection, hover and compare deliberately do NOT appear here: they change
+     constantly and are handled by the cheap `syncStates` pass instead. */
+  function setKeyOf(state, rows) {
+    return [dataVersion, state.demoMode ? 1 : 0, rows.length,
+            rows.map(function (r) { return r.id; }).join(',')].join('|');
   }
 
   function rememberFocus(list) {
@@ -11141,12 +11158,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
   }
 
   function restoreFocus(list) {
-    if (!focusWanted) return;
-    var li = list.querySelector('.rcard[data-id="' + cssEscape(focusWanted.id) + '"]');
+    var want = focusWanted;
     focusWanted = null;
+    if (!want) return;
+    var li = list.querySelector('.rcard[data-id="' + cssEscape(want.id) + '"]');
     if (!li) return;
-    var target = null;
-    if (focusWanted && focusWanted.act) target = li.querySelector('[data-act="' + focusWanted.act + '"]');
+    var target = want.act ? li.querySelector('[data-act="' + want.act + '"]') : null;
     (target || li).focus();
   }
 
@@ -11171,7 +11188,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       if (btn) {
         var atLimit = !inCompare && state.compare.length >= 4;
         btn.setAttribute('aria-pressed', String(inCompare));
-        btn.textContent = inCompare ? t('common.selected') : t('common.compare');
+        btn.textContent = inCompare ? t('detail.action.inCompare') : t('common.compare');
         if (atLimit) { btn.setAttribute('aria-disabled', 'true'); btn.title = t('list.card.compare.limit'); }
         else { btn.removeAttribute('aria-disabled'); btn.removeAttribute('title'); }
         btn.setAttribute('aria-label',
@@ -11193,16 +11210,15 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     list.setAttribute('role', 'list');
 
     var sort = currentSort(state);
-    var next = signature(state, rows, sort);
-    if (next === sig && list.firstChild) { syncStates(list, state); return; }
+    var setKey = setKeyOf(state, rows);
 
-    // A new result set starts at page one; paging within the same set does not.
-    var setChanged = sig === null ||
-      sig.split('|').slice(3).join('|') !== next.split('|').slice(3).join('|');
-    if (setChanged && shown !== PAGE) {
-      shown = PAGE;
-      next = signature(state, rows, sort);
-    }
+    // A new result set starts at page one; paging within one set does not, or
+    // "Show more" would undo itself on the next render.
+    if (lastSetKey !== null && lastSetKey !== setKey) shown = PAGE;
+    lastSetKey = setKey;
+
+    var next = [sort.id, shown, setKey].join('|');
+    if (next === sig && list.firstChild) { syncStates(list, state); return; }
     sig = next;
 
     rememberFocus(list);
@@ -11217,22 +11233,17 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     }
 
     var budget = shown;
-    var tabGiven = false;
-    parts.known.slice(0, budget).forEach(function (rec) {
-      var isSel = state.selectedId === rec.id;
-      kids.push(card(rec, state, isSel || (!tabGiven && !state.selectedId)));
-      if (isSel || !state.selectedId) tabGiven = true;
-    });
+    parts.known.slice(0, budget).forEach(function (rec) { kids.push(card(rec, state)); });
     budget -= Math.min(budget, parts.known.length);
 
+    // Decision B: the unknown block is always announced, even when the page cap
+    // means none of its cards are drawn yet — its count is the honest part.
     if (parts.unknown.length) {
       kids.push(el('li.list__group', { role: 'presentation' }, [
         document.createTextNode(unknownGroupLabel(sort, parts.unknown.length)),
         el('span.vh', { text: t('list.group.noValue.note') })
       ]));
-      parts.unknown.slice(0, budget).forEach(function (rec) {
-        kids.push(card(rec, state, false));
-      });
+      parts.unknown.slice(0, budget).forEach(function (rec) { kids.push(card(rec, state)); });
     }
 
     var drawn = Math.min(shown, rows.length);
@@ -11261,8 +11272,8 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
   function wire() {
     var list = Q.$('#results-list');
-    if (!list || list.dataset.wired) return;
-    list.dataset.wired = '1';
+    if (!list || wired) return;
+    wired = true;
 
     list.addEventListener('click', function (e) {
       var act = e.target.closest ? e.target.closest('[data-act]') : null;
@@ -11394,7 +11405,18 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'value.qc.unreviewed': 'Not reviewed',
     'value.qc.needsCheck': 'Needs checking',
     'value.qc.accepted': 'Accepted',
-    'value.qc.rejected': 'Rejected'
+    'value.qc.rejected': 'Rejected',
+
+    /* The shipped `quality.freshness.dueIn` / `.overdue` have no plural forms,
+       and the number this panel prints most often is 1: the whole observed set
+       is 59 days old against a 60-day interval, so the headline reads "Due in
+       1 days" everywhere. These are the `.one`/`.other` pair the i18n plural
+       accessor expects; the singular-only keys should be retired in favour of
+       them rather than left as a second definition. */
+    'quality.freshness.dueIn.one': 'Due in {n} day',
+    'quality.freshness.dueIn.other': 'Due in {n} days',
+    'quality.freshness.overdue.one': 'Overdue by {n} day',
+    'quality.freshness.overdue.other': 'Overdue by {n} days'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -11514,7 +11536,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
         // A year is an identifier, not a quantity: 2022, never "2,022".
         return { known: true, text: String(v), numeric: true };
       case 'coord':
-        return { known: true, text: F.num(v, 6), numeric: true };
+        return { known: true, text: coordNum(v, 6), numeric: true };
       case 'integer':
         return { known: true, text: F.int(v), numeric: true };
       case 'number':
@@ -11526,10 +11548,22 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
                  text: v.map(function (x) { return enumLabel(fd.enumKey, x); }).join(', '),
                  numeric: false };
       case 'tenantList':
-        return { known: true, text: t('detail.tenants.count', { n: F.int(v.length) }), numeric: false };
+        return { known: true,
+                 text: v.map(function (x) { return x && x.name ? x.name : F.UNKNOWN; }).join(', '),
+                 numeric: false };
       default:
         return { known: true, text: String(v), numeric: false };
     }
+  }
+
+  /* GEO.fmt.num groups thousands with a lookahead that also fires inside the
+     FRACTIONAL part, so `F.num(41.342585, 4)` prints "41.3,426". A coordinate
+     has no thousands to group and four or six decimals to protect, so it is
+     formatted here instead of being routed through the shared helper. The core
+     bug is worth fixing in 00-core; this panel must not print a comma into a
+     latitude while it waits. */
+  function coordNum(v, dp) {
+    return U.isKnown(v) ? Number(v).toFixed(dp) : F.UNKNOWN;
   }
 
   function numberText(v, fd) {
@@ -11753,13 +11787,14 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var body, count;
 
     // A list section counts its entries; a field section counts its filled
-    // fields. "0 of 1" would be a true but useless thing to say about tenants.
+    // fields. "0 of 1" would be a true but useless thing to say about tenants,
+    // and P-07's own example is the bare count (`Tenants (0)`).
     if (group.key === 'tenants') {
       body = tenantsBody(rec);
-      count = t('detail.tenants.count', { n: F.int((rec.tenants || []).length) });
+      count = F.int((rec.tenants || []).length);
     } else if (group.key === 'amenities') {
       body = amenitiesBody(rec);
-      count = t('detail.tenants.count', { n: F.int((rec.amenities || []).length) });
+      count = F.int((rec.amenities || []).length);
     } else {
       body = [el('div.kv', {}, fields.map(function (fd) { return kvRow(rec, fd); }))];
       count = t('common.of', { n: F.int(filledCount(rec, fields)), m: F.int(fields.length) });
@@ -11845,7 +11880,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
   /* ------------------------------------------------------------- location */
   function coordText(rec) {
-    return t('detail.coords', { lat: F.num(rec.lat, COORD_DP), lng: F.num(rec.lng, COORD_DP) });
+    return t('detail.coords', { lat: coordNum(rec.lat, COORD_DP), lng: coordNum(rec.lng, COORD_DP) });
   }
 
   function locationSection(rec) {
@@ -11919,8 +11954,8 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var due = next ? GEO.date.daysBetween(today, next) : null;
     var reason = null;
     if (due !== null) {
-      reason = due >= 0 ? t('quality.freshness.dueIn', { n: F.int(due) })
-                        : t('quality.freshness.overdue', { n: F.int(-due) });
+      reason = due >= 0 ? GEO.i18n.plural('quality.freshness.dueIn', due)
+                        : GEO.i18n.plural('quality.freshness.overdue', -due);
     }
     return { state: state, next: next, due: due, reason: reason,
              age: GEO.date.daysBetween(lv, today), lastVerifiedAt: lv };
@@ -12183,7 +12218,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
         // The input event lets the AI panel's own send-enabled logic react.
         var box = Q.$('#ai-input');
         if (!box) return;
-        box.value = t('detail.ask.prefill',
+        box.value = t('detail.ask.prefill.competitors',
                       { km: (GEO.geo && GEO.geo.COMPETITIVE_BAND_KM) || 3, name: rec.name });
         box.dispatchEvent(new Event('input', { bubbles: true }));
         box.focus();
@@ -12237,15 +12272,19 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var chips = [];
     if (isDemo) chips.push(el('span.badge.badge--demo', { text: t('detail.demo.badge') }));
 
+    // The ramp colour carries the class, the letter inside it carries the
+    // class again for anyone the colour does not reach. "?" is not a word, so
+    // an unrecorded class gets the sentence spelled out beside the badge.
     chips.push(el('span.badge.badge--class', {
       dataset: { class: cls || 'unknown' },
       'aria-label': cls ? t('detail.class.badge', { class: cls }) : t('value.class.unknown'),
       text: cls || '?'
     }));
-    chips.push(el('span.chip', {}, [el('span.chip__label', {
-      text: U.isKnown(rec.officeClass) ? enumLabel('officeClass', rec.officeClass)
-                                       : t('value.class.unknown')
-    })]));
+    if (!cls) {
+      chips.push(el('span.chip', {}, [
+        el('span.chip__label', { text: t('value.class.unknown') })
+      ]));
+    }
     chips.push(el('span.chip', {}, [el('span.chip__label', {
       text: U.isKnown(rec.status) ? enumLabel('status', rec.status) : t('value.status.unknown')
     })]));
@@ -14903,6 +14942,62 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     });
   }
 
+  /* ---------------------------------------------------------- breakpoints */
+  /* The rails are docked columns above 1280, overlay drawers from 768 to 1023 and
+     bottom sheets below that (IA P2-P4). The DEFAULT differs with them: on a small
+     screen the map must be what you see first, so booting with a drawer covering it
+     would be wrong. Without this, `leftRail` said "open" on a tablet while the CSS
+     parked the rail off-screen — state and rendering disagreeing, which is exactly
+     the class of bug the single-source-of-truth rule exists to prevent. */
+  B.BREAKPOINTS = [
+    { name: 'xxl', min: 1920 }, { name: 'xl', min: 1440 }, { name: 'l', min: 1280 },
+    { name: 'm', min: 1024 }, { name: 's', min: 768 }, { name: 'xs', min: 481 },
+    { name: 'xxs', min: 0 }
+  ];
+
+  B.breakpoint = function (width) {
+    var w = width || window.innerWidth;
+    for (var i = 0; i < B.BREAKPOINTS.length; i++) {
+      if (w >= B.BREAKPOINTS[i].min) return B.BREAKPOINTS[i].name;
+    }
+    return 'xxs';
+  };
+
+  B.defaultRails = function (bp) {
+    if (bp === 'l' || bp === 'xl' || bp === 'xxl') return { leftRail: 'open' };
+    if (bp === 'm') return { leftRail: 'collapsed' };
+    return { leftRail: 'closed' };          // s and below: the map leads
+  };
+
+  function wireBreakpoints() {
+    var last = B.breakpoint();
+    document.getElementById('app').dataset.bp = last;
+
+    var onResize = U.debounce(function () {
+      var bp = B.breakpoint();
+      if (bp === last) return;
+      var wasSmall = last === 's' || last === 'xs' || last === 'xxs';
+      var isSmall = bp === 's' || bp === 'xs' || bp === 'xxs';
+      last = bp;
+      document.getElementById('app').dataset.bp = bp;
+
+      var patch = { bp: bp };
+      // Crossing INTO drawer/sheet territory: at most one panel may cover the map,
+      // and neither should do so uninvited (P3, P4).
+      if (isSmall && !wasSmall) {
+        patch.leftRail = 'closed';
+        patch.rightRail = 'closed';
+      } else if (!isSmall && wasSmall) {
+        patch.leftRail = B.defaultRails(bp).leftRail;
+      }
+      GEO.state.set(patch, { source: 'system', action: 'viewport:' + bp,
+                             summary: 'Viewport is now ' + bp });
+    }, 150);
+
+    window.addEventListener('resize', onResize);
+    window.addEventListener('orientationchange', onResize);
+  }
+
   /* ------------------------------------------------------------- keyboard */
   function wireKeyboard() {
     document.addEventListener('keydown', function (e) {
@@ -14995,11 +15090,16 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     // fully-built state so every region draws from the same snapshot.
     GEO.state.subscribe(render);
 
+    wireBreakpoints();
+
+    var bp = B.breakpoint();
     var fromHash = readHash();
-    GEO.state.set({
+    GEO.state.set(Object.assign({
+      bp: bp,
       demoMode: GEO.data.demoMode(),
       filters: fromHash || GEO.state.defaults().filters
-    }, { source: 'boot', action: 'boot', summary: 'Application started' });
+    }, B.defaultRails(bp)),
+      { source: 'boot', action: 'boot', summary: 'Application started' });
 
     GEO.state.subscribe(function (s) { writeHash(s); });
     GEO.on('data:changed', function () {

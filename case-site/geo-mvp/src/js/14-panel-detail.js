@@ -58,7 +58,20 @@
     'value.qc.unreviewed': 'Not reviewed',
     'value.qc.needsCheck': 'Needs checking',
     'value.qc.accepted': 'Accepted',
-    'value.qc.rejected': 'Rejected'
+    'value.qc.rejected': 'Rejected',
+
+    /* The shipped `quality.freshness.dueIn` / `.overdue` have no plural forms,
+       and the number this panel prints most often is 1: the whole observed set
+       is 59 days old against a 60-day interval, so the headline reads "Due in
+       1 days" everywhere. These are the `.one`/`.other` pair the i18n plural
+       accessor expects; the singular-only keys should be retired in favour of
+       them rather than left as a second definition. */
+    'quality.freshness.dueIn.one': 'Due in {n} day',
+    'quality.freshness.dueIn.other': 'Due in {n} days',
+    'quality.freshness.overdue.one': 'Overdue by {n} day',
+    'quality.freshness.overdue.other': 'Overdue by {n} days',
+    'detail.editedLocally.one': '{n} field edited locally — not verified',
+    'detail.editedLocally.other': '{n} fields edited locally — not verified'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -252,6 +265,36 @@
    * with Esc, focus-trapped and focus-returned, and all four come for free from
    * GEO.boot.dialog. A hover-only provenance affordance is not provenance.
    */
+  /**
+   * GEO.boot.dialog plus one correction: 99-boot's global Escape handler also
+   * listens on `document`, so a plain Esc inside an R9 dialog closes the dialog
+   * AND the right rail behind it. Capturing Escape on `#dialog` keeps the key
+   * meaning exactly one thing while a modal is open (P5), and still leaves Tab
+   * to the helper's own focus trap.
+   */
+  function modal(opts) {
+    var box = Q.$('#dialog');
+    var handle = null;
+
+    function release() { box.removeEventListener('keydown', onKey, true); }
+
+    function onKey(e) {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      release();
+      if (handle) handle.close();
+    }
+
+    handle = GEO.boot.dialog({
+      title: opts.title,
+      body: opts.body,
+      actions: [{ label: t('common.close'), primary: true, run: release }]
+    });
+    box.addEventListener('keydown', onKey, true);
+    return handle;
+  }
+
   function openProvenance(rec, fd) {
     var ev = GEO.data.evidence(rec, fd.key);
     var shown = display(rec, fd);
@@ -291,10 +334,9 @@
                                         { date: F.date(rec._meta.updatedAt) }) }));
     }
 
-    GEO.boot.dialog({
+    modal({
       title: t('detail.provenance.title', { field: fieldLabel(fd.key) }),
-      body: el('div.provpop', {}, rows),
-      actions: [{ label: t('common.close'), primary: true }]
+      body: el('div.provpop', {}, rows)
     });
   }
 
@@ -429,13 +471,14 @@
     var body, count;
 
     // A list section counts its entries; a field section counts its filled
-    // fields. "0 of 1" would be a true but useless thing to say about tenants.
+    // fields. "0 of 1" would be a true but useless thing to say about tenants,
+    // and P-07's own example is the bare count (`Tenants (0)`).
     if (group.key === 'tenants') {
       body = tenantsBody(rec);
-      count = t('detail.tenants.count', { n: F.int((rec.tenants || []).length) });
+      count = F.int((rec.tenants || []).length);
     } else if (group.key === 'amenities') {
       body = amenitiesBody(rec);
-      count = t('detail.tenants.count', { n: F.int((rec.amenities || []).length) });
+      count = F.int((rec.amenities || []).length);
     } else {
       body = [el('div.kv', {}, fields.map(function (fd) { return kvRow(rec, fd); }))];
       count = t('common.of', { n: F.int(filledCount(rec, fields)), m: F.int(fields.length) });
@@ -595,8 +638,8 @@
     var due = next ? GEO.date.daysBetween(today, next) : null;
     var reason = null;
     if (due !== null) {
-      reason = due >= 0 ? t('quality.freshness.dueIn', { n: F.int(due) })
-                        : t('quality.freshness.overdue', { n: F.int(-due) });
+      reason = due >= 0 ? GEO.i18n.plural('quality.freshness.dueIn', due)
+                        : GEO.i18n.plural('quality.freshness.overdue', -due);
     }
     return { state: state, next: next, due: due, reason: reason,
              age: GEO.date.daysBetween(lv, today), lastVerifiedAt: lv };
@@ -752,14 +795,13 @@
       var input = el('input.input', { type: 'text', readonly: true, value: text,
                                       'aria-label': t('error.clipboard.hint') });
       input.value = text;
-      GEO.boot.dialog({
+      modal({
         title: t('common.copy'),
         body: el('div.stack', {}, [
           el('p', { text: t('error.clipboard') }),
           input,
           el('p.micro', { text: t('error.clipboard.hint') })
-        ]),
-        actions: [{ label: t('common.close'), primary: true }]
+        ])
       });
       try { input.focus(); input.select(); } catch (e) { /* focus is best-effort */ }
     }
@@ -859,7 +901,7 @@
         // The input event lets the AI panel's own send-enabled logic react.
         var box = Q.$('#ai-input');
         if (!box) return;
-        box.value = t('detail.ask.prefill',
+        box.value = t('detail.ask.prefill.competitors',
                       { km: (GEO.geo && GEO.geo.COMPETITIVE_BAND_KM) || 3, name: rec.name });
         box.dispatchEvent(new Event('input', { bubbles: true }));
         box.focus();
@@ -913,15 +955,19 @@
     var chips = [];
     if (isDemo) chips.push(el('span.badge.badge--demo', { text: t('detail.demo.badge') }));
 
+    // The ramp colour carries the class, the letter inside it carries the
+    // class again for anyone the colour does not reach. "?" is not a word, so
+    // an unrecorded class gets the sentence spelled out beside the badge.
     chips.push(el('span.badge.badge--class', {
       dataset: { class: cls || 'unknown' },
       'aria-label': cls ? t('detail.class.badge', { class: cls }) : t('value.class.unknown'),
       text: cls || '?'
     }));
-    chips.push(el('span.chip', {}, [el('span.chip__label', {
-      text: U.isKnown(rec.officeClass) ? enumLabel('officeClass', rec.officeClass)
-                                       : t('value.class.unknown')
-    })]));
+    if (!cls) {
+      chips.push(el('span.chip', {}, [
+        el('span.chip__label', { text: t('value.class.unknown') })
+      ]));
+    }
     chips.push(el('span.chip', {}, [el('span.chip__label', {
       text: U.isKnown(rec.status) ? enumLabel('status', rec.status) : t('value.status.unknown')
     })]));
@@ -929,8 +975,11 @@
       text: t('detail.district', { name: GEO.data.districtName(rec.districtKey) })
     })]));
 
+    /* `.reason` is reserved for the §29 partner of a disabled control, so these
+       record-level notes use the neutral text utilities: mixing them would make
+       "every .reason has a disabled control beside it" untestable. */
     var flags = [];
-    if (isDemo) flags.push(note('detail.demo.note', null));
+    if (isDemo) flags.push(el('p.micro', { text: t('detail.demo.note') }));
 
     /* D1 — the conflict names BOTH labels. The polygon wins, and the reader is
        told which label lost and why, because silently correcting a source is
@@ -942,7 +991,7 @@
           el('span.micro', { text: t('detail.districtSource',
                                      { label: meta.districtSourceLabel || F.UNKNOWN }) })
         ]),
-        el('p.reason', { text: t('detail.conflict.note', {
+        el('p.muted', { text: t('detail.conflict.note', {
           label: meta.districtSourceLabel || F.UNKNOWN,
           computed: GEO.data.districtName(rec.districtKey)
         }) }),
@@ -953,7 +1002,7 @@
     if (meta.possibleDuplicate) {
       flags.push(el('div.stack', {}, [
         el('span.badge.badge--flag', { text: t('detail.dupe.badge') }),
-        el('p.reason', { text: t('quality.dupes.note') }),
+        el('p.muted', { text: t('quality.dupes.note') }),
         // The review queue lives in the Data workspace, which the External role
         // cannot open (§60/X-9) — so the route to it is removed for that role
         // rather than shown as a disabled control leading nowhere.
@@ -968,15 +1017,20 @@
     }
 
     if (meta.entityReview === 'suspected_non_bc' || meta.entityReview === 'name_quality') {
+      // Both notes: the reviewer's finding about THIS record, and the policy
+      // that keeps it counted. A flag is not a deletion (D7), and a reader who
+      // sees only the finding will assume it was.
       flags.push(el('div.stack', {}, [
         el('span.badge.badge--flag', { text: t('detail.entity.badge') }),
-        el('p.reason', { text: meta.entityReviewNote || t('detail.entity.note') })
+        meta.entityReviewNote ? el('p.muted', { text: meta.entityReviewNote }) : null,
+        el('p.micro', { text: t('detail.entity.note') })
       ]));
     }
 
-    if (meta.addedLocally) flags.push(note('detail.addedLocally', null));
-    else if (meta.editedLocally) {
-      flags.push(note('detail.editedLocally', { n: F.int(editedFieldCount(rec)) }));
+    if (meta.addedLocally) {
+      flags.push(el('p.micro', { text: t('detail.addedLocally') }));
+    } else if (meta.editedLocally) {
+      flags.push(el('p.micro', { text: GEO.i18n.plural('detail.editedLocally', editedFieldCount(rec)) }));
     }
 
     return [
@@ -995,10 +1049,6 @@
       ]),
       el('div.prop__sub', {}, chips)
     ].concat(flags);
-  }
-
-  function note(key, vars) {
-    return el('p.reason', { text: t(key, vars) });
   }
 
   function editedFieldCount(rec) {

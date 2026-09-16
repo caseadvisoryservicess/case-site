@@ -375,23 +375,58 @@ function watch(page) {
 
       const m = await page.evaluate(() => {
         const de = document.documentElement;
+        const name = el => el.tagName.toLowerCase() +
+          (el.id ? '#' + el.id : '.' + String(el.className).split(' ')[0]);
+
+        // A drawer parked off-screen (translated out, visibility:hidden) still reports a
+        // negative rect, and counting it as overflow would mask the real ones. Only an
+        // element the user can actually SEE partly outside the viewport is a defect.
+        const visible = el => {
+          const cs = getComputedStyle(el);
+          if (cs.display === 'none' || cs.visibility === 'hidden' || cs.opacity === '0') return false;
+          if (el.closest('[hidden]') || el.hasAttribute('hidden')) return false;
+          const r = el.getBoundingClientRect();
+          if (r.width <= 0 || r.height <= 0) return false;
+          const shownW = Math.min(r.right, window.innerWidth) - Math.max(r.left, 0);
+          const shownH = Math.min(r.bottom, window.innerHeight) - Math.max(r.top, 0);
+          return shownW > 0 && shownH > 0;
+        };
+
         const overflowing = Array.from(document.querySelectorAll('body *'))
           .filter(el => {
+            if (!visible(el)) return false;
             const r = el.getBoundingClientRect();
-            return r.width > 0 && (r.right > window.innerWidth + 1 || r.left < -1);
+            return r.right > window.innerWidth + 1 || r.left < -1;
+          })
+          .slice(0, 5).map(name);
+
+        // Text clipped by its own box. `.vh` is the visually-hidden utility, which is
+        // clipped BY DESIGN — that is how it stays available to screen readers.
+        const clipped = Array.from(document.querySelectorAll('body *'))
+          .filter(el => {
+            if (el.children.length || !el.textContent.trim()) return false;
+            if (el.classList.contains('vh') || el.closest('.vh')) return false;
+            if (!visible(el)) return false;
+            const cs = getComputedStyle(el);
+            if (/auto|scroll/.test(cs.overflow + cs.overflowX + cs.overflowY)) return false;
+            if (cs.textOverflow === 'ellipsis') return false;   // deliberate truncation
+            return el.scrollWidth > el.clientWidth + 2 || el.scrollHeight > el.clientHeight + 2;
           })
           .slice(0, 5)
-          .map(el => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '.' + String(el.className).split(' ')[0]));
+          .map(el => name(el) + ': "' + el.textContent.trim().slice(0, 30) + '"');
+
         const map = document.getElementById('map');
         return {
           scrollX: de.scrollWidth - de.clientWidth,
-          overflowing,
+          overflowing, clipped,
           mapW: map ? Math.round(map.getBoundingClientRect().width) : 0,
         };
       });
       check(`${vp.n} (${vp.w}px): no horizontal page scroll`, m.scrollX <= 0, m.scrollX);
-      check(`${vp.n} (${vp.w}px): nothing overflows the viewport`,
+      check(`${vp.n} (${vp.w}px): nothing visible overflows the viewport`,
             m.overflowing.length === 0, m.overflowing.join(', '));
+      check(`${vp.n} (${vp.w}px): no clipped text`,
+            m.clipped.length === 0, m.clipped.join(' | '));
       if (vp.w >= 1280) {
         check(`${vp.n} (${vp.w}px): map is at least 560px wide`, m.mapW >= 560, m.mapW);
       }
