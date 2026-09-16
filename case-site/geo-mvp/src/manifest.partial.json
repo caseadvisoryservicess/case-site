@@ -29,6 +29,8 @@
    "src/js/03-data.js",
    "src/js/04-quality.js",
    "src/js/05-state.js",
+   "src/js/06-filters.js",
+   "src/js/07-search.js",
    "src/js/08-analytics.js",
    "src/js/09-geo.js",
    "src/js/12-panel-filters.js",

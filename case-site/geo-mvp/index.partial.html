@@ -18,7 +18,7 @@
   43833029a2f5  src/styles/02-base.css
   7e893af53da3  src/styles/03-layout.css
   1f46cb2f6091  src/styles/04-components.css
-  5781c465900e  src/styles/05-map.css
+  bf2404a5e31e  src/styles/05-map.css
   378b090f8958  src/styles/06-charts.css
   fa2725685f05  src/styles/07-panels.css
   30c61ce31526  src/styles/08-responsive.css
@@ -26,20 +26,22 @@
   e1462f10f502  vendor/leaflet.js
   1e4e1d22972a  vendor/leaflet.markercluster.js
   4dd413553bf8  src/js/00-core.js
-  9c31214cfe2a  src/js/01-i18n.js
+  6daa90e2204a  src/js/01-i18n.js
   31d936db9dde  src/js/02-schema.js
   3ea5b259593f  src/js/03-data.js
   28243831818b  src/js/04-quality.js
   ec3059c66a21  src/js/05-state.js
+  ec54accdc2ac  src/js/06-filters.js
+  10c67bad1a7f  src/js/07-search.js
   d20489987cd6  src/js/08-analytics.js
   48173d9d9c88  src/js/09-geo.js
-  fb8c6efdb873  src/js/12-panel-filters.js
-  65b1d9a321be  src/js/13-panel-list.js
-  e9a27377907c  src/js/14-panel-detail.js
-  15aee3d66297  src/js/20-ai-tools.js
+  d403104e1da8  src/js/12-panel-filters.js
+  95dbc500051a  src/js/13-panel-list.js
+  194f1de1f6a2  src/js/14-panel-detail.js
+  271e12d23ef4  src/js/20-ai-tools.js
   b05c09031351  src/js/21-ai-intents.js
-  919c8482eab2  src/js/22-ai-engine.js
-  a537e28e29ca  src/js/24-selftest.js
+  99daf2fea238  src/js/22-ai-engine.js
+  2c6d7775bf92  src/js/24-selftest.js
   e9de21864564  src/js/99-boot.js
   ae8fbb00eb63  data/seed.json
   b71eec09596b  data/tashkent_districts.simplified.geojson
@@ -3186,6 +3188,20 @@ summary:focus:not(:focus-visible),
    cursor change is the whole affordance, plus the mapnotice above it. */
 .mapwrap[data-pick="true"] #map,
 .mapwrap[data-pick="true"] .leaflet-container { cursor: crosshair; }
+
+/* ---------------------------------------------------------------------------
+ * Vendored-Leaflet image guards (build contract T2).
+ *
+ * `vendor/leaflet.css` references `images/marker-icon.png` and
+ * `images/layers-2x.png`, and neither file is vendored — we ship no `images/`
+ * directory at all. Nothing in this app should create the elements that use
+ * them: markers are `L.divIcon` exclusively, and the layer control is our own.
+ * But a 404 on a marker image renders as a *missing pin*, which looks like a
+ * data problem rather than an asset problem and is easy to stare past. These
+ * two rules make the request impossible rather than merely unlikely.
+ * ------------------------------------------------------------------------- */
+.leaflet-default-icon-path { background-image: none !important; }
+.leaflet-control-layers-toggle { background-image: none !important; }
 
 /* ==== src/styles/06-charts.css ==== */
 /* ===========================================================================
@@ -6737,6 +6753,27 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'list.sort.glaDesc': 'GLA, large to small',
     'list.sort.glaAsc': 'GLA, small to large',
     'list.sort.verified': 'Last verified, oldest first',
+
+    /* --- filter descriptions -----------------------------------------------
+     * These sentences leave the app: they head the CSV export, name the layers the
+     * assistant creates, and describe a shared URL. They have to read as a plain
+     * statement of what was selected, because someone will paste one into a report.
+     * --------------------------------------------------------------------- */
+    'filter.describe.q': 'matching "{q}"',
+    'filter.describe.districts': 'in {list}',
+    'filter.describe.classes': 'class {list}',
+    'filter.describe.classKnownOnly': 'excluding properties with no recorded class',
+    'filter.describe.statuses': 'status {list}',
+    'filter.describe.amenities': 'with {list}',
+    'filter.describe.confidence': '{list} confidence',
+    'filter.describe.completeness': 'completeness {list}',
+    'filter.describe.freshness': '{list}',
+    'filter.describe.flags': 'flagged {list}',
+    'filter.describe.between': '{field} {min} to {max}',
+    'filter.describe.from': '{field} from {min}',
+    'filter.describe.upTo': '{field} up to {max}',
+    'filter.describe.atLeast': '{field} of at least {min}',
+    'detail.ask.prefill.competitors': 'Show competitors within 3 km of {name}',
     'empty.property.action.map': 'Pick one on the map'
   };
 
@@ -9130,6 +9167,1354 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
 </script>
 <script>
+/* ==== src/js/06-filters.js ==== */
+/* ===========================================================================
+ * 06-filters — the predicate engine
+ *
+ * Brief §11; build contract §5 (state), D2 (unknown is null), D4 (demo
+ * containment), D7 (flagged, never deleted).
+ *
+ * Two rules decide whether a filtered count means anything.
+ *
+ * 1. A FILTER ON A FIELD EXCLUDES RECORDS WHOSE VALUE IS UNKNOWN, and says so.
+ *    A building with no recorded rent is not a building whose rent is 0: it
+ *    cannot satisfy "under $30" and it cannot fail it either — it is not
+ *    evidence. Every such exclusion is counted and named, which is what
+ *    `explain()` is for. "132 properties excluded — office class not recorded"
+ *    is the difference between a filter and a lie (§36, rule R4).
+ *
+ * 2. A FILTER WHOSE FIELD HAS ZERO COVERAGE DISABLES ITSELF, with the reason on
+ *    screen, rather than silently returning nothing (§29, rule R2).
+ *    `availability()` is derived from the rows it is handed and from nothing
+ *    else, so GLA, occupancy, vacancy, parking, amenities and status start
+ *    disabled on the observed set and re-enable themselves the moment demo mode
+ *    goes on or a value is typed into the editor. There is no flag to flip.
+ *
+ * This module is a SELECTOR, not a metric: it decides which records are in the
+ * set, and 08-analytics decides what may be said about them. It therefore reads
+ * record fields directly — but only ever behind `GEO.util.isKnown`, the same
+ * primitive `analytics.known()` is built on — so an unknown can never reach a
+ * comparison as though it were a number.
+ *
+ * Load order (manifest): this file runs BEFORE 07-search and 08-analytics, so
+ * those namespaces are resolved lazily inside functions and never captured at
+ * load time.
+ * ========================================================================= */
+(function (w) {
+  'use strict';
+
+  var GEO = w.GEO, U = GEO.util, S = GEO.schema, F = GEO.fmt;
+  var FL = GEO.filters = {};
+
+  function t(key, vars) { return GEO.i18n ? GEO.i18n.t(key, vars) : key; }
+
+  /** The i18n table is authoritative for a field's label; the schema registry is
+   *  the fallback while a key is missing, so a label is never the raw key. */
+  function fieldLabel(key) {
+    if (GEO.i18n && GEO.i18n.has && GEO.i18n.has('field.' + key)) return t('field.' + key);
+    return S.label(key);
+  }
+
+  /* ------------------------------------------------------------ vocabulary */
+  /* `value.*` is the i18n table's reserved namespace for shared enum values, so
+     these maps only hold the part that is not mechanically derivable from the
+     value itself ('EV charging' -> value.amenity.evCharging). */
+  var CLASS_I18N  = { 'A+': 'aPlus', 'A': 'a', 'B+': 'bPlus', 'B': 'b', 'C': 'c' };
+  var STATUS_I18N = { 'Operating': 'operating', 'Under construction': 'construction',
+                      'Planned': 'planned', 'Renovation': 'renovation' };
+  var AMENITY_I18N = {
+    'restaurant': 'restaurant', 'cafe': 'cafe', 'retail': 'retail', 'gym': 'gym',
+    'conference room': 'conference', 'reception': 'reception', 'security': 'security',
+    'underground parking': 'undergroundParking', 'surface parking': 'surfaceParking',
+    'EV charging': 'evCharging', 'bicycle parking': 'bicycleParking',
+    'backup generator': 'generator'
+  };
+
+  FL.FLAGS = ['districtConflict', 'duplicate', 'suspectedNonBc', 'editedLocally', 'demo'];
+  FL.COMPLETENESS_BANDS = ['none', 'minimal', 'partial', 'good'];
+  /* `unknown` is deliberately not selectable: a record that was never verified
+     is not "fresh, ageing or stale", it is outside the question, and the
+     freshness filter reports it as an unknown-exclusion instead (§36). */
+  FL.FRESHNESS_STATES = ['fresh', 'ageing', 'stale'];
+
+  /**
+   * One row per filter GROUP. `key` is the group's identity in `explain()` and
+   * in the panel; `keys` are the state keys it owns; `field` is the schema field
+   * whose coverage governs it, or null for a filter derived from quality rather
+   * than from a property attribute.
+   */
+  FL.GROUPS = [
+    { key: 'q',            keys: ['q'],                                 field: null },
+    { key: 'districts',    keys: ['districts'],                         field: 'districtKey' },
+    { key: 'classes',      keys: ['classes', 'includeUnknownClass'],    field: 'officeClass' },
+    { key: 'statuses',     keys: ['statuses'],                          field: 'status' },
+    { key: 'gla',          keys: ['glaMin', 'glaMax'],                  field: 'gla' },
+    { key: 'rent',         keys: ['rentMin', 'rentMax'],                field: 'askingRent' },
+    { key: 'vacancy',      keys: ['vacancyMin', 'vacancyMax'],          field: 'vacancyPct' },
+    { key: 'parking',      keys: ['parkingMin'],                        field: 'parkingSpaces' },
+    { key: 'amenities',    keys: ['amenities'],                         field: 'amenities' },
+    { key: 'confidence',   keys: ['confidence'],                        field: null },
+    { key: 'completeness', keys: ['completeness'],                      field: null },
+    { key: 'freshness',    keys: ['freshness'],                         field: null },
+    { key: 'flags',        keys: ['flags'],                             field: null }
+  ];
+
+  FL.KEYS = (function () {
+    var out = [];
+    FL.GROUPS.forEach(function (g) { out = out.concat(g.keys); });
+    return out;
+  }());
+
+  /* The numeric fields a slider can span. `ranges()` reports all of them so a
+     control that becomes possible after an edit already has its bounds. */
+  FL.NUMERIC_FIELDS = ['askingRent', 'gla', 'vacancyPct', 'occupancyPct',
+                       'parkingSpaces', 'availableArea'];
+
+  /* ------------------------------------------------------------- coercion */
+
+  function num(v) {
+    if (v === null || v === undefined || v === '') return null;
+    var n = typeof v === 'number' ? v : parseFloat(String(v).replace(',', '.'));
+    return (typeof n === 'number' && !isNaN(n)) ? n : null;
+  }
+
+  function text(v) {
+    return (v === null || v === undefined) ? '' : String(v).replace(/^\s+|\s+$/g, '');
+  }
+
+  function bool(v, dflt) { return (v === null || v === undefined) ? dflt : !!v; }
+
+  /**
+   * Coerce to a list and drop values outside `allowed`. A value the vocabulary
+   * does not contain (a stale URL, a mistyped AI plan) is dropped with a log
+   * line rather than kept: kept, it would silently match nothing and present an
+   * empty map as a finding about the market.
+   */
+  function list(v, allowed, what) {
+    var a = Array.isArray(v) ? v : (v === null || v === undefined || v === '' ? [] : [v]);
+    var out = [];
+    a.forEach(function (x) {
+      if (x === null || x === undefined || x === '') return;
+      if (allowed && allowed.indexOf(x) < 0) {
+        GEO.log.warn('filters: ignoring unknown ' + what + ' "' + x + '"');
+        return;
+      }
+      if (out.indexOf(x) < 0) out.push(x);
+    });
+    return out;
+  }
+
+  FL.defaults = function () { return GEO.state.defaults().filters; };
+
+  /**
+   * Fill every key from the defaults and coerce each to its stored type.
+   * Everything downstream — apply, explain, describe, toHash — starts here, so
+   * a partial patch from the assistant and a hand-edited URL are handled in one
+   * place instead of thirteen. Never mutates its argument.
+   */
+  FL.normalise = function (filters) {
+    var d = FL.defaults(), f = filters || {};
+    function pick(k) { return f[k] === undefined ? d[k] : f[k]; }
+    return {
+      q: text(pick('q')),
+      districts: list(pick('districts'), null, 'district'),
+      classes: list(pick('classes'), S.enums.officeClass, 'office class'),
+      includeUnknownClass: bool(pick('includeUnknownClass'), d.includeUnknownClass),
+      statuses: list(pick('statuses'), S.enums.status, 'status'),
+      glaMin: num(pick('glaMin')), glaMax: num(pick('glaMax')),
+      rentMin: num(pick('rentMin')), rentMax: num(pick('rentMax')),
+      vacancyMin: num(pick('vacancyMin')), vacancyMax: num(pick('vacancyMax')),
+      parkingMin: num(pick('parkingMin')),
+      amenities: list(pick('amenities'), S.enums.amenity, 'amenity'),
+      confidence: list(pick('confidence'), S.enums.confidence, 'confidence level'),
+      completeness: list(pick('completeness'), FL.COMPLETENESS_BANDS, 'completeness band'),
+      freshness: list(pick('freshness'), FL.FRESHNESS_STATES, 'freshness state'),
+      flags: list(pick('flags'), FL.FLAGS, 'flag')
+    };
+  };
+
+  /** State keys that differ from their default — drives the chips and the
+   *  enabled state of "Reset filters" (L-18, L-19). */
+  FL.activeKeys = function (filters) {
+    var f = FL.normalise(filters), d = FL.defaults();
+    return FL.KEYS.filter(function (k) {
+      return JSON.stringify(f[k]) !== JSON.stringify(d[k]);
+    });
+  };
+
+  FL.anyActive = function (filters) { return FL.activeKeys(filters).length > 0; };
+
+  /* ------------------------------------------------- derived record values */
+
+  function completenessBand(rec) {
+    if (GEO.quality && GEO.quality.completeness) {
+      var c = GEO.quality.completeness(rec);
+      if (c && c.band) return c.band;
+    }
+    // D9 count bands, not percentage bands: a percentage puts all 148 observed
+    // records in one bucket and discriminates nothing.
+    var n = 0;
+    S.criticalFields.forEach(function (k) { if (U.isKnown(rec[k])) n++; });
+    return n === 0 ? 'none' : (n <= 2 ? 'minimal' : (n <= 5 ? 'partial' : 'good'));
+  }
+
+  function freshnessState(rec) {
+    if (GEO.quality && GEO.quality.freshness) {
+      var r = GEO.quality.freshness(rec);
+      if (typeof r === 'string') return r;
+      if (r && r.state) return r.state;
+    }
+    return S.freshness(rec._meta && rec._meta.lastVerifiedAt, 'askingRent');
+  }
+
+  function confidenceOf(rec) { return GEO.data.recordConfidence(rec); }
+
+  /* The duplicate scan is the one genuinely expensive derivation in this module
+     — 04-quality compares every nearby pair — and both `apply()` and
+     `availability()` run on every render. It is memoised against the exact id
+     list it was computed for, and dropped whenever the dataset changes, so an
+     edit that moves a pin is never answered from a stale set. */
+  var dupCache = { key: null, ids: null };
+  GEO.on('data:changed', function () { dupCache.key = null; });
+
+  /**
+   * Ids under any unresolved duplicate suspicion. 04-quality finds the three
+   * pairs the source never flagged as well as the six it did, so the filter is
+   * built from its answer and falls back to the record's own marker only if the
+   * quality module is absent (D6 — nothing is ever merged, only listed).
+   */
+  function duplicateIds(rows) {
+    var key = rows.length + ':' + rows.map(function (r) { return r.id; }).join(',');
+    if (dupCache.key === key) return dupCache.ids;
+
+    var set = {};
+    if (!GEO.quality || !GEO.quality.duplicates) {
+      rows.forEach(function (r) {
+        if (r._meta && (r._meta.duplicateGroupId || r._meta.possibleDuplicate)) set[r.id] = true;
+      });
+    } else {
+      var d = GEO.quality.duplicates(rows);
+      d.coordinateGroups.forEach(function (g) {
+        g.recordIds.forEach(function (id) { set[id] = true; });
+      });
+      d.proximityPairs.concat(d.namePairs).forEach(function (p) {
+        p.recordIds.forEach(function (id) { set[id] = true; });
+      });
+    }
+    dupCache.key = key;
+    dupCache.ids = set;
+    return set;
+  }
+
+  function flagTest(flag, dupIds) {
+    switch (flag) {
+      case 'districtConflict':
+        return function (r) { return !!(r._meta && r._meta.districtConflict); };
+      case 'duplicate':
+        return function (r) { return !!dupIds[r.id]; };
+      case 'suspectedNonBc':
+        return function (r) { return !!(r._meta && r._meta.entityReview === 'suspected_non_bc'); };
+      case 'editedLocally':
+        return function (r) { return !!(r._meta && (r._meta.editedLocally || r._meta.addedLocally)); };
+      case 'demo':
+        return function (r) { return r.recordType === 'DEMO'; };
+      default:
+        return function () { return false; };
+    }
+  }
+
+  /** Amenities are a status-backed list: `[]` with `amenitiesStatus` of
+   *  `confirmed_empty` is a RECORDED empty list, not an absence (§6). */
+  function amenitiesKnown(rec) {
+    return U.isKnown(rec.amenities) || rec.amenitiesStatus === 'confirmed_empty';
+  }
+
+  /* ---------------------------------------------------------- text search */
+
+  /* 07-search owns the T9 transliteration table and the R6 homoglyph fold, and
+     is the matcher whenever it is loaded. This fallback exists so the name box
+     still works without it; it reuses 04-quality's name fold rather than
+     carrying a second transliteration table that would drift from the first. */
+  function fold(s) {
+    if (GEO.search && GEO.search.fold) return GEO.search.fold(s);
+    if (GEO.quality && GEO.quality.nameKey) return GEO.quality.nameKey(s);
+    return String(s === null || s === undefined ? '' : s).toLowerCase();
+  }
+
+  function recordParts(rec) {
+    var parts = [rec.name, rec.address];
+    (rec.altNames || []).forEach(function (n) { parts.push(n); });
+    if (U.isKnown(rec.districtKey)) parts.push(GEO.data.districtName(rec.districtKey));
+    (rec.tenants || []).forEach(function (tn) { parts.push(tn && tn.name); });
+    return parts.filter(function (p) { return U.isKnown(p); });
+  }
+
+  function textPredicate(q) {
+    if (!q) return null;
+    if (GEO.search && typeof GEO.search.matches === 'function') {
+      return function (r) { return !!GEO.search.matches(r, q); };
+    }
+    var needle = fold(q);
+    if (!needle) return null;
+    // Each field is folded separately so a query cannot match across the seam
+    // between two of them ("plaza mirobod" is not a name).
+    return function (r) {
+      var parts = recordParts(r);
+      for (var i = 0; i < parts.length; i++) {
+        if (fold(parts[i]).indexOf(needle) >= 0) return true;
+      }
+      return false;
+    };
+  }
+
+  /* ------------------------------------------------------------ predicates */
+
+  /* Confidence, completeness and freshness are each derived from a record's
+     evidence, and `explain()` re-tests every record against every predicate to
+     work out what each filter cost. Without this the freshness filter alone
+     would recompute 04-quality's per-field clocks tens of thousands of times
+     for one panel render. The cache lives only for the duration of one call, so
+     it can never answer with a value from before an edit. */
+  function perCall(fn) {
+    var cache = {};
+    return function (rec) {
+      if (!rec.id) return fn(rec);
+      if (cache[rec.id] === undefined) cache[rec.id] = fn(rec);
+      return cache[rec.id];
+    };
+  }
+
+  /**
+   * Build the active predicates. Each carries the group it belongs to and,
+   * where the filter reads a field, an `unknown` test that reports whether a
+   * record failed because the value is missing rather than because it did not
+   * match — the whole basis of `explain()`.
+   */
+  function buildPredicates(rows, f) {
+    var preds = [];
+
+    function add(group, field, test, unknown) {
+      preds.push({ group: group, field: field || null, test: test, unknown: unknown || null });
+    }
+
+    var qp = textPredicate(f.q);
+    if (qp) add('q', null, qp, null);
+
+    if (f.districts.length) {
+      add('districts', 'districtKey', function (r) {
+        return U.isKnown(r.districtKey) && f.districts.indexOf(r.districtKey) >= 0;
+      }, function (r) { return !U.isKnown(r.districtKey); });
+    }
+
+    /* Rule R4 and the oracle (class A + A+ = 12): choosing grades is a statement
+       about grades, so the 132 records with no recorded class are excluded —
+       loudly, via explain(), never silently. `includeUnknownClass: false` with
+       no grade chosen is the other half of the same control: show only records
+       whose class is actually recorded. */
+    if (f.classes.length) {
+      add('classes', 'officeClass', function (r) {
+        return U.isKnown(r.officeClass) && f.classes.indexOf(r.officeClass) >= 0;
+      }, function (r) { return !U.isKnown(r.officeClass); });
+    } else if (f.includeUnknownClass === false) {
+      add('classes', 'officeClass', function (r) {
+        return U.isKnown(r.officeClass);
+      }, function (r) { return !U.isKnown(r.officeClass); });
+    }
+
+    if (f.statuses.length) {
+      add('statuses', 'status', function (r) {
+        return U.isKnown(r.status) && f.statuses.indexOf(r.status) >= 0;
+      }, function (r) { return !U.isKnown(r.status); });
+    }
+
+    addRange('gla', 'gla', f.glaMin, f.glaMax);
+    addRange('rent', 'askingRent', f.rentMin, f.rentMax);
+    addRange('vacancy', 'vacancyPct', f.vacancyMin, f.vacancyMax);
+    addRange('parking', 'parkingSpaces', f.parkingMin, null);
+
+    if (f.amenities.length) {
+      // OR within the group, AND across groups — the same convention the
+      // district and class groups use (IA §5.1 L-05).
+      add('amenities', 'amenities', function (r) {
+        if (!amenitiesKnown(r)) return false;
+        var have = r.amenities || [];
+        for (var i = 0; i < f.amenities.length; i++) {
+          if (have.indexOf(f.amenities[i]) >= 0) return true;
+        }
+        return false;
+      }, function (r) { return !amenitiesKnown(r); });
+    }
+
+    /* Confidence, completeness and freshness are DERIVED: every record has a
+       value for the first two, so neither can exclude anything for being
+       unknown. Freshness can — a record that was never verified has no state. */
+    if (f.confidence.length) {
+      var conf = perCall(confidenceOf);
+      add('confidence', null, function (r) {
+        return f.confidence.indexOf(conf(r)) >= 0;
+      }, null);
+    }
+
+    if (f.completeness.length) {
+      var band = perCall(completenessBand);
+      add('completeness', null, function (r) {
+        return f.completeness.indexOf(band(r)) >= 0;
+      }, null);
+    }
+
+    if (f.freshness.length) {
+      var fresh = perCall(freshnessState);
+      add('freshness', null, function (r) {
+        return f.freshness.indexOf(fresh(r)) >= 0;
+      }, function (r) { return FL.FRESHNESS_STATES.indexOf(fresh(r)) < 0; });
+    }
+
+    if (f.flags.length) {
+      // Only pay for the duplicate scan when a duplicate filter is actually on.
+      var dupIds = f.flags.indexOf('duplicate') >= 0 ? duplicateIds(rows) : {};
+      var tests = f.flags.map(function (fg) { return flagTest(fg, dupIds); });
+      add('flags', null, function (r) {
+        for (var i = 0; i < tests.length; i++) if (tests[i](r)) return true;
+        return false;
+      }, null);
+    }
+
+    return preds;
+
+    function addRange(group, field, lo, hi) {
+      if (lo === null && hi === null) return;
+      add(group, field, function (r) {
+        var v = r[field];
+        if (!U.isKnown(v)) return false;          // missing is not zero (D2)
+        if (lo !== null && v < lo) return false;
+        if (hi !== null && v > hi) return false;
+        return true;
+      }, function (r) { return !U.isKnown(r[field]); });
+    }
+  }
+
+  /* ---------------------------------------------------------------- apply */
+
+  /** The filtered set. A copy, always, so a caller cannot mutate the repository
+   *  array by sorting the result in place. */
+  FL.apply = function (rows, filters) {
+    var f = FL.normalise(filters);
+    var preds = buildPredicates(rows, f);
+    if (!preds.length) return rows.slice();
+    return rows.filter(function (r) {
+      for (var i = 0; i < preds.length; i++) if (!preds[i].test(r)) return false;
+      return true;
+    });
+  };
+
+  /* -------------------------------------------------------------- explain */
+
+  /**
+   * What the current filters kept, and what each one threw away.
+   *
+   *   { N, kept, rows, excludedBy: { <group>: {count, reason, …} }, exclusions:[…] }
+   *
+   * `count` is the number of records this filter dropped BECAUSE THE VALUE IS
+   * NOT RECORDED; `excluded` is everything it dropped, including records that
+   * simply did not match. Both are measured against the records that pass every
+   * OTHER active filter, which is the only honest denominator for "what did
+   * this one filter cost?" when several are on at once.
+   *
+   * `exclusions` is the same information pre-rendered as sentences, in group
+   * order, for the panel's §11 honesty line.
+   */
+  FL.explain = function (rows, filters) {
+    var f = FL.normalise(filters);
+    var preds = buildPredicates(rows, f);
+
+    var kept = rows.filter(function (r) {
+      for (var i = 0; i < preds.length; i++) if (!preds[i].test(r)) return false;
+      return true;
+    });
+
+    var excludedBy = {}, exclusions = [];
+
+    preds.forEach(function (p, i) {
+      var others = rows.filter(function (r) {
+        return preds.every(function (q, j) { return j === i || q.test(r); });
+      });
+      var removed = others.filter(function (r) { return !p.test(r); });
+      if (!removed.length) return;
+
+      var unknown = p.unknown ? removed.filter(p.unknown) : [];
+      var label = p.field ? F.lower(fieldLabel(p.field)) : groupLabel(p.group);
+      var reason = unknown.length
+        ? t('filter.excluded.field', { n: F.int(unknown.length), field: label })
+        : null;
+
+      excludedBy[p.group] = {
+        key: p.group, field: p.field, label: label,
+        count: unknown.length,          // excluded for want of a recorded value
+        excluded: removed.length,       // excluded by this filter at all
+        base: others.length,
+        reason: reason
+      };
+      if (unknown.length) {
+        exclusions.push({ key: p.group, field: p.field, n: unknown.length, text: reason });
+      }
+    });
+
+    return { N: rows.length, kept: kept.length, rows: kept,
+             excludedBy: excludedBy, exclusions: exclusions };
+  };
+
+  function groupLabel(group) {
+    switch (group) {
+      case 'q': return F.lower(t('filter.name.label'));
+      case 'confidence': return F.lower(t('filter.confidence.label'));
+      case 'completeness': return F.lower(t('filter.completeness.label'));
+      case 'freshness': return F.lower(t('filter.freshness.label'));
+      case 'flags': return F.lower(t('filter.flags.label'));
+      default: return group;
+    }
+  }
+
+  /* --------------------------------------------------------- availability */
+
+  /**
+   * Coverage for one field. The generic reader is `analytics.coverage`; the two
+   * status-backed list fields are the exception, because `U.isKnown([])` is
+   * false and would report a CONFIRMED-empty amenity list as missing — which
+   * would disable a filter the data can in fact answer.
+   */
+  function coverageOf(rows, field) {
+    var fd = S.field(field);
+    if (fd && fd.statusField) {
+      var n = 0;
+      rows.forEach(function (r) {
+        if (U.isKnown(r[field]) || r[fd.statusField] === 'confirmed_empty') n++;
+      });
+      return { n: n, N: rows.length };
+    }
+    return GEO.analytics.coverage(rows, field);
+  }
+
+  function entry(key, field, label, filterKeys, cov, derived, noneKey) {
+    var available = cov.n > 0;
+    return {
+      key: key, field: field, label: label, filterKeys: filterKeys,
+      derived: !!derived,
+      coverage: { n: cov.n, N: cov.N },
+      n: cov.n, N: cov.N,               // also flat: the panel reads them here
+      available: available,
+      // R2: not hidden, not inert-but-enabled — disabled with the reason visible.
+      reason: available ? null : t(noneKey || 'filter.disabled.none'),
+      coverageText: t('filter.disabled.coverage',
+                      { n: F.int(cov.n), m: F.int(cov.N), field: F.lower(label) })
+    };
+  }
+
+  function groupFor(field) {
+    var hit = FL.GROUPS.filter(function (g) { return g.field === field; })[0];
+    return hit || { keys: [] };
+  }
+
+  /**
+   * One descriptor per filterable field, plus the four filters derived from
+   * data quality rather than from a property attribute. Computed from `rows`
+   * every time, never cached: that is what makes a filter re-enable itself the
+   * instant demo mode goes on or an editor save lands.
+   */
+  FL.availability = function (rows) {
+    var out = S.filterFields.map(function (k) {
+      return entry(k, k, fieldLabel(k), groupFor(k).keys, coverageOf(rows, k), false);
+    });
+
+    out.push(entry('confidence', null, t('filter.confidence.label'), ['confidence'],
+                   { n: rows.length, N: rows.length }, true));
+    out.push(entry('completeness', null, t('filter.completeness.label'), ['completeness'],
+                   { n: rows.length, N: rows.length }, true));
+
+    /* Coverage for freshness is the coverage of the date it is computed from.
+       Asking 04-quality for each record's full per-field state here would cost
+       ~12 ms on 148 records, on every render, to answer a question a single
+       `lastVerifiedAt` already answers. The FILTER still uses the exact state —
+       it just does not pay for it when nobody has asked for it. */
+    var dated = 0;
+    rows.forEach(function (r) {
+      if (r._meta && U.isKnown(r._meta.lastVerifiedAt)) dated++;
+    });
+    out.push(entry('freshness', null, t('filter.freshness.label'), ['freshness'],
+                   { n: dated, N: rows.length }, true));
+
+    var dupIds = duplicateIds(rows), flagged = 0;
+    var tests = FL.FLAGS.map(function (fg) { return flagTest(fg, dupIds); });
+    rows.forEach(function (r) {
+      for (var i = 0; i < tests.length; i++) {
+        if (tests[i](r)) { flagged++; return; }
+      }
+    });
+    out.push(entry('flags', null, t('filter.flags.label'), ['flags'],
+                   { n: flagged, N: rows.length }, true, 'filter.flags.none'));
+
+    return out;
+  };
+
+  /* --------------------------------------------------------------- ranges */
+
+  /**
+   * The min and max actually present for each numeric filter, so a slider spans
+   * the data rather than an invented range. `null` for a field nothing records —
+   * an invented 0–100 track would imply a distribution that does not exist.
+   */
+  FL.ranges = function (rows) {
+    var out = {};
+    FL.NUMERIC_FIELDS.forEach(function (k) {
+      var vals = GEO.analytics.known(rows, k);
+      out[k] = vals.length
+        ? { field: k, min: Math.min.apply(null, vals), max: Math.max.apply(null, vals),
+            n: vals.length, N: rows.length }
+        : null;
+    });
+    return out;
+  };
+
+  /* ------------------------------------------------------------- describe */
+
+  /** The display label for one filter value. `district` resolves through the
+   *  dataset because a district name is data, not interface copy. */
+  FL.valueLabel = function (kind, value) {
+    switch (kind) {
+      case 'district':     return GEO.data.districtName(value);
+      case 'class':        return CLASS_I18N[value] ? t('value.class.' + CLASS_I18N[value]) : String(value);
+      case 'status':       return STATUS_I18N[value] ? t('value.status.' + STATUS_I18N[value]) : String(value);
+      case 'amenity':      return AMENITY_I18N[value] ? t('value.amenity.' + AMENITY_I18N[value]) : String(value);
+      case 'confidence':   return t('value.confidence.' + String(value).toLowerCase());
+      case 'completeness': return t('value.completeness.' + value);
+      case 'freshness':    return t('value.freshness.' + value);
+      case 'flag':         return t('value.flag.' + value);
+      default:             return String(value);
+    }
+  };
+
+  function labelled(values, kind) {
+    return values.map(function (v) { return FL.valueLabel(kind, v); }).join(', ');
+  }
+
+  /* Units belong in the sentence: this string ends up in a CSV header and in an
+     AI layer's criteria, where "up to 30" without a unit is a future argument. */
+  function valueText(field, v) {
+    switch (field) {
+      case 'askingRent': return F.rent(v);
+      case 'gla': case 'availableArea': return F.area(v);
+      case 'vacancyPct': case 'occupancyPct': return F.pct(v, 1);
+      case 'parkingSpaces': return F.int(v);
+      default: return F.num(v, 1);
+    }
+  }
+
+  function rangeText(field, lo, hi) {
+    if (lo === null && hi === null) return null;
+    var label = fieldLabel(field);
+    if (lo !== null && hi !== null) {
+      return t('filter.describe.between',
+               { field: label, min: valueText(field, lo), max: valueText(field, hi) });
+    }
+    if (lo !== null) return t('filter.describe.from', { field: label, min: valueText(field, lo) });
+    return t('filter.describe.upTo', { field: label, max: valueText(field, hi) });
+  }
+
+  /**
+   * One short sentence naming the active filters — the CSV export header, the
+   * assistant's layer criteria and the URL-state summary all read this, so a
+   * saved result set can always be traced back to the rule that produced it.
+   * Empty string when nothing is active, so callers can fall back with `||`.
+   */
+  FL.describe = function (filters) {
+    var f = FL.normalise(filters), parts = [];
+
+    if (f.q) parts.push(t('filter.describe.q', { q: f.q }));
+    if (f.districts.length) {
+      parts.push(t('filter.describe.districts', { list: labelled(f.districts, 'district') }));
+    }
+    if (f.classes.length) {
+      parts.push(t('filter.describe.classes', { list: labelled(f.classes, 'class') }));
+    } else if (f.includeUnknownClass === false) {
+      parts.push(t('filter.describe.classKnownOnly'));
+    }
+    if (f.statuses.length) {
+      parts.push(t('filter.describe.statuses', { list: labelled(f.statuses, 'status') }));
+    }
+
+    [rangeText('gla', f.glaMin, f.glaMax),
+     rangeText('askingRent', f.rentMin, f.rentMax),
+     rangeText('vacancyPct', f.vacancyMin, f.vacancyMax)]
+      .forEach(function (s) { if (s) parts.push(s); });
+
+    if (f.parkingMin !== null) {
+      parts.push(t('filter.describe.atLeast', { field: fieldLabel('parkingSpaces'),
+                                                min: valueText('parkingSpaces', f.parkingMin) }));
+    }
+    if (f.amenities.length) {
+      parts.push(t('filter.describe.amenities', { list: labelled(f.amenities, 'amenity') }));
+    }
+    if (f.confidence.length) {
+      parts.push(t('filter.describe.confidence', { list: labelled(f.confidence, 'confidence') }));
+    }
+    if (f.completeness.length) {
+      parts.push(t('filter.describe.completeness', { list: labelled(f.completeness, 'completeness') }));
+    }
+    if (f.freshness.length) {
+      parts.push(t('filter.describe.freshness', { list: labelled(f.freshness, 'freshness') }));
+    }
+    if (f.flags.length) {
+      parts.push(t('filter.describe.flags', { list: labelled(f.flags, 'flag') }));
+    }
+
+    // ' · ' is punctuation, not copy — the same separator 08-analytics uses.
+    return parts.join(' · ');
+  };
+
+  /* ----------------------------------------------------------- URL state */
+
+  /* M9: a test session must be reproducible from a link, so the filter set
+     serialises to a compact hash and back without loss. Codes are short because
+     the whole thing has to survive being pasted into a chat message. */
+  var HASH = [
+    { code: 'q',  type: 'text',   keys: ['q'] },
+    { code: 'd',  type: 'list',   keys: ['districts'] },
+    { code: 'c',  type: 'list',   keys: ['classes'] },
+    { code: 'u',  type: 'bool',   keys: ['includeUnknownClass'] },
+    { code: 's',  type: 'list',   keys: ['statuses'] },
+    { code: 'g',  type: 'range',  keys: ['glaMin', 'glaMax'] },
+    { code: 'r',  type: 'range',  keys: ['rentMin', 'rentMax'] },
+    { code: 'v',  type: 'range',  keys: ['vacancyMin', 'vacancyMax'] },
+    { code: 'p',  type: 'number', keys: ['parkingMin'] },
+    { code: 'a',  type: 'list',   keys: ['amenities'] },
+    { code: 'cf', type: 'list',   keys: ['confidence'] },
+    { code: 'cp', type: 'list',   keys: ['completeness'] },
+    { code: 'fr', type: 'list',   keys: ['freshness'] },
+    { code: 'fl', type: 'list',   keys: ['flags'] }
+  ];
+
+  var HASH_BY_CODE = {};
+  HASH.forEach(function (h) { HASH_BY_CODE[h.code] = h; });
+
+  function enc(s) { return encodeURIComponent(String(s)); }
+  function dec(s) {
+    // A hand-edited URL can carry a lone '%', which decodeURIComponent throws on.
+    try { return decodeURIComponent(s); } catch (e) { return s; }
+  }
+
+  /** Filters -> hash string (no leading '#'). Defaults are omitted, so the URL
+   *  stays short and only carries what the tester actually changed. */
+  FL.toHash = function (filters) {
+    var f = FL.normalise(filters), d = FL.defaults(), out = [];
+    HASH.forEach(function (h) {
+      var a = h.keys[0], b = h.keys[1];
+      if (h.type === 'text') {
+        if (f[a]) out.push(h.code + '=' + enc(f[a]));
+      } else if (h.type === 'list') {
+        if (f[a].length) out.push(h.code + '=' + f[a].map(enc).join(','));
+      } else if (h.type === 'bool') {
+        if (f[a] !== d[a]) out.push(h.code + '=' + (f[a] ? '1' : '0'));
+      } else if (h.type === 'number') {
+        if (f[a] !== null) out.push(h.code + '=' + f[a]);
+      } else if (h.type === 'range') {
+        if (f[a] !== null || f[b] !== null) {
+          out.push(h.code + '=' + (f[a] === null ? '' : f[a]) + ':' + (f[b] === null ? '' : f[b]));
+        }
+      }
+    });
+    return out.join('&');
+  };
+
+  /** Hash string -> a complete filter object. An unrecognised code, or a value
+   *  outside its vocabulary, is ignored rather than thrown: a stale link from a
+   *  previous build must still open the app. */
+  FL.fromHash = function (str) {
+    var f = U.clone(FL.defaults());
+    String(str === null || str === undefined ? '' : str)
+      .replace(/^#/, '').split('&').forEach(function (pair) {
+        if (!pair) return;
+        var i = pair.indexOf('=');
+        var h = HASH_BY_CODE[i < 0 ? pair : pair.slice(0, i)];
+        if (!h) return;
+        var raw = i < 0 ? '' : pair.slice(i + 1);
+        var a = h.keys[0], b = h.keys[1];
+
+        if (h.type === 'text') {
+          f[a] = dec(raw);
+        } else if (h.type === 'list') {
+          f[a] = raw === '' ? [] : raw.split(',').map(dec);
+        } else if (h.type === 'bool') {
+          f[a] = (raw === '1' || raw === 'true');
+        } else if (h.type === 'number') {
+          f[a] = num(dec(raw));
+        } else if (h.type === 'range') {
+          var bits = raw.split(':');
+          f[a] = bits[0] === '' ? null : num(dec(bits[0]));
+          f[b] = (bits.length > 1 && bits[1] !== '') ? num(dec(bits[1])) : null;
+        }
+      });
+    return FL.normalise(f);
+  };
+}(window));
+
+</script>
+<script>
+/* ==== src/js/07-search.js ==== */
+/* ===========================================================================
+ * 07-search — normalisation, transliteration, the folded index
+ *
+ * Constraint T9. This dataset is mixed-script: 100 of 109 addresses and 12 of
+ * 148 names are Cyrillic, district keys are Latin, and one record is spelled
+ * `Infinity Business Сenter` with U+0421 CYRILLIC CAPITAL ES where a Latin C
+ * belongs. `indexOf` over the raw strings answers "no match" to every question
+ * a Tashkent broker actually asks, so every string — query and target alike —
+ * is folded to a Latin skeleton before it is compared.
+ *
+ * TWO foldings, not one, and this is the decision worth explaining.
+ * Cyrillic has letters that LOOK like a Latin letter and letters that SOUND
+ * like a different one, and they are frequently the same letter:
+ *
+ *     р  looks like p,  sounds like r        н  looks like h,  sounds like n
+ *     с  looks like c,  sounds like s        в  looks like b,  sounds like v
+ *     у  looks like y,  sounds like u        х  looks like x,  sounds like h
+ *
+ * A visual folding is what makes `Infinity Business Center` find the record
+ * with the Cyrillic С — the source of that bug is a lookalike glyph. A phonetic
+ * folding is what makes `Chilanzar` find the address `Чиланзар 1-й квартал` and
+ * `Mirabad` find `Мирабад` — those users are typing a transliteration, not a
+ * lookalike. Neither folding alone answers both, so `fold()` is the visual one
+ * (the contract's canonical form, homoglyphs first, then the translit table)
+ * and `foldPhonetic()` is its phonetic sibling. Every indexed string is stored
+ * in both forms, every query is folded both ways, and a hit in either is a hit.
+ * The cost is a doubled index over 156 records; the benefit is that the two
+ * genuinely different user intents both work.
+ *
+ * District spelling variants (Mirabad/Mirobod, Chilanzar/Chilonzor …) are NOT
+ * fuzzy-matched. They are an explicit alias table, because "Yunusabad" and
+ * "Yunusobod" are two names for one administrative district — a fact about
+ * Tashkent, not a typo to be guessed at. Edit distance would also happily
+ * equate Mirobod with Mirzo, which is a different district.
+ *
+ * Public API:
+ *   fold(s) / foldPhonetic(s)   -> the folded skeletons
+ *   buildIndex(rows)            -> precompute `_search` per record (boot + data:changed)
+ *   query(rows, q, opts)        -> { items, districts, total, … } for the typeahead
+ *   matchesRecord(rec, q)       -> the boolean behind the `q` filter, so the search
+ *                                  box and the filter panel cannot disagree
+ * ========================================================================= */
+(function (w) {
+  'use strict';
+
+  var GEO = w.GEO, U = GEO.util;
+
+  function t(key, vars) { return GEO.i18n ? GEO.i18n.t(key, vars) : key; }
+
+  var S = GEO.search = {};
+
+  /* ======================================================== transliteration */
+
+  /* Cyrillic letters whose lowercase glyph is a Latin letter's twin. This is
+     the mapping that repairs homoglyph contamination in scraped text. */
+  var HOMOGLYPH = {
+    'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'у': 'y', 'х': 'x',
+    'к': 'k', 'м': 'm', 'н': 'h', 'в': 'b', 'т': 't',
+    'і': 'i', 'ј': 'j', 'ѕ': 's'            // Ukrainian/Macedonian lookalikes
+  };
+
+  /* Everything else, transliterated explicitly. No rule engine: an explicit
+     table is auditable, and the letters that matter here (ў қ ғ ҳ) are Uzbek
+     Cyrillic, which no generic RU table covers. */
+  var TRANSLIT = {
+    'б': 'b', 'г': 'g', 'д': 'd', 'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y',
+    'л': 'l', 'п': 'p', 'ф': 'f', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch',
+    'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya', 'ё': 'e',
+    'ў': 'o', 'қ': 'q', 'ғ': 'g', 'ҳ': 'h', 'ҷ': 'j', 'ҩ': 'h',
+    'є': 'e', 'ї': 'i', 'ґ': 'g', 'ң': 'n', 'ә': 'a', 'ө': 'o', 'ү': 'u'
+  };
+
+  /* The six letters where the eye and the ear disagree. Applied on top of the
+     canonical table to produce the phonetic skeleton. */
+  var PHONETIC = { 'р': 'r', 'с': 's', 'у': 'u', 'х': 'h', 'н': 'n', 'в': 'v' };
+
+  function merge() {
+    var out = {}, i, k;
+    for (i = 0; i < arguments.length; i++) {
+      for (k in arguments[i]) {
+        if (Object.prototype.hasOwnProperty.call(arguments[i], k)) out[k] = arguments[i][k];
+      }
+    }
+    return out;
+  }
+
+  var CANONICAL = merge(TRANSLIT, HOMOGLYPH);          // homoglyphs win
+  var SOUNDED   = merge(TRANSLIT, HOMOGLYPH, PHONETIC);
+
+  /* Precomposed Latin letters that NFD does not decompose (ø, ß, æ) plus the
+     common accented forms, so the fold still works where String.normalize is
+     missing — it is ES6, and this build must parse and run in an old tablet
+     browser. */
+  var LATIN_FOLD = {
+    'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'ä': 'a', 'å': 'a', 'ā': 'a', 'ă': 'a',
+    'æ': 'ae', 'ç': 'c', 'ć': 'c', 'č': 'c',
+    'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e', 'ē': 'e', 'ę': 'e', 'ě': 'e',
+    'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i', 'ī': 'i', 'ı': 'i',
+    'ñ': 'n', 'ń': 'n', 'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ö': 'o',
+    'ø': 'o', 'ō': 'o', 'ő': 'o',
+    'ù': 'u', 'ú': 'u', 'û': 'u', 'ü': 'u', 'ū': 'u', 'ů': 'u',
+    'ý': 'y', 'ÿ': 'y', 'ß': 'ss', 'œ': 'oe', 'š': 's', 'ś': 's', 'ş': 's',
+    'ž': 'z', 'ź': 'z', 'ż': 'z', 'ř': 'r', 'ł': 'l', 'đ': 'd', 'ğ': 'g', 'ț': 't'
+  };
+
+  var CAN_NORMALIZE = (typeof String.prototype.normalize === 'function');
+
+  var RE_CYRILLIC  = /[Ѐ-ԯ]/g;
+  var RE_COMBINING = /[̀-ͯ]/g;
+  var RE_LATIN_EXT = /[À-ɏ]/g;
+  var RE_NOISE     = /[^a-z0-9]+/g;
+
+  /* Cyrillic characters this build has no mapping for, reported once each. A
+     silent drop would show up later as "search cannot find that building" with
+     no way to trace it; the log line names the character. */
+  var unmapped = {};
+
+  function skeleton(s, table) {
+    if (s === null || s === undefined) return '';
+    var x = String(s).toLowerCase();
+
+    // Cyrillic BEFORE decomposition: ё, й and ў decompose to е, и, у plus a
+    // combining mark, and stripping the mark first would silently turn ў ("o")
+    // into у ("y"/"u") — the Uzbek spellings would stop matching.
+    x = x.replace(RE_CYRILLIC, function (c) {
+      if (typeof table[c] === 'string') return table[c];
+      if (!unmapped[c]) {
+        unmapped[c] = true;
+        GEO.log.warn('search: no transliteration for "' + c + '" (U+' +
+                     c.charCodeAt(0).toString(16).toUpperCase() + ') — folded to a separator');
+      }
+      return ' ';
+    });
+
+    if (CAN_NORMALIZE) x = x.normalize('NFD').replace(RE_COMBINING, '');
+    x = x.replace(RE_LATIN_EXT, function (c) { return LATIN_FOLD[c] || c; });
+
+    // Punctuation, quotes and anything still unmapped become separators, so
+    // "Mirzo-Ulugbek", "Mirzo Ulugbek" and "mirzo  ulugbek" are one string.
+    return x.replace(RE_NOISE, ' ').trim();
+  }
+
+  /** The canonical fold: lowercase, homoglyphs to their Latin twins, the rest
+   *  transliterated, diacritics stripped, punctuation collapsed. */
+  S.fold = function (s) { return skeleton(s, CANONICAL); };
+
+  /** The phonetic fold — identical for Latin input, and the reason a typed
+   *  transliteration finds Cyrillic source text. */
+  S.foldPhonetic = function (s) { return skeleton(s, SOUNDED); };
+
+  /** Both skeletons of one string. `p === f` for anything already Latin. */
+  S.variants = function (s) { return { f: S.fold(s), p: S.foldPhonetic(s) }; };
+
+  var variants = S.variants;
+
+  /* ============================================================== districts */
+
+  /* Latin spellings of the same district that both appear in this market's
+     documents. The Russian and Uzbek spellings are NOT listed here — they are
+     folded out of `districts[]` in the seed, so the alias set stays in step
+     with the data instead of drifting from a hand-written copy. */
+  var LATIN_ALIASES = {
+    'mirobod':       ['Mirabad'],
+    'yunusobod':     ['Yunusabad'],
+    'chilonzor':     ['Chilanzar'],
+    'shayxontohur':  ['Shaykhantakhur', 'Shayhantahur'],
+    'yashnobod':     ['Yashnabad'],
+    'yakkasaroy':    ['Yakkasaray'],
+    'olmazor':       ['Almazar'],                  // the seed's RU name is Алмазар
+    'mirzo-ulugbek': ['Mirzo Ulughbek', 'Mirzo Ulugbeg']
+  };
+
+  var districtIndex = null;
+
+  function buildDistrictIndex() {
+    var idx = {};
+    var list = (GEO.data && GEO.data.districts) ? GEO.data.districts() : [];
+    list.forEach(function (d) {
+      var seen = {}, aliases = [];
+      var words = [d.key, d.name, d.nameRu, d.nameUz].concat(LATIN_ALIASES[d.key] || []);
+      words.forEach(function (word) {
+        if (!U.isKnown(word)) return;
+        var v = variants(word);
+        if (!v.f || seen[v.f + '|' + v.p]) return;
+        seen[v.f + '|' + v.p] = true;
+        aliases.push(v);
+      });
+      idx[d.key] = { key: d.key, label: d.name, aliases: aliases };
+    });
+    return idx;
+  }
+
+  function districts() {
+    if (!districtIndex) districtIndex = buildDistrictIndex();
+    return districtIndex;
+  }
+
+  /* ================================================================= index */
+
+  /* Bumped by buildIndex(). A record carries the version its blob was built
+     at, so an edited or re-imported record re-folds lazily instead of serving
+     a stale skeleton — the failure mode where a renamed building is still
+     findable only under its old name. */
+  var version = 0;
+
+  function joinVariants(parts, key) {
+    var out = [];
+    parts.forEach(function (p) { if (p && p[key]) out.push(p[key]); });
+    return out.join(' ');
+  }
+
+  function tenantName(entry) {
+    if (!entry) return null;
+    if (typeof entry === 'string') return entry;          // imported files use plain strings
+    return U.isKnown(entry.name) ? entry.name : null;
+  }
+
+  function build(rec) {
+    var name = variants(rec.name);
+
+    var alt = [];
+    (rec.altNames || []).forEach(function (a) {
+      if (U.isKnown(a)) alt.push({ text: a, v: variants(a) });
+    });
+
+    var address = variants(rec.address);
+
+    var tenants = [];
+    (rec.tenants || []).forEach(function (entry) {
+      var nm = tenantName(entry);
+      if (nm) tenants.push({ text: nm, v: variants(nm) });
+    });
+
+    // The district goes in under every spelling it has, which is what makes
+    // "Mirabad" return the 28 Mirobod buildings whose own addresses are Cyrillic.
+    var d = districts()[rec.districtKey] || null;
+
+    var all = [name, address, variants(rec.id)]
+      .concat(alt.map(function (a) { return a.v; }))
+      .concat(tenants.map(function (x) { return x.v; }))
+      .concat(d ? d.aliases : []);
+
+    return {
+      v: version,
+      idRaw: String(rec.id || '').toLowerCase(),
+      name: name,
+      alt: alt,
+      address: address,
+      tenants: tenants,
+      district: d,
+      blob: { f: joinVariants(all, 'f'), p: joinVariants(all, 'p') }
+    };
+  }
+
+  /* Non-enumerable on purpose: `_search` is a derived cache, and JSON.stringify
+     skips it. An enumerable copy would ride along into every export file and
+     come back in the next import as data that looks authoritative and is not. */
+  function attach(rec, blob) {
+    try {
+      Object.defineProperty(rec, '_search', {
+        value: blob, writable: true, enumerable: false, configurable: true
+      });
+    } catch (e) {
+      try { rec._search = blob; }
+      catch (e2) { /* frozen record — blobFor() just recomputes each time */ }
+    }
+  }
+
+  function blobFor(rec) {
+    var ix = rec._search;
+    if (ix && ix.v === version) return ix;
+    ix = build(rec);
+    attach(rec, ix);
+    return ix;
+  }
+
+  /** Fold one record now and cache it. Returns the blob. */
+  S.indexRecord = function (rec) { return blobFor(rec); };
+
+  /**
+   * Precompute the folded blob for every record. Called at boot and on every
+   * `data:changed`; cheap enough (≈1 ms for 156 records) that rebuilding twice
+   * costs nothing, while missing a rebuild is a correctness bug.
+   */
+  S.buildIndex = function (rows) {
+    version++;
+    districtIndex = null;                 // an import can replace districts too
+    var list = rows || (GEO.data ? GEO.data.observed().concat(GEO.data.demoRecords()) : []);
+    list.forEach(blobFor);
+    return { records: list.length, version: version };
+  };
+
+  GEO.on('data:changed', function () { S.buildIndex(); });
+
+  /* ================================================================ query */
+
+  /* Both skeletons of the query plus its tokens. Tokens are folded from the
+     RAW words, not by splitting a folded string, so the visual and phonetic
+     token lists always line up index for index. */
+  function compile(q) {
+    var raw = (q === null || q === undefined) ? '' : String(q);
+    var out = { raw: raw.toLowerCase().replace(/\s+/g, ' ').trim(),
+                f: S.fold(raw), p: S.foldPhonetic(raw), tokens: [] };
+    raw.split(/\s+/).forEach(function (word) {
+      var v = variants(word);
+      if (v.f) out.tokens.push(v);
+    });
+    return out;
+  }
+
+  /* The filter engine calls matchesRecord() once per record per keystroke;
+     one-entry memoisation keeps that to one fold of the query, not 156. */
+  var lastQ = null;
+  function compileCached(q) {
+    var raw = (q === null || q === undefined) ? '' : String(q);
+    if (lastQ && lastQ.src === raw) return lastQ.v;
+    var v = compile(raw);
+    lastQ = { src: raw, v: v };
+    return v;
+  }
+
+  S.compile = compileCached;
+
+  var SCORE = S.SCORE = {
+    nameExact: 100, altExact: 92, id: 90,
+    namePrefix: 80, altPrefix: 72,
+    nameContains: 60, altContains: 54,
+    address: 40, tenant: 30, district: 20, tokens: 10,
+    wordBoundary: 4        // a hit that starts a word beats one buried mid-word
+  };
+
+  var DISTRICT_SCORE = { exact: 100, prefix: 80, contains: 60 };
+
+  /** 'exact' | 'prefix' | 'contains' | null, over whichever skeleton hits. */
+  function tier(v, q) {
+    if (!q.f || !v || !v.f) return null;
+    if (v.f === q.f || v.p === q.p) return 'exact';
+    if (v.f.indexOf(q.f) === 0 || v.p.indexOf(q.p) === 0) return 'prefix';
+    if (v.f.indexOf(q.f) >= 0 || v.p.indexOf(q.p) >= 0) return 'contains';
+    return null;
+  }
+
+  function wordHit(hay, needle) {
+    if (!hay || !needle) return false;
+    var i = hay.indexOf(needle);
+    while (i >= 0) {
+      if (i === 0 || hay.charAt(i - 1) === ' ') return true;
+      i = hay.indexOf(needle, i + 1);
+    }
+    return false;
+  }
+
+  function boundaryBonus(v, q) {
+    return (wordHit(v.f, q.f) || wordHit(v.p, q.p)) ? SCORE.wordBoundary : 0;
+  }
+
+  function everyToken(blob, q) {
+    if (!q.tokens.length) return false;
+    return q.tokens.every(function (tok) {
+      return blob.f.indexOf(tok.f) >= 0 || blob.p.indexOf(tok.p) >= 0;
+    });
+  }
+
+  var TIER_KEY = { exact: 'Exact', prefix: 'Prefix', contains: 'Contains' };
+
+  var MATCH_LABEL = {
+    name:     'search.matched.name',
+    altName:  'search.matched.altName',
+    address:  'search.matched.address',
+    tenant:   'search.matched.tenant',
+    district: 'search.matched.district',
+    id:       'search.matched.id',
+    tokens:   'search.matched.tokens'
+  };
+
+  /**
+   * Rank one record against a compiled query.
+   * Order (T9 / §18): exact name > name prefix > name substring > address >
+   * tenant > district. `null` when nothing matched.
+   */
+  function scoreRecord(rec, q) {
+    var ix = blobFor(rec);
+    var best = null;
+
+    function offer(score, matchedOn, snippet) {
+      if (!best || score > best.score) {
+        best = { score: score, matchedOn: matchedOn, snippet: snippet };
+      }
+    }
+
+    if (q.raw && ix.idRaw === q.raw) offer(SCORE.id, 'id', rec.id);
+
+    var ti = tier(ix.name, q);
+    if (ti) {
+      offer(SCORE['name' + TIER_KEY[ti]] + (ti === 'contains' ? boundaryBonus(ix.name, q) : 0),
+            'name', rec.name);
+    }
+
+    ix.alt.forEach(function (a) {
+      var at = tier(a.v, q);
+      if (at) {
+        offer(SCORE['alt' + TIER_KEY[at]] + (at === 'contains' ? boundaryBonus(a.v, q) : 0),
+              'altName', a.text);
+      }
+    });
+
+    if (tier(ix.address, q)) {
+      offer(SCORE.address + boundaryBonus(ix.address, q), 'address', rec.address);
+    }
+
+    ix.tenants.forEach(function (x) {
+      if (tier(x.v, q)) offer(SCORE.tenant, 'tenant', x.text);
+    });
+
+    if (ix.district && ix.district.aliases.some(function (a) { return !!tier(a, q); })) {
+      offer(SCORE.district, 'district', ix.district.label);
+    }
+
+    // Last resort: every word of the query appears somewhere in the record,
+    // just not contiguously ("Renaissance Yunusobod"). Ranked below every
+    // field-specific hit so it can never outrank a real name match.
+    if (!best && q.tokens.length > 1 && everyToken(ix.blob, q)) {
+      offer(SCORE.tokens, 'tokens', rec.address || rec.name || GEO.fmt.UNKNOWN);
+    }
+
+    return best;
+  }
+
+  /** sort() is not stable in every engine this must run in, so the comparator
+   *  is a total order: score, then the shorter (more specific) name, then id. */
+  function byRank(a, b) {
+    if (b.score !== a.score) return b.score - a.score;
+    var an = String(a.record.name || ''), bn = String(b.record.name || '');
+    if (an.length !== bn.length) return an.length - bn.length;
+    if (an !== bn) return an < bn ? -1 : 1;
+    return String(a.record.id) < String(b.record.id) ? -1 : 1;
+  }
+
+  function districtResults(q, rows) {
+    var idx = districts(), counts = {}, out = [];
+
+    (rows || []).forEach(function (r) {
+      if (U.isKnown(r.districtKey)) counts[r.districtKey] = (counts[r.districtKey] || 0) + 1;
+    });
+
+    Object.keys(idx).forEach(function (key) {
+      var d = idx[key], best = 0;
+      d.aliases.forEach(function (a) {
+        var ti = tier(a, q);
+        // A one- or two-character substring matches half the districts; a
+        // prefix of the same length is a real intent, so only `contains` is held back.
+        if (!ti || (ti === 'contains' && q.f.length < 3)) return;
+        if (DISTRICT_SCORE[ti] > best) best = DISTRICT_SCORE[ti];
+      });
+      if (best) out.push({ key: key, name: d.label, count: counts[key] || 0, score: best });
+    });
+
+    out.sort(function (a, b) {
+      if (b.score !== a.score) return b.score - a.score;
+      if (b.count !== a.count) return b.count - a.count;
+      return a.name < b.name ? -1 : 1;
+    });
+    return out;
+  }
+
+  /**
+   * Ranked search over `rows`.
+   *
+   * @param rows  the records in scope — always passed in, never read from the
+   *              repository here, so a search inside a filtered view or a demo-
+   *              free working set searches exactly what the user is looking at.
+   * @param opts  { limit: 8, districts: true }
+   * @returns { items:[{record,score,matchedOn,matchedLabel,snippet}], districts:[{key,name,count}],
+   *            total, truncated, noQuery, q, folded }
+   *
+   * `total` is the TRUE number of matches, not the capped one — "See all N
+   * results" has to be honest about N or the row is a lie (§29).
+   */
+  S.query = function (rows, q, opts) {
+    opts = opts || {};
+    var limit = (opts.limit === undefined || opts.limit === null) ? 8 : opts.limit;
+    var qv = compileCached(q);
+
+    var out = {
+      q: (q === null || q === undefined) ? '' : String(q),
+      folded: qv.f, phonetic: qv.p,
+      items: [], districts: [], total: 0, truncated: false,
+      // An empty query is not "no results": the caller must be able to tell
+      // "nothing typed" from "typed, found nothing" or it renders the E-04
+      // empty state over an empty search box.
+      noQuery: !qv.f
+    };
+    if (out.noQuery) return out;
+
+    var hits = [];
+    (rows || []).forEach(function (rec) {
+      if (!rec) return;
+      var h = scoreRecord(rec, qv);
+      if (h) { h.record = rec; hits.push(h); }
+    });
+    hits.sort(byRank);
+
+    out.total = hits.length;
+    var capped = (limit < 0) ? hits : hits.slice(0, limit);
+    out.items = capped.map(function (h) {
+      return {
+        record: h.record,
+        score: h.score,
+        matchedOn: h.matchedOn,
+        matchedLabel: t(MATCH_LABEL[h.matchedOn] || MATCH_LABEL.name),
+        snippet: h.snippet
+      };
+    });
+    out.truncated = out.total > out.items.length;
+    out.districts = opts.districts === false ? [] : districtResults(qv, rows || []);
+    return out;
+  };
+
+  /**
+   * The predicate behind the `q` filter. The search box and the filter panel
+   * call the same function, so they cannot disagree about what "matches".
+   *
+   * An empty (or punctuation-only) term is NOT a filter that excludes
+   * everything — it is the absence of a filter, and returns true.
+   */
+  S.matchesRecord = function (rec, q) {
+    if (!rec) return false;
+    var qv = compileCached(q);
+    if (!qv.f) return true;
+    return scoreRecord(rec, qv) !== null;
+  };
+
+  /** What the folding actually did to a query — feeds the assistant's
+   *  "How this was answered" disclosure (D13) and makes T9 debuggable. */
+  S.explain = function (q) {
+    var qv = compileCached(q);
+    return {
+      raw: qv.raw,
+      folded: qv.f,
+      phonetic: qv.p,
+      tokens: qv.tokens.map(function (v) { return v.f; }),
+      districts: districtResults(qv, GEO.data ? GEO.data.observed() : [])
+                   .map(function (d) { return d.key; }),
+      unmappedCharacters: Object.keys(unmapped)
+    };
+  };
+
+  /** Index version + the characters this build could not transliterate.
+   *  Surfaced by the self-test rather than hidden in a console line. */
+  S.stats = function () {
+    return { version: version, unmappedCharacters: Object.keys(unmapped) };
+  };
+}(window));
+
+</script>
+<script>
 /* ==== src/js/08-analytics.js ==== */
 /* ===========================================================================
  * 08-analytics — metrics, aggregation, and the missing-data rules
@@ -9889,6 +11274,17 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     catch (e) { GEO.log.error('filters.apply threw', e); return rows; }
   }
 
+  /** The state keys one filter group owns. 06-filters publishes this as
+   *  `FL.GROUPS`, and taking it from there rather than repeating it keeps the
+   *  panel and the predicate engine from drifting apart over time. */
+  function groupKeys(group, fallback) {
+    if (GEO.filters && GEO.filters.GROUPS) {
+      var hit = GEO.filters.GROUPS.filter(function (g) { return g.key === group; })[0];
+      if (hit && hit.keys) return hit.keys;
+    }
+    return fallback;
+  }
+
   /** Cross-filtering (L-05): a group's option counts are computed against every
    *  OTHER active filter, so ticking Yunusobod does not make every other
    *  district read (0) and strand the user. */
@@ -9899,6 +11295,19 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return applyFilters(scope, f);
   }
 
+  /** Chip and option labels go through the filter module's own vocabulary where
+   *  it has one, so a chip in this panel reads the same as the sentence in an
+   *  export header or an AI layer's criteria. */
+  function valueLabel(kind, value, fallback) {
+    if (GEO.filters && GEO.filters.valueLabel) {
+      try {
+        var s = GEO.filters.valueLabel(kind, value);
+        if (usable(s)) return s;
+      } catch (e) { /* fall through */ }
+    }
+    return fallback;
+  }
+
   function countBy(rows, fn) {
     var o = {};
     rows.forEach(function (r) {
@@ -9907,6 +11316,17 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       o[k] = (o[k] || 0) + 1;
     });
     return o;
+  }
+
+  /**
+   * `GEO.i18n.t` returns the KEY itself when a string is missing, deliberately,
+   * so the gap is visible on screen. That is right in the module that owns the
+   * string and wrong here: a reason line reading `filter.disabled.none` tells a
+   * tester nothing, and this panel can always derive a real sentence instead.
+   * So a borrowed string that still looks like a dotted key is not used.
+   */
+  function usable(s) {
+    return typeof s === 'string' && s !== '' && !/^[a-z][\w]*(\.[\w]+)+$/.test(s);
   }
 
   /** Read one entry out of whatever shape 06-filters returns — a map keyed by
@@ -9942,11 +11362,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       var n = (e && typeof e.n === 'number') ? e.n : c.n;
       var N = (e && typeof e.N === 'number') ? e.N : c.N;
       var open = (e && typeof e.available === 'boolean') ? e.available : n > 0;
+      var derived = open ? null : t('filter.disabled.zero', {
+        m: F.int(N), field: F.lower(S.label(spec.field))
+      });
       out[spec.key] = {
         key: spec.key, field: spec.field, n: n, N: N, available: open,
-        reason: (e && e.reason) || (open ? null : t('filter.disabled.zero', {
-          m: F.int(N), field: F.lower(S.label(spec.field))
-        }))
+        reason: (e && usable(e.reason)) ? e.reason : derived
       };
     });
     return out;
@@ -10048,6 +11469,16 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return t('filter.option.count', { label: '', n: F.int(n) }).replace(/^\s+/, '');
   }
 
+  /* Several notes are two table strings stitched together, and not every locale
+     will punctuate them the same way. Joining here rather than baking a full
+     stop into the table keeps each string reusable on its own. */
+  function sentences() {
+    return Array.prototype.slice.call(arguments)
+      .filter(Boolean)
+      .map(function (s) { return /[.!?]$/.test(s) ? s : s + '.'; })
+      .join(' ');
+  }
+
   /**
    * One filter group: heading, body, an optional permanent note and the §29
    * reason line that appears whenever the group is disabled. The reason is text
@@ -10091,13 +11522,15 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     options.forEach(function (o) {
       var input = el('input', { type: 'checkbox', value: o.value });
       var count = el('span.check__count');
-      var text = el('span.check__text', {}, [document.createTextNode(o.label), count]);
+      var label = document.createTextNode(o.label || '');
+      var text = el('span.check__text', {}, [label, count]);
       var lab = el('label.check', o.title ? { title: o.title } : {}, [input, text]);
       input.addEventListener('change', function () {
         toggleIn(filterKey, o.value, input.checked);
       });
       g.body.appendChild(lab);
-      boxes.push({ value: o.value, input: input, count: count });
+      boxes.push({ value: o.value, input: input, count: count, label: label,
+                   fullLabelKey: o.fullLabelKey || null });
     });
     g.boxes = boxes;
     g.filterKey = filterKey;
@@ -10105,7 +11538,17 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     g.sync = function (selected, counts) {
       boxes.forEach(function (b) {
         b.input.checked = (selected || []).indexOf(b.value) >= 0;
-        b.count.textContent = countText((counts && counts[b.value]) || 0);
+        var n = (counts && counts[b.value]) || 0;
+        if (b.fullLabelKey) {
+          // Some options are worth more than their name: a completeness band
+          // means nothing until it says which counts it covers, so those strings
+          // carry the whole sentence AND the number, and the generic count span
+          // stands down rather than printing the figure twice.
+          b.label.nodeValue = t(b.fullLabelKey, { n: F.int(n) });
+          b.count.textContent = '';
+        } else {
+          b.count.textContent = countText(n);
+        }
       });
     };
     return g;
@@ -10245,7 +11688,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     u.parkingIn = el('input.input.input--num', { type: 'number', id: parkId, min: '0', step: '1' });
     u.parking = group(t('filter.parking.label'));
     u.parking.body.appendChild(el('label.field', { for: parkId }, [
-      el('span.field__label', { text: t('filter.parking.label') }), u.parkingIn
+      el('span.vh', { text: t('filter.parking.label') }), u.parkingIn
     ]));
     u.parkingIn.addEventListener('change', function () {
       commitNumber('parkingMin', 'parkingSpaces', u.parkingIn.value);
@@ -10262,9 +11705,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     u.completeness = checkGroup(t('filter.completeness.label'), 'completeness',
       COMPLETENESS_BANDS.map(function (b) {
-        // The band label already carries its own count slot in the table, so the
-        // generic (n) span is suppressed for this group by using the full string.
-        return { value: b, label: t('value.completeness.' + b) };
+        return { value: b, fullLabelKey: 'filter.completeness.' + b };
       }));
     u.completeness.setNote(t('filter.completeness.note', { m: F.int(S.criticalFields.length) }));
 
@@ -10441,7 +11882,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     // The L-06 headline: selecting grades drops the unrecorded, and says so.
     if ((f.classes || []).length) {
-      var base = baseFor(scope, f, ['classes', 'includeUnknownClass']);
+      var base = baseFor(scope, f, groupKeys('classes', ['classes', 'includeUnknownClass']));
       var noClass = base.filter(function (r) { return !U.isKnown(r.officeClass); }).length;
       if (noClass) out.push(t('filter.excluded.class', { n: F.int(noClass) }));
     }
@@ -10499,10 +11940,10 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     /* --- district ------------------------------------------------------ */
     u.districts.sync(f.districts,
-      countBy(baseFor(scope, f, ['districts']), function (r) { return r.districtKey; }));
+      countBy(baseFor(scope, f, groupKeys('districts', ['districts'])), function (r) { return r.districtKey; }));
 
     /* --- class --------------------------------------------------------- */
-    var classBase = baseFor(scope, f, ['classes', 'includeUnknownClass']);
+    var classBase = baseFor(scope, f, groupKeys('classes', ['classes', 'includeUnknownClass']));
     var classCounts = countBy(classBase, function (r) { return r.officeClass; });
     u.classes.sync(f.classes, classCounts);
     u.unknownClass.checked = !!f.includeUnknownClass;
@@ -10510,17 +11951,20 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     /* --- status: the canonical zero-coverage control -------------------- */
     u.statuses.sync(f.statuses,
-      countBy(baseFor(scope, f, ['statuses']), function (r) { return r.status; }));
+      countBy(baseFor(scope, f, groupKeys('statuses', ['statuses'])), function (r) { return r.status; }));
     u.statuses.setEnabled(avail.statuses.available, avail.statuses.reason);
 
     /* --- rent ----------------------------------------------------------- */
     u.rent.sync(f, rng.askingRent);
     u.rent.setEnabled(avail.rent.available, avail.rent.reason);
+    // R9: every rent figure in the product carries the assumed-unit footnote,
+    // because the source never states the unit. Saying so beside the control is
+    // cheaper than a reader assuming annual and being wrong by a factor of 12.
     u.rent.setNote(avail.rent.available
-      ? t('filter.rent.note', {
+      ? sentences(t('filter.rent.note', {
           n: F.int(avail.rent.n), m: F.int(avail.rent.N),
           excluded: F.int(avail.rent.N - avail.rent.n)
-        }) + ' ' + t('filter.rent.unit')
+        }), t('common.assumedUnit'))
       : null);
 
     /* --- advanced -------------------------------------------------------- */
@@ -10538,7 +11982,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     u.parking.setEnabled(avail.parking.available, avail.parking.reason);
     u.parking.setNote(observedNote(avail.parking, rng.parkingSpaces, 0));
 
-    var amenBase = baseFor(scope, f, ['amenities']);
+    var amenBase = baseFor(scope, f, groupKeys('amenities', ['amenities']));
     var amenCounts = {};
     S.enums.amenity.forEach(function (a) {
       amenCounts[a] = amenBase.filter(function (r) {
@@ -10553,18 +11997,18 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     // confidence is single-valued. A zero-count option stays selectable and
     // produces the named empty state rather than a dead control (L-13).
     u.confidence.sync(f.confidence,
-      countBy(baseFor(scope, f, ['confidence']), function (r) {
+      countBy(baseFor(scope, f, groupKeys('confidence', ['confidence'])), function (r) {
         return GEO.data.recordConfidence(r);
       }));
     u.completeness.sync(f.completeness,
-      countBy(baseFor(scope, f, ['completeness']), function (r) {
+      countBy(baseFor(scope, f, groupKeys('completeness', ['completeness'])), function (r) {
         return completenessOf(r).band;
       }));
     u.freshness.sync(f.freshness,
-      countBy(baseFor(scope, f, ['freshness']), function (r) { return freshnessOf(r); }));
+      countBy(baseFor(scope, f, groupKeys('freshness', ['freshness'])), function (r) { return freshnessOf(r); }));
 
     /* --- flags and scope -------------------------------------------------- */
-    var flagBase = baseFor(scope, f, ['flags']);
+    var flagBase = baseFor(scope, f, groupKeys('flags', ['flags']));
     var flagCounts = {};
     FLAGS.forEach(function (fl) {
       flagCounts[fl.key] = flagBase.filter(fl.test).length;
@@ -10596,13 +12040,17 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     u.moreCount.textContent = advanced ? String(advanced) : '';
   }
 
+  /** An enabled range control still states its denominator: "7 of 156 records
+   *  have a recorded GLA" is the difference between a filter over the market
+   *  and a filter over the seven buildings somebody happened to measure. */
   function observedNote(av, range, dp) {
     if (!av.available || range.min === null) return null;
-    return t('filter.disabled.coverage', {
-      n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
-    }) + ' ' + t('filter.range.observed', {
-      min: F.num(range.min, dp), max: F.num(range.max, dp)
-    });
+    return sentences(
+      t('filter.disabled.coverage', {
+        n: F.int(av.n), m: F.int(av.N), field: F.lower(S.label(av.field))
+      }),
+      t('filter.range.observed', { min: F.num(range.min, dp), max: F.num(range.max, dp) })
+    );
   }
 
   /* ========================================================= registration */
@@ -10845,62 +12293,98 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     catch (e) { GEO.log.error('filters.apply threw', e); return rows; }
   }
 
-  var FILTER_LABELS = {
-    q: 'filter.name.label', districts: 'filter.district.label',
-    classes: 'filter.class.label', includeUnknownClass: 'filter.class.label',
-    statuses: 'filter.status.label',
-    rentMin: 'field.askingRent', rentMax: 'field.askingRent',
-    glaMin: 'field.gla', glaMax: 'field.gla',
-    vacancyMin: 'field.vacancyPct', vacancyMax: 'field.vacancyPct',
-    parkingMin: 'filter.parking.label', amenities: 'filter.amenities.label',
-    confidence: 'filter.confidence.label', completeness: 'filter.completeness.label',
-    freshness: 'filter.freshness.label', flags: 'filter.flags.label'
-  };
+  /* Filter groups, as 06-filters defines them: one human name and the set of
+     state keys it owns. Clearing "asking rent" has to clear BOTH ends of the
+     range, or the escape hatch does not open. The list is only the fallback —
+     `GEO.filters.GROUPS` is preferred whenever it is loaded, so the two cannot
+     drift apart. */
+  var GROUP_FALLBACK = [
+    { key: 'q',            keys: ['q'],                              labelKey: 'filter.name.label' },
+    { key: 'districts',    keys: ['districts'],                      labelKey: 'filter.district.label' },
+    { key: 'classes',      keys: ['classes', 'includeUnknownClass'], labelKey: 'filter.class.label' },
+    { key: 'statuses',     keys: ['statuses'],                       labelKey: 'filter.status.label' },
+    { key: 'gla',          keys: ['glaMin', 'glaMax'],               labelKey: 'field.gla' },
+    { key: 'rent',         keys: ['rentMin', 'rentMax'],             labelKey: 'field.askingRent' },
+    { key: 'vacancy',      keys: ['vacancyMin', 'vacancyMax'],       labelKey: 'field.vacancyPct' },
+    { key: 'parking',      keys: ['parkingMin'],                     labelKey: 'filter.parking.label' },
+    { key: 'amenities',    keys: ['amenities'],                      labelKey: 'filter.amenities.label' },
+    { key: 'confidence',   keys: ['confidence'],                     labelKey: 'filter.confidence.label' },
+    { key: 'completeness', keys: ['completeness'],                   labelKey: 'filter.completeness.label' },
+    { key: 'freshness',    keys: ['freshness'],                      labelKey: 'filter.freshness.label' },
+    { key: 'flags',        keys: ['flags'],                          labelKey: 'filter.flags.label' }
+  ];
+
+  function groups() {
+    if (!GEO.filters || !GEO.filters.GROUPS) return GROUP_FALLBACK;
+    return GEO.filters.GROUPS.map(function (g) {
+      var local = GROUP_FALLBACK.filter(function (x) { return x.key === g.key; })[0];
+      return { key: g.key, keys: g.keys, field: g.field,
+               labelKey: local ? local.labelKey : null };
+    });
+  }
+
+  function groupLabel(g, borrowed) {
+    if (borrowed) return borrowed;                       // explain() already named it
+    if (g && g.labelKey) return t(g.labelKey);
+    if (g && g.field) return S.label(g.field);
+    return t('filter.title');
+  }
+
+  function groupBy(key) {
+    return groups().filter(function (g) { return g.key === key; })[0] || null;
+  }
+
+  function isActive(filters, d, g) {
+    return g.keys.some(function (k) {
+      return JSON.stringify(filters[k]) !== JSON.stringify(d[k]);
+    });
+  }
 
   /**
    * E-02 needs a named escape, so the empty state has to know WHICH filter did
-   * the damage. `GEO.filters.explain` is asked first; when it has no opinion the
-   * same answer is derived by probing each active filter on its own and keeping
-   * the one that survives fewest records.
+   * the damage. `explain()` already computes it — per group, how many records
+   * that group alone removed from the set that passed every other filter — so
+   * the largest of those is the answer without any extra work. Only when the
+   * module is absent does the panel probe each group on its own.
    */
   function narrowest(scope, filters) {
     if (GEO.filters && GEO.filters.explain) {
       try {
         var ex = GEO.filters.explain(scope, filters);
         var n = ex && (ex.narrowest || ex.narrowestFilter);
-        if (n && (n.key || n.label)) {
-          return { key: n.key || null,
-                   label: n.label || t(FILTER_LABELS[n.key] || 'common.filter') };
+        if (n && n.key) {
+          return { group: groupBy(n.key), label: groupLabel(groupBy(n.key), n.label) };
         }
+        var by = ex && ex.excludedBy, best = null;
+        if (by) {
+          Object.keys(by).forEach(function (k) {
+            var e = by[k];
+            if (!e || !e.excluded) return;
+            if (!best || e.excluded > best.excluded) best = e;
+          });
+        }
+        if (best) return { group: groupBy(best.key), label: groupLabel(groupBy(best.key), best.label) };
       } catch (e) { GEO.log.warn('filters.explain threw — probing locally', e); }
     }
+
     var d = GEO.state.defaults().filters;
-    var best = null;
-    Object.keys(d).forEach(function (k) {
-      if (JSON.stringify(filters[k]) === JSON.stringify(d[k])) return;
+    var pick = null;
+    groups().forEach(function (g) {
+      if (!isActive(filters, d, g)) return;
       var only = Object.assign({}, d);
-      only[k] = filters[k];
-      // The unknown-class switch is meaningless on its own, so it is probed
-      // together with the grades it qualifies.
-      if (k === 'classes') only.includeUnknownClass = filters.includeUnknownClass;
-      var n = applyFilters(scope, only).length;
-      if (!best || n < best.n) {
-        best = { key: k, n: n, label: t(FILTER_LABELS[k] || 'common.filter') };
-      }
+      g.keys.forEach(function (k) { only[k] = filters[k]; });
+      var survivors = applyFilters(scope, only).length;
+      if (!pick || survivors < pick.n) pick = { n: survivors, group: g };
     });
-    return best;
+    return pick ? { group: pick.group, label: groupLabel(pick.group, null) } : null;
   }
 
-  function clearFilter(key) {
+  function clearGroup(g) {
+    if (!g) return;
     var d = GEO.state.defaults().filters;
     var p = {};
-    p[key] = d[key];
-    // Ranges are one control with two keys; clearing half of one is not an escape.
-    var pairs = { rentMin: 'rentMax', rentMax: 'rentMin', glaMin: 'glaMax', glaMax: 'glaMin',
-                  vacancyMin: 'vacancyMax', vacancyMax: 'vacancyMin' };
-    if (pairs[key]) p[pairs[key]] = d[pairs[key]];
-    if (key === 'classes') p.includeUnknownClass = d.includeUnknownClass;
-    GEO.state.set({ filters: p }, { source: 'user', action: 'filter:clear:' + key });
+    g.keys.forEach(function (k) { p[k] = d[k]; });
+    GEO.state.set({ filters: p }, { source: 'user', action: 'filter:clear:' + g.key });
   }
 
   /* ================================================================ cards */
@@ -10995,8 +12479,11 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     var missing = MISSING_FIELDS.filter(function (k) { return !U.isKnown(rec[k]); });
     if (missing.length) {
       kids.push(el('p.micro.unk', {
+        // Lowercased through F.lower so the sentence reads as a sentence —
+        // "No address, asking rent, GLA, vacancy, status recorded" — while the
+        // acronyms that are genuinely acronyms survive intact.
         text: t('list.card.missing', {
-          fields: missing.map(function (k) { return S.label(k); }).join(', ')
+          fields: missing.map(function (k) { return F.lower(S.label(k)); }).join(', ')
         })
       }));
     }
@@ -11067,7 +12554,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
           el('div.empty__actions', {}, [
             el('button.btn.btn--ghost', {
               type: 'button', text: t('empty.district.action'),
-              onclick: function () { clearFilter('districts'); }
+              onclick: function () { clearGroup(groupBy('districts')); }
             })
           ])
         ];
@@ -11086,10 +12573,10 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
 
     var worst = narrowest(scope, f);
     var actions = [];
-    if (worst && worst.key) {
+    if (worst && worst.group) {
       actions.push(el('button.btn.btn--ghost', {
         type: 'button', text: t('empty.results.clear', { name: worst.label }),
-        onclick: function () { clearFilter(worst.key); }
+        onclick: function () { clearGroup(worst.group); }
       }));
     }
     actions.push(el('button.btn.btn--quiet', {
@@ -11163,6 +12650,9 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     if (!want) return;
     var li = list.querySelector('.rcard[data-id="' + cssEscape(want.id) + '"]');
     if (!li) return;
+    // The card that gets focus back also takes the list's single tab stop, or
+    // the next Tab would jump to a card the user is not looking at.
+    setRovingStop(list, li);
     var target = want.act ? li.querySelector('[data-act="' + want.act + '"]') : null;
     (target || li).focus();
   }
@@ -11171,6 +12661,20 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
      survive them, not arbitrary user text — but quoting is still cheaper than
      trusting a scraped dataset. */
   function cssEscape(s) { return String(s).replace(/["\\]/g, '\\$&'); }
+
+  /**
+   * Roving tabindex (IA §6.2). The whole list is ONE tab stop, so 148 cards do
+   * not become 148 stops on the way to the map. The per-card Compare and Zoom
+   * buttons are pulled out of the tab order too and put back only on the active
+   * card — otherwise they would quietly reintroduce 296 of them.
+   */
+  function setRovingStop(list, li) {
+    Q.$$('.rcard', list).forEach(function (c) {
+      var on = c === li;
+      c.tabIndex = on ? 0 : -1;
+      Q.$$('[data-act]', c).forEach(function (b) { b.tabIndex = on ? 0 : -1; });
+    });
+  }
 
   /** Cheap pass: selection, hover and compare change often and do not need the
    *  148 cards rebuilding. */
@@ -11197,11 +12701,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       }
     });
 
-    // Roving tabindex (IA §6.2): one tab stop for the whole list, so 148 cards
-    // do not become 148 stops on the way to the map.
-    var cards = Q.$$('.rcard', list);
-    var focusIdx = active ? cards.indexOf(active) : 0;
-    cards.forEach(function (li, i) { li.tabIndex = i === focusIdx ? 0 : -1; });
+    setRovingStop(list, active || Q.$$('.rcard', list)[0] || null);
   }
 
   function render(state, rows, scope) {
@@ -11217,7 +12717,15 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     if (lastSetKey !== null && lastSetKey !== setKey) shown = PAGE;
     lastSetKey = setKey;
 
-    var next = [sort.id, shown, setKey].join('|');
+    // The filters are part of the signature even though they are already baked
+    // into `rows`: when `rows` is empty the EXPLANATION still varies with them
+    // (E-02 names the narrowest filter, E-03 names the district), and two
+    // different causes of "nothing here" must not show each other's escape.
+    // `selectedId` appears only as a boolean, because the toolbar's distance
+    // option flips between enabled and disabled-with-a-reason on the first
+    // selection, and never again.
+    var next = [sort.id, shown, state.selectedId ? 1 : 0,
+                JSON.stringify(state.filters), setKey].join('|');
     if (next === sig && list.firstChild) { syncStates(list, state); return; }
     sig = next;
 
@@ -11316,8 +12824,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       }
       if (!to) return;
       e.preventDefault();
-      cards.forEach(function (c) { c.tabIndex = -1; });
-      to.tabIndex = 0;
+      setRovingStop(list, to);
       to.focus();
     });
   }
@@ -11416,7 +12923,9 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     'quality.freshness.dueIn.one': 'Due in {n} day',
     'quality.freshness.dueIn.other': 'Due in {n} days',
     'quality.freshness.overdue.one': 'Overdue by {n} day',
-    'quality.freshness.overdue.other': 'Overdue by {n} days'
+    'quality.freshness.overdue.other': 'Overdue by {n} days',
+    'detail.editedLocally.one': '{n} field edited locally — not verified',
+    'detail.editedLocally.other': '{n} fields edited locally — not verified'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -11610,6 +13119,36 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
    * with Esc, focus-trapped and focus-returned, and all four come for free from
    * GEO.boot.dialog. A hover-only provenance affordance is not provenance.
    */
+  /**
+   * GEO.boot.dialog plus one correction: 99-boot's global Escape handler also
+   * listens on `document`, so a plain Esc inside an R9 dialog closes the dialog
+   * AND the right rail behind it. Capturing Escape on `#dialog` keeps the key
+   * meaning exactly one thing while a modal is open (P5), and still leaves Tab
+   * to the helper's own focus trap.
+   */
+  function modal(opts) {
+    var box = Q.$('#dialog');
+    var handle = null;
+
+    function release() { box.removeEventListener('keydown', onKey, true); }
+
+    function onKey(e) {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      e.stopPropagation();
+      release();
+      if (handle) handle.close();
+    }
+
+    handle = GEO.boot.dialog({
+      title: opts.title,
+      body: opts.body,
+      actions: [{ label: t('common.close'), primary: true, run: release }]
+    });
+    box.addEventListener('keydown', onKey, true);
+    return handle;
+  }
+
   function openProvenance(rec, fd) {
     var ev = GEO.data.evidence(rec, fd.key);
     var shown = display(rec, fd);
@@ -11649,10 +13188,9 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
                                         { date: F.date(rec._meta.updatedAt) }) }));
     }
 
-    GEO.boot.dialog({
+    modal({
       title: t('detail.provenance.title', { field: fieldLabel(fd.key) }),
-      body: el('div.provpop', {}, rows),
-      actions: [{ label: t('common.close'), primary: true }]
+      body: el('div.provpop', {}, rows)
     });
   }
 
@@ -11726,36 +13264,64 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
   }
 
   /* ---------------------------------------------------------- key metrics */
+  /* The hero numeral carries the quantity and `.stat__unit` carries the unit,
+     rather than "$27.5 /m²/month" being set at 26px — which does not fit a
+     150px tile at 375px. The split is driven by the registry's own `unit`, so
+     a new numeric field lands in the right shape without a change here. */
+  function metricParts(rec, fd) {
+    var v = rec[fd.key];
+    if (!U.isKnown(v)) return { known: false, value: F.UNKNOWN, unit: null };
+    if (fd.type === 'number') {
+      if (fd.unit === 'm²') return { known: true, value: F.num(v, 0), unit: t('unit.sqm') };
+      // The unit names the currency, so the numeral does not repeat it: a tile
+      // reading "$27.5 USD/m²/month" states USD twice and m²/month once.
+      if (fd.unit === 'USD/m²/month') return { known: true, value: F.num(v, 1),
+                                               unit: t('unit.usdSqmMonth') };
+      if (fd.unit === '%') return { known: true, value: F.pct(v, Math.round(v) === v ? 0 : 1),
+                                    unit: null };
+      if (fd.unit === 'spaces/m²') return { known: true, value: F.num(v, 3),
+                                            unit: t('unit.spacesPerSqm') };
+      return { known: true, value: F.num(v, Math.round(v) === v ? 0 : 1),
+               unit: fd.unit ? unitLabel(fd.unit) : null };
+    }
+    return { known: true, value: display(rec, fd).text, unit: null };
+  }
+
   function metricTile(rec, key) {
     var fd = S.byKey[key];
     if (!fd) return null;
-    var shown = display(rec, fd);
+    var parts = metricParts(rec, fd);
     var isDemo = rec.recordType === 'DEMO';
 
     var kids = [
       el('div.stat__label', { text: fieldLabel(key) }),
-      el('div.stat__value', { 'data-known': shown.known ? 'true' : 'false' },
-         [shown.known ? el('span', { text: shown.text }) : el('span.unk', { text: F.UNKNOWN })])
+      el('div.stat__value', { 'data-known': parts.known ? 'true' : 'false' },
+         parts.known
+           ? [el('span', { text: parts.value }),
+              parts.unit ? el('span.stat__unit', { text: ' ' + parts.unit }) : null]
+           : [el('span.unk', { text: F.UNKNOWN })])
     ];
     // R9: the rent unit is an assumption of ours, not a statement of the
     // source's, and it says so everywhere a rent figure appears.
-    if (shown.known && key === 'askingRent') {
+    if (parts.known && key === 'askingRent') {
       kids.push(el('div.stat__cov.coverage', { text: t('detail.rentUnitNote') }));
     }
     // D4: a synthetic figure is badged wherever it appears, not only in the header.
-    if (shown.known && isDemo) {
+    if (parts.known && isDemo) {
       kids.push(el('div.stat__demo.micro', { text: t('common.demo.badge') }));
     }
 
-    if (!shown.known) {
+    if (!parts.known) {
       // Nothing to open, so nothing pretends to be a control (§29). The greyed
       // "Not recorded" IS the explanation; a disabled button beside it would
       // add a reason string to seven tiles and say nothing new.
       return el('div.stat.stat--unknown', { 'data-known': 'false' }, kids);
     }
+    // No aria-label: the tile's own text already reads "GLA 24,500 m² DEMO",
+    // and an aria-label would replace that — hiding the demo badge and the
+    // assumed-unit note from exactly the readers who can least afford to miss them.
     return el('button.stat', {
       type: 'button', 'data-known': 'true',
-      'aria-label': fieldLabel(key) + ': ' + shown.text,
       title: t('detail.provenance.open'),
       onclick: function () { openProvenance(rec, fd); }
     }, kids);
@@ -12111,14 +13677,13 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       var input = el('input.input', { type: 'text', readonly: true, value: text,
                                       'aria-label': t('error.clipboard.hint') });
       input.value = text;
-      GEO.boot.dialog({
+      modal({
         title: t('common.copy'),
         body: el('div.stack', {}, [
           el('p', { text: t('error.clipboard') }),
           input,
           el('p.micro', { text: t('error.clipboard.hint') })
-        ]),
-        actions: [{ label: t('common.close'), primary: true }]
+        ])
       });
       try { input.focus(); input.select(); } catch (e) { /* focus is best-effort */ }
     }
@@ -12292,8 +13857,11 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       text: t('detail.district', { name: GEO.data.districtName(rec.districtKey) })
     })]));
 
+    /* `.reason` is reserved for the §29 partner of a disabled control, so these
+       record-level notes use the neutral text utilities: mixing them would make
+       "every .reason has a disabled control beside it" untestable. */
     var flags = [];
-    if (isDemo) flags.push(note('detail.demo.note', null));
+    if (isDemo) flags.push(el('p.micro', { text: t('detail.demo.note') }));
 
     /* D1 — the conflict names BOTH labels. The polygon wins, and the reader is
        told which label lost and why, because silently correcting a source is
@@ -12305,7 +13873,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
           el('span.micro', { text: t('detail.districtSource',
                                      { label: meta.districtSourceLabel || F.UNKNOWN }) })
         ]),
-        el('p.reason', { text: t('detail.conflict.note', {
+        el('p.muted', { text: t('detail.conflict.note', {
           label: meta.districtSourceLabel || F.UNKNOWN,
           computed: GEO.data.districtName(rec.districtKey)
         }) }),
@@ -12316,7 +13884,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     if (meta.possibleDuplicate) {
       flags.push(el('div.stack', {}, [
         el('span.badge.badge--flag', { text: t('detail.dupe.badge') }),
-        el('p.reason', { text: t('quality.dupes.note') }),
+        el('p.muted', { text: t('quality.dupes.note') }),
         // The review queue lives in the Data workspace, which the External role
         // cannot open (§60/X-9) — so the route to it is removed for that role
         // rather than shown as a disabled control leading nowhere.
@@ -12331,15 +13899,20 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     }
 
     if (meta.entityReview === 'suspected_non_bc' || meta.entityReview === 'name_quality') {
+      // Both notes: the reviewer's finding about THIS record, and the policy
+      // that keeps it counted. A flag is not a deletion (D7), and a reader who
+      // sees only the finding will assume it was.
       flags.push(el('div.stack', {}, [
         el('span.badge.badge--flag', { text: t('detail.entity.badge') }),
-        el('p.reason', { text: meta.entityReviewNote || t('detail.entity.note') })
+        meta.entityReviewNote ? el('p.muted', { text: meta.entityReviewNote }) : null,
+        el('p.micro', { text: t('detail.entity.note') })
       ]));
     }
 
-    if (meta.addedLocally) flags.push(note('detail.addedLocally', null));
-    else if (meta.editedLocally) {
-      flags.push(note('detail.editedLocally', { n: F.int(editedFieldCount(rec)) }));
+    if (meta.addedLocally) {
+      flags.push(el('p.micro', { text: t('detail.addedLocally') }));
+    } else if (meta.editedLocally) {
+      flags.push(el('p.micro', { text: GEO.i18n.plural('detail.editedLocally', editedFieldCount(rec)) }));
     }
 
     return [
@@ -12358,10 +13931,6 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       ]),
       el('div.prop__sub', {}, chips)
     ].concat(flags);
-  }
-
-  function note(key, vars) {
-    return el('p.reason', { text: t(key, vars) });
   }
 
   function editedFieldCount(rec) {
@@ -12586,11 +14155,22 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     });
   }
 
-  /** The rows the assistant is currently talking about. §58: a follow-up
-   *  ("only those above $30") narrows the PREVIOUS result, it does not start over. */
-  function currentRows(ctx) {
+  /**
+   * The rows the assistant is currently talking about.
+   *
+   * By default this is whatever the FILTERS select — the same set the map and the
+   * list are showing — because that is what a user means by "these". Only an
+   * explicit refinement ("only those above $30") narrows the previous RESULT set,
+   * and the caller says so by passing `preferLastResult`.
+   *
+   * Inheriting the last result silently is worse than it sounds: after asking for
+   * competitors within 3 km, a fresh question like "show properties with poor data
+   * quality" would answer about those 74 records while appearing to answer about
+   * the dataset, and the denominator would look plausible either way.
+   */
+  function currentRows(ctx, preferLastResult) {
     var s = ctx.state;
-    if (s.aiSession.lastResultIds && s.aiSession.lastResultIds.length) {
+    if (preferLastResult && s.aiSession.lastResultIds && s.aiSession.lastResultIds.length) {
       var want = {};
       s.aiSession.lastResultIds.forEach(function (id) { want[id] = true; });
       var rows = scope(ctx).filter(function (r) { return want[r.id]; });
@@ -13619,10 +15199,22 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     out.trace.slots = plan.slots || null;
 
     var scope = AI._scope(c);
-    var current = AI._currentRows(c);
+    var current = AI._currentRows(c, !!plan.narrowing);
 
     try {
-      out = dispatch(plan, out, c, scope, current);
+      if (plan.needsSelection) {
+        // Caught here rather than in dispatch: the plan has no steps to run, so
+        // letting it through produces an exception and a "something went wrong",
+        // when the honest answer is simply that nothing is selected yet (§44).
+        out.answer = plan.error;
+        out.origin = AI.ORIGIN.UNAVAILABLE;
+        out.unavailable = true;
+        out.dataCoverage = A.coverageStatement(scope);
+        out.limitations.push('Nothing on the map, in the filters or in the selection has changed.');
+        out.suggestions = ['Show Class A and A+ business centres', 'Show data coverage'];
+      } else {
+        out = dispatch(plan, out, c, scope, current);
+      }
     } catch (e) {
       GEO.log.error('assistant failed', e);
       out.answer = 'Something went wrong while answering that. The dataset has not been changed.';
@@ -13653,18 +15245,26 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     return res;
   }
 
-  function finish(out, rows, coverageFields) {
+  /**
+   * @param base  the population the answer was drawn FROM. Coverage is reported
+   *              against this, not against the result: after filtering to class
+   *              A and A+, "office class is recorded for 12 of 12" is true and
+   *              useless, because the 132 records the filter excluded for having
+   *              no recorded class are exactly what the reader needs to know about.
+   */
+  function finish(out, rows, coverageFields, base) {
     out.resultIds = rows.map(function (r) { return r.id; });
     out.resultCount = rows.length;
+    var pop = base && base.length ? base : rows;
     if (!out.dataCoverage) {
       var parts = (coverageFields || []).map(function (f) {
-        var cv = A.coverage(rows, f);
-        return S.label(f) + ' is recorded for ' + cv.n + ' of ' + cv.N + ' matching ' +
+        var cv = A.coverage(pop, f);
+        return S.label(f) + ' is recorded for ' + cv.n + ' of ' + cv.N + ' ' +
                F.plural(cv.N, 'property', 'properties') +
                (cv.N - cv.n ? '. ' + (cv.N - cv.n) + ' have no recorded ' + F.lower(S.label(f)) +
                               ' and are excluded from any figure that uses it.' : '.');
       });
-      out.dataCoverage = parts.join(' ') || A.coverageStatement(rows);
+      out.dataCoverage = parts.join(' ') || A.coverageStatement(pop);
     }
     var dw = demoWarning(rows);
     if (dw) out.limitations.push(dw);
@@ -13784,8 +15384,12 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
           criteriaHuman: name, criteriaMachine: plan.filters
         }, ctx()));
 
+        // A colon rather than "match", because `describe()` produces phrases of
+        // several shapes — "class A, A+", "in Mirobod", "asking rent from 30" — and
+        // only the colon reads correctly after all of them. Its letters are also
+        // left alone: lowercasing "class A, A+" would yield "class a, a+".
         out.answer = F.int(rows.length) + ' ' + F.plural(rows.length, 'property', 'properties') +
-                     ' match ' + name.toLowerCase() + '.';
+                     ' — ' + name + '.';
         out.origin = AI.ORIGIN.PLATFORM;
         out.analysis = describeSet(rows);
 
@@ -13802,7 +15406,7 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
               'that is an absence of data, not evidence that they are a different class.');
           }
         }
-        return finish(out, rows, covFields);
+        return finish(out, rows, covFields, base);
       }
 
       /* ------------------------------------------------- rank_districts */
@@ -14302,6 +15906,29 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
        theta && theta.tenantsStatus, 'confirmed_empty');
     eq('unknown≠0: an uncollected tenant list reads not_collected',
        obs[0].tenantsStatus, 'not_collected');
+
+    /* §36 names five distinctions by hand. Four are observable in the shipped data;
+       the fifth (free rent) is not, because no landlord in this dataset offers it.
+       Asserting the MECHANISM on a probe record proves the rule holds anyway —
+       otherwise the first zero-rent record ever entered would silently vanish from
+       the denominator, and nobody would find out from the UI. */
+    var probe = [
+      { askingRent: 0,    gla: 0,    vacancyPct: 0,    occupancyPct: 0,    id: 'p1' },
+      { askingRent: null, gla: null, vacancyPct: null, occupancyPct: null, id: 'p2' }
+    ];
+    ['askingRent', 'gla', 'vacancyPct', 'occupancyPct'].forEach(function (f) {
+      eq('§36: a measured 0 ' + f + ' contributes to n', A.coverage(probe, f).n, 1);
+      eq('§36: an unknown ' + f + ' does not', A.coverage(probe, f).N - A.coverage(probe, f).n, 1);
+      eq('§36: sum over [0, null] is 0, not null', A.metric(probe, f, 'sum').value, 0);
+    });
+    has('§36: a zero rent is displayed as a price, not as "Not recorded"',
+        A.metric(probe, 'askingRent', 'sum').display !== GEO.fmt.UNKNOWN,
+        'missing rent and free rent are different facts');
+    eq('§36: formatting an unknown never yields 0', GEO.fmt.num(null, 0), GEO.fmt.UNKNOWN);
+    eq('§36: formatting a measured zero yields 0', GEO.fmt.num(0, 0), '0');
+    has('§36: isKnown treats 0 as a value and "" as an absence',
+        GEO.util.isKnown(0) === true && GEO.util.isKnown('') === false &&
+        GEO.util.isKnown(null) === false && GEO.util.isKnown([]) === false);
 
     /* --- coverage ------------------------------------------------------- */
     eq('coverage: name', A.coverage(obs, 'name').n, 148);

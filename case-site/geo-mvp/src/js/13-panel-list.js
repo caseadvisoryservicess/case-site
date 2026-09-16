@@ -207,78 +207,98 @@
     catch (e) { GEO.log.error('filters.apply threw', e); return rows; }
   }
 
-  var FILTER_LABELS = {
-    q: 'filter.name.label', districts: 'filter.district.label',
-    classes: 'filter.class.label', includeUnknownClass: 'filter.class.label',
-    statuses: 'filter.status.label',
-    rentMin: 'field.askingRent', rentMax: 'field.askingRent',
-    glaMin: 'field.gla', glaMax: 'field.gla',
-    vacancyMin: 'field.vacancyPct', vacancyMax: 'field.vacancyPct',
-    parkingMin: 'filter.parking.label', amenities: 'filter.amenities.label',
-    confidence: 'filter.confidence.label', completeness: 'filter.completeness.label',
-    freshness: 'filter.freshness.label', flags: 'filter.flags.label'
-  };
+  /* Filter groups, as 06-filters defines them: one human name and the set of
+     state keys it owns. Clearing "asking rent" has to clear BOTH ends of the
+     range, or the escape hatch does not open. The list is only the fallback —
+     `GEO.filters.GROUPS` is preferred whenever it is loaded, so the two cannot
+     drift apart. */
+  var GROUP_FALLBACK = [
+    { key: 'q',            keys: ['q'],                              labelKey: 'filter.name.label' },
+    { key: 'districts',    keys: ['districts'],                      labelKey: 'filter.district.label' },
+    { key: 'classes',      keys: ['classes', 'includeUnknownClass'], labelKey: 'filter.class.label' },
+    { key: 'statuses',     keys: ['statuses'],                       labelKey: 'filter.status.label' },
+    { key: 'gla',          keys: ['glaMin', 'glaMax'],               labelKey: 'field.gla' },
+    { key: 'rent',         keys: ['rentMin', 'rentMax'],             labelKey: 'field.askingRent' },
+    { key: 'vacancy',      keys: ['vacancyMin', 'vacancyMax'],       labelKey: 'field.vacancyPct' },
+    { key: 'parking',      keys: ['parkingMin'],                     labelKey: 'filter.parking.label' },
+    { key: 'amenities',    keys: ['amenities'],                      labelKey: 'filter.amenities.label' },
+    { key: 'confidence',   keys: ['confidence'],                     labelKey: 'filter.confidence.label' },
+    { key: 'completeness', keys: ['completeness'],                   labelKey: 'filter.completeness.label' },
+    { key: 'freshness',    keys: ['freshness'],                      labelKey: 'filter.freshness.label' },
+    { key: 'flags',        keys: ['flags'],                          labelKey: 'filter.flags.label' }
+  ];
+
+  function groups() {
+    if (!GEO.filters || !GEO.filters.GROUPS) return GROUP_FALLBACK;
+    return GEO.filters.GROUPS.map(function (g) {
+      var local = GROUP_FALLBACK.filter(function (x) { return x.key === g.key; })[0];
+      return { key: g.key, keys: g.keys, field: g.field,
+               labelKey: local ? local.labelKey : null };
+    });
+  }
+
+  function groupLabel(g, borrowed) {
+    if (borrowed) return borrowed;                       // explain() already named it
+    if (g && g.labelKey) return t(g.labelKey);
+    if (g && g.field) return S.label(g.field);
+    return t('filter.title');
+  }
+
+  function groupBy(key) {
+    return groups().filter(function (g) { return g.key === key; })[0] || null;
+  }
+
+  function isActive(filters, d, g) {
+    return g.keys.some(function (k) {
+      return JSON.stringify(filters[k]) !== JSON.stringify(d[k]);
+    });
+  }
 
   /**
    * E-02 needs a named escape, so the empty state has to know WHICH filter did
-   * the damage. `GEO.filters.explain` is asked first; when it has no opinion the
-   * same answer is derived by probing each active filter on its own and keeping
-   * the one that survives fewest records.
+   * the damage. `explain()` already computes it — per group, how many records
+   * that group alone removed from the set that passed every other filter — so
+   * the largest of those is the answer without any extra work. Only when the
+   * module is absent does the panel probe each group on its own.
    */
   function narrowest(scope, filters) {
     if (GEO.filters && GEO.filters.explain) {
       try {
         var ex = GEO.filters.explain(scope, filters);
         var n = ex && (ex.narrowest || ex.narrowestFilter);
-        if (n && (n.key || n.label)) {
-          return { key: n.key || null,
-                   label: n.label || t(FILTER_LABELS[n.key] || 'filter.title') };
+        if (n && n.key) {
+          return { group: groupBy(n.key), label: groupLabel(groupBy(n.key), n.label) };
         }
-        // `explain` reports, per group, how many records that group alone
-        // removed from the set that passed every other filter. The largest of
-        // those IS the narrowest filter, already computed — no need to re-probe.
-        var by = ex && ex.excludedBy;
+        var by = ex && ex.excludedBy, best = null;
         if (by) {
-          var best = null;
           Object.keys(by).forEach(function (k) {
             var e = by[k];
             if (!e || !e.excluded) return;
             if (!best || e.excluded > best.excluded) best = e;
           });
-          if (best) {
-            return { key: best.key, excluded: best.excluded,
-                     label: labelForGroup(best.key, best.label) };
-          }
         }
+        if (best) return { group: groupBy(best.key), label: groupLabel(groupBy(best.key), best.label) };
       } catch (e) { GEO.log.warn('filters.explain threw — probing locally', e); }
     }
+
     var d = GEO.state.defaults().filters;
-    var best = null;
-    Object.keys(d).forEach(function (k) {
-      if (JSON.stringify(filters[k]) === JSON.stringify(d[k])) return;
+    var pick = null;
+    groups().forEach(function (g) {
+      if (!isActive(filters, d, g)) return;
       var only = Object.assign({}, d);
-      only[k] = filters[k];
-      // The unknown-class switch is meaningless on its own, so it is probed
-      // together with the grades it qualifies.
-      if (k === 'classes') only.includeUnknownClass = filters.includeUnknownClass;
-      var n = applyFilters(scope, only).length;
-      if (!best || n < best.n) {
-        best = { key: k, n: n, label: t(FILTER_LABELS[k] || 'common.filter') };
-      }
+      g.keys.forEach(function (k) { only[k] = filters[k]; });
+      var survivors = applyFilters(scope, only).length;
+      if (!pick || survivors < pick.n) pick = { n: survivors, group: g };
     });
-    return best;
+    return pick ? { group: pick.group, label: groupLabel(pick.group, null) } : null;
   }
 
-  function clearFilter(key) {
+  function clearGroup(g) {
+    if (!g) return;
     var d = GEO.state.defaults().filters;
     var p = {};
-    p[key] = d[key];
-    // Ranges are one control with two keys; clearing half of one is not an escape.
-    var pairs = { rentMin: 'rentMax', rentMax: 'rentMin', glaMin: 'glaMax', glaMax: 'glaMin',
-                  vacancyMin: 'vacancyMax', vacancyMax: 'vacancyMin' };
-    if (pairs[key]) p[pairs[key]] = d[pairs[key]];
-    if (key === 'classes') p.includeUnknownClass = d.includeUnknownClass;
-    GEO.state.set({ filters: p }, { source: 'user', action: 'filter:clear:' + key });
+    g.keys.forEach(function (k) { p[k] = d[k]; });
+    GEO.state.set({ filters: p }, { source: 'user', action: 'filter:clear:' + g.key });
   }
 
   /* ================================================================ cards */
@@ -448,7 +468,7 @@
           el('div.empty__actions', {}, [
             el('button.btn.btn--ghost', {
               type: 'button', text: t('empty.district.action'),
-              onclick: function () { clearFilter('districts'); }
+              onclick: function () { clearGroup(groupBy('districts')); }
             })
           ])
         ];
@@ -467,10 +487,10 @@
 
     var worst = narrowest(scope, f);
     var actions = [];
-    if (worst && worst.key) {
+    if (worst && worst.group) {
       actions.push(el('button.btn.btn--ghost', {
         type: 'button', text: t('empty.results.clear', { name: worst.label }),
-        onclick: function () { clearFilter(worst.key); }
+        onclick: function () { clearGroup(worst.group); }
       }));
     }
     actions.push(el('button.btn.btn--quiet', {
