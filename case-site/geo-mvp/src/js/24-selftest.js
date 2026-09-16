@@ -85,6 +85,29 @@
     eq('unknown≠0: an uncollected tenant list reads not_collected',
        obs[0].tenantsStatus, 'not_collected');
 
+    /* §36 names five distinctions by hand. Four are observable in the shipped data;
+       the fifth (free rent) is not, because no landlord in this dataset offers it.
+       Asserting the MECHANISM on a probe record proves the rule holds anyway —
+       otherwise the first zero-rent record ever entered would silently vanish from
+       the denominator, and nobody would find out from the UI. */
+    var probe = [
+      { askingRent: 0,    gla: 0,    vacancyPct: 0,    occupancyPct: 0,    id: 'p1' },
+      { askingRent: null, gla: null, vacancyPct: null, occupancyPct: null, id: 'p2' }
+    ];
+    ['askingRent', 'gla', 'vacancyPct', 'occupancyPct'].forEach(function (f) {
+      eq('§36: a measured 0 ' + f + ' contributes to n', A.coverage(probe, f).n, 1);
+      eq('§36: an unknown ' + f + ' does not', A.coverage(probe, f).N - A.coverage(probe, f).n, 1);
+      eq('§36: sum over [0, null] is 0, not null', A.metric(probe, f, 'sum').value, 0);
+    });
+    has('§36: a zero rent is displayed as a price, not as "Not recorded"',
+        A.metric(probe, 'askingRent', 'sum').display !== GEO.fmt.UNKNOWN,
+        'missing rent and free rent are different facts');
+    eq('§36: formatting an unknown never yields 0', GEO.fmt.num(null, 0), GEO.fmt.UNKNOWN);
+    eq('§36: formatting a measured zero yields 0', GEO.fmt.num(0, 0), '0');
+    has('§36: isKnown treats 0 as a value and "" as an absence',
+        GEO.util.isKnown(0) === true && GEO.util.isKnown('') === false &&
+        GEO.util.isKnown(null) === false && GEO.util.isKnown([]) === false);
+
     /* --- coverage ------------------------------------------------------- */
     eq('coverage: name', A.coverage(obs, 'name').n, 148);
     eq('coverage: districtKey', A.coverage(obs, 'districtKey').n, 148);

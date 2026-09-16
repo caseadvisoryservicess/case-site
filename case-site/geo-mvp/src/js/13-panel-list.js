@@ -357,8 +357,11 @@
     var missing = MISSING_FIELDS.filter(function (k) { return !U.isKnown(rec[k]); });
     if (missing.length) {
       kids.push(el('p.micro.unk', {
+        // Lowercased through F.lower so the sentence reads as a sentence —
+        // "No address, asking rent, GLA, vacancy, status recorded" — while the
+        // acronyms that are genuinely acronyms survive intact.
         text: t('list.card.missing', {
-          fields: missing.map(function (k) { return S.label(k); }).join(', ')
+          fields: missing.map(function (k) { return F.lower(S.label(k)); }).join(', ')
         })
       }));
     }
@@ -579,7 +582,15 @@
     if (lastSetKey !== null && lastSetKey !== setKey) shown = PAGE;
     lastSetKey = setKey;
 
-    var next = [sort.id, shown, setKey].join('|');
+    // The filters are part of the signature even though they are already baked
+    // into `rows`: when `rows` is empty the EXPLANATION still varies with them
+    // (E-02 names the narrowest filter, E-03 names the district), and two
+    // different causes of "nothing here" must not show each other's escape.
+    // `selectedId` appears only as a boolean, because the toolbar's distance
+    // option flips between enabled and disabled-with-a-reason on the first
+    // selection, and never again.
+    var next = [sort.id, shown, state.selectedId ? 1 : 0,
+                JSON.stringify(state.filters), setKey].join('|');
     if (next === sig && list.firstChild) { syncStates(list, state); return; }
     sig = next;
 

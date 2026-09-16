@@ -410,36 +410,64 @@
   }
 
   /* ---------------------------------------------------------- key metrics */
+  /* The hero numeral carries the quantity and `.stat__unit` carries the unit,
+     rather than "$27.5 /m²/month" being set at 26px — which does not fit a
+     150px tile at 375px. The split is driven by the registry's own `unit`, so
+     a new numeric field lands in the right shape without a change here. */
+  function metricParts(rec, fd) {
+    var v = rec[fd.key];
+    if (!U.isKnown(v)) return { known: false, value: F.UNKNOWN, unit: null };
+    if (fd.type === 'number') {
+      if (fd.unit === 'm²') return { known: true, value: F.num(v, 0), unit: t('unit.sqm') };
+      // The unit names the currency, so the numeral does not repeat it: a tile
+      // reading "$27.5 USD/m²/month" states USD twice and m²/month once.
+      if (fd.unit === 'USD/m²/month') return { known: true, value: F.num(v, 1),
+                                               unit: t('unit.usdSqmMonth') };
+      if (fd.unit === '%') return { known: true, value: F.pct(v, Math.round(v) === v ? 0 : 1),
+                                    unit: null };
+      if (fd.unit === 'spaces/m²') return { known: true, value: F.num(v, 3),
+                                            unit: t('unit.spacesPerSqm') };
+      return { known: true, value: F.num(v, Math.round(v) === v ? 0 : 1),
+               unit: fd.unit ? unitLabel(fd.unit) : null };
+    }
+    return { known: true, value: display(rec, fd).text, unit: null };
+  }
+
   function metricTile(rec, key) {
     var fd = S.byKey[key];
     if (!fd) return null;
-    var shown = display(rec, fd);
+    var parts = metricParts(rec, fd);
     var isDemo = rec.recordType === 'DEMO';
 
     var kids = [
       el('div.stat__label', { text: fieldLabel(key) }),
-      el('div.stat__value', { 'data-known': shown.known ? 'true' : 'false' },
-         [shown.known ? el('span', { text: shown.text }) : el('span.unk', { text: F.UNKNOWN })])
+      el('div.stat__value', { 'data-known': parts.known ? 'true' : 'false' },
+         parts.known
+           ? [el('span', { text: parts.value }),
+              parts.unit ? el('span.stat__unit', { text: ' ' + parts.unit }) : null]
+           : [el('span.unk', { text: F.UNKNOWN })])
     ];
     // R9: the rent unit is an assumption of ours, not a statement of the
     // source's, and it says so everywhere a rent figure appears.
-    if (shown.known && key === 'askingRent') {
+    if (parts.known && key === 'askingRent') {
       kids.push(el('div.stat__cov.coverage', { text: t('detail.rentUnitNote') }));
     }
     // D4: a synthetic figure is badged wherever it appears, not only in the header.
-    if (shown.known && isDemo) {
+    if (parts.known && isDemo) {
       kids.push(el('div.stat__demo.micro', { text: t('common.demo.badge') }));
     }
 
-    if (!shown.known) {
+    if (!parts.known) {
       // Nothing to open, so nothing pretends to be a control (§29). The greyed
       // "Not recorded" IS the explanation; a disabled button beside it would
       // add a reason string to seven tiles and say nothing new.
       return el('div.stat.stat--unknown', { 'data-known': 'false' }, kids);
     }
+    // No aria-label: the tile's own text already reads "GLA 24,500 m² DEMO",
+    // and an aria-label would replace that — hiding the demo badge and the
+    // assumed-unit note from exactly the readers who can least afford to miss them.
     return el('button.stat', {
       type: 'button', 'data-known': 'true',
-      'aria-label': fieldLabel(key) + ': ' + shown.text,
       title: t('detail.provenance.open'),
       onclick: function () { openProvenance(rec, fd); }
     }, kids);

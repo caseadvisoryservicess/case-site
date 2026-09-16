@@ -299,12 +299,6 @@
 
   /* ------------------------------------------------------------ predicates */
 
-  /**
-   * Build the active predicates. Each carries the group it belongs to and,
-   * where the filter reads a field, an `unknown` test that reports whether a
-   * record failed because the value is missing rather than because it did not
-   * match — the whole basis of `explain()`.
-   */
   /* Confidence, completeness and freshness are each derived from a record's
      evidence, and `explain()` re-tests every record against every predicate to
      work out what each filter cost. Without this the freshness filter alone
@@ -320,6 +314,12 @@
     };
   }
 
+  /**
+   * Build the active predicates. Each carries the group it belongs to and,
+   * where the filter reads a field, an `unknown` test that reports whether a
+   * record failed because the value is missing rather than because it did not
+   * match — the whole basis of `explain()`.
+   */
   function buildPredicates(rows, f) {
     var preds = [];
 
