@@ -105,6 +105,22 @@ function watch(page) {
     check('offline map shows a notice rather than looking broken',
           await page.locator('#map-notice').isVisible().catch(() => false));
 
+    // An unresolved i18n key renders as the key itself — visible, ugly, and silent.
+    // Static analysis misses keys built by concatenation, so probe the rendered DOM.
+    const leaks = await page.evaluate(() => {
+      const out = [];
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      const keyish = /^[a-z][a-z0-9]*(\.[a-zA-Z][a-zA-Z0-9]*){1,4}\.?$/;
+      let n;
+      while ((n = walk.nextNode())) {
+        const t = n.textContent.trim();
+        if (t && keyish.test(t) && !/^\d/.test(t)) out.push(t);
+      }
+      return [...new Set(out)];
+    });
+    check('no unresolved i18n keys rendered on the default screen',
+          leaks.length === 0, leaks.slice(0, 8).join(', '));
+
     await shot(page, '01-desktop-1440');
     await page.close();
   }

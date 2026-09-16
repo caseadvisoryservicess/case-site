@@ -87,7 +87,7 @@
     if (n === 0) {
       return finish({
         value: null, n: 0, sufficient: false,
-        reason: 'No property in the current selection has a recorded ' + label.toLowerCase() + '.'
+        reason: 'No property in the current selection has a recorded ' + F.lower(label) + '.'
       });
     }
 
@@ -98,7 +98,7 @@
       return finish({
         value: null, n: n, sufficient: false,
         reason: 'Only ' + n + ' of ' + N + ' ' + F.plural(N, 'property', 'properties') +
-                ' ' + F.plural(n, 'has', 'have') + ' a recorded ' + label.toLowerCase() +
+                ' ' + F.plural(n, 'has', 'have') + ' a recorded ' + F.lower(label) +
                 '. At least ' + A.MIN_N + ' are needed before an average is meaningful.'
       });
     }
@@ -132,7 +132,7 @@
         display: display,
         coverageText: kind === 'count'
           ? 'All ' + F.int(N) + ' ' + F.plural(N, 'property', 'properties') + ' in the current selection.'
-          : F.coverage(core.n, N, (opts.coverageLabel || label).toLowerCase()),
+          : F.coverage(core.n, N, F.lower(opts.coverageLabel || label)),
         containsDemo: containsDemo,
         weighting: (kind === 'mean' && field === 'askingRent')
           ? 'per property, unweighted' : null
@@ -149,8 +149,37 @@
     });
     var statusKnown = A.withKnown(rows, 'status').length;
 
+    // The headline count is the most-quoted number in the product, so it carries the
+    // caveats that would otherwise silently inflate it: unresolved duplicate pairs
+    // (each may be one building counted twice) and records whose own name says they
+    // are a company rather than a building (§2.7 — never hide uncertainty).
+    var countMetric = A.metric(rows, null, 'count', { label: 'Business centres', coverageLabel: 'records' });
+    countMetric.notes = [];
+    var dupGroups = {};
+    rows.forEach(function (r) {
+      if (r._meta.duplicateGroupId && r._meta.duplicateVerdict === 'undecided') {
+        dupGroups[r._meta.duplicateGroupId] = (dupGroups[r._meta.duplicateGroupId] || 0) + 1;
+      }
+    });
+    var dupRecords = Object.keys(dupGroups).reduce(function (n, k) { return n + dupGroups[k]; }, 0);
+    if (dupRecords) {
+      countMetric.notes.push('Includes ' + F.int(dupRecords) + ' records in ' +
+        F.int(Object.keys(dupGroups).length) + ' unresolved possible-duplicate ' +
+        F.plural(Object.keys(dupGroups).length, 'group') +
+        ' — supply figures may double-count until they are adjudicated.');
+    }
+    var suspect = rows.filter(function (r) { return r._meta.entityReview === 'suspected_non_bc'; }).length;
+    if (suspect) {
+      countMetric.notes.push(F.int(suspect) + ' records are flagged as probably not office buildings ' +
+        '(their names describe a company). They are counted here; the Data workspace can exclude them.');
+    }
+    var placeholder = rows.filter(function (r) { return r._meta.entityReview === 'name_quality'; }).length;
+    if (placeholder) {
+      countMetric.notes.push(F.int(placeholder) + ' records carry a generic placeholder name rather than a building name.');
+    }
+
     return [
-      A.metric(rows, null, 'count', { label: 'Business centres', coverageLabel: 'records' }),
+      countMetric,
       A.metric(rows, 'gla', 'sum', { label: 'Total known GLA', coverageLabel: 'GLA' }),
       A.metric(rows, 'askingRent', 'mean', { label: 'Average asking rent', coverageLabel: 'asking rent' }),
       A.metric(rows, 'askingRent', 'median', { label: 'Median asking rent', coverageLabel: 'asking rent' }),

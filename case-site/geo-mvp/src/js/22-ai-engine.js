@@ -149,7 +149,7 @@
         var cv = A.coverage(rows, f);
         return S.label(f) + ' is recorded for ' + cv.n + ' of ' + cv.N + ' matching ' +
                F.plural(cv.N, 'property', 'properties') +
-               (cv.N - cv.n ? '. ' + (cv.N - cv.n) + ' have no recorded ' + S.label(f).toLowerCase() +
+               (cv.N - cv.n ? '. ' + (cv.N - cv.n) + ' have no recorded ' + F.lower(S.label(f)) +
                               ' and are excluded from any figure that uses it.' : '.');
       });
       out.dataCoverage = parts.join(' ') || A.coverageStatement(rows);
@@ -189,7 +189,7 @@
                      'something else would not be evidence.';
         if (nearest) {
           var cv = A.coverage(scope, nearest);
-          out.dataCoverage = 'The nearest field held is ' + S.label(nearest).toLowerCase() +
+          out.dataCoverage = 'The nearest field held is ' + F.lower(S.label(nearest)) +
                              ', recorded for ' + cv.n + ' of ' + cv.N + ' properties — ' +
                              'which answers a different question.';
         } else {
@@ -242,7 +242,7 @@
           var uf = plan.unsupportedFilters[0];
           out.unavailable = true;
           out.origin = AI.ORIGIN.UNAVAILABLE;
-          out.answer = 'This build has no filter for ' + S.label(uf.field).toLowerCase() +
+          out.answer = 'This build has no filter for ' + F.lower(S.label(uf.field)) +
                        ', so that threshold cannot be applied. Nothing has been changed.';
           out.dataCoverage = S.label(uf.field) + ' is recorded for ' +
                              A.coverage(base, uf.field).n + ' of ' + base.length + ' properties in view.';

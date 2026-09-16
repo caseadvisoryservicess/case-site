@@ -123,6 +123,15 @@
     return Number(p[2]) + ' ' + MONTHS[Number(p[1]) - 1] + ' ' + p[0];
   };
 
+  /** Lowercase a label for mid-sentence use WITHOUT destroying acronyms:
+   *  "GLA" must stay "GLA", but "Asking rent" becomes "asking rent". */
+  F.lower = function (label) {
+    return String(label).split(' ').map(function (word, i) {
+      if (word.length > 1 && word === word.toUpperCase() && /[A-Z]/.test(word)) return word;
+      return i === 0 ? word.charAt(0).toLowerCase() + word.slice(1) : word.toLowerCase();
+    }).join(' ');
+  };
+
   F.plural = function (n, one, many) {
     return n === 1 ? one : (many || one + 's');
   };

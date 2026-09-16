@@ -108,7 +108,7 @@
               F.plural(c.N, 'property', 'properties') + ' in the current selection' +
               (whole.N !== c.N ? ' (and for ' + whole.n + ' of ' + whole.N + ' in the whole dataset)' : '') +
               ', so this cannot be answered from the data held.',
-      required: 'A recorded ' + label.toLowerCase() + ' per building.',
+      required: 'A recorded ' + GEO.fmt.lower(label) + ' per building.',
       coverage: { n: c.n, N: c.N, field: field }
     };
   }
