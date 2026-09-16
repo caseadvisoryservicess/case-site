@@ -46,8 +46,12 @@ async function shot(page, name) {
 function watch(page) {
   const errors = [], failed = [], warnings = [];
   page.on('console', m => {
-    if (m.type() === 'error') errors.push(m.text());
-    if (m.type() === 'warning') warnings.push(m.text());
+    // The prototype is tested offline on purpose, so a failed tile fetch is the
+    // designed state, not a defect. Everything else is.
+    const t = m.text();
+    if (/ERR_INTERNET_DISCONNECTED|ERR_NAME_NOT_RESOLVED|tile\.openstreetmap/.test(t)) return;
+    if (m.type() === 'error') errors.push(t);
+    if (m.type() === 'warning') warnings.push(t);
   });
   page.on('pageerror', e => errors.push('pageerror: ' + e.message));
   page.on('requestfailed', r => {
@@ -359,6 +363,107 @@ function watch(page) {
     }
     check('assistant run produced no console errors', w.errors.length === 0, w.errors.slice(0, 3).join(' | '));
     await shot(page, '03-assistant');
+    await page.close();
+  }
+
+  /* ───────────────────── 4b. cross-cutting checks (§29, §60, §8) ───────────────────── */
+  if (!ONLY || ONLY === 'checks') {
+    G('cross-cutting');
+    const page = await ctx.newPage();
+    const w = watch(page);
+    await page.goto(FILE, { waitUntil: 'load' });
+    await page.waitForTimeout(1200);
+
+    // §29 — no control may be inert. Every visible, enabled button must either carry
+    // a handler-bearing id/data hook, or be disabled with a reason the user can read.
+    const controls = await page.evaluate(() => {
+      const vis = el => {
+        const cs = getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden') return false;
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.height > 0;
+      };
+      const all = Array.from(document.querySelectorAll('button, [role="button"], a[href]')).filter(vis);
+      const disabled = all.filter(b => b.disabled || b.getAttribute('aria-disabled') === 'true');
+      // A disabled control with no visible reason is the failure §29 describes: it
+      // looks broken rather than explained.
+      const unexplained = disabled.filter(b =>
+        !b.title && !b.getAttribute('aria-describedby') && !b.dataset.reason &&
+        !(b.parentElement && /reason|note|why|hint/i.test(b.parentElement.className))
+      ).slice(0, 6).map(b => (b.id || b.textContent.trim().slice(0, 24) || b.className));
+      const anonymous = all.filter(b => !b.disabled && !b.id && !b.dataset.go &&
+        !b.dataset.datatab && !b.getAttribute('role') && !b.className).slice(0, 6)
+        .map(b => b.textContent.trim().slice(0, 24));
+      return { total: all.length, disabled: disabled.length, unexplained, anonymous };
+    });
+    check(`§29: ${controls.total} controls, ${controls.disabled} disabled — every disabled one gives a reason`,
+          controls.unexplained.length === 0, controls.unexplained.join(', '));
+    check('§29: no anonymous unwired control', controls.anonymous.length === 0,
+          controls.anonymous.join(', '));
+
+    // X-12 — the product name lives in exactly one constant (§8: not "ZAKY").
+    const naming = await page.evaluate(() => ({
+      product: GEO.PRODUCT.name,
+      provisional: GEO.PRODUCT.provisional,
+      header: (document.getElementById('product-name') || {}).textContent,
+      // body.textContent includes the inlined <script> blocks, and one of them
+      // carries the comment explaining why the name is NOT "ZAKY". Read the text
+      // a person can actually see instead.
+      zaky: (function () {
+        var walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        var n;
+        while ((n = walk.nextNode())) {
+          var tag = n.parentElement && n.parentElement.tagName;
+          if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+          if (/zaky/i.test(n.textContent)) return true;
+        }
+        return false;
+      }()),
+      chipShown: !document.getElementById('product-provisional').hidden,
+    }));
+    check('§8: the header renders the product-name constant',
+          naming.header === naming.product, `${naming.header} vs ${naming.product}`);
+    check('§8: the name is not "ZAKY" anywhere', naming.zaky === false);
+    check('§8: a provisional name is labelled as provisional', naming.chipShown === true);
+
+    // X-11 — the data chip is the honest one-line summary of the dataset.
+    const chip = await page.evaluate(() => (document.getElementById('data-chip') || {}).textContent || '');
+    check('§8/§19: the data chip states records, sources and the collection date',
+          /148/.test(chip) && /2026|Jul/.test(chip), JSON.stringify(chip));
+
+    // X-9 — switching to the client view hides internal surfaces (§60).
+    const role = await page.evaluate(() => {
+      GEO.state.set({ role: 'external' }, { source: 'user', action: 'qa' });
+      const ext = {
+        dataBtn: document.getElementById('btn-data').hidden,
+        internalTools: GEO.ai.available('external').length,
+        allTools: GEO.ai.available('internal').length,
+      };
+      GEO.state.set({ role: 'internal' }, { source: 'user', action: 'qa' });
+      return Object.assign(ext, { dataBtnBack: document.getElementById('btn-data').hidden });
+    });
+    check('§60: the client view hides the data workspace', role.dataBtn === true);
+    check('§60: the client view exposes fewer assistant tools',
+          role.internalTools < role.allTools, `${role.internalTools} of ${role.allTools}`);
+    check('§60: switching back restores it', role.dataBtnBack === false);
+
+    // The demo-containment banner must appear the moment demo mode is on (D4).
+    const demo = await page.evaluate(() => {
+      GEO.data.setDemoMode(true);
+      GEO.state.set({ demoMode: true }, { source: 'user', action: 'qa' });
+      const on = { banner: !document.getElementById('demobar').hidden,
+                   rows: GEO.data.workingSet().length };
+      GEO.data.setDemoMode(false);
+      GEO.state.set({ demoMode: false }, { source: 'user', action: 'qa' });
+      return Object.assign(on, { bannerOff: document.getElementById('demobar').hidden,
+                                 rowsOff: GEO.data.workingSet().length });
+    });
+    check('D4: demo mode shows a non-dismissible banner', demo.banner === true);
+    check('D4: demo mode adds the 8 synthetic records', demo.rows === 156, demo.rows);
+    check('D4: turning it off removes both', demo.bannerOff === true && demo.rowsOff === 148, demo.rowsOff);
+
+    check('cross-cutting run produced no console errors',
+          w.errors.length === 0, w.errors.slice(0, 3).join(' | '));
     await page.close();
   }
 

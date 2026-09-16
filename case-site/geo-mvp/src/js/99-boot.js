@@ -179,6 +179,8 @@
   B.registerPanel = function (fn) { panels.push(fn); };
 
   function render(state, patch, meta) {
+    var rows = B.visible(state);
+    var scope = B.scope(state);
     var app = Q.$('#app');
     app.dataset.left = state.leftRail;
     app.dataset.right = state.rightRail;
@@ -210,6 +212,20 @@
     Q.$('#btn-data').hidden = state.role === 'external';
     Q.$('#ai-dot').hidden = !state.aiUnread;
 
+    // X-11 / §8 / §19 — the header's standing statement about the dataset:
+    // how many records, from how many sources, how recently, and how many have
+    // ever been verified in the field. Recomputed on every change, including
+    // after a local edit, so it can never describe a dataset that no longer exists.
+    var chip = Q.$('#data-chip');
+    if (GEO.quality && GEO.quality.datasetSummary) {
+      var ds = GEO.quality.datasetSummary(scope);
+      chip.textContent = ds.text;
+      chip.title = (ds.fieldVerifiedNote || '') +
+                   (ds.stalenessNote ? ' ' + ds.stalenessNote : '');
+    } else {
+      chip.textContent = GEO.fmt.int(scope.length) + ' records';
+    }
+
     Q.$('#demobar').hidden = !state.demoMode;
     document.body.classList.toggle('has-demobar', state.demoMode);
 
@@ -221,7 +237,11 @@
     var active = GEO.state.activeFilterCount(state.filters);
     fBadge.hidden = !active;
     fBadge.textContent = String(active);
-    Q.$('#btn-reset-filters').disabled = !active;
+    var resetBtn = Q.$('#btn-reset-filters');
+    resetBtn.disabled = !active;
+    resetBtn.title = active
+      ? GEO.i18n.t('list.action.resetAll')
+      : 'No filters are active, so there is nothing to reset.';
 
     // §59 / P7: when the assistant changes filters we do NOT yank the rail open —
     // that steals the map. We mark the tab so the manual controls are visibly
@@ -254,8 +274,6 @@
       else { n.removeAttribute('inert'); n.removeAttribute('aria-hidden'); }
     });
 
-    var rows = B.visible(state);
-    var scope = B.scope(state);
     // §11's "X properties found", plus the scope denominator when a filter is narrowing it.
     var countKey = 'filter.results.count.' + (rows.length === 1 ? 'one' : 'other');
     var countText = GEO.i18n ? GEO.i18n.t(countKey, { n: GEO.fmt.int(rows.length) })
