@@ -12,6 +12,7 @@ These are the outputs of that sequence, in the order they were produced.
 | 04 | [`04-data-schema.md`](04-data-schema.md) | §65 step 4 — the record schema, the provenance model, history-readiness, enumerations, district canonicalisation, the dataset envelope, and the repository seam a future backend would replace. |
 | 05 | [`05-analytics-rules.md`](05-analytics-rules.md) | §65 step 5 — the denominator doctrine, sufficiency thresholds, exact formulas, the never-treat-missing-as-zero guards, bin strategies, and the worked numbers. |
 | 06 | [`06-ai-architecture.md`](06-ai-architecture.md) | §65 step 6 — the layered architecture and provider seam, the tool registry, the intent catalogue mapped to every §54 and §63 example, session context, the six-block response, layers, and the permission model. |
+| **11** | [`11-coverage-vs-brief.md`](11-coverage-vs-brief.md) | §65 step 11 — every one of the brief's 69 sections audited: built, architecture-only, partial, deferred, with the verification cited for each. Written as an audit rather than a summary so a requirement that was deliberately not built is visible rather than quietly absent. |
 | 10 | [`10-visual-system.md`](10-visual-system.md) | Colour, type, marks and motion. The office-class ramp was derived from the CASE brand red in OKLCH and **validated** against the ordinal checks on both surfaces; the contrast figures are computed, not estimated. |
 
 ## What is deliberately not here

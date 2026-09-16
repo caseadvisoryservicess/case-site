@@ -60,7 +60,6 @@
       'These properties are close enough, but their office class is not recorded, so they could not be qualified as peers. They are listed, never counted as peers. Add any of them by hand if you know the building.',
     'location.competitive.excluded.note':
       'Excluded by the rule above, listed so the rule can be checked rather than trusted.',
-    'location.competitive.excluded.show': 'Show the properties the rule excluded',
     'location.competitive.removedGroup': 'Removed by hand ({n})',
     'location.competitive.manualNote': 'Added by hand, not by the rule above.',
     'location.competitive.showAll': 'Show all {n}',
@@ -92,6 +91,10 @@
   }
 
   function nameOf(rec) { return U.isKnown(rec.name) ? rec.name : F.UNKNOWN; }
+
+  /** "3", not "3.0"; "2.5" stays "2.5". A band label is a radius a person
+   *  typed, and printing a decimal they did not type reads as false precision. */
+  function kmText(km) { return F.num(km, km % 1 ? 1 : 0); }
 
   /* =====================================================================
    * 1. BANDS
@@ -156,7 +159,16 @@
   /** The class mix, unknown bucket included and directly labelled with its
    *  count (visual-system §5: the "no data" bucket is shown, never dropped). */
   function classMix(rows) {
-    var groups = A.byClass(rows);
+    // Fixed order A+, A, B+, B, C, Not recorded (visual-system §7): class is
+    // ordinal, so the mix must read down the ladder even when a rung is empty.
+    // `aggregate()` appends the empty classes after the populated ones, which
+    // would print B before B+.
+    var order = GEO.schema.enums.officeClass;
+    var groups = A.byClass(rows).slice().sort(function (a, b) {
+      if (a.unknown) return 1;
+      if (b.unknown) return -1;
+      return order.indexOf(a.key) - order.indexOf(b.key);
+    });
     var kids = [];
     groups.forEach(function (g, i) {
       if (i) kids.push(el('span.sep', { text: ' · ' }));
@@ -167,7 +179,8 @@
   }
 
   function bandBlock(band, focusKm) {
-    var title = GEO.i18n.plural('location.band.count', band.count, { km: F.num(band.km, band.km % 1 ? 1 : 0) });
+    var km = kmText(band.km);
+    var title = GEO.i18n.plural('location.band.count', band.count, { km: km });
     var kids = [el('p.sectitle', { text: title })];
 
     if (band.km === focusKm) kids.push(el('p.micro', { text: t('location.focused') }));
@@ -175,14 +188,14 @@
     if (!band.count) {
       // A true zero, stated as one: nothing is missing here, there is simply
       // nothing within the ring (§36, IA §7).
-      kids.push(el('p.empty__body', { text: t('location.band.empty', { km: F.num(band.km, band.km % 1 ? 1 : 0) }) }));
+      kids.push(el('p.empty__body', { text: t('location.band.empty', { km: km }) }));
       return el('div.prop__sec', {}, kids);
     }
 
     kids.push(el('div.kv', {}, [
-      kvRow(t('location.rent', { km: F.num(band.km, band.km % 1 ? 1 : 0) }), metricValue(band.rent)),
-      kvRow(t('location.gla', { km: F.num(band.km, band.km % 1 ? 1 : 0) }), metricValue(band.gla)),
-      kvRow(t('location.classMix', { km: F.num(band.km, band.km % 1 ? 1 : 0) }), classMix(band.rows))
+      kvRow(t('location.rent', { km: km }), metricValue(band.rent)),
+      kvRow(t('location.gla', { km: km }), metricValue(band.gla)),
+      kvRow(t('location.classMix', { km: km }), classMix(band.rows))
     ]));
     return el('div.prop__sec', {}, kids);
   }
@@ -193,18 +206,20 @@
 
   function bandCards(state, analysis, bands, focusKm) {
     return el('div.loc__bands', {}, analysis.bands.map(function (band) {
-      var kmText = F.num(band.km, band.km % 1 ? 1 : 0);
+      var km = kmText(band.km);
       var on = band.km === focusKm;
       return el('button.band', {
         type: 'button', 'aria-pressed': on ? 'true' : 'false',
-        'aria-label': GEO.i18n.plural('location.band.count', band.count, { km: kmText }) +
-                      '. ' + t('location.focus', { km: kmText }),
+        'aria-label': GEO.i18n.plural('location.band.count', band.count, { km: km }) +
+                      '. ' + t('location.focus', { km: km }),
         onclick: function () {
-          patchRadius(state, { focusKm: band.km }, 'location:band', kmText + ' km');
+          patchRadius(state, { focusKm: band.km }, 'location:band', km + ' km');
         }
       }, [
-        el('span.band__km', { text: t('location.radius.option', { km: kmText }) }),
-        el('span.band__n', { text: F.int(band.count) })
+        // Block elements: the two lines stack into the card the mark spec
+        // describes — the radius above, the count below.
+        el('div.band__km', { text: t('location.radius.option', { km: km }) }),
+        el('div.band__n', { text: F.int(band.count) })
       ]);
     }));
   }
@@ -237,10 +252,10 @@
     if (custom !== undefined) {
       kids.push(el('button.btn.btn--quiet.btn--sm', {
         type: 'button',
-        text: t('location.custom.remove', { km: F.num(custom, custom % 1 ? 1 : 0) }),
+        text: t('location.custom.remove', { km: kmText(custom) }),
         onclick: function () {
           patchRadius(state, { km: defaults.slice(), focusKm: G.COMPETITIVE_BAND_KM },
-                      'location:bands', t('location.custom.remove', { km: custom }));
+                      'location:bands', t('location.custom.remove', { km: kmText(custom) }));
         }
       }));
     }
@@ -371,7 +386,7 @@
 
   function ruleSentence(subject, km) {
     return U.isKnown(subject.officeClass)
-      ? t('location.competitive.rule', { km: F.num(km, km % 1 ? 1 : 0), class: classLabel(subject.officeClass) })
+      ? t('location.competitive.rule', { km: kmText(km), class: classLabel(subject.officeClass) })
       : t('location.competitive.noClass');
   }
 

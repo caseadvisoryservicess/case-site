@@ -238,7 +238,7 @@
       {
         id: 'distance',
         label: t('compare.row.distance'),
-        note: hasRefCoords ? t('compare.row.distance.note', { name: nameOf(reference) }) : null,
+        note: null,
         cells: recs.map(function (r, i) {
           if (i === 0) return plainCell(t('compare.row.distance.self'));
           if (!hasRefCoords || !U.isKnown(r.lat) || !U.isKnown(r.lng)) return plainCell(null);
@@ -248,7 +248,7 @@
       {
         id: 'confidence',
         label: t('compare.row.confidence'),
-        note: t('quality.confidence.legend'),
+        note: null,
         cells: recs.map(function (r) {
           var level = GEO.data.recordConfidence(r);
           return plainCell(level === 'Unknown' ? t('value.confidence.unknown')
@@ -259,7 +259,7 @@
       {
         id: 'completeness',
         label: t('compare.row.completeness'),
-        note: t('quality.completeness.explain', { m: F.int(S.criticalFields.length) }),
+        note: null,
         cells: recs.map(function (r) { return plainCell(completenessOf(r)); })
       },
       {
@@ -359,10 +359,9 @@
   }
 
   function rowNode(row) {
-    var head = [el('span', { text: row.label })];
+    var head = [el('div', { text: row.label })];
     // Marked as different — never as better, never with colour or an arrow.
-    if (row.differs) head.push(el('span.cmp__colmeta', { text: t('compare.differs') }));
-    if (row.note) head.push(el('span.cmp__colmeta', { text: row.note }));
+    if (row.differs) head.push(el('div.cmp__colmeta', { text: t('compare.differs') }));
 
     return el('tr', {}, [el('th.cmp__rowhd', { scope: 'row' }, head)].concat(
       row.cells.map(function (c) { return cellNode(c, row.id); })
@@ -375,10 +374,14 @@
                                            : t('value.class.unknown')].join(' · ');
     var kids = [];
 
-    // C-08. Not a `.btn`: the print sheet hides `.btn`, and a printed
-    // comparison with no column names is not a comparison.
-    kids.push(el('button.cmp__colname', {
-      type: 'button', text: nameOf(rec), title: t('compare.open', { name: nameOf(rec) }),
+    // C-08. Deliberately NOT a `.btn`: the print sheet hides `.btn`, and a
+    // printed comparison with no column names is not a comparison. The `--hit`
+    // modifier is the one thing `.cmp__colname` does not carry — as a bare
+    // text button it measures 21px, below the 44px touch floor (IA §6.4).
+    kids.push(el('button.cmp__colname.cmp__colname--hit', {
+      type: 'button', text: nameOf(rec),
+      'aria-label': t('compare.open', { name: nameOf(rec) }),
+      title: t('compare.open', { name: nameOf(rec) }),
       onclick: function () {
         GEO.state.set({ overlay: null, selectedId: rec.id, rightRail: 'open', rightTab: 'property' },
                       { source: 'user', action: 'compare:open', summary: nameOf(rec) });
@@ -436,11 +439,15 @@
         text: (view.noDataOpen ? '▾ ' : '▸ ') + t('compare.group.noData'),
         onclick: function () { view.noDataOpen = !view.noDataOpen; redraw(); }
       });
+      // A full-width `td`, not the sticky `.cmp__rowhd`: that cell is nowrap
+      // and would size the whole first column to this paragraph, and a `th`
+      // would centre and embolden a sentence that is neither a heading nor a
+      // column label — it is a separator with an explanation.
       bodies.push(el('tbody', {}, [
-        el('tr', {}, [el('th.cmp__rowhd', { scope: 'row', colspan: String(span) }, [
-          headBtn,
-          el('span.cmp__colmeta', { text: t('compare.group.noData.count', { n: F.int(empty.length) }) }),
-          el('span.cmp__colmeta', { text: t('compare.group.noData.body') })
+        el('tr', {}, [el('td', { colspan: String(span) }, [
+          el('div', {}, [headBtn,
+            el('span.cmp__colmeta', { text: t('compare.group.noData.count', { n: F.int(empty.length) }) })]),
+          el('div.micro', { text: t('compare.group.noData.body') })
         ])])
       ]));
       bodies.push(el('tbody#cmp-nodata', { hidden: !view.noDataOpen }, empty.map(rowNode)));
@@ -454,8 +461,7 @@
     return {
       node: el('div.cmp__scroll', {}, [tbl]),
       hiddenIdentical: hiddenIdentical,
-      hiddenEmpty: view.differingOnly ? empty.length : 0,
-      emptyCount: empty.length
+      hiddenEmpty: view.differingOnly ? empty.length : 0
     };
   }
 
@@ -570,6 +576,13 @@
         })
       }));
     }
+    // The explanatory sentences live here rather than in the sticky label
+    // column, where a long line would squeeze every value on the screen.
+    foot.push(el('p.cmp__foot', { text: t('compare.row.distance.note', { name: nameOf(recs[0]) }) }));
+    foot.push(el('p.cmp__foot', { text: t('quality.confidence.legend') }));
+    foot.push(el('p.cmp__foot', {
+      text: t('quality.completeness.explain', { m: F.int(S.criticalFields.length) })
+    }));
     // Decision A, stated on screen and in the export.
     foot.push(el('p.cmp__foot', { text: t('compare.noWinner') }));
 
