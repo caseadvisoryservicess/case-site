@@ -1167,6 +1167,7 @@
     /* --- results list (§12) --- */
     'common.open': 'Open',
     'common.compare': 'Compare',
+    'common.hide': 'Hide',
     'list.showMore': 'Show {n} more',
     'list.card.completeness': '{n} of {total} key fields recorded',
     // Rather than printing five "Not recorded" rows per card, name the absence once.

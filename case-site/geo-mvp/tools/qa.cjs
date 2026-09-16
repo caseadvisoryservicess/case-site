@@ -36,6 +36,25 @@ function check(name, pass, detail) {
   return pass;
 }
 
+/**
+ * A page starting from the shipped dataset with no local edits.
+ *
+ * localStorage on file:// is shared by every page in the context, so the UX
+ * group's GLA edit survived into the assistant group and made three refusal
+ * tests fail — the assistant was right that GLA coverage was 1, because the
+ * previous group had put it there. Each group must start clean, and the app's
+ * own `#reset` escape hatch is the honest way to do it: it clears storage
+ * BEFORE init, which is exactly the recovery path a stuck tester would use.
+ */
+async function freshPage(ctx) {
+  const page = await ctx.newPage();
+  await page.goto(FILE + '#reset', { waitUntil: 'load' });
+  await page.waitForTimeout(500);
+  await page.goto(FILE, { waitUntil: 'load' });
+  await page.waitForTimeout(1200);
+  return page;
+}
+
 async function shot(page, name) {
   if (!SHOTS) return;
   fs.mkdirSync(OUT, { recursive: true });
@@ -82,9 +101,9 @@ function watch(page) {
   /* ───────────────────────── 1. boot & console ───────────────────────── */
   if (!ONLY || ONLY === 'boot') {
     G('boot');
-    const page = await ctx.newPage();
+    const page = await freshPage(ctx);
     const w = watch(page);
-    await page.goto(FILE, { waitUntil: 'load' });
+    await page.reload({ waitUntil: 'load' });
     await page.waitForTimeout(1500);
 
     check('page loads from file://', await page.title() !== '');
@@ -253,10 +272,8 @@ function watch(page) {
   /* ───────────────────────── 3. UX scenarios (§35) ───────────────────────── */
   if (!ONLY || ONLY === 'ux') {
     G('ux scenarios (§35)');
-    const page = await ctx.newPage();
+    const page = await freshPage(ctx);
     const w = watch(page);
-    await page.goto(FILE, { waitUntil: 'load' });
-    await page.waitForTimeout(1200);
 
     const api = fn => page.evaluate(fn);
 
@@ -367,10 +384,10 @@ function watch(page) {
   /* ───────────────────────── 4. assistant (§63) ───────────────────────── */
   if (!ONLY || ONLY === 'ai') {
     G('assistant scenarios (§63)');
-    const page = await ctx.newPage();
+    // Deliberately a FRESH page: the UX group edits a GLA in, and the §63
+    // refusal tests are only meaningful against the shipped coverage of zero.
+    const page = await freshPage(ctx);
     const w = watch(page);
-    await page.goto(FILE, { waitUntil: 'load' });
-    await page.waitForTimeout(1200);
 
     const ask = q => page.evaluate(async (query) => {
       if (!window.GEO || !GEO.ai || !GEO.ai.ask) return { missing: true };
@@ -462,10 +479,8 @@ function watch(page) {
   /* ───────────────────── 4b. cross-cutting checks (§29, §60, §8) ───────────────────── */
   if (!ONLY || ONLY === 'checks') {
     G('cross-cutting');
-    const page = await ctx.newPage();
+    const page = await freshPage(ctx);
     const w = watch(page);
-    await page.goto(FILE, { waitUntil: 'load' });
-    await page.waitForTimeout(1200);
 
     // §29 — no control may be inert. Every visible, enabled button must either carry
     // a handler-bearing id/data hook, or be disabled with a reason the user can read.
@@ -476,7 +491,10 @@ function watch(page) {
         const r = el.getBoundingClientRect();
         return r.width > 0 && r.height > 0;
       };
-      const all = Array.from(document.querySelectorAll('button, [role="button"], a[href]')).filter(vis);
+      // An anchor with a real href is wired by construction: clicking it goes
+      // somewhere. The §29 failure is a BUTTON that looks actionable and is not —
+      // which is why the map's OpenStreetMap attribution links are not a finding.
+      const all = Array.from(document.querySelectorAll('button, [role="button"]')).filter(vis);
       const disabled = all.filter(b => b.disabled || b.getAttribute('aria-disabled') === 'true');
       // A disabled control with no visible reason is the failure §29 describes: it
       // looks broken rather than explained.
