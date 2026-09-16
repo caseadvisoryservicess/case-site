@@ -982,6 +982,41 @@ label.ck:hover{background:var(--paper-2)}
 #pOpen,#pClose{font-size:10.5px;font-weight:700;color:var(--muted);background:transparent;
   border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer}
 #pOpen:hover,#pClose:hover{background:var(--paper-2);color:var(--ink)}
+
+/* CASE OS v4.73.0 - боковая панель как стопка карточек на бумаге CASE.
+   Студию теперь показывают клиенту рядом с гео-агентом, и панель из сплошных серых
+   секций читалась как служебная форма. Карточки на тёплой бумаге, красный маркер у
+   заголовков, пилюли и фокус в оксбладе - тот же язык, что у главного экрана CASE OS.
+   Разметка и идентификаторы не тронуты: меняется только материал, из которого сделан экран.
+   overflow:clip, а не hidden: hidden сделал бы карточку контейнером прокрутки и сломал бы
+   липкие заголовки секций, которые остаются на месте при прокрутке длинного списка слоёв. */
+.left{background:var(--paper);padding-bottom:8px}
+.left>.sect{background:#fff;margin:8px 8px 0;padding:0;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);overflow:clip}
+.left>.sect:first-of-type{top:8px;border-radius:12px}
+.sect h3{background:#fff;padding:10px 12px;font-size:10.5px;color:var(--slate);border-radius:12px 12px 0 0}
+.sect h3::before{color:var(--red)}
+.sect h3:hover{background:var(--paper-2)}
+.sect .sbody{padding:6px 12px 12px}
+.sect .sect{margin:8px 0 0;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+.sect .sect h3{background:transparent;border-radius:10px 10px 0 0}
+.pnav{background:var(--paper);border-bottom:0;padding:8px 8px 0;position:static}
+.pnav button{border-radius:8px;background:#fff}
+select,input[type=text]{border-radius:8px;border-color:var(--line);padding:6px 8px;background:#fff;color:var(--ink)}
+select:focus,input[type=text]:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(158,0,0,.12)}
+input[type=checkbox],input[type=radio]{accent-color:var(--red)}
+.btn{border-radius:9px}
+.btn.sec{background:var(--paper-2);border:1px solid var(--line)}
+.btn.sec:hover{background:#fff;border-color:#c9bfb2}
+.btn.pri:hover{background:var(--red-deep)}
+#btnProjReport{background:#fff;border:1px solid var(--line)}
+#btnProjReport:hover{border-color:var(--red);color:var(--red)}
+.geo-cat-title{color:var(--red)}
+.lopts{border-left-color:var(--red);background:var(--paper);border-radius:0 8px 8px 0}
+.gear{border-radius:7px}
+.kpi{border-color:var(--line);border-radius:10px;box-shadow:var(--shadow)}
+.left::-webkit-scrollbar{width:8px}.left::-webkit-scrollbar-thumb{background:#d8d0c4;border-radius:6px;border:2px solid var(--paper)}
+.left{scrollbar-width:thin;scrollbar-color:#d8d0c4 var(--paper)}
+@media(max-width:620px){.left>.sect{margin:6px 6px 0}}
 </style></head><body class="geo-auth-pending">
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Universal Geo Analytics · preliminary online data</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
@@ -1177,20 +1212,23 @@ CANV=L.canvas({padding:0.25});
  }});
  window.BASES={
  'OpenStreetMap':L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}),
- 'CARTO Светлая':L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OSM © CARTO'}),
- 'CARTO Тёмная':L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OSM © CARTO'}),
+ 'CARTO Светлая (нужен ключ)':L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OSM © CARTO'}),
+ 'CARTO Тёмная (нужен ключ)':L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{subdomains:'abcd',maxZoom:20,attribution:'© OSM © CARTO'}),
  'Google Карта':L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{subdomains:['0','1','2','3'],maxZoom:21,attribution:'© Google'}),
  'Google Спутник':L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',{subdomains:['0','1','2','3'],maxZoom:21,attribution:'© Google'}),
  'Google Гибрид':L.tileLayer('https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',{subdomains:['0','1','2','3'],maxZoom:21,attribution:'© Google'}),
  '2GIS':L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1',{maxZoom:19,attribution:'© 2ГИС'}),
  'Яндекс':new YandexTiles('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&scale=1&lang=ru_RU',{maxZoom:19,attribution:'© Яндекс'}),
  'Esri Спутник':L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'})
-};window.BASES['CARTO Светлая'].addTo(map);L.control.layers(window.BASES,null,{position:'topright',collapsed:true}).addTo(map);
+};/* v4.73.0: CARTO перестал отдавать тайлы без ключа и рисует «API KEY REQUIRED» поверх карты,
+ причём как УСПЕШНО загруженную картинку, так что автозамена по ошибкам его не ловила.
+ По умолчанию - OpenStreetMap: без ключа, с обязательной атрибуцией. */
+window.BASES['OpenStreetMap'].addTo(map);L.control.layers(window.BASES,null,{position:'topright',collapsed:true}).addTo(map);
  /* Автозамена подложки, если тайлы провайдера не грузятся (частая проблема в UZ с частью
     серверов): при 6 ошибках подряд и НИ ОДНОМ загруженном тайле — либо через 6 секунд без
     единого тайла — переключаемся на следующий провайдер. Если пользователь сам выбрал слой —
     автозамену прекращаем. */
- (function(){var order=['CARTO Светлая','OpenStreetMap','Google Карта','2GIS'],idx=0,cur=window.BASES[order[0]],userPicked=false;
+ (function(){var order=['OpenStreetMap','Google Карта','2GIS','Яндекс'],idx=0,cur=window.BASES[order[0]],userPicked=false;
   map.on('baselayerchange',function(){userPicked=true;});
   function watch(layer){var ok=0,err=0,done=false;
    function fin(){done=true;layer.off('tileload',onOk);layer.off('tileerror',onErr);}
@@ -2526,7 +2564,7 @@ setTimeout(initPop,800);
 <script src="v4530-geo-export.js?v=4.58.0"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
-<script src="v4720-geo-assistant.js?v=4.72.0"></script>
+<script src="v4730-geo-agent.js?v=4.73.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span

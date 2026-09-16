@@ -93,15 +93,21 @@ The general `state.php` preserves server GEO_DATA when a stale full-state client
 не принимает неизвестные ID/статусы и всегда оставляет активными `dash` и `users`, чтобы
 администратор не мог заблокировать доступ к настройкам. Отдельная SQL-миграция не требуется.
 
-## v4.72.0: гео-ассистент
+## v4.73.0: гео-агент
 
-- `POST assistant.php` - ход диалога с моделью: `{messages, site, projects, lang}` -> `{ok, content, stop_reason, usage}`.
-  Ключ `anthropic_api_key` и модель `assistant_model` берутся из `config.php`; без ключа ответ `needs_key`,
-  и студия работает в режиме команд. Инструменты исполняются в браузере; сервер без состояния.
-- `GET assistant.php?mode=tools` - список инструментов (единственный источник, клиент берёт отсюда).
-- `GET assistant.php?mode=status` - настроен ли ключ и какая модель.
-- `GET gis_proxy.php?mode=buildings&provider=osm&lat&lon&radius_m` - контуры зданий OSM в радиусе (до 3 км),
-  с этажностью, типом, площадью пятна и строкой происхождения (ODbL, атрибуция обязательна).
+Собственный агент студии геоаналитики: разбор команд в браузере, без внешних сервисов ИИ и без оплаты.
+Числа считают инструменты по данным с происхождением.
+
+- `GET gis_proxy.php?mode=buildings&provider=osm&lat&lon&radius_m` - контуры зданий OSM в радиусе (до 3 км):
+  этажность, тип, площадь пятна, строка происхождения (ODbL, атрибуция обязательна). Кэш 30 дней в `gis_analysis_cache`.
 - `GET gis_proxy.php?mode=roads&provider=osm&lat&lon&radius_m[&classes=primary,secondary]` - линии дорог OSM.
-  Оба режима кэшируются в `gis_analysis_cache` на 30 дней (точка с точностью ~10 м + радиус + классы).
-- Чистые функции вынесены в `assistant_lib.php` и `osm_lib.php`, чтобы их проверял `docs/qa/tools/v4720_assistant_api.php`.
+- `GET gis_proxy.php?mode=geocode&q=адрес[&lang=ru]` - адрес -> точки (Nominatim, ODbL), кэш 30 дней по запросу.
+- `GET gis_proxy.php?mode=ping` - проверка связи с сервера: curl/allow_url_fopen, overpass-api.de, nominatim,
+  своя модель и локальная Ollama (127.0.0.1:11434); советы человеческим языком. Роли с правом правки, 6 раз за 10 минут.
+- `GET llm.php?q=фраза[&lang=ru]` - необязательно: перевод свободной фразы в команды агента через СВОЮ
+  OpenAI-совместимую модель (`llm_endpoint`, `llm_model`, `llm_key` в `config.php`, например Ollama). Без настройки
+  отвечает `needs_llm`. Модель никогда не считает числа и не пишет ответ пользователю: только список команд из
+  закрытого меню, каждая проверяется на сервере и на клиенте.
+- Чистые функции вынесены в `osm_lib.php` и `llm_lib.php`; их проверяет `docs/qa/tools/v4730_geo_proxy.php`.
+- PHP на хостинге 8.0 (16.09.2026; в панели доступны 7.4, 8.0, 8.2). Код API совместим с 7.2-8.4:
+  конструкции новее 7.2 не используются намеренно, чтобы смена версии в панели ничего не ломала.

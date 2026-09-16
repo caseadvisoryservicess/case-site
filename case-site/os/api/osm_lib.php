@@ -14,7 +14,8 @@
 //     любой выгрузке. Поэтому строка атрибуции возвращается в каждом ответе, а не хранится
 //     где-то на клиенте, где её забудут при следующей переделке легенды.
 //
-// Синтаксис PHP 7.2: боевой сервер (см. HANDOFF, 27.07.2026) работает на нём.
+// Синтаксис совместим с PHP 7.2-8.4: хостинг на PHP 8.0 (16.09.2026), но версия переключается в
+// панели одним кликом, и код не должен зависеть от этого выбора.
 declare(strict_types=1);
 
 // Ограничения запроса. Радиус больше 3 км даёт десятки тысяч зданий: Overpass отвечает
@@ -147,6 +148,115 @@ function osm_ways_to_roads(array $elements, int $limit): array {
       'lanes'  => osm_int_or_null($tags['lanes'] ?? null),
     ];
     if (count($out) >= $limit) break;
+  }
+  return $out;
+}
+
+// v4.72.1: GET наружу. curl предпочтительнее: даёт код ответа и не зависит от allow_url_fopen,
+// который на части хостингов выключен, и тогда file_get_contents молча возвращает false.
+// Возвращает ['status'=>int, 'body'=>string, 'error'=>string].
+function osm_http_get(string $url, int $timeout, string $ua): array {
+  if (function_exists('curl_init')) {
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => $timeout, CURLOPT_CONNECTTIMEOUT => 12, CURLOPT_HTTPHEADER => ['User-Agent: ' . $ua]]);
+    $raw = curl_exec($ch);
+    $status = (int)curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
+    $err = $raw === false ? curl_error($ch) : '';
+    curl_close($ch);
+    return ['status'=>$status, 'body'=>is_string($raw) ? $raw : '', 'error'=>$err];
+  }
+  if (!ini_get('allow_url_fopen')) return ['status'=>0, 'body'=>'', 'error'=>'на хостинге нет curl и выключен allow_url_fopen'];
+  $raw = @file_get_contents($url, false, stream_context_create(['http' => ['timeout' => $timeout, 'method' => 'GET', 'header' => "User-Agent: $ua\r\n", 'ignore_errors' => true]]));
+  $status = 0;
+  if (isset($http_response_header[0]) && preg_match('~\s(\d{3})\s~', $http_response_header[0], $m)) $status = (int)$m[1];
+  return ['status'=>$status, 'body'=>is_string($raw) ? $raw : '', 'error'=>$raw === false ? 'network' : ''];
+}
+
+// v4.73.0: адрес -> точка через Nominatim (OpenStreetMap). Правила сервиса: узнаваемый
+// User-Agent, не чаще одного запроса в секунду, кэш разрешён. Страна ограничена Узбекистаном:
+// агент работает по Ташкенту, и без ограничения «Чиланзар» находился в трёх странах.
+function osm_geocode_url(string $q, string $lang): string {
+  return 'https://nominatim.openstreetmap.org/search?' . http_build_query([
+    'q' => $q, 'format' => 'jsonv2', 'limit' => 5, 'countrycodes' => 'uz', 'accept-language' => $lang, 'addressdetails' => 0,
+  ]);
+}
+
+// Ответ Nominatim -> короткие записи. Берём только то, у чего есть координаты; имя и тип
+// могут отсутствовать, это не ошибка.
+function osm_geocode_parse($json): array {
+  if (!is_array($json)) return [];
+  $out = [];
+  foreach ($json as $r) {
+    if (!is_array($r) || !isset($r['lat'], $r['lon']) || !is_numeric($r['lat']) || !is_numeric($r['lon'])) continue;
+    $out[] = [
+      'name' => mb_substr(trim((string)($r['display_name'] ?? '')), 0, 200),
+      'lat'  => round((float)$r['lat'], 6),
+      'lon'  => round((float)$r['lon'], 6),
+      'type' => (string)($r['type'] ?? ''),
+    ];
+    if (count($out) >= 5) break;
+  }
+  return $out;
+}
+
+// Что умеет этот PHP: от этого зависит, может ли сервер вообще выходить в сеть.
+function osm_env(): array {
+  return [
+    'php' => PHP_VERSION,
+    'curl' => function_exists('curl_init'),
+    'allow_url_fopen' => (bool)ini_get('allow_url_fopen'),
+    'openssl' => extension_loaded('openssl'),
+  ];
+}
+
+// Короткий GET с замером времени: для проверки связи, не для данных.
+function osm_probe(string $url): array {
+  $t0 = microtime(true);
+  $r = osm_http_get($url, 8, 'CASE-OS/4.73 (connectivity check; caseadvisory.uz)');
+  $r['ms'] = (int)round((microtime(true) - $t0) * 1000);
+  $r['body'] = mb_substr((string)$r['body'], 0, 200);
+  return $r;
+}
+
+// Факты проверки связи -> советы словами. Чистая функция: сеть не трогает, чтобы её можно
+// было проверить на всех сочетаниях. Каждый совет называет причину и что сделать; текст
+// для поддержки хостинга дан дословно, потому что владелец будет его пересылать.
+function osm_diagnosis(array $f): array {
+  $env = isset($f['env']) && is_array($f['env']) ? $f['env'] : [];
+  $ov = isset($f['overpass']) && is_array($f['overpass']) ? $f['overpass'] : ['status' => 0, 'error' => '', 'ms' => 0];
+  $nm = isset($f['nominatim']) && is_array($f['nominatim']) ? $f['nominatim'] : ['status' => 0, 'error' => '', 'ms' => 0];
+  $llm = isset($f['llm']) && is_array($f['llm']) ? $f['llm'] : ['configured' => false];
+  $curl = !empty($env['curl']); $fopen = !empty($env['allow_url_fopen']);
+  $out = [];
+
+  if (!$curl && !$fopen) $out[] = 'На хостинге нет расширения curl и выключен allow_url_fopen: PHP не может выходить в сеть вообще. В панели хостинга откройте «Select PHP version» и поставьте галочку curl, затем повторите проверку.';
+  elseif (!$curl) $out[] = 'Расширение curl выключено, PHP ходит в сеть через file_get_contents: это работает, но хуже переживает медленные ответы. Для надёжности включите curl в «Select PHP version».';
+
+  $line = function (string $what, array $r): string {
+    $st = (int)($r['status'] ?? 0); $err = (string)($r['error'] ?? ''); $ms = (int)($r['ms'] ?? 0);
+    if ($st >= 200 && $st < 400) return $what . ' доступен: HTTP ' . $st . ' за ' . $ms . ' мс.';
+    if ($st === 429 || $st === 503 || $st === 504) return $what . ' перегружен (HTTP ' . $st . '). Это на их стороне. Повторите позже или уменьшите радиус.';
+    if ($st > 0) return $what . ' ответил кодом HTTP ' . $st . '. Повторите позже; если повторяется, сообщите разработчику код ответа.';
+    return $what . ' не отвечает с сервера' . ($err !== '' ? ' (' . $err . ')' : '') . '.';
+  };
+  $out[] = $line('Overpass API (здания и дороги OSM)', $ov);
+  $out[] = $line('Геокодер Nominatim (поиск адреса)', $nm);
+
+  $ovDown = (int)($ov['status'] ?? 0) === 0; $nmDown = (int)($nm['status'] ?? 0) === 0;
+  if ($ovDown && $nmDown) $out[] = 'Итог: оба внешних сервиса не отвечают с сервера, значит причина не в них. Если curl включён, это сетевая политика хостинга: напишите в поддержку дословно «разрешите исходящие HTTPS-соединения из PHP к overpass-api.de и nominatim.openstreetmap.org». Пока сеть закрыта, точку задавайте кликом или координатами, а здания и дороги недоступны.';
+  elseif ($ovDown) $out[] = 'Итог: геокодер отвечает, а Overpass нет. Скорее всего таймаут на большом запросе: уменьшите радиус до 500 м и повторите; если не помогает, попросите поддержку хостинга разрешить исходящие HTTPS к overpass-api.de.';
+  elseif ($nmDown) $out[] = 'Итог: Overpass отвечает, а геокодер нет. Попросите поддержку хостинга разрешить исходящие HTTPS к nominatim.openstreetmap.org; пока точку задавайте кликом или координатами.';
+
+  if (!empty($llm['configured'])) {
+    $st = (int)($llm['status'] ?? 0); $ep = (string)($llm['endpoint'] ?? ''); $model = (string)($llm['model'] ?? '');
+    if ($st >= 200 && $st < 400) $out[] = 'Своя модель ' . $ep . ' отвечает (' . $model . ', ' . (int)($llm['ms'] ?? 0) . ' мс): свободные фразы, которые движок не разобрал, она переводит в команды; числа всё равно считают инструменты.';
+    else $out[] = 'Своя модель ' . $ep . ' не отвечает' . (!empty($llm['error']) ? ' (' . $llm['error'] . ')' : ($st ? ' (HTTP ' . $st . ')' : '')) . ': проверьте, запущена ли Ollama (или другой OpenAI-совместимый сервер) и верен ли адрес в config.php. Команды работают без неё.';
+  } elseif (!empty($llm['ollama_local'])) {
+    $models = trim((string)($llm['ollama_models'] ?? ''));
+    $first = $models !== '' ? trim(explode(',', $models)[0]) : 'llama3';
+    $out[] = 'На сервере найдена Ollama' . ($models !== '' ? ' (модели: ' . $models . ')' : ' (моделей не загружено)') . '. Чтобы агент понимал свободные фразы, впишите в os/api/config.php: \'llm_endpoint\' => \'http://127.0.0.1:11434/v1\', \'llm_model\' => \'' . $first . '\'.';
+  } else {
+    $out[] = 'Своя модель не настроена: запросы разбираются детерминированным движком команд, и для радиусов, населения, зданий, дорог, полигонов и цветов этого достаточно. Внешние платные сервисы ИИ не используются.';
   }
   return $out;
 }
