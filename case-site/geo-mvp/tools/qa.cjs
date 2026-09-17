@@ -879,7 +879,7 @@ function watch(page) {
   if (!ONLY || ONLY === 'responsive') {
     G('responsive & motion');
     for (const vp of [{ w: 1920, h: 1080, n: 'xxl' }, { w: 1280, h: 800, n: 'l' },
-                      { w: 1024, h: 768, n: 'm' }, { w: 768, h: 1024, n: 's' },
+                      { w: 1024, h: 768, n: 'm' }, { w: 834, h: 1112, n: 's-ipad' }, { w: 768, h: 1024, n: 's' },
                       { w: 375, h: 812, n: 'xs' }]) {
       const page = await ctx.newPage();
       await page.setViewportSize({ width: vp.w, height: vp.h });
@@ -966,6 +966,77 @@ function watch(page) {
             overlaps.length === 0, overlaps.join(', '));
       if (vp.w >= 1280) {
         check(`${vp.n} (${vp.w}px): map is at least 560px wide`, m.mapW >= 560, m.mapW);
+      }
+
+      // ── the header holds one line, and every track has room ──
+      // At 768 the data chip became a 68×162px vertical ribbon bursting out of
+      // a 56px header, and at 768 AND 1024 the search track collapsed to 0px
+      // with its <input> drawn across the chip. The clipping and overflow
+      // checks above passed throughout: the chip wrapped rather than clipped,
+      // and nothing overflowed the VIEWPORT — it overflowed the header.
+      const hdrGeom = await page.evaluate(() => {
+        const hdr = document.querySelector('.hdr');
+        const hb = hdr.getBoundingClientRect();
+        const kids = [...hdr.querySelectorAll('.hdr__brand,.hdr__scope,.hdr__search,.hdr__actions')]
+          .filter(e => e.getClientRects().length).map(e => e.getBoundingClientRect());
+        let overlaps = 0;
+        for (let i = 0; i < kids.length; i++) for (let j = i + 1; j < kids.length; j++) {
+          const a = kids[i], c = kids[j];
+          if (a.right > c.left + 1 && c.right > a.left + 1) overlaps++;
+        }
+        const search = document.getElementById('search');
+        const escapees = [...hdr.querySelectorAll('*')].filter(e => {
+          if (!e.getClientRects().length) return false;
+          const b = e.getBoundingClientRect();
+          return b.top < hb.top - 1 || b.bottom > hb.bottom + 1;
+        }).length;
+        return { oneLine: hdr.scrollHeight <= hdr.clientHeight + 2,
+                 escapees, overlaps,
+                 searchW: search ? Math.round(search.getBoundingClientRect().width) : 0 };
+      });
+      check(`${vp.n} (${vp.w}px): the header stays one line, nothing escapes it`,
+            hdrGeom.oneLine && hdrGeom.escapees === 0,
+            `oneLine=${hdrGeom.oneLine} escapees=${hdrGeom.escapees}`);
+      check(`${vp.n} (${vp.w}px): header tracks do not overlap, search ≥ 100px`,
+            hdrGeom.overlaps === 0 && hdrGeom.searchW >= 100,
+            `overlaps=${hdrGeom.overlaps} search=${hdrGeom.searchW}px`);
+
+      // ── on touch widths every tab bar destination actually OPENS ──
+      // The drawer and sheet CSS keyed on `.rail[data-open="true"]`, an
+      // attribute nothing ever wrote. State said open, #app said open, and the
+      // rail stayed translated off-screen with visibility:hidden — Filters and
+      // List were unreachable on every phone and tablet, and every screenshot
+      // looked fine because a closed drawer looks exactly like a map. This
+      // clicks each tab and requires its panel to be VISIBLE and IN VIEW, and
+      // requires the tab bar to mark the right tab current afterwards.
+      if (vp.w <= 1023) {
+        const tabs = await page.evaluate(async () => {
+          const out = {};
+          const inView = el => {
+            const b = el.getBoundingClientRect(), cs = getComputedStyle(el);
+            return cs.visibility === 'visible' && b.width > 0 &&
+                   b.left < innerWidth && b.right > 0 &&
+                   b.top < innerHeight - 40 && b.bottom > 0;
+          };
+          // `data-go` carries the rightTab VALUE ('ai'), not the label ('Assistant').
+          for (const [go, sel] of [['results', '.rail--left'], ['analytics', '.rail--right'],
+                                   ['ai', '.rail--right']]) {
+            const btn = document.querySelector('#tabbar .tabbar__btn[data-go="' + go + '"]');
+            if (!btn) { out[go] = 'no tab'; continue; }
+            btn.click();
+            await new Promise(r => setTimeout(r, 600));
+            const panel = document.querySelector(sel);
+            const current = document.querySelector('#tabbar [aria-current="page"]');
+            out[go] = (panel && inView(panel) ? 'open' : 'CLOSED') +
+                      (current && current.dataset.go === go ? '' : ' / wrong tab marked current');
+          }
+          const map = document.querySelector('#tabbar .tabbar__btn[data-go="map"]');
+          if (map) { map.click(); await new Promise(r => setTimeout(r, 400)); }
+          return out;
+        });
+        const bad = Object.entries(tabs).filter(([, v]) => v !== 'open');
+        check(`${vp.n} (${vp.w}px): every tab bar destination opens and is marked current`,
+              bad.length === 0, bad.map(([k, v]) => `${k}: ${v}`).join(' | '));
       }
 
       // The legend's collapsed default follows the breakpoint until a PERSON

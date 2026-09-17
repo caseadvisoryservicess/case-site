@@ -189,6 +189,20 @@
     app.dataset.role = state.role;
     Q.$('#rail-right').hidden = state.rightRail !== 'open';
 
+    /* The tab bar's "you are here" is derived from state on every render. It
+       was static markup: "Map" stayed marked current with the List drawer open
+       across the whole screen — the screen and the state disagreeing, which is
+       the exact class of bug the single-source-of-truth rule exists to catch
+       (§59). Only one tab can be current, and it is whichever surface is on top. */
+    var here = state.overlay === 'data' ? 'data'
+             : state.rightRail === 'open' ? state.rightTab
+             : state.leftRail === 'open' ? 'results'
+             : 'map';
+    Q.$$('#tabbar .tabbar__btn').forEach(function (b) {
+      if (b.dataset.go === here) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
+
     Q.$$('#rail-left [role="tab"]').forEach(function (t) {
       var on = t.id === 'tab-' + state.leftTab;
       t.setAttribute('aria-selected', on ? 'true' : 'false');

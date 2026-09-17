@@ -38,6 +38,13 @@
 /* ==================================================== L — 1280–1439 ====== */
 /* 300 + 560 + 420 = 1280 exactly — both rails open sits precisely on the P1
    floor, which is why 1280 is the breakpoint and not a round number. */
+/* 1280–1599: the header carries everything, and the data chip left uncapped
+   takes 312px for its full sentence — which pushed the search to its 140px
+   floor on a 1440px screen. The chip says less; the search gets to be a search. */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .chip--data { max-width: 240px; }
+}
+
 @media (min-width: 1280px) and (max-width: 1439px) {
   :root { --left-w: 300px; }
   .app[data-right="open"] { --right-w: 420px; }
@@ -52,6 +59,25 @@
 }
 
 /* ============================== S — ≤1023: rails float over the map ====== */
+/* 1024–1279: rails are a collapsed icon strip, so no tab bar — but the header
+   still carries every control and has no room to spare for a prose chip. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* The rails are a collapsed icon strip here, so Analytics / Assistant / Data
+     stay in the header — 412px of actions — and with the lockup, the WORKING
+     TITLE chip and the two scope buttons the auto tracks came to 1023px on a
+     1024px screen. The search track was 0.
+
+     So the boundary is now one rule, not a set of caps: the scope selectors
+     and the provisional-name chip are header controls at 1280 and above; below
+     that they live in Settings. They are single-value and rarely changed, and
+     the search is used constantly — the header should be tight around the
+     thing people actually type into. */
+  .hdr__scope { display: none; }
+  #product-provisional { display: none; }
+  .chip--data { min-width: 150px; max-width: 210px; }
+  .hdr__search { max-width: 320px; }
+}
+
 @media (max-width: 1023px) {
   /* Touch breakpoints: every hit target grows to 44px (IA §6, X-8). */
   :root { --hit: var(--hit-touch); }
@@ -89,9 +115,19 @@
     transform: translateX(100%);
   }
 
-  /* (0,3,0) and later in the cascade, so it beats the docked-state rule in
+  /* Keyed on the attribute render() ACTUALLY WRITES — `data-left` / `data-right`
+     on #app — and not on a `data-open` on the rail, which nothing ever set.
+
+     That mismatch meant the drawer never opened on any touch width: state said
+     "open", #app said "open", the rail stayed translated off-screen with
+     visibility:hidden, and Filters and List were unreachable on every phone and
+     tablet. The screenshots looked fine because a closed drawer looks exactly
+     like a map. Same fix for the phone sheet below.
+
+     (0,3,0) and later in the cascade, so it beats the docked-state rule in
      03-layout.css that hides a zero-width left rail. */
-  .app .rail[data-open="true"] {
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right {
     transform: none;
     visibility: visible;
     transition: transform var(--dur-panel) var(--ease-panel), visibility 0s;
@@ -125,6 +161,96 @@
   }
 
   .dw__navbtn { flex: none; white-space: nowrap; }
+
+  /* ── the tab bar belongs to the DRAWER band, not to phones ──────────────
+     This was the tablet bug. The rails become off-screen drawers at 1023px,
+     but the bottom tab bar that opens them only existed below 768px — so from
+     768 to 1023, iPad portrait included, the left rail sat parked at x:-400
+     with nothing on screen able to reach it. Filters, the results list, the
+     assistant and the data workspace were all unreachable on a tablet.
+
+     The boundary is now the honest one: wherever the rails are drawers, the
+     tab bar exists to open them. Below 768 the phone block narrows it further;
+     it does not re-declare it. */
+  :root { --tabbar-h: 56px; }
+
+  .app { grid-template-rows: var(--header-h) minmax(0, 1fr) var(--tabbar-h); }
+
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    background: var(--surface);
+    border-top: 1px solid var(--line-strong);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tabbar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--hit-touch);
+    padding: 0 var(--s-1);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabbar__btn[aria-current="page"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 2px 0 var(--case-red);
+  }
+
+  /* Analytics, Assistant and Data are IN the tab bar at this width, so the
+     header must stop carrying them too. Keeping both was what squeezed the data
+     chip down to 18px — a chip that renders as an ellipsis and nothing else.
+     The phone block already did this; it belongs to the tab bar's existence,
+     not to phone-ness. The city and asset-type selectors stay: a tablet has the
+     room, and they carry the scope every figure on screen is computed over. */
+  #btn-analytics,
+  #btn-ai,
+  #btn-data { display: none; }
+
+  #product-provisional { display: none; }
+
+  /* The search sits in the header's 1fr track, and `minmax(0, 1fr)` lets that
+     track shrink to ZERO. At 768px it did: the auto tracks — lockup 195, scope
+     244, actions 269 — plus gaps and padding came to exactly 768, the search
+     track measured 0px, and the <input> inside drew 120px straight across the
+     scope buttons and the first third of the data chip. A min-width on the
+     ITEM cannot grow the TRACK, which is why the first attempt changed nothing.
+
+     Two things, both structural. The city and asset-type selectors move into
+     Settings here, as they already do on phones — I had assumed a tablet had
+     the room for them and the measurement says it does not. And the track gets
+     a floor of its own, so no future control added to the header can push the
+     search back to nothing. */
+  .hdr__scope { display: none; }
+  .search__input { width: 100%; min-width: 0; }
+
+  /* The data chip is prose, and the header gives it whatever column is left.
+     Unconstrained at tablet width that column was 68px, so "148 records · 2
+     sources · updated 19 Jul 2026 · 0 field-verified" wrapped into a 162px
+     vertical ribbon that burst out of a 56px header and pushed the CASE
+     lockup off the top of the page. It truncates here as it already did on
+     phones — just with the width a tablet can actually spare. */
+  .chip--data {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Nothing anchored to the bottom of the map may sit under the tab bar.
+     The NOTICE is not in this list: it lives at the top precisely so it never
+     shares a corner with the legend, and including it here re-created the
+     overlap the earlier move had fixed — 527px² of notice across the legend
+     at 768. */
+  .maplegend { bottom: calc(var(--tabbar-h) + var(--s-2)); }
 
   /* Overlays go full-bleed: a centred card with 4vw margins wastes the only
      width the comparison table has. */
@@ -220,7 +346,8 @@
 
   .rail--right { transform: translateY(100%); }
 
-  .app .rail[data-open="true"] { transform: none; }
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right { transform: none; }
 
   /* Q-8: drag is captured by the handle strip and the sheet header only, so
      the sheet body still scrolls and the map underneath is untouched. The

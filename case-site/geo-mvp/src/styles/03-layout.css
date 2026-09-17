@@ -66,7 +66,11 @@
 .hdr {
   position: relative;          /* z-index is inert on a static box */
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  /* The search track has a FLOOR. minmax(0, 1fr) let it collapse to 0px the
+     moment the auto tracks summed to the header width — which they did at 768
+     and again at 1024 — and the input then drew across whatever sat beside it.
+     140px is the narrowest a search field is still a search field. */
+  grid-template-columns: auto auto minmax(140px, 1fr) auto;
   align-items: center;
   gap: var(--s-3);
   min-width: 0;

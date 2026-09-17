@@ -202,11 +202,25 @@
   text-transform: uppercase;
 }
 
+/* The data chip is a whole sentence of prose sitting in a header that hands it
+   whatever column is left over. It must never wrap, at any width: given 68px at
+   tablet size it turned "148 records · 2 sources · updated 19 Jul 2026 · 0
+   field-verified" into a 162px vertical ribbon that burst out of a 56px header
+   and pushed the CASE lockup off the top of the page.
+
+   So the single-line rule lives here rather than in a breakpoint, and the
+   breakpoints only tune how much width it may take. Truncation is honest here:
+   the chip is a button, and the full summary is one tap away in the data
+   workspace it opens. */
 .chip--data {
   min-height: var(--hit);
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
   text-align: left;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chip--data:hover { background: var(--surface-3); color: var(--text); }

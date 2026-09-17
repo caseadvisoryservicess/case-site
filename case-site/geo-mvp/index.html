@@ -20,12 +20,12 @@
   597ac138679a  vendor/leaflet.css
   dcf96b2add33  src/styles/01-tokens.css
   43833029a2f5  src/styles/02-base.css
-  1010c1f1a9b9  src/styles/03-layout.css
-  1f46cb2f6091  src/styles/04-components.css
+  caea4fc7d214  src/styles/03-layout.css
+  8fee087592d2  src/styles/04-components.css
   280853ff4209  src/styles/05-map.css
   378b090f8958  src/styles/06-charts.css
   9a768a2a2efb  src/styles/07-panels.css
-  5bc38348cad5  src/styles/08-responsive.css
+  61b7a8f67151  src/styles/08-responsive.css
   5b3b96e2f4a1  src/styles/09-print.css
   e1462f10f502  vendor/leaflet.js
   1e4e1d22972a  vendor/leaflet.markercluster.js
@@ -41,7 +41,7 @@
   2e44b9144adc  src/js/09-geo.js
   4ae2fd03e85e  src/js/10-charts.js
   c550622ce69b  src/js/10b-basemaps.js
-  c1861104798c  src/js/11-map.js
+  83225a25b803  src/js/11-map.js
   19ea061ab2da  src/js/12-panel-filters.js
   e0885c95eb5a  src/js/13-panel-list.js
   521cf1206e46  src/js/14-panel-detail.js
@@ -55,7 +55,7 @@
   5d158f6b3169  src/js/22-ai-engine.js
   52556adc3b22  src/js/23-ai-panel.js
   60a0fd235a4b  src/js/24-selftest.js
-  211b6486a59c  src/js/99-boot.js
+  77b2e4cd547b  src/js/99-boot.js
   26cdb40f4f5b  data/seed.json
   b71eec09596b  data/tashkent_districts.simplified.geojson
   fdf61e20fd2c  src/assets/dmserif-display-latin.woff2
@@ -1330,7 +1330,11 @@ summary:focus:not(:focus-visible),
 .hdr {
   position: relative;          /* z-index is inert on a static box */
   display: grid;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  /* The search track has a FLOOR. minmax(0, 1fr) let it collapse to 0px the
+     moment the auto tracks summed to the header width — which they did at 768
+     and again at 1024 — and the input then drew across whatever sat beside it.
+     140px is the narrowest a search field is still a search field. */
+  grid-template-columns: auto auto minmax(140px, 1fr) auto;
   align-items: center;
   gap: var(--s-3);
   min-width: 0;
@@ -2029,11 +2033,25 @@ summary:focus:not(:focus-visible),
   text-transform: uppercase;
 }
 
+/* The data chip is a whole sentence of prose sitting in a header that hands it
+   whatever column is left over. It must never wrap, at any width: given 68px at
+   tablet size it turned "148 records · 2 sources · updated 19 Jul 2026 · 0
+   field-verified" into a 162px vertical ribbon that burst out of a 56px header
+   and pushed the CASE lockup off the top of the page.
+
+   So the single-line rule lives here rather than in a breakpoint, and the
+   breakpoints only tune how much width it may take. Truncation is honest here:
+   the chip is a button, and the full summary is one tap away in the data
+   workspace it opens. */
 .chip--data {
   min-height: var(--hit);
   font-variant-numeric: tabular-nums;
   color: var(--text-2);
   text-align: left;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .chip--data:hover { background: var(--surface-3); color: var(--text); }
@@ -4605,6 +4623,13 @@ summary:focus:not(:focus-visible),
 /* ==================================================== L — 1280–1439 ====== */
 /* 300 + 560 + 420 = 1280 exactly — both rails open sits precisely on the P1
    floor, which is why 1280 is the breakpoint and not a round number. */
+/* 1280–1599: the header carries everything, and the data chip left uncapped
+   takes 312px for its full sentence — which pushed the search to its 140px
+   floor on a 1440px screen. The chip says less; the search gets to be a search. */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .chip--data { max-width: 240px; }
+}
+
 @media (min-width: 1280px) and (max-width: 1439px) {
   :root { --left-w: 300px; }
   .app[data-right="open"] { --right-w: 420px; }
@@ -4619,6 +4644,25 @@ summary:focus:not(:focus-visible),
 }
 
 /* ============================== S — ≤1023: rails float over the map ====== */
+/* 1024–1279: rails are a collapsed icon strip, so no tab bar — but the header
+   still carries every control and has no room to spare for a prose chip. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* The rails are a collapsed icon strip here, so Analytics / Assistant / Data
+     stay in the header — 412px of actions — and with the lockup, the WORKING
+     TITLE chip and the two scope buttons the auto tracks came to 1023px on a
+     1024px screen. The search track was 0.
+
+     So the boundary is now one rule, not a set of caps: the scope selectors
+     and the provisional-name chip are header controls at 1280 and above; below
+     that they live in Settings. They are single-value and rarely changed, and
+     the search is used constantly — the header should be tight around the
+     thing people actually type into. */
+  .hdr__scope { display: none; }
+  #product-provisional { display: none; }
+  .chip--data { min-width: 150px; max-width: 210px; }
+  .hdr__search { max-width: 320px; }
+}
+
 @media (max-width: 1023px) {
   /* Touch breakpoints: every hit target grows to 44px (IA §6, X-8). */
   :root { --hit: var(--hit-touch); }
@@ -4656,9 +4700,19 @@ summary:focus:not(:focus-visible),
     transform: translateX(100%);
   }
 
-  /* (0,3,0) and later in the cascade, so it beats the docked-state rule in
+  /* Keyed on the attribute render() ACTUALLY WRITES — `data-left` / `data-right`
+     on #app — and not on a `data-open` on the rail, which nothing ever set.
+
+     That mismatch meant the drawer never opened on any touch width: state said
+     "open", #app said "open", the rail stayed translated off-screen with
+     visibility:hidden, and Filters and List were unreachable on every phone and
+     tablet. The screenshots looked fine because a closed drawer looks exactly
+     like a map. Same fix for the phone sheet below.
+
+     (0,3,0) and later in the cascade, so it beats the docked-state rule in
      03-layout.css that hides a zero-width left rail. */
-  .app .rail[data-open="true"] {
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right {
     transform: none;
     visibility: visible;
     transition: transform var(--dur-panel) var(--ease-panel), visibility 0s;
@@ -4692,6 +4746,96 @@ summary:focus:not(:focus-visible),
   }
 
   .dw__navbtn { flex: none; white-space: nowrap; }
+
+  /* ── the tab bar belongs to the DRAWER band, not to phones ──────────────
+     This was the tablet bug. The rails become off-screen drawers at 1023px,
+     but the bottom tab bar that opens them only existed below 768px — so from
+     768 to 1023, iPad portrait included, the left rail sat parked at x:-400
+     with nothing on screen able to reach it. Filters, the results list, the
+     assistant and the data workspace were all unreachable on a tablet.
+
+     The boundary is now the honest one: wherever the rails are drawers, the
+     tab bar exists to open them. Below 768 the phone block narrows it further;
+     it does not re-declare it. */
+  :root { --tabbar-h: 56px; }
+
+  .app { grid-template-rows: var(--header-h) minmax(0, 1fr) var(--tabbar-h); }
+
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    background: var(--surface);
+    border-top: 1px solid var(--line-strong);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tabbar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--hit-touch);
+    padding: 0 var(--s-1);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabbar__btn[aria-current="page"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 2px 0 var(--case-red);
+  }
+
+  /* Analytics, Assistant and Data are IN the tab bar at this width, so the
+     header must stop carrying them too. Keeping both was what squeezed the data
+     chip down to 18px — a chip that renders as an ellipsis and nothing else.
+     The phone block already did this; it belongs to the tab bar's existence,
+     not to phone-ness. The city and asset-type selectors stay: a tablet has the
+     room, and they carry the scope every figure on screen is computed over. */
+  #btn-analytics,
+  #btn-ai,
+  #btn-data { display: none; }
+
+  #product-provisional { display: none; }
+
+  /* The search sits in the header's 1fr track, and `minmax(0, 1fr)` lets that
+     track shrink to ZERO. At 768px it did: the auto tracks — lockup 195, scope
+     244, actions 269 — plus gaps and padding came to exactly 768, the search
+     track measured 0px, and the <input> inside drew 120px straight across the
+     scope buttons and the first third of the data chip. A min-width on the
+     ITEM cannot grow the TRACK, which is why the first attempt changed nothing.
+
+     Two things, both structural. The city and asset-type selectors move into
+     Settings here, as they already do on phones — I had assumed a tablet had
+     the room for them and the measurement says it does not. And the track gets
+     a floor of its own, so no future control added to the header can push the
+     search back to nothing. */
+  .hdr__scope { display: none; }
+  .search__input { width: 100%; min-width: 0; }
+
+  /* The data chip is prose, and the header gives it whatever column is left.
+     Unconstrained at tablet width that column was 68px, so "148 records · 2
+     sources · updated 19 Jul 2026 · 0 field-verified" wrapped into a 162px
+     vertical ribbon that burst out of a 56px header and pushed the CASE
+     lockup off the top of the page. It truncates here as it already did on
+     phones — just with the width a tablet can actually spare. */
+  .chip--data {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Nothing anchored to the bottom of the map may sit under the tab bar.
+     The NOTICE is not in this list: it lives at the top precisely so it never
+     shares a corner with the legend, and including it here re-created the
+     overlap the earlier move had fixed — 527px² of notice across the legend
+     at 768. */
+  .maplegend { bottom: calc(var(--tabbar-h) + var(--s-2)); }
 
   /* Overlays go full-bleed: a centred card with 4vw margins wastes the only
      width the comparison table has. */
@@ -4787,7 +4931,8 @@ summary:focus:not(:focus-visible),
 
   .rail--right { transform: translateY(100%); }
 
-  .app .rail[data-open="true"] { transform: none; }
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right { transform: none; }
 
   /* Q-8: drag is captured by the handle strip and the sheet header only, so
      the sheet body still scrolls and the map underneath is untouched. The
@@ -13721,6 +13866,20 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
       zoomAnimation: animates(),
       markerZoomAnimation: animates()
     });
+
+    /* Leaflet 1.9 ships a Ukrainian flag inside its own attribution prefix. The
+       credit stays — it is the courteous thing and costs nothing — but the flag
+       is Leaflet's political statement, not ours, and a consultancy's client
+       deliverable is not the place to carry someone else's. Replaced by setting
+       the prefix rather than by patching vendor/leaflet.js, so a library upgrade
+       cannot quietly bring it back and cannot be broken by our edit either.
+
+       The DATA attributions are untouched: those are a licence obligation (T7),
+       and this is not one of them. */
+    if (map.attributionControl) {
+      map.attributionControl.setPrefix(
+        '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a>');
+    }
 
     // M-13: the map is ONE tab stop, not 148. The results list is the accessible
     // equivalent path to every record, so the container says so out loud rather
@@ -28129,6 +28288,20 @@ window.GEO_DISTRICTS = {"type":"FeatureCollection","meta":{"source":"Toshkent sh
     app.dataset.rightTab = state.rightTab;
     app.dataset.role = state.role;
     Q.$('#rail-right').hidden = state.rightRail !== 'open';
+
+    /* The tab bar's "you are here" is derived from state on every render. It
+       was static markup: "Map" stayed marked current with the List drawer open
+       across the whole screen — the screen and the state disagreeing, which is
+       the exact class of bug the single-source-of-truth rule exists to catch
+       (§59). Only one tab can be current, and it is whichever surface is on top. */
+    var here = state.overlay === 'data' ? 'data'
+             : state.rightRail === 'open' ? state.rightTab
+             : state.leftRail === 'open' ? 'results'
+             : 'map';
+    Q.$$('#tabbar .tabbar__btn').forEach(function (b) {
+      if (b.dataset.go === here) b.setAttribute('aria-current', 'page');
+      else b.removeAttribute('aria-current');
+    });
 
     Q.$$('#rail-left [role="tab"]').forEach(function (t) {
       var on = t.id === 'tab-' + state.leftTab;

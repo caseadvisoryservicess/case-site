@@ -483,6 +483,20 @@
       markerZoomAnimation: animates()
     });
 
+    /* Leaflet 1.9 ships a Ukrainian flag inside its own attribution prefix. The
+       credit stays — it is the courteous thing and costs nothing — but the flag
+       is Leaflet's political statement, not ours, and a consultancy's client
+       deliverable is not the place to carry someone else's. Replaced by setting
+       the prefix rather than by patching vendor/leaflet.js, so a library upgrade
+       cannot quietly bring it back and cannot be broken by our edit either.
+
+       The DATA attributions are untouched: those are a licence obligation (T7),
+       and this is not one of them. */
+    if (map.attributionControl) {
+      map.attributionControl.setPrefix(
+        '<a href="https://leafletjs.com" title="A JavaScript library for interactive maps">Leaflet</a>');
+    }
+
     // M-13: the map is ONE tab stop, not 148. The results list is the accessible
     // equivalent path to every record, so the container says so out loud rather
     // than leaving a keyboard user to discover that markers are unreachable.
