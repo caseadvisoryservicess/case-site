@@ -2,6 +2,7 @@
 // CASE OS v4.32.2 — atomic LCR unit patch.
 // Prevents an edit to one unit from being lost when another user saves a different module.
 require __DIR__.'/lib.php';
+require_module_enabled('registry'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 $u = require_login();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') fail('Метод не поддерживается', 405);
 if (in_array((string)($u['role_key'] ?? ''), ['AGX','BSH','BRJ'], true)) fail('Для этой роли LCR доступен только для просмотра', 403);

@@ -3,6 +3,7 @@
 // Module visibility comes from the configurable workspace; writes require action rights.
 declare(strict_types=1);
 require __DIR__.'/lib.php';
+require_module_enabled('feasibility'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 
 $u = require_login();
 $state = asaas_load_app_state_data();

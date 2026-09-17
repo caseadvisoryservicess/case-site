@@ -1,6 +1,7 @@
 <?php
 // CASE OS v3.5.7 — Market data endpoint for map/location snapshots.
 require __DIR__.'/lib.php';
+require_module_enabled('market_data'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 require_login();
 function table_exists_v34(string $t): bool { try { db()->query('SELECT 1 FROM `'.$t.'` LIMIT 1'); return true; } catch (Throwable $e) { return false; } }
 function country_iso3_v34(string $country): string {

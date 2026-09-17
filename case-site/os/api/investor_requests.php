@@ -1,6 +1,7 @@
 <?php
 // CASE OS v4.32.2 — investor purchase requests endpoint.
 require __DIR__.'/lib.php';
+require_module_enabled('v32_investors'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 $u = require_login();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $isExternal = (($u['role_key'] ?? '') === 'AGX');

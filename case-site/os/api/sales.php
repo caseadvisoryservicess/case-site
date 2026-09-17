@@ -1,6 +1,7 @@
 <?php
 // CASE OS v3.5.7 — property sales / buyers / sales commission endpoint.
 require __DIR__.'/lib.php';
+require_module_enabled('v32_sales'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 require_login();
 function sales_table_from_type(string $type): string {
   if ($type === 'assets') return 'sales_assets';

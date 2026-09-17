@@ -1047,7 +1047,7 @@ function applyServerUser(user,rights){S.role=user.role;rights=rights||{};
  }
  const safeTitle=user.role==='AGX'?'Внешний агент':(user.title||Rr.label);
  S.user={u:user.id,id:user.id,name:user.name||user.email,title:safeTitle,role:user.role,broker:user.broker||null,email:user.email,projects:user.projects||[]};}
-async function enterWithServerUser(user,rights){applyServerUser(user,rights);
+async function enterWithServerUser(user,rights,mode){/* v4.74.0: режим платформы приходит с сервера (auth.php) и важнее значения по умолчанию из index.html */if(mode==='geo'||mode==='full')window.CASE_PLATFORM_MODE=mode;applyServerUser(user,rights);
  /* v4.44: если вход происходит после истёкшей сессии, в памяти могли остаться несохранённые
     правки (очередь юнитов ЛСР + изменённые домены состояния). Сначала дозаливаем их на сервер,
     и только потом читаем свежее состояние — иначе applyState затёр бы работу сотрудника. */
@@ -1066,7 +1066,7 @@ async function initAuth(){$('luser').innerHTML=USERS.filter(x=>x.active!==false)
      отдаёт исходник auth.php с кодом 200, платформа считала бэкенд живым и показывала
      нерабочий вход вместо честного отказа. Требуем осмысленный ответ. */
   if(!j||typeof j.auth!=='boolean')throw new Error('backend-invalid');
-  BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights);}}
+  BACKEND=true;_passAllowed=!!(j&&j.pass_login);_codeAllowed=!(j&&('code_login' in j))||!!j.code_login;if(!_codeAllowed)LOGIN_METHOD='pass';else if(!_passAllowed)LOGIN_METHOD='code';setLoginMode(true);if(j&&j.auth){await enterWithServerUser(j.user,j.rights,j.mode);}}
  catch(e){BACKEND=false;if(DEMO_ALLOWED){setLoginMode(false);}else{setLoginLocked('Сервер авторизации недоступен. Обновите страницу и войдите по рабочему email и паролю. Вход по выбору роли отключён в целях безопасности.');}}}
 function setLoginLocked(errMsg){const show=(id,on)=>{const e=$(id);if(e)e.style.display=on?'':'none';};
  show('l_user',false);show('luser',false);show('l_email',true);show('lemail',true);
@@ -1088,11 +1088,11 @@ async function doLogin(){
      else loginErr(/Неизвестное действие/.test(m)?'Файлы на сервере обновлены не полностью: загрузите на хостинг ВСЮ папку os/api из архива (auth.php старой версии не знает вход по коду).':m||'Ошибка отправки кода');}finally{btn.disabled=false;}return;}
    const code=$('lcode').value.trim(); /* шаг 2: проверить код */
    if(!code){loginErr(loginT('needcode'));return;}
-   btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'verify_code',email,code});_otpSent=false;$('lcode').value='';await enterWithServerUser(j.user,j.rights);}
+   btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'verify_code',email,code});_otpSent=false;$('lcode').value='';await enterWithServerUser(j.user,j.rights,j.mode);}
    catch(e){const m=e&&e.message||'';loginErr(/Неизвестное действие/.test(m)?'Файлы на сервере обновлены не полностью: загрузите на хостинг ВСЮ папку os/api из архива.':m||'Ошибка входа');}finally{btn.disabled=false;}return;}
   const pass=$('lpass').value;
   if(!email||!pass){loginErr(loginT('needpass'));return;}
-  btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});await enterWithServerUser(j.user,j.rights);}
+  btn.disabled=true;try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});await enterWithServerUser(j.user,j.rights,j.mode);}
   catch(e){loginErr(e&&e.message||'Ошибка входа');}finally{btn.disabled=false;}return;}
  /* Нет подтверждённого серверного сеанса. */
  if(!DEMO_ALLOWED){
@@ -1100,7 +1100,7 @@ async function doLogin(){
   const email=($('lemail')&&$('lemail').value||'').trim(),pass=($('lpass')&&$('lpass').value)||'',btn=$('l_go');
   if(!email||!pass){loginErr('Введите рабочий email и пароль.');return;}
   if(btn)btn.disabled=true;
-  try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});BACKEND=true;await enterWithServerUser(j.user,j.rights);}
+  try{const j=await apiPOST('auth.php',{action:'login',email,password:pass});BACKEND=true;await enterWithServerUser(j.user,j.rights,j.mode);}
   catch(e){loginErr((e&&e.message)?e.message:'Сервер авторизации недоступен. Войти не удалось.');}finally{if(btn)btn.disabled=false;}
   return;}
  /* Явный демо-режим (?demo=1): вход по выбору роли без пароля. */
@@ -4202,4 +4202,4 @@ function footNote(){return `<div class="foot"><b>CASE OS v${APP_VERSION}.</b> ${
 /* #4/#13: пред-гидрация сохранённого состояния в самом конце основного inline-скрипта — ПОСЛЕ инициализации всех state-констант (PLAN_STRUCT и пр.), но ДО отложенных модульных миграций (defer), которые вызывают persist() на старте. Иначе они перезаписывают localStorage пустым состоянием в памяти и теряют сохранённые данные (иерархия планировок, гео-правки) в демо-режиме. В backend-режиме серверное состояние применяется позже (enterWithServerUser) и имеет приоритет. */
 try{if(typeof BACKEND==='undefined'||!BACKEND){loadPersist();}}catch(e){}
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.71.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['core']='4.74.0';

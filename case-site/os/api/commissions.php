@@ -2,6 +2,7 @@
 // CASE OS v3.1 — private bonus / commission ledger endpoint.
 // Team-ledger access follows configurable action rights (admin/finance/approve); agents otherwise see only their rows.
 require __DIR__.'/lib.php';
+require_module_enabled('v326_lease'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 require_login();
 
 function commissions_can_all(): bool {

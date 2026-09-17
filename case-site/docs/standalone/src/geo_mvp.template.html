@@ -63,6 +63,29 @@ textarea{height:auto;padding:8px 10px;min-height:64px;resize:vertical}
 .mapctl{position:absolute;top:10px;right:10px;z-index:900;display:flex;flex-direction:column;gap:6px}
 .mapctl button,.mapctl label{width:36px;height:36px;border:1px solid var(--line);border-radius:9px;background:#fff;box-shadow:var(--shadow);font-size:15px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .mapctl label input{position:absolute;opacity:0}.mapctl label.on{background:var(--ink);color:#fff}
+/* Tree: layers and filters as one checklist; every checkbox changes the map at once */
+.tree{display:flex;flex-direction:column;gap:8px}
+.node{border:1px solid var(--line);border-radius:10px;background:#fff;overflow:hidden}
+.node>header{display:flex;align-items:center;gap:6px;padding:0 9px;background:var(--paper)}
+.node .nname{flex:1;min-width:0;text-align:left;border:0;background:none;font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent-d);display:flex;align-items:center;gap:6px;padding:8px 0;cursor:pointer}
+.node .nname>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.node .nname::after{content:'▾';font-size:9px;color:var(--muted);margin-left:2px;transition:transform var(--t)}
+.node:not(.open) .nname::after{transform:rotate(-90deg)}
+.node .nn{margin-left:auto;font-size:10px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:1px 7px;background:#fff;letter-spacing:0;text-transform:none;white-space:nowrap}
+.node.act .nn{background:var(--accent);color:#fff;border-color:var(--accent)}
+.node .nbody{padding:8px 9px 6px}.node:not(.open) .nbody{display:none}
+.lr{display:flex;align-items:center;gap:7px;padding:4px 3px;font-size:12.5px;border-radius:7px;cursor:pointer;line-height:1.3}.lr:hover{background:var(--paper)}
+.lr input{accent-color:var(--accent);margin:0;flex:0 0 auto}.lr>span{flex:1;min-width:0}.lr b{margin-left:auto;font-size:11px;color:var(--muted);font-weight:700;white-space:nowrap}
+.lr .sw{display:inline-block;width:10px;height:10px;border-radius:50%;flex:0 0 auto}
+.cat{border-top:1px solid var(--line-2);padding:3px 0}.cat:first-child{border-top:0}
+.cat>header{display:flex;align-items:center;gap:7px;padding:3px 3px}.cat>header input{accent-color:var(--accent);margin:0}
+.cat .cname{flex:1;min-width:0;text-align:left;border:0;background:none;font-weight:800;font-size:12px;cursor:pointer;display:flex;gap:6px;align-items:center;padding:2px 0}
+.cat .cname .cn{margin-left:auto;font-size:10px;color:var(--muted);font-weight:700}.cat .cname::after{content:'▾';font-size:9px;color:var(--muted);transition:transform var(--t)}.cat:not(.open) .cname::after{transform:rotate(-90deg)}
+.cat .cbody{padding:0 0 3px 18px}.cat:not(.open) .cbody{display:none}
+.mc-poi{width:30px;height:30px;font-size:11px;opacity:.92}
+.heatleg{display:flex;gap:2px;align-items:center;margin:4px 0 2px}.heatleg i{flex:1;height:8px;border-radius:2px}
+.basemenu{position:absolute;right:42px;top:0;min-width:200px;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:6px;z-index:950}
+.basemenu h5{margin:2px 8px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.basemenu .lr{padding:5px 8px}
 .mlegend{position:absolute;left:10px;bottom:10px;z-index:900;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:11px;box-shadow:var(--shadow)}
 .mlegend h4{margin:0 0 5px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}.mlegend .li{display:flex;align-items:center;gap:6px;margin:2px 0}
 .pin{width:22px;height:22px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center}
@@ -168,10 +191,22 @@ table.cmp{width:100%;border-collapse:collapse;font-size:12px}table.cmp th,table.
 
 <div class="app">
   <aside class="left" id="left">
-    <div class="lhead"><h2 data-i="filters">Filters</h2><button class="linkbtn" id="fReset" data-i="reset">Reset</button><button class="linkbtn" id="fCollapse" title="Collapse">⟨</button></div>
+    <div class="lhead"><h2 data-i="layers">Layers and filters</h2><button class="linkbtn" id="fReset" data-i="reset">Reset</button><button class="linkbtn" id="fCollapse" title="Collapse">⟨</button></div>
     <div class="lbody">
       <div class="count"><span id="fCount">0</span> <span data-i="found">properties found</span><small id="fCountSub"></small></div>
       <div class="f"><label data-i="view">View</label><div class="seg"><button id="viewMap" class="on" data-i="map">Map</button><button id="viewList" data-i="mapList">Map + List</button></div></div>
+      <div class="tree" id="tree">
+      <section class="node" id="ndBase"><header><button type="button" class="nname"><span data-i="basemap">Basemap</span><span class="nn" id="baseName"></span></button></header><div class="nbody" id="baseOpts"></div></section>
+      <section class="node open" id="ndLayers"><header><button type="button" class="nname"><span data-i="mapLayers">Map layers</span><span class="nn" id="layersN"></span></button></header><div class="nbody">
+        <label class="lr"><input type="checkbox" id="lyBC" checked> <i class="sw" style="background:var(--cA)"></i><span data-i="lyBC">Business centers</span><b id="cntBC"></b></label>
+        <label class="lr"><input type="checkbox" id="lyDist"> <i class="sw" style="background:transparent;border:2px solid var(--accent);box-sizing:border-box"></i><span data-i="lyDist">District boundaries</span><b>12</b></label>
+        <label class="lr"><input type="checkbox" id="lyHeat"> <i class="sw" style="background:linear-gradient(90deg,#f7b28c,#6e0000)"></i><span data-i="lyHeat">Heatmap: density of business centers</span></label>
+        <label class="lr"><input type="checkbox" id="lyRentHeat"> <i class="sw" style="background:linear-gradient(90deg,#ffece0,#9E0000)"></i><span data-i="lyRentHeat">Heatmap: asking rent (known values only)</span><b id="cntRentHeat"></b></label>
+        <div class="note" id="heatNote" style="margin:2px 0 0 26px"></div>
+        <button class="linkbtn" id="lyAI" style="margin:4px 0 0 26px" data-i="aiLayersLink">AI layers</button>
+      </div></section>
+      <section class="node" id="ndPOI"><header><button type="button" class="nname"><span data-i="cityObjects">City objects by category</span><span class="nn" id="poiN"></span></button></header><div class="nbody" id="poiTree"></div></section>
+      <section class="node open" id="ndBC"><header><button type="button" class="nname"><span data-i="bcFilters">Business centers: filters</span><span class="nn" id="filtN"></span></button></header><div class="nbody">
       <div class="f"><label for="fName" data-i="name">Property name</label><input type="search" id="fName" placeholder="e.g. Trilliant"></div>
       <div class="f"><div class="lab" data-i="district">District</div><div class="chips" id="fDistrict"></div></div>
       <div class="f"><div class="lab" data-i="class">Office class</div><div class="chips" id="fClass"></div></div>
@@ -189,6 +224,8 @@ table.cmp{width:100%;border-collapse:collapse;font-size:12px}table.cmp th,table.
         <div class="f"><label><input type="checkbox" id="fMissing"> <span data-i="missingOnly">Only records missing critical data</span></label></div>
         <div class="f"><label><input type="checkbox" id="fStale"> <span data-i="staleOnly">Only stale records (older than 180 days)</span></label></div>
       </div>
+      </div></section>
+      </div>
     </div>
   </aside>
 
@@ -200,9 +237,9 @@ table.cmp{width:100%;border-collapse:collapse;font-size:12px}table.cmp th,table.
         <button id="btnFit" title="Fit results">⤢</button>
         <button id="btnResetMap" title="Reset map">⌂</button>
         <button id="btnFull" title="Fullscreen">⛶</button>
-        <label class="on" id="lyBCl" title="Business centers"><input type="checkbox" id="lyBC" checked>●</label>
-        <label id="lyDistl" title="Districts"><input type="checkbox" id="lyDist">▦</label>
-        <button id="btnExpandLeft" title="Filters" class="hidden">☰</button>
+        <button id="btnBase" title="Basemap" aria-haspopup="true" aria-expanded="false">🗺</button>
+        <div class="basemenu hidden" id="baseMenu" role="menu"></div>
+        <button id="btnExpandLeft" title="Layers and filters" class="hidden">☰</button>
       </div>
       <div class="mlegend" id="mlegend"></div>
       <div class="drawer" id="drawer" aria-label="Details">
@@ -247,10 +284,16 @@ var TODAY = new Date('2026-09-17T00:00:00');
 var I18N = {
   en: { filters: 'Filters', reset: 'Reset', found: 'properties found', view: 'View', map: 'Map', mapList: 'Map + List', list: 'List', name: 'Property name', district: 'District', class: 'Office class', status: 'Status', conf: 'Data confidence', showDemo: 'Show DEMO records (fictional)', more: 'More filters ▾', less: 'Fewer filters ▴', gla: 'GLA, m²', rent: 'Asking rent, USD/m²/month', occ: 'Occupancy, % (where known)', avail: 'Available area, m² (min)', parkingKnown: 'Parking data known', amen: 'Amenities', missingOnly: 'Only records missing critical data', staleOnly: 'Only stale records (older than 180 days)', tProp: 'Property', tCmp: 'Compare', tLoc: 'Location', tLay: 'AI layers', pickProp: 'Click a property on the map or in the list.', analytics: 'Analytics · responds to active filters and AI layers', analytics2: 'Analytics', aiSub: 'prototype: deterministic intent engine, no external model', aiClearBtn: 'Clear session', adminT: 'Data editor · local prototype (no auth)',
     na: 'n/a', unknown: 'Unknown', operating: 'Operating', under_construction: 'Under construction', planned: 'Planned', renovation: 'Renovation', high: 'High', medium: 'Medium', low: 'Low', demo: 'DEMO', stale: 'Stale', missing: 'Missing critical data', lastVerified: 'Last verified', nextRefresh: 'Next verification', notVerified: 'Not verified', collected: 'Collected', of: 'of', insufficient: 'Insufficient verified data', basedOn: 'Based on {n} of {m} properties with known {f}', compare: 'Compare', analyze: 'Analyze location', askAI: 'Ask AI', copy: 'Copy coordinates', openSource: 'Open source', edit: 'Edit', remove: 'Remove', copied: 'Coordinates copied', total: 'Business centers', totalGla: 'Total known GLA, m²', avgRent: 'Average asking rent', medRent: 'Median asking rent', vacant: 'Known vacant area, m²', avgOcc: 'Average occupancy', opVsPipe: 'Operating vs pipeline', byDistrict: 'Business centers by district', byClass: 'Business centers by class', rentDist: 'Asking rent distribution, USD/m²/month', glaDist: 'GLA distribution, m²', within: 'within', competitors: 'Suggested competitive set', addToSet: 'in set', noSel: 'Select a property first.', overview: 'Overview', metrics: 'Key metrics', commercial: 'Commercial', tenants: 'Tenants', amenities: 'Amenities', location: 'Location', quality: 'Data quality', sources: 'Sources', noTenants: 'No tenants entered (this is not a confirmed empty building).', noAmen: 'No amenities recorded.', coords: 'Coordinates', nearest: 'Nearest business centers', layerShow: 'Show', layerHide: 'Hide', layerRename: 'Rename', layerRemove: 'Remove', layerNone: 'No AI layers yet. Ask Geo AI, e.g. "show Class A offices".', records: 'records', updated: 'updated', cmpEmpty: 'Pick 2 to 4 properties with the Compare action or the list toggle.', cmpClear: 'Clear comparison', winnerNote: 'No winner is declared: missing values are shown as n/a, not as zero.',
-    locNote: 'Counts use straight-line distance. Averages use only properties with known values; the denominator is shown each time. No drive-time analysis in this MVP.', pipeline: 'pipeline', demoNote: 'DEMO record: fictional test data, not a real building.', dqBadge: '{n} records · {d} demo · data updated {u}', save: 'Save', delete: 'Delete', newProp: 'New property', exportJson: 'Export JSON', importJson: 'Import JSON', resetDemo: 'Reset demo data', pickMap: 'Pick on map', pickHint: 'Click on the map to set coordinates.', saved: 'Saved locally (localStorage). Map and analytics updated.', deleted: 'Record deleted locally.', imported: 'Imported {n} records.', importBad: 'Import failed: expected a JSON array of properties with id, name, lat, lng.', resetDone: 'Local edits cleared; baseline dataset restored.', confirmDel: 'Delete this record from the local dataset?', confirmReset: 'Discard all local edits and restore the baseline dataset?', evidence: 'Evidence for {f}', source: 'Source', url: 'Source URL', date: 'Collected', verified: 'Verified', method: 'Method', confidence: 'Confidence', note: 'Note', nofield: 'not recorded', all: 'all', results: 'results' },
+    locNote: 'Counts use straight-line distance. Averages use only properties with known values; the denominator is shown each time. No drive-time analysis in this MVP.', pipeline: 'pipeline', demoNote: 'DEMO record: fictional test data, not a real building.', dqBadge: '{n} records · {d} demo · data updated {u}', save: 'Save', delete: 'Delete', newProp: 'New property', exportJson: 'Export JSON', importJson: 'Import JSON', resetDemo: 'Reset demo data', pickMap: 'Pick on map', pickHint: 'Click on the map to set coordinates.', saved: 'Saved locally (localStorage). Map and analytics updated.', deleted: 'Record deleted locally.', imported: 'Imported {n} records.', importBad: 'Import failed: expected a JSON array of properties with id, name, lat, lng.', resetDone: 'Local edits cleared; baseline dataset restored.', confirmDel: 'Delete this record from the local dataset?', confirmReset: 'Discard all local edits and restore the baseline dataset?', evidence: 'Evidence for {f}', source: 'Source', url: 'Source URL', date: 'Collected', verified: 'Verified', method: 'Method', confidence: 'Confidence', note: 'Note', nofield: 'not recorded', all: 'all', results: 'results',
+    layers: 'Layers and filters', basemap: 'Basemap', mapLayers: 'Map layers', lyBC: 'Business centers', lyDist: 'District boundaries', lyHeat: 'Heatmap: density of business centers', lyRentHeat: 'Heatmap: asking rent (known values only)', aiLayersLink: 'AI layers ↗', cityObjects: 'City objects by category', bcFilters: 'Business centers: filters', perCell: 'per cell', heatNote: 'Cells of about 500 m; colour is the number of business centers of the current selection per cell (records, not office space).', heatRentNote: 'Only properties with a known asking rent are used; cells without a known rent are not drawn.',
+    poi_medicine: 'Medicine', poi_pharmacies: 'Pharmacies', poi_food: 'Food and beverage', poi_hospital: 'Hospitals', poi_clinic: 'Clinics and polyclinics', poi_private: 'Private clinics (clinics.uz)', poi_doctors: 'Doctor practices', poi_dentist: 'Dental clinics', poi_lab: 'Laboratories and diagnostics', poi_maternity: 'Maternity hospitals', poi_rehab: 'Rehabilitation', poi_other: 'Other medical', poi_pharmacy: 'Pharmacies', poi_restaurants: 'Restaurants', poi_cafes: 'Cafes and coffee shops',
+    base_osm: 'OpenStreetMap', base_google: 'Google map', base_gsat: 'Google satellite', base_2gis: '2GIS', base_yandex: 'Yandex', base_esri: 'Esri satellite' },
   ru: { filters: 'Фильтры', reset: 'Сбросить', found: 'объектов найдено', view: 'Вид', map: 'Карта', mapList: 'Карта + список', list: 'Список', name: 'Название', district: 'Район', class: 'Класс офиса', status: 'Статус', conf: 'Уверенность данных', showDemo: 'Показывать DEMO-записи (вымышленные)', more: 'Ещё фильтры ▾', less: 'Меньше фильтров ▴', gla: 'GLA, м²', rent: 'Ставка, USD/м²/мес', occ: 'Заполняемость, % (где известна)', avail: 'Свободная площадь, м² (мин)', parkingKnown: 'Парковка известна', amen: 'Инфраструктура', missingOnly: 'Только записи без ключевых данных', staleOnly: 'Только устаревшие записи (старше 180 дней)', tProp: 'Объект', tCmp: 'Сравнить', tLoc: 'Локация', tLay: 'Слои ИИ', pickProp: 'Нажмите на объект на карте или в списке.', analytics: 'Аналитика · по активным фильтрам и слоям ИИ', analytics2: 'Аналитика', aiSub: 'прототип: детерминированный разбор запросов, без внешней модели', aiClearBtn: 'Очистить сеанс', adminT: 'Редактор данных · локальный прототип (без входа)',
     na: 'н/д', unknown: 'Неизвестно', operating: 'Действует', under_construction: 'Строится', planned: 'Планируется', renovation: 'Реновация', high: 'Высокая', medium: 'Средняя', low: 'Низкая', demo: 'DEMO', stale: 'Устарело', missing: 'Нет ключевых данных', lastVerified: 'Проверено', nextRefresh: 'Следующая проверка', notVerified: 'Не проверено', collected: 'Собрано', of: 'из', insufficient: 'Недостаточно проверенных данных', basedOn: 'По {n} из {m} объектов с известным полем «{f}»', compare: 'Сравнить', analyze: 'Анализ локации', askAI: 'Спросить ИИ', copy: 'Копировать координаты', openSource: 'Источник', edit: 'Править', remove: 'Убрать', copied: 'Координаты скопированы', total: 'Бизнес-центры', totalGla: 'Известная GLA, м²', avgRent: 'Средняя ставка', medRent: 'Медианная ставка', vacant: 'Известная свободная площадь, м²', avgOcc: 'Средняя заполняемость', opVsPipe: 'Действующие и пайплайн', byDistrict: 'Бизнес-центры по районам', byClass: 'Бизнес-центры по классам', rentDist: 'Распределение ставок, USD/м²/мес', glaDist: 'Распределение GLA, м²', within: 'в радиусе', competitors: 'Предлагаемый конкурентный набор', addToSet: 'в наборе', noSel: 'Сначала выберите объект.', overview: 'Обзор', metrics: 'Ключевые показатели', commercial: 'Коммерческие условия', tenants: 'Арендаторы', amenities: 'Инфраструктура', location: 'Локация', quality: 'Качество данных', sources: 'Источники', noTenants: 'Арендаторы не внесены (это не подтверждённо пустое здание).', noAmen: 'Инфраструктура не записана.', coords: 'Координаты', nearest: 'Ближайшие бизнес-центры', layerShow: 'Показать', layerHide: 'Скрыть', layerRename: 'Переименовать', layerRemove: 'Удалить', layerNone: 'Слоёв ИИ пока нет. Спросите Geo AI, например «покажи офисы класса A».', records: 'записей', updated: 'обновлено', cmpEmpty: 'Выберите от 2 до 4 объектов действием «Сравнить» или переключателем в списке.', cmpClear: 'Очистить сравнение', winnerNote: 'Победитель не объявляется: пропуски показаны как н/д, а не как ноль.',
-    locNote: 'Счёт по прямой линии. Средние только по объектам с известными значениями; знаменатель показан всегда. Изохрон в этом MVP нет.', pipeline: 'пайплайн', demoNote: 'DEMO-запись: вымышленные тестовые данные, не реальное здание.', dqBadge: '{n} записей · {d} demo · данные {u}', save: 'Сохранить', delete: 'Удалить', newProp: 'Новый объект', exportJson: 'Экспорт JSON', importJson: 'Импорт JSON', resetDemo: 'Сбросить к базе', pickMap: 'Указать на карте', pickHint: 'Кликните по карте, чтобы задать координаты.', saved: 'Сохранено локально (localStorage). Карта и аналитика обновлены.', deleted: 'Запись удалена локально.', imported: 'Импортировано записей: {n}.', importBad: 'Импорт не удался: ожидается JSON-массив объектов с id, name, lat, lng.', resetDone: 'Локальные правки очищены, базовый набор восстановлен.', confirmDel: 'Удалить эту запись из локального набора?', confirmReset: 'Отменить все локальные правки и восстановить базовый набор?', evidence: 'Источник поля «{f}»', source: 'Источник', url: 'Ссылка', date: 'Собрано', verified: 'Проверено', method: 'Метод', confidence: 'Уверенность', note: 'Примечание', nofield: 'не записано', all: 'все', results: 'результатов' }
+    locNote: 'Счёт по прямой линии. Средние только по объектам с известными значениями; знаменатель показан всегда. Изохрон в этом MVP нет.', pipeline: 'пайплайн', demoNote: 'DEMO-запись: вымышленные тестовые данные, не реальное здание.', dqBadge: '{n} записей · {d} demo · данные {u}', save: 'Сохранить', delete: 'Удалить', newProp: 'Новый объект', exportJson: 'Экспорт JSON', importJson: 'Импорт JSON', resetDemo: 'Сбросить к базе', pickMap: 'Указать на карте', pickHint: 'Кликните по карте, чтобы задать координаты.', saved: 'Сохранено локально (localStorage). Карта и аналитика обновлены.', deleted: 'Запись удалена локально.', imported: 'Импортировано записей: {n}.', importBad: 'Импорт не удался: ожидается JSON-массив объектов с id, name, lat, lng.', resetDone: 'Локальные правки очищены, базовый набор восстановлен.', confirmDel: 'Удалить эту запись из локального набора?', confirmReset: 'Отменить все локальные правки и восстановить базовый набор?', evidence: 'Источник поля «{f}»', source: 'Источник', url: 'Ссылка', date: 'Собрано', verified: 'Проверено', method: 'Метод', confidence: 'Уверенность', note: 'Примечание', nofield: 'не записано', all: 'все', results: 'результатов',
+    layers: 'Слои и фильтры', basemap: 'Подложка', mapLayers: 'Слои карты', lyBC: 'Бизнес-центры', lyDist: 'Границы районов', lyHeat: 'Тепловая карта: плотность бизнес-центров', lyRentHeat: 'Тепловая карта: ставка аренды (только известные)', aiLayersLink: 'Слои ИИ ↗', cityObjects: 'Городские объекты по категориям', bcFilters: 'Бизнес-центры: фильтры', perCell: 'на ячейку', heatNote: 'Ячейки около 500 м; цвет показывает число бизнес-центров текущей выборки в ячейке (записей, а не площадей).', heatRentNote: 'Учитываются только объекты с известной ставкой; ячейки без известной ставки не рисуются.',
+    poi_medicine: 'Медицина', poi_pharmacies: 'Аптеки', poi_food: 'Питание', poi_hospital: 'Больницы и стационары', poi_clinic: 'Клиники и поликлиники', poi_private: 'Частные клиники (clinics.uz)', poi_doctors: 'Врачебные практики', poi_dentist: 'Стоматологии', poi_lab: 'Лаборатории и диагностика', poi_maternity: 'Роддома', poi_rehab: 'Реабилитация', poi_other: 'Прочая медицина', poi_pharmacy: 'Аптеки', poi_restaurants: 'Рестораны', poi_cafes: 'Кафе и кофейни',
+    base_osm: 'OpenStreetMap', base_google: 'Google карта', base_gsat: 'Google спутник', base_2gis: '2GIS', base_yandex: 'Яндекс', base_esri: 'Esri спутник' }
 };
 var LANG = 'en';
 function T(k, v) { var s = (I18N[LANG] && I18N[LANG][k] != null) ? I18N[LANG][k] : (I18N.en[k] != null ? I18N.en[k] : k); if (v) Object.keys(v).forEach(function (x) { s = s.replace('{' + x + '}', v[x]); }); return s; }
@@ -345,15 +388,16 @@ var MapM = (function () {
   function pinHtml(r, sel) { var c = r.class ? CLASS_COLOR[r.class] : '#b9b2a8'; return '<div class="pin' + (r.meta.demo ? ' demo' : '') + (sel ? ' sel' : '') + '" style="background:' + c + '"><span>' + esc(r.class || '?') + '</span></div>'; }
   function icon(r, sel) { return L.divIcon({ className: '', html: pinHtml(r, sel), iconSize: [22, 22], iconAnchor: [11, 22], tooltipAnchor: [0, -22] }); }
   function init() {
-    map = L.map('map', { zoomControl: true, preferCanvas: false }).setView([41.311, 69.279], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+    /* maxZoom on the map itself: marker clusters need it before the first tile layer arrives */
+    map = L.map('map', { zoomControl: true, preferCanvas: false, maxZoom: 19 }).setView([41.311, 69.279], 12);
+    /* the tile layer is chosen by the Basemap module (OSM by default, remembered per browser) */
     cluster = L.markerClusterGroup ? L.markerClusterGroup({ maxClusterRadius: 40, showCoverageOnHover: false, spiderfyOnMaxZoom: true, disableClusteringAtZoom: 15, iconCreateFunction: function (c) { return L.divIcon({ html: '<div class="mc">' + c.getChildCount() + '</div>', className: '', iconSize: [34, 34] }); } }) : L.layerGroup();
     cluster.addTo(map);
     radiusLayer = L.layerGroup().addTo(map); layerGroup = L.layerGroup().addTo(map);
     districtLayer = L.geoJSON(SEED.districts, { style: function () { return { color: '#9E0000', weight: 1.2, opacity: .7, fillColor: '#9E0000', fillOpacity: .04 }; }, onEachFeature: function (f, l) { l.bindTooltip(function () { var d = distByName(f.properties.name); return esc(d ? distLabel(d.en) : (f.properties.name_ru || f.properties.name)); }, { sticky: true, className: 'tt' }); } });
     map.on('click', function (e) { if (pickHandler) { var h = pickHandler; pickHandler = null; h(e.latlng.lat, e.latlng.lng); } });
-    $('lyBC').addEventListener('change', function () { $('lyBCl').classList.toggle('on', this.checked); if (this.checked) map.addLayer(cluster); else map.removeLayer(cluster); });
-    $('lyDist').addEventListener('change', function () { $('lyDistl').classList.toggle('on', this.checked); if (this.checked) districtLayer.addTo(map); else map.removeLayer(districtLayer); });
+    $('lyBC').addEventListener('change', function () { if (this.checked) map.addLayer(cluster); else map.removeLayer(cluster); });
+    $('lyDist').addEventListener('change', function () { if (this.checked) districtLayer.addTo(map); else map.removeLayer(districtLayer); });
     $('btnFit').addEventListener('click', fit);
     $('btnResetMap').addEventListener('click', function () { map.setView([41.311, 69.279], 12); });
     $('btnFull').addEventListener('click', function () { var el = document.querySelector('.mapwrap'); if (document.fullscreenElement) document.exitFullscreen(); else if (el.requestFullscreen) el.requestFullscreen(); });
@@ -384,18 +428,186 @@ var MapM = (function () {
     });
   }
   function pick(fn) { pickHandler = fn; toast(T('pickHint')); }
-  function legend() { $('mlegend').innerHTML = '<h4>' + T('class') + '</h4>' + CLASSES.map(function (c) { return '<div class="li"><i class="pin" style="background:' + CLASS_COLOR[c] + ';width:12px;height:12px;border-width:1px"></i>' + c + '</div>'; }).join('') + '<div class="li"><i class="pin" style="background:#b9b2a8;width:12px;height:12px;border-width:1px"></i>' + T('unknown') + '</div><div class="li"><i class="pin demo" style="background:#b9b2a8;width:12px;height:12px;border-width:1px"></i>' + T('demo') + '</div>'; }
+  function legend() { $('mlegend').innerHTML = '<h4>' + T('class') + '</h4>' + CLASSES.map(function (c) { return '<div class="li"><i class="pin" style="background:' + CLASS_COLOR[c] + ';width:12px;height:12px;border-width:1px"></i>' + c + '</div>'; }).join('') + '<div class="li"><i class="pin" style="background:#b9b2a8;width:12px;height:12px;border-width:1px"></i>' + T('unknown') + '</div><div class="li"><i class="pin demo" style="background:#b9b2a8;width:12px;height:12px;border-width:1px"></i>' + T('demo') + '</div>' + (typeof Heat !== 'undefined' ? Heat.legendHtml() : ''); }
   return { init: init, render: render, select: select, zoomTo: zoomTo, fit: fit, drawRadii: drawRadii, clearRadii: clearRadii, renderLayers: renderLayers, pick: pick, legend: legend, map: function () { return map; }, invalidate: function () { setTimeout(function () { map.invalidateSize(); }, 200); } };
 })();
 
 /* Filters: one state object; manual UI and AI both write to it */
+/* Basemap: OSM by default; Google, 2GIS, Yandex and Esri under their own terms; choice remembered */
+var Basemap = (function () {
+  var defs = [], layers = {}, cur = null, KEY = 'geo_mvp_base';
+  function build() {
+    var YandexTiles = L.TileLayer.extend({ getTileUrl: function (coords) {
+      var z = this._getZoomForUrl(), x = coords.x, e = 0.0818191908426, n = Math.PI - 2 * Math.PI * coords.y / Math.pow(2, z), lat = Math.atan(0.5 * (Math.exp(n) - Math.exp(-n)));
+      var m = Math.log(Math.tan(Math.PI / 4 + lat / 2) * Math.pow((1 - e * Math.sin(lat)) / (1 + e * Math.sin(lat)), e / 2)), y = Math.floor(Math.pow(2, z) * (Math.PI - m) / (2 * Math.PI)), mx = Math.pow(2, z) - 1;
+      if (y < 0) y = 0; if (y > mx) y = mx;
+      return L.Util.template(this._url, { x: ((x % Math.pow(2, z)) + Math.pow(2, z)) % Math.pow(2, z), y: y, z: z });
+    } });
+    defs = [
+      ['osm', L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' })],
+      ['google', L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 21, attribution: '© Google' })],
+      ['gsat', L.tileLayer('https://mt{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 21, attribution: '© Google' })],
+      ['2gis', L.tileLayer('https://tile2.maps.2gis.com/tiles?x={x}&y={y}&z={z}&v=1', { maxZoom: 19, attribution: '© 2GIS' })],
+      ['yandex', new YandexTiles('https://core-renderer-tiles.maps.yandex.net/tiles?l=map&x={x}&y={y}&z={z}&scale=1&lang=ru_RU', { maxZoom: 19, attribution: '© Yandex' })],
+      ['esri', L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '© Esri' })]
+    ];
+    defs.forEach(function (d) { layers[d[0]] = d[1]; });
+  }
+  function label(id) { return T('base_' + id); }
+  function optionsHtml(name) { return defs.map(function (d) { return '<label class="lr"><input type="radio" name="' + name + '" value="' + d[0] + '"> <span>' + esc(label(d[0])) + '</span></label>'; }).join(''); }
+  function render() {
+    document.querySelectorAll('input[name=baseOpt],input[name=baseMenuOpt]').forEach(function (r) { r.checked = r.value === cur; });
+    var n = $('baseName'); if (n) n.textContent = cur ? label(cur) : ''; var b = $('btnBase'); if (b) b.title = T('basemap') + ': ' + (cur ? label(cur) : '');
+    var h = $('baseMenu').querySelector('h5'); if (h) h.textContent = T('basemap');
+    document.querySelectorAll('input[name=baseOpt],input[name=baseMenuOpt]').forEach(function (r) { var s = r.parentNode.querySelector('span'); if (s) s.textContent = label(r.value); });
+  }
+  function set(id) {
+    var m = MapM.map(); if (!layers[id]) id = 'osm';
+    if (cur && layers[cur]) m.removeLayer(layers[cur]);
+    cur = id; layers[id].addTo(m); try { localStorage.setItem(KEY, id); } catch (e) {}
+    render();
+  }
+  function init() {
+    build(); $('baseOpts').innerHTML = optionsHtml('baseOpt'); $('baseMenu').innerHTML = '<h5>' + T('basemap') + '</h5>' + optionsHtml('baseMenuOpt');
+    document.querySelectorAll('input[name=baseOpt],input[name=baseMenuOpt]').forEach(function (r) { r.addEventListener('change', function () { if (this.checked) { set(this.value); $('baseMenu').classList.add('hidden'); } }); });
+    var saved = null; try { saved = localStorage.getItem(KEY); } catch (e) {}
+    set(saved || 'osm');
+    $('btnBase').addEventListener('click', function (e) { e.stopPropagation(); var open = !$('baseMenu').classList.toggle('hidden'); this.setAttribute('aria-expanded', open ? 'true' : 'false'); });
+    document.addEventListener('click', function (e) { if (!e.target.closest('#baseMenu,#btnBase')) $('baseMenu').classList.add('hidden'); });
+  }
+  return { init: init, set: set, render: render, current: function () { return cur; }, ids: function () { return defs.map(function (d) { return d[0]; }); } };
+})();
+
+/* City objects by category and subcategory (CASE geo master: medicine, pharmacies, food); each checkbox is a layer */
+var Poi = (function () {
+  var COLORS = { medicine: '#0d8484', pharmacies: '#2e7d32', food: '#b3541e' }, groups = {}, on = {}, KEY = 'geo_mvp_poi_v1';
+  function data() { return (SEED.poi && SEED.poi.categories) || {}; }
+  function cats() { return Object.keys(data()); }
+  function subs(cat) { return data()[cat] ? Object.keys(data()[cat].sub) : []; }
+  function rows(cat, sub) { return (data()[cat] && data()[cat].sub[sub]) || []; }
+  function label(cat, sub) { return T('poi_' + (sub || cat)); }
+  function count(cat, sub) { return sub ? rows(cat, sub).length : subs(cat).reduce(function (s, k) { return s + rows(cat, k).length; }, 0); }
+  function group(cat, sub) {
+    var k = cat + '/' + sub; if (groups[k]) return groups[k];
+    var g = L.markerClusterGroup ? L.markerClusterGroup({ maxClusterRadius: 36, disableClusteringAtZoom: 16, showCoverageOnHover: false, iconCreateFunction: function (c) { return L.divIcon({ html: '<div class="mc mc-poi" style="background:' + COLORS[cat] + '">' + c.getChildCount() + '</div>', className: '', iconSize: [30, 30] }); } }) : L.layerGroup();
+    rows(cat, sub).forEach(function (r) {
+      var m = L.circleMarker([r.lat, r.lng], { radius: 5, color: '#fff', weight: 1, fillColor: COLORS[cat], fillOpacity: .9 });
+      m.bindTooltip('<b>' + esc(r.n) + '</b><br>' + esc(label(cat, sub)) + (r.d ? ' · ' + esc(r.d) : '') + (r.s ? '<br><small>' + esc(r.s) + '</small>' : ''), { className: 'tt', direction: 'top' });
+      g.addLayer(m);
+    });
+    groups[k] = g; return g;
+  }
+  function set(cat, sub, val) {
+    if (!data()[cat] || !data()[cat].sub[sub]) return 0;
+    var k = cat + '/' + sub; on[k] = !!val; var g = group(cat, sub), m = MapM.map();
+    if (val) { if (!m.hasLayer(g)) m.addLayer(g); } else if (m.hasLayer(g)) m.removeLayer(g);
+    try { localStorage.setItem(KEY, JSON.stringify(on)); } catch (e) {}
+    render(); return rows(cat, sub).length;
+  }
+  function setCat(cat, val) { var n = 0; subs(cat).forEach(function (s) { n += set(cat, s, val); }); return n; }
+  function active() { return Object.keys(on).filter(function (k) { return on[k]; }); }
+  function clear() { active().forEach(function (k) { var p = k.split('/'); set(p[0], p[1], false); }); }
+  function render() {
+    cats().forEach(function (cat) {
+      var ss = subs(cat), n = ss.filter(function (s) { return on[cat + '/' + s]; }).length;
+      var all = document.querySelector('[data-call="' + cat + '"]'); if (all) { all.checked = ss.length > 0 && n === ss.length; all.indeterminate = n > 0 && n < ss.length; }
+      var cn = document.querySelector('[data-cn="' + cat + '"]'); if (cn) cn.textContent = n + ' / ' + ss.length;
+      ss.forEach(function (s) { var cb = document.querySelector('[data-sub="' + cat + '/' + s + '"]'); if (cb) cb.checked = !!on[cat + '/' + s]; });
+    });
+    var total = active().length, pn = $('poiN'); if (pn) pn.textContent = total ? String(total) : ''; var nd = $('ndPOI'); if (nd) nd.classList.toggle('act', total > 0);
+  }
+  function html() {
+    return cats().map(function (cat) {
+      return '<div class="cat open"><header><input type="checkbox" class="call" data-call="' + cat + '" aria-label="' + esc(label(cat)) + '"><button type="button" class="cname"><i class="sw" style="background:' + COLORS[cat] + '"></i><span>' + esc(label(cat)) + '</span><span class="cn" data-cn="' + cat + '"></span></button></header><div class="cbody">'
+        + subs(cat).map(function (s) { return '<label class="lr"><input type="checkbox" data-sub="' + cat + '/' + s + '"> <span>' + esc(label(cat, s)) + '</span><b>' + fmt(rows(cat, s).length) + '</b></label>'; }).join('')
+        + '</div></div>';
+    }).join('') + '<div class="note">' + esc(SEED.poi && SEED.poi.source || '') + '</div>';
+  }
+  function bind() {
+    var el = $('poiTree'); if (!el) return;
+    if (!cats().length) { el.innerHTML = '<div class="note">' + T('na') + '</div>'; return; }
+    el.innerHTML = html();
+    el.querySelectorAll('[data-sub]').forEach(function (cb) { cb.addEventListener('change', function () { var p = this.getAttribute('data-sub').split('/'); set(p[0], p[1], this.checked); }); });
+    el.querySelectorAll('[data-call]').forEach(function (cb) { cb.addEventListener('change', function () { setCat(this.getAttribute('data-call'), this.checked); }); });
+    el.querySelectorAll('.cname').forEach(function (b) { b.addEventListener('click', function () { this.closest('.cat').classList.toggle('open'); }); });
+    render();
+  }
+  function init() {
+    bind();
+    try { var saved = JSON.parse(localStorage.getItem(KEY) || '{}'); Object.keys(saved).forEach(function (k) { if (saved[k]) { var p = k.split('/'); set(p[0], p[1], true); } }); } catch (e) {}
+  }
+  function countNear(lat, lng, radiusKm) { var out = {}; cats().forEach(function (cat) { var n = 0; subs(cat).forEach(function (s) { rows(cat, s).forEach(function (r) { if (km(lat, lng, r.lat, r.lng) <= radiusKm) n++; }); }); out[cat] = n; }); return out; }
+  return { init: init, rerender: bind, set: set, setCat: setCat, render: render, active: active, clear: clear, label: label, count: count, cats: cats, subs: subs, countNear: countNear };
+})();
+
+/* Heatmap on a 500 m grid: density of the current selection, or average known asking rent per cell */
+var Heat = (function () {
+  var layer = null, mode = { density: false, rent: false }, leg = null, KEY = 'geo_mvp_heat_v1', CELL_LAT = 0.0045, CELL_LNG = 0.006;
+  function color(t) { var st = [[255, 236, 224], [247, 178, 140], [220, 96, 70], [158, 0, 0], [110, 0, 0]], x = Math.max(0, Math.min(1, t)) * (st.length - 1), i = Math.floor(x), f = x - i, a = st[i], b = st[Math.min(st.length - 1, i + 1)]; return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * f) + ',' + Math.round(a[1] + (b[1] - a[1]) * f) + ',' + Math.round(a[2] + (b[2] - a[2]) * f) + ')'; }
+  function cells(rowsIn, valueOf) { var c = {}; rowsIn.forEach(function (r) { if (!isNum(r.lat) || !isNum(r.lng)) return; var v = valueOf(r); if (v == null) return; var i = Math.floor(r.lat / CELL_LAT), j = Math.floor(r.lng / CELL_LNG), k = i + '_' + j; var o = c[k] = c[k] || { i: i, j: j, n: 0, sum: 0 }; o.n++; o.sum += v; }); return Object.keys(c).map(function (k) { return c[k]; }); }
+  function active() { return mode.rent ? 'rent' : (mode.density ? 'density' : null); }
+  function render(rowsIn) {
+    var m = MapM.map(); if (!layer) layer = L.layerGroup().addTo(m);
+    layer.clearLayers(); leg = null;
+    var kind = active(); if (!kind) { MapM.legend(); return; }
+    var cs = kind === 'rent' ? cells(rowsIn, function (r) { return isNum(r.rent) ? r.rent : null; }) : cells(rowsIn, function () { return 1; });
+    var vals = cs.map(function (c) { return kind === 'rent' ? c.sum / c.n : c.n; });
+    var known = kind === 'rent' ? rowsIn.filter(function (r) { return isNum(r.rent); }).length : rowsIn.length;
+    if (cs.length) {
+      var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+      cs.forEach(function (c, idx) { var v = vals[idx], t = max > min ? (v - min) / (max - min) : .6; L.rectangle([[c.i * CELL_LAT, c.j * CELL_LNG], [(c.i + 1) * CELL_LAT, (c.j + 1) * CELL_LNG]], { stroke: false, fillColor: color(t), fillOpacity: .55 }).bindTooltip(kind === 'rent' ? '$' + fmt(v, 1) + '/m² · ' + c.n + ' ' + T('records') : c.n + ' ' + T('perCell'), { className: 'tt', sticky: true }).addTo(layer); });
+      leg = { kind: kind, min: min, max: max, cells: cs.length, known: known, of: rowsIn.length };
+    } else leg = { kind: kind, min: 0, max: 0, cells: 0, known: known, of: rowsIn.length };
+    MapM.legend();
+  }
+  function legendHtml() {
+    if (!leg) return '';
+    return '<h4 style="margin-top:6px">' + T(leg.kind === 'rent' ? 'lyRentHeat' : 'lyHeat') + '</h4>' + (leg.cells ? '<div class="heatleg">' + [0, .25, .5, .75, 1].map(function (t) { return '<i style="background:' + color(t) + '"></i>'; }).join('') + '</div><div class="li">' + (leg.kind === 'rent' ? '$' + fmt(leg.min, 1) + ' … $' + fmt(leg.max, 1) + '/m²' : fmt(leg.min) + ' … ' + fmt(leg.max) + ' ' + T('perCell')) + '</div>' : '') + '<div class="li">' + (leg.kind === 'rent' ? T('basedOn', { n: leg.known, m: leg.of, f: 'rent' }) : leg.of + ' ' + T('records')) + (leg.cells ? '' : ' · ' + T('insufficient')) + '</div>';
+  }
+  function set(kind, val) { mode[kind] = !!val; if (val) mode[kind === 'rent' ? 'density' : 'rent'] = false; sync(); try { localStorage.setItem(KEY, JSON.stringify(mode)); } catch (e) {} render(App.visible()); }
+  function sync() { $('lyHeat').checked = mode.density; $('lyRentHeat').checked = mode.rent; var n = $('heatNote'); if (n) n.textContent = active() ? T(active() === 'rent' ? 'heatRentNote' : 'heatNote') : ''; }
+  function init() {
+    try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s) { mode.density = !!s.density; mode.rent = !!s.rent; } } catch (e) {}
+    $('lyHeat').addEventListener('change', function () { set('density', this.checked); });
+    $('lyRentHeat').addEventListener('change', function () { set('rent', this.checked); });
+    sync();
+  }
+  return { init: init, set: set, render: render, legendHtml: legendHtml, active: active, sync: sync };
+})();
+
+/* Tree: node open state and live counters for the left panel */
+var Tree = (function () {
+  var KEY = 'geo_mvp_tree_v1';
+  function persist() { var s = {}; document.querySelectorAll('#tree>.node').forEach(function (x) { s[x.id] = x.classList.contains('open') ? 1 : 0; }); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  function init() {
+    var st = {}; try { st = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+    document.querySelectorAll('#tree>.node').forEach(function (n) {
+      if (Object.prototype.hasOwnProperty.call(st, n.id)) n.classList.toggle('open', !!st[n.id]);
+      n.querySelector('.nname').addEventListener('click', function () { n.classList.toggle('open'); persist(); });
+    });
+    ['lyBC', 'lyDist', 'lyHeat', 'lyRentHeat'].forEach(function (id) { $(id).addEventListener('change', sync); });
+    $('lyAI').addEventListener('click', function () { App.openDrawer('lay'); });
+    sync();
+  }
+  function sync() {
+    var n = ['lyBC', 'lyDist', 'lyHeat', 'lyRentHeat'].filter(function (id) { return $(id).checked; }).length;
+    var ln = $('layersN'); if (ln) ln.textContent = n + ' / 4'; $('ndLayers').classList.toggle('act', n > 0);
+    var f = Filters.describe(), fn = $('filtN'); if (fn) fn.textContent = f ? String(f.split(' · ').length) : ''; $('ndBC').classList.toggle('act', !!f);
+    var vis = App.visible(), c = $('cntBC'); if (c) c.textContent = fmt(vis.length);
+    var cr = $('cntRentHeat'); if (cr) cr.textContent = vis.filter(function (r) { return isNum(r.rent); }).length + ' ' + T('of') + ' ' + vis.length;
+    var ai = $('lyAI'); if (ai) ai.textContent = T('aiLayersLink') + (Layers.list().length ? ' (' + Layers.list().length + ')' : '');
+  }
+  return { init: init, sync: sync };
+})();
+
 var Filters = (function () {
   var S = {};
   function blank() { return { name: '', districts: [], classes: [], statuses: [], conf: [], demo: true, glaMin: null, glaMax: null, rentMin: null, rentMax: null, occMin: null, occMax: null, availMin: null, parking: false, amen: [], missing: false, stale: false, ids: null }; }
   S = blank();
   function chipGroup(id, items, key, label) {
     $(id).innerHTML = items.map(function (v) { return '<button class="chip' + (S[key].indexOf(v) >= 0 ? ' on' : '') + '" data-v="' + esc(v) + '">' + (label ? label(v) : esc(v)) + '</button>'; }).join('');
-    $(id).querySelectorAll('.chip').forEach(function (b) { b.onclick = function () { var v = b.getAttribute('data-v'), i = S[key].indexOf(v); if (i >= 0) S[key].splice(i, 1); else S[key].push(v); S.ids = null; App.refresh(); }; });
+    /* the chip shows its own state at once: refresh() does not rebuild the controls */
+    $(id).querySelectorAll('.chip').forEach(function (b) { b.onclick = function () { var v = b.getAttribute('data-v'), i = S[key].indexOf(v); if (i >= 0) S[key].splice(i, 1); else S[key].push(v); b.classList.toggle('on', i < 0); S.ids = null; App.refresh(); }; });
   }
   function renderControls() {
     chipGroup('fDistrict', DISTRICTS.filter(function (d) { return Data.all().some(function (r) { return r.district === d.en; }); }).map(function (d) { return d.en; }), 'districts', function (v) { return esc(distLabel(v)); });
@@ -680,6 +892,13 @@ var Tools = {
   createLayer: function (spec) { return Layers.add(spec); },
   removeLayer: function (id) { Layers.remove(id); },
   clearLayers: function () { Layers.clear(); },
+  /* base layers of the left panel: districts, heatmaps, city objects; the checkbox reflects the change */
+  toggleLayer: function (layer, on, cat, sub) {
+    if (layer === 'districts') { var cb = $('lyDist'); if (cb.checked !== !!on) { cb.checked = !!on; cb.dispatchEvent(new Event('change')); } return { key: 'districts', label: T('lyDist') }; }
+    if (layer === 'heat' || layer === 'rentHeat') { Heat.set(layer === 'rentHeat' ? 'rent' : 'density', !!on); return { key: layer, label: T(layer === 'rentHeat' ? 'lyRentHeat' : 'lyHeat') }; }
+    if (layer === 'poi') { if (sub) Poi.set(cat, sub, !!on); else Poi.setCat(cat, !!on); $('ndPOI').classList.add('open'); return { key: 'poi/' + cat + (sub ? '/' + sub : ''), label: Poi.label(cat, sub), count: Poi.count(cat, sub) }; }
+    return { key: layer, label: layer };
+  },
   compareProperties: function (ids) { Compare.set(ids); App.openDrawer('cmp'); return Compare.ids(); },
   showCompetitors: function (id, kmMax) { var res = Location.run(id, kmMax); App.openDrawer('loc'); return res; },
   aggregateByDistrict: function (rows, field) { var out = {}; rows.forEach(function (r) { var o = out[r.district] = out[r.district] || { district: r.district, n: 0, known: 0, sum: 0, vals: [] }; o.n++; if (field && isNum(r[field])) { o.known++; o.sum += r[field]; o.vals.push(r[field]); } }); return Object.keys(out).map(function (k) { return out[k]; }); },
@@ -726,6 +945,12 @@ var AI = (function () {
     if (/(low|poor|weak|низк|плох|слаб).*(confidence|quality|уверенн|качеств)|poor data|плохие данные/.test(t)) return { intent: 'quality', args: { kind: 'confidence' } };
     if (/(not verified|unverified|stale|outdated|need.*verif|recheck|re-verif|не провер|устаревш|нужн.*провер|перепровер|старше)/.test(t)) { var mm = t.match(/(\d+)\s*(month|месяц)/); return { intent: 'quality', args: { kind: 'stale', months: mm ? parseInt(mm[1], 10) : 6 } }; }
     if (/(missing|incomplete|неполн|отсутству|без данных|пропуск)/.test(t)) return { intent: 'quality', args: { kind: 'missing' } };
+    /* base layers of the left panel: districts, heatmaps, city objects by category */
+    var off = /(hide|remove|turn off|скрой|убери|выключи|спрячь)/.test(t);
+    if (/(district boundar|district border|boundaries|show districts|districts layer|границы районов|слой районов|покажи районы|районы на карте)/.test(t)) return { intent: 'layerToggle', args: { layer: 'districts', on: !off } };
+    if (/(heat ?map|тепловая|тепловую|тепловой карт)/.test(t)) return { intent: 'layerToggle', args: { layer: /rent|ставк|аренд/.test(t) ? 'rentHeat' : 'heat', on: !off } };
+    var poiCat = /pharmac|аптек/.test(t) ? ['pharmacies'] : (/dentist|dental|стоматолог/.test(t) ? ['medicine', 'dentist'] : (/hospital|больниц/.test(t) ? ['medicine', 'hospital'] : (/clinic|medic|doctor|медицин|клиник|врач/.test(t) ? ['medicine'] : (/cafe|coffee|кафе|кофейн/.test(t) ? ['food', 'cafes'] : (/restaurant|ресторан/.test(t) ? ['food', 'restaurants'] : (/(^|\s)(food|catering)|питани|общепит/.test(t) ? ['food'] : null))))));
+    if (poiCat && /(show|display|add|layer|hide|remove|turn|map|покажи|включи|добавь|слой|скрой|убери|выключи|карт)/.test(t)) return { intent: 'layerToggle', args: { layer: 'poi', cat: poiCat[0], sub: poiCat[1] || null, on: !off } };
     var pf = /within|в радиусе|не дальше|near |около|рядом с/.test(t) ? findProp(t) : null;
     if (pf && kmV) return { intent: 'radius', args: { id: pf.id, km: kmV } };
     var sel = /^(show|select|open|zoom|найди|покажи|открой|выбери)\s+(.+)$/.exec(t);
@@ -750,8 +975,8 @@ var AI = (function () {
   function table(head, rows) { return '<table><tr>' + head.map(function (h) { return '<th>' + esc(h) + '</th>'; }).join('') + '</tr>' + rows.map(function (r) { return '<tr>' + r.map(function (c) { return '<td>' + c + '</td>'; }).join('') + '</tr>'; }).join('') + '</table>'; }
   function bars(items) { if (!items.length) return ''; var W = 300, H = 110, pad = 24, bw = (W - 8) / items.length, max = Math.max.apply(null, items.map(function (i) { return i.v; })) || 1; return '<div class="chart" style="min-height:0;padding:6px"><svg viewBox="0 0 ' + W + ' ' + H + '">' + items.map(function (it, i) { var h = Math.max(1, (H - pad - 12) * it.v / max), x = 4 + i * bw, y = H - pad - h; return '<rect class="bar" x="' + (x + 2) + '" y="' + y + '" width="' + Math.max(2, bw - 4) + '" height="' + h + '" rx="2"></rect><text class="val" x="' + (x + bw / 2) + '" y="' + (y - 2) + '" text-anchor="middle">' + fmt(it.v) + '</text><text class="lab" x="' + (x + bw / 2) + '" y="' + (H - pad + 10) + '" text-anchor="middle">' + esc(String(it.l).slice(0, 8)) + '</text>'; }).join('') + '</svg></div>'; }
   function demoNote(rows) { return rows.some(function (r) { return r.meta.demo; }) ? ' ' + RT('limDemo') : ''; }
-  var R = { en: { answer: 'Answer', analysis: 'Analysis', actions: 'Map actions', coverage: 'Data coverage', limits: 'Confidence / limitations', sources: 'Sources', matched: '{n} properties matched.', applied: 'Filters applied: {f}. The filter panel reflects them.', narrowed: 'Narrowed the previous result: {f}.', cleared: 'AI layers, radius overlays and filters were cleared; all business centers are shown.', noProp: 'No property is selected and none was named. Select one on the map or name it.', comp: 'Suggested competitive set around {p}: {n} of {m} nearby properties within {k} km (distance, class and size where known). It is a suggestion, not a definitive set; add or remove entries in the Location tab.', cmpNone: 'Nothing to compare: name properties, select them, or ask for "the three largest on the map".', cmpLargest: 'Comparing the {n} largest properties on the map by known GLA ({k} of {m} visible properties have GLA).', cmpDone: 'Comparison opened for {n} properties. No winner is declared.', quality: '{n} of {m} properties flagged: {kind}. Layer added; nothing was invented, these are flags on the records themselves.', kindConf: 'low or unknown confidence', kindStale: 'not verified for more than {mo} months', kindMissing: 'missing class, GLA or rent', unknown: 'I could not map this request to a platform action. Try: "show Class A offices in Mirabad", "buildings larger than 5,000 m2", "competitors within 3 km", "office supply by district", "which buildings need verification", "clear".', unavailable: 'The current dataset does not contain {w} data, so this cannot be answered reliably. To perform it we would need occupancy or workforce information by building. No estimate was made from unrelated variables.', selected: 'Selected {p} and zoomed to it.', radius: '{n} properties within {k} km of {p}. Radius drawn as a layer.', insuff: 'Insufficient verified data for this metric ({n} of {m}).', supply: 'Office supply by district for the current selection: {n} properties. Districts highlighted on the map.', rentDist: '{kind} known asking rent by district. Only properties with known rent are used; the denominator is shown per district.', glaDist: 'Known GLA by district: {top} leads with {v} m² ({n} of {m} properties have GLA). Districts with no known GLA are listed as insufficient, not as zero.', limFilter: 'Missing values never match a numeric filter: a building with unknown GLA is excluded from "larger than" queries rather than assumed to qualify.', limDemo: 'DEMO records (fictional) are included because the DEMO switch is on.', limRent: 'Rent values are asking rents from listings, not achieved rents.' },
-    ru: { answer: 'Ответ', analysis: 'Анализ', actions: 'Действия на карте', coverage: 'Покрытие данных', limits: 'Уверенность и ограничения', sources: 'Источники', matched: 'Найдено объектов: {n}.', applied: 'Применены фильтры: {f}. Панель фильтров их показывает.', narrowed: 'Сужен прошлый результат: {f}.', cleared: 'Слои ИИ, радиусы и фильтры очищены; показаны все бизнес-центры.', noProp: 'Объект не выбран и не назван. Выберите его на карте или назовите.', comp: 'Предлагаемый конкурентный набор вокруг {p}: {n} из {m} объектов в радиусе {k} км (расстояние, класс и размер, где известны). Это предложение, а не окончательный набор; правьте его во вкладке «Локация».', cmpNone: 'Нечего сравнивать: назовите объекты, выберите их или попросите «три крупнейших на карте».', cmpLargest: 'Сравниваю {n} крупнейших объектов на карте по известной GLA (GLA есть у {k} из {m} видимых).', cmpDone: 'Сравнение открыто для {n} объектов. Победитель не объявляется.', quality: '{n} из {m} объектов помечено: {kind}. Слой добавлен; ничего не придумано, это флаги самих записей.', kindConf: 'низкая или неизвестная уверенность', kindStale: 'не проверялись больше {mo} мес.', kindMissing: 'нет класса, GLA или ставки', unknown: 'Не смог сопоставить запрос с действием платформы. Примеры: «покажи офисы класса A в Мирабаде», «здания больше 5000 м2», «конкуренты в радиусе 3 км», «предложение по районам», «какие здания нужно проверить», «очистить».', unavailable: 'В наборе нет данных «{w}», поэтому ответить надёжно нельзя. Нужны заполняемость или численность сотрудников по зданиям. Оценка из несвязанных переменных не делалась.', selected: 'Выбран {p}, карта наведена на него.', radius: 'Объектов в радиусе {k} км от {p}: {n}. Радиус добавлен слоем.', insuff: 'Недостаточно проверенных данных для этой метрики ({n} из {m}).', supply: 'Предложение по районам для текущей выборки: {n} объектов. Районы подсвечены на карте.', rentDist: '{kind} известная ставка по районам. Учтены только объекты с известной ставкой; знаменатель показан по каждому району.', glaDist: 'Известная GLA по районам: лидирует {top} с {v} м² (GLA есть у {n} из {m}). Районы без известной GLA помечены как «недостаточно данных», а не нулём.', limFilter: 'Пропуски не проходят числовые фильтры: здание с неизвестной GLA исключается из запроса «больше N», а не считается подходящим.', limDemo: 'DEMO-записи (вымышленные) включены, потому что переключатель DEMO включён.', limRent: 'Ставки взяты из объявлений (asking), это не достигнутые ставки.' } };
+  var R = { en: { answer: 'Answer', analysis: 'Analysis', actions: 'Map actions', coverage: 'Data coverage', limits: 'Confidence / limitations', sources: 'Sources', matched: '{n} properties matched.', applied: 'Filters applied: {f}. The filter panel reflects them.', narrowed: 'Narrowed the previous result: {f}.', cleared: 'AI layers, radius overlays and filters were cleared; all business centers are shown.', noProp: 'No property is selected and none was named. Select one on the map or name it.', comp: 'Suggested competitive set around {p}: {n} of {m} nearby properties within {k} km (distance, class and size where known). It is a suggestion, not a definitive set; add or remove entries in the Location tab.', cmpNone: 'Nothing to compare: name properties, select them, or ask for "the three largest on the map".', cmpLargest: 'Comparing the {n} largest properties on the map by known GLA ({k} of {m} visible properties have GLA).', cmpDone: 'Comparison opened for {n} properties. No winner is declared.', quality: '{n} of {m} properties flagged: {kind}. Layer added; nothing was invented, these are flags on the records themselves.', kindConf: 'low or unknown confidence', kindStale: 'not verified for more than {mo} months', kindMissing: 'missing class, GLA or rent', unknown: 'I could not map this request to a platform action. Try: "show Class A offices in Mirabad", "buildings larger than 5,000 m2", "competitors within 3 km", "office supply by district", "which buildings need verification", "clear".', unavailable: 'The current dataset does not contain {w} data, so this cannot be answered reliably. To perform it we would need occupancy or workforce information by building. No estimate was made from unrelated variables.', selected: 'Selected {p} and zoomed to it.', radius: '{n} properties within {k} km of {p}. Radius drawn as a layer.', insuff: 'Insufficient verified data for this metric ({n} of {m}).', supply: 'Office supply by district for the current selection: {n} properties. Districts highlighted on the map.', rentDist: '{kind} known asking rent by district. Only properties with known rent are used; the denominator is shown per district.', glaDist: 'Known GLA by district: {top} leads with {v} m² ({n} of {m} properties have GLA). Districts with no known GLA are listed as insufficient, not as zero.', limFilter: 'Missing values never match a numeric filter: a building with unknown GLA is excluded from "larger than" queries rather than assumed to qualify.', limDemo: 'DEMO records (fictional) are included because the DEMO switch is on.', limRent: 'Rent values are asking rents from listings, not achieved rents.', layerOn: 'Layer shown: {l}. The checkbox in the left panel reflects it.', layerOff: 'Layer hidden: {l}.', poiCov: '{n} objects in this layer from the CASE geo master (OpenStreetMap, clinics.uz, 2GIS, Yandex). Coordinates are not field-verified.' },
+    ru: { answer: 'Ответ', analysis: 'Анализ', actions: 'Действия на карте', coverage: 'Покрытие данных', limits: 'Уверенность и ограничения', sources: 'Источники', matched: 'Найдено объектов: {n}.', applied: 'Применены фильтры: {f}. Панель фильтров их показывает.', narrowed: 'Сужен прошлый результат: {f}.', cleared: 'Слои ИИ, радиусы и фильтры очищены; показаны все бизнес-центры.', noProp: 'Объект не выбран и не назван. Выберите его на карте или назовите.', comp: 'Предлагаемый конкурентный набор вокруг {p}: {n} из {m} объектов в радиусе {k} км (расстояние, класс и размер, где известны). Это предложение, а не окончательный набор; правьте его во вкладке «Локация».', cmpNone: 'Нечего сравнивать: назовите объекты, выберите их или попросите «три крупнейших на карте».', cmpLargest: 'Сравниваю {n} крупнейших объектов на карте по известной GLA (GLA есть у {k} из {m} видимых).', cmpDone: 'Сравнение открыто для {n} объектов. Победитель не объявляется.', quality: '{n} из {m} объектов помечено: {kind}. Слой добавлен; ничего не придумано, это флаги самих записей.', kindConf: 'низкая или неизвестная уверенность', kindStale: 'не проверялись больше {mo} мес.', kindMissing: 'нет класса, GLA или ставки', unknown: 'Не смог сопоставить запрос с действием платформы. Примеры: «покажи офисы класса A в Мирабаде», «здания больше 5000 м2», «конкуренты в радиусе 3 км», «предложение по районам», «какие здания нужно проверить», «очистить».', unavailable: 'В наборе нет данных «{w}», поэтому ответить надёжно нельзя. Нужны заполняемость или численность сотрудников по зданиям. Оценка из несвязанных переменных не делалась.', selected: 'Выбран {p}, карта наведена на него.', radius: 'Объектов в радиусе {k} км от {p}: {n}. Радиус добавлен слоем.', insuff: 'Недостаточно проверенных данных для этой метрики ({n} из {m}).', supply: 'Предложение по районам для текущей выборки: {n} объектов. Районы подсвечены на карте.', rentDist: '{kind} известная ставка по районам. Учтены только объекты с известной ставкой; знаменатель показан по каждому району.', glaDist: 'Известная GLA по районам: лидирует {top} с {v} м² (GLA есть у {n} из {m}). Районы без известной GLA помечены как «недостаточно данных», а не нулём.', limFilter: 'Пропуски не проходят числовые фильтры: здание с неизвестной GLA исключается из запроса «больше N», а не считается подходящим.', limDemo: 'DEMO-записи (вымышленные) включены, потому что переключатель DEMO включён.', limRent: 'Ставки взяты из объявлений (asking), это не достигнутые ставки.', layerOn: 'Слой показан: {l}. Галочка в левой панели это отражает.', layerOff: 'Слой скрыт: {l}.', poiCov: 'Объектов в слое: {n}, из мастер-геобазы CASE (OpenStreetMap, clinics.uz, 2GIS, Яндекс). Координаты не проверены в поле.' } };
   function RT(k, v) { var s = (R[LANG] || R.en)[k] || R.en[k]; if (v) Object.keys(v).forEach(function (x) { s = s.split('{' + x + '}').join(v[x]); }); return s; }
   function card(parts) { var h = ''; ['answer', 'analysis', 'actions', 'coverage', 'limits', 'sources'].forEach(function (k) { if (parts[k]) h += '<h5>' + RT(k) + '</h5><div>' + parts[k] + '</div>'; }); return h; }
   function steps(list, done) { var el = $('aiSteps'); var i = 0; el.textContent = ''; (function next() { if (i < list.length) { el.textContent = '● ' + list[i++]; setTimeout(next, 140); } else { el.textContent = ''; done(); } })(); }
@@ -761,7 +986,8 @@ var AI = (function () {
   function execute(plan, ctx) {
     var a = plan.args, parts = {}, rows;
     switch (plan.intent) {
-      case 'clear': Tools.clearLayers(); rows = Tools.clearFilters(); session.lastIds = null; session.lastLayer = null; MapM.fit(); parts.answer = RT('cleared'); parts.actions = '<span class="tag">clear_layers</span><span class="tag">clear_filters</span> ' + RT('matched', { n: rows.length }); break;
+      case 'layerToggle': { var lr = Tools.toggleLayer(a.layer, a.on, a.cat, a.sub); parts.answer = RT(a.on ? 'layerOn' : 'layerOff', { l: esc(lr.label) }); parts.actions = '<span class="tag">toggle_layer: ' + esc(lr.key) + '</span>'; if (lr.count != null) parts.coverage = RT('poiCov', { n: fmt(lr.count) }); if (a.layer === 'heat' || a.layer === 'rentHeat') parts.limits = T(a.layer === 'rentHeat' ? 'heatRentNote' : 'heatNote'); break; }
+      case 'clear': Tools.clearLayers(); rows = Tools.clearFilters(); Heat.set('density', false); Heat.set('rent', false); Poi.clear(); session.lastIds = null; session.lastLayer = null; MapM.fit(); parts.answer = RT('cleared'); parts.actions = '<span class="tag">clear_layers</span><span class="tag">clear_filters</span> ' + RT('matched', { n: rows.length }); break;
       case 'filter': {
         /* a fresh request replaces the filter set; a narrowing request ("only ...", "of these ...") stacks on the current one and swaps the previous AI layer */
         var patch = a.patch, narrowing = a.only && !!session.lastIds;
@@ -835,7 +1061,7 @@ var App = (function () {
   function refresh() {
     visibleRows = Filters.apply(Data.all());
     $('fCount').textContent = visibleRows.length; $('fCountSub').textContent = T('of') + ' ' + Data.all().length + ' ' + T('records') + (Filters.describe() ? ' · ' + Filters.describe() : '');
-    MapM.render(visibleRows); if (view === 'list') ListM.render(visibleRows); Analytics.render(visibleRows); Layers.render(); MapM.renderLayers(Layers.list());
+    MapM.render(visibleRows); if (view === 'list') ListM.render(visibleRows); Analytics.render(visibleRows); Layers.render(); MapM.renderLayers(Layers.list()); Heat.render(visibleRows); Tree.sync();
     var all = Data.all(), demo = all.filter(function (r) { return r.meta.demo; }).length, upd = all.reduce(function (m, r) { var v = Quality.lastVerified(r); return v && (!m || v > m) ? v : m; }, null);
     $('dqBadge').innerHTML = T('dqBadge', { n: all.length, d: demo, u: '<b>' + fmtDate(upd) + '</b>' });
   }
@@ -845,10 +1071,10 @@ var App = (function () {
   function setAI(open) { $('aiPanel').classList.toggle('open', open); $('btnAI').classList.toggle('on', open); document.querySelector('.center').classList.toggle('ai-open', open); MapM.invalidate(); }
   function openAI() { setAI(true); }
   function setView(v) { view = v; $('viewMap').classList.toggle('on', v === 'map'); $('viewList').classList.toggle('on', v === 'list'); $('listPanel').classList.toggle('hidden', v !== 'list'); if (v === 'list') ListM.render(visibleRows); MapM.invalidate(); }
-  function setLang(l) { LANG = l; try { localStorage.setItem('geo_mvp_lang', l); } catch (e) {} applyI18n(); Filters.renderControls(); MapM.legend(); AI.prompts(); refresh(); if (selectedId) Details.render(selectedId); Compare.render(); $('hdrSub').textContent = LANG === 'ru' ? 'Бизнес-центры · Ташкент' : 'Business centers · Tashkent'; $('fMore').textContent = $('fMoreBox').classList.contains('hidden') ? T('more') : T('less'); }
+  function setLang(l) { LANG = l; try { localStorage.setItem('geo_mvp_lang', l); } catch (e) {} applyI18n(); Filters.renderControls(); Basemap.render(); Poi.rerender(); Heat.sync(); MapM.legend(); AI.prompts(); refresh(); if (selectedId) Details.render(selectedId); Compare.render(); $('hdrSub').textContent = LANG === 'ru' ? 'Бизнес-центры · Ташкент' : 'Business centers · Tashkent'; $('fMore').textContent = $('fMoreBox').classList.contains('hidden') ? T('more') : T('less'); }
   function init() {
     try { var l = localStorage.getItem('geo_mvp_lang'); if (l && I18N[l]) LANG = l; } catch (e) {}
-    $('langSel').value = LANG; Data.load(); MapM.init(); MapM.legend(); Filters.renderControls(); Filters.bind(); Search.bind(); ListM.bind(); AI.bind(); applyI18n(); refresh(); Compare.render(); Layers.render(); $('hdrSub').textContent = LANG === 'ru' ? 'Бизнес-центры · Ташкент' : 'Business centers · Tashkent';
+    $('langSel').value = LANG; Data.load(); MapM.init(); Basemap.init(); Poi.init(); Heat.init(); MapM.legend(); Filters.renderControls(); Filters.bind(); Search.bind(); ListM.bind(); AI.bind(); applyI18n(); Tree.init(); refresh(); Compare.render(); Layers.render(); $('hdrSub').textContent = LANG === 'ru' ? 'Бизнес-центры · Ташкент' : 'Business centers · Tashkent';
     $('viewMap').onclick = function () { setView('map'); }; $('viewList').onclick = function () { setView('list'); };
     document.querySelectorAll('.dtabs button').forEach(function (b) { b.onclick = function () { openDrawer(b.getAttribute('data-t')); }; });
     $('dClose').onclick = function () { $('drawer').classList.remove('open'); };

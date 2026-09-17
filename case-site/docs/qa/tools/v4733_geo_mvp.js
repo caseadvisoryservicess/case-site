@@ -33,6 +33,41 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const dl = await pg.evaluate(async () => { document.getElementById('lyDist').click(); await new Promise(r => setTimeout(r, 200)); const n = document.querySelectorAll('.leaflet-overlay-pane path').length; document.getElementById('lyDist').click(); return n; });
   ck('слой районов включается (12 полигонов)', dl >= 12, dl);
 
+  /* 1b. Дерево слоёв: подложка, слои карты, городские объекты, фильтры; тепловые карты */
+  const tree = await pg.evaluate(async () => {
+    const S = ms => new Promise(r => setTimeout(r, ms));
+    const nodes = [...document.querySelectorAll('#tree>.node')].map(n => n.id);
+    const base0 = Basemap.current(); const tileUrl = () => { let u = ''; MapM.map().eachLayer(l => { if (l instanceof L.TileLayer) u = l._url; }); return u; };
+    const osmUrl = tileUrl();
+    document.getElementById('btnBase').click(); await S(100); const menuOpen = !document.getElementById('baseMenu').classList.contains('hidden');
+    document.querySelector('#baseMenu input[value=google]').click(); await S(150);
+    const google = Basemap.current(), gUrl = tileUrl(), menuClosed = document.getElementById('baseMenu').classList.contains('hidden'), saved = localStorage.getItem('geo_mvp_base');
+    const treeRadio = document.querySelector('#baseOpts input[value=google]').checked, baseName = document.getElementById('baseName').textContent;
+    document.querySelector('#baseOpts input[value=osm]').click(); await S(100);
+    const paths0 = document.querySelectorAll('.leaflet-overlay-pane path').length;
+    document.getElementById('lyHeat').click(); await S(200); const heatPaths = document.querySelectorAll('.leaflet-overlay-pane path').length, heatLeg = document.getElementById('mlegend').innerText, heatNote = document.getElementById('heatNote').textContent;
+    document.getElementById('lyRentHeat').click(); await S(200); const rentOn = document.getElementById('lyRentHeat').checked && !document.getElementById('lyHeat').checked, rentLeg = document.getElementById('mlegend').innerText, rentPaths = document.querySelectorAll('.leaflet-overlay-pane path').length;
+    document.getElementById('lyRentHeat').click(); await S(150); const offPaths = document.querySelectorAll('.leaflet-overlay-pane path').length;
+    const layersN = document.getElementById('layersN').textContent, cntBC = document.getElementById('cntBC').textContent;
+    document.querySelector('#ndPOI .nname').click(); await S(50);
+    const cats = [...document.querySelectorAll('#poiTree .cat')].map(c => c.querySelector('[data-call]').getAttribute('data-call'));
+    const subsMed = document.querySelectorAll('#poiTree [data-sub^="medicine/"]').length, dentCount = document.querySelector('#poiTree [data-sub="medicine/dentist"]').parentNode.querySelector('b').textContent;
+    document.querySelector('[data-call=pharmacies]').click(); await S(300); const ph = Poi.active().slice(), phCn = document.querySelector('[data-cn=pharmacies]').textContent, phMarkers = document.querySelectorAll('.mc-poi').length + document.querySelectorAll('.leaflet-overlay-pane path').length;
+    document.querySelector('[data-sub="medicine/dentist"]').click(); await S(300); const med = Poi.active().slice(), medAll = document.querySelector('[data-call=medicine]'), medState = { ind: medAll.indeterminate, chk: medAll.checked, cn: document.querySelector('[data-cn=medicine]').textContent }, poiN = document.getElementById('poiN').textContent;
+    const savedPoi = JSON.parse(localStorage.getItem('geo_mvp_poi_v1') || '{}');
+    document.querySelector('#ndBC .nname').click(); await S(50); const bcClosed = !document.getElementById('ndBC').classList.contains('open'); const treeSaved = JSON.parse(localStorage.getItem('geo_mvp_tree_v1') || '{}'); document.querySelector('#ndBC .nname').click();
+    document.querySelector('#fDistrict .chip[data-v="Mirabad"]').click(); await S(100); const chipOn = document.querySelector('#fDistrict .chip[data-v="Mirabad"]').classList.contains('on'), filtN = document.getElementById('filtN').textContent; document.querySelector('#fDistrict .chip[data-v="Mirabad"]').click(); await S(100); const chipOff = !document.querySelector('#fDistrict .chip[data-v="Mirabad"]').classList.contains('on');
+    document.getElementById('lyAI').click(); await S(100); const layTab = !document.getElementById('dLay').classList.contains('hidden') && document.getElementById('drawer').classList.contains('open'); document.getElementById('dClose').click();
+    return { nodes, base0, osm: /openstreetmap/.test(osmUrl), menuOpen, google, gUrl: /google/.test(gUrl), menuClosed, saved, treeRadio, baseName, paths0, heatPaths, heatLeg: heatLeg.replace(/\n/g, ' ').slice(-140), heatNote, rentOn, rentLeg: rentLeg.replace(/\n/g, ' ').slice(-120), rentPaths, offPaths, layersN, cntBC, cats, subsMed, dentCount, ph, phCn, phMarkers, med, medState, poiN, savedPoi, bcClosed, treeSaved, chipOn, filtN, chipOff, layTab };
+  });
+  ck('дерево: четыре узла (подложка, слои, объекты, фильтры), счётчики слоёв и БЦ', tree.nodes.join() === 'ndBase,ndLayers,ndPOI,ndBC' && tree.layersN === '1 / 4' && tree.cntBC === '154', JSON.stringify({ n: tree.nodes, l: tree.layersN, c: tree.cntBC }));
+  ck('подложка: OSM по умолчанию, кнопка у карты открывает меню, Google выбирается, тайлы меняются, выбор помнится и виден в дереве', tree.base0 === 'osm' && tree.osm && tree.menuOpen && tree.google === 'google' && tree.gUrl && tree.menuClosed && tree.saved === 'google' && tree.treeRadio && /Google/.test(tree.baseName), JSON.stringify({ b0: tree.base0, g: tree.google, url: tree.gUrl, saved: tree.saved, name: tree.baseName }));
+  ck('тепловая карта плотности рисует ячейки и легенду с примечанием; ставки: честный знаменатель; выключение убирает ячейки', tree.heatPaths > tree.paths0 + 20 && /per cell/.test(tree.heatLeg) && /500 m/.test(tree.heatNote) && tree.rentOn && /Based on 21 of 154/.test(tree.rentLeg) && tree.rentPaths < tree.heatPaths && tree.rentPaths > tree.paths0 && tree.offPaths === tree.paths0, JSON.stringify({ p0: tree.paths0, h: tree.heatPaths, r: tree.rentPaths, off: tree.offPaths, leg: tree.heatLeg, rl: tree.rentLeg }));
+  ck('городские объекты: три категории, медицина по 9 подтипам, счётчики из мастер-базы (стоматологий 166)', tree.cats.join() === 'medicine,pharmacies,food' && tree.subsMed === 9 && tree.dentCount === '166', JSON.stringify({ cats: tree.cats, subs: tree.subsMed, d: tree.dentCount }));
+  ck('галочка категории включает аптеки (1 027 точек в кластерах), подкатегория стоматологий: категория частично включена, состояние помнится', tree.ph.join() === 'pharmacies/pharmacy' && tree.phCn === '1 / 1' && tree.phMarkers > 5 && tree.med.indexOf('medicine/dentist') >= 0 && tree.medState.ind && !tree.medState.chk && tree.medState.cn === '1 / 9' && tree.poiN === '2' && tree.savedPoi['medicine/dentist'] === true, JSON.stringify({ ph: tree.ph, cn: tree.phCn, m: tree.phMarkers, med: tree.medState, poiN: tree.poiN }));
+  ck('узел сворачивается и помнится; фишка района подсвечивается сразу; ссылка «Слои ИИ» открывает вкладку', tree.bcClosed && tree.treeSaved.ndBC === 0 && tree.chipOn && tree.filtN === '1' && tree.chipOff && tree.layTab, JSON.stringify({ bc: tree.bcClosed, ts: tree.treeSaved, on: tree.chipOn, fn: tree.filtN, off: tree.chipOff, lay: tree.layTab }));
+  await pg.evaluate(() => { Poi.clear(); });
+
   /* 2. Фильтры */
   const f = await pg.evaluate(async () => {
     const S = ms => new Promise(r => setTimeout(r, ms)); const cnt = () => +document.getElementById('fCount').textContent;
@@ -155,6 +190,20 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ck('AI: «открой Trilliant» -> выбор и приближение', t13.intent === 'select' && /Selected Trilliant/.test(t13.answer), t13.answer);
   const t14 = await ask('Tell me a joke');
   ck('AI: непонятный запрос -> подсказка с примерами', t14.intent === 'unknown' && /could not map/.test(t14.answer));
+  const l1 = await ask('Show district boundaries');
+  const l1s = await pg.evaluate(() => document.getElementById('lyDist').checked);
+  const l2 = await ask('Show pharmacies on the map');
+  const l2s = await pg.evaluate(() => ({ act: Poi.active().slice(), open: document.getElementById('ndPOI').classList.contains('open') }));
+  const l3 = await ask('Show the rent heatmap');
+  const l3s = await pg.evaluate(() => ({ heat: Heat.active(), cb: document.getElementById('lyRentHeat').checked }));
+  const l4 = await ask('Hide pharmacies');
+  const l4s = await pg.evaluate(() => Poi.active().length);
+  const l5 = await ask('Show dental clinics');
+  const l5s = await pg.evaluate(() => Poi.active().slice());
+  ck('AI: слои панели по запросу: границы районов, аптеки (галочка и узел открыт), тепловая карта ставок с ограничением, скрыть аптеки, стоматологии', l1.intent === 'layerToggle' && l1s && /Layer shown: District boundaries/.test(l1.answer) && l2.intent === 'layerToggle' && l2s.act.join() === 'pharmacies/pharmacy' && l2s.open && /1,027 objects/.test(l2.coverage) && l3.intent === 'layerToggle' && l3s.heat === 'rent' && l3s.cb && /known asking rent/.test(l3.limits) && l4.intent === 'layerToggle' && l4.args.on === false && l4s === 0 && l5s.join() === 'medicine/dentist', JSON.stringify({ l1: [l1.intent, l1s], l2: [l2.intent, l2s, l2.coverage.slice(0, 40)], l3: [l3.intent, l3s], l4: [l4.intent, l4s], l5: l5s }));
+  const t8b = await ask('Remove this analysis and return to all business centers');
+  const t8bs = await pg.evaluate(() => ({ heat: Heat.active(), poi: Poi.active().length }));
+  ck('AI: «убрать анализ» выключает тепловую карту и слои объектов', t8b.intent === 'clear' && t8bs.heat === null && t8bs.poi === 0, JSON.stringify(t8bs));
   const sess = await pg.evaluate(() => ({ log: JSON.parse(localStorage.getItem('geo_mvp_ai_session') || '[]').length, hist: AI.session().history.length }));
   ck('сеанс ИИ ведёт журнал (localStorage) и историю', sess.log >= 14 && sess.hist >= 28, JSON.stringify(sess));
   await pg.evaluate(async () => { await AI.ask('clear'); });
@@ -171,6 +220,10 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   const r3 = await ask('В каком районе больше всего известной GLA класса A?');
   const r4 = await ask('Какие здания нужно проверить?');
   const r5 = await ask('Убери анализ и покажи все бизнес-центры');
+  const r6 = await ask('Покажи аптеки на карте');
+  const r6s = await pg.evaluate(() => ({ act: Poi.active().slice(), lbl: document.querySelector('#poiTree [data-cn=pharmacies]').closest('.cat').querySelector('.cname span').textContent, base: document.getElementById('baseName').textContent, node: document.querySelector('#ndLayers [data-i=mapLayers]').textContent }));
+  await ask('Скрой аптеки');
+  ck('RU: «покажи аптеки» включает слой, подписи дерева и подложки на русском', r6.intent === 'layerToggle' && r6s.act.join() === 'pharmacies/pharmacy' && /Слой показан: Аптеки/.test(r6.answer) && r6s.lbl === 'Аптеки' && r6s.node === 'Слои карты', JSON.stringify(r6s));
   ck('RU-запросы: класс+район, сужение, GLA по районам, проверка, очистка', r1.intent === 'filter' && r1.state.classes.join() === 'A,A+' && r1.state.districts.join() === 'Mirabad' && /Применены фильтры/.test(r1.answer) && r2.intent === 'filter' && r2.args.only === true && r2.state.glaMin === 5000 && r2.state.districts.join() === 'Mirabad' && r3.intent === 'glaByDistrict' && /Шайхантахурский/.test(r3.answer) && r4.intent === 'quality' && r4.args.kind === 'stale' && r5.intent === 'clear' && r5.count === 154 && /очищены/.test(r5.answer), JSON.stringify({ r1: [r1.intent, r1.state.classes, r1.state.districts], r2: [r2.intent, r2.args.only, r2.state.glaMin], r3: [r3.intent, r3.answer.slice(0, 80)], r4: [r4.intent, r4.args.kind], r5: [r5.intent, r5.count] }));
   await pg.selectOption('#langSel', 'en'); await wait(200);
 

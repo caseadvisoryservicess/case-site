@@ -11,6 +11,7 @@ declare(strict_types=1);
 if (PHP_SAPI !== 'cli') { http_response_code(403); echo "CLI only\n"; exit(1); }
 
 require __DIR__.'/lib.php';
+require_module_enabled('dates'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 
 function cron_recipients(): array {
   // Формат: [ ['broker' => 'Нодир', 'telegram_chat_id' => '123456789', 'email' => 'nodir@example.com'], ... ]

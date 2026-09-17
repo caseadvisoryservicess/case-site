@@ -1,6 +1,7 @@
 <?php
 // CASE OS v3.5.7 — supplier mediation commission endpoint.
 require __DIR__.'/lib.php';
+require_module_enabled('v326_suppliers'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 require_login();
 
 function supplier_comm_can_all(): bool {

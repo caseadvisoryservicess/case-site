@@ -249,7 +249,25 @@ function redact_workflow_project_scope(array $data, array $u): array {
 // вычисляется из фактических рабочих областей. ACTLOG/AUDIT/ROLES/USERS никогда не входят
 // (системные/аудиторские, см. P2-01), ROLE_WORKSPACES/USER_WORKSPACES защищены отдельным
 // блоком ниже.
+// v4.74.0: в режиме «только геоаналитика» набор ключей одинаков для всех, включая
+// администратора: базовые служебные, ключи гео-разделов и (администратору) доступ и журнал.
+// Разделы других отделов не читаются и не пишутся, но в базе остаются нетронутыми.
+function geo_only_state_keys(array $u, ?array $data, bool $write): array {
+  $views = effective_views_for($u, $data);
+  $map = workspace_view_keys();
+  $keys = baseline_state_keys();
+  foreach ($views as $v) { foreach (($map[$v] ?? []) as $k) { if (!in_array($k, $keys, true)) $keys[] = $k; } }
+  if (!empty($u['admin'])) {
+    foreach (['USERS','ROLES','ACTLOG','AUDIT','ROLE_WORKSPACES','USER_WORKSPACES','MODULE_FLAGS'] as $k) if (!in_array($k, $keys, true)) $keys[] = $k;
+  } else {
+    $keys = array_values(array_diff($keys, ['USERS','ROLES','ACTLOG','AUDIT','ROLE_WORKSPACES','USER_WORKSPACES']));
+    if ($write) $keys = array_values(array_diff($keys, ['TAXO']));
+    if ($write && !asaas_geo_can_edit($u)) $keys = array_values(array_diff($keys, ['GEO_DATA']));
+  }
+  return array_values($keys);
+}
 function role_allowed_state_keys(array $u, ?array $oldData=null): ?array {
+  if (geo_only()) return geo_only_state_keys($u, $oldData, true);
   if (!empty($u['admin'])) return null;
   $views = effective_views_for($u, $oldData);
   $map = workspace_view_keys();
@@ -270,6 +288,7 @@ function role_allowed_state_keys(array $u, ?array $oldData=null): ?array {
 // GEO_DATA остаётся у read-only пользователей геоаналитики, чтобы они видели ручные
 // правки администратора, но POST всё равно отклонит их попытку изменить этот ключ.
 function role_visible_state_keys(array $u, ?array $state=null): ?array {
+  if (geo_only()) return geo_only_state_keys($u, $state, false);
   if (!empty($u['admin'])) return null;
   $views = effective_views_for($u, $state);
   $map = workspace_view_keys();

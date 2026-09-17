@@ -13,6 +13,7 @@
 // поля в DevTools. Поэтому для conf=verified сервер ставит by и at сам, игнорируя
 // присланные значения.
 require __DIR__.'/lib.php';
+require_module_enabled('data_quality'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 $u = require_login();
 if (($_SERVER['REQUEST_METHOD'] ?? '') !== 'POST') fail('Метод не поддерживается', 405);
 

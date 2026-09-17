@@ -21,4 +21,5 @@ json_out([
   'can_finance'=>!empty($u['finance']) || !empty($u['admin']),
   'can_approve'=>!empty($u['approve']) || !empty($u['admin']),
   'can_admin'=>!empty($u['admin']),
+  'mode'=>platform_mode(),
 ]);

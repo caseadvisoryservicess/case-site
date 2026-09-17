@@ -3,6 +3,7 @@
 // Files are stored below data/case_files and are never exposed directly by the web server.
 declare(strict_types=1);
 require __DIR__.'/lib.php';
+require_module_enabled('project_layouts'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 $u = require_login();
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 

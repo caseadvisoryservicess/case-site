@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CASE OS - Real Estate Operating System</title>
+<title>CASE OS · Геоаналитика</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
@@ -12,7 +12,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="CASE OS">
-<meta name="description" content="CASE OS - real estate operating system with leasing, asset control and financial feasibility.">
+<meta name="description" content="CASE OS: платформа геоаналитики коммерческой недвижимости Ташкента.">
 <link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='180'%20height='180'%3E%3Crect%20width='180'%20height='180'%20rx='34'%20fill='%239E0000'/%3E%3Ctext%20x='50%25'%20y='56%25'%20font-family='Arial'%20font-size='52'%20font-weight='800'%20fill='%23fff'%20text-anchor='middle'%20dominant-baseline='middle'%3ECASE%3C/text%3E%3C/svg%3E">
 <style>/* v4.49.1: правила сворачивания групп «Бюджет»/«Факт» через display:none УДАЛЕНЫ. Они убирали ячейки из строки, а грид дополнительно схлопывал их колонки — оставшиеся ячейки съезжали на обнулённые слоты, и Варианты/Брокер/Комментарий пропадали. Сворачивание целиком делает грид (effectiveHidden + visibility:collapse на col), это согласовано с colgroup. */
 :root{--red:#9E0000;--red-d:#7a0000;--red-l:#c62828;--bg:#f4f3f1;--panel:#fff;--card:#fff;--ink:#1b1b1b;--muted:#6b6b6b;--soft:#faf9f7;--border:#e6e3df;--green:#2e7d32;--amber:#a16000;--blue:#1565c0;--teal:#0d8484;--purple:#6a3fb5;--shadow:0 1px 3px rgba(0,0,0,.06),0 8px 30px rgba(0,0,0,.05)}
@@ -405,7 +405,7 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div id="login">
   <div class="lcard">
     <div class="lg"><span class="c">CASE</span> OS</div>
-    <div class="tag">Company &amp; Real Estate Operating System</div>
+    <div class="tag">Geo Analytics Platform</div>
     <label id="l_user" style="display:none">Пользователь</label>
     <select id="luser" style="display:none"></select>
     <label id="l_email">Email</label>
@@ -427,7 +427,7 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div id="app" class="hidden">
   <div class="topbar">
     <button class="burger" aria-label="Открыть меню" onclick="toggleSide()">☰</button>
-    <div class="brand" title="Перейти на главный экран"><span><span class="c">CASE</span> OS</span><span class="tag">Company &amp; Real Estate Operating System</span></div>
+    <div class="brand" title="Перейти на главный экран"><span><span class="c">CASE</span> OS</span><span class="tag">Geo Analytics Platform</span></div>
     <span class="demo" id="appVer" title="Версия платформы" style="align-self:center">v-</span>
     <select class="tb-obj" id="objSel" aria-label="Object switcher" onchange="setObj(this.value)"></select>
     <button class="btn ghost sm" id="addObjBtn" style="display:none" onclick="addObjectForm()" title="Добавить новый объект в портфель">+ Объект</button>
@@ -456,14 +456,15 @@ table.case-grid td select,table.case-grid td input:not([type=checkbox]),table.ca
 <div class="drawer" id="drawer"></div>
 
 <script src="quiz-data.js?v=4.50.2" defer></script>
-<script>const APP_VERSION='4.73.1';    /* версия платформы - повышается с каждым обновлением */
+<script>window.CASE_PLATFORM_MODE='geo'; /* v4.74.0: режим платформы по умолчанию; сервер (auth.php, api/mode.php) важнее */
+const APP_VERSION='4.74.0';    /* версия платформы - повышается с каждым обновлением */
 /* v4.49.1: карта ожидаемых версий модулей перенесена сюда из ядра — иначе ядро
    менялось при каждом обновлении любого модуля и не кэшировалось */
-const CASE_EXPECTED_MODULES={'core':'4.71.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.71.0','v4450-ux-system':'4.60.0','v4450-owner-report':'4.47.0','v4660-uz-translit':'4.66.0','v4670-offer-pricing':'4.67.0','v4680-project-directories':'4.68.0','v4690-offer-cover':'4.69.0','v4710-provenance':'4.71.0'};
+const CASE_EXPECTED_MODULES={'core':'4.74.0','v4740-geo-only':'4.74.0','v432-data-grid':'4.49.1','v4327-patch':'4.50.1','v4451-live-sync':'4.58.0','v3520-workspaces':'4.71.0','v4450-ux-system':'4.60.0','v4450-owner-report':'4.47.0','v4660-uz-translit':'4.66.0','v4670-offer-pricing':'4.67.0','v4680-project-directories':'4.68.0','v4690-offer-cover':'4.69.0','v4710-provenance':'4.71.0'};
 /* v4.58.0: модули гео-студии живут в iframe, поэтому в CASE_MODULE_VERSIONS этого окна
    они не появляются и общей сверкой не ловились — студия читает карту отсюда и сверяет у себя */
-window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.73.1','v4530-geo-export':'4.73.1','v4600-sun-wind':'4.61.0','v4630-huff':'4.63.0','v4730-geo-agent':'4.73.1'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
-<script src="core.js?v=4.71.0"></script>
+window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.73.1','v4530-geo-export':'4.73.1','v4600-sun-wind':'4.61.0','v4630-huff':'4.63.0','v4730-geo-agent':'4.73.1','geo-direct':'4.74.0','v4740-geo-tree':'4.74.0'};   /* именно window: const не становится свойством окна, а студия читает карту через window.parent */</script>
+<script src="core.js?v=4.74.0"></script>
 <script src="v32-upgrade.js?v=4.46.0" defer></script>
 <script src="v326-commission-engines.js?v=4.34.0" defer></script>
 <script src="v35-stable.js?v=4.70.2" defer></script>
@@ -493,6 +494,7 @@ window.CASE_EXPECTED_STUDIO_MODULES={'v420-geo-studio':'4.73.1','v4530-geo-expor
 <script src="v4680-project-directories.js?v=4.68.0" defer></script>
 <script src="v4690-offer-cover.js?v=4.69.0" defer></script>
 <script src="v4710-provenance.js?v=4.71.0" defer></script>
+<script src="v4740-geo-only.js?v=4.74.0" defer></script>
 <script>
 /* #78 профиль-меню (версия/курс/тема/язык/имена/выход) + #85 кнопка «?» на каждой странице у заголовка */
 (function(){

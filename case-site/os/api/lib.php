@@ -200,6 +200,35 @@ function asaas_known_module_ids(): array {
   return array_values(array_unique(array_filter((array)($defs['ASH'] ?? []), 'is_string')));
 }
 function asaas_protected_module_ids(): array { return ['dash','users']; }
+
+// ── v4.74.0: режим платформы «только геоаналитика» ────────────────────
+// Источник правды один: config.php ('platform_mode'), иначе api/mode.php. Клиент получает
+// режим в ответе auth.php и строит меню по нему; сервер здесь же режет эндпоинты, таблицы и
+// разделы состояния других отделов. Данные не удаляются: смена режима возвращает всё.
+function platform_mode(): string {
+  static $mode = null;
+  if ($mode !== null) return $mode;
+  $c = cfg();
+  $m = (string)($c['platform_mode'] ?? '');
+  if ($m === '') {
+    $f = __DIR__.'/mode.php';
+    if (is_file($f)) { $r = require $f; $m = is_array($r) ? (string)($r['mode'] ?? '') : (string)$r; }
+  }
+  $mode = ($m === 'geo') ? 'geo' : 'full';
+  return $mode;
+}
+function geo_only(): bool { return platform_mode() === 'geo'; }
+// Разделы, которые остаются в режиме «только геоаналитика». dash и users защищены от
+// скрытия флагами модулей (asaas_protected_module_ids), поэтому входят сюда явно.
+function geo_only_module_ids(): array {
+  return ['dash','map','geoanalytics','analytics_hub','geo_platform','users','admin_modules','admin_system'];
+}
+function geo_only_allows(string $view): bool { return !geo_only() || in_array($view, geo_only_module_ids(), true); }
+// Ставится в начало эндпоинтов других отделов: в гео-режиме они отвечают 403 всем, включая
+// администратора. Сообщение объясняет причину, а не выглядит как сбой прав.
+function require_module_enabled(string $view): void {
+  if (!geo_only_allows($view)) fail('Раздел «'.$view.'» отключён: платформа работает в режиме «только геоаналитика» (api/mode.php)', 403);
+}
 function asaas_workspace_hard_allowed(array $u, string $view): bool {
   // v4.45.0: role invariants are security boundaries, not only menu presets.
   // External agents never receive corporate registries; junior data admins never receive LCR/projects.
@@ -254,9 +283,12 @@ function asaas_workspace_effective_views(array $u, array $state=[]): array {
   }
   $out = [];
   foreach ((array)$base as $view) {
-    if (is_string($view) && $view !== '' && asaas_workspace_hard_allowed($u, $view) && asaas_feature_can_view($u, $state, $view) && !in_array($view, $out, true)) $out[] = $view;
+    if (is_string($view) && $view !== '' && asaas_workspace_hard_allowed($u, $view) && asaas_feature_can_view($u, $state, $view) && geo_only_allows($view) && !in_array($view, $out, true)) $out[] = $view;
   }
   if (asaas_feature_can_view($u, $state, 'dash') && !in_array('dash', $out, true)) array_unshift($out, 'dash');
+  // v4.74.0: в гео-режиме каждому, у кого есть хоть один гео-раздел или права администратора,
+  // гарантируем «Гео: рынок и POI» - иначе меню было бы пустым, а платформа бесполезной.
+  if (geo_only() && !in_array('geoanalytics', $out, true) && (!empty($u['admin']) || in_array('map', $out, true) || in_array('analytics_hub', $out, true))) $out[] = 'geoanalytics';
   return $out;
 }
 function asaas_workspace_can_view(array $u, string $view, array $state=[]): bool {
@@ -324,8 +356,11 @@ function role_allowed_tables(array $u): ?array { return null; }
 function require_table_allowed(string $table): void {
   $u = current_user();
   if (!$u) return;
-  if (!empty($u['admin'])) return;
   $views = table_workspace_views($table);
+  // v4.74.0: гео-режим режет таблицы других отделов и администратору тоже - иначе «отключено»
+  // было бы только косметикой меню. Таблицы без привязки к разделу (служебные) не трогаем.
+  if ($views && geo_only()) { $ok = false; foreach ($views as $view) if (geo_only_allows($view)) { $ok = true; break; } if (!$ok) fail('Таблица «'.$table.'» отключена: платформа в режиме «только геоаналитика»', 403); }
+  if (!empty($u['admin'])) return;
   if (!$views) return;
   $state = asaas_load_app_state_data();
   foreach ($views as $view) if (asaas_workspace_can_view($u, $view, $state)) return;

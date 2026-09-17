@@ -26,8 +26,8 @@ function password_login_allowed(): bool { $c = cfg(); if (array_key_exists('allo
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  if (!$u || !$u['active']) json_out(['auth'=>false,'csrf'=>csrf_token(),'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled()]);
-  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  if (!$u || !$u['active']) json_out(['auth'=>false,'csrf'=>csrf_token(),'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled(),'mode'=>platform_mode()]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
 }
 
 // Минимальный SMTP-клиент (без внешних библиотек): порт 465 (ssl), 587 (tls/STARTTLS)
@@ -156,7 +156,7 @@ if ($a==='login') {
   $_SESSION['uid'] = $row['id'];
   audit('Вход в систему', 'роль: '.$row['role_key']);
   $u = current_user();
-  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
 }
 if ($a==='request_code') {
   if (!code_login_enabled()) fail('Вход по коду временно отключён — используйте вход по паролю.', 403);
@@ -218,7 +218,7 @@ if ($a==='verify_code') {
   $_SESSION['uid'] = $row['id'];
   audit('Вход по коду из письма', 'роль: '.$row['role_key']);
   $u = current_user();
-  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)]);
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
 }
 if ($a==='logout') { audit('Выход'); $_SESSION=[]; session_destroy(); json_out(['auth'=>false]); }
 if ($a==='verify_ceo') {

@@ -4,7 +4,7 @@ window.CASE_STANDALONE_DATA={districts:{"type":"FeatureCollection","name":"tashk
 <script>/* docs/standalone/standalone-shim.js */
 /* CASE Geo Analytics, автономная версия: сервер CASE OS заменён браузером.
  *
- * Студия геоаналытики написана как экран CASE OS: она ходит за данными и правами в PHP-API
+ * Студия геоаналитики написана как экран CASE OS: она ходит за данными и правами в PHP-API
  * (api/*.php) и берёт границы районов из папки data/. В одном файле, который открывают с
  * диска или кладут на любой статический хостинг, ничего этого нет. Этот сценарий загружается
  * первым и перехватывает fetch: всё, что раньше делал сервер, делает браузер.
@@ -13,11 +13,10 @@ window.CASE_STANDALONE_DATA={districts:{"type":"FeatureCollection","name":"tashk
  *                                              в localStorage этого браузера)
  *   api/geo_master.php?file=runtime.json    -> мастер-геобаза, встроенная в файл при сборке
  *   data/tashkent_districts.geojson         -> границы районов, встроенные при сборке
- *   api/gis_proxy.php?mode=poi              -> Overpass API напрямую из браузера, тот же
- *                                              разбор, что в os/api/gis_proxy.php
- *   api/gis_proxy.php?mode=buildings|roads  -> Overpass напрямую, разбор как в os/api/osm_lib.php
- *   api/gis_proxy.php?mode=geocode          -> Nominatim напрямую
- *   api/gis_proxy.php?mode=ping             -> проверка Overpass и Nominatim из браузера
+ *   api/gis_proxy.php (poi, buildings, roads, geocode, ping)
+ *                                           -> os/geo-direct.js: Overpass API и Nominatim
+ *                                              напрямую из браузера, тот же разбор, что на
+ *                                              сервере (с v4.74.0 библиотека общая с платформой)
  *   api/llm.php                             -> своей модели нет, агент честно говорит об этом
  *   остальное api/*                         -> «сервера нет», без падений
  *
@@ -30,261 +29,27 @@ window.CASE_STANDALONE_DATA={districts:{"type":"FeatureCollection","name":"tashk
   'use strict';
   if (window.CASE_STANDALONE) return;
   var DATA = window.CASE_STANDALONE_DATA || {};
-  var S = window.CASE_STANDALONE = {
-    version: '4.73.1', built: '2026-09-17',
-    overpass: 'https://overpass-api.de/api/interpreter',
-    nominatim: 'https://nominatim.openstreetmap.org',
-    log: [], cache: {}, geocodeCache: {}
-  };
+  var S = window.CASE_STANDALONE = { version: '4.74.0', built: '2026-09-17', log: [] };
   var realFetch = window.fetch.bind(window);
 
   function jsonResponse(obj, status) {
     return new Response(JSON.stringify(obj), { status: status || 200, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
   }
   function fail(message, status) { return jsonResponse({ ok: false, error: message, message: message }, status || 400); }
-  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
-  function withTimeout(ms) {
-    var c = typeof AbortController === 'function' ? new AbortController() : null;
-    if (c) setTimeout(function () { try { c.abort(); } catch (e) {} }, ms);
-    return c ? c.signal : undefined;
-  }
-  function getText(url, timeoutMs) {
-    var t0 = Date.now();
-    return realFetch(url, { signal: withTimeout(timeoutMs || 60000), cache: 'no-store' }).then(function (r) {
-      return r.text().then(function (t) { return { status: r.status, body: t, ms: Date.now() - t0 }; });
-    }, function (e) { return { status: 0, body: '', error: String(e && e.message || e), ms: Date.now() - t0 }; });
-  }
-  function overpass(ql, timeoutMs) {
-    return getText(S.overpass + '?data=' + encodeURIComponent(ql), timeoutMs).then(function (r) {
-      if (r.status === 0) throw new Error('Overpass API недоступен из браузера' + (r.error ? ' (' + r.error + ')' : '') + '. Проверьте интернет или повторите позже.');
-      if (r.status === 429 || r.status === 504) throw new Error('Overpass API перегружен (HTTP ' + r.status + '). Повторите через минуту или уменьшите участок.');
-      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
-      if (!j || !Array.isArray(j.elements)) throw new Error('Overpass вернул неожиданный ответ (HTTP ' + r.status + ').');
-      return j.elements;
-    });
-  }
 
-  /* ── Городские объекты (POI): те же теги, что в os/api/gis_proxy.php ─────────── */
-  var POI_FILTERS = {
-    hotels: ['tourism~"hotel|apartment|guest_house|hostel|motel"'],
-    shopping: ['shop=mall', 'shop=department_store'],
-    street_retail: ['shop~"clothes|shoes|bag|jewelry|watches|electronics|appliance|computer|books|furniture|interior_decoration|hairdresser|beauty|cosmetics|perfumery|bakery|confectionery|pastry|florist|gift_shop|toys|sports|stationery|mobile_phone|optician|variety_store"'],
-    supermarkets: ['shop~"supermarket|convenience"'],
-    markets: ['amenity=marketplace', 'market=flea_market'],
-    restaurants: ['amenity=restaurant'],
-    cafes: ['amenity~"cafe|ice_cream"', 'shop~"coffee|tea"'],
-    fast_food: ['amenity~"fast_food|food_court"'],
-    parks: ['leisure~"park|garden|nature_reserve|recreation_ground"'],
-    playgrounds: ['leisure=playground'],
-    entertainment: ['amenity~"cinema|nightclub"', 'leisure~"amusement_arcade|water_park|bowling_alley"', 'tourism~"theme_park|aquarium"'],
-    sports: ['leisure~"sports_centre|fitness_centre|stadium|swimming_pool|ice_rink|sports_hall"'],
-    education: ['amenity~"school|university|college|kindergarten|language_school|music_school|driving_school|training"', 'office=educational_institution'],
-    residential: ['building~"apartments|residential"'],
-    warehouses: ['building~"warehouse|industrial"', 'landuse=industrial', 'office=logistics'],
-    parking: ['amenity=parking', 'building~"parking|garages"'],
-    transport_hubs: ['highway=bus_stop', 'railway~"station|halt"', 'amenity=bus_station', 'aeroway=aerodrome'],
-    culture: ['amenity~"theatre|museum|arts_centre|library|community_centre|social_centre"', 'tourism~"museum|gallery"'],
-    tourism: ['tourism~"attraction|viewpoint|artwork|zoo"', 'historic~"monument|memorial|archaeological_site|castle|ruins"'],
-    finance: ['amenity~"bank|atm|bureau_de_change|money_transfer"'],
-    government: ['amenity~"townhall|courthouse|police|post_office"', 'office=government'],
-    fuel_auto: ['amenity~"fuel|car_wash|charging_station"', 'shop~"car|car_repair|car_parts|tyres"'],
-    mahallas: ['place~"neighbourhood|quarter"']
-  };
-  var MODE_RU = { bus: 'автобус', trolleybus: 'троллейбус', minibus: 'маршрутка', share_taxi: 'маршрутка', tram: 'трамвай', subway: 'метро' };
-  function natcmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
-  function transportRows(elements) {
-    var stops = {}, routesBy = {}, routeList = {};
-    elements.forEach(function (el) {
-      if (el.type === 'relation') {
-        var t = el.tags || {}, mode = MODE_RU[t.route] || 'транспорт', ref = String(t.ref || '').trim(), label = ref || String(t.name || '').trim();
-        if (!label) return;
-        routeList[mode + ' ' + label] = { mode: mode, ref: label, name: String(t.name || '') };
-        (el.members || []).forEach(function (m) {
-          if (m.type !== 'node') return; var rid = String(m.ref || ''); if (!rid) return;
-          routesBy[rid] = routesBy[rid] || {}; routesBy[rid][mode] = routesBy[rid][mode] || [];
-          if (routesBy[rid][mode].indexOf(label) < 0) routesBy[rid][mode].push(label);
-        });
-        return;
-      }
-      var lat = el.lat != null ? el.lat : (el.center && el.center.lat), lon = el.lon != null ? el.lon : (el.center && el.center.lon);
-      if (lat == null || lon == null) return;
-      var tg = el.tags || {};
-      if (tg.public_transport === 'platform' && tg.highway !== 'bus_stop' && !('bus' in tg) && !('trolleybus' in tg) && !('tram' in tg)) return;
-      stops[String(el.id || '')] = { lat: +lat, lon: +lon, tags: tg };
-    });
-    function hub(t) {
-      if (t.aeroway === 'aerodrome') return ['aerodrome', 'Аэропорт'];
-      if (t.amenity === 'bus_station') return ['bus_station', 'Автовокзал'];
-      if (t.railway === 'tram_stop') return ['tram_stop', 'Трамвайная остановка'];
-      if (t.railway === 'station' || t.railway === 'halt') return ['station', t.station === 'subway' ? 'Станция метро' : 'Ж/д станция'];
-      return ['bus_stop', 'Автобусная остановка'];
-    }
-    var out = [], seen = {}, withRoutes = 0;
-    Object.keys(stops).forEach(function (id) {
-      var st = stops[id], t = st.tags, h = hub(t), rts = routesBy[id] || {}, parts = [], all = [];
-      Object.keys(rts).forEach(function (mode) { var nums = rts[mode].slice().sort(natcmp); parts.push(mode + ': ' + nums.join(', ')); all = all.concat(nums); });
-      var routesTxt = parts.join(' · '); if (routesTxt) withRoutes++;
-      var street = String(t['addr:street'] || '').trim(), name = String(t.name || '').trim();
-      if (!name) name = street ? h[1] + ' - ' + street : (routesTxt ? h[1] + ' - ' + all.join(', ') : h[1] + ' без названия');
-      var key = st.lat.toFixed(5) + ',' + st.lon.toFixed(5) + '|' + name; if (seen[key]) return; seen[key] = 1;
-      out.push({ name: name.slice(0, 120), lat: st.lat, lng: st.lon, subtype: h[0], hubType: h[1], routes: routesTxt, routesCount: all.length,
-        address: (street + ' ' + String(t['addr:housenumber'] || '')).trim(), district: '', provider: 'OSM', osmId: String(id), _verification: 'online' });
-    });
-    return { rows: out, routes: routeList, withRoutes: withRoutes };
-  }
-  function poi(qs) {
-    var category = qs.get('category') || '', filters = POI_FILTERS[category];
-    if (!filters) return fail('Unknown category', 400);
-    var south = num(qs.get('south')), west = num(qs.get('west')), north = num(qs.get('north')), east = num(qs.get('east'));
-    if (south == null || west == null || north == null || east == null) return fail('south/west/north/east required', 400);
-    var bbox = south + ',' + west + ',' + north + ',' + east;
-    var limit = parseInt(qs.get('limit') || '2000', 10); if (!(limit >= 50)) limit = 50; if (limit > 3000) limit = 3000;
-    if (category === 'transport_hubs') {
-      var ql = '[out:json][timeout:60];'
-        + 'node["highway"="bus_stop"](' + bbox + ')->.a;node["public_transport"="platform"](' + bbox + ')->.b;'
-        + 'node["amenity"="bus_station"](' + bbox + ')->.c;node["railway"~"^(station|halt|tram_stop)$"](' + bbox + ')->.d;(.a;.b;.c;.d;)->.n;'
-        + '(way["amenity"="bus_station"](' + bbox + ');way["aeroway"="aerodrome"](' + bbox + ');node["aeroway"="aerodrome"](' + bbox + ');)->.w;'
-        + 'rel(bn.n)["type"="route"]["route"~"^(bus|trolleybus|minibus|share_taxi|tram|subway)$"]->.rt;.n out;.w out center;.rt out body;';
-      return overpass(ql, 70000).then(function (elements) {
-        var p = transportRows(elements), out = p.rows, total = out.length;
-        out.sort(function (a, b) { return b.routesCount - a.routesCount; });
-        if (total > limit) out = out.slice(0, limit);
-        var routes = Object.keys(p.routes).sort().map(function (k) { return p.routes[k]; });
-        return jsonResponse({ ok: true, provider: 'osm', category: category, count: out.length, total: total, truncated: total > limit, withRoutes: p.withRoutes, routesFound: routes.length, routes: routes, rows: out });
-      }, function (e) { return jsonResponse({ ok: false, message: e.message }); });
-    }
-    var stmts = filters.map(function (f) { return 'nwr[' + f + '](' + bbox + ');'; }).join('');
-    return overpass('[out:json][timeout:40];(' + stmts + ');out center ' + limit + ';', 50000).then(function (elements) {
-      var out = [], seen = {};
-      for (var i = 0; i < elements.length && out.length < limit; i++) {
-        var el = elements[i], lat = el.lat != null ? el.lat : (el.center && el.center.lat), lon = el.lon != null ? el.lon : (el.center && el.center.lon);
-        if (lat == null || lon == null) continue;
-        var tags = el.tags || {}, name = String(tags.name || '').trim(); if (!name) continue;
-        var key = (+lat).toFixed(5) + ',' + (+lon).toFixed(5) + '|' + name; if (seen[key]) continue; seen[key] = 1;
-        out.push({ name: name, lat: +lat, lng: +lon, subtype: tags.shop || tags.amenity || tags.leisure || tags.tourism || tags.building || tags.railway || tags.highway || '',
-          address: (String(tags['addr:street'] || '') + ' ' + String(tags['addr:housenumber'] || '')).trim(), district: '', provider: 'OSM', _verification: 'online' });
-      }
-      return jsonResponse({ ok: true, provider: 'osm', category: category, count: out.length, rows: out });
-    }, function (e) { return jsonResponse({ ok: false, message: e.message }); });
-  }
-
-  /* ── Здания и дороги: как в os/api/osm_lib.php ────────────────────────────────── */
-  var ROAD_CLASSES = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link', 'living_street', 'pedestrian'];
-  function bboxOf(lat, lon, radiusM) {
-    var r = Math.max(50, Math.min(3000, radiusM)), dLat = r / 111320, dLon = r / (111320 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
-    return { south: lat - dLat, west: lon - dLon, north: lat + dLat, east: lon + dLon, radius_m: r };
-  }
-  function bboxStr(b) { return [b.south, b.west, b.north, b.east].map(function (v) { return v.toFixed(6); }).join(','); }
-  function centroid(geom) {
-    var g = geom.slice(), n = g.length;
-    if (n > 1 && g[0].lat === g[n - 1].lat && g[0].lon === g[n - 1].lon) g.pop();
-    var la = 0, lo = 0, k = 0; g.forEach(function (p) { if (p.lat != null && p.lon != null) { la += +p.lat; lo += +p.lon; k++; } });
-    return k ? [+(la / k).toFixed(6), +(lo / k).toFixed(6)] : null;
-  }
-  function areaM2(geom, lat0) {
-    var n = geom.length; if (n < 3) return 0; var kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 111320, s = 0;
-    for (var i = 0; i < n; i++) { var a = geom[i], b = geom[(i + 1) % n]; if (a.lat == null || b.lat == null) return 0; s += (a.lon * kx) * (b.lat * ky) - (b.lon * kx) * (a.lat * ky); }
-    return Math.abs(s) / 2;
-  }
-  function intOrNull(v) { if (v == null || v === '') return null; var m = /^-?\d+/.exec(String(v)); return m ? parseInt(m[0], 10) : null; }
-  function waysToBuildings(elements, lat0, limit) {
-    var out = [];
-    for (var i = 0; i < elements.length && out.length < limit; i++) {
-      var el = elements[i]; if (el.type !== 'way' || !Array.isArray(el.geometry) || el.geometry.length < 4) continue;
-      var tags = el.tags || {}, c = centroid(el.geometry); if (!c) continue;
-      var ring = el.geometry.filter(function (p) { return p.lat != null && p.lon != null; }).map(function (p) { return [+(+p.lat).toFixed(6), +(+p.lon).toFixed(6)]; });
-      var b = String(tags.building || 'yes');
-      out.push({ id: +el.id || 0, c: c, ring: ring, kind: b === 'yes' ? '' : b, levels: intOrNull(tags['building:levels']), name: String(tags.name || '').trim().slice(0, 120),
-        addr: (String(tags['addr:street'] || '') + ' ' + String(tags['addr:housenumber'] || '')).trim().slice(0, 120), area: Math.round(areaM2(el.geometry, lat0)) });
-    }
-    return out;
-  }
-  function waysToRoads(elements, limit) {
-    var out = [];
-    for (var i = 0; i < elements.length && out.length < limit; i++) {
-      var el = elements[i]; if (el.type !== 'way' || !Array.isArray(el.geometry) || el.geometry.length < 2) continue;
-      var tags = el.tags || {};
-      out.push({ id: +el.id || 0, line: el.geometry.filter(function (p) { return p.lat != null && p.lon != null; }).map(function (p) { return [+(+p.lat).toFixed(6), +(+p.lon).toFixed(6)]; }),
-        cls: String(tags.highway || ''), name: String(tags.name || '').trim().slice(0, 120), oneway: ['yes', 'true', '1', '-1'].indexOf(String(tags.oneway || '').toLowerCase()) >= 0, lanes: intOrNull(tags.lanes) });
-    }
-    return out;
-  }
-  function provenance(kind, bbox, count) {
-    return { source: 'OpenStreetMap', source_type: 'osm', licence: 'ODbL 1.0', attribution: '© OpenStreetMap contributors',
-      method: (kind === 'buildings' ? 'контуры way["building"] в рамке вокруг точки' : 'линии way["highway"] в рамке вокруг точки') + ', Overpass API из браузера',
-      radius_m: bbox.radius_m, bbox: bboxStr(bbox), count: count, fetched_at: new Date().toISOString(), cached: false, conf: 'asking' };
-  }
-  function osmFeatures(mode, qs) {
-    var lat = num(qs.get('lat')), lon = num(qs.get('lon')), r = parseInt(qs.get('radius_m') || '500', 10);
-    if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) return fail('lat/lon required', 400);
-    var classes = null;
-    if (mode === 'roads' && qs.get('classes')) { classes = qs.get('classes').split(',').map(function (c) { return c.toLowerCase().replace(/[^a-z_]/g, ''); }).filter(Boolean); if (!classes.length) classes = null; }
-    var bbox = bboxOf(lat, lon, r), limit = mode === 'buildings' ? 6000 : 4000;
-    var key = mode + '|' + lat.toFixed(4) + '|' + lon.toFixed(4) + '|' + bbox.radius_m + '|' + (classes ? classes.join(',') : '');
-    var hit = S.cache[key];
-    if (hit && Date.now() - hit.at < 30 * 60 * 1000) { var prov = provenance(mode, bbox, hit.rows.length); prov.cached = true; prov.fetched_at = hit.fetched_at; return jsonResponse({ ok: true, provider: 'osm', mode: mode, rows: hit.rows, provenance: prov, truncated: hit.truncated }); }
-    var ql = mode === 'buildings'
-      ? '[out:json][timeout:45];(way["building"](' + bboxStr(bbox) + '););out geom ' + Math.max(100, limit) + ';'
-      : '[out:json][timeout:45];(way["highway"~"^(' + (classes || ROAD_CLASSES).join('|') + ')$"](' + bboxStr(bbox) + '););out geom ' + Math.max(100, limit) + ';';
-    return overpass(ql, 55000).then(function (elements) {
-      var rows = mode === 'buildings' ? waysToBuildings(elements, lat, limit) : waysToRoads(elements, limit), truncated = rows.length >= limit;
-      S.cache[key] = { rows: rows, truncated: truncated, at: Date.now(), fetched_at: new Date().toISOString() };
-      return jsonResponse({ ok: true, provider: 'osm', mode: mode, rows: rows, provenance: provenance(mode, bbox, rows.length), truncated: truncated });
-    }, function (e) { return jsonResponse({ ok: false, message: e.message }); });
-  }
-
-  /* ── Адрес: Nominatim напрямую ────────────────────────────────────────────────── */
-  function geocode(qs) {
-    var q = String(qs.get('q') || '').trim().slice(0, 200), lang = ['ru', 'uz', 'en'].indexOf(qs.get('lang') || 'ru') >= 0 ? qs.get('lang') || 'ru' : 'ru';
-    if (!q) return fail('q required', 400);
-    var key = q.toLowerCase() + '|' + lang;
-    if (S.geocodeCache[key]) return jsonResponse({ ok: true, results: S.geocodeCache[key], cached: true, attribution: '© OpenStreetMap contributors' });
-    var url = S.nominatim + '/search?q=' + encodeURIComponent(q) + '&format=jsonv2&limit=5&countrycodes=uz&accept-language=' + lang + '&addressdetails=0';
-    return getText(url, 15000).then(function (r) {
-      if (r.status === 0) return jsonResponse({ ok: false, message: 'Геокодер недоступен из браузера' + (r.error ? ' (' + r.error + ')' : '') + '. Задайте точку кликом по карте или координатами.' });
-      if (r.status !== 200) return jsonResponse({ ok: false, message: 'Геокодер ответил кодом ' + r.status + '. Повторите позже.' });
-      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
-      var results = [];
-      (Array.isArray(j) ? j : []).forEach(function (x) {
-        if (!x || !isFinite(parseFloat(x.lat)) || !isFinite(parseFloat(x.lon)) || results.length >= 5) return;
-        results.push({ name: String(x.display_name || '').trim().slice(0, 200), lat: +(+x.lat).toFixed(6), lon: +(+x.lon).toFixed(6), type: String(x.type || '') });
-      });
-      S.geocodeCache[key] = results;
-      return jsonResponse({ ok: true, results: results, cached: false, attribution: '© OpenStreetMap contributors' });
-    });
-  }
-
-  /* ── Проверка связи из браузера ───────────────────────────────────────────────── */
-  function ping() {
-    return Promise.all([getText(S.overpass.replace(/\/interpreter$/, '/status'), 8000), getText(S.nominatim + '/status.php?format=json', 8000)]).then(function (rs) {
-      var line = function (what, r) {
-        if (r.status >= 200 && r.status < 400) return what + ' доступен: HTTP ' + r.status + ' за ' + r.ms + ' мс.';
-        if (r.status === 429 || r.status === 503 || r.status === 504) return what + ' перегружен (HTTP ' + r.status + '). Повторите позже.';
-        if (r.status > 0) return what + ' ответил кодом HTTP ' + r.status + '.';
-        return what + ' не отвечает из браузера' + (r.error ? ' (' + r.error + ')' : '') + ': проверьте интернет.';
-      };
-      var advice = ['Автономная версия: запросы идут из браузера, сервера CASE OS нет.', line('Overpass API (здания и дороги OSM)', rs[0]), line('Геокодер Nominatim (поиск адреса)', rs[1])];
-      if (rs[0].status === 0 && rs[1].status === 0) advice.push('Итог: интернета нет или сеть закрыта. Точка, радиусы, полигоны, население и слои из файла работают и без сети.');
-      advice.push('Своя модель в автономной версии недоступна: запросы разбирает детерминированный движок команд.');
-      return jsonResponse({ ok: true, facts: { env: { browser: true, standalone: true, version: S.version }, overpass: { status: rs[0].status, ms: rs[0].ms, error: rs[0].error || '' }, nominatim: { status: rs[1].status, ms: rs[1].ms, error: rs[1].error || '' }, llm: { configured: false, ollama_local: false } }, advice: advice });
-    });
-  }
-
-  /* ── Маршрутизация запросов ───────────────────────────────────────────────────── */
+  /* Маршрутизация запросов */
   function handle(path, qs) {
-    if (path === 'api/auth.php') return jsonResponse({ auth: true, user: { id: 'standalone', name: 'Пользователь', role: 'GEO', role_label: 'Автономная версия', edit: true }, rights: { edit: 1 }, csrf: '', pass_login: false, code_login: false });
-    if (path === 'api/workspace_access.php') return jsonResponse({ allowed: true, can_edit: true });
+    if (path === 'api/auth.php') return jsonResponse({ auth: true, mode: 'geo', user: { id: 'standalone', name: 'Пользователь', role: 'GEO', role_label: 'Автономная версия', edit: true }, rights: { edit: 1 }, csrf: '', pass_login: false, code_login: false });
+    if (path === 'api/workspace_access.php') return jsonResponse({ allowed: true, can_edit: true, mode: 'geo' });
     if (path === 'api/geo_master.php') { if (qs.get('file') === 'runtime.json' && DATA.master) return jsonResponse(DATA.master); return fail('В автономной версии есть только встроенная мастер-база', 404); }
     if (path === 'data/tashkent_districts.geojson') return DATA.districts ? jsonResponse(DATA.districts) : fail('нет границ районов', 404);
     if (path === 'data/tashkent_region_districts.geojson') return fail('границы области в файл не встроены', 404);
     if (path === 'api/llm.php') return jsonResponse({ ok: false, needs_llm: true, message: 'В автономной версии своей модели нет: команды работают без неё.' });
     if (path === 'api/gis_proxy.php') {
+      var D = window.CASE_GEO_DIRECT;
+      if (!D) return fail('В файл не встроена библиотека geo-direct.js: пересоберите автономную версию', 500);
       var mode = qs.get('mode') || '';
-      if (mode === 'poi') return poi(qs);
-      if (mode === 'buildings' || mode === 'roads') return osmFeatures(mode, qs);
-      if (mode === 'geocode') return geocode(qs);
-      if (mode === 'ping') return ping();
-      return jsonResponse({ ok: false, message: 'В автономной версии режим «' + mode + '» недоступен: платные провайдеры и серверный кэш есть только в CASE OS.' });
+      return D.handle(mode, qs).then(function (o) { o = o || { ok: false, message: 'пустой ответ' }; o._via = 'browser'; return jsonResponse(o, o.ok === false && o.status ? o.status : 200); });
     }
     return fail('Сервера CASE OS в автономной версии нет', 404);
   }
@@ -1328,7 +1093,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 @media(max-width:620px){.left>.sect{margin:6px 6px 0}}
 </style></head><body class="geo-auth-pending">
 <div class="app">
-<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.73.1 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
+<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.74.0 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
 <div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
@@ -2863,6 +2628,331 @@ setTimeout(initPop,800);
 <script>/* leaflet.markercluster.js */
 !function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t(((e=e||self).Leaflet=e.Leaflet||{},e.Leaflet.markercluster={}))}(this,function(e){"use strict";var t=L.MarkerClusterGroup=L.FeatureGroup.extend({options:{maxClusterRadius:80,iconCreateFunction:null,clusterPane:L.Marker.prototype.options.pane,spiderfyOnEveryZoom:!1,spiderfyOnMaxZoom:!0,showCoverageOnHover:!0,zoomToBoundsOnClick:!0,singleMarkerMode:!1,disableClusteringAtZoom:null,removeOutsideVisibleBounds:!0,animate:!0,animateAddingMarkers:!1,spiderfyShapePositions:null,spiderfyDistanceMultiplier:1,spiderLegPolylineOptions:{weight:1.5,color:"#222",opacity:.5},chunkedLoading:!1,chunkInterval:200,chunkDelay:50,chunkProgress:null,polygonOptions:{}},initialize:function(e){L.Util.setOptions(this,e),this.options.iconCreateFunction||(this.options.iconCreateFunction=this._defaultIconCreateFunction),this._featureGroup=L.featureGroup(),this._featureGroup.addEventParent(this),this._nonPointGroup=L.featureGroup(),this._nonPointGroup.addEventParent(this),this._inZoomAnimation=0,this._needsClustering=[],this._needsRemoving=[],this._currentShownBounds=null,this._queue=[],this._childMarkerEventHandlers={dragstart:this._childMarkerDragStart,move:this._childMarkerMoved,dragend:this._childMarkerDragEnd};var t=L.DomUtil.TRANSITION&&this.options.animate;L.extend(this,t?this._withAnimation:this._noAnimation),this._markerCluster=t?L.MarkerCluster:L.MarkerClusterNonAnimated},addLayer:function(e){if(e instanceof L.LayerGroup)return this.addLayers([e]);if(!e.getLatLng)return this._nonPointGroup.addLayer(e),this.fire("layeradd",{layer:e}),this;if(!this._map)return this._needsClustering.push(e),this.fire("layeradd",{layer:e}),this;if(this.hasLayer(e))return this;this._unspiderfy&&this._unspiderfy(),this._addLayer(e,this._maxZoom),this.fire("layeradd",{layer:e}),this._topClusterLevel._recalculateBounds(),this._refreshClustersIcons();var t=e,i=this._zoom;if(e.__parent)for(;t.__parent._zoom>=i;)t=t.__parent;return this._currentShownBounds.contains(t.getLatLng())&&(this.options.animateAddingMarkers?this._animationAddLayer(e,t):this._animationAddLayerNonAnimated(e,t)),this},removeLayer:function(e){return e instanceof L.LayerGroup?this.removeLayers([e]):(e.getLatLng?this._map?e.__parent&&(this._unspiderfy&&(this._unspiderfy(),this._unspiderfyLayer(e)),this._removeLayer(e,!0),this.fire("layerremove",{layer:e}),this._topClusterLevel._recalculateBounds(),this._refreshClustersIcons(),e.off(this._childMarkerEventHandlers,this),this._featureGroup.hasLayer(e)&&(this._featureGroup.removeLayer(e),e.clusterShow&&e.clusterShow())):(!this._arraySplice(this._needsClustering,e)&&this.hasLayer(e)&&this._needsRemoving.push({layer:e,latlng:e._latlng}),this.fire("layerremove",{layer:e})):(this._nonPointGroup.removeLayer(e),this.fire("layerremove",{layer:e})),this)},addLayers:function(n,s){if(!L.Util.isArray(n))return this.addLayer(n);var o,a=this._featureGroup,h=this._nonPointGroup,l=this.options.chunkedLoading,u=this.options.chunkInterval,_=this.options.chunkProgress,d=n.length,p=0,c=!0;if(this._map){var f=(new Date).getTime(),m=L.bind(function(){var e=(new Date).getTime();for(this._map&&this._unspiderfy&&this._unspiderfy();p<d;p++){if(l&&p%200==0){var t=(new Date).getTime()-e;if(u<t)break}if((o=n[p])instanceof L.LayerGroup)c&&(n=n.slice(),c=!1),this._extractNonGroupLayers(o,n),d=n.length;else if(o.getLatLng){if(!this.hasLayer(o)&&(this._addLayer(o,this._maxZoom),s||this.fire("layeradd",{layer:o}),o.__parent&&2===o.__parent.getChildCount())){var i=o.__parent.getAllChildMarkers(),r=i[0]===o?i[1]:i[0];a.removeLayer(r)}}else h.addLayer(o),s||this.fire("layeradd",{layer:o})}_&&_(p,d,(new Date).getTime()-f),p===d?(this._topClusterLevel._recalculateBounds(),this._refreshClustersIcons(),this._topClusterLevel._recursivelyAddChildrenToMap(null,this._zoom,this._currentShownBounds)):setTimeout(m,this.options.chunkDelay)},this);m()}else for(var e=this._needsClustering;p<d;p++)(o=n[p])instanceof L.LayerGroup?(c&&(n=n.slice(),c=!1),this._extractNonGroupLayers(o,n),d=n.length):o.getLatLng?this.hasLayer(o)||e.push(o):h.addLayer(o);return this},removeLayers:function(e){var t,i,r=e.length,n=this._featureGroup,s=this._nonPointGroup,o=!0;if(!this._map){for(t=0;t<r;t++)(i=e[t])instanceof L.LayerGroup?(o&&(e=e.slice(),o=!1),this._extractNonGroupLayers(i,e),r=e.length):(this._arraySplice(this._needsClustering,i),s.removeLayer(i),this.hasLayer(i)&&this._needsRemoving.push({layer:i,latlng:i._latlng}),this.fire("layerremove",{layer:i}));return this}if(this._unspiderfy){this._unspiderfy();var a=e.slice(),h=r;for(t=0;t<h;t++)(i=a[t])instanceof L.LayerGroup?(this._extractNonGroupLayers(i,a),h=a.length):this._unspiderfyLayer(i)}for(t=0;t<r;t++)(i=e[t])instanceof L.LayerGroup?(o&&(e=e.slice(),o=!1),this._extractNonGroupLayers(i,e),r=e.length):i.__parent?(this._removeLayer(i,!0,!0),this.fire("layerremove",{layer:i}),n.hasLayer(i)&&(n.removeLayer(i),i.clusterShow&&i.clusterShow())):(s.removeLayer(i),this.fire("layerremove",{layer:i}));return this._topClusterLevel._recalculateBounds(),this._refreshClustersIcons(),this._topClusterLevel._recursivelyAddChildrenToMap(null,this._zoom,this._currentShownBounds),this},clearLayers:function(){return this._map||(this._needsClustering=[],this._needsRemoving=[],delete this._gridClusters,delete this._gridUnclustered),this._noanimationUnspiderfy&&this._noanimationUnspiderfy(),this._featureGroup.clearLayers(),this._nonPointGroup.clearLayers(),this.eachLayer(function(e){e.off(this._childMarkerEventHandlers,this),delete e.__parent},this),this._map&&this._generateInitialClusters(),this},getBounds:function(){var e=new L.LatLngBounds;this._topClusterLevel&&e.extend(this._topClusterLevel._bounds);for(var t=this._needsClustering.length-1;0<=t;t--)e.extend(this._needsClustering[t].getLatLng());return e.extend(this._nonPointGroup.getBounds()),e},eachLayer:function(e,t){var i,r,n,s=this._needsClustering.slice(),o=this._needsRemoving;for(this._topClusterLevel&&this._topClusterLevel.getAllChildMarkers(s),r=s.length-1;0<=r;r--){for(i=!0,n=o.length-1;0<=n;n--)if(o[n].layer===s[r]){i=!1;break}i&&e.call(t,s[r])}this._nonPointGroup.eachLayer(e,t)},getLayers:function(){var t=[];return this.eachLayer(function(e){t.push(e)}),t},getLayer:function(t){var i=null;return t=parseInt(t,10),this.eachLayer(function(e){L.stamp(e)===t&&(i=e)}),i},hasLayer:function(e){if(!e)return!1;var t,i=this._needsClustering;for(t=i.length-1;0<=t;t--)if(i[t]===e)return!0;for(t=(i=this._needsRemoving).length-1;0<=t;t--)if(i[t].layer===e)return!1;return!(!e.__parent||e.__parent._group!==this)||this._nonPointGroup.hasLayer(e)},zoomToShowLayer:function(e,t){var i=this._map;"function"!=typeof t&&(t=function(){});var r=function(){!i.hasLayer(e)&&!i.hasLayer(e.__parent)||this._inZoomAnimation||(this._map.off("moveend",r,this),this.off("animationend",r,this),i.hasLayer(e)?t():e.__parent._icon&&(this.once("spiderfied",t,this),e.__parent.spiderfy()))};e._icon&&this._map.getBounds().contains(e.getLatLng())?t():e.__parent._zoom<Math.round(this._map._zoom)?(this._map.on("moveend",r,this),this._map.panTo(e.getLatLng())):(this._map.on("moveend",r,this),this.on("animationend",r,this),e.__parent.zoomToBounds())},onAdd:function(e){var t,i,r;if(this._map=e,!isFinite(this._map.getMaxZoom()))throw"Map has no maxZoom specified";for(this._featureGroup.addTo(e),this._nonPointGroup.addTo(e),this._gridClusters||this._generateInitialClusters(),this._maxLat=e.options.crs.projection.MAX_LATITUDE,t=0,i=this._needsRemoving.length;t<i;t++)(r=this._needsRemoving[t]).newlatlng=r.layer._latlng,r.layer._latlng=r.latlng;for(t=0,i=this._needsRemoving.length;t<i;t++)r=this._needsRemoving[t],this._removeLayer(r.layer,!0),r.layer._latlng=r.newlatlng;this._needsRemoving=[],this._zoom=Math.round(this._map._zoom),this._currentShownBounds=this._getExpandedVisibleBounds(),this._map.on("zoomend",this._zoomEnd,this),this._map.on("moveend",this._moveEnd,this),this._spiderfierOnAdd&&this._spiderfierOnAdd(),this._bindEvents(),i=this._needsClustering,this._needsClustering=[],this.addLayers(i,!0)},onRemove:function(e){e.off("zoomend",this._zoomEnd,this),e.off("moveend",this._moveEnd,this),this._unbindEvents(),this._map._mapPane.className=this._map._mapPane.className.replace(" leaflet-cluster-anim",""),this._spiderfierOnRemove&&this._spiderfierOnRemove(),delete this._maxLat,this._hideCoverage(),this._featureGroup.remove(),this._nonPointGroup.remove(),this._featureGroup.clearLayers(),this._map=null},getVisibleParent:function(e){for(var t=e;t&&!t._icon;)t=t.__parent;return t||null},_arraySplice:function(e,t){for(var i=e.length-1;0<=i;i--)if(e[i]===t)return e.splice(i,1),!0},_removeFromGridUnclustered:function(e,t){for(var i=this._map,r=this._gridUnclustered,n=Math.floor(this._map.getMinZoom());n<=t&&r[t].removeObject(e,i.project(e.getLatLng(),t));t--);},_childMarkerDragStart:function(e){e.target.__dragStart=e.target._latlng},_childMarkerMoved:function(e){if(!this._ignoreMove&&!e.target.__dragStart){var t=e.target._popup&&e.target._popup.isOpen();this._moveChild(e.target,e.oldLatLng,e.latlng),t&&e.target.openPopup()}},_moveChild:function(e,t,i){e._latlng=t,this.removeLayer(e),e._latlng=i,this.addLayer(e)},_childMarkerDragEnd:function(e){var t=e.target.__dragStart;delete e.target.__dragStart,t&&this._moveChild(e.target,t,e.target._latlng)},_removeLayer:function(e,t,i){var r=this._gridClusters,n=this._gridUnclustered,s=this._featureGroup,o=this._map,a=Math.floor(this._map.getMinZoom());t&&this._removeFromGridUnclustered(e,this._maxZoom);var h,l=e.__parent,u=l._markers;for(this._arraySplice(u,e);l&&(l._childCount--,l._boundsNeedUpdate=!0,!(l._zoom<a));)t&&l._childCount<=1?(h=l._markers[0]===e?l._markers[1]:l._markers[0],r[l._zoom].removeObject(l,o.project(l._cLatLng,l._zoom)),n[l._zoom].addObject(h,o.project(h.getLatLng(),l._zoom)),this._arraySplice(l.__parent._childClusters,l),l.__parent._markers.push(h),h.__parent=l.__parent,l._icon&&(s.removeLayer(l),i||s.addLayer(h))):l._iconNeedsUpdate=!0,l=l.__parent;delete e.__parent},_isOrIsParent:function(e,t){for(;t;){if(e===t)return!0;t=t.parentNode}return!1},fire:function(e,t,i){if(t&&t.layer instanceof L.MarkerCluster){if(t.originalEvent&&this._isOrIsParent(t.layer._icon,t.originalEvent.relatedTarget))return;e="cluster"+e}L.FeatureGroup.prototype.fire.call(this,e,t,i)},listens:function(e,t){return L.FeatureGroup.prototype.listens.call(this,e,t)||L.FeatureGroup.prototype.listens.call(this,"cluster"+e,t)},_defaultIconCreateFunction:function(e){var t=e.getChildCount(),i=" marker-cluster-";return i+=t<10?"small":t<100?"medium":"large",new L.DivIcon({html:"<div><span>"+t+"</span></div>",className:"marker-cluster"+i,iconSize:new L.Point(40,40)})},_bindEvents:function(){var e=this._map,t=this.options.spiderfyOnMaxZoom,i=this.options.showCoverageOnHover,r=this.options.zoomToBoundsOnClick,n=this.options.spiderfyOnEveryZoom;(t||r||n)&&this.on("clusterclick clusterkeypress",this._zoomOrSpiderfy,this),i&&(this.on("clustermouseover",this._showCoverage,this),this.on("clustermouseout",this._hideCoverage,this),e.on("zoomend",this._hideCoverage,this))},_zoomOrSpiderfy:function(e){var t=e.layer,i=t;if("clusterkeypress"!==e.type||!e.originalEvent||13===e.originalEvent.keyCode){for(;1===i._childClusters.length;)i=i._childClusters[0];i._zoom===this._maxZoom&&i._childCount===t._childCount&&this.options.spiderfyOnMaxZoom?t.spiderfy():this.options.zoomToBoundsOnClick&&t.zoomToBounds(),this.options.spiderfyOnEveryZoom&&t.spiderfy(),e.originalEvent&&13===e.originalEvent.keyCode&&this._map._container.focus()}},_showCoverage:function(e){var t=this._map;this._inZoomAnimation||(this._shownPolygon&&t.removeLayer(this._shownPolygon),2<e.layer.getChildCount()&&e.layer!==this._spiderfied&&(this._shownPolygon=new L.Polygon(e.layer.getConvexHull(),this.options.polygonOptions),t.addLayer(this._shownPolygon)))},_hideCoverage:function(){this._shownPolygon&&(this._map.removeLayer(this._shownPolygon),this._shownPolygon=null)},_unbindEvents:function(){var e=this.options.spiderfyOnMaxZoom,t=this.options.showCoverageOnHover,i=this.options.zoomToBoundsOnClick,r=this.options.spiderfyOnEveryZoom,n=this._map;(e||i||r)&&this.off("clusterclick clusterkeypress",this._zoomOrSpiderfy,this),t&&(this.off("clustermouseover",this._showCoverage,this),this.off("clustermouseout",this._hideCoverage,this),n.off("zoomend",this._hideCoverage,this))},_zoomEnd:function(){this._map&&(this._mergeSplitClusters(),this._zoom=Math.round(this._map._zoom),this._currentShownBounds=this._getExpandedVisibleBounds())},_moveEnd:function(){if(!this._inZoomAnimation){var e=this._getExpandedVisibleBounds();this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds,Math.floor(this._map.getMinZoom()),this._zoom,e),this._topClusterLevel._recursivelyAddChildrenToMap(null,Math.round(this._map._zoom),e),this._currentShownBounds=e}},_generateInitialClusters:function(){var e=Math.ceil(this._map.getMaxZoom()),t=Math.floor(this._map.getMinZoom()),i=this.options.maxClusterRadius,r=i;"function"!=typeof i&&(r=function(){return i}),null!==this.options.disableClusteringAtZoom&&(e=this.options.disableClusteringAtZoom-1),this._maxZoom=e,this._gridClusters={},this._gridUnclustered={};for(var n=e;t<=n;n--)this._gridClusters[n]=new L.DistanceGrid(r(n)),this._gridUnclustered[n]=new L.DistanceGrid(r(n));this._topClusterLevel=new this._markerCluster(this,t-1)},_addLayer:function(e,t){var i,r,n=this._gridClusters,s=this._gridUnclustered,o=Math.floor(this._map.getMinZoom());for(this.options.singleMarkerMode&&this._overrideMarkerIcon(e),e.on(this._childMarkerEventHandlers,this);o<=t;t--){i=this._map.project(e.getLatLng(),t);var a=n[t].getNearObject(i);if(a)return a._addChild(e),void(e.__parent=a);if(a=s[t].getNearObject(i)){var h=a.__parent;h&&this._removeLayer(a,!1);var l=new this._markerCluster(this,t,a,e);n[t].addObject(l,this._map.project(l._cLatLng,t)),a.__parent=l;var u=e.__parent=l;for(r=t-1;r>h._zoom;r--)u=new this._markerCluster(this,r,u),n[r].addObject(u,this._map.project(a.getLatLng(),r));return h._addChild(u),void this._removeFromGridUnclustered(a,t)}s[t].addObject(e,i)}this._topClusterLevel._addChild(e),e.__parent=this._topClusterLevel},_refreshClustersIcons:function(){this._featureGroup.eachLayer(function(e){e instanceof L.MarkerCluster&&e._iconNeedsUpdate&&e._updateIcon()})},_enqueue:function(e){this._queue.push(e),this._queueTimeout||(this._queueTimeout=setTimeout(L.bind(this._processQueue,this),300))},_processQueue:function(){for(var e=0;e<this._queue.length;e++)this._queue[e].call(this);this._queue.length=0,clearTimeout(this._queueTimeout),this._queueTimeout=null},_mergeSplitClusters:function(){var e=Math.round(this._map._zoom);this._processQueue(),this._zoom<e&&this._currentShownBounds.intersects(this._getExpandedVisibleBounds())?(this._animationStart(),this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds,Math.floor(this._map.getMinZoom()),this._zoom,this._getExpandedVisibleBounds()),this._animationZoomIn(this._zoom,e)):this._zoom>e?(this._animationStart(),this._animationZoomOut(this._zoom,e)):this._moveEnd()},_getExpandedVisibleBounds:function(){return this.options.removeOutsideVisibleBounds?L.Browser.mobile?this._checkBoundsMaxLat(this._map.getBounds()):this._checkBoundsMaxLat(this._map.getBounds().pad(1)):this._mapBoundsInfinite},_checkBoundsMaxLat:function(e){var t=this._maxLat;return void 0!==t&&(e.getNorth()>=t&&(e._northEast.lat=1/0),e.getSouth()<=-t&&(e._southWest.lat=-1/0)),e},_animationAddLayerNonAnimated:function(e,t){if(t===e)this._featureGroup.addLayer(e);else if(2===t._childCount){t._addToMap();var i=t.getAllChildMarkers();this._featureGroup.removeLayer(i[0]),this._featureGroup.removeLayer(i[1])}else t._updateIcon()},_extractNonGroupLayers:function(e,t){var i,r=e.getLayers(),n=0;for(t=t||[];n<r.length;n++)(i=r[n])instanceof L.LayerGroup?this._extractNonGroupLayers(i,t):t.push(i);return t},_overrideMarkerIcon:function(e){return e.options.icon=this.options.iconCreateFunction({getChildCount:function(){return 1},getAllChildMarkers:function(){return[e]}})}});L.MarkerClusterGroup.include({_mapBoundsInfinite:new L.LatLngBounds(new L.LatLng(-1/0,-1/0),new L.LatLng(1/0,1/0))}),L.MarkerClusterGroup.include({_noAnimation:{_animationStart:function(){},_animationZoomIn:function(e,t){this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds,Math.floor(this._map.getMinZoom()),e),this._topClusterLevel._recursivelyAddChildrenToMap(null,t,this._getExpandedVisibleBounds()),this.fire("animationend")},_animationZoomOut:function(e,t){this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds,Math.floor(this._map.getMinZoom()),e),this._topClusterLevel._recursivelyAddChildrenToMap(null,t,this._getExpandedVisibleBounds()),this.fire("animationend")},_animationAddLayer:function(e,t){this._animationAddLayerNonAnimated(e,t)}},_withAnimation:{_animationStart:function(){this._map._mapPane.className+=" leaflet-cluster-anim",this._inZoomAnimation++},_animationZoomIn:function(n,s){var o,a=this._getExpandedVisibleBounds(),h=this._featureGroup,e=Math.floor(this._map.getMinZoom());this._ignoreMove=!0,this._topClusterLevel._recursively(a,n,e,function(e){var t,i=e._latlng,r=e._markers;for(a.contains(i)||(i=null),e._isSingleParent()&&n+1===s?(h.removeLayer(e),e._recursivelyAddChildrenToMap(null,s,a)):(e.clusterHide(),e._recursivelyAddChildrenToMap(i,s,a)),o=r.length-1;0<=o;o--)t=r[o],a.contains(t._latlng)||h.removeLayer(t)}),this._forceLayout(),this._topClusterLevel._recursivelyBecomeVisible(a,s),h.eachLayer(function(e){e instanceof L.MarkerCluster||!e._icon||e.clusterShow()}),this._topClusterLevel._recursively(a,n,s,function(e){e._recursivelyRestoreChildPositions(s)}),this._ignoreMove=!1,this._enqueue(function(){this._topClusterLevel._recursively(a,n,e,function(e){h.removeLayer(e),e.clusterShow()}),this._animationEnd()})},_animationZoomOut:function(e,t){this._animationZoomOutSingle(this._topClusterLevel,e-1,t),this._topClusterLevel._recursivelyAddChildrenToMap(null,t,this._getExpandedVisibleBounds()),this._topClusterLevel._recursivelyRemoveChildrenFromMap(this._currentShownBounds,Math.floor(this._map.getMinZoom()),e,this._getExpandedVisibleBounds())},_animationAddLayer:function(e,t){var i=this,r=this._featureGroup;r.addLayer(e),t!==e&&(2<t._childCount?(t._updateIcon(),this._forceLayout(),this._animationStart(),e._setPos(this._map.latLngToLayerPoint(t.getLatLng())),e.clusterHide(),this._enqueue(function(){r.removeLayer(e),e.clusterShow(),i._animationEnd()})):(this._forceLayout(),i._animationStart(),i._animationZoomOutSingle(t,this._map.getMaxZoom(),this._zoom)))}},_animationZoomOutSingle:function(t,i,r){var n=this._getExpandedVisibleBounds(),s=Math.floor(this._map.getMinZoom());t._recursivelyAnimateChildrenInAndAddSelfToMap(n,s,i+1,r);var o=this;this._forceLayout(),t._recursivelyBecomeVisible(n,r),this._enqueue(function(){if(1===t._childCount){var e=t._markers[0];this._ignoreMove=!0,e.setLatLng(e.getLatLng()),this._ignoreMove=!1,e.clusterShow&&e.clusterShow()}else t._recursively(n,r,s,function(e){e._recursivelyRemoveChildrenFromMap(n,s,i+1)});o._animationEnd()})},_animationEnd:function(){this._map&&(this._map._mapPane.className=this._map._mapPane.className.replace(" leaflet-cluster-anim","")),this._inZoomAnimation--,this.fire("animationend")},_forceLayout:function(){L.Util.falseFn(document.body.offsetWidth)}}),L.markerClusterGroup=function(e){return new L.MarkerClusterGroup(e)};var i=L.MarkerCluster=L.Marker.extend({options:L.Icon.prototype.options,initialize:function(e,t,i,r){L.Marker.prototype.initialize.call(this,i?i._cLatLng||i.getLatLng():new L.LatLng(0,0),{icon:this,pane:e.options.clusterPane}),this._group=e,this._zoom=t,this._markers=[],this._childClusters=[],this._childCount=0,this._iconNeedsUpdate=!0,this._boundsNeedUpdate=!0,this._bounds=new L.LatLngBounds,i&&this._addChild(i),r&&this._addChild(r)},getAllChildMarkers:function(e,t){e=e||[];for(var i=this._childClusters.length-1;0<=i;i--)this._childClusters[i].getAllChildMarkers(e,t);for(var r=this._markers.length-1;0<=r;r--)t&&this._markers[r].__dragStart||e.push(this._markers[r]);return e},getChildCount:function(){return this._childCount},zoomToBounds:function(e){for(var t,i=this._childClusters.slice(),r=this._group._map,n=r.getBoundsZoom(this._bounds),s=this._zoom+1,o=r.getZoom();0<i.length&&s<n;){s++;var a=[];for(t=0;t<i.length;t++)a=a.concat(i[t]._childClusters);i=a}s<n?this._group._map.setView(this._latlng,s):n<=o?this._group._map.setView(this._latlng,o+1):this._group._map.fitBounds(this._bounds,e)},getBounds:function(){var e=new L.LatLngBounds;return e.extend(this._bounds),e},_updateIcon:function(){this._iconNeedsUpdate=!0,this._icon&&this.setIcon(this)},createIcon:function(){return this._iconNeedsUpdate&&(this._iconObj=this._group.options.iconCreateFunction(this),this._iconNeedsUpdate=!1),this._iconObj.createIcon()},createShadow:function(){return this._iconObj.createShadow()},_addChild:function(e,t){this._iconNeedsUpdate=!0,this._boundsNeedUpdate=!0,this._setClusterCenter(e),e instanceof L.MarkerCluster?(t||(this._childClusters.push(e),e.__parent=this),this._childCount+=e._childCount):(t||this._markers.push(e),this._childCount++),this.__parent&&this.__parent._addChild(e,!0)},_setClusterCenter:function(e){this._cLatLng||(this._cLatLng=e._cLatLng||e._latlng)},_resetBounds:function(){var e=this._bounds;e._southWest&&(e._southWest.lat=1/0,e._southWest.lng=1/0),e._northEast&&(e._northEast.lat=-1/0,e._northEast.lng=-1/0)},_recalculateBounds:function(){var e,t,i,r,n=this._markers,s=this._childClusters,o=0,a=0,h=this._childCount;if(0!==h){for(this._resetBounds(),e=0;e<n.length;e++)i=n[e]._latlng,this._bounds.extend(i),o+=i.lat,a+=i.lng;for(e=0;e<s.length;e++)(t=s[e])._boundsNeedUpdate&&t._recalculateBounds(),this._bounds.extend(t._bounds),i=t._wLatLng,r=t._childCount,o+=i.lat*r,a+=i.lng*r;this._latlng=this._wLatLng=new L.LatLng(o/h,a/h),this._boundsNeedUpdate=!1}},_addToMap:function(e){e&&(this._backupLatlng=this._latlng,this.setLatLng(e)),this._group._featureGroup.addLayer(this)},_recursivelyAnimateChildrenIn:function(e,n,t){this._recursively(e,this._group._map.getMinZoom(),t-1,function(e){var t,i,r=e._markers;for(t=r.length-1;0<=t;t--)(i=r[t])._icon&&(i._setPos(n),i.clusterHide())},function(e){var t,i,r=e._childClusters;for(t=r.length-1;0<=t;t--)(i=r[t])._icon&&(i._setPos(n),i.clusterHide())})},_recursivelyAnimateChildrenInAndAddSelfToMap:function(t,i,r,n){this._recursively(t,n,i,function(e){e._recursivelyAnimateChildrenIn(t,e._group._map.latLngToLayerPoint(e.getLatLng()).round(),r),e._isSingleParent()&&r-1===n?(e.clusterShow(),e._recursivelyRemoveChildrenFromMap(t,i,r)):e.clusterHide(),e._addToMap()})},_recursivelyBecomeVisible:function(e,t){this._recursively(e,this._group._map.getMinZoom(),t,null,function(e){e.clusterShow()})},_recursivelyAddChildrenToMap:function(r,n,s){this._recursively(s,this._group._map.getMinZoom()-1,n,function(e){if(n!==e._zoom)for(var t=e._markers.length-1;0<=t;t--){var i=e._markers[t];s.contains(i._latlng)&&(r&&(i._backupLatlng=i.getLatLng(),i.setLatLng(r),i.clusterHide&&i.clusterHide()),e._group._featureGroup.addLayer(i))}},function(e){e._addToMap(r)})},_recursivelyRestoreChildPositions:function(e){for(var t=this._markers.length-1;0<=t;t--){var i=this._markers[t];i._backupLatlng&&(i.setLatLng(i._backupLatlng),delete i._backupLatlng)}if(e-1===this._zoom)for(var r=this._childClusters.length-1;0<=r;r--)this._childClusters[r]._restorePosition();else for(var n=this._childClusters.length-1;0<=n;n--)this._childClusters[n]._recursivelyRestoreChildPositions(e)},_restorePosition:function(){this._backupLatlng&&(this.setLatLng(this._backupLatlng),delete this._backupLatlng)},_recursivelyRemoveChildrenFromMap:function(e,t,i,r){var n,s;this._recursively(e,t-1,i-1,function(e){for(s=e._markers.length-1;0<=s;s--)n=e._markers[s],r&&r.contains(n._latlng)||(e._group._featureGroup.removeLayer(n),n.clusterShow&&n.clusterShow())},function(e){for(s=e._childClusters.length-1;0<=s;s--)n=e._childClusters[s],r&&r.contains(n._latlng)||(e._group._featureGroup.removeLayer(n),n.clusterShow&&n.clusterShow())})},_recursively:function(e,t,i,r,n){var s,o,a=this._childClusters,h=this._zoom;if(t<=h&&(r&&r(this),n&&h===i&&n(this)),h<t||h<i)for(s=a.length-1;0<=s;s--)(o=a[s])._boundsNeedUpdate&&o._recalculateBounds(),e.intersects(o._bounds)&&o._recursively(e,t,i,r,n)},_isSingleParent:function(){return 0<this._childClusters.length&&this._childClusters[0]._childCount===this._childCount}});L.Marker.include({clusterHide:function(){var e=this.options.opacity;return this.setOpacity(0),this.options.opacity=e,this},clusterShow:function(){return this.setOpacity(this.options.opacity)}}),L.DistanceGrid=function(e){this._cellSize=e,this._sqCellSize=e*e,this._grid={},this._objectPoint={}},L.DistanceGrid.prototype={addObject:function(e,t){var i=this._getCoord(t.x),r=this._getCoord(t.y),n=this._grid,s=n[r]=n[r]||{},o=s[i]=s[i]||[],a=L.Util.stamp(e);this._objectPoint[a]=t,o.push(e)},updateObject:function(e,t){this.removeObject(e),this.addObject(e,t)},removeObject:function(e,t){var i,r,n=this._getCoord(t.x),s=this._getCoord(t.y),o=this._grid,a=o[s]=o[s]||{},h=a[n]=a[n]||[];for(delete this._objectPoint[L.Util.stamp(e)],i=0,r=h.length;i<r;i++)if(h[i]===e)return h.splice(i,1),1===r&&delete a[n],!0},eachObject:function(e,t){var i,r,n,s,o,a,h=this._grid;for(i in h)for(r in o=h[i])for(n=0,s=(a=o[r]).length;n<s;n++)e.call(t,a[n])&&(n--,s--)},getNearObject:function(e){var t,i,r,n,s,o,a,h,l=this._getCoord(e.x),u=this._getCoord(e.y),_=this._objectPoint,d=this._sqCellSize,p=null;for(t=u-1;t<=u+1;t++)if(n=this._grid[t])for(i=l-1;i<=l+1;i++)if(s=n[i])for(r=0,o=s.length;r<o;r++)a=s[r],((h=this._sqDist(_[L.Util.stamp(a)],e))<d||h<=d&&null===p)&&(d=h,p=a);return p},_getCoord:function(e){var t=Math.floor(e/this._cellSize);return isFinite(t)?t:e},_sqDist:function(e,t){var i=t.x-e.x,r=t.y-e.y;return i*i+r*r}},L.QuickHull={getDistant:function(e,t){var i=t[1].lat-t[0].lat;return(t[0].lng-t[1].lng)*(e.lat-t[0].lat)+i*(e.lng-t[0].lng)},findMostDistantPointFromBaseLine:function(e,t){var i,r,n,s=0,o=null,a=[];for(i=t.length-1;0<=i;i--)r=t[i],0<(n=this.getDistant(r,e))&&(a.push(r),s<n&&(s=n,o=r));return{maxPoint:o,newPoints:a}},buildConvexHull:function(e,t){var i=[],r=this.findMostDistantPointFromBaseLine(e,t);return r.maxPoint?i=(i=i.concat(this.buildConvexHull([e[0],r.maxPoint],r.newPoints))).concat(this.buildConvexHull([r.maxPoint,e[1]],r.newPoints)):[e[0]]},getConvexHull:function(e){var t,i=!1,r=!1,n=!1,s=!1,o=null,a=null,h=null,l=null,u=null,_=null;for(t=e.length-1;0<=t;t--){var d=e[t];(!1===i||d.lat>i)&&(i=(o=d).lat),(!1===r||d.lat<r)&&(r=(a=d).lat),(!1===n||d.lng>n)&&(n=(h=d).lng),(!1===s||d.lng<s)&&(s=(l=d).lng)}return u=r!==i?(_=a,o):(_=l,h),[].concat(this.buildConvexHull([_,u],e),this.buildConvexHull([u,_],e))}},L.MarkerCluster.include({getConvexHull:function(){var e,t,i=this.getAllChildMarkers(),r=[];for(t=i.length-1;0<=t;t--)e=i[t].getLatLng(),r.push(e);return L.QuickHull.getConvexHull(r)}}),L.MarkerCluster.include({_2PI:2*Math.PI,_circleFootSeparation:25,_circleStartAngle:0,_spiralFootSeparation:28,_spiralLengthStart:11,_spiralLengthFactor:5,_circleSpiralSwitchover:9,spiderfy:function(){if(this._group._spiderfied!==this&&!this._group._inZoomAnimation){var e,t=this.getAllChildMarkers(null,!0),i=this._group._map.latLngToLayerPoint(this._latlng);this._group._unspiderfy(),e=(this._group._spiderfied=this)._group.options.spiderfyShapePositions?this._group.options.spiderfyShapePositions(t.length,i):t.length>=this._circleSpiralSwitchover?this._generatePointsSpiral(t.length,i):(i.y+=10,this._generatePointsCircle(t.length,i)),this._animationSpiderfy(t,e)}},unspiderfy:function(e){this._group._inZoomAnimation||(this._animationUnspiderfy(e),this._group._spiderfied=null)},_generatePointsCircle:function(e,t){var i,r,n=this._group.options.spiderfyDistanceMultiplier*this._circleFootSeparation*(2+e)/this._2PI,s=this._2PI/e,o=[];for(n=Math.max(n,35),o.length=e,i=0;i<e;i++)r=this._circleStartAngle+i*s,o[i]=new L.Point(t.x+n*Math.cos(r),t.y+n*Math.sin(r))._round();return o},_generatePointsSpiral:function(e,t){var i,r=this._group.options.spiderfyDistanceMultiplier,n=r*this._spiralLengthStart,s=r*this._spiralFootSeparation,o=r*this._spiralLengthFactor*this._2PI,a=0,h=[];for(i=h.length=e;0<=i;i--)i<e&&(h[i]=new L.Point(t.x+n*Math.cos(a),t.y+n*Math.sin(a))._round()),n+=o/(a+=s/n+5e-4*i);return h},_noanimationUnspiderfy:function(){var e,t,i=this._group,r=i._map,n=i._featureGroup,s=this.getAllChildMarkers(null,!0);for(i._ignoreMove=!0,this.setOpacity(1),t=s.length-1;0<=t;t--)e=s[t],n.removeLayer(e),e._preSpiderfyLatlng&&(e.setLatLng(e._preSpiderfyLatlng),delete e._preSpiderfyLatlng),e.setZIndexOffset&&e.setZIndexOffset(0),e._spiderLeg&&(r.removeLayer(e._spiderLeg),delete e._spiderLeg);i.fire("unspiderfied",{cluster:this,markers:s}),i._ignoreMove=!1,i._spiderfied=null}}),L.MarkerClusterNonAnimated=L.MarkerCluster.extend({_animationSpiderfy:function(e,t){var i,r,n,s,o=this._group,a=o._map,h=o._featureGroup,l=this._group.options.spiderLegPolylineOptions;for(o._ignoreMove=!0,i=0;i<e.length;i++)s=a.layerPointToLatLng(t[i]),r=e[i],n=new L.Polyline([this._latlng,s],l),a.addLayer(n),r._spiderLeg=n,r._preSpiderfyLatlng=r._latlng,r.setLatLng(s),r.setZIndexOffset&&r.setZIndexOffset(1e6),h.addLayer(r);this.setOpacity(.3),o._ignoreMove=!1,o.fire("spiderfied",{cluster:this,markers:e})},_animationUnspiderfy:function(){this._noanimationUnspiderfy()}}),L.MarkerCluster.include({_animationSpiderfy:function(e,t){var i,r,n,s,o,a,h=this,l=this._group,u=l._map,_=l._featureGroup,d=this._latlng,p=u.latLngToLayerPoint(d),c=L.Path.SVG,f=L.extend({},this._group.options.spiderLegPolylineOptions),m=f.opacity;for(void 0===m&&(m=L.MarkerClusterGroup.prototype.options.spiderLegPolylineOptions.opacity),c?(f.opacity=0,f.className=(f.className||"")+" leaflet-cluster-spider-leg"):f.opacity=m,l._ignoreMove=!0,i=0;i<e.length;i++)r=e[i],a=u.layerPointToLatLng(t[i]),n=new L.Polyline([d,a],f),u.addLayer(n),r._spiderLeg=n,c&&(o=(s=n._path).getTotalLength()+.1,s.style.strokeDasharray=o,s.style.strokeDashoffset=o),r.setZIndexOffset&&r.setZIndexOffset(1e6),r.clusterHide&&r.clusterHide(),_.addLayer(r),r._setPos&&r._setPos(p);for(l._forceLayout(),l._animationStart(),i=e.length-1;0<=i;i--)a=u.layerPointToLatLng(t[i]),(r=e[i])._preSpiderfyLatlng=r._latlng,r.setLatLng(a),r.clusterShow&&r.clusterShow(),c&&((s=(n=r._spiderLeg)._path).style.strokeDashoffset=0,n.setStyle({opacity:m}));this.setOpacity(.3),l._ignoreMove=!1,setTimeout(function(){l._animationEnd(),l.fire("spiderfied",{cluster:h,markers:e})},200)},_animationUnspiderfy:function(e){var t,i,r,n,s,o,a=this,h=this._group,l=h._map,u=h._featureGroup,_=e?l._latLngToNewLayerPoint(this._latlng,e.zoom,e.center):l.latLngToLayerPoint(this._latlng),d=this.getAllChildMarkers(null,!0),p=L.Path.SVG;for(h._ignoreMove=!0,h._animationStart(),this.setOpacity(1),i=d.length-1;0<=i;i--)(t=d[i])._preSpiderfyLatlng&&(t.closePopup(),t.setLatLng(t._preSpiderfyLatlng),delete t._preSpiderfyLatlng,o=!0,t._setPos&&(t._setPos(_),o=!1),t.clusterHide&&(t.clusterHide(),o=!1),o&&u.removeLayer(t),p&&(s=(n=(r=t._spiderLeg)._path).getTotalLength()+.1,n.style.strokeDashoffset=s,r.setStyle({opacity:0})));h._ignoreMove=!1,setTimeout(function(){var e=0;for(i=d.length-1;0<=i;i--)(t=d[i])._spiderLeg&&e++;for(i=d.length-1;0<=i;i--)(t=d[i])._spiderLeg&&(t.clusterShow&&t.clusterShow(),t.setZIndexOffset&&t.setZIndexOffset(0),1<e&&u.removeLayer(t),l.removeLayer(t._spiderLeg),delete t._spiderLeg);h._animationEnd(),h.fire("unspiderfied",{cluster:a,markers:d})},200)}}),L.MarkerClusterGroup.include({_spiderfied:null,unspiderfy:function(){this._unspiderfy.apply(this,arguments)},_spiderfierOnAdd:function(){this._map.on("click",this._unspiderfyWrapper,this),this._map.options.zoomAnimation&&this._map.on("zoomstart",this._unspiderfyZoomStart,this),this._map.on("zoomend",this._noanimationUnspiderfy,this),L.Browser.touch||this._map.getRenderer(this)},_spiderfierOnRemove:function(){this._map.off("click",this._unspiderfyWrapper,this),this._map.off("zoomstart",this._unspiderfyZoomStart,this),this._map.off("zoomanim",this._unspiderfyZoomAnim,this),this._map.off("zoomend",this._noanimationUnspiderfy,this),this._noanimationUnspiderfy()},_unspiderfyZoomStart:function(){this._map&&this._map.on("zoomanim",this._unspiderfyZoomAnim,this)},_unspiderfyZoomAnim:function(e){L.DomUtil.hasClass(this._map._mapPane,"leaflet-touching")||(this._map.off("zoomanim",this._unspiderfyZoomAnim,this),this._unspiderfy(e))},_unspiderfyWrapper:function(){this._unspiderfy()},_unspiderfy:function(e){this._spiderfied&&this._spiderfied.unspiderfy(e)},_noanimationUnspiderfy:function(){this._spiderfied&&this._spiderfied._noanimationUnspiderfy()},_unspiderfyLayer:function(e){e._spiderLeg&&(this._featureGroup.removeLayer(e),e.clusterShow&&e.clusterShow(),e.setZIndexOffset&&e.setZIndexOffset(0),this._map.removeLayer(e._spiderLeg),delete e._spiderLeg)}}),L.MarkerClusterGroup.include({refreshClusters:function(e){return e?e instanceof L.MarkerClusterGroup?e=e._topClusterLevel.getAllChildMarkers():e instanceof L.LayerGroup?e=e._layers:e instanceof L.MarkerCluster?e=e.getAllChildMarkers():e instanceof L.Marker&&(e=[e]):e=this._topClusterLevel.getAllChildMarkers(),this._flagParentsIconsNeedUpdate(e),this._refreshClustersIcons(),this.options.singleMarkerMode&&this._refreshSingleMarkerModeMarkers(e),this},_flagParentsIconsNeedUpdate:function(e){var t,i;for(t in e)for(i=e[t].__parent;i;)i._iconNeedsUpdate=!0,i=i.__parent},_refreshSingleMarkerModeMarkers:function(e){var t,i;for(t in e)i=e[t],this.hasLayer(i)&&i.setIcon(this._overrideMarkerIcon(i))}}),L.Marker.include({refreshIconOptions:function(e,t){var i=this.options.icon;return L.setOptions(i,e),this.setIcon(i),t&&this.__parent&&this.__parent._group.refreshClusters(this),this}}),e.MarkerClusterGroup=t,e.MarkerCluster=i,Object.defineProperty(e,"__esModule",{value:!0})});
 //# sourceMappingURL=leaflet.markercluster.js.map
+</script>
+<script>/* geo-direct.js */
+/* CASE OS v4.74.0: OpenStreetMap из браузера напрямую (Overpass API, Nominatim).
+ *
+ * Зачем. На хостинге PHP не выпускают в интернет: api/gis_proxy.php честно отвечает
+ * «Overpass недоступен с сервера», и слои зданий, дорог, городских объектов и поиск адреса
+ * не работают, хотя из браузера сотрудника те же серверы доступны. Этот файл держит один
+ * разбор ответов Overpass и Nominatim (тот же, что в os/api/gis_proxy.php и osm_lib.php) и
+ * используется в двух местах:
+ *
+ *   1. Платформа CASE OS (студия в iframe): install() оборачивает fetch. Запрос к
+ *      api/gis_proxy.php сначала идёт на сервер (там кэш и лимиты); если сервер не смог
+ *      выйти в сеть (ok:false с причиной «недоступен с сервера», HTTP 5xx, обрыв), тот же
+ *      запрос выполняется из браузера, и ответ помечается _via:'browser'. Ошибки прав и
+ *      параметров (400/401/403) не перехватываются: это не сетевая проблема.
+ *   2. Автономный файл (docs/standalone): шим маршрутизирует api/gis_proxy.php сюда
+ *      напрямую, сервера там нет.
+ *
+ * Условия использования: данные OpenStreetMap по ODbL, атрибуция сохранена в каждом
+ * ответе; Overpass и Nominatim - общедоступные серверы с ограничением частоты, поэтому
+ * здания и дороги кэшируются на полчаса, адреса - на время сеанса. Ключей нет.
+ * Совместимо со старыми браузерами: никаких стрелочных функций и const. */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_DIRECT) return;
+  var VERSION = '4.74.0';
+  var realFetch = window.fetch.bind(window);
+  var D = window.CASE_GEO_DIRECT = {
+    version: VERSION,
+    overpass: 'https://overpass-api.de/api/interpreter',
+    nominatim: 'https://nominatim.openstreetmap.org',
+    cache: {}, geocodeCache: {}, log: [], lastVia: {}
+  };
+
+  function num(v) { var n = parseFloat(v); return isFinite(n) ? n : null; }
+  function withTimeout(ms) {
+    var c = typeof AbortController === 'function' ? new AbortController() : null;
+    if (c) setTimeout(function () { try { c.abort(); } catch (e) {} }, ms);
+    return c ? c.signal : undefined;
+  }
+  function getText(url, timeoutMs) {
+    var t0 = Date.now();
+    return realFetch(url, { signal: withTimeout(timeoutMs || 60000), cache: 'no-store' }).then(function (r) {
+      return r.text().then(function (t) { return { status: r.status, body: t, ms: Date.now() - t0 }; });
+    }, function (e) { return { status: 0, body: '', error: String(e && e.message || e), ms: Date.now() - t0 }; });
+  }
+  function overpass(ql, timeoutMs) {
+    return getText(D.overpass + '?data=' + encodeURIComponent(ql), timeoutMs).then(function (r) {
+      if (r.status === 0) throw new Error('Overpass API недоступен из браузера' + (r.error ? ' (' + r.error + ')' : '') + '. Проверьте интернет или повторите позже.');
+      if (r.status === 429 || r.status === 504) throw new Error('Overpass API перегружен (HTTP ' + r.status + '). Повторите через минуту или уменьшите участок.');
+      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
+      if (!j || !Array.isArray(j.elements)) throw new Error('Overpass вернул неожиданный ответ (HTTP ' + r.status + ').');
+      return j.elements;
+    });
+  }
+
+  /* Городские объекты (POI): те же теги, что в os/api/gis_proxy.php */
+  var POI_FILTERS = {
+    hotels: ['tourism~"hotel|apartment|guest_house|hostel|motel"'],
+    shopping: ['shop=mall', 'shop=department_store'],
+    street_retail: ['shop~"clothes|shoes|bag|jewelry|watches|electronics|appliance|computer|books|furniture|interior_decoration|hairdresser|beauty|cosmetics|perfumery|bakery|confectionery|pastry|florist|gift_shop|toys|sports|stationery|mobile_phone|optician|variety_store"'],
+    supermarkets: ['shop~"supermarket|convenience"'],
+    markets: ['amenity=marketplace', 'market=flea_market'],
+    restaurants: ['amenity=restaurant'],
+    cafes: ['amenity~"cafe|ice_cream"', 'shop~"coffee|tea"'],
+    fast_food: ['amenity~"fast_food|food_court"'],
+    parks: ['leisure~"park|garden|nature_reserve|recreation_ground"'],
+    playgrounds: ['leisure=playground'],
+    entertainment: ['amenity~"cinema|nightclub"', 'leisure~"amusement_arcade|water_park|bowling_alley"', 'tourism~"theme_park|aquarium"'],
+    sports: ['leisure~"sports_centre|fitness_centre|stadium|swimming_pool|ice_rink|sports_hall"'],
+    education: ['amenity~"school|university|college|kindergarten|language_school|music_school|driving_school|training"', 'office=educational_institution'],
+    residential: ['building~"apartments|residential"'],
+    warehouses: ['building~"warehouse|industrial"', 'landuse=industrial', 'office=logistics'],
+    parking: ['amenity=parking', 'building~"parking|garages"'],
+    transport_hubs: ['highway=bus_stop', 'railway~"station|halt"', 'amenity=bus_station', 'aeroway=aerodrome'],
+    culture: ['amenity~"theatre|museum|arts_centre|library|community_centre|social_centre"', 'tourism~"museum|gallery"'],
+    tourism: ['tourism~"attraction|viewpoint|artwork|zoo"', 'historic~"monument|memorial|archaeological_site|castle|ruins"'],
+    finance: ['amenity~"bank|atm|bureau_de_change|money_transfer"'],
+    government: ['amenity~"townhall|courthouse|police|post_office"', 'office=government'],
+    fuel_auto: ['amenity~"fuel|car_wash|charging_station"', 'shop~"car|car_repair|car_parts|tyres"'],
+    mahallas: ['place~"neighbourhood|quarter"']
+  };
+  var MODE_RU = { bus: 'автобус', trolleybus: 'троллейбус', minibus: 'маршрутка', share_taxi: 'маршрутка', tram: 'трамвай', subway: 'метро' };
+  function natcmp(a, b) { return String(a).localeCompare(String(b), undefined, { numeric: true, sensitivity: 'base' }); }
+  function transportRows(elements) {
+    var stops = {}, routesBy = {}, routeList = {};
+    elements.forEach(function (el) {
+      if (el.type === 'relation') {
+        var t = el.tags || {}, mode = MODE_RU[t.route] || 'транспорт', ref = String(t.ref || '').trim(), label = ref || String(t.name || '').trim();
+        if (!label) return;
+        routeList[mode + ' ' + label] = { mode: mode, ref: label, name: String(t.name || '') };
+        (el.members || []).forEach(function (m) {
+          if (m.type !== 'node') return; var rid = String(m.ref || ''); if (!rid) return;
+          routesBy[rid] = routesBy[rid] || {}; routesBy[rid][mode] = routesBy[rid][mode] || [];
+          if (routesBy[rid][mode].indexOf(label) < 0) routesBy[rid][mode].push(label);
+        });
+        return;
+      }
+      var lat = el.lat != null ? el.lat : (el.center && el.center.lat), lon = el.lon != null ? el.lon : (el.center && el.center.lon);
+      if (lat == null || lon == null) return;
+      var tg = el.tags || {};
+      if (tg.public_transport === 'platform' && tg.highway !== 'bus_stop' && !('bus' in tg) && !('trolleybus' in tg) && !('tram' in tg)) return;
+      stops[String(el.id || '')] = { lat: +lat, lon: +lon, tags: tg };
+    });
+    function hub(t) {
+      if (t.aeroway === 'aerodrome') return ['aerodrome', 'Аэропорт'];
+      if (t.amenity === 'bus_station') return ['bus_station', 'Автовокзал'];
+      if (t.railway === 'tram_stop') return ['tram_stop', 'Трамвайная остановка'];
+      if (t.railway === 'station' || t.railway === 'halt') return ['station', t.station === 'subway' ? 'Станция метро' : 'Ж/д станция'];
+      return ['bus_stop', 'Автобусная остановка'];
+    }
+    var out = [], seen = {}, withRoutes = 0;
+    Object.keys(stops).forEach(function (id) {
+      var st = stops[id], t = st.tags, h = hub(t), rts = routesBy[id] || {}, parts = [], all = [];
+      Object.keys(rts).forEach(function (mode) { var nums = rts[mode].slice().sort(natcmp); parts.push(mode + ': ' + nums.join(', ')); all = all.concat(nums); });
+      var routesTxt = parts.join(' · '); if (routesTxt) withRoutes++;
+      var street = String(t['addr:street'] || '').trim(), name = String(t.name || '').trim();
+      if (!name) name = street ? h[1] + ' - ' + street : (routesTxt ? h[1] + ' - ' + all.join(', ') : h[1] + ' без названия');
+      var key = st.lat.toFixed(5) + ',' + st.lon.toFixed(5) + '|' + name; if (seen[key]) return; seen[key] = 1;
+      out.push({ name: name.slice(0, 120), lat: st.lat, lng: st.lon, subtype: h[0], hubType: h[1], routes: routesTxt, routesCount: all.length,
+        address: (street + ' ' + String(t['addr:housenumber'] || '')).trim(), district: '', provider: 'OSM', osmId: String(id), _verification: 'online' });
+    });
+    return { rows: out, routes: routeList, withRoutes: withRoutes };
+  }
+  function poi(qs) {
+    var category = qs.get('category') || '', filters = POI_FILTERS[category];
+    if (!filters) return Promise.resolve({ ok: false, status: 400, message: 'Unknown category' });
+    var south = num(qs.get('south')), west = num(qs.get('west')), north = num(qs.get('north')), east = num(qs.get('east'));
+    if (south == null || west == null || north == null || east == null) return Promise.resolve({ ok: false, status: 400, message: 'south/west/north/east required' });
+    var bbox = south + ',' + west + ',' + north + ',' + east;
+    var limit = parseInt(qs.get('limit') || '2000', 10); if (!(limit >= 50)) limit = 50; if (limit > 3000) limit = 3000;
+    if (category === 'transport_hubs') {
+      var ql = '[out:json][timeout:60];'
+        + 'node["highway"="bus_stop"](' + bbox + ')->.a;node["public_transport"="platform"](' + bbox + ')->.b;'
+        + 'node["amenity"="bus_station"](' + bbox + ')->.c;node["railway"~"^(station|halt|tram_stop)$"](' + bbox + ')->.d;(.a;.b;.c;.d;)->.n;'
+        + '(way["amenity"="bus_station"](' + bbox + ');way["aeroway"="aerodrome"](' + bbox + ');node["aeroway"="aerodrome"](' + bbox + ');)->.w;'
+        + 'rel(bn.n)["type"="route"]["route"~"^(bus|trolleybus|minibus|share_taxi|tram|subway)$"]->.rt;.n out;.w out center;.rt out body;';
+      return overpass(ql, 70000).then(function (elements) {
+        var p = transportRows(elements), out = p.rows, total = out.length;
+        out.sort(function (a, b) { return b.routesCount - a.routesCount; });
+        if (total > limit) out = out.slice(0, limit);
+        var routes = Object.keys(p.routes).sort().map(function (k) { return p.routes[k]; });
+        return { ok: true, provider: 'osm', category: category, count: out.length, total: total, truncated: total > limit, withRoutes: p.withRoutes, routesFound: routes.length, routes: routes, rows: out, attribution: '© OpenStreetMap contributors' };
+      }, function (e) { return { ok: false, message: e.message }; });
+    }
+    var stmts = filters.map(function (f) { return 'nwr[' + f + '](' + bbox + ');'; }).join('');
+    return overpass('[out:json][timeout:40];(' + stmts + ');out center ' + limit + ';', 50000).then(function (elements) {
+      var out = [], seen = {};
+      for (var i = 0; i < elements.length && out.length < limit; i++) {
+        var el = elements[i], lat = el.lat != null ? el.lat : (el.center && el.center.lat), lon = el.lon != null ? el.lon : (el.center && el.center.lon);
+        if (lat == null || lon == null) continue;
+        var tags = el.tags || {}, name = String(tags.name || '').trim(); if (!name) continue;
+        var key = (+lat).toFixed(5) + ',' + (+lon).toFixed(5) + '|' + name; if (seen[key]) continue; seen[key] = 1;
+        out.push({ name: name, lat: +lat, lng: +lon, subtype: tags.shop || tags.amenity || tags.leisure || tags.tourism || tags.building || tags.railway || tags.highway || '',
+          address: (String(tags['addr:street'] || '') + ' ' + String(tags['addr:housenumber'] || '')).trim(), district: '', provider: 'OSM', _verification: 'online' });
+      }
+      return { ok: true, provider: 'osm', category: category, count: out.length, rows: out, attribution: '© OpenStreetMap contributors' };
+    }, function (e) { return { ok: false, message: e.message }; });
+  }
+
+  /* Здания и дороги: как в os/api/osm_lib.php */
+  var ROAD_CLASSES = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified', 'residential', 'motorway_link', 'trunk_link', 'primary_link', 'secondary_link', 'tertiary_link', 'living_street', 'pedestrian'];
+  function bboxOf(lat, lon, radiusM) {
+    var r = Math.max(50, Math.min(3000, radiusM)), dLat = r / 111320, dLon = r / (111320 * Math.max(0.2, Math.cos(lat * Math.PI / 180)));
+    return { south: lat - dLat, west: lon - dLon, north: lat + dLat, east: lon + dLon, radius_m: r };
+  }
+  function bboxStr(b) { return [b.south, b.west, b.north, b.east].map(function (v) { return v.toFixed(6); }).join(','); }
+  function centroid(geom) {
+    var g = geom.slice(), n = g.length;
+    if (n > 1 && g[0].lat === g[n - 1].lat && g[0].lon === g[n - 1].lon) g.pop();
+    var la = 0, lo = 0, k = 0; g.forEach(function (p) { if (p.lat != null && p.lon != null) { la += +p.lat; lo += +p.lon; k++; } });
+    return k ? [+(la / k).toFixed(6), +(lo / k).toFixed(6)] : null;
+  }
+  function areaM2(geom, lat0) {
+    var n = geom.length; if (n < 3) return 0; var kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 111320, s = 0;
+    for (var i = 0; i < n; i++) { var a = geom[i], b = geom[(i + 1) % n]; if (a.lat == null || b.lat == null) return 0; s += (a.lon * kx) * (b.lat * ky) - (b.lon * kx) * (a.lat * ky); }
+    return Math.abs(s) / 2;
+  }
+  function intOrNull(v) { if (v == null || v === '') return null; var m = /^-?\d+/.exec(String(v)); return m ? parseInt(m[0], 10) : null; }
+  function waysToBuildings(elements, lat0, limit) {
+    var out = [];
+    for (var i = 0; i < elements.length && out.length < limit; i++) {
+      var el = elements[i]; if (el.type !== 'way' || !Array.isArray(el.geometry) || el.geometry.length < 4) continue;
+      var tags = el.tags || {}, c = centroid(el.geometry); if (!c) continue;
+      var ring = el.geometry.filter(function (p) { return p.lat != null && p.lon != null; }).map(function (p) { return [+(+p.lat).toFixed(6), +(+p.lon).toFixed(6)]; });
+      var b = String(tags.building || 'yes');
+      out.push({ id: +el.id || 0, c: c, ring: ring, kind: b === 'yes' ? '' : b, levels: intOrNull(tags['building:levels']), name: String(tags.name || '').trim().slice(0, 120),
+        addr: (String(tags['addr:street'] || '') + ' ' + String(tags['addr:housenumber'] || '')).trim().slice(0, 120), area: Math.round(areaM2(el.geometry, lat0)) });
+    }
+    return out;
+  }
+  function waysToRoads(elements, limit) {
+    var out = [];
+    for (var i = 0; i < elements.length && out.length < limit; i++) {
+      var el = elements[i]; if (el.type !== 'way' || !Array.isArray(el.geometry) || el.geometry.length < 2) continue;
+      var tags = el.tags || {};
+      out.push({ id: +el.id || 0, line: el.geometry.filter(function (p) { return p.lat != null && p.lon != null; }).map(function (p) { return [+(+p.lat).toFixed(6), +(+p.lon).toFixed(6)]; }),
+        cls: String(tags.highway || ''), name: String(tags.name || '').trim().slice(0, 120), oneway: ['yes', 'true', '1', '-1'].indexOf(String(tags.oneway || '').toLowerCase()) >= 0, lanes: intOrNull(tags.lanes) });
+    }
+    return out;
+  }
+  function provenance(kind, bbox, count) {
+    return { source: 'OpenStreetMap', source_type: 'osm', licence: 'ODbL 1.0', attribution: '© OpenStreetMap contributors',
+      method: (kind === 'buildings' ? 'контуры way["building"] в рамке вокруг точки' : 'линии way["highway"] в рамке вокруг точки') + ', Overpass API из браузера',
+      radius_m: bbox.radius_m, bbox: bboxStr(bbox), count: count, fetched_at: new Date().toISOString(), cached: false, conf: 'asking' };
+  }
+  function features(mode, qs) {
+    var lat = num(qs.get('lat')), lon = num(qs.get('lon')), r = parseInt(qs.get('radius_m') || '500', 10);
+    if (lat == null || lon == null || Math.abs(lat) > 90 || Math.abs(lon) > 180) return Promise.resolve({ ok: false, status: 400, message: 'lat/lon required' });
+    var classes = null;
+    if (mode === 'roads' && qs.get('classes')) { classes = qs.get('classes').split(',').map(function (c) { return c.toLowerCase().replace(/[^a-z_]/g, ''); }).filter(Boolean); if (!classes.length) classes = null; }
+    var bbox = bboxOf(lat, lon, r), limit = mode === 'buildings' ? 6000 : 4000;
+    var key = mode + '|' + lat.toFixed(4) + '|' + lon.toFixed(4) + '|' + bbox.radius_m + '|' + (classes ? classes.join(',') : '');
+    var hit = D.cache[key];
+    if (hit && Date.now() - hit.at < 30 * 60 * 1000) { var prov = provenance(mode, bbox, hit.rows.length); prov.cached = true; prov.fetched_at = hit.fetched_at; return Promise.resolve({ ok: true, provider: 'osm', mode: mode, rows: hit.rows, provenance: prov, truncated: hit.truncated }); }
+    var ql = mode === 'buildings'
+      ? '[out:json][timeout:45];(way["building"](' + bboxStr(bbox) + '););out geom ' + Math.max(100, limit) + ';'
+      : '[out:json][timeout:45];(way["highway"~"^(' + (classes || ROAD_CLASSES).join('|') + ')$"](' + bboxStr(bbox) + '););out geom ' + Math.max(100, limit) + ';';
+    return overpass(ql, 55000).then(function (elements) {
+      var rows = mode === 'buildings' ? waysToBuildings(elements, lat, limit) : waysToRoads(elements, limit), truncated = rows.length >= limit;
+      D.cache[key] = { rows: rows, truncated: truncated, at: Date.now(), fetched_at: new Date().toISOString() };
+      return { ok: true, provider: 'osm', mode: mode, rows: rows, provenance: provenance(mode, bbox, rows.length), truncated: truncated };
+    }, function (e) { return { ok: false, message: e.message }; });
+  }
+
+  /* Адрес: Nominatim напрямую */
+  function geocode(qs) {
+    var q = String(qs.get('q') || '').trim().slice(0, 200), lang = ['ru', 'uz', 'en'].indexOf(qs.get('lang') || 'ru') >= 0 ? qs.get('lang') || 'ru' : 'ru';
+    if (!q) return Promise.resolve({ ok: false, status: 400, message: 'q required' });
+    var key = q.toLowerCase() + '|' + lang;
+    if (D.geocodeCache[key]) return Promise.resolve({ ok: true, results: D.geocodeCache[key], cached: true, attribution: '© OpenStreetMap contributors' });
+    var url = D.nominatim + '/search?q=' + encodeURIComponent(q) + '&format=jsonv2&limit=5&countrycodes=uz&accept-language=' + lang + '&addressdetails=0';
+    return getText(url, 15000).then(function (r) {
+      if (r.status === 0) return { ok: false, message: 'Геокодер недоступен из браузера' + (r.error ? ' (' + r.error + ')' : '') + '. Задайте точку кликом по карте или координатами.' };
+      if (r.status !== 200) return { ok: false, message: 'Геокодер ответил кодом ' + r.status + '. Повторите позже.' };
+      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
+      var results = [];
+      (Array.isArray(j) ? j : []).forEach(function (x) {
+        if (!x || !isFinite(parseFloat(x.lat)) || !isFinite(parseFloat(x.lon)) || results.length >= 5) return;
+        results.push({ name: String(x.display_name || '').trim().slice(0, 200), lat: +(+x.lat).toFixed(6), lon: +(+x.lon).toFixed(6), type: String(x.type || '') });
+      });
+      D.geocodeCache[key] = results;
+      return { ok: true, results: results, cached: false, attribution: '© OpenStreetMap contributors' };
+    });
+  }
+
+  /* Проверка связи из браузера. opts.standalone: сервера CASE OS нет вовсе. */
+  function ping(opts) {
+    opts = opts || {};
+    return Promise.all([getText(D.overpass.replace(/\/interpreter$/, '/status'), 8000), getText(D.nominatim + '/status.php?format=json', 8000)]).then(function (rs) {
+      var line = function (what, r) {
+        if (r.status >= 200 && r.status < 400) return what + ' доступен из браузера: HTTP ' + r.status + ' за ' + r.ms + ' мс.';
+        if (r.status === 429 || r.status === 503 || r.status === 504) return what + ' перегружен (HTTP ' + r.status + '). Повторите позже.';
+        if (r.status > 0) return what + ' ответил кодом HTTP ' + r.status + '.';
+        return what + ' не отвечает из браузера' + (r.error ? ' (' + r.error + ')' : '') + ': проверьте интернет.';
+      };
+      var advice = [];
+      if (opts.standalone) advice.push('Автономная версия: запросы идут из браузера, сервера CASE OS нет.');
+      advice.push(line('Overpass API (здания и дороги OSM)', rs[0]));
+      advice.push(line('Геокодер Nominatim (поиск адреса)', rs[1]));
+      var both0 = rs[0].status === 0 && rs[1].status === 0;
+      if (both0) advice.push('Итог: интернета нет или сеть закрыта. Точка, радиусы, полигоны, население и слои из файла работают и без сети.');
+      else if (!opts.standalone) advice.push('Слои OSM и адреса запрашиваются из браузера напрямую, когда сервер не может выйти в сеть.');
+      if (opts.standalone) advice.push('Своя модель в автономной версии недоступна: запросы разбирает детерминированный движок команд.');
+      return { ok: true, facts: { env: { browser: true, standalone: !!opts.standalone, version: VERSION }, overpass: { status: rs[0].status, ms: rs[0].ms, error: rs[0].error || '' }, nominatim: { status: rs[1].status, ms: rs[1].ms, error: rs[1].error || '' }, llm: { configured: false, ollama_local: false } }, advice: advice };
+    });
+  }
+
+  function handle(mode, qs) {
+    if (mode === 'poi') return poi(qs);
+    if (mode === 'buildings' || mode === 'roads') return features(mode, qs);
+    if (mode === 'geocode') return geocode(qs);
+    if (mode === 'ping') return ping({ standalone: !!window.CASE_STANDALONE });
+    return Promise.resolve({ ok: false, message: 'Режим «' + mode + '» из браузера недоступен: платные провайдеры и серверный кэш есть только на сервере CASE OS.' });
+  }
+
+  /* Сервер не смог выйти в сеть: это единственный повод повторить запрос из браузера */
+  function serverNetworkFailure(status, j) {
+    if (status === 0 || status >= 500) return true;
+    if (status === 200 && j && j.ok === false && /недоступен с сервера|перегружен|неожиданный ответ|нет curl|allow_url_fopen|таймаут|network|timeout/i.test(String(j.message || j.error || ''))) return true;
+    return false;
+  }
+  function jsonResponse(obj, status) {
+    return new Response(JSON.stringify(obj), { status: status || 200, headers: { 'Content-Type': 'application/json; charset=utf-8' } });
+  }
+  function install() {
+    if (window.CASE_STANDALONE || D.installed) return;
+    D.installed = true;
+    var prev = window.fetch;
+    window.fetch = function (input, init) {
+      var url = typeof input === 'string' ? input : (input && input.url) || '';
+      var m = /(^|\/)api\/gis_proxy\.php\?([^#]*)$/.exec(url.split('#')[0]);
+      if (!m) return prev.call(window, input, init);
+      var qs = new URLSearchParams(m[2]), mode = qs.get('mode') || '';
+      if (['poi', 'buildings', 'roads', 'geocode', 'ping'].indexOf(mode) < 0) return prev.call(window, input, init);
+      var direct = function (serverMsg) {
+        return handle(mode, qs).then(function (o) {
+          if (o && o.ok !== false) { o._via = 'browser'; if (serverMsg) o._server = serverMsg; D.lastVia[mode] = 'browser'; D.log.push(mode + ': из браузера' + (serverMsg ? ' (сервер: ' + serverMsg + ')' : '')); }
+          else if (o) { o._via = 'browser'; if (serverMsg) o.message = (o.message || '') + ' Сервер: ' + serverMsg; }
+          return jsonResponse(o, 200);
+        });
+      };
+      return prev.call(window, input, init).then(function (r) {
+        return r.text().then(function (t) {
+          var j = null; try { j = JSON.parse(t); } catch (e) {}
+          if (mode === 'ping') {
+            /* «Связь» показывает оба пути: с сервера и из браузера */
+            return ping({}).then(function (b) {
+              var base = (j && typeof j === 'object') ? j : { ok: false, message: 'сервер ответил кодом HTTP ' + r.status };
+              var out = { ok: true, facts: Object.assign({}, base.facts || {}, { browser: b.facts }), advice: [].concat(base.advice || (base.message ? ['Сервер: ' + base.message] : []), b.advice) };
+              return jsonResponse(out, 200);
+            });
+          }
+          if (serverNetworkFailure(r.status, j)) return direct((j && (j.message || j.error)) || ('HTTP ' + r.status));
+          D.lastVia[mode] = 'server';
+          return new Response(t, { status: r.status, headers: { 'Content-Type': r.headers.get('Content-Type') || 'application/json; charset=utf-8' } });
+        });
+      }, function (e) { return direct(String(e && e.message || e)); });
+    };
+  }
+  D.poi = poi; D.features = features; D.geocode = geocode; D.ping = ping; D.handle = handle; D.install = install; D.serverNetworkFailure = serverNetworkFailure;
+  install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['geo-direct'] = '4.74.0';
+
 </script>
 <script>/* v420-geo-studio.js */
 /* CASE OS v4.8.1 — universal/editable geo layer with integrated Tashkent master baseline and F&B classification. */
@@ -6941,6 +7031,208 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
   window.CASE_MODULE_VERSIONS['v4730-geo-agent'] = VERSION;
 })();
+
+</script>
+<script>/* v4740-geo-tree.js */
+/* CASE OS v4.74.0: дерево слоёв и подложки в студии геоаналитики.
+ *
+ * Замечание владельца: левая панель должна работать как фильтр, галочка -> карта меняется
+ * сразу; слои по категориям и подкатегориям; границы районов, тепловая карта, объекты; и
+ * вернуть кнопку выбора карт. Что делает модуль поверх готовой разметки секции «Слои и
+ * стиль» (geoanalytics-studio.html), не трогая обработчики слоёв:
+ *
+ *   - категории («Бизнес-центры», «Медицина и аптеки», «Ритейл» ...) становятся узлами
+ *     дерева: общая галочка включает и выключает все слои категории, счётчик «включено /
+ *     всего», категория сворачивается, состояние помнится в localStorage;
+ *   - «Границы и плотность» поднимаются наверх, перед ними узел «Подложка» с выбором карты;
+ *   - поиск по слоям: строка «найти слой» показывает только подходящие строки и раскрывает
+ *     их категории;
+ *   - у карты появляется кнопка подложки с именем текущей карты и списком остальных;
+ *     стандартный свёрнутый переключатель Leaflet скрыт, чтобы не было двух органов
+ *     управления одним и тем же; выбор помнится;
+ *   - строки слоёв, которые модуль городских объектов дорисовывает позже (якоря
+ *     geoCatAnchor-*), подхватываются наблюдателем и попадают в счётчики.
+ */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_TREE) return;
+  var VERSION = '4.74.0', KEY = 'caseos_geo_tree_v1';
+  var T = window.CASE_GEO_TREE = { version: VERSION };
+  /* карта студии объявлена как let map (глобальная лексическая), а theMap() - это <div id="map">;
+     берём именно объект Leaflet */
+  function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function store() { try { return JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { return {}; } }
+  function save(patch) { var s = store(); Object.keys(patch).forEach(function (k) { s[k] = patch[k]; }); try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+  function layerInputs(root) { return [].slice.call(root.querySelectorAll('input[type=checkbox]')).filter(function (cb) { return /^(l[A-Z]|geoLayer-)/.test(cb.id || ''); }); }
+  function findLayersSection() { var hs = document.querySelectorAll('.left>.sect>h3'); for (var i = 0; i < hs.length; i++) if (/слои и стиль/i.test(hs[i].textContent)) return hs[i].parentNode; return null; }
+
+  function css() {
+    if (document.getElementById('geoTreeCss')) return;
+    var s = document.createElement('style'); s.id = 'geoTreeCss'; s.textContent =
+      '.geo-cat{border:1px solid var(--line,#e3dcd1);border-radius:10px;margin:6px 0;background:#fff;overflow:hidden}'
+      + '.geo-cat-head{display:flex;align-items:center;gap:7px;padding:6px 9px;background:var(--paper-2,#f3f1ee)}'
+      + '.geo-cat-head .geo-cat-all{margin:0;accent-color:var(--red,#9E0000);flex:0 0 auto}'
+      + '.geo-cat-name{flex:1;min-width:0;text-align:left;border:0;background:none;font:800 10.5px/1.2 inherit;letter-spacing:.04em;text-transform:uppercase;color:var(--red-d,#6e0000);cursor:pointer;display:flex;align-items:center;gap:6px;padding:3px 0}'
+      + '.geo-cat-name>span:first-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}'
+      + '.geo-cat-n{margin-left:auto;font-weight:700;color:var(--muted,#6f6a63);font-size:10px;border:1px solid var(--line,#e3dcd1);border-radius:999px;padding:1px 7px;background:#fff;letter-spacing:0;text-transform:none}'
+      + '.geo-cat-active .geo-cat-n{color:#fff;background:var(--red,#9E0000);border-color:var(--red,#9E0000)}'
+      + '.geo-cat-chev{font-size:9px;color:var(--muted,#6f6a63);transition:transform .15s;flex:0 0 auto}'
+      + '.geo-cat:not(.open) .geo-cat-chev{transform:rotate(-90deg)}'
+      + '.geo-cat-body{padding:4px 9px 6px}.geo-cat:not(.open) .geo-cat-body{display:none}'
+      + '.geo-cat-body .geo-cat-title{display:none}'
+      + '.geo-tree-q{width:100%;height:30px;border:1px solid var(--line,#e3dcd1);border-radius:8px;padding:0 9px;font:inherit;font-size:11.5px;margin:2px 0 6px;background:#fff}'
+      + '.geo-tree-q:focus{outline:none;border-color:var(--red,#9E0000);box-shadow:0 0 0 3px rgba(158,0,0,.1)}'
+      + '.geo-tree-hide{display:none!important}.geo-tree-empty{font-size:11px;color:var(--muted,#6f6a63);padding:4px 2px}'
+      + '.geo-base-opt{display:flex;align-items:center;gap:6px;font-size:12px;padding:3px 0}.geo-base-opt input{accent-color:var(--red,#9E0000)}'
+      + '.leaflet-control-layers{display:none!important}'
+      + '.geo-basectl{position:relative;font-family:inherit}'
+      + '.geo-basectl-btn{display:flex;align-items:center;gap:6px;height:34px;padding:0 11px;border:1px solid var(--line,#e3dcd1);border-radius:9px;background:#fff;box-shadow:0 1px 2px rgba(40,30,20,.06),0 8px 24px rgba(40,30,20,.08);font:700 12px inherit;color:var(--ink,#1b1b1b);cursor:pointer;white-space:nowrap;max-width:230px}'
+      + '.geo-basectl-btn:hover{background:var(--paper-2,#f3f1ee)}.geo-basectl-name{overflow:hidden;text-overflow:ellipsis}'
+      + '.geo-basectl-menu{position:absolute;right:0;top:38px;min-width:200px;background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:10px;box-shadow:0 8px 24px rgba(40,30,20,.14);padding:6px;z-index:1200}'
+      + '.geo-basectl-menu.hidden{display:none}.geo-basectl-menu .geo-base-opt{padding:5px 8px;border-radius:7px;cursor:pointer}.geo-basectl-menu .geo-base-opt:hover{background:var(--paper-2,#f3f1ee)}'
+      + '.geo-basectl-menu h5{margin:2px 8px 4px;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted,#6f6a63)}'
+      + '@media(max-width:620px){.geo-basectl-btn{max-width:150px}}';
+    document.head.appendChild(s);
+  }
+
+  /* --- подложки --------------------------------------------------------------------- */
+  function bases() { var B = window.BASES; if (!B || !theMap()) return []; return Object.keys(B).filter(function (k) { return !/нужен ключ/i.test(k); }); }
+  function currentBase() { var B = window.BASES || {}; for (var k in B) { try { if (theMap().hasLayer(B[k])) return k; } catch (e) {} } return null; }
+  function setBase(k) {
+    var B = window.BASES; if (!B || !B[k] || !theMap()) return;
+    var cur = currentBase(); if (cur === k) { save({ base: k }); syncBase(); return; }
+    if (cur) { try { theMap().removeLayer(B[cur]); } catch (e) {} }
+    B[k].addTo(theMap());
+    try { theMap().fire('baselayerchange', { name: k, layer: B[k] }); } catch (e) {}
+    save({ base: k }); syncBase();
+  }
+  function syncBase() {
+    var cur = currentBase() || '';
+    /* у дерева и у кнопки разные группы радио: одна общая группа снимала бы отметку в дереве при выборе из меню */
+    document.querySelectorAll('input[name=geoBaseOpt],input[name=geoBaseMenuOpt]').forEach(function (r) { r.checked = r.value === cur; });
+    var n = document.querySelector('.geo-basectl-name'); if (n) n.textContent = cur || 'Подложка';
+  }
+  function baseOptions(name) {
+    return bases().map(function (k) { return '<label class="geo-base-opt"><input type="radio" name="' + name + '" value="' + esc(k) + '"> <span>' + esc(k) + '</span></label>'; }).join('');
+  }
+  function bindBaseOptions(root) {
+    root.querySelectorAll('input[name=geoBaseOpt],input[name=geoBaseMenuOpt]').forEach(function (r) { r.addEventListener('change', function () { if (r.checked) setBase(r.value); }); });
+  }
+  function baseCategory() {
+    if (!bases().length) return null;
+    var d = document.createElement('div'); d.className = 'geo-cat open'; d.setAttribute('data-cat', 'Подложка');
+    d.innerHTML = '<div class="geo-cat-head"><button type="button" class="geo-cat-name"><span>Подложка карты</span><span class="geo-cat-n geo-base-current"></span><span class="geo-cat-chev">▾</span></button></div><div class="geo-cat-body">' + baseOptions('geoBaseOpt') + '<div class="mini" style="margin-top:3px">Данные OpenStreetMap по ODbL; Google, 2GIS и Яндекс показываются по их условиям.</div></div>';
+    bindBaseOptions(d);
+    return d;
+  }
+  function baseControl() {
+    var host = document.querySelector('#map .leaflet-top.leaflet-right'); if (!host || document.querySelector('.geo-basectl') || !bases().length) return;
+    var el = document.createElement('div'); el.className = 'geo-basectl leaflet-control';
+    el.innerHTML = '<button type="button" class="geo-basectl-btn" title="Подложка карты" aria-haspopup="true" aria-expanded="false">🗺 <span class="geo-basectl-name"></span> <span aria-hidden="true">▾</span></button><div class="geo-basectl-menu hidden" role="menu"><h5>Подложка карты</h5>' + baseOptions('geoBaseMenuOpt') + '</div>';
+    host.insertBefore(el, host.firstChild);
+    try { if (window.L && L.DomEvent) { L.DomEvent.disableClickPropagation(el); L.DomEvent.disableScrollPropagation(el); } } catch (e) {}
+    var btn = el.querySelector('.geo-basectl-btn'), menu = el.querySelector('.geo-basectl-menu');
+    btn.addEventListener('click', function (e) { e.stopPropagation(); var open = menu.classList.toggle('hidden'); btn.setAttribute('aria-expanded', open ? 'false' : 'true'); });
+    document.addEventListener('click', function (e) { if (!e.target.closest || !e.target.closest('.geo-basectl')) { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); } });
+    bindBaseOptions(el);
+    /* закрываем и по клику на уже выбранную подложку: change в этом случае не приходит */
+    var close = function () { menu.classList.add('hidden'); btn.setAttribute('aria-expanded', 'false'); };
+    menu.addEventListener('change', close);
+    menu.addEventListener('click', function (e) { var opt = e.target.closest && e.target.closest('.geo-base-opt'); if (!opt) return; var r = opt.querySelector('input'); setTimeout(function () { if (r && r.checked) setBase(r.value); close(); }, 0); });
+  }
+
+  /* --- дерево категорий --------------------------------------------------------------- */
+  function refresh(d) {
+    var body = d.querySelector('.geo-cat-body'); if (!body) return;
+    var ins = layerInputs(body), on = ins.filter(function (cb) { return cb.checked; }).length;
+    /* textContent меняем только при отличии: замена текстового узла сама по себе мутация,
+       и наблюдатель ниже уходил бы в бесконечный цикл */
+    var n = d.querySelector('.geo-cat-n:not(.geo-base-current)'), txt = ins.length ? on + ' / ' + ins.length : '';
+    if (n && n.textContent !== txt) n.textContent = txt;
+    var all = d.querySelector('.geo-cat-all'); if (all) { all.checked = ins.length > 0 && on === ins.length; all.indeterminate = on > 0 && on < ins.length; all.disabled = !ins.length; }
+    d.classList.toggle('geo-cat-active', on > 0);
+  }
+  var refreshT = null;
+  function refreshAll() { document.querySelectorAll('.geo-cat').forEach(refresh); }
+  function refreshSoon() { clearTimeout(refreshT); refreshT = setTimeout(refreshAll, 60); }
+  function categoryNode(title, items, opened) {
+    var d = document.createElement('div'); d.className = 'geo-cat' + (opened ? ' open' : ''); d.setAttribute('data-cat', title);
+    var head = document.createElement('div'); head.className = 'geo-cat-head';
+    head.innerHTML = '<input type="checkbox" class="geo-cat-all" title="включить или выключить все слои категории" aria-label="все слои: ' + esc(title) + '"><button type="button" class="geo-cat-name" aria-expanded="' + (opened ? 'true' : 'false') + '"><span>' + esc(title) + '</span><span class="geo-cat-n"></span><span class="geo-cat-chev">▾</span></button>';
+    var bd = document.createElement('div'); bd.className = 'geo-cat-body'; items.forEach(function (el) { bd.appendChild(el); });
+    d.appendChild(head); d.appendChild(bd);
+    head.querySelector('.geo-cat-name').addEventListener('click', function () { var open = d.classList.toggle('open'); this.setAttribute('aria-expanded', open ? 'true' : 'false'); var s = store(); s.open = s.open || {}; s.open[title] = open ? 1 : 0; save({ open: s.open }); });
+    head.querySelector('.geo-cat-all').addEventListener('change', function () {
+      var on = this.checked;
+      layerInputs(bd).forEach(function (cb) { if (cb.checked !== on) { cb.checked = on; cb.dispatchEvent(new Event('change', { bubbles: true })); } });
+      refresh(d);
+    });
+    return d;
+  }
+  function buildTree() {
+    var sect = findLayersSection(); if (!sect || sect.querySelector('.geo-cat')) return false;
+    var body = sect.querySelector('.sbody') || sect;
+    var kids = [].slice.call(body.children), groups = [], cur = null, loose = [];
+    kids.forEach(function (el) {
+      if (el.classList && el.classList.contains('geo-cat-title')) { cur = { title: el.textContent.trim(), titleEl: el, items: [] }; groups.push(cur); }
+      else if (cur) cur.items.push(el); else loose.push(el);
+    });
+    if (!groups.length) return false;
+    var st = store(), openDefault = { 'Бизнес-центры': 1, 'Границы и плотность': 1 };
+    var order = groups.slice(), bi = -1;
+    order.forEach(function (g, i) { if (bi < 0 && /границы/i.test(g.title)) bi = i; });
+    if (bi > 0) order.unshift(order.splice(bi, 1)[0]);
+    var frag = document.createDocumentFragment();
+    var q = document.createElement('input'); q.type = 'search'; q.className = 'geo-tree-q'; q.placeholder = 'Найти слой: районы, метро, кафе, аптеки'; q.setAttribute('aria-label', 'Найти слой');
+    frag.appendChild(q);
+    var base = baseCategory(); if (base) frag.appendChild(base);
+    order.forEach(function (g) {
+      var opened = (st.open && Object.prototype.hasOwnProperty.call(st.open, g.title)) ? !!st.open[g.title] : !!openDefault[g.title];
+      g.titleEl.remove();
+      frag.appendChild(categoryNode(g.title, g.items, opened));
+    });
+    var empty = document.createElement('div'); empty.className = 'geo-tree-empty geo-tree-hide'; empty.textContent = 'Слоёв с таким названием нет.'; frag.appendChild(empty);
+    loose.forEach(function (el) { frag.appendChild(el); });
+    body.appendChild(frag);
+    body.addEventListener('change', function (e) { var d = e.target.closest && e.target.closest('.geo-cat'); if (d && !e.target.classList.contains('geo-cat-all')) refresh(d); });
+    q.addEventListener('input', function () { filterTree(body, q.value); });
+    refreshAll();
+    try { new MutationObserver(function (muts) { for (var i = 0; i < muts.length; i++) { var t = muts[i].target; if (t && t.closest && t.closest('.geo-cat-head')) continue; refreshSoon(); return; } }).observe(body, { childList: true, subtree: true }); } catch (e) {}
+    return true;
+  }
+  function filterTree(body, text) {
+    var t = String(text || '').trim().toLowerCase(), any = false;
+    body.querySelectorAll('.geo-cat').forEach(function (d) {
+      var rows = [].slice.call(d.querySelectorAll('.geo-cat-body>*')), hit = 0;
+      rows.forEach(function (r) {
+        if (!t) { r.classList.remove('geo-tree-hide'); return; }
+        var isRow = r.classList.contains('lrow') || r.classList.contains('styrow') || r.classList.contains('geo-base-opt') || r.id && r.id.indexOf('geoCatAnchor-') === 0;
+        var ok = isRow && r.textContent.toLowerCase().indexOf(t) >= 0;
+        if (r.id && r.id.indexOf('geoCatAnchor-') === 0) { var sub = 0; [].slice.call(r.children).forEach(function (c) { var o = c.textContent.toLowerCase().indexOf(t) >= 0; c.classList.toggle('geo-tree-hide', !o); if (o) sub++; }); ok = sub > 0; }
+        r.classList.toggle('geo-tree-hide', !ok);
+        if (ok) hit++;
+      });
+      if (t) { d.classList.toggle('geo-tree-hide', !hit); if (hit) d.classList.add('open'); if (hit) any = true; }
+      else { d.classList.remove('geo-tree-hide'); var s = store(); if (s.open && Object.prototype.hasOwnProperty.call(s.open, d.getAttribute('data-cat'))) d.classList.toggle('open', !!s.open[d.getAttribute('data-cat')]); }
+    });
+    var empty = body.querySelector('.geo-tree-empty'); if (empty) empty.classList.toggle('geo-tree-hide', !t || any);
+  }
+
+  function install() {
+    css();
+    var built = buildTree();
+    baseControl();
+    var st = store();
+    if (st.base && window.BASES && window.BASES[st.base]) setBase(st.base); else syncBase();
+    /* автозамена подложки в студии меняет слои без события baselayerchange: следим и за layeradd */
+    try { if (theMap()) { theMap().on('baselayerchange', syncBase); theMap().on('layeradd layerremove', function (e) { var B = window.BASES || {}; for (var k in B) if (B[k] === e.layer) { syncBase(); return; } }); } } catch (e) {}
+    T.built = built;
+  }
+  T.setBase = setBase; T.currentBase = currentBase; T.bases = bases; T.refresh = refreshAll; T.filter = function (t) { var s = findLayersSection(); if (s) filterTree(s.querySelector('.sbody') || s, t); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4740-geo-tree'] = '4.74.0';
 
 </script>
 <script>

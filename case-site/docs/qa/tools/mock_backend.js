@@ -38,10 +38,11 @@ function createMockServer(OS_DIR, opts) {
         json(rsp, 401, { error: 'Не авторизован' }); return;
       }
       if (ep === 'auth.php') {
-        if (req.method === 'GET') { json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf, pass_login: true, code_login: false }); return; }
+        /* v4.74.0: боевой auth.php отдаёт режим платформы; по умолчанию мок отвечает full, чтобы старые проверки других разделов не уходили в гео-режим */
+        if (req.method === 'GET') { json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf, pass_login: true, code_login: false, mode: state.mode || 'full' }); return; }
         const b = await readBody(req);
         if (b.action === 'logout') { json(rsp, 200, { ok: true }); return; }
-        if (b.action === 'login') { state.sessionValid = true; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf }); return; }
+        if (b.action === 'login') { state.sessionValid = true; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
         json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf }); return;
       }
       if (ep === 'workspace_access.php') { json(rsp, 200, { allowed: true, can_edit: true }); return; }

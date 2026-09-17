@@ -4,6 +4,7 @@
 // Reads closed deals from lease_commission_deals; config in commission_engine_settings.tiered_distribution.
 // Visibility: agents see only their own; manager/admin/finance/approve see everyone.
 require __DIR__.'/lib.php';
+require_module_enabled('v326_lease'); // v4.74.0: в режиме «только геоаналитика» раздел отключён
 $u = require_login();
 
 function ct_can_all(): bool { return can('admin') || can('finance') || can('approve'); }
