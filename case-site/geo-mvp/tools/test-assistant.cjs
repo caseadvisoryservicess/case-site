@@ -133,7 +133,7 @@ T('deselects the property', !st().selectedId, st().selectedId);
 T('keeps the session log (reset clears state, not history)',
   GEO.state.sessionLog().length > 0, GEO.state.sessionLog().length);
 r = GEO.ai.ask('Only those with known rent above $30');
-T('context is reset — the next turn runs against all 148, not the previous 7',
+T('context is reset – the next turn runs against all 148, not the previous 7',
   r.resultCount === 8, r.resultCount);
 
 console.log('\n── §62  concepts the data cannot support');

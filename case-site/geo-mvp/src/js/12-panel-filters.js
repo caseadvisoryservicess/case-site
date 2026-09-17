@@ -162,7 +162,7 @@
     var ext = null;
     if (GEO.filters && GEO.filters.availability) {
       try { ext = GEO.filters.availability(scope); }
-      catch (e) { GEO.log.warn('filters.availability threw — using coverage', e); }
+      catch (e) { GEO.log.warn('filters.availability threw – using coverage', e); }
     }
     var out = {};
     COVERAGE_FILTERS.forEach(function (spec) {
@@ -187,7 +187,7 @@
     var ext = null;
     if (GEO.filters && GEO.filters.ranges) {
       try { ext = GEO.filters.ranges(scope); }
-      catch (e) { GEO.log.warn('filters.ranges threw — using known()', e); }
+      catch (e) { GEO.log.warn('filters.ranges threw – using known()', e); }
     }
     var out = {};
     ['askingRent', 'gla', 'vacancyPct', 'parkingSpaces'].forEach(function (field) {
@@ -660,7 +660,7 @@
     var ext = null;
     if (GEO.filters && GEO.filters.explain) {
       try { ext = GEO.filters.explain(scope, state.filters); }
-      catch (e) { GEO.log.warn('filters.explain threw — deriving locally', e); }
+      catch (e) { GEO.log.warn('filters.explain threw – deriving locally', e); }
     }
     var out = [];
     var list = ext && (ext.exclusions || ext.excluded || ext.lines);

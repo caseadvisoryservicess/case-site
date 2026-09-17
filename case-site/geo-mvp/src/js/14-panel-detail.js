@@ -70,8 +70,8 @@
     'quality.freshness.dueIn.other': 'Due in {n} days',
     'quality.freshness.overdue.one': 'Overdue by {n} day',
     'quality.freshness.overdue.other': 'Overdue by {n} days',
-    'detail.editedLocally.one': '{n} field edited locally — not verified',
-    'detail.editedLocally.other': '{n} fields edited locally — not verified'
+    'detail.editedLocally.one': '{n} field edited locally – not verified',
+    'detail.editedLocally.other': '{n} fields edited locally – not verified'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -1193,13 +1193,13 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         if (!registerWithBoot()) {
-          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable — the Property tab will not render');
+          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable – the Property tab will not render');
         }
       });
     } else {
       setTimeout(function () {
         if (!registerWithBoot()) {
-          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable — the Property tab will not render');
+          GEO.log.error('14-panel-detail: GEO.boot.registerPanel is unavailable – the Property tab will not render');
         }
       }, 0);
     }

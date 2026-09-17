@@ -123,7 +123,7 @@
       answer: filterCaused
         ? label + ' is recorded for ' + whole.n + ' of ' + whole.N +
           ' properties in the dataset, but for none of the ' + F.int(c.N) +
-          ' in the current selection — the active filters exclude every property that has it.'
+          ' in the current selection – the active filters exclude every property that has it.'
         : label + ' is recorded for 0 of the ' + F.int(c.N) + ' ' +
           F.plural(c.N, 'property', 'properties') + ' in the current selection' +
           ', so this cannot be answered from the data held.',
@@ -146,7 +146,7 @@
   T.register({
     id: 'searchProperties', access: 'external', mutates: false,
     description: 'Find properties by free text across name, address, district and tenant.',
-    args: { q: 'string — the search text', limit: 'number — max results (default 20)' },
+    args: { q: 'string – the search text', limit: 'number – max results (default 20)' },
     run: function (a, ctx) {
       var rows = scope(ctx);
       var res = GEO.search ? GEO.search.query(rows, a.q, { limit: a.limit || 20 })
@@ -159,7 +159,7 @@
   T.register({
     id: 'filterProperties', access: 'external', mutates: false,
     description: 'Evaluate a filter set against the dataset without applying it to the UI.',
-    args: { filters: 'object — a partial filter object' },
+    args: { filters: 'object – a partial filter object' },
     run: function (a, ctx) {
       var f = Object.assign({}, GEO.state.defaults().filters, a.filters || {});
       var rows = GEO.filters.apply(scope(ctx), f);
@@ -177,7 +177,7 @@
   T.register({
     id: 'getNearbyProperties', access: 'external', mutates: false,
     description: 'Properties within a radius of a subject property, nearest first.',
-    args: { id: 'string — subject property', km: 'number — radius in kilometres' },
+    args: { id: 'string – subject property', km: 'number – radius in kilometres' },
     run: function (a, ctx) {
       var subj = GEO.data.get(a.id);
       if (!subj) return { rows: [], error: 'No such property' };
@@ -191,8 +191,8 @@
   T.register({
     id: 'calculateMetric', access: 'external', mutates: false,
     description: 'Compute one metric over a set of properties, with its denominator.',
-    args: { field: 'string — schema field key', kind: 'count|sum|mean|median|min|max',
-            rowIds: 'string[] — optional; defaults to the current result set' },
+    args: { field: 'string – schema field key', kind: 'count|sum|mean|median|min|max',
+            rowIds: 'string[] – optional; defaults to the current result set' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       return { metric: A.metric(rows, a.field, a.kind || 'mean'), rows: rows };
@@ -202,8 +202,8 @@
   T.register({
     id: 'aggregateByDistrict', access: 'external', mutates: false,
     description: 'Group properties by district and measure each group.',
-    args: { measure: 'string — optional field to measure', kind: 'count|sum|mean|median',
-            rowIds: 'string[] — optional' },
+    args: { measure: 'string – optional field to measure', kind: 'count|sum|mean|median',
+            rowIds: 'string[] – optional' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       if (a.measure) {
@@ -217,7 +217,7 @@
   T.register({
     id: 'aggregateByClass', access: 'external', mutates: false,
     description: 'Group properties by office class and measure each group.',
-    args: { measure: 'string — optional', kind: 'count|sum|mean|median', rowIds: 'string[] — optional' },
+    args: { measure: 'string – optional', kind: 'count|sum|mean|median', rowIds: 'string[] – optional' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       if (a.measure) {
@@ -231,7 +231,7 @@
   T.register({
     id: 'getDataCoverage', access: 'external', mutates: false,
     description: 'How much of each field is actually recorded for a set of properties.',
-    args: { rowIds: 'string[] — optional', fields: 'string[] — optional' },
+    args: { rowIds: 'string[] – optional', fields: 'string[] – optional' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       var fields = a.fields || S.criticalFields;
@@ -249,7 +249,7 @@
   T.register({
     id: 'getSources', access: 'external', mutates: false,
     description: 'The sources and collection dates behind a set of properties.',
-    args: { rowIds: 'string[] — optional' },
+    args: { rowIds: 'string[] – optional' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       var seen = {};
@@ -278,7 +278,7 @@
   T.register({
     id: 'applyFilters', access: 'external', mutates: false,
     description: 'Apply filters to the map and the filter panel. The panel visibly reflects them.',
-    args: { filters: 'object — partial filter patch', replace: 'boolean — reset the others first' },
+    args: { filters: 'object – partial filter patch', replace: 'boolean – reset the others first' },
     run: function (a, ctx) {
       var base = a.replace ? GEO.state.defaults().filters : ctx.state.filters;
       var next = Object.assign({}, base, a.filters || {});
@@ -330,7 +330,7 @@
   T.register({
     id: 'createRadius', access: 'external', mutates: false,
     description: 'Draw distance rings around a property and compute the location analysis.',
-    args: { id: 'string', bandsKm: 'number[] — default [1,3,5]' },
+    args: { id: 'string', bandsKm: 'number[] – default [1,3,5]' },
     run: function (a, ctx) {
       var subj = GEO.data.get(a.id);
       if (!subj) return { error: 'No such property' };
@@ -385,7 +385,7 @@
   T.register({
     id: 'removeLayer', access: 'external', mutates: false,
     description: 'Remove one layer, or every layer.',
-    args: { id: 'string — omit to remove all' },
+    args: { id: 'string – omit to remove all' },
     run: function (a, ctx) {
       var kept = a.id ? ctx.state.aiLayers.filter(function (l) { return l.id !== a.id; }) : [];
       var removed = ctx.state.aiLayers.length - kept.length;
@@ -418,7 +418,7 @@
   T.register({
     id: 'showDataQuality', access: 'external', mutates: false,
     description: 'Data-quality profile of a set: completeness bands, confidence split, open issues.',
-    args: { rowIds: 'string[] — optional' },
+    args: { rowIds: 'string[] – optional' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       if (!GEO.quality) return { error: 'The quality module is not available.' };
@@ -439,7 +439,7 @@
   T.register({
     id: 'getVerificationQueue', access: 'internal', mutates: false,
     description: 'Rank properties by how badly they need re-verification (§50).',
-    args: { rowIds: 'string[] — optional', limit: 'number' },
+    args: { rowIds: 'string[] – optional', limit: 'number' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       if (!GEO.quality) return { error: 'The quality module is not available.' };
@@ -452,7 +452,7 @@
   T.register({
     id: 'exportResults', access: 'external', mutates: false,
     description: 'Export the current result set as CSV.',
-    args: { rowIds: 'string[] — optional', format: 'csv|json' },
+    args: { rowIds: 'string[] – optional', format: 'csv|json' },
     run: function (a, ctx) {
       var rows = a.rowIds ? a.rowIds.map(GEO.data.get).filter(Boolean) : currentRows(ctx);
       var text, name, mime;
@@ -494,7 +494,7 @@
     args: { id: 'string', patch: 'object' },
     run: function () {
       return { refused: true,
-               message: 'The assistant does not edit records in this prototype. Open the property in the data editor to change it — ' +
+               message: 'The assistant does not edit records in this prototype. Open the property in the data editor to change it – ' +
                         'every edit is written with its own provenance, which an automated change would not have.' };
     }
   });

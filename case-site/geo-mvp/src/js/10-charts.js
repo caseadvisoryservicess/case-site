@@ -501,7 +501,7 @@
       }));
     });
     return el('table.chart__table', {}, [
-      el('caption.vh', { text: (inst.spec.title ? inst.spec.title + ' — ' : '') + t('a11y.chartTable') }),
+      el('caption.vh', { text: (inst.spec.title ? inst.spec.title + ' – ' : '') + t('a11y.chartTable') }),
       el('thead', {}, [head]),
       el('tbody', {}, body)
     ]);

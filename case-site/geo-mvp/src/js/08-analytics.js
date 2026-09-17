@@ -168,7 +168,7 @@
       countMetric.notes.push('Includes ' + F.int(dupRecords) + ' records in ' +
         F.int(Object.keys(dupGroups).length) + ' unresolved possible-duplicate ' +
         F.plural(Object.keys(dupGroups).length, 'group') +
-        ' — supply figures may double-count until they are adjudicated.');
+        ' – supply figures may double-count until they are adjudicated.');
     }
     var suspect = rows.filter(function (r) { return r._meta.entityReview === 'suspected_non_bc'; }).length;
     if (suspect) {

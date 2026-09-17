@@ -296,7 +296,7 @@
           });
         }
         if (best) return { group: groupBy(best.key), label: groupLabel(groupBy(best.key), best.label) };
-      } catch (e) { GEO.log.warn('filters.explain threw — probing locally', e); }
+      } catch (e) { GEO.log.warn('filters.explain threw – probing locally', e); }
     }
 
     var d = GEO.state.defaults().filters;
@@ -598,7 +598,7 @@
    * Roving tabindex (IA §6.2). The whole list is ONE tab stop, so 148 cards do
    * not become 148 stops on the way to the map. The per-card Compare and Zoom
    * buttons are pulled out of the tab order too and put back only on the active
-   * card — otherwise they would quietly reintroduce 296 of them.
+   * card – otherwise they would quietly reintroduce 296 of them.
    */
   function setRovingStop(list, li) {
     Q.$$('.rcard', list).forEach(function (c) {
@@ -646,8 +646,24 @@
 
     // A new result set starts at page one; paging within one set does not, or
     // "Show more" would undo itself on the next render.
-    if (lastSetKey !== null && lastSetKey !== setKey) shown = PAGE;
+    var setChanged = lastSetKey !== null && lastSetKey !== setKey;
+    if (setChanged) shown = PAGE;
     lastSetKey = setKey;
+
+    /* The entry animation runs when the SET changed, never when the same set is
+       merely redrawn — a card that re-animates because the reader hovered a
+       marker is noise, and on every render it would be a flicker. The class is
+       removed on the next frame so the animation can retrigger next time. */
+    if (setChanged && GEO.motion.animates()) {
+      list.classList.remove('list--fresh');
+      /* Reading offsetWidth forces the style recalculation that makes the
+         removal take effect before the class is added back; without it the
+         browser coalesces remove+add into no change at all. */
+      void list.offsetWidth;
+      list.classList.add('list--fresh');
+    } else {
+      list.classList.remove('list--fresh');
+    }
 
     // The filters are part of the signature even though they are already baked
     // into `rows`: when `rows` is empty the EXPLANATION still varies with them
@@ -677,7 +693,7 @@
     budget -= Math.min(budget, parts.known.length);
 
     // Decision B: the unknown block is always announced, even when the page cap
-    // means none of its cards are drawn yet — its count is the honest part.
+    // means none of its cards are drawn yet – its count is the honest part.
     if (parts.unknown.length) {
       kids.push(el('li.list__group', { role: 'presentation' }, [
         document.createTextNode(unknownGroupLabel(sort, parts.unknown.length)),
@@ -695,7 +711,7 @@
           onclick: function () {
             shown += PAGE;
             // Re-derive through the normal path instead of redrawing from a
-            // stored array — nothing in this module holds the records.
+            // stored array – nothing in this module holds the records.
             GEO.state.set({}, { source: 'user', action: 'list:showMore' });
           }
         }),
@@ -769,7 +785,7 @@
   /* 99-boot is the LAST module in the manifest, so `GEO.boot` does not exist
      while this file is being evaluated. `data:loaded` fires from inside boot's
      start(), after the repository is populated and before the first state
-     broadcast — early enough to catch the opening render. */
+     broadcast – early enough to catch the opening render. */
   var registered = false;
   function registerPanel() {
     if (registered || !GEO.boot || !GEO.boot.registerPanel) return;

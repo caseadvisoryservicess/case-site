@@ -72,6 +72,7 @@
 
       /* --- system --- */
       notice: null,
+      basemap: (GEO.basemaps && GEO.basemaps.DEFAULT_ID) || 'carto-light',
       tilesOk: true
     };
   }
@@ -97,7 +98,7 @@
     if (applying) {
       // A subscriber calling set() during a render would produce a partially
       // rendered frame that no longer matches any single state. Fail loudly.
-      GEO.log.error('state.set() called re-entrantly from a subscriber — ignored', meta.action);
+      GEO.log.error('state.set() called re-entrantly from a subscriber – ignored', meta.action);
       return state;
     }
 

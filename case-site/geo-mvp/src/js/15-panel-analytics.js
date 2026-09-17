@@ -59,7 +59,7 @@
     'analytics.filters.none': 'No filters are active.',
     'analytics.export.analysis': 'Export analysis',
     'analytics.export.analysis.note': 'Writes every figure on this panel with its n, its N and the active filters.',
-    'analytics.export.done': 'Analysis exported — {n} figures with their denominators',
+    'analytics.export.done': 'Analysis exported – {n} figures with their denominators',
     'analytics.export.col.section': 'Section',
     'analytics.export.col.item': 'Item',
     'analytics.export.col.value': 'Value',
@@ -242,7 +242,15 @@
     var kids = [
       el('span.stat__label', { text: metricLabel(m) }),
       el('span.stat__value', {}, [
-        el('span', { text: parts.value }),
+        /* `data-metric-value` — NOT `data-metric`, which the card button already
+           carries. Selecting the shared name matched the whole card, whose text
+           is label + figure + coverage, so the count-up saw a non-numeric string
+           and silently declined to run.
+
+           It lets the next render find THIS figure and count it up from whatever
+           it was showing. A filter that cuts 148 to 28 should be visible in the
+           number, not only in the list. */
+        el('span', { text: parts.value, 'data-metric-value': metricId(m) }),
         parts.unit ? el('span.stat__unit', { text: ' ' + parts.unit }) : null
       ])
     ];
@@ -653,7 +661,7 @@
     if (fn) {
       try { ok = !!fn.call(C, host, spec); }
       catch (e) {
-        GEO.log.error('charts.' + spec.render + ' threw — showing the table instead', e);
+        GEO.log.error('charts.' + spec.render + ' threw – showing the table instead', e);
         ok = false;
       }
     }
@@ -746,8 +754,8 @@
     var lines = [];
     var figures = 0;
 
-    lines.push('# ' + GEO.PRODUCT.name + ' ' + GEO.PRODUCT.version + ' — ' +
-               t('analytics.title') + ' — ' + F.date(GEO.date.today()));
+    lines.push('# ' + GEO.PRODUCT.name + ' ' + GEO.PRODUCT.version + ' – ' +
+               t('analytics.title') + ' – ' + F.date(GEO.date.today()));
     lines.push('# ' + t('analytics.scope', { n: F.int(rows.length), m: F.int(scope.length) }));
     lines.push('# ' + model.filterText);
     lines.push('# ' + A.coverageStatement(rows));
@@ -888,7 +896,7 @@
         }
       })
     ];
-    // §29: a disabled control states why, visibly — not only in a tooltip.
+    // §29: a disabled control states why, visibly – not only in a tooltip.
     if (none) kids.push(el('span.reason.reason--inline', { text: t('analytics.export.disabled') }));
 
     // What the file will contain, stated before it is asked for.
@@ -939,8 +947,8 @@
       el('div.stats', {}, model.live.map(function (m) { return metricCard(m, rows); }))
     ];
 
-    /* The caveats the headline count carries — unresolved duplicate pairs, and
-       records whose own name says they are a company — are rendered beside the
+    /* The caveats the headline count carries – unresolved duplicate pairs, and
+       records whose own name says they are a company – are rendered beside the
        cards, not only inside the popover. A supply figure that may double-count
        has to say so where it is read (§2.7). */
     var notes = [];
@@ -986,7 +994,25 @@
       if (spec.id === 'coverage') kids.push(coverageActions(state));
     });
 
+    /* Read the figures that are on screen BEFORE they are replaced, so each one
+       can be counted up from where it actually was. Captured by metric key, not
+       by position: the set of cards changes with the filters, and animating a
+       value from an unrelated card's number would be a fabricated transition. */
+    var was = {};
+    Q.$$('[data-metric-value]', pane).forEach(function (n) {
+      was[n.getAttribute('data-metric-value')] = n.textContent;
+    });
+
     Q.fill(pane, [el('div.stack.stack--lg', {}, kids)]);
+
+    Q.$$('[data-metric-value]', pane).forEach(function (n) {
+      var key = n.getAttribute('data-metric-value');
+      var prev = was[key];
+      if (prev === undefined || prev === n.textContent) return;
+      var to = n.textContent;
+      n.textContent = prev;
+      GEO.motion.countUp(n, to);
+    });
   }
 
   /* --------------------------------------------------------------- render */
@@ -1025,7 +1051,7 @@
   /* `99-boot.js` is LAST in the manifest and opens with `GEO.boot = {}`, so at
      panel-load time `GEO.boot.registerPanel` does not exist yet. DOMContentLoaded
      is the seam: every inline script has run by then, and because this listener
-     is added while 15 loads — before 99-boot adds its own — registration lands
+     is added while 15 loads – before 99-boot adds its own – registration lands
      before `B.start()` subscribes the renderer. */
   function registerWithBoot() {
     if (!GEO.boot || !GEO.boot.registerPanel) return false;
@@ -1037,13 +1063,13 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         if (!registerWithBoot()) {
-          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable — the Analytics tab will not render');
+          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable – the Analytics tab will not render');
         }
       });
     } else {
       setTimeout(function () {
         if (!registerWithBoot()) {
-          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable — the Analytics tab will not render');
+          GEO.log.error('15-panel-analytics: GEO.boot.registerPanel is unavailable – the Analytics tab will not render');
         }
       }, 0);
     }

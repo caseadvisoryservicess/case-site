@@ -268,7 +268,7 @@
 
     has('geometry: point-in-polygon agrees with every stored districtKey',
         obs.every(function (r) { return GEO.geo.districtAt(r.lat, r.lng) === r.districtKey; }),
-        'D1 — the stored key must be reproducible from the coordinates');
+        'D1 – the stored key must be reproducible from the coordinates');
 
     /* --- quality -------------------------------------------------------- */
     if (Q) {
@@ -294,7 +294,7 @@
       var sum = Q.datasetSummary(obs);
       has('quality: the summary admits staleness cannot discriminate yet',
           sum.stalenessDiscriminates === false,
-          'D8 — all 148 observed records share one collection date');
+          'D8 – all 148 observed records share one collection date');
     } else {
       ok('quality: module present', false, 'missing', 'GEO.quality');
     }
@@ -353,10 +353,10 @@
     var s = out.summary;
     var panel = el('div.selftest', { role: 'region', 'aria-label': 'Self test results' }, [
       el('header.selftest__hdr', {}, [
-        el('h1', { text: 'Self test — ' + GEO.PRODUCT.name + ' ' + GEO.PRODUCT.version }),
+        el('h1', { text: 'Self test – ' + GEO.PRODUCT.name + ' ' + GEO.PRODUCT.version }),
         el('p.selftest__score' + (s.ok ? '.is-pass' : '.is-fail'), {
           text: s.passed + ' of ' + s.total + ' checks passed' +
-                (s.ok ? '' : ' — ' + s.failed.length + ' FAILED')
+                (s.ok ? '' : ' – ' + s.failed.length + ' FAILED')
         }),
         el('p.selftest__note', {
           text: 'Expected values are computed independently by tools/oracle.py from data/seed.json. ' +

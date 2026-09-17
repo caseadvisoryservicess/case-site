@@ -687,7 +687,7 @@
       var key = flag === 'suspected_non_bc' ? 'suspectedNonBc' : 'nameQuality';
       var items = hit.map(function (r) {
         return { id: r.id, text: U.isKnown(r._meta.entityReviewNote)
-          ? nameOf(r) + ' — ' + r._meta.entityReviewNote : nameOf(r) };
+          ? nameOf(r) + ' – ' + r._meta.entityReviewNote : nameOf(r) };
       });
       out.push(issue(flag, idsOf(hit),
         t('quality.issue.' + key + '.title'),

@@ -564,7 +564,7 @@
     var cols = ['id', 'recordType'].concat(S.fields.map(function (fd) { return fd.key; }))
                                    .filter(function (c) { return c !== 'tenants'; });
     var head = [
-      '# ' + GEO.PRODUCT.name + ' export — ' + GEO.date.today(),
+      '# ' + GEO.PRODUCT.name + ' export – ' + GEO.date.today(),
       '# Filters: ' + (appliedFiltersText || 'none'),
       '# Blank cells mean NOT RECORDED. They do not mean zero.',
       '# Source: ' + sources.map(function (s) { return s.name; }).join(' | ')

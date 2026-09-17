@@ -250,7 +250,7 @@
       if (typeof v !== 'number' || isNaN(v)) { err(k, S.label(k) + ' must be a number.'); return; }
       if (v < s.min || v > s.max) {
         warn(k, S.label(k) + ' of ' + v + ' ' + s.unit + ' is outside the expected range ' +
-                s.min + '–' + s.max + '. Saved as entered — confirm the source.');
+                s.min + '–' + s.max + '. Saved as entered – confirm the source.');
       }
     });
 

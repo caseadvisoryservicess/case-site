@@ -1,4 +1,4 @@
-# 04 — Data Model & JSON Schema
+# 04 – Data Model & JSON Schema
 
 **Document:** `/home/user/case-site/case-site/geo-mvp/docs/04-data-schema.md`
 **Brief step:** §65 Step 4 ("Define the property JSON schema").
@@ -51,13 +51,13 @@
 7. Numbers are plain JSON numbers. Areas are **m²** (never ft²). Money is a number plus a separate `currency`.
    Percentages are `0–100` numbers, not `0–1` fractions. Coordinates are WGS-84 decimal degrees, 6 dp.
 
-### 0.4 THE ONE RULE — how "unknown" is represented
+### 0.4 THE ONE RULE – how "unknown" is represented
 
 §36 requires that unknown be distinguishable from zero. This is the single most important rule in the schema and it
 has exactly one form. There are no alternatives and no per-field exceptions.
 
 > **Every field defined in this document is ALWAYS present as a key, in memory and in every export.
-> A scalar field whose value is not known is `null`. Never `""`, never `"—"`, never `"n/a"`, never `0`,
+> A scalar field whose value is not known is `null`. Never `""`, never `"–"`, never `"n/a"`, never `0`,
 > never an absent key. `0` is a value. `false` is a value.**
 
 | Situation | Stored as |
@@ -70,8 +70,8 @@ has exactly one form. There are no alternatives and no per-field exceptions.
 | Building is confirmed vacant, no tenants | `"tenants": []` **and** `"tenantsStatus": "confirmed_empty"` |
 | Amenities not surveyed | `"amenities": []` + `"amenitiesStatus": "not_collected"` |
 | Amenities surveyed, building has none | `"amenities": []` + `"amenitiesStatus": "confirmed_empty"` |
-| Office class not recorded | `"officeClass": null` — **not** `"Unknown"` |
-| Status not recorded | `"status": null` — **not** `"Unknown"` |
+| Office class not recorded | `"officeClass": null` – **not** `"Unknown"` |
+| Status not recorded | `"status": null` – **not** `"Unknown"` |
 
 **Consequences that are not negotiable:**
 
@@ -84,7 +84,7 @@ has exactly one form. There are no alternatives and no per-field exceptions.
 - The single predicate every aggregate must use (`01-product-spec.md` rule R1):
 
 ```js
-// src/01-util.js — the most-called function in the application.
+// src/01-util.js – the most-called function in the application.
 GEO.util.hasValue = function (v) {
   if (v === null || v === undefined) return false;
   if (typeof v === 'string')  return v.trim() !== '';
@@ -96,7 +96,7 @@ GEO.util.hasValue = function (v) {
 };
 ```
 
-Ingest normalisation (`GEO.schema.normaliseRecord`) coerces `""`, `"  "`, `"—"`, `"n/a"`, `"N/A"`, `"-"`,
+Ingest normalisation (`GEO.schema.normaliseRecord`) coerces `""`, `"  "`, `"–"`, `"n/a"`, `"N/A"`, `"-"`,
 `"null"`, `"Да"`-style placeholders and `undefined` to `null` **before** the record reaches any consumer. The source
 file `bc.json` uses `""` for missing; nothing downstream of ingest may ever see an empty string.
 
@@ -107,7 +107,7 @@ Verified by direct inspection of `/home/user/case-site/case-site/os/data/geo_mas
 
 | # | Fact | Consequence |
 |---|---|---|
-| 1 | **`psrc` / `provider` is not uniformly `2GIS`.** Measured: **2GIS 103, GoldenPages 26, Google Maps 19.** | Three source instruments, not one. The envelope `sources[]` must carry three entries and `_evidence` must attribute each record to its real provider. The currently generated `geo-mvp/data/seed.json` attributes all 148 records to 2GIS and contains **zero** occurrences of "GoldenPages" or "Google Maps" — a provenance falsification that §2.3 and §37 forbid. **Must fix (§11.1 R1).** |
+| 1 | **`psrc` / `provider` is not uniformly `2GIS`.** Measured: **2GIS 103, GoldenPages 26, Google Maps 19.** | Three source instruments, not one. The envelope `sources[]` must carry three entries and `_evidence` must attribute each record to its real provider. The currently generated `geo-mvp/data/seed.json` attributes all 148 records to 2GIS and contains **zero** occurrences of "GoldenPages" or "Google Maps" – a provenance falsification that §2.3 and §37 forbid. **Must fix (§11.1 R1).** |
 | 2 | **`coordinate_accuracy` has two values, not one:** `"single"` (109) and the free-text Russian sentence `"Точка источника; не подтверждена полевым осмотром"` (39). The split correlates **exactly** with `address` presence and with `seed_object_id` presence (109 have both; 39 have neither). | Two collection batches exist. Normalise both to the enum `single` and preserve the real distinction in `_meta.seedBatch` (`primary` \| `supplementary`). Do not keep free text in an enum field. |
 | 3 | `_verification`: `online` 136, `needs_review` 12. The 12 are exactly the coordinate-collision records. | `needs_review` is a **QC state**, not a verification mode. Map to `verificationMode: "desk"` + `_meta.qcStatus: "needs_check"` + `qcFlags: ["coord_collision"]`. |
 | 4 | `possible_duplicate` = `"Да"` (Russian "yes") for 12 records; `duplicate_group_id` `DUP-COORD-0022`…`0027`, 6 groups of 2. | Boolean `true`; groups preserved; verdict defaults to `undecided` (§9.4). |
@@ -137,31 +137,31 @@ DatasetEnvelope                      §7   one object; the unit of export/import
 ```
 
 **Storage-cost rationale.** 148 records × 29 provenance-bearing fields × a 12-key evidence object would be
-~51 000 objects and roughly 6 MB of JSON — over the typical 5 MB localStorage quota, for data that is identical
+~51 000 objects and roughly 6 MB of JSON – over the typical 5 MB localStorage quota, for data that is identical
 across every record. The three-layer provenance design in §3 stores the same information in 238 KB.
 
 ---
 
 ## 2. The BusinessCentre record
 
-### 2.1 Complete annotated example — every field present
+### 2.1 Complete annotated example – every field present
 
 Only a **DEMO** record may legitimately have every field populated: no real Tashkent business centre in the
 dataset has GLA, occupancy, tenants or parking, and inventing them is forbidden by §2.2. The example below is
 `DEMO-001` from the shipped fixture set, extended to show the READY containers. It is the **canonical shape**: a
 `VERIFIED_SOURCE` record has the same keys with `null` values.
 
-Annotations use `//` and are **not valid JSON** — they are removed in the real file.
+Annotations use `//` and are **not valid JSON** – they are removed in the real file.
 
 ```jsonc
 {
   // ── §5.1 IDENTIFICATION ────────────────────────────────────────────────────
   "id":            "DEMO-001",            // immutable primary key
-  "recordType":    "DEMO",                // VERIFIED_SOURCE | DEMO — required, no default (§8)
-  "name":          "DEMO — Alpha Tower",
+  "recordType":    "DEMO",                // VERIFIED_SOURCE | DEMO – required, no default (§8)
+  "name":          "DEMO – Alpha Tower",
   "altNames":      ["DEMO Alpha BC"],     // [] = none recorded
   "status":        "Operating",           // null = not recorded (never the string "Unknown")
-  "address":       "Synthetic location — not a real address",
+  "address":       "Synthetic location – not a real address",
   "districtKey":   "yunusobod",           // canonical key, polygon-derived (§6)
   "lat":           41.342585,             // WGS-84, 6 dp
   "lng":           69.290187,
@@ -184,7 +184,7 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
   "askingRent":        45,                // number in `currency` per `rentUnit`
   "currency":          "USD",             // applies to askingRent AND serviceCharge
   "rentUnit":          "m2/month",        // m2/month | m2/year | unit/month
-  "rentUnitAssumed":   false,             // TRUE for all 16 seed rents — the source never stated a unit (R9)
+  "rentUnitAssumed":   false,             // TRUE for all 16 seed rents – the source never stated a unit (R9)
   "serviceCharge":     6.5,
   "serviceChargeUnit": "m2/month",
   "vatTreatment":      "vat_excluded",    // vat_excluded | vat_included | vat_exempt ; null = not known
@@ -193,7 +193,7 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
   "availableArea":     1960,              // m² ; must be <= gla
   "minUnit":           120,               // m², smallest lettable unit
   "leaseTerms":        "5 years, 3-month rent free, annual USD indexation",   // free text in MVP
-  "leaseTermsStruct":  null,              // READY — see §2.6
+  "leaseTermsStruct":  null,              // READY – see §2.6
 
   // ── §5.4 TENANTS ───────────────────────────────────────────────────────────
   "tenants": [
@@ -209,7 +209,7 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
                 "security", "underground_parking", "ev_charging", "backup_generator"],
   "amenitiesStatus": "complete",          // not_collected | partial | complete | confirmed_empty
 
-  // ── §5.6 EVIDENCE — per field. Value is a PROFILE KEY or an inline object ──
+  // ── §5.6 EVIDENCE – per field. Value is a PROFILE KEY or an inline object ──
   "_evidence": {
     "name":        "DEMO-HIGH",           // string  -> expand from envelope.evidenceProfiles
     "lat":         "DEMO-HIGH",
@@ -219,10 +219,10 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
     "gla":         "DEMO-HIGH",
     "askingRent": {                       // object  -> inline override, wins over any profile
       "sourceId":       "SRC-DEMO",
-      "source":         "Synthetic demo record — not market data",
+      "source":         "Synthetic demo record – not market data",
       "sourceUrl":      null,
       "method":         "other",
-      "confidence":     "Low",            // a KNOWN value with LOW confidence — see §3.6
+      "confidence":     "Low",            // a KNOWN value with LOW confidence – see §3.6
       "collectedAt":    "2026-09-10",
       "lastVerifiedAt": "2026-09-10",
       "collectorId":    null,
@@ -235,7 +235,7 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
 
   // ── RECORD-LEVEL PROVENANCE + QC (§2.3 defaults, §5.7 collection metadata) ─
   "_meta": {
-    "recordConfidence":      "High",      // High | Medium | Low | Unknown — see §3.8 for how it is set
+    "recordConfidence":      "High",      // High | Medium | Low | Unknown – see §3.8 for how it is set
     "sourceConfidenceLetter": null,       // the provider's own grade ("B"), displayed, never interpreted
     "sourceCount":           0,
     "sourceIds":             ["SRC-DEMO"],
@@ -256,19 +256,19 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
     "entityReview":          "confirmed_bc",  // confirmed_bc | suspected_non_bc | unreviewed
     "qcStatus":              "accepted",  // draft | needs_check | in_review | accepted | rejected
     "qcFlags":               [],          // see §5.10
-    "sourceNote":            "DEMO RECORD — fictional. Excluded from market analytics by default.",
+    "sourceNote":            "DEMO RECORD – fictional. Excluded from market analytics by default.",
     "internalNote":          null,        // hidden when the session role is External (§60)
-    "demoPurpose":           "fully populated record — exercises every metric, chart and comparison row",
+    "demoPurpose":           "fully populated record – exercises every metric, chart and comparison row",
     "origin":                "seed",      // seed | user | import
     "editedLocally":         false,
     "createdAt":             "2026-09-10T00:00:00Z",
     "updatedAt":             "2026-09-10T00:00:00Z"
   },
 
-  // ── §5.7 / §22 FIELD-COLLECTION METADATA — READY, null in the MVP ─────────
+  // ── §5.7 / §22 FIELD-COLLECTION METADATA – READY, null in the MVP ─────────
   "_collection": null,                    // shape in §2.9
 
-  // ── §2.4 HISTORY — keyed by field name, ascending by observedAt ───────────
+  // ── §2.4 HISTORY – keyed by field name, ascending by observedAt ───────────
   "_history": {
     "askingRent": [
       { "value": 42, "observedAt": "2026-03-01", "recordedAt": "2026-03-04T09:00:00Z",
@@ -279,7 +279,7 @@ Annotations use `//` and are **not valid JSON** — they are removed in the real
 }
 ```
 
-A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`, one of the 16 priced records):
+A real seed record, for contrast – same keys, honest emptiness (`Gross Plaza`, one of the 16 priced records):
 
 ```jsonc
 {
@@ -324,13 +324,13 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 
 | Field | Type | Unit | Required | Enum / pattern | Notes |
 |---|---|---|---|---|---|
-| `id` | string | — | **yes** | `^(BC\|DEMO\|LOC)-[A-Za-z0-9]+$` | Immutable. Seed uses `master_id` verbatim (`BC-xxxxxxxxxxxx`, 148 unique, verified). Demo uses `DEMO-NNN`. Records created in the editor use `LOC-` + 12 hex chars from `crypto.randomUUID()`. **The prefix is not the classifier — `recordType` is.** |
-| `recordType` | enum | — | **yes** | `VERIFIED_SOURCE` \| `DEMO` | No default. A record without it is **rejected at load**, not defaulted (§8). Immutable after creation. |
-| `name` | string | — | **yes** | non-empty after trim | 148/148. Display name as the source gave it; 12 are Cyrillic. Homoglyph folding on search only, never on the stored value (`01-product-spec.md` R6). |
-| `altNames` | string[] | — | key required | — | `[]` = none recorded. Searched alongside `name`. |
-| `status` | enum\|null | — | key required | `Operating` \| `Under construction` \| `Planned` \| `Renovation` | **0/148 in the seed.** `null` = not recorded; the UI renders "Not recorded". `Unknown` is never stored (§0.4). |
-| `address` | string\|null | — | key required | — | 109/148. Free text; 100 of 109 are Cyrillic. No structured street/house split in the MVP. |
-| `districtKey` | enum\|null | — | key required | one of the 12 keys in §6.1 | **Polygon-derived and authoritative** (§6.2). `null` only when the point falls outside all 12 polygons (0 seed records). |
+| `id` | string | – | **yes** | `^(BC\|DEMO\|LOC)-[A-Za-z0-9]+$` | Immutable. Seed uses `master_id` verbatim (`BC-xxxxxxxxxxxx`, 148 unique, verified). Demo uses `DEMO-NNN`. Records created in the editor use `LOC-` + 12 hex chars from `crypto.randomUUID()`. **The prefix is not the classifier – `recordType` is.** |
+| `recordType` | enum | – | **yes** | `VERIFIED_SOURCE` \| `DEMO` | No default. A record without it is **rejected at load**, not defaulted (§8). Immutable after creation. |
+| `name` | string | – | **yes** | non-empty after trim | 148/148. Display name as the source gave it; 12 are Cyrillic. Homoglyph folding on search only, never on the stored value (`01-product-spec.md` R6). |
+| `altNames` | string[] | – | key required | – | `[]` = none recorded. Searched alongside `name`. |
+| `status` | enum\|null | – | key required | `Operating` \| `Under construction` \| `Planned` \| `Renovation` | **0/148 in the seed.** `null` = not recorded; the UI renders "Not recorded". `Unknown` is never stored (§0.4). |
+| `address` | string\|null | – | key required | – | 109/148. Free text; 100 of 109 are Cyrillic. No structured street/house split in the MVP. |
+| `districtKey` | enum\|null | – | key required | one of the 12 keys in §6.1 | **Polygon-derived and authoritative** (§6.2). `null` only when the point falls outside all 12 polygons (0 seed records). |
 | `lat` | number | deg WGS-84 | **yes** | −90…90; Tashkent gate 41.15–41.42 | 6 dp. 148/148. |
 | `lng` | number | deg WGS-84 | **yes** | −180…180; Tashkent gate 69.10–69.45 | 6 dp. 148/148. |
 
@@ -338,36 +338,36 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 
 | Field | Type | Unit | Required | Enum | Notes |
 |---|---|---|---|---|---|
-| `officeClass` | enum\|null | — | key required | `A+` `A` `B+` `B` `C` | 16/148 (A 8, A+ 4, B 3, B+ 1). §5.2: "do not force classification where evidence is insufficient" → `null`, never `C` as a fallback. Seed classes come from a directory listing, so their evidence confidence is `Low` (§3.4). |
+| `officeClass` | enum\|null | – | key required | `A+` `A` `B+` `B` `C` | 16/148 (A 8, A+ 4, B 3, B+ 1). §5.2: "do not force classification where evidence is insufficient" → `null`, never `C` as a fallback. Seed classes come from a directory listing, so their evidence confidence is `Low` (§3.4). |
 | `yearOpened` | int\|null | year | key required | 1900 … currentYear+10 | 0/148. |
 | `yearRenovated` | int\|null | year | key required | ≥ `yearOpened` | 0/148. |
 | `floors` | int\|null | floors | key required | 1 … 120 | 0/148. Above-ground office floors; basements excluded. |
 | `gba` | number\|null | m² | key required | > 0 | 0/148. Gross Building Area. |
 | `gla` | number\|null | m² | key required | > 0, ≤ `gba` | 0/148. Gross Lettable Area. |
 | `typicalFloorPlate` | number\|null | m² | key required | > 0 | 0/148. |
-| `parkingSpaces` | int\|null | spaces | key required | ≥ 0 | 0/148. **`0` is a value** — a building with no parking. |
+| `parkingSpaces` | int\|null | spaces | key required | ≥ 0 | 0/148. **`0` is a value** – a building with no parking. |
 | `parkingRatio` | number\|null | spaces per **100 m² GLA** | key required | 0 … 20 | DERIVED when null and both `parkingSpaces` and `gla` are known: `parkingSpaces / gla * 100`. Stored only when the source states a ratio directly. |
-| `developer` | string\|null | — | key required | — | 0/148. |
-| `owner` | string\|null | — | key required | — | 0/148. Internal-only in External role (§60). |
-| `operator` | string\|null | — | key required | — | 0/148. Management company. |
+| `developer` | string\|null | – | key required | – | 0/148. |
+| `owner` | string\|null | – | key required | – | 0/148. Internal-only in External role (§60). |
+| `operator` | string\|null | – | key required | – | 0/148. Management company. |
 
 ### 2.4 §5.3 Commercial
 
 | Field | Type | Unit | Required | Enum | Notes |
 |---|---|---|---|---|---|
 | `askingRent` | number\|null | per `currency`+`rentUnit` | key required | ≥ 0 | 16/148, range 19.9–44.7. Headline asking rent, **not** achieved rent. `0` = confirmed free/peppercorn, `null` = unknown (§36). |
-| `currency` | enum\|null | — | key required | `USD` `UZS` `EUR` | Applies to `askingRent` **and** `serviceCharge`. Non-null whenever either is non-null. |
-| `rentUnit` | enum\|null | — | key required | `m2/month` `m2/year` `unit/month` | Non-null whenever `askingRent` is non-null. |
-| `rentUnitAssumed` | boolean | — | key required | — | **`true` for all 16 seed rents.** The source never states currency or unit; USD/m²/month is an external convention. Every rent display carries the footnote "Unit assumed USD/m²/month; not stated by the source" (`01-product-spec.md` R9). Open question O-3. |
+| `currency` | enum\|null | – | key required | `USD` `UZS` `EUR` | Applies to `askingRent` **and** `serviceCharge`. Non-null whenever either is non-null. |
+| `rentUnit` | enum\|null | – | key required | `m2/month` `m2/year` `unit/month` | Non-null whenever `askingRent` is non-null. |
+| `rentUnitAssumed` | boolean | – | key required | – | **`true` for all 16 seed rents.** The source never states currency or unit; USD/m²/month is an external convention. Every rent display carries the footnote "Unit assumed USD/m²/month; not stated by the source" (`01-product-spec.md` R9). Open question O-3. |
 | `serviceCharge` | number\|null | per `currency`+`serviceChargeUnit` | key required | ≥ 0 | 0/148. |
-| `serviceChargeUnit` | enum\|null | — | key required | same enum as `rentUnit` | Non-null whenever `serviceCharge` is non-null. |
-| `vatTreatment` | enum\|null | — | key required | `vat_excluded` `vat_included` `vat_exempt` | 0/148. |
+| `serviceChargeUnit` | enum\|null | – | key required | same enum as `rentUnit` | Non-null whenever `serviceCharge` is non-null. |
+| `vatTreatment` | enum\|null | – | key required | `vat_excluded` `vat_included` `vat_exempt` | 0/148. |
 | `occupancyPct` | number\|null | % | key required | 0 … 100 | 0/148. `0` = confirmed empty building. |
 | `vacancyPct` | number\|null | % | key required | 0 … 100 | 0/148. `0` = confirmed fully let. Cross-check V-C3 (§9.1). |
 | `availableArea` | number\|null | m² | key required | ≥ 0, ≤ `gla` | 0/148. `0` = confirmed nothing available. |
 | `minUnit` | number\|null | m² | key required | > 0, ≤ `availableArea` when both known | 0/148. Smallest lettable unit. |
-| `leaseTerms` | string\|null | — | key required | — | 0/148. Free text in the MVP. |
-| `leaseTermsStruct` | object\|null | — | key required | see §2.6 | **READY.** Always `null` in the MVP. |
+| `leaseTerms` | string\|null | – | key required | – | 0/148. Free text in the MVP. |
+| `leaseTermsStruct` | object\|null | – | key required | see §2.6 | **READY.** Always `null` in the MVP. |
 
 ### 2.5 §5.4 Tenants
 
@@ -375,13 +375,13 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 
 | Tenant field | Type | Unit | Required | Enum | Notes |
 |---|---|---|---|---|---|
-| `name` | string | — | **yes** | non-empty | Searched by global search (§18). |
-| `industry` | enum\|null | — | key required | §5.7 tenant industry enum | `null` = not categorised. |
+| `name` | string | – | **yes** | non-empty | Searched by global search (§18). |
+| `industry` | enum\|null | – | key required | §5.7 tenant industry enum | `null` = not categorised. |
 | `area` | number\|null | m² | key required | > 0 | Occupied area. |
-| `floor` | string\|null | — | key required | — | String, not int — real values are ranges (`"3-6"`) and mixed (`"G, 2"`). |
-| `since` | DateOnly\|null | — | key required | — | **READY.** Lease commencement. |
-| `leaseEnd` | DateOnly\|null | — | key required | — | **READY.** Lease expiry — the field that makes a future rent-roll / expiry-profile analysis possible. |
-| `sourceId` | string\|null | — | key required | an `id` in `sources[]` | Per-tenant provenance. |
+| `floor` | string\|null | – | key required | – | String, not int – real values are ranges (`"3-6"`) and mixed (`"G, 2"`). |
+| `since` | DateOnly\|null | – | key required | – | **READY.** Lease commencement. |
+| `leaseEnd` | DateOnly\|null | – | key required | – | **READY.** Lease expiry – the field that makes a future rent-roll / expiry-profile analysis possible. |
+| `sourceId` | string\|null | – | key required | an `id` in `sources[]` | Per-tenant provenance. |
 
 | `tenantsStatus` | Meaning | Analytics effect |
 |---|---|---|
@@ -396,7 +396,7 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 `tenantsStatus`. Seed: `[]` + `not_collected` for all 148.
 
 ```jsonc
-// leaseTermsStruct — READY, null in the MVP. Defined here so a future importer has a target shape.
+// leaseTermsStruct – READY, null in the MVP. Defined here so a future importer has a target shape.
 {
   "minTermMonths":     60,
   "maxTermMonths":     120,
@@ -410,42 +410,42 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 }
 ```
 
-### 2.7 `_evidence` — see §3
+### 2.7 `_evidence` – see §3
 
-### 2.8 `_meta` — record-level provenance and QC
+### 2.8 `_meta` – record-level provenance and QC
 
 | Field | Type | Required | Enum | Notes |
 |---|---|---|---|---|
 | `recordConfidence` | enum | yes | `High` `Medium` `Low` `Unknown` | Roll-up, **derived at build** by the rule in §3.8, not hand-set. |
-| `sourceConfidenceLetter` | string\|null | yes | — | The provider's own grade. `"B"` for all 148. **Displayed with its scheme named, never interpreted, never filtered on** (D7). |
+| `sourceConfidenceLetter` | string\|null | yes | – | The provider's own grade. `"B"` for all 148. **Displayed with its scheme named, never interpreted, never filtered on** (D7). |
 | `sourceCount` | int | yes | ≥ 0 | 1 for all 148 seed records; 0 for demo. |
-| `sourceIds` | string[] | yes | ids in `sources[]` | New in this spec — makes §0.5 fact 1 representable. `["SRC-2GIS"]` (103), `["SRC-GOLDENPAGES"]` (26), `["SRC-GOOGLEMAPS"]` (19). |
+| `sourceIds` | string[] | yes | ids in `sources[]` | New in this spec – makes §0.5 fact 1 representable. `["SRC-2GIS"]` (103), `["SRC-GOLDENPAGES"]` (26), `["SRC-GOOGLEMAPS"]` (19). |
 | `coordinateAccuracy` | enum | yes | `field_gps` `single` `approximate` `synthetic` `unknown` | 109 `single` + 39 `single` (normalised from free text, §0.5 fact 2). |
 | `verificationMode` | enum | yes | `desk` `field` `phone` `document` `synthetic` `none` | 148 `desk` (from `online`). |
-| `collectedAt` | DateOnly | yes | — | `2026-07-19` for all 148. |
-| `lastVerifiedAt` | DateOnly\|null | yes | — | `null` = never verified → the §19 chip reads "Not verified". Seed: `2026-07-19` (desk-verified at collection). |
-| `nextRefreshAt` | DateOnly\|null | yes | — | Record-level **override**. `null` = derive (§4.3). Nothing in the MVP writes it. |
-| `seedObjectId` | string\|null | yes | — | 109 present, 39 `null`. |
+| `collectedAt` | DateOnly | yes | – | `2026-07-19` for all 148. |
+| `lastVerifiedAt` | DateOnly\|null | yes | – | `null` = never verified → the §19 chip reads "Not verified". Seed: `2026-07-19` (desk-verified at collection). |
+| `nextRefreshAt` | DateOnly\|null | yes | – | Record-level **override**. `null` = derive (§4.3). Nothing in the MVP writes it. |
+| `seedObjectId` | string\|null | yes | – | 109 present, 39 `null`. |
 | `seedBatch` | enum\|null | yes | `primary` `supplementary` | Preserves the real two-batch structure found in §0.5 fact 2. |
-| `possibleDuplicate` | boolean | yes | — | `true` for 12. |
-| `duplicateGroupId` | string\|null | yes | — | `DUP-COORD-0022`…`0027`. |
+| `possibleDuplicate` | boolean | yes | – | `true` for 12. |
+| `duplicateGroupId` | string\|null | yes | – | `DUP-COORD-0022`…`0027`. |
 | `duplicateVerdict` | enum | yes | `undecided` `same_building` `different_buildings` | Defaults `undecided`. **Never auto-merge** (D9). |
-| `districtSourceLabel` | string\|null | yes | — | The provider's claim verbatim, incl. `"Алмазарский район"`. |
+| `districtSourceLabel` | string\|null | yes | – | The provider's claim verbatim, incl. `"Алмазарский район"`. |
 | `districtSourceKey` | enum\|null | yes | 12 keys | That claim canonicalised via §6.1. |
 | `districtResolvedBy` | enum | yes | `polygon` `source_label` `manual` `synthetic` `outside` | `polygon` for 148. |
-| `districtConflict` | boolean | yes | — | `true` for the 10 records in §6.3. |
+| `districtConflict` | boolean | yes | – | `true` for the 10 records in §6.3. |
 | `entityReview` | enum | yes | `confirmed_bc` `suspected_non_bc` `unreviewed` | Default `unreviewed`; 7 seed records pre-flagged `suspected_non_bc` (D10, §9.6). |
 | `qcStatus` | enum | yes | `draft` `needs_check` `in_review` `accepted` `rejected` | Seed: `needs_check` (single source, desk-only, never field-verified). |
 | `qcFlags` | string[] | yes | §5.10 | `[]` when clean. |
-| `sourceNote` | string\|null | yes | — | The provider's note. Identical Russian string on all 148 → zero information; render once in the Data Quality section, not per field. |
-| `internalNote` | string\|null | yes | — | Hidden in External role (§60). |
-| `demoPurpose` | string\|null | yes | — | Non-null only on DEMO records; states which code path the fixture exercises. |
-| `origin` | enum | yes | `seed` `user` `import` | `user` records show the amber "Added locally — not verified" badge (`01-product-spec.md` §3.1 item 28). |
-| `editedLocally` | boolean | yes | — | `true` once any field is changed in the editor. Survives export. |
-| `createdAt` | Timestamp | yes | — | |
-| `updatedAt` | Timestamp | yes | — | Set on every successful `upsert`. |
+| `sourceNote` | string\|null | yes | – | The provider's note. Identical Russian string on all 148 → zero information; render once in the Data Quality section, not per field. |
+| `internalNote` | string\|null | yes | – | Hidden in External role (§60). |
+| `demoPurpose` | string\|null | yes | – | Non-null only on DEMO records; states which code path the fixture exercises. |
+| `origin` | enum | yes | `seed` `user` `import` | `user` records show the amber "Added locally – not verified" badge (`01-product-spec.md` §3.1 item 28). |
+| `editedLocally` | boolean | yes | – | `true` once any field is changed in the editor. Survives export. |
+| `createdAt` | Timestamp | yes | – | |
+| `updatedAt` | Timestamp | yes | – | Set on every successful `upsert`. |
 
-### 2.9 `_collection` — field-collection metadata (§5.7, §22) — **READY**
+### 2.9 `_collection` – field-collection metadata (§5.7, §22) – **READY**
 
 `null` in every MVP record. Shape, so a future collector app and a future importer agree:
 
@@ -469,10 +469,10 @@ A real seed record, for contrast — same keys, honest emptiness (`Gross Plaza`,
 ```
 
 The MVP renders a Data-Quality line "Field collection: not started" whenever `_collection === null`, and the
-verification queue (§50) produces the *ranked list* a future task generator would consume — but creating a task
-returns "Requires confirmation and a backend — not available in the prototype".
+verification queue (§50) produces the *ranked list* a future task generator would consume – but creating a task
+returns "Requires confirmation and a backend – not available in the prototype".
 
-### 2.10 `_derived` — **DERIVED**, never stored, never exported
+### 2.10 `_derived` – **DERIVED**, never stored, never exported
 
 Computed once per record by `GEO.schema.derive(record, ctx)` after load and after every `upsert`. Export calls
 `GEO.dataset.strip(record)` which deletes `_derived`; the round-trip test in §7.6 fails if any `_derived` key
@@ -516,9 +516,9 @@ tier 1  envelope.sources[]       →  the source instrument itself (licence, ret
 |---|---|
 | **Record-level source list only** | Rejected. §2.3 and §5.6 both specify provenance *per relevant field*, and §37 makes "source history" the data moat. Record-level cannot express the seed's actual situation: `name`/`lat`/`lng` are directory facts (Medium), `districtKey` is computed from an official 2024 boundary (High), `officeClass` and `askingRent` are advertising claims (Low). Collapsing those to one record confidence throws away the only interesting provenance the dataset has. |
 | **Full Evidence object on every field** | Rejected on cost, not on principle. ~51 000 near-identical objects, ~6 MB, over the localStorage quota (§1). It also makes the Data Editor slower to reason about than the data justifies at 148 records. |
-| **Three-tier hybrid (adopted)** | Full §2.3 semantics at record-level storage cost. The seed needs **8 profiles** to describe 148 records precisely. The editor upgrades a reference to an inline object the moment a human touches a field — which is exactly `02-brief-critique.md` C13's resolution, and exactly what §21 exists to test. |
+| **Three-tier hybrid (adopted)** | Full §2.3 semantics at record-level storage cost. The seed needs **8 profiles** to describe 148 records precisely. The editor upgrades a reference to an inline object the moment a human touches a field – which is exactly `02-brief-critique.md` C13's resolution, and exactly what §21 exists to test. |
 
-### 3.3 `sources[]` — tier 1 (the source instrument)
+### 3.3 `sources[]` – tier 1 (the source instrument)
 
 | Field | Type | Required | Notes |
 |---|---|---|---|
@@ -526,12 +526,12 @@ tier 1  envelope.sources[]       →  the source instrument itself (licence, ret
 | `name` | string | yes | Human-readable instrument name. |
 | `method` | enum | yes | §5.4 collection-method enum. |
 | `retrievedAt` | DateOnly | yes | |
-| `recordCount` | int | yes | Records attributed to this source in this dataset. Must equal the count of records whose `_meta.sourceIds` contains this id — validation V-E2. |
-| `url` | string\|null | yes | `null` for all seed sources — no per-record source URLs exist (0/148 `sourceUrl`). |
+| `recordCount` | int | yes | Records attributed to this source in this dataset. Must equal the count of records whose `_meta.sourceIds` contains this id – validation V-E2. |
+| `url` | string\|null | yes | `null` for all seed sources – no per-record source URLs exist (0/148 `sourceUrl`). |
 | `licenceReview` | enum | yes | `required` \| `cleared` \| `n_a`. `required` for every seed source: commercial redistribution of directory data is unresolved. Open question O-1. |
 | `note` | string\|null | yes | |
 
-**Required seed content (corrects the current artefact — §0.5 fact 1):**
+**Required seed content (corrects the current artefact – §0.5 fact 1):**
 
 | id | name | method | retrievedAt | recordCount | licenceReview |
 |---|---|---|---|---|---|
@@ -539,9 +539,9 @@ tier 1  envelope.sources[]       →  the source instrument itself (licence, ret
 | `SRC-GOLDENPAGES` | GoldenPages directory listing (CASE Tashkent Geo Master seed) | `map_service` | 2026-07-19 | **26** | `required` |
 | `SRC-GOOGLEMAPS` | Google Maps listing (CASE Tashkent Geo Master seed) | `map_service` | 2026-07-19 | **19** | `required` |
 | `SRC-CITY-BOUNDARY` | Toshkent shahar chegarasi (2024) | `public_registry` | 2024-01-01 | 12 | `required` |
-| `SRC-DEMO` | Synthetic demo record — not market data | `other` | 2026-09-10 | 8 | `n_a` |
+| `SRC-DEMO` | Synthetic demo record – not market data | `other` | 2026-09-10 | 8 | `n_a` |
 
-### 3.4 `evidenceProfiles{}` — the reusable Evidence template
+### 3.4 `evidenceProfiles{}` – the reusable Evidence template
 
 A profile is an Evidence object without `value` and without per-record dates that vary. Required seed profiles:
 
@@ -556,31 +556,31 @@ A profile is an Evidence object without `value` and without per-record dates tha
 | `DEMO-HIGH` / `DEMO-MEDIUM` / `DEMO-LOW` / `DEMO-UNKNOWN` | `SRC-DEMO` | `other` | as named | `accepted` | any demo field | 8 |
 
 `GEOMETRY` is `High` because the value is **reproducible from the record's own coordinates** against an official
-boundary — it is a computation, not a third-party claim. That is the only `High` confidence in the real dataset,
+boundary – it is a computation, not a third-party claim. That is the only `High` confidence in the real dataset,
 and it is honest.
 
-### 3.5 The Evidence object — full key table
+### 3.5 The Evidence object – full key table
 
 Returned by `GEO.evidence.resolve(record, field)`. Every key in §2.3 and §5.6 is present.
 
 | Key | Type | Required | Enum | Stored? | Notes |
 |---|---|---|---|---|---|
-| `value` | any | yes in the **resolved** object | — | **NO — projected** | Copied from `record[field]` at resolve time. Storing it inside `_evidence` too would create two copies that drift apart on the first edit. The record field is the single source of truth; the resolver completes the §2.3 contract. In `_history` entries `value` **is** stored — there the past value is the entire point. |
-| `source` | string | yes | — | via profile | Human-readable instrument name. |
+| `value` | any | yes in the **resolved** object | – | **NO – projected** | Copied from `record[field]` at resolve time. Storing it inside `_evidence` too would create two copies that drift apart on the first edit. The record field is the single source of truth; the resolver completes the §2.3 contract. In `_history` entries `value` **is** stored – there the past value is the entire point. |
+| `source` | string | yes | – | via profile | Human-readable instrument name. |
 | `sourceId` | string\|null | yes | id in `sources[]` | yes | Machine link to tier 1. |
-| `sourceUrl` | string\|null | yes | URL | yes | `null` for all 148 — the "Open source" action is disabled with the reason "No source URL recorded" (§13). |
-| `collectedAt` | DateOnly\|null | yes | — | yes | Falls back to `_meta.collectedAt`. |
-| `lastVerifiedAt` | DateOnly\|null | yes | — | yes | Falls back to `_meta.lastVerifiedAt`. `null` = never verified. |
+| `sourceUrl` | string\|null | yes | URL | yes | `null` for all 148 – the "Open source" action is disabled with the reason "No source URL recorded" (§13). |
+| `collectedAt` | DateOnly\|null | yes | – | yes | Falls back to `_meta.collectedAt`. |
+| `lastVerifiedAt` | DateOnly\|null | yes | – | yes | Falls back to `_meta.lastVerifiedAt`. `null` = never verified. |
 | `method` | enum\|null | yes | §5.4 | yes | |
 | `confidence` | enum | yes | `High` `Medium` `Low` `Unknown` | yes | §2.3 vocabulary, exactly four values. |
-| `note` | string\|null | yes | — | yes | Why this value should or should not be trusted. |
-| `collectorId` | string\|null | yes | — | yes | READY — `null` in the MVP. |
-| `reviewer` | string\|null | yes | — | yes | READY — `null` on real records. |
+| `note` | string\|null | yes | – | yes | Why this value should or should not be trusted. |
+| `collectorId` | string\|null | yes | – | yes | READY – `null` in the MVP. |
+| `reviewer` | string\|null | yes | – | yes | READY – `null` on real records. |
 | `qcStatus` | enum | yes | `draft` `needs_check` `in_review` `accepted` `rejected` | yes | |
-| `nextRefreshAt` | DateOnly\|null | yes | — | optional override | `null` in storage = **derive** from the cadence policy (§4.3). The resolved object always carries a concrete date or `null` when the field has no value. |
+| `nextRefreshAt` | DateOnly\|null | yes | – | optional override | `null` in storage = **derive** from the cadence policy (§4.3). The resolved object always carries a concrete date or `null` when the field has no value. |
 | `_resolvedFrom` | enum | resolved only | `inline` `profile` `record_meta` `none` | no | Lets the UI say "inherited from record" honestly instead of implying a field-level check that never happened. |
 
-### 3.6 Worked example A — a KNOWN value with LOW confidence
+### 3.6 Worked example A – a KNOWN value with LOW confidence
 
 This is the single most common real case in the dataset: 16 records have an advertised asking rent that nobody has
 verified with a landlord.
@@ -613,29 +613,29 @@ verified with a landlord.
 }
 ```
 
-**How the UI must treat it.** The value is shown — `Low` confidence is not a reason to hide a value (§2.7: disclose,
+**How the UI must treat it.** The value is shown – `Low` confidence is not a reason to hide a value (§2.7: disclose,
 do not hide). It is shown **with** a `Low` chip, the source name, the note on hover, and the assumed-unit footnote.
 It **is** included in the mean/median rent (a Low-confidence value is still an observation), and doc `05` must expose
 a confidence filter so a user can recompute over `High + Medium` only. It must **never** be silently upgraded.
 
-### 3.7 Worked example B — a genuinely UNKNOWN value
+### 3.7 Worked example B – a genuinely UNKNOWN value
 
 ```jsonc
 "gla": null,
 "_evidence": { /* NO "gla" key at all */ }
 ```
 
-`GEO.evidence.resolve(rec, 'gla')` returns **`null`** — not an object with `value: null`.
+`GEO.evidence.resolve(rec, 'gla')` returns **`null`** – not an object with `value: null`.
 
 **Rules, absolute:**
 
 1. A field with no value has **no `_evidence` key**. Absence of evidence is represented by absence of the evidence
-   entry, never by an evidence object asserting `confidence: "Unknown"` over a null value — that would be a claim
+   entry, never by an evidence object asserting `confidence: "Unknown"` over a null value – that would be a claim
    about a non-existent observation.
 2. A field with a value **must** have an `_evidence` key. The inverse is validation error **V-E1 (BLOCK)**.
-3. The UI renders "Not recorded" and, in the Data Quality section, "No source — never collected".
+3. The UI renders "Not recorded" and, in the Data Quality section, "No source – never collected".
 4. Every aggregate skips it via `hasValue`. It contributes to the denominator `M` (all matching records) and never
-   to the numerator `N` (records with a verified value) — §14, §36.
+   to the numerator `N` (records with a verified value) – §14, §36.
 5. `confidence: "Unknown"` means something different and narrower: **a value exists but its reliability has not been
    assessed**. In the seed this occurs only on `DEMO-006`. Do not use it for missing data.
 
@@ -644,8 +644,8 @@ a confidence filter so a user can recompute over `High + Medium` only. It must *
 | Never collected | `null` | absent | `null` | "Not recorded" |
 | Collected, reliability unknown | `12000` | present, `confidence: "Unknown"` | object | value + grey "Unknown" chip |
 | Collected, low confidence | `34.8` | present, `confidence: "Low"` | object | value + amber "Low" chip |
-| Confirmed zero | `0` | present, `confidence: "High"` | object | **"0"** + green chip — never "Not recorded" |
-| Value present, evidence missing | `12000` | absent | synthesised from `_meta`, `confidence: "Unknown"`, `_resolvedFrom: "record_meta"` | value + "Source not recorded" — and V-E1 fires |
+| Confirmed zero | `0` | present, `confidence: "High"` | object | **"0"** + green chip – never "Not recorded" |
+| Value present, evidence missing | `12000` | absent | synthesised from `_meta`, `confidence: "Unknown"`, `_resolvedFrom: "record_meta"` | value + "Source not recorded" – and V-E1 fires |
 
 ### 3.8 Resolution algorithm and the confidence roll-up
 
@@ -685,7 +685,7 @@ GEO.evidence.resolve = function (rec, field, env) {
 };
 ```
 
-**`_meta.recordConfidence` roll-up — computed, never hand-set:**
+**`_meta.recordConfidence` roll-up – computed, never hand-set:**
 
 ```js
 // Weakest link across the CRITICAL fields that actually have a value.
@@ -706,16 +706,16 @@ GEO.evidence.rollUp = function (rec, env) {
 
 At seed this yields `Medium` for the 132 records with no critical value (identification evidence) and **`Low`** for
 the 16 records whose `officeClass` and `askingRent` are directory claims. That is a more honest and more *useful*
-distribution than the constant `Medium` the current artefact emits — it gives the §11 confidence filter and the §42
+distribution than the constant `Medium` the current artefact emits – it gives the §11 confidence filter and the §42
 confidence layer real variance for the first time, without inventing anything.
 
 ### 3.9 What the Data Editor writes on an edit (§21)
 
 Editing a field performs exactly this patch. It is the mechanism that turns record-level provenance into
-field-level provenance over time — the §37 data moat, in miniature.
+field-level provenance over time – the §37 data moat, in miniature.
 
 ```js
-// src/13-editor.js — on save of one field
+// src/13-editor.js – on save of one field
 function applyFieldEdit(rec, field, newValue, form, env) {
   var prev = rec[field];
 
@@ -733,7 +733,7 @@ function applyFieldEdit(rec, field, newValue, form, env) {
   // 2. the value
   rec[field] = GEO.util.hasValue(newValue) ? newValue : null;      // "clear" writes null, never ""
 
-  // 3. evidence: a profile REFERENCE is upgraded to an INLINE object. It is never edited in place —
+  // 3. evidence: a profile REFERENCE is upgraded to an INLINE object. It is never edited in place –
   //    the profile is shared by up to 103 records.
   if (rec[field] === null) { delete rec._evidence[field]; }         // rule 1 of §3.7
   else {
@@ -787,12 +787,12 @@ the backend is built.
 | Container | Object keyed by field name. `{}` when no history. Only fields listed in §4.2 as `fast` or `slow` may have history; `stable` fields keep history too (a corrected coordinate matters) but are expected to be rare. |
 | Ordering | Ascending by `observedAt`. Sorted on write, asserted on import. |
 | Current value | Lives in the record field, **not** in `_history`. `_history` holds superseded observations only. An entry with `supersededAt: null` may exist as a mirror of the current value when a future importer writes full series; the MVP never writes one. |
-| `value` | Stored here (unlike `_evidence`, §3.5) — the past value exists nowhere else. |
+| `value` | Stored here (unlike `_evidence`, §3.5) – the past value exists nowhere else. |
 | `observedAt` vs `recordedAt` | `observedAt` = when the value was true / was quoted. `recordedAt` = when the platform learned it. They differ, and a future rent index needs both. |
 | MVP behaviour | **NOW:** the editor appends one entry per overwritten non-null field (§3.9 step 1). **READY:** nothing else writes history; no chart reads it; no time-series UI exists. |
 | Round-trip | `_history` exports and imports unchanged. |
 
-> **Reconciliation.** `01-product-spec.md` §3.2 A5 describes `history: []` — a flat array, never written. This
+> **Reconciliation.** `01-product-spec.md` §3.2 A5 describes `history: []` – a flat array, never written. This
 > document supersedes it on both points: (a) the shape is a **field-keyed object**, which is what the already-built
 > `data/seed.json` emits (`"_history": {}`) and what per-field cadence (§4.2) requires; (b) the editor **does**
 > append on overwrite, because it costs eight lines, it makes §2.4 testable inside §21's workflow, and without it
@@ -808,13 +808,13 @@ the backend is built.
 | `dueSoonDays` | **14 days** | Warning window before `nextRefreshAt`. |
 
 > **Why 90 and not 60.** The currently generated `data/seed.json` sets `refreshDays.fast = 60`. With every seed
-> record verified on 2026-07-19, a 60-day window makes all 16 priced records go stale on **2026-09-17** — the day
+> record verified on 2026-07-19, a 60-day window makes all 16 priced records go stale on **2026-09-17** – the day
 > after this document was written. Every QA number in `01-product-spec.md` would silently change overnight with no
 > code change. 90 days moves the crossover to **2026-10-17**, matches the "90-day commercial refresh" that
 > `01-product-spec.md` C6 already assumes, and is the defensible CRE answer. **Required change R2 (§11.1).**
 > QA must still express staleness expectations *relative to `generatedAt`*, never as absolute counts (§4.7).
 
-**Per-field class — complete table. Every field in the record is assigned.**
+**Per-field class – complete table. Every field in the record is assigned.**
 
 | Class | Fields |
 |---|---|
@@ -825,7 +825,7 @@ the backend is built.
 `status` is `fast` deliberately: a building moves from `Under construction` to `Operating` on a date that matters
 commercially more than any other single fact in the record.
 
-### 4.3 `nextRefreshAt` — derived, not stored
+### 4.3 `nextRefreshAt` – derived, not stored
 
 ```js
 GEO.evidence.nextRefreshAt = function (rec, field, env) {
@@ -840,7 +840,7 @@ GEO.evidence.nextRefreshAt = function (rec, field, env) {
 };
 ```
 
-### 4.4 The staleness predicate — exact
+### 4.4 The staleness predicate – exact
 
 ```js
 GEO.quality.isFieldStale = function (rec, field, env, today) {
@@ -873,11 +873,11 @@ GEO.quality.recordStaleness = function (rec, env, today) {
 ```
 
 **In one sentence: a record is stale when at least one field that *has a value* is past that field's own
-`lastVerifiedAt + refreshDays[class]`.** A record that is merely *empty* is **not** stale — it is *incomplete*,
+`lastVerifiedAt + refreshDays[class]`.** A record that is merely *empty* is **not** stale – it is *incomplete*,
 which is a different indicator with a different fix (collect, not re-verify). Conflating the two would put all 148
 records in the stale bucket permanently and teach a tester nothing (`02-brief-critique.md` D8).
 
-### 4.5 `nextActionAt` / `nextActionType` — what the verification queue ranks on
+### 4.5 `nextActionAt` / `nextActionType` – what the verification queue ranks on
 
 ```js
 GEO.quality.nextAction = function (rec, env, today) {
@@ -906,22 +906,22 @@ priority = (100 − completeness)
 clamped to 0…200
 ```
 
-### 4.7 Seed staleness — the exact, date-dependent truth
+### 4.7 Seed staleness – the exact, date-dependent truth
 
 With `fast = 90`, all seed `lastVerifiedAt = 2026-07-19`, and **today = 2026-09-16**:
 
 | Cohort | Fields with values | Due | State today |
 |---|---|---|---|
-| 132 VERIFIED_SOURCE without class/rent | `name` `lat` `lng` `districtKey` (+`address` for 93) — all `stable` | 2029-07-18 | `fresh` |
+| 132 VERIFIED_SOURCE without class/rent | `name` `lat` `lng` `districtKey` (+`address` for 93) – all `stable` | 2029-07-18 | `fresh` |
 | 16 VERIFIED_SOURCE with class + rent | + `officeClass` (slow → 2027-07-19), `askingRent` (fast → **2026-10-17**) | 2026-10-17 | `fresh` |
 | DEMO-004 (`lastVerifiedAt` 2025-11-02, has `occupancyPct`) | fast → 2026-01-31 | overdue | **`stale`** |
 | DEMO-006 (`lastVerifiedAt` 2026-06-15, has `status: Planned`) | fast → 2026-09-13 | overdue | **`stale`** |
-| DEMO-001/002/003/005/007/008 | — | future | `fresh` |
+| DEMO-001/002/003/005/007/008 | – | future | `fresh` |
 
 **0 of 148 real records are stale today, and that is the honest answer.** The UI legend must say so:
 "All 148 records share one collection date (19 Jul 2026), so staleness cannot currently differentiate them. The
 first real records become due on 17 Oct 2026." A tester creates staleness by editing a `lastVerifiedAt` in the Data
-Editor — which is exactly how §21's workflow is supposed to be exercised. QA assertions are written as
+Editor – which is exactly how §21's workflow is supposed to be exercised. QA assertions are written as
 `generatedAt + N days`, never as "2 stale records".
 
 ---
@@ -939,7 +939,7 @@ Every enum below is exhaustive. An unrecognised token on import is **not** silen
 | `DEMO` | Fictional. Never market evidence, under any circumstance (§8). |
 
 No third value. A record added by a user in the editor is `VERIFIED_SOURCE` with `_meta.origin: "user"` and
-`_meta.qcStatus: "draft"` — see §8.2 for why that is safe.
+`_meta.qcStatus: "draft"` – see §8.2 for why that is safe.
 
 ### 5.2 `status` (§5.1)
 
@@ -949,7 +949,7 @@ No third value. A record added by a user in the editor is `VERIFIED_SOURCE` with
 | `Under construction` | On site, not complete. |
 | `Planned` | Announced / permitted, not started. |
 | `Renovation` | Completed but out of service for refurbishment. |
-| — | `null` = not recorded. **`Unknown` is never stored** (§0.4). |
+| – | `null` = not recorded. **`Unknown` is never stored** (§0.4). |
 
 Seed coverage: 0/148. Demo: `Operating` ×5, `Renovation` ×1, `Under construction` ×1, `Planned` ×1.
 
@@ -988,9 +988,9 @@ stored value). Ordinal for "within ±1 class band" competitive-set logic: `A+`=5
 
 `draft` → `needs_check` → `in_review` → `accepted` \| `rejected`. Seed: `needs_check` (148). Demo: `accepted`.
 Editor-created: `draft`. `rejected` records stay in the dataset, are excluded from analytics, and are visible only
-in the Data Quality view — deletion is a separate, explicit action.
+in the Data Quality view – deletion is a separate, explicit action.
 
-### 5.6 `amenities` (§5.5) — storage tokens and the alias map
+### 5.6 `amenities` (§5.5) – storage tokens and the alias map
 
 | Token | EN label | Alias accepted on import |
 |---|---|---|
@@ -1035,7 +1035,7 @@ would otherwise silently disappear from every amenity filter.
 | `hospitality_food` | Hospitality & F&B |
 | `coworking_serviced` | Coworking & serviced office |
 | `other` | Other |
-| — | `null` = not categorised |
+| – | `null` = not categorised |
 
 Chosen for the Tashkent office market specifically: banking and diplomatic/IFI occupiers are separated out because
 they are the two largest identifiable prime-office demand segments in the city, and a future tenant-mix analysis
@@ -1067,7 +1067,7 @@ The 12 keys in §6.1. No other value. `null` only for a point outside all polygo
 
 | Flag | Set when | Seed count |
 |---|---|---|
-| `coord_collision` | Another record sits within 30 m | **15** — the 12 the source flagged, plus `Afrosiab`, `Infinity, компания консалтинга…` and `Ventum plaza` (§9.4) |
+| `coord_collision` | Another record sits within 30 m | **15** – the 12 the source flagged, plus `Afrosiab`, `Infinity, компания консалтинга…` and `Ventum plaza` (§9.4) |
 | `duplicate_name` | Normalised name matches another record, at **any** distance | 2 |
 | `district_conflict` | Polygon ≠ source claim | 10 |
 | `type_uncertain` | Name suggests a non-office entity | 7 |
@@ -1082,7 +1082,7 @@ The 12 keys in §6.1. No other value. `null` only for a point outside all polygo
 
 ## 6. District canonicalisation
 
-### 6.1 The canonical table — all 12 districts, every known spelling
+### 6.1 The canonical table – all 12 districts, every known spelling
 
 Identity is the GeoJSON `name` lower-cased with spaces → hyphens. `bc.json` spellings are **aliases, never
 identities** (`01-product-spec.md` R7).
@@ -1099,8 +1099,8 @@ identities** (`01-product-spec.md` R7).
 | `olmazor` | Olmazor | Алмазар | Олмазор | 3381.29 | `Olmazor`, **`Алмазарский район`** | `Almazar`, `Алмазар`, `Олмазор`, `Almazor` | **4** | 3 |
 | `sergeli` | Sergeli | Сергели | Сергели | 5207.31 | `Sergeli` | `Сергели`, `Сергелийский район`, `Sergeli tumani` | **3** | 3 |
 | `uchtepa` | Uchtepa | Учтепа | Учтепа | 2805.28 | `Uchtepa` | `Учтепа`, `Учтепинский район`, `Uchtepa tumani` | **1** | 1 |
-| `yangihayot` | Yangihayot | Янгихаёт | Янгиҳаёт | 4423.58 | — (no records) | `Yangi Hayot`, `Yangihayot`, `Янгихаёт`, `Янгиҳаёт` | **0** | 0 |
-| `bektemir` | Bektemir | Бектемир | Бектемир | 3260.43 | — (no records) | `Бектемир`, `Бектемирский район` | **0** | 0 |
+| `yangihayot` | Yangihayot | Янгихаёт | Янгиҳаёт | 4423.58 | – (no records) | `Yangi Hayot`, `Yangihayot`, `Янгихаёт`, `Янгиҳаёт` | **0** | 0 |
+| `bektemir` | Bektemir | Бектемир | Бектемир | 3260.43 | – (no records) | `Бектемир`, `Бектемирский район` | **0** | 0 |
 | | | | | | | **Total** | **148** | **148** |
 
 **`Алмазарский район` → `olmazor`** is the explicit requirement; it is one record, and it is why the matcher
@@ -1109,7 +1109,7 @@ must be an alias table rather than a string comparison.
 `yangihayot` and `bektemir` hold a **true zero**, not missing data: they render as `0` in every district chart with
 the note "No business centres recorded" (§36, `02-brief-critique.md` M7).
 
-### 6.2 Resolution algorithm — geometry is authoritative
+### 6.2 Resolution algorithm – geometry is authoritative
 
 ```js
 GEO.district.canonical = function (label) {      // alias table lookup; NEVER fuzzy matching
@@ -1135,7 +1135,7 @@ GEO.district.resolve = function (rec) {
 
 Rationale: §14 charts by district, §43 compares districts and §9 highlights district polygons. If aggregation used
 the source string while the map drew the polygons, **the chart and the map would visibly disagree**. Point-in-polygon
-against the official 2024 boundary is reproducible from the record's own coordinates — hence its `High` evidence
+against the official 2024 boundary is reproducible from the record's own coordinates – hence its `High` evidence
 confidence (§3.4). A manual override in the editor sets `districtResolvedBy: 'manual'` and is never overwritten by
 a later re-derivation.
 
@@ -1143,7 +1143,7 @@ a later re-derivation.
 
 | Record | Source claim | Polygon | Note |
 |---|---|---|---|
-| **Trilliant** | Mirzo-Ulugbek | `yunusobod` | **Highest-impact.** A+, $44.7 — the highest rent in the dataset and the *only* priced record in Mirzo-Ulugbek under the source claim. Reassignment leaves Mirzo-Ulugbek with no priced record at all. |
+| **Trilliant** | Mirzo-Ulugbek | `yunusobod` | **Highest-impact.** A+, $44.7 – the highest rent in the dataset and the *only* priced record in Mirzo-Ulugbek under the source claim. Reassignment leaves Mirzo-Ulugbek with no priced record at all. |
 | NEXUS | Shaykhantakhur | `olmazor` | |
 | SIMURG JSC | Yashnabad | `mirzo-ulugbek` | |
 | TECHNOPLAZA | Yashnabad | `mirzo-ulugbek` | |
@@ -1154,7 +1154,7 @@ a later re-derivation.
 | Бизнес центр 2 | Mirzo-Ulugbek | `yunusobod` | |
 | Бизнес-центр Renaissance | Mirabad | `yashnobod` | |
 
-All ten are listed in the Data Quality panel as a review queue with both values shown. None is silently corrected —
+All ten are listed in the Data Quality panel as a review queue with both values shown. None is silently corrected –
 the polygon wins for computation, the claim is retained and displayed.
 
 ---
@@ -1180,11 +1180,11 @@ the polygon wins for computation, the claim is retained and displayed.
   "dueSoonDays":        14,
   "criticalFields":     ["officeClass","status","gla","floors","askingRent",
                          "vacancyPct","parkingSpaces","yearOpened"],
-  "completenessWeights": { /* §9.5 — 13 entries summing to 100 */ },
-  "fieldRefreshClass":   { /* §4.2 — every field, 33 entries */ },
-  "evidenceProfiles":    { /* §3.4 — 10 profiles */ },
+  "completenessWeights": { /* §9.5 – 13 entries summing to 100 */ },
+  "fieldRefreshClass":   { /* §4.2 – every field, 33 entries */ },
+  "evidenceProfiles":    { /* §3.4 – 10 profiles */ },
 
-  "districts": [                                   // METADATA ONLY — geometry by reference, §7.3
+  "districts": [                                   // METADATA ONLY – geometry by reference, §7.3
     { "key": "yangihayot", "name": "Yangihayot", "nameRu": "Янгихаёт",
       "nameUz": "Янгиҳаёт", "areaHa": 4423.58 }
     /* … 12 entries … */
@@ -1199,7 +1199,7 @@ the polygon wins for computation, the claim is retained and displayed.
     "sha256": "<hex>"
   },
 
-  "sources": [ /* §3.3 — 5 entries */ ],
+  "sources": [ /* §3.3 – 5 entries */ ],
 
   "counts": {
     "total": 156, "verifiedSource": 148, "demo": 8,
@@ -1235,7 +1235,7 @@ the polygon wins for computation, the claim is retained and displayed.
 | `sources` | array | **yes** | §3.3. |
 | `counts` | object | **yes** | Integrity check, not a cache: `counts.total !== records.length` is import error V-D2 (BLOCK). All other counts are recomputed after load and a mismatch is a WARN listed in the import report. |
 | `containsDemoRecords` | boolean | **yes** | `records.some(r => r.recordType === 'DEMO')`. Mismatch = BLOCK. |
-| `_WARNING` | string | conditional | **Present iff `containsDemoRecords`.** Readable in a text editor without parsing — critique clause 7. |
+| `_WARNING` | string | conditional | **Present iff `containsDemoRecords`.** Readable in a text editor without parsing – critique clause 7. |
 | `records` | array | **yes** | May be empty. |
 
 ### 7.3 Where the data lives in the shipped file
@@ -1249,7 +1249,7 @@ the polygon wins for computation, the claim is retained and displayed.
 
 ### 7.4 localStorage keys
 
-Prefix `geo.mvp.v1.` — fixed in `GEO.STORAGE_PREFIX`, and it **must not** derive from the product name, so a rename
+Prefix `geo.mvp.v1.` – fixed in `GEO.STORAGE_PREFIX`, and it **must not** derive from the product name, so a rename
 cannot orphan saved data (`01-product-spec.md` §2). The `v1` is the **storage-layout generation**, not
 `schemaVersion`; it changes only if the key *layout* changes.
 
@@ -1286,7 +1286,7 @@ GEO.dataset.load = function (raw) {
   var app = GEO.SCHEMA_VERSION;                                     // e.g. "1.1.0"
   var got = (raw && raw.schemaVersion) || null;
 
-  if (!got)                          return quarantine(raw, 'no schemaVersion — not a GEODESK dataset');
+  if (!got)                          return quarantine(raw, 'no schemaVersion – not a GEODESK dataset');
   if (major(got) !== major(app))     return quarantine(raw, 'incompatible schema ' + got + ' vs ' + app);
   if (cmp(got, app) > 0)             return quarantine(raw, 'saved by a newer version (' + got + ')');
 
@@ -1301,9 +1301,9 @@ GEO.dataset.load = function (raw) {
 };
 ```
 
-**`quarantine(payload, reason)` — the rule that prevents silent corruption (§21):**
+**`quarantine(payload, reason)` – the rule that prevents silent corruption (§21):**
 
-1. Copy the offending payload to `geo.mvp.v1.quarantine.<Timestamp>` — **never delete the user's data.**
+1. Copy the offending payload to `geo.mvp.v1.quarantine.<Timestamp>` – **never delete the user's data.**
 2. Delete `geo.mvp.v1.dataset` and `geo.mvp.v1.schemaVersion`.
 3. Boot from `GEO.SEED.dataset`.
 4. Show a **non-dismissible** banner: *"Saved local data could not be loaded (`<reason>`). It has been set aside and
@@ -1327,7 +1327,7 @@ industry tokens to snake_case; rescales `parkingRatio` ×100).
 | Round-trip identity | `normalise(parse(export(D)))` must **deep-equal** `normalise(D)`. Compared as parsed objects, not strings. This is acceptance test UX-10 and it must be an automated check, not a manual one. |
 | Import is the same pipeline | `GEO.dataset.import` = `JSON.parse` → `GEO.dataset.load` (§7.5). Import cannot take a path the stored payload cannot. |
 | Import report | Always shown before commit: records added / replaced / rejected, unknown enum tokens, count mismatches, demo records found. The user confirms; nothing is written until then. |
-| Merge policy | Import **replaces** the whole dataset by default. A "merge by `id`" option exists; on conflict the imported record wins and the previous one is pushed to `_history` only if it differs — no silent field-level merge. |
+| Merge policy | Import **replaces** the whole dataset by default. A "merge by `id`" option exists; on conflict the imported record wins and the previous one is pushed to `_history` only if it differs – no silent field-level merge. |
 | Demo safety | An import whose records would move an existing `id` from `DEMO` to `VERIFIED_SOURCE`, or the reverse, is **rejected** (§8.1 clause 6). |
 | Reset | "Restore original dataset" re-reads `GEO.SEED.dataset` and clears `geo.mvp.v1.dataset`. It is **not** called "Reset Demo Data" (`02-brief-critique.md` C10) and it prompts, offering an export first. |
 
@@ -1342,25 +1342,25 @@ sufficient; segregation must be **structural**, so that mixing is impossible to 
 
 | # | Clause |
 |---|---|
-| 1 | **Separate arrays in memory.** `GEO.data.verified[]` and `GEO.data.demo[]` are populated at load by partitioning `records[]` on `recordType`. They meet at exactly one function, `GEO.data.getWorkingSet()` — the single auditable seam. No other code may concatenate them. |
+| 1 | **Separate arrays in memory.** `GEO.data.verified[]` and `GEO.data.demo[]` are populated at load by partitioning `records[]` on `recordType`. They meet at exactly one function, `GEO.data.getWorkingSet()` – the single auditable seam. No other code may concatenate them. |
 | 2 | **Required discriminator, no default.** A record without `recordType` is rejected at load (V-R1, BLOCK). Not defaulted, not inferred from the `id` prefix. |
 | 3 | **Off by default.** `prefs.includeDemo === false` on first run and after every reset. |
-| 4 | **Only a human toggles it.** The toggle lives in Settings / Data Editor. It is **not** settable by an AI action, a URL parameter, an import file, or a keyboard shortcut. `GEO.ai` has no write access to `prefs.includeDemo` — enforced by the tool registry, which declares no such tool. |
+| 4 | **Only a human toggles it.** The toggle lives in Settings / Data Editor. It is **not** settable by an AI action, a URL parameter, an import file, or a keyboard shortcut. `GEO.ai` has no write access to `prefs.includeDemo` – enforced by the tool registry, which declares no such tool. |
 | 5 | **Every metric knows.** Every metric object returned by `GEO.stats.*` carries `containsDemo: boolean` and `demoCount: int`. Every rendered number derived from a demo-inclusive set carries a `DEMO` chip. §46 "Data coverage" names the demo count separately: *"12 of 18 matching properties have rent data; 4 of 18 are DEMO records."* |
 | 6 | **No promotion path, ever.** `recordType` is immutable. The editor does not expose it. Import rejects any record whose `id` exists with a different `recordType`. There is no JSON shape, UI control or AI action that converts one into the other. |
 | 7 | **Exports self-identify.** `containsDemoRecords: true`, a top-level `_WARNING` string, and the filename suffix `-INCLUDES-DEMO`. Visible in a text editor without parsing. |
-| 8 | **Unmistakable content.** Names begin `DEMO — `. `address` reads "Synthetic location — not a real address". `_meta.sourceIds: ["SRC-DEMO"]`, `sourceUrl: null`, `coordinateAccuracy: "synthetic"`. Coordinates are plausible (they must sit inside real districts for radius testing) but names can never be confused with a real building. |
-| 9 | **Fully populated, deliberately.** Demo records fill every schema field. That is their entire purpose: they are the fixture set that exercises the GLA filter, the vacancy chart, tenant lists, parking, amenities and the pipeline split — 100 % of which are unreachable with real data. |
+| 8 | **Unmistakable content.** Names begin `DEMO – `. `address` reads "Synthetic location – not a real address". `_meta.sourceIds: ["SRC-DEMO"]`, `sourceUrl: null`, `coordinateAccuracy: "synthetic"`. Coordinates are plausible (they must sit inside real districts for radius testing) but names can never be confused with a real building. |
+| 9 | **Fully populated, deliberately.** Demo records fill every schema field. That is their entire purpose: they are the fixture set that exercises the GLA filter, the vacancy chart, tenant lists, parking, amenities and the pipeline split – 100 % of which are unreachable with real data. |
 | 10 | **Fixed fixture matrix, not a fixed count.** The shipped set is 8 records and the *matrix* is what is load-bearing (§8.4). `02-brief-critique.md` clause 10 proposes 6; 8 is required to cover confirmed-zero-vacancy and confirmed-empty-tenants, both of which are §36 requirements. Recorded as decision **O-6**. |
 
 ### 8.2 Why user-added records are `VERIFIED_SOURCE`, and why that is safe
 
-A record a tester adds in the editor is not fictional in *intent* — it describes a building the tester believes
-exists — so classifying it `DEMO` would be wrong, and adding a third `recordType` would fork every analytics guard.
+A record a tester adds in the editor is not fictional in *intent* – it describes a building the tester believes
+exists – so classifying it `DEMO` would be wrong, and adding a third `recordType` would fork every analytics guard.
 It is instead separated on a different axis:
 
 `_meta.origin: "user"` + `_meta.qcStatus: "draft"` + `recordConfidence` derived from the evidence the user supplied
-(§3.9 requires `method` and `confidence` on every value). The UI shows the amber badge **"Added locally — not
+(§3.9 requires `method` and `confidence` on every value). The UI shows the amber badge **"Added locally – not
 verified"**; the Data Quality panel counts them separately; every export carries the flag. They **are** included in
 analytics, because §35 scenario 9 ("Add a new business center using coordinates") and scenario 8 ("edit and
 immediately see the analytics update") require exactly that.
@@ -1375,21 +1375,21 @@ immediately see the analytics update") require exactly that.
 | Compare | Demo not selectable | Selectable; the comparison header warns if any column is demo |
 | Location analysis / competitive set | Demo excluded from counts and averages | Included, and the panel states "n of m are DEMO records" |
 | AI answers | Demo invisible to every tool | Every §46 Data-coverage block names the demo count |
-| Global chrome | — | Non-dismissible amber banner **"DEMO DATA ACTIVE — figures are not market evidence"** |
+| Global chrome | – | Non-dismissible amber banner **"DEMO DATA ACTIVE – figures are not market evidence"** |
 | Export | No demo records, no `_WARNING` | Demo records, `_WARNING`, `-INCLUDES-DEMO` filename suffix |
 
 ### 8.4 The fixture matrix (what each demo record must prove)
 
-| id | Purpose — the code path no real record can reach |
+| id | Purpose – the code path no real record can reach |
 |---|---|
 | `DEMO-001` | Every field populated: exercises every metric, chart row and comparison row. |
-| `DEMO-002` | `tenantsStatus: partial` vs `complete` — proves partial lists are excluded from tenant sums. |
-| `DEMO-003` | Known rent, **unknown** occupancy — proves unknown occupancy is not read as 0 %. |
-| `DEMO-004` | **Stale** (`lastVerifiedAt` 2025-11-02) with **unknown** rent — drives the stale indicator and proves missing rent is not free rent. |
-| `DEMO-005` | `Under construction` — exercises the operating-vs-pipeline split (§14) which 0/148 real records can. |
-| `DEMO-006` | Almost empty, `officeClass: null`, `Unknown` confidence — drives the missing-critical indicator and the `minimal` completeness band. |
-| `DEMO-007` | **Confirmed `vacancyPct: 0`** and `availableArea: 0` — proves 0 renders as a real value, never as "Not recorded". |
-| `DEMO-008` | **`tenantsStatus: confirmed_empty`** with `occupancyPct: 0` — proves "no tenants entered" differs from "confirmed empty" (§36). |
+| `DEMO-002` | `tenantsStatus: partial` vs `complete` – proves partial lists are excluded from tenant sums. |
+| `DEMO-003` | Known rent, **unknown** occupancy – proves unknown occupancy is not read as 0 %. |
+| `DEMO-004` | **Stale** (`lastVerifiedAt` 2025-11-02) with **unknown** rent – drives the stale indicator and proves missing rent is not free rent. |
+| `DEMO-005` | `Under construction` – exercises the operating-vs-pipeline split (§14) which 0/148 real records can. |
+| `DEMO-006` | Almost empty, `officeClass: null`, `Unknown` confidence – drives the missing-critical indicator and the `minimal` completeness band. |
+| `DEMO-007` | **Confirmed `vacancyPct: 0`** and `availableArea: 0` – proves 0 renders as a real value, never as "Not recorded". |
+| `DEMO-008` | **`tenantsStatus: confirmed_empty`** with `occupancyPct: 0` – proves "no tenants entered" differs from "confirmed empty" (§36). |
 
 ---
 
@@ -1409,7 +1409,7 @@ record appears in the Data Quality panel, and the editor shows an inline caution
 | V-G2 | Point falls inside one of the 12 district MultiPolygons | **WARN** `outside_boundary` | "Point is inside the Tashkent bounding box but outside the 2024 city boundary. District cannot be derived." |
 | V-G3 | `lat`/`lng` are finite numbers with ≥ 4 decimal places | **WARN** | "Coordinate precision below ~10 m; location may be approximate." |
 | V-C1 | `askingRent` ≥ 0 | **BLOCK** | "Rent cannot be negative." |
-| V-C2 | `askingRent` ≤ 150 (in `USD` + `m2/month`) | **BLOCK** | "Rent above 150 USD/m²/month is implausible for Tashkent — check whether this is an annual figure or a different unit." |
+| V-C2 | `askingRent` ≤ 150 (in `USD` + `m2/month`) | **BLOCK** | "Rent above 150 USD/m²/month is implausible for Tashkent – check whether this is an annual figure or a different unit." |
 | V-C3 | `askingRent` ∈ [5, 60] when currency `USD`, unit `m2/month` | **WARN** `rent_outlier` | "Outside the observed Tashkent range (19.9–44.7 in this dataset). Confirm the figure and its unit." |
 | V-C4 | `askingRent === 0` | **WARN** | "0 is stored as a **confirmed free rent**, not as unknown. Use *Clear field* if the rent is simply not known." |
 | V-C5 | `currency` and `rentUnit` non-null whenever `askingRent` non-null (same for `serviceCharge` / `serviceChargeUnit`) | **BLOCK** | "A rent must state its currency and unit." |
@@ -1446,7 +1446,7 @@ record appears in the Data Quality panel, and the editor shows an inline caution
 - **Clearing a field** writes `null` and **removes** the `_evidence` entry (§3.9 step 3). There is no UI path that
   produces `""`.
 
-### 9.3 Coordinate bounds — why two levels
+### 9.3 Coordinate bounds – why two levels
 
 | Level | Bounds | Behaviour |
 |---|---|---|
@@ -1456,7 +1456,7 @@ record appears in the Data Quality panel, and the editor shows an inline caution
 ### 9.4 Duplicate detection
 
 Never auto-merge (`02-brief-critique.md` D9). The 6 flagged pairs are exact coordinate collisions between
-**differently named** entities — almost certainly two directory POIs at one address, i.e. either two centres in one
+**differently named** entities – almost certainly two directory POIs at one address, i.e. either two centres in one
 complex or a building plus a tenant firm. Merging destroys data; ignoring them double-counts buildings in every
 district and radius statistic.
 
@@ -1471,7 +1471,7 @@ GEO.quality.findDuplicates = function (records) {
       if (d <= 30)   out.push({ a: records[i].id, b: records[j].id, distanceM: Math.round(d),
                                 reason: 'coord_collision', flag: 'coord_collision' });
       if (same)      out.push({ a: records[i].id, b: records[j].id, distanceM: Math.round(d),
-                                reason: 'same_name', flag: 'duplicate_name' });   // ANY distance — see below
+                                reason: 'same_name', flag: 'duplicate_name' });   // ANY distance – see below
     }
   return out;
 };
@@ -1482,15 +1482,15 @@ second branch. Measured in the seed (verified by Haversine over all 148 records,
 
 | Finding | Distance | Records | Verdict default |
 |---|---|---|---|
-| 6 exact-coordinate pairs, source-flagged (`DUP-COORD-0022`…`0027`) — Econor/MAXAM, Falcom/REGENT, Status/G BUILD, Vega business center/SK MEDIA, Korea Uzbekistan Business Association/AMIR, UzOman tower/DIM TOWER | 0 m | 12 | `undecided` |
-| 3 further sub-30 m pairs **not** flagged by the source: `Infinity, компания консалтинга…` ↔ `Ventum plaza` (19.3 m), `Afrosiab` ↔ `Econor` (27.2 m), `Afrosiab` ↔ `MAXAM` (27.2 m) — adding 3 records (`Afrosiab`, `Infinity…`, `Ventum plaza`) not already in the 12 | 19–27 m | 3 new | `undecided` |
-| Exact duplicate name `Infinity, компания консалтинга в сфере недвижимости` ×2 (`BC-f4a7b568f29a` Yakkasaray, `BC-7d5998228cc1` Yashnabad) | **3 864 m** | 2 | `undecided` — almost certainly two branches of one consultancy, i.e. two records that are both `suspected_non_bc` rather than one duplicated building. The distance is shown so a reviewer can decide in one glance. |
+| 6 exact-coordinate pairs, source-flagged (`DUP-COORD-0022`…`0027`) – Econor/MAXAM, Falcom/REGENT, Status/G BUILD, Vega business center/SK MEDIA, Korea Uzbekistan Business Association/AMIR, UzOman tower/DIM TOWER | 0 m | 12 | `undecided` |
+| 3 further sub-30 m pairs **not** flagged by the source: `Infinity, компания консалтинга…` ↔ `Ventum plaza` (19.3 m), `Afrosiab` ↔ `Econor` (27.2 m), `Afrosiab` ↔ `MAXAM` (27.2 m) – adding 3 records (`Afrosiab`, `Infinity…`, `Ventum plaza`) not already in the 12 | 19–27 m | 3 new | `undecided` |
+| Exact duplicate name `Infinity, компания консалтинга в сфере недвижимости` ×2 (`BC-f4a7b568f29a` Yakkasaray, `BC-7d5998228cc1` Yashnabad) | **3 864 m** | 2 | `undecided` – almost certainly two branches of one consultancy, i.e. two records that are both `suspected_non_bc` rather than one duplicated building. The distance is shown so a reviewer can decide in one glance. |
 
 `undecided` records are **counted normally** in every statistic and **visibly flagged** on the map and in the record.
 The Duplicate review queue offers the three verdicts; `same_building` excludes the lower-completeness record from
 analytics (it is not deleted) and states the effect on the count.
 
-### 9.5 Completeness score — weights, bands, and the seed distribution
+### 9.5 Completeness score – weights, bands, and the seed distribution
 
 ```js
 GEO.quality.completeness = function (rec, env) {
@@ -1528,22 +1528,22 @@ GEO.quality.completeness = function (rec, env) {
 | `good` | 50–79 | **16** (address + class + rent) |
 | `strong` | 80–100 | **0** |
 
-`39 × 15 + 93 × 25 + 16 × 55` — exactly the distribution `01-product-spec.md` §0 states. **Nothing in the real
+`39 × 15 + 93 × 25 + 16 × 55` – exactly the distribution `01-product-spec.md` §0 states. **Nothing in the real
 dataset scores 80 or above, and the platform should say so on the Data Quality screen.**
 
-`criticalFields` (8) is a different, narrower list — the fields whose absence triggers the §19 "missing critical
+`criticalFields` (8) is a different, narrower list – the fields whose absence triggers the §19 "missing critical
 data" indicator: `officeClass` `status` `gla` `floors` `askingRent` `vacancyPct` `parkingSpaces` `yearOpened`.
 Seed: every one of the 148 records is missing at least 6 of the 8.
 
 ### 9.6 `entityReview` pre-flags (D10)
 
 Pre-set `_meta.entityReview: "suspected_non_bc"` + `qcFlags: ["type_uncertain"]` on these 7 seed records. They are
-**not deleted and not hidden** — deletion would be an undisclosed editorial judgement (`01-product-spec.md` R10):
+**not deleted and not hidden** – deletion would be an undisclosed editorial judgement (`01-product-spec.md` R10):
 
 `Infinity, компания консалтинга в сфере недвижимости` (×2, a consultancy), `Korea Uzbekistan Business Association`,
 `INTERNATIONAL BANK FINANCIAL CENTRE`, `Chilonzor` (a district name), `Авто`, `Семург`.
 (`Бизнес центр`, `Бизнес центр 2`, `Biznes sentr` and `Carvon, офис` are generic or ambiguous names, not evidently
-non-office entities — they stay `unreviewed` and surface in the review queue instead. `01-product-spec.md` R10 lists
+non-office entities – they stay `unreviewed` and surface in the review queue instead. `01-product-spec.md` R10 lists
 `Carvon, офис` among the non-office records and omits `Korea Uzbekistan Business Association` and
 `INTERNATIONAL BANK FINANCIAL CENTRE`; this document narrows "suspected" to entities whose names identify them as a
 *firm or association* rather than a building, and widens it to the two that clearly are. Both lists are reviewable
@@ -1560,18 +1560,18 @@ The analytics toggle **"Exclude suspected non-office records"** is default **off
 
 > **No module other than `src/12-repo.js` may touch `localStorage`, `GEO.SEED`, or the records array directly.**
 
-Everything else — map, filters, analytics, compare, editor, AI tools — goes through `GEO.repo`. That single file is
+Everything else – map, filters, analytics, compare, editor, AI tools – goes through `GEO.repo`. That single file is
 what a PostGIS / Supabase / REST backend replaces. This is checkable: `grep -n "localStorage\|GEO.SEED" src/*.js`
 must match only `12-repo.js` and `00-config.js`.
 
-### 10.2 The interface — async-shaped from day one
+### 10.2 The interface – async-shaped from day one
 
 Every method returns a Promise even though the MVP implementation is synchronous (`Promise.resolve(...)`). Callers
 are written with `await` from the start, so swapping in a network backend changes no call site.
 
 ```js
 /**
- * GEO.repo — the data access boundary. One implementation in the MVP: LocalStorageRepo.
+ * GEO.repo – the data access boundary. One implementation in the MVP: LocalStorageRepo.
  * Future implementations (SupabaseRepo, PostgisRepo, RestRepo) satisfy the same contract.
  */
 GEO.repo = {
@@ -1604,7 +1604,7 @@ GEO.repo = {
    *  @returns {Promise<Array<Result>>}  All-or-nothing; used by import. */
   async bulk(ops) {},
 
-  /** @returns {Promise<DatasetEnvelope>}  The envelope WITHOUT records — policy, sources,
+  /** @returns {Promise<DatasetEnvelope>}  The envelope WITHOUT records – policy, sources,
    *  districts, counts. Cheap; safe to call on every render. */
   async meta() {},
 
@@ -1615,7 +1615,7 @@ GEO.repo = {
 };
 ```
 
-### 10.3 `QuerySpec` — structured, never SQL, never a predicate function
+### 10.3 `QuerySpec` – structured, never SQL, never a predicate function
 
 A query must be **data**, not a closure, or it cannot cross a network boundary and the AI tool layer cannot
 serialise it into the §61 audit log.
@@ -1732,7 +1732,7 @@ required for conformance; **R1 is a correctness defect, the rest are conformance
 
 | # | Change | Severity |
 |---|---|---|
-| **R1** | **Split `sources[]` by real provider** — 2GIS 103, GoldenPages 26, Google Maps 19 (§0.5 fact 1). Add `GP-BASE` and `GM-BASE` evidence profiles; set `_meta.sourceIds` per record. The current artefact attributes all 148 records to 2GIS and contains zero mentions of the other two providers — a provenance falsification under §2.3 / §37. | **HIGH** |
+| **R1** | **Split `sources[]` by real provider** – 2GIS 103, GoldenPages 26, Google Maps 19 (§0.5 fact 1). Add `GP-BASE` and `GM-BASE` evidence profiles; set `_meta.sourceIds` per record. The current artefact attributes all 148 records to 2GIS and contains zero mentions of the other two providers – a provenance falsification under §2.3 / §37. | **HIGH** |
 | R2 | `refreshDays.fast` 60 → **90** (§4.2 rationale: at 60 the seed goes stale on 2026-09-17 and every QA number changes overnight). | HIGH |
 | R3 | Normalise the 39 free-text `coordinateAccuracy` values to `single`; add `_meta.seedBatch` (`primary` 109 / `supplementary` 39). | HIGH |
 | R4 | `_verification: needs_review` (12) → `verificationMode: "desk"` + `qcStatus: "needs_check"` + `qcFlags: ["coord_collision"]`. `needs_review` is not a verification mode. | HIGH |
@@ -1741,20 +1741,20 @@ required for conformance; **R1 is a correctness defect, the rest are conformance
 | R7 | Snake_case tokens: amenities (`conference room`→`conference_room`, `underground parking`→`underground_parking`, `EV charging`→`ev_charging`, `backup generator`→`backup_generator`), methods (`map service`→`map_service`, `public registry`→`public_registry`), tenant industries (`Financial services`→`financial_services`, `Energy`→`energy_utilities`, …). | MED |
 | R8 | `parkingRatio` rescale to spaces per 100 m² GLA (`DEMO-001` 0.017 → 1.71). | MED |
 | R9 | `createdAt` / `updatedAt` → ISO-8601 Timestamps. | LOW |
-| R10 | `_meta.recordConfidence` recomputed by the §3.8 roll-up: **Medium** ×132, **Low** ×16 — replacing the constant `Medium` that gives the §11 confidence filter and the §42 confidence layer no variance at all. | MED |
+| R10 | `_meta.recordConfidence` recomputed by the §3.8 roll-up: **Medium** ×132, **Low** ×16 – replacing the constant `Medium` that gives the §11 confidence filter and the §42 confidence layer no variance at all. | MED |
 | R11 | Envelope: add `districtAliases`, `districtsGeometryRef`, `completenessWeights`, `dueSoonDays`, `containsDemoRecords`, `_WARNING`, `generator`; extend `counts` with `withAddress` / `withClass` / `withRent` / `entityReviewSuspect` / `completenessBands`. | MED |
 | R12 | Pre-flag the 7 `suspected_non_bc` records (§9.6) and the 3 unflagged sub-30 m duplicate pairs (§9.4). | MED |
 | R13 | Bump `schemaVersion` to `1.1.0` and add the `1.0 -> 1.1` migration (§7.5). | LOW |
 
-### 11.2 Open questions — need a human decision
+### 11.2 Open questions – need a human decision
 
 | # | Question | Owner | Blocking? |
 |---|---|---|---|
 | **O-1** | **Licence.** All 148 records are third-party directory data (2GIS / GoldenPages / Google Maps). `licenceReview: "required"` on all three sources. Can this data be displayed to clients, exported, or redistributed in a commercial product? Google Maps' terms in particular restrict derivative datasets. This is a commercial risk that the schema can flag but not resolve. | CASE / Humyunmirzo Mirkamolov | Not for the prototype; **blocking for any client-facing use**. |
-| **O-2** | `data_confidence = "B"` — what does the collection process's A/B/C scale actually mean? Until it is defined, `sourceConfidenceLetter` is displayed with its scheme named and drives nothing (D7). | Data owner | No |
-| **O-3** | The currency and unit of the 16 rent values are **not stated by the source**. USD/m²/month is an assumption. Confirm, or the 16 headline rents are uninterpretable. | Data owner | No — but every rent display carries a footnote until answered. |
-| **O-4** | The 10 district conflicts (§6.3): does the data owner accept geometry as authoritative? `Trilliant` alone moves the highest rent in the dataset (A+, $44.7) from Mirzo-Ulugbek to Yunusobod and leaves Mirzo-Ulugbek with no priced record. | Data owner | No — flagged and reversible either way. |
+| **O-2** | `data_confidence = "B"` – what does the collection process's A/B/C scale actually mean? Until it is defined, `sourceConfidenceLetter` is displayed with its scheme named and drives nothing (D7). | Data owner | No |
+| **O-3** | The currency and unit of the 16 rent values are **not stated by the source**. USD/m²/month is an assumption. Confirm, or the 16 headline rents are uninterpretable. | Data owner | No – but every rent display carries a footnote until answered. |
+| **O-4** | The 10 district conflicts (§6.3): does the data owner accept geometry as authoritative? `Trilliant` alone moves the highest rent in the dataset (A+, $44.7) from Mirzo-Ulugbek to Yunusobod and leaves Mirzo-Ulugbek with no priced record. | Data owner | No – flagged and reversible either way. |
 | **O-5** | This document supersedes `01-product-spec.md` A5 on two points: `_history` is a **field-keyed object**, not a flat array; and the editor **does** append to it on overwrite. Confirm. | Design lead | No |
 | **O-6** | Demo fixture count: `02-brief-critique.md` clause 10 says 6, the built seed has 8, and 8 is needed to cover confirmed-zero-vacancy and confirmed-empty-tenants. Recommend adopting **8** and amending the critique. | Design lead | No |
-| **O-7** | Does CASE want a pre-publication cleaning pass that **removes** the 7 suspected non-office records, and on whose authority? The schema's answer is "flag, never delete" — that is reversible, but it means the headline count stays 148 with a disclosed caveat. | CASE | No |
-| **O-8** | `owner`, `developer` and `internalNote` are hidden in the External role. Confirm that `owner` is genuinely restricted — in some markets it is public registry data, in which case it should be visible to all roles. | CASE | No |
+| **O-7** | Does CASE want a pre-publication cleaning pass that **removes** the 7 suspected non-office records, and on whose authority? The schema's answer is "flag, never delete" – that is reversible, but it means the headline count stays 148 with a disclosed caveat. | CASE | No |
+| **O-8** | `owner`, `developer` and `internalNote` are hidden in the External role. Confirm that `owner` is genuinely restricted – in some markets it is public registry data, in which case it should be visible to all roles. | CASE | No |

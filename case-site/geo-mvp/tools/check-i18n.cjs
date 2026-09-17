@@ -64,7 +64,7 @@ for (const f of fs.readdirSync(path.join(R, 'src/js')).sort()) {
 
 // A key ending in '.' is the literal prefix of a key built by concatenation
 // (`t('value.confidence.' + level)`). It is never looked up as written, so it is
-// reported separately rather than stubbed — the ENUMERATED keys are what matter.
+// reported separately rather than stubbed – the ENUMERATED keys are what matter.
 const prefixes = [...used.keys()].filter(k => k.endsWith('.')).sort();
 const missing = [...used.keys()]
   .filter(k => !k.endsWith('.') && !(k in en) && !declared.has(k)).sort();
@@ -139,7 +139,7 @@ if (process.argv.includes('--fix') && missing.length) {
   const needsComma = !/[,{]$/.test(head);
   src = head + (needsComma ? ',' : '') + block + '\n' + src.slice(close);
   fs.writeFileSync(I18N, src);
-  console.log(`\nappended ${missing.length} stub keys to ${path.relative(R, I18N)} — review the wording.`);
+  console.log(`\nappended ${missing.length} stub keys to ${path.relative(R, I18N)} – review the wording.`);
   process.exit(0);
 }
 

@@ -1,19 +1,19 @@
 # Documentation index
 
-The brief (§65) asks for the work to be done in a sequence — restate, critique, design, then build.
+The brief (§65) asks for the work to be done in a sequence – restate, critique, design, then build.
 These are the outputs of that sequence, in the order they were produced.
 
 | # | Document | What it settles |
 |---|---|---|
 | **00** | [`00-BUILD-CONTRACT.md`](00-BUILD-CONTRACT.md) | **Binding.** The fifteen decisions (D1–D15), the ten technical constraints (T1–T10), the module layout, the state architecture, the analytics contract, and the oracle table of expected values. **Where any other document here disagrees with this one, this one wins.** |
-| 01 | [`01-product-spec.md`](01-product-spec.md) | §65 step 1 — scope in / architecture-only / out, the six user types, and the ten UX plus eight assistant scenarios rewritten as mechanically checkable pass/fail statements. |
-| 02 | [`02-brief-critique.md`](02-brief-critique.md) | §65 step 2 — the critical review of the brief. Thirteen internal contradictions, the feature-by-feature verdict against the real data coverage, fifteen technical risks, features to defer, and fourteen functions the brief omits but the prototype needs. Read §6.3 if you read nothing else. |
-| 03 | [`03-information-architecture.md`](03-information-architecture.md) | §65 step 3 — thirteen regions, the panel-collision rules, exact breakpoints and track widths, the z-index scale, the full interaction inventory, and the i18n architecture. |
-| 04 | [`04-data-schema.md`](04-data-schema.md) | §65 step 4 — the record schema, the provenance model, history-readiness, enumerations, district canonicalisation, the dataset envelope, and the repository seam a future backend would replace. |
-| 05 | [`05-analytics-rules.md`](05-analytics-rules.md) | §65 step 5 — the denominator doctrine, sufficiency thresholds, exact formulas, the never-treat-missing-as-zero guards, bin strategies, and the worked numbers. |
-| 06 | [`06-ai-architecture.md`](06-ai-architecture.md) | §65 step 6 — the layered architecture and provider seam, the tool registry, the intent catalogue mapped to every §54 and §63 example, session context, the six-block response, layers, and the permission model. |
+| 01 | [`01-product-spec.md`](01-product-spec.md) | §65 step 1 – scope in / architecture-only / out, the six user types, and the ten UX plus eight assistant scenarios rewritten as mechanically checkable pass/fail statements. |
+| 02 | [`02-brief-critique.md`](02-brief-critique.md) | §65 step 2 – the critical review of the brief. Thirteen internal contradictions, the feature-by-feature verdict against the real data coverage, fifteen technical risks, features to defer, and fourteen functions the brief omits but the prototype needs. Read §6.3 if you read nothing else. |
+| 03 | [`03-information-architecture.md`](03-information-architecture.md) | §65 step 3 – thirteen regions, the panel-collision rules, exact breakpoints and track widths, the z-index scale, the full interaction inventory, and the i18n architecture. |
+| 04 | [`04-data-schema.md`](04-data-schema.md) | §65 step 4 – the record schema, the provenance model, history-readiness, enumerations, district canonicalisation, the dataset envelope, and the repository seam a future backend would replace. |
+| 05 | [`05-analytics-rules.md`](05-analytics-rules.md) | §65 step 5 – the denominator doctrine, sufficiency thresholds, exact formulas, the never-treat-missing-as-zero guards, bin strategies, and the worked numbers. |
+| 06 | [`06-ai-architecture.md`](06-ai-architecture.md) | §65 step 6 – the layered architecture and provider seam, the tool registry, the intent catalogue mapped to every §54 and §63 example, session context, the six-block response, layers, and the permission model. |
 | 10 | [`10-visual-system.md`](10-visual-system.md) | Colour, type, marks and motion. The office-class ramp was derived from the CASE brand red in OKLCH and **validated** against the ordinal checks on both surfaces; the contrast figures are computed, not estimated. |
-| **11** | [`11-coverage-vs-brief.md`](11-coverage-vs-brief.md) | §65 step 11 — every one of the brief's 69 sections audited: built, architecture-only, partial, deferred, with the verification cited for each. Written as an audit rather than a summary so a requirement that was deliberately not built is visible rather than quietly absent. |
+| **11** | [`11-coverage-vs-brief.md`](11-coverage-vs-brief.md) | §65 step 11 – every one of the brief's 69 sections audited: built, architecture-only, partial, deferred, with the verification cited for each. Written as an audit rather than a summary so a requirement that was deliberately not built is visible rather than quietly absent. |
 
 ## What is deliberately not here
 

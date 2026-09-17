@@ -64,7 +64,7 @@
     'location.competitive.manualNote': 'Added by hand, not by the rule above.',
     'location.competitive.showAll': 'Show all {n}',
     'location.competitive.showFewer': 'Show fewer',
-    'location.layer.name': 'Competitive set — {name}'
+    'location.layer.name': 'Competitive set – {name}'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -601,13 +601,13 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         if (!registerPanel()) {
-          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable – location analysis will not render');
         }
       });
     } else {
       setTimeout(function () {
         if (!registerPanel()) {
-          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable — location analysis will not render');
+          GEO.log.error('17-panel-location: GEO.boot.registerPanel is unavailable – location analysis will not render');
         }
       }, 0);
     }

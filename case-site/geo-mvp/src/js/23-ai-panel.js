@@ -48,7 +48,7 @@
     'ai.block.confidence': 'Confidence & limitations',
     'ai.block.empty.answer': 'No answer text was produced for this question.',
     'ai.block.empty.coverage': 'No coverage statement was produced for this answer. Treat any figure in it as unverified until one is.',
-    'ai.blocks.note': 'Every answer carries the same six blocks. A block is never dropped — when it is empty it says why.',
+    'ai.blocks.note': 'Every answer carries the same six blocks. A block is never dropped – when it is empty it says why.',
     'ai.unavailable.note': 'This is a complete answer, not a failure. The assistant states what the platform holds and declines to estimate the rest.',
     'ai.origin.label': 'Where this figure came from: {origin}',
     'ai.turn.at': '{time} UTC',
@@ -57,7 +57,7 @@
 
     /* --- how this was answered (I-05) --- */
     'ai.how.hide': 'Hide how this was answered',
-    'ai.how.noTools': 'No tools were called — the answer came from the intent catalogue alone.',
+    'ai.how.noTools': 'No tools were called – the answer came from the intent catalogue alone.',
     'ai.how.noSlots': 'No values were read from your question.',
     'ai.how.argsTrimmed': 'Long id lists are shown as a count.',
     'ai.how.itemCount': '[{n} items]',
@@ -68,10 +68,10 @@
     /* --- per-response actions --- */
     'ai.followUp': 'Ask next',
     'ai.undo.disabled': 'This turn has already been undone',
-    'ai.undone': 'Undone — the map, filters and layers are back to how they were before this question.',
-    'ai.copy.failed': 'This browser blocked the clipboard. The full text is below — select it and copy by hand.',
+    'ai.undone': 'Undone – the map, filters and layers are back to how they were before this question.',
+    'ai.copy.failed': 'This browser blocked the clipboard. The full text is below – select it and copy by hand.',
     'ai.copy.title': 'Copy this answer',
-    'ai.createLayer.name': 'Result — {q}',
+    'ai.createLayer.name': 'Result – {q}',
     'ai.result.count.one': '{n} property in this result',
     'ai.result.count.other': '{n} properties in this result',
 
@@ -87,7 +87,7 @@
 
     /* --- session log (§61) --- */
     'ai.log.title': 'Session log',
-    'ai.log.note': 'Every state change in this session and who made it. It is held in memory only — never written to this browser — so exporting it is how a test session is kept.',
+    'ai.log.note': 'Every state change in this session and who made it. It is held in memory only – never written to this browser – so exporting it is how a test session is kept.',
     'ai.log.col.time': 'Time (UTC)',
     'ai.log.col.source': 'Source',
     'ai.log.col.action': 'Action',
@@ -99,7 +99,7 @@
     'ai.log.source.url': 'Link',
     'ai.log.empty': 'Nothing has happened in this session yet.',
     'ai.log.trimmed': 'Showing the most recent {n} of {m} entries. The export holds all of them.',
-    'ai.log.exported': 'Session log prepared — check your downloads',
+    'ai.log.exported': 'Session log prepared – check your downloads',
     'ai.newSession.explain': 'The conversation, the analysis layers, the radius rings, the selection and the session log are all cleared. The dataset and any local edits are kept, and the filters are left exactly as they are. Export the session log first if you need it.',
     'ai.newSession.go': 'Start a new session',
 
@@ -113,7 +113,7 @@
     'map.layer.clearAll.body': '{n} layers are removed, with their markers and any circles they own. The properties themselves, the filters and the dataset are untouched.',
     'map.layer.records': 'Record ids held',
     'map.layer.missing': '{n} of the {m} records this layer saved are no longer in the dataset.',
-    'map.layer.vsFilter': 'A layer keeps the properties that matched when it was made. A filter is re-evaluated every time anything changes — edit a record and a filter result moves, a layer does not.'
+    'map.layer.vsFilter': 'A layer keeps the properties that matched when it was made. A filter is re-evaluated every time anything changes – edit a record and a filter result moves, a layer does not.'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -561,7 +561,7 @@
     patch.map = { fitToken: s.map.fitToken + 1 };
     GEO.state.set(patch, {
       source: 'user', action: 'ai:undo',
-      summary: t('ai.undo') + ' — ' + entry.q
+      summary: t('ai.undo') + ' – ' + entry.q
     });
     var cascaded = index < transcript.length - 1;
     /* Rolling back to before this turn rolls back everything built on top of
@@ -603,7 +603,7 @@
     if (ids.length < 2) return;
     GEO.state.set({ compare: ids, overlay: 'compare' },
                   { source: 'user', action: 'ai:compare',
-                    summary: t('ai.compare') + ' — ' + F.int(ids.length) });
+                    summary: t('ai.compare') + ' – ' + F.int(ids.length) });
   }
 
   function actionsNode(entry, index) {
@@ -1567,14 +1567,14 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         if (!registerWithBoot()) {
-          GEO.log.error('23-ai-panel: GEO.boot.registerPanel is unavailable — ' +
+          GEO.log.error('23-ai-panel: GEO.boot.registerPanel is unavailable – ' +
                         'the Assistant and Layers tabs will not render');
         }
       });
     } else {
       setTimeout(function () {
         if (!registerWithBoot()) {
-          GEO.log.error('23-ai-panel: GEO.boot.registerPanel is unavailable — ' +
+          GEO.log.error('23-ai-panel: GEO.boot.registerPanel is unavailable – ' +
                         'the Assistant and Layers tabs will not render');
         }
       }, 0);

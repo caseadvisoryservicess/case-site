@@ -89,12 +89,12 @@
     'admin.records.col.verified': 'Last verified',
     'admin.records.col.actions': 'Edit',
     'admin.records.sort.asc': 'Sorted ascending',
-    'admin.records.sort.dir.asc': 'Ascending — switch to descending',
-    'admin.records.sort.dir.desc': 'Descending — switch to ascending',
+    'admin.records.sort.dir.asc': 'Ascending – switch to descending',
+    'admin.records.sort.dir.desc': 'Descending – switch to ascending',
     'admin.records.card.aria': 'Records, {n} shown',
     'admin.records.sort.desc': 'Sorted descending',
     'admin.records.editedBadge': 'Edited locally',
-    'admin.records.addedBadge': 'Added locally — not verified',
+    'admin.records.addedBadge': 'Added locally – not verified',
 
     'admin.form.back': 'Back to all records',
     'admin.form.errors.title.one': 'Fix 1 problem before saving',
@@ -125,7 +125,7 @@
     'admin.undo.label.delete': 'deleting "{name}"',
     'admin.undo.label.revert': 'reverting {field} on "{name}"',
     'admin.undo.label.restore': 'restoring "{name}"',
-    'admin.undo.done': 'Undone — {what}',
+    'admin.undo.done': 'Undone – {what}',
     'admin.undo.available': 'Undo {what}',
     'admin.undo.cleared': 'The undo history was cleared because the whole dataset was replaced.',
 
@@ -161,7 +161,7 @@
     'admin.io.commit.blocked': 'A file with rejected rows is never imported in part. Fix the file and choose it again.',
     'admin.io.commit.replaces': 'Importing replaces every record currently held in this browser and clears the undo history.',
     'admin.io.demo.confirm': 'Turn on demo records?',
-    'admin.io.demo.confirm.body': 'Every figure on screen — counts, averages, distributions and the assistant’s answers — will then include {n} synthetic records that are not market evidence. A banner stays on screen for as long as they are on, and every metric that includes one says so.',
+    'admin.io.demo.confirm.body': 'Every figure on screen – counts, averages, distributions and the assistant’s answers – will then include {n} synthetic records that are not market evidence. A banner stays on screen for as long as they are on, and every metric that includes one says so.',
     'admin.io.demo.state.on': 'Demo records are ON. Figures may include synthetic values.',
     'admin.io.demo.state.off': 'Demo records are OFF. Every figure is drawn from observed records only.',
     'admin.io.reset.title': 'Start again',
@@ -432,7 +432,7 @@
       el('button.btn.btn--quiet.btn--sm', {
         type: 'button',
         'aria-label': t(def.labelKey) + (on
-          ? ' — ' + t(view.dir === 'asc' ? 'admin.records.sort.asc' : 'admin.records.sort.desc')
+          ? ' – ' + t(view.dir === 'asc' ? 'admin.records.sort.asc' : 'admin.records.sort.desc')
           : ''),
         onclick: function () {
           if (on) view.dir = view.dir === 'asc' ? 'desc' : 'asc';
@@ -1849,7 +1849,7 @@
       kids.push(el('ul.stack', {}, r.rejected.map(function (b) {
         return el('li.micro', {
           text: t('admin.io.report.row', {
-            row: F.int(b.row), reason: (b.id ? b.id + ' — ' : '') + b.reason
+            row: F.int(b.row), reason: (b.id ? b.id + ' – ' : '') + b.reason
           })
         });
       })));

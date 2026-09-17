@@ -508,7 +508,7 @@
 
     if (typeof w.GEO_SEED !== 'object' || !w.GEO_SEED) {
       fatal('The dataset did not load',
-            'The seed data block is missing from this file. It was probably not assembled correctly — rebuild with `python3 build.py`.', []);
+            'The seed data block is missing from this file. It was probably not assembled correctly – rebuild with `python3 build.py`.', []);
       return;
     }
 

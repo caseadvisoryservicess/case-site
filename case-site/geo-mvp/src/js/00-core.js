@@ -33,6 +33,71 @@
     assetType: 'Business centres'
   };
 
+  /* --------------------------------------------------------------- motion */
+  /**
+   * One answer to "may this animate?", for every module.
+   *
+   * The rule is S-03's: an explicit data-motion setting wins, otherwise the OS
+   * preference decides, and anything that cannot be read animates. It lived as
+   * a private copy inside the map module; a second copy in a second module is
+   * how two halves of one interface end up disagreeing about whether the reader
+   * asked for stillness.
+   */
+  GEO.motion = {
+    animates: function () {
+      var mode = document.documentElement.getAttribute('data-motion');
+      if (mode === 'full') return true;
+      if (mode === 'reduce') return false;
+      try { return !w.matchMedia('(prefers-reduced-motion: reduce)').matches; }
+      catch (e) { return true; }
+    },
+
+    /**
+     * Count a number up to its new value.
+     *
+     * Why this earns its place in a tool about data honesty: when a filter cuts
+     * 148 records to 12, a figure that simply swaps digits gives no signal that
+     * it moved, and the reader has to re-read the whole panel to find what
+     * changed. A number that travels says "this one responded to you".
+     *
+     * It never invents a value. The final frame is always the exact string the
+     * caller passed, so what is on screen when the animation ends is what would
+     * have been there without it — and with reduced motion it is set directly.
+     */
+    countUp: function (node, text, opts) {
+      opts = opts || {};
+      if (!node) return;
+      var finish = function () { node.textContent = text; };
+      if (!GEO.motion.animates()) return finish();
+
+      /* Only a plain number animates. "$32.2 /m²" or "Insufficient verified
+         data" are set directly: interpolating a formatted string produces
+         digits that were never a real value, which is the one thing this
+         product may not do. */
+      var target = parseFloat(String(text).replace(/[\s,]/g, ''));
+      var from = parseFloat(String(node.textContent || '').replace(/[\s,]/g, ''));
+      if (!isFinite(target) || !isFinite(from) || from === target) return finish();
+      if (!/^-?[\d\s,]+$/.test(String(text).trim())) return finish();
+
+      var dur = opts.duration || 420;
+      var start = null;
+      var raf = w.requestAnimationFrame;
+      if (!raf) return finish();
+
+      function frame(ts) {
+        if (start === null) start = ts;
+        var p = Math.min(1, (ts - start) / dur);
+        /* ease-out: fast first, settles at the end — the shape that reads as
+           "arrived" rather than "still moving". */
+        var eased = 1 - Math.pow(1 - p, 3);
+        if (p >= 1) return finish();
+        node.textContent = GEO.fmt.int(Math.round(from + (target - from) * eased));
+        raf(frame);
+      }
+      raf(frame);
+    }
+  };
+
   GEO.STORAGE_PREFIX = 'geo.mvp.v1.';
 
   /* ---------------------------------------------------------------- utils */
@@ -294,7 +359,7 @@
 
   GEO.storage = {
     available: available,
-    reason: available ? null : 'Browser storage is unavailable here (this is normal when opening the file directly in some browsers). Edits will work but will not survive a reload — use Export JSON to keep them.',
+    reason: available ? null : 'Browser storage is unavailable here (this is normal when opening the file directly in some browsers). Edits will work but will not survive a reload – use Export JSON to keep them.',
 
     get: function (key, fallback) {
       var raw;
@@ -304,7 +369,7 @@
       if (raw === null || raw === undefined) return fallback;
       try { return JSON.parse(raw); }
       catch (e) {
-        GEO.log.warn('storage: corrupt JSON at', key, '— ignoring');
+        GEO.log.warn('storage: corrupt JSON at', key, '– ignoring');
         return fallback;
       }
     },

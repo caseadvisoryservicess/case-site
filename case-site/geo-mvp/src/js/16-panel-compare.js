@@ -60,7 +60,7 @@
     'compare.group.noData.body':
       'These fields hold no value for any property in this comparison. They are listed rather than dropped: a field nobody has collected is a fact about the market, not an empty row.',
     'compare.differs': 'Values differ',
-    'compare.hiddenIdentical': '{n} rows hidden — every selected property holds the same value.',
+    'compare.hiddenIdentical': '{n} rows hidden – every selected property holds the same value.',
     'compare.add.scope': 'Searches the {n} properties in the current results.',
     'compare.add.none': 'No property in the current results matches "{q}".',
     'compare.add.already': 'Already in this comparison',
@@ -70,12 +70,12 @@
     'compare.distance.m': '{m} m',
     'compare.list.more': 'and {n} more',
     'compare.aria.table': 'Comparison of {n} properties, one column each',
-    'compare.csv.title': '{product} — property comparison',
+    'compare.csv.title': '{product} – property comparison',
     'compare.csv.date': 'Exported {date}',
     'compare.csv.unknown': '"Not recorded" means the value has never been collected. It does not mean zero.',
     'compare.csv.colField': 'Field',
-    'compare.csv.colConfidence': '{name} — confidence',
-    'compare.csv.colVerified': '{name} — last verified'
+    'compare.csv.colConfidence': '{name} – confidence',
+    'compare.csv.colVerified': '{name} – last verified'
   };
   Object.keys(ADDED).forEach(function (k) {
     if (!GEO.i18n.en[k]) GEO.i18n.en[k] = ADDED[k];
@@ -501,7 +501,7 @@
       return el('button.btn.btn--quiet.btn--sm', {
         type: 'button', disabled: already,
         text: nameOf(rec) + ' · ' + GEO.data.districtName(rec.districtKey) +
-              (already ? ' — ' + t('compare.add.already') : ''),
+              (already ? ' – ' + t('compare.add.already') : ''),
         onclick: function () { addColumn(rec.id); }
       });
     })));
@@ -687,7 +687,7 @@
    * =================================================================== */
 
   /* The element that opened the overlay is whatever last held focus outside
-     it — the tray button, a list card, the `C` shortcut's focus owner or an
+     it – the tray button, a list card, the `C` shortcut's focus owner or an
      assistant response action. Recording it here means focus return works for
      all of them without any of them having to tell us. */
   function trackOpener(e) {
@@ -808,7 +808,7 @@
   /* 99-boot is the LAST module in the manifest, so `GEO.boot` does not exist
      while this file is evaluated. `data:loaded` fires from inside boot's
      start(), after the repository is populated and before the first state
-     broadcast — early enough to catch the opening render. */
+     broadcast – early enough to catch the opening render. */
   var registered = false;
   function registerPanel() {
     if (registered || !GEO.boot || !GEO.boot.registerPanel) return;

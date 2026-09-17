@@ -92,10 +92,10 @@
     'quality.coverage.stat.empty': 'Fields with nothing recorded',
     'quality.coverage.stat.index': 'Critical-field coverage',
     'quality.coverage.stat.fields': 'Based on {m} fields in the registry.',
-    'quality.coverage.index.cov': 'Based on {n} recorded values out of {m} possible — {k} critical fields across {r} records.',
+    'quality.coverage.index.cov': 'Based on {n} recorded values out of {m} possible – {k} critical fields across {r} records.',
     'quality.coverage.index.none': 'There are no records to measure, so there is no coverage to report.',
     'quality.coverage.notAFilter': 'These bars are a denominator, not a link. The filter model has no "records missing field X" predicate, so nothing here can narrow the map to exactly those records; the verification backlog on the Quality tab names them record by record instead.',
-    'quality.coverage.chart.cov': 'Every bar is counted over all {m} records in the dataset. The hatched remainder of each bar is what is not recorded — it is shown, never dropped.',
+    'quality.coverage.chart.cov': 'Every bar is counted over all {m} records in the dataset. The hatched remainder of each bar is what is not recorded – it is shown, never dropped.',
     'quality.coverage.table.title': 'Coverage by field',
     'quality.coverage.col.field': 'Field',
     'quality.coverage.col.recorded': 'Recorded',
@@ -103,7 +103,7 @@
     'quality.coverage.col.critical': 'Critical',
     'quality.coverage.criticalNote': 'A critical field is one of the {m} the completeness band counts. They are the fields a commercial decision needs.',
     'quality.coverage.export': 'Export coverage (CSV)',
-    'quality.coverage.exported': 'Coverage exported — {n} fields with their denominators',
+    'quality.coverage.exported': 'Coverage exported – {n} fields with their denominators',
 
     /* ---- provenance block ---- */
     'quality.sources.title': 'Dataset provenance',
@@ -113,7 +113,7 @@
     'quality.sources.col.retrieved': 'Retrieved',
     'quality.sources.col.records': 'Records',
     'quality.sources.col.licence': 'Licence review',
-    'quality.sources.licence.required': 'Required — not yet done',
+    'quality.sources.licence.required': 'Required – not yet done',
     'quality.sources.licence.cleared': 'Cleared',
     'quality.sources.licence.na': 'Not applicable',
     'quality.sources.licence.unknown': 'Not recorded',
@@ -129,14 +129,14 @@
     'quality.confidence.noSpread': 'This indicator does not separate these records: all {m} fall in one band. Every observed record comes from one source collected in one pass, so record-level confidence carries no variance until a second source exists.',
     'quality.completeness.title': 'Completeness',
     'quality.freshness.title': 'Freshness',
-    'quality.freshness.cannotSeparate': 'Staleness cannot separate these records yet — read the count as "all of them" or "none of them", not as a ranking.',
+    'quality.freshness.cannotSeparate': 'Staleness cannot separate these records yet – read the count as "all of them" or "none of them", not as a ranking.',
     'quality.split.share': '{n} of {m}',
     'quality.split.allRecords': 'Counted over all {m} records in the dataset; every record falls in exactly one band.',
     'quality.checks.title': 'Review queues',
     'quality.checks.summary': '{n} of {m} checks found something. Each queue is a real list of record ids, not a badge.',
     'quality.checks.clean.title': 'Checks that found nothing',
     'quality.checks.clean.body': 'These ran over all {m} records and returned no cases. That is a measured zero, not a check nobody ran.',
-    'quality.checks.clean.row': '{title} — 0 records',
+    'quality.checks.clean.row': '{title} – 0 records',
     'quality.issue.records': '{n} records',
     'quality.issue.why': 'Why it matters',
     'quality.issue.list': 'List the {n} records',
@@ -152,14 +152,14 @@
     'quality.issue.severity.note': 'Note',
     'quality.issue.severity.label': 'Severity: {level}',
 
-    'quality.why.missing_critical': 'Nothing is recorded for these beyond a name, a district and a point on the map. They cannot enter a rent, class, size or vacancy figure, so every market statistic in this product is computed over a fraction of the supply — and that fraction is what the coverage line under each figure reports.',
+    'quality.why.missing_critical': 'Nothing is recorded for these beyond a name, a district and a point on the map. They cannot enter a rent, class, size or vacancy figure, so every market statistic in this product is computed over a fraction of the supply – and that fraction is what the coverage line under each figure reports.',
     'quality.why.coordinate_out_of_bounds': 'A point outside the city envelope falls in no district polygon, so the record is invisible to district aggregation, to radius analysis and to the competitive set. It quietly reduces a district count rather than raising an error.',
     'quality.why.duplicate_coordinate': 'Two records on one coordinate are one building counted twice. Until a verdict is recorded, every count, GLA and supply figure that includes them overstates the market.',
-    'quality.why.district_conflict': 'District drives every chart, filter and rent benchmark in the product. Where the source label and the official boundary disagree, one of the two is publishing the wrong district rent — and the highest rent in this dataset is one of the ten.',
+    'quality.why.district_conflict': 'District drives every chart, filter and rent benchmark in the product. Where the source label and the official boundary disagree, one of the two is publishing the wrong district rent – and the highest rent in this dataset is one of the ten.',
     'quality.why.duplicate_proximity': 'Pairs this close share a footprint, and the source never flagged them. They double-count supply exactly like the flagged groups do, and nothing outside this queue will find them.',
     'quality.why.suspected_non_bc': 'These names describe a firm rather than a building. Counted as supply they inflate the stock; deleted on suspicion they destroy a record nobody has checked. Flagged, they can be excluded from analytics with one toggle and the effect stated numerically.',
     'quality.why.value_conflict': 'Two recorded numbers that cannot both be true. A figure that contradicts its own neighbour will contradict a client fact-check just as fast.',
-    'quality.why.duplicate_name': 'The same or nearly the same name, close together. Either one building was listed twice or two buildings share a brand — and the two mean opposite things for a supply count.',
+    'quality.why.duplicate_name': 'The same or nearly the same name, close together. Either one building was listed twice or two buildings share a brand – and the two mean opposite things for a supply count.',
     'quality.why.name_quality': 'A placeholder name identifies no building. It cannot be searched for, cannot be verified in the field, and cannot be matched against a client schedule.',
 
     'quality.tasks.title': 'Field-collection tasks',
@@ -179,7 +179,7 @@
     'quality.backlog.showAll': 'Show all {n}',
     'quality.backlog.showFewer': 'Show the first {n} only',
     'quality.backlog.export': 'Export the backlog (CSV)',
-    'quality.backlog.exported': 'Backlog exported — {n} records with their scores and reasons',
+    'quality.backlog.exported': 'Backlog exported – {n} records with their scores and reasons',
     'quality.backlog.scoring': 'Score = 12 per missing critical field, + 30 stale or 12 ageing, + 8 per weakly-sourced commercial field, + 25 coordinates out of bounds, + 20 district conflict, + 15 unresolved duplicate, + 10 suspected non-office, + 5 name needs checking, + 6 if the record already carries commercial data, plus 0 / 5 / 15 / 20 for High / Medium / Low / Not-verified confidence.',
     'quality.backlog.empty.title': 'Nothing is queued for verification.',
     'quality.backlog.empty.body': 'Every one of the {m} records has all {k} critical fields recorded, carries no flag and is inside its refresh interval.',
@@ -189,10 +189,10 @@
     'quality.dupes.pairs.one': '{n} possible duplicate pair',
     'quality.dupes.pairs.other': '{n} possible duplicate pairs',
     'quality.dupes.headline': '{records} records · {pairs} unresolved · counted as {counted}',
-    'quality.dupes.headline.cov': 'Three checks over all {records} records: {g} source-flagged coordinate groups, {p} unflagged pairs under {d} m apart, {n} similar-name pairs — {total} candidates in all, of which {resolved} carry a verdict.',
-    'quality.dupes.kind.coordinate': 'Flagged by the source — identical coordinates',
-    'quality.dupes.kind.proximity': 'Found by coordinate proximity — under {m} m apart',
-    'quality.dupes.kind.name': 'Similar names, close together — {why}',
+    'quality.dupes.headline.cov': 'Three checks over all {records} records: {g} source-flagged coordinate groups, {p} unflagged pairs under {d} m apart, {n} similar-name pairs – {total} candidates in all, of which {resolved} carry a verdict.',
+    'quality.dupes.kind.coordinate': 'Flagged by the source – identical coordinates',
+    'quality.dupes.kind.proximity': 'Found by coordinate proximity – under {m} m apart',
+    'quality.dupes.kind.name': 'Similar names, close together – {why}',
     'quality.dupes.apart': '{d} m apart',
     'quality.dupes.sameSpot': 'Identical coordinates',
     'quality.dupes.said': 'What the source said',
@@ -204,7 +204,7 @@
     'quality.dupes.effect.same': 'Counted as one building: {kept} is kept and {dropped} is absorbed in every supply statistic.',
     'quality.dupes.effect.samePending': 'Ruled the same building. The collapse applies to the counted set on the next recompute.',
     'quality.dupes.effect.different': 'Counted as {n} separate buildings, which is what the verdict says they are.',
-    'quality.dupes.effect.undecided': 'Counted as {n} separate records until a verdict is recorded — so supply figures may be counting one building twice.',
+    'quality.dupes.effect.undecided': 'Counted as {n} separate records until a verdict is recorded – so supply figures may be counting one building twice.',
     'quality.dupes.empty.title': 'No duplicate candidates in this dataset.',
     'quality.dupes.empty.body': 'Three checks ran over all {m} records and found nothing: source-flagged coordinate groups, pairs under {d} m apart, and similar names within {g} m of each other.',
     'quality.dupes.verdictFailed': 'The verdict could not be saved for {name}.',
@@ -509,7 +509,7 @@
 
   function csvHead(titleText, scope) {
     return [
-      '# ' + GEO.PRODUCT.name + ' — ' + titleText + ' — ' + GEO.date.today(),
+      '# ' + GEO.PRODUCT.name + ' – ' + titleText + ' – ' + GEO.date.today(),
       '# Records: ' + F.int(scope.length) + (D.containsDemo(scope) ? ' (INCLUDES SYNTHETIC DEMO RECORDS)' : ''),
       '# Blank cells mean NOT RECORDED. They do not mean zero.',
       '# Source: ' + D.sources().map(function (s) { return s.name; }).join(' | ')
@@ -565,7 +565,7 @@
     return mounts[id];
   }
 
-  /** Decision A: the sentence a reader should leave this tab with, derived —
+  /** Decision A: the sentence a reader should leave this tab with, derived –
    *  never a fixed string that could outlive the numbers it describes. */
   function coverageHeadline(cov, scope) {
     var N = scope.length;
@@ -620,7 +620,7 @@
     return card([
       el('h3', { text: t('quality.coverage.headline.title') }),
       el('div.stack', {}, lines.map(function (line) { return el('p', { text: line }); })),
-      /* D4 — every figure computed over a set that includes synthetic records
+      /* D4 – every figure computed over a set that includes synthetic records
          says so on the figure, not only in the banner. */
       el('div.stats', {}, [
         statTile({ label: t('quality.coverage.stat.full'), display: F.int(full.length),
@@ -720,7 +720,7 @@
     /* 10-charts owns the pixels and keeps its instance alive across redraws, so
        the container is a module singleton that gets re-attached rather than a
        fresh div per render (which would orphan an observer every time). The
-       mount itself waits until the pane is in the document — see `afterAttach`.
+       mount itself waits until the pane is in the document – see `afterAttach`.
        If the chart cannot be drawn at all the table below carries the same
        numbers, which is the honest failure of a chart. */
     afterAttach.push(function () {
@@ -735,7 +735,7 @@
           note: t('analytics.chart.criticalNote')
         });
       } catch (e) {
-        GEO.log.error('coverage chart failed — the table below carries the same numbers', e);
+        GEO.log.error('coverage chart failed – the table below carries the same numbers', e);
         Q.fill(host, []);
       }
     });
@@ -780,7 +780,7 @@
         return splitRow(confChip(level), cs.counts[level], cs.N);
       })),
       coverageLine(cs.text),
-      /* Decision C — the caveat sits beside the number, not in a footnote. */
+      /* Decision C – the caveat sits beside the number, not in a footnote. */
       spread <= 1 ? el('p.reason', { text: t('quality.confidence.noSpread', { m: F.int(cs.N) }) }) : null,
       el('p.reason', { text: t('quality.confidence.legend') }),
       el('ul.stack', {}, [
@@ -812,7 +812,7 @@
         return splitRow(freshChip(k), ds.freshness[k] || 0, ds.records);
       })),
       coverageLine(t('quality.split.allRecords', { m: F.int(ds.records) })),
-      /* D8 — the disclosure is COMPUTED, and it is rendered against the counts
+      /* D8 – the disclosure is COMPUTED, and it is rendered against the counts
          it qualifies rather than at the bottom of the tab. */
       ds.stalenessDiscriminates
         ? el('p.coverage', { text: ds.stalenessNote })
@@ -830,7 +830,7 @@
      three of those keys declare a variable the caller does not pass: `{examples}`
      on two details, `{district}` on the missing-critical item, `{m}` on the pair
      item. `t()` deliberately leaves an unresolved token VISIBLE so the gap is
-     findable — right for a log, wrong for a panel a client reads. So the tokens
+     findable – right for a log, wrong for a panel a client reads. So the tokens
      are stripped for display and every fact they would have carried is rebuilt
      here from the record, group or pair that 04-quality already hands over. The
      upstream gap stays in `GEO.log`, where it belongs, instead of on screen. */
@@ -850,7 +850,7 @@
   function openButton(rec) {
     return el('button.btn.btn--quiet.btn--sm', {
       type: 'button', style: WRAP, text: recordName(rec),
-      'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
+      'aria-label': t('quality.issue.openRecord') + ' – ' + recordName(rec),
       onclick: function () { openRecord(rec.id); }
     });
   }
@@ -861,7 +861,7 @@
   }
 
   /** Both sides of a duplicate candidate, each openable, with the distance that
-   *  made it a candidate — the fact the shipped item string drops. */
+   *  made it a candidate – the fact the shipped item string drops. */
   function pairRow(records, distanceM, why) {
     var bits = [distanceM < 1 ? t('quality.dupes.sameSpot')
                               : t('quality.dupes.apart', { d: F.num(distanceM, 0) })];
@@ -911,7 +911,7 @@
 
   /**
    * One queue. Decision D decides which of the three control shapes it gets, and
-   * every shape states what it does — including the disabled one.
+   * every shape states what it does – including the disabled one.
    */
   function issueCard(e, scope) {
     var map = ISSUE_FILTER[e.type];
@@ -998,7 +998,7 @@
   /**
    * The checks that returned nothing. `Q.issues` only returns populated queues,
    * so without this the reader cannot tell "we looked and found none" from "we
-   * never looked" — and out-of-bounds coordinates (0 at seed) would vanish.
+   * never looked" – and out-of-bounds coordinates (0 at seed) would vanish.
    */
   function cleanChecksBlock(found, scope) {
     var clean = QA.ISSUE_TYPES.filter(function (d) { return !found[d.type]; });
@@ -1037,7 +1037,7 @@
 
     kids.push(cleanChecksBlock(found, scope));
 
-    // D-15 / §50 — present, disabled, and honest about what it would need.
+    // D-15 / §50 – present, disabled, and honest about what it would need.
     kids.push(card([
       sectionTitle(t('quality.tasks.title')),
       el('p', { text: t('quality.tasks.body') }),
@@ -1073,7 +1073,7 @@
         el('th', { scope: 'row', 'class': 'tbl__rowhd' }, [
           el('button.btn.btn--quiet.btn--sm', {
             type: 'button', style: WRAP, text: recordName(rec),
-            'aria-label': t('quality.issue.openRecord') + ' — ' + recordName(rec),
+            'aria-label': t('quality.issue.openRecord') + ' – ' + recordName(rec),
             onclick: function () { openRecord(rec.id); }
           }),
           el('div.row.row--tight', {}, [
@@ -1197,7 +1197,7 @@
       if (!U.isKnown(rec[k])) return;
       var ev = D.evidence(rec, k);
       if (!ev) return;
-      lines.push(fieldLabel(k) + ' — ' + (U.isKnown(ev.source) ? ev.source : F.UNKNOWN) +
+      lines.push(fieldLabel(k) + ' – ' + (U.isKnown(ev.source) ? ev.source : F.UNKNOWN) +
                  ' · ' + methodLabel(ev.method) +
                  (U.isKnown(ev.note) ? ' · ' + ev.note : ''));
     });
@@ -1268,7 +1268,7 @@
   }
 
   /* `.seg__btn` is the shipped segmented control, but it is 28px high and a
-     verdict is a decision a reviewer commits to — it gets the full 32px target
+     verdict is a decision a reviewer commits to – it gets the full 32px target
      (44px at touch widths, where `--hit` changes under it). The chosen verdict
      is carried by `aria-pressed` and by the filled button, and again in words by
      the "Verdict recorded" line beside it, so it never depends on fill alone. */
@@ -1319,7 +1319,7 @@
   }
 
   function drawDupes(state, rows, scope) {
-    /* Decision E — reviewed over the UNCOLLAPSED set so a verdict can be revised,
+    /* Decision E – reviewed over the UNCOLLAPSED set so a verdict can be revised,
        while the headline "counted as" figure comes from the collapsed scope. */
     var review = D.workingSet({
       demoMode: state.demoMode,
@@ -1444,8 +1444,8 @@
 
   function render(state, rows, scope) {
     /* The overlay's tablist is shell chrome shared with 19-admin. Writing
-       `aria-selected` from state is idempotent — both modules would write the
-       same value — and without it the selected tab is only visible as a colour. */
+       `aria-selected` from state is idempotent – both modules would write the
+       same value – and without it the selected tab is only visible as a colour. */
     if (state.overlay === 'data') {
       Q.$$('#overlay-data [data-datatab]').forEach(function (b) {
         b.setAttribute('aria-selected', b.dataset.datatab === state.dataTab ? 'true' : 'false');
@@ -1484,7 +1484,7 @@
   /* `99-boot.js` is LAST in the manifest and opens with `GEO.boot = {}`, so at
      panel-load time `GEO.boot.registerPanel` does not exist yet. DOMContentLoaded
      is the seam: every inline script has run by then, and because this listener
-     is added while 18 loads — before 99-boot adds its own — registration lands
+     is added while 18 loads – before 99-boot adds its own – registration lands
      before `B.start()` subscribes the renderer. */
   function registerWithBoot() {
     if (!GEO.boot || !GEO.boot.registerPanel) return false;
@@ -1497,14 +1497,14 @@
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', function () {
         if (!registerWithBoot()) {
-          GEO.log.error('18-panel-quality: GEO.boot.registerPanel is unavailable — ' +
+          GEO.log.error('18-panel-quality: GEO.boot.registerPanel is unavailable – ' +
                         'the Coverage, Quality and Duplicates tabs will not render');
         }
       });
     } else {
       setTimeout(function () {
         if (!registerWithBoot()) {
-          GEO.log.error('18-panel-quality: GEO.boot.registerPanel is unavailable — ' +
+          GEO.log.error('18-panel-quality: GEO.boot.registerPanel is unavailable – ' +
                         'the Coverage, Quality and Duplicates tabs will not render');
         }
       }, 0);

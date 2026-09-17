@@ -131,7 +131,7 @@
       earthRadiusM: G.EARTH_R_M,
       // Stated in the panel so a reader knows which convention produced the numbers.
       method: 'Great-circle (haversine) distance on a sphere of radius ' +
-              F.int(G.EARTH_R_M) + ' m. Bands are cumulative — the 3 km figure includes ' +
+              F.int(G.EARTH_R_M) + ' m. Bands are cumulative – the 3 km figure includes ' +
               'everything within 1 km. The selected property is excluded from its own counts.',
       widest: widest,
       competitiveBandKm: compBand.km,
@@ -167,7 +167,7 @@
 
       if (!U.isKnown(r.officeClass)) {
         proximityOnly.push({ record: r, distanceM: dist,
-                             reasons: reasons.concat(['office class not recorded — cannot be qualified']) });
+                             reasons: reasons.concat(['office class not recorded – cannot be qualified']) });
         return;
       }
       if (!haveSubjectClass) {
@@ -193,7 +193,7 @@
         }
         reasons.push('GLA within 0.5–2× of the selected property');
       } else if (subjGla !== null || U.isKnown(r.gla)) {
-        reasons.push('size not compared — GLA not recorded for both');
+        reasons.push('size not compared – GLA not recorded for both');
       }
 
       qualified.push({ record: r, distanceM: dist, reasons: reasons });
@@ -226,7 +226,7 @@
         if (proximityOnly.length) {
           bits.push(F.int(proximityOnly.length) + ' nearby ' +
                     F.plural(proximityOnly.length, 'property has', 'properties have') +
-                    ' no recorded class and could not be qualified — they are listed separately, not counted as peers.');
+                    ' no recorded class and could not be qualified – they are listed separately, not counted as peers.');
         }
         if (subjGla === null) {
           bits.push('Building size is not recorded for the selected property, so size was not used.');

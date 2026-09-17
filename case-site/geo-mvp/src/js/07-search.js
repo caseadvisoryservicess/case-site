@@ -127,7 +127,7 @@
       if (!unmapped[c]) {
         unmapped[c] = true;
         GEO.log.warn('search: no transliteration for "' + c + '" (U+' +
-                     c.charCodeAt(0).toString(16).toUpperCase() + ') — folded to a separator');
+                     c.charCodeAt(0).toString(16).toUpperCase() + ') – folded to a separator');
       }
       return ' ';
     });

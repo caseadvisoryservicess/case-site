@@ -31,7 +31,7 @@ BUILD_DATE = '2026-09-16'          # the date this seed was generated (no wall-c
 SOURCE_DATE = '2026-07-19'         # when 2GIS data was retrieved, per the source files
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Refresh cadence (brief §23). ASSUMPTION, not fact — Tashkent office asking rents
+# Refresh cadence (brief §23). ASSUMPTION, not fact – Tashkent office asking rents
 # and availability move fast; structural attributes do not. Exposed in the app as an
 # editable setting so the product decision can be tested rather than hidden.
 # ─────────────────────────────────────────────────────────────────────────────
@@ -108,7 +108,7 @@ def locate(x, y, feats):
 
 
 def interior_point(feature):
-    """A point guaranteed to be inside the district — used to place DEMO records
+    """A point guaranteed to be inside the district – used to place DEMO records
     in a named district without inventing a real street address."""
     biggest = max(polys_of(feature), key=lambda p: len(p[0]))
     ring = biggest[0]
@@ -153,7 +153,7 @@ def add_days(iso, days):
 
 # ── provenance profiles ─────────────────────────────────────────────────────
 # A source is an ENTITY, not a copy. `_evidence[field]` holds a profile id (a string),
-# or an object {p: "<profileId>", ...overrides} when a single field diverges — which is
+# or an object {p: "<profileId>", ...overrides} when a single field diverges – which is
 # what the in-app editor writes when a user re-verifies one value. Dates default to the
 # record's own collectedAt / lastVerifiedAt; `nextRefreshAt` is always COMPUTED from
 # lastVerifiedAt + refreshDays[fieldRefreshClass[field]], never stored, so it can never
@@ -184,13 +184,13 @@ EVIDENCE_PROFILES = {
         'source': 'Computed from Toshkent shahar chegarasi (2024)', 'sourceId': 'SRC-CITY-BOUNDARY',
         'sourceUrl': None, 'method': 'public registry', 'confidence': 'High',
         'collectorId': None, 'reviewer': None, 'qcStatus': 'accepted',
-        'note': 'District assigned by point-in-polygon against the official 2024 city boundary — '
+        'note': 'District assigned by point-in-polygon against the official 2024 city boundary – '
                 'reproducible from the coordinates, not a third-party label.',
     },
 }
 for _lvl in ('High', 'Medium', 'Low', 'Unknown'):
     EVIDENCE_PROFILES[f'DEMO-{_lvl.upper()}'] = {
-        'source': 'Synthetic demo record — not market data', 'sourceId': 'SRC-DEMO',
+        'source': 'Synthetic demo record – not market data', 'sourceId': 'SRC-DEMO',
         'sourceUrl': None, 'method': 'other', 'confidence': _lvl,
         'collectorId': None, 'reviewer': 'CASE Geoanalytics (prototype)', 'qcStatus': 'accepted',
         'note': 'Fictional value created so the prototype can be tested. '
@@ -201,7 +201,7 @@ for _lvl in ('High', 'Medium', 'Low', 'Unknown'):
 # ─────────────────────────────────────────────────────────────────────────────
 # Entity review (§4, D7). A 2GIS keyword scrape for "business centre" also returns
 # tenant firms and organisations housed inside offices. We NEVER delete a record on
-# our own judgement — deletion is an unverified call. We pre-flag only records whose
+# our own judgement – deletion is an unverified call. We pre-flag only records whose
 # NAME ITSELF states it is a company, an organisation or an office rather than a
 # building, leave everything else `unreviewed`, and let a human work the queue.
 # Conservative by design: a false "suspected" flag is as damaging as a missed one.
@@ -224,12 +224,12 @@ SUSPECTED_NON_BC = {
 }
 
 NAME_QUALITY = {
-    'Бизнес центр': 'Generic placeholder name — carries no building identity.',
-    'Бизнес центр 2': 'Generic placeholder name with an index — carries no building identity.',
-    'Biznes sentr': 'Generic placeholder name (transliterated) — carries no building identity.',
-    'Bussines Center': 'Generic, misspelled placeholder name — carries no building identity.',
-    'Chilonzor': 'A district name used as a building name — almost certainly a mis-scraped record.',
-    'Авто': 'Single generic word ("auto") — carries no building identity.',
+    'Бизнес центр': 'Generic placeholder name – carries no building identity.',
+    'Бизнес центр 2': 'Generic placeholder name with an index – carries no building identity.',
+    'Biznes sentr': 'Generic placeholder name (transliterated) – carries no building identity.',
+    'Bussines Center': 'Generic, misspelled placeholder name – carries no building identity.',
+    'Chilonzor': 'A district name used as a building name – almost certainly a mis-scraped record.',
+    'Авто': 'Single generic word ("auto") – carries no building identity.',
 }
 
 
@@ -263,7 +263,7 @@ def blank_record():
         'amenitiesStatus': 'not_collected',
         '_evidence': {},
         '_meta': {},
-        '_history': {},                     # §2.4 reserved — shape defined, unpopulated in MVP
+        '_history': {},                     # §2.4 reserved – shape defined, unpopulated in MVP
     }
 
 
@@ -301,11 +301,11 @@ def build_real(feats):
 
         # Provenance. Coordinates/name/address come from a single map-service listing:
         # Medium. Class and asking rent from the same unverified listing are commercial
-        # claims a CRE advisor must confirm with the landlord: Low (§2.3 — do not inflate).
+        # claims a CRE advisor must confirm with the landlord: Low (§2.3 – do not inflate).
         # Provenance by reference. Coordinates/name/address come from a single map-service
         # listing: Medium. Class and asking rent from that same unverified listing are
         # commercial claims a CRE advisor must confirm with the landlord: Low
-        # (§2.3 — do not inflate confidence).
+        # (§2.3 – do not inflate confidence).
         r['_evidence'] = {f: '2GIS-BASE' for f in ('name', 'lat', 'lng')}
         r['_evidence']['districtKey'] = 'GEOMETRY' if geo_key else '2GIS-BASE'
         if r['address']:
@@ -345,7 +345,7 @@ def build_real(feats):
 # ── build: demo records ─────────────────────────────────────────────────────
 DEMO_SPECS = [
     # district, name, and the feature each record exists to make testable
-    dict(d='yunusobod', name='DEMO — Alpha Tower', officeClass='A+', status='Operating',
+    dict(d='yunusobod', name='DEMO – Alpha Tower', officeClass='A+', status='Operating',
          gla=24500, gba=31000, floors=28, typicalFloorPlate=950, yearOpened=2022,
          askingRent=45, serviceCharge=6.5, occupancyPct=92, vacancyPct=8,
          availableArea=1960, minUnit=120, parkingSpaces=420, parkingRatio=0.017,
@@ -357,8 +357,8 @@ DEMO_SPECS = [
                   dict(name='DEMO Tech', industry='IT & software', area=3100, floor='15-17'),
                   dict(name='DEMO Energy', industry='Energy', area=2400, floor='20')],
          tenantsStatus='complete', confidence='High', verified='2026-09-10',
-         why='fully populated record — exercises every metric, chart and comparison row'),
-    dict(d='mirobod', name='DEMO — Beta Plaza', officeClass='A', status='Operating',
+         why='fully populated record – exercises every metric, chart and comparison row'),
+    dict(d='mirobod', name='DEMO – Beta Plaza', officeClass='A', status='Operating',
          gla=12000, gba=15500, floors=16, typicalFloorPlate=780, yearOpened=2019,
          askingRent=32, serviceCharge=5, occupancyPct=78, vacancyPct=22,
          availableArea=2640, minUnit=90, parkingSpaces=180,
@@ -367,42 +367,42 @@ DEMO_SPECS = [
          tenants=[dict(name='DEMO Logistics', industry='Transport & logistics', area=2100, floor='4-5'),
                   dict(name='DEMO Legal', industry='Professional services', area=900, floor='9')],
          tenantsStatus='partial', confidence='Medium', verified='2026-08-01',
-         why='partial tenant list — exercises "partial" tenant coverage vs complete'),
-    dict(d='chilonzor', name='DEMO — Gamma Business Park', officeClass='B+', status='Operating',
+         why='partial tenant list – exercises "partial" tenant coverage vs complete'),
+    dict(d='chilonzor', name='DEMO – Gamma Business Park', officeClass='B+', status='Operating',
          gla=8200, gba=9900, floors=9, yearOpened=2015, askingRent=24,
          occupancyPct=None, vacancyPct=None, parkingSpaces=120,
          amenities=['cafe', 'security', 'surface parking', 'bicycle parking'],
          tenantsStatus='not_collected', confidence='Medium', verified='2026-07-05',
-         why='known rent but UNKNOWN occupancy — proves unknown occupancy is not read as 0%'),
-    dict(d='yashnobod', name='DEMO — Delta Works', officeClass='B', status='Renovation',
+         why='known rent but UNKNOWN occupancy – proves unknown occupancy is not read as 0%'),
+    dict(d='yashnobod', name='DEMO – Delta Works', officeClass='B', status='Renovation',
          gla=5400, gba=6600, floors=7, yearOpened=2006, yearRenovated=2026,
          askingRent=None, occupancyPct=55, vacancyPct=45, availableArea=2430,
          parkingSpaces=60, amenities=['security', 'surface parking'],
          tenantsStatus='not_collected', confidence='Low', verified='2025-11-02',
-         why='STALE record with UNKNOWN rent — drives the stale indicator and proves missing rent is not free rent'),
-    dict(d='mirzo-ulugbek', name='DEMO — Epsilon Tower', officeClass='A+', status='Under construction',
+         why='STALE record with UNKNOWN rent – drives the stale indicator and proves missing rent is not free rent'),
+    dict(d='mirzo-ulugbek', name='DEMO – Epsilon Tower', officeClass='A+', status='Under construction',
          gla=30000, gba=38000, floors=32, yearOpened=2028,
          askingRent=None, parkingSpaces=500,
          developer='DEMO Developer LLC',
          tenantsStatus='not_collected', confidence='Low', verified='2026-08-20',
-         why='pipeline record — exercises operating-vs-pipeline split and pipeline supply'),
-    dict(d='sergeli', name='DEMO — Zeta Center', officeClass=None, status='Planned',
+         why='pipeline record – exercises operating-vs-pipeline split and pipeline supply'),
+    dict(d='sergeli', name='DEMO – Zeta Center', officeClass=None, status='Planned',
          gla=None, floors=None, askingRent=None,
          tenantsStatus='not_collected', confidence='Unknown', verified='2026-06-15',
-         why='almost-empty record with UNKNOWN class — drives the missing-critical-data indicator'),
-    dict(d='yakkasaroy', name='DEMO — Eta House', officeClass='C', status='Operating',
+         why='almost-empty record with UNKNOWN class – drives the missing-critical-data indicator'),
+    dict(d='yakkasaroy', name='DEMO – Eta House', officeClass='C', status='Operating',
          gla=2100, gba=2500, floors=4, yearOpened=1998, askingRent=15, serviceCharge=2.5,
          occupancyPct=100, vacancyPct=0, availableArea=0, parkingSpaces=18,
          amenities=['reception', 'surface parking'],
          tenants=[dict(name='DEMO Trading', industry='Wholesale & retail', area=2100, floor='1-4')],
          tenantsStatus='complete', confidence='High', verified='2026-09-12',
-         why='CONFIRMED zero vacancy and zero available area — proves 0 is stored and shown as a real value, not as unknown'),
-    dict(d='uchtepa', name='DEMO — Theta Offices', officeClass='B+', status='Operating',
+         why='CONFIRMED zero vacancy and zero available area – proves 0 is stored and shown as a real value, not as unknown'),
+    dict(d='uchtepa', name='DEMO – Theta Offices', officeClass='B+', status='Operating',
          gla=6800, gba=8100, floors=8, yearOpened=2025, askingRent=27.5, serviceCharge=4,
          occupancyPct=0, vacancyPct=100, availableArea=6800, minUnit=150, parkingSpaces=95,
          amenities=['cafe', 'reception', 'security', 'underground parking'],
          tenants=[], tenantsStatus='confirmed_empty', confidence='High', verified='2026-09-08',
-         why='newly completed, CONFIRMED empty — proves "no tenants entered" differs from "confirmed empty"'),
+         why='newly completed, CONFIRMED empty – proves "no tenants entered" differs from "confirmed empty"'),
 ]
 
 
@@ -415,7 +415,7 @@ def build_demo(feats):
         r['recordType'] = 'DEMO'
         r['id'] = f'DEMO-{i:03d}'
         r['name'] = s['name']
-        r['address'] = 'Synthetic location — not a real address'
+        r['address'] = 'Synthetic location – not a real address'
         r['districtKey'] = s['d']
         r['lat'], r['lng'] = lat, lng
         for k in ('status', 'officeClass', 'yearOpened', 'yearRenovated', 'floors', 'gba', 'gla',
@@ -448,7 +448,7 @@ def build_demo(feats):
             'districtSourceLabel': None, 'districtSourceKey': s['d'],
             'districtResolvedBy': 'synthetic', 'districtConflict': False,
             'entityReview': 'confirmed_bc', 'entityReviewNote': None,
-            'sourceNote': 'DEMO RECORD — fictional. Excluded from market analytics by default.',
+            'sourceNote': 'DEMO RECORD – fictional. Excluded from market analytics by default.',
             'demoPurpose': s['why'],
             'editedLocally': False, 'createdAt': ver, 'updatedAt': ver,
         }
@@ -493,7 +493,7 @@ def main():
              'method': 'public registry', 'retrievedAt': '2024-01-01', 'recordCount': len(districts),
              'url': None, 'licenceReview': 'required',
              'note': 'District boundaries, simplified to ~9 m tolerance for in-browser rendering.'},
-            {'id': 'SRC-DEMO', 'name': 'Synthetic demo record — not market data',
+            {'id': 'SRC-DEMO', 'name': 'Synthetic demo record – not market data',
              'method': 'other', 'retrievedAt': BUILD_DATE, 'recordCount': len(demo),
              'url': None, 'licenceReview': 'n/a',
              'note': 'Fictional records created solely to exercise features the real dataset cannot. Never market evidence.'},

@@ -309,12 +309,26 @@
 /* The layers popover node exists in the shell; M-09 routes "Layers" to the
    right rail so there is exactly one layer UI. Styled anyway, because an
    unstyled visible node is worse than an unused styled one. */
+/* Leaflet numbers its internal panes from 200 to 700 (markerPane is 600). With
+   `#map` at `z-index: auto` those numbers were competing directly with the map
+   chrome in .mapwrap's stacking context, and a z-600 marker drew straight over
+   the z-10 layers panel — the panel's own heading was half-covered by a cluster.
+   Isolating the map container keeps Leaflet's ladder inside the map, which is
+   where it was always meant to apply. */
+#map { isolation: isolate; }
+
 .maplayers {
   position: absolute;
   top: var(--s-3);
   right: calc(44px + var(--s-3) * 2);
-  z-index: var(--z-map-chrome);
-  width: min(280px, 60vw);
+  z-index: var(--z-map-dialog);
+  width: min(300px, 62vw);
+  /* The basemap group made this panel taller than any viewport it opens in:
+     1765px against a 940px window, with the last options simply off-screen and
+     unreachable. It scrolls within the map instead. */
+  max-height: calc(100% - var(--s-3) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: var(--s-3);
   background: var(--surface);
   border: 1px solid var(--line-strong);
@@ -526,3 +540,95 @@
  * ------------------------------------------------------------------------- */
 .leaflet-default-icon-path { background-image: none !important; }
 .leaflet-control-layers-toggle { background-image: none !important; }
+
+/* ======================================================= basemap switcher ==
+   The base-map chooser at the top of the layers panel. A radio group rather
+   than a select: the set is small, and seeing every option — including the
+   ones this firm is not licensed for, with the reason — answers the question
+   "can we use Google?" better than a list that quietly omits it. */
+.fgroup--basemap { border-bottom: 1px solid var(--line); }
+
+.basemaps {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.basemap {
+  border-radius: var(--r-card);
+  padding: 2px var(--s-1);
+  transition: background var(--dur-hover) var(--ease-out);
+}
+
+.basemap:hover { background: var(--surface-2); }
+
+.basemap__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  cursor: pointer;
+}
+
+.basemap--locked .basemap__row { cursor: not-allowed; }
+
+.basemap__name { font-size: var(--fs-body); }
+
+.basemap--locked .basemap__name { color: var(--text-3); }
+
+/* The reason and the remedy. Indented under the option they belong to so a
+   locked row reads as one block rather than as loose prose in the panel. */
+.basemap__reason,
+.basemap__caveat,
+.basemap__msg {
+  margin: 0 0 var(--s-1) calc(var(--s-3) + var(--s-2));
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
+/* Yandex's projection warning is not a footnote: an unreprojected basemap puts
+   every marker a few hundred metres out, which reads as a data error. */
+.basemap__caveat {
+  color: var(--text-2);
+  border-left: 2px solid var(--status-warn);
+  padding-left: var(--s-2);
+}
+
+.basemap__msg:empty { display: none; }
+
+.basemap__form {
+  display: grid;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2) calc(var(--s-3) + var(--s-2));
+}
+
+/* ============================================================ dark tiles ===
+   Satellite and dark basemaps swallow a marker's white ring. One attribute
+   set by the map module flips the ring token — not a second palette. */
+.mapwrap[data-basemap="dark"] {
+  --marker-ring: rgba(255, 255, 255, .92);
+}
+
+.mapwrap[data-basemap="dark"] .geo-radius-label,
+.mapwrap[data-basemap="dark"] .maplegend,
+.mapwrap[data-basemap="dark"] .mapnotice {
+  box-shadow: 0 1px 8px rgba(0, 0, 0, .35);
+}
+
+/* ========================================================== tile crossfade ==
+   Swapping providers fades rather than blinks: the outgoing layer is held until
+   the incoming one has painted. Without it the map drops to the empty
+   background between two tile sets, which reads as a fault. */
+.leaflet-tile-pane .leaflet-layer {
+  transition: opacity var(--dur-layer) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-tile-pane .leaflet-layer { transition: none; }
+}
+
+:root[data-motion="reduce"] .leaflet-tile-pane .leaflet-layer { transition: none; }
+
+/* A graticule the reader ASKED for is not an outage, so it does not wear the
+   muted "something is wrong" treatment the offline fallback uses. */
+.mapwrap[data-tiles="off"][data-tiles-chosen="true"] #map { opacity: 1; }

@@ -50,8 +50,9 @@
   var MIN_ZOOM = 10;                 /* M-05: the city fits at z10; below it is noise */
   var MAX_ZOOM = 18;
   var FIT_PADDING = 48;              /* M-06 */
-  var TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
-  var OSM_COPYRIGHT = 'https://www.openstreetmap.org/copyright';
+  /* The basemap is no longer one hard-coded URL: 10b-basemaps.js owns the
+     registry and is the only thing allowed to hand back a tile template. */
+  var B = GEO.basemaps;
 
   /* X-E1: one failed tile is a hiccup, eight in five seconds is an outage. */
   var TILE_FAIL_LIMIT = 8;
@@ -108,6 +109,7 @@
   var radiusSig = null;
   var lastFitToken = null;
   var lastSelected = null;
+  var lastBasemap = null;
   var legendCollapsed = null;  /* M-10: null until the first render knows the breakpoint */
   var legendUserSet = false;   /* true once a PERSON has opened or closed it — see below */
   var legendBpSmall = null;    /* the small/large verdict the current default came from */
@@ -174,13 +176,18 @@
 
   /** §25 / IA §6.5: reduced motion disables map pan-zoom easing as well as
    *  transitions, so every view change has to ask before it animates. */
-  function animates() {
-    var mode = document.documentElement.getAttribute('data-motion');
-    if (mode === 'full') return true;
-    if (mode === 'reduce') return false;
-    try { return !w.matchMedia('(prefers-reduced-motion: reduce)').matches; }
-    catch (e) { return true; }
+  /* The attribution is the one authored HTML string in this module, so the only
+     interpolated part of it gets escaped. The text is ours today; a licensed
+     endpoint's attribution may not be tomorrow. */
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
   }
+
+  /* Delegates to GEO.motion so the map and the panels cannot disagree about
+     whether the reader asked for stillness. */
+  function animates() { return GEO.motion.animates(); }
 
   function viewOpts(extra) {
     var o = { animate: animates() };
@@ -241,7 +248,7 @@
      interesting half of the problem is the three sub-30 m pairs the SOURCE did
      not flag: `_meta.possibleDuplicate` alone would leave those looking like
      two ordinary buildings. They come from `GEO.quality.duplicates()`, which is
-     an O(n²) proximity scan — a property of the DATASET, not of the filtered
+     an O(n²) proximity scan – a property of the DATASET, not of the filtered
      rows, so it is computed once per dataset state and cached. */
 
   var dupeIds = null, dupeKey = null, dataVersion = 0;
@@ -271,7 +278,7 @@
         p.recordIds.forEach(function (id) { dupeIds[id] = true; });
       });
     } catch (e) {
-      GEO.log.warn('map: duplicate scan failed — falling back to the source flag', e);
+      GEO.log.warn('map: duplicate scan failed – falling back to the source flag', e);
     }
     return dupeIds;
   }
@@ -307,8 +314,8 @@
             flags.dupe ? 1 : 0, flags.inLayer ? 1 : 0, flags.muted ? 1 : 0].join('|');
   }
 
-  /** The icon. `html` is given as an Element — Leaflet 1.9 appends it rather
-   *  than assigning innerHTML — so no data-derived string is ever parsed. */
+  /** The icon. `html` is given as an Element – Leaflet 1.9 appends it rather
+   *  than assigning innerHTML – so no data-derived string is ever parsed. */
   function pinIcon(enc, flags) {
     var attrs = { 'class': pinClasses(flags), 'aria-hidden': 'true' };
     attrs[enc.attr] = enc.key;
@@ -325,6 +332,107 @@
   /** M-02: name · class · district · confidence, built as NODES because the
    *  name and the address are third-party scraped text and must never be parsed
    *  as markup. */
+  /**
+   * Swap the basemap, crossfading rather than flashing.
+   *
+   * The old layer is kept alive until the new one has painted, then faded out
+   * and removed. Without that the map blinks to the empty background between
+   * two tile sets, which reads as a fault rather than a choice – and on a slow
+   * connection the blink lasts as long as the fetch does.
+   *
+   * Everything that matters is drawn by us in panes ABOVE the tiles: markers,
+   * districts, radius rings, labels. None of it is touched here, which is the
+   * whole point of the tiles being one swappable layer.
+   */
+  function setBasemap(id, opts) {
+    if (!map) return;
+    opts = opts || {};
+    var spec = B.resolve(id);
+
+    var previous = tiles;
+    tiles = null;
+
+    if (!spec) {
+      /* 'none', or a licensed provider with no endpoint yet. The graticule is
+         not an error state here – it is a selectable basemap. */
+      if (previous) fadeOutAndRemove(previous);
+      /* Deliberately NOT setTiles(): that writes state, and this runs inside a
+         render, where state.set() is refused as re-entrant – correctly. The
+         graticule is already implied by `state.basemap`, so nothing needs
+         storing. Only the DOM hook is set here. */
+      tileFails = [];
+      var wrap = Q.$('.mapwrap');
+      if (wrap) { wrap.dataset.tiles = 'off'; wrap.dataset.tilesChosen = 'true'; }
+      applyBasemapClass(id);
+      return;
+    }
+
+    var layer = L.tileLayer(spec.url, {
+      minZoom: MIN_ZOOM,
+      maxZoom: Math.min(MAX_ZOOM, spec.maxZoom),
+      subdomains: spec.subdomains,
+      crossOrigin: true,
+      // Authored markup, not data: the one place an HTML string is legitimate.
+      attribution: spec.attributionKey
+        ? '<a href="' + spec.attributionUrl + '" target="_blank" rel="noreferrer">' +
+          escapeHtml(t(spec.attributionKey)) + '</a>'
+        : ''
+    });
+
+    /* `tiles` is the CURRENT basemap layer, and the next switch reads it as its
+       `previous`. Forgetting this assignment leaked a layer per switch: the old
+       one was never handed to fadeOutAndRemove, so basemaps stacked silently
+       and the earliest one stayed on top. */
+    tiles = layer;
+    tileFails = [];
+    var wrapOn = Q.$('.mapwrap');
+    if (wrapOn) { wrapOn.dataset.tiles = 'on'; wrapOn.dataset.tilesChosen = null; }
+    layer.on('tileerror', onTileError);
+    layer.on('tileload', onTileLoad);
+
+    if (previous && !opts.initial) {
+      layer.setOpacity(0);
+      layer.addTo(map);
+      var swapped = false;
+      var swap = function () {
+        if (swapped) return;
+        swapped = true;
+        layer.setOpacity(1);
+        fadeOutAndRemove(previous);
+      };
+      /* `load` is the good case. `tileerror` is the offline one: every tile
+         404s, `load` never fires, and without this the outgoing layer would sit
+         on top of the incoming one for the whole timeout – two basemaps stacked
+         while the reader waits for a switch they already made. The timeout is
+         the last resort, not the mechanism. */
+      layer.once('load', swap);
+      layer.once('tileerror', swap);
+      w.setTimeout(swap, 1200);
+    } else {
+      if (previous) map.removeLayer(previous);
+      layer.addTo(map);
+    }
+
+    applyBasemapClass(id);
+  }
+
+  function fadeOutAndRemove(layer) {
+    if (!layer || !map || !map.hasLayer(layer)) return;
+    if (!animates()) { map.removeLayer(layer); return; }
+    layer.setOpacity(0);
+    w.setTimeout(function () { if (map.hasLayer(layer)) map.removeLayer(layer); }, 240);
+  }
+
+  /* Dark tiles need light marker rings, or every pin dissolves into the
+     imagery. One attribute, read by 05-map.css – no second palette. */
+  function applyBasemapClass(id) {
+    var wrap = Q.$('.mapwrap');
+    if (wrap) wrap.dataset.basemap = B.isDark(id) ? 'dark' : 'light';
+  }
+
+  M.setBasemap = setBasemap;
+
+
   function tooltipNode(rec) {
     var cls = U.isKnown(rec.officeClass) ? rec.officeClass : t('value.class.unknown');
     var conf = GEO.data.recordConfidence(rec);
@@ -348,7 +456,7 @@
 
   /**
    * @param containerId  the shell's map node id
-   * @param opts         { centre, zoom } — optional initial view
+   * @param opts         { centre, zoom } – optional initial view
    */
   M.init = function (containerId, opts) {
     if (map) return map;
@@ -381,16 +489,8 @@
     node.setAttribute('role', 'application');
     node.setAttribute('aria-label', t('map.aria') + ' ' + t('map.kbdNote'));
 
-    tiles = L.tileLayer(TILE_URL, {
-      minZoom: MIN_ZOOM,
-      maxZoom: MAX_ZOOM,
-      // Authored markup, not data: the one place an HTML string is legitimate.
-      attribution: '<a href="' + OSM_COPYRIGHT + '" target="_blank" rel="noreferrer">' +
-                   t('map.attribution') + '</a>'
-    });
-    tiles.on('tileerror', onTileError);
-    tiles.on('tileload', onTileLoad);
-    tiles.addTo(map);
+    lastBasemap = GEO.state.get().basemap || B.DEFAULT_ID;
+    setBasemap(lastBasemap, { initial: true });
 
     L.control.scale({ metric: true, imperial: false, position: 'bottomright' }).addTo(map);
 
@@ -416,7 +516,7 @@
     /* A pane of its own for the ring labels, above every marker.
        Leaflet gives each marker an INLINE z-index derived from its latitude, so
        a stylesheet rule cannot lift one reliably and `zIndexOffset` only orders
-       markers within the same pane — a cluster still won wherever the data put
+       markers within the same pane – a cluster still won wherever the data put
        it. Panes are the documented mechanism: markerPane is 600, tooltipPane
        650, so 640 sits above every marker and below the tooltips. */
     if (!map.getPane('radiusLabels')) {
@@ -462,7 +562,7 @@
   /* ------------------------------------------------------------- clusters */
 
   /** T8 / visual-system §3: surface fill, --line-strong border, ink count. The
-   *  size band is geometry only — it never becomes a colour scale. */
+   *  size band is geometry only – it never becomes a colour scale. */
   function clusterIcon(c) {
     var n = c.getChildCount();
     var size = n < 10 ? 34 : (n < 100 ? 40 : 46);
@@ -511,19 +611,31 @@
     if (!GEO.state.get().tilesOk) setTiles(true);
   }
 
+  /**
+   * Tile REACHABILITY, which is a system event worth recording. It is not the
+   * same thing as "the reader chose no basemap": both draw the graticule, and
+   * conflating them told someone their network was down because they asked for
+   * a clean background. The chosen case is `state.basemap === 'none'` and needs
+   * no flag of its own – see chosenNoTiles().
+   */
   function setTiles(ok) {
     var wrap = Q.$('.mapwrap');
     if (wrap) wrap.dataset.tiles = ok ? 'on' : 'off';
-    // M-11: the attribution link stays — it is mandatory — but it is greyed and
+    // M-11: the attribution link stays – it is mandatory – but it is greyed and
     // says why it cannot be followed rather than pretending to work.
-    Q.$$('.leaflet-control-attribution a[href="' + OSM_COPYRIGHT + '"]').forEach(function (a) {
+    Q.$$('.leaflet-control-attribution a[href]').forEach(function (a) {
       if (ok) { a.removeAttribute('data-offline'); a.removeAttribute('title'); }
       else { a.setAttribute('data-offline', 'true'); a.setAttribute('title', t('map.attribution.offline')); }
     });
     if (GEO.state.get().tilesOk !== ok) {
       GEO.state.set({ tilesOk: ok }, { source: 'system', action: 'map:tiles',
-        summary: ok ? 'Map tiles available' : 'Map tiles unavailable — data unaffected' });
+        summary: ok ? 'Map tiles available' : 'Map tiles unavailable – data unaffected' });
     }
+  }
+
+  /** True when the graticule is on screen because it was ASKED for. */
+  function chosenNoTiles(state) {
+    return !B.resolve(state.basemap || B.DEFAULT_ID);
   }
 
   function retryTiles() {
@@ -542,7 +654,7 @@
     if (!box) return;
     var kids = [];
 
-    if (!state.tilesOk) {
+    if (!state.tilesOk && !chosenNoTiles(state)) {
       kids.push(el('span', { text: t('map.tiles.offline') + ' ' + t('map.tiles.fallback') }));
       kids.push(el('button.btn.btn--quiet.btn--sm', {
         type: 'button', text: t('common.retry'), onclick: retryTiles
@@ -560,7 +672,7 @@
 
   /**
    * §57: a layer is a saved result set, so its members stay on the map even when
-   * the live filters would hide them — otherwise "show me that layer" would
+   * the live filters would hide them – otherwise "show me that layer" would
    * silently return fewer properties than the layer says it holds.
    */
   function layerMembership(state) {
@@ -671,7 +783,7 @@
   /**
    * C6b / T8: a selected property that is swallowed by a cluster is invisible,
    * which makes "select from the list" look broken. Spiderfying the containing
-   * cluster reveals it WITHOUT moving the viewport — `zoomToShowLayer` would
+   * cluster reveals it WITHOUT moving the viewport – `zoomToShowLayer` would
    * yank the map out from under the reader.
    */
   function expandSelectedCluster(id) {
@@ -721,7 +833,7 @@
   function legendRow(swatchKey, fill, label, count) {
     var sw = el('span.maplegend__swatch', { 'aria-hidden': 'true' });
     // The unknown swatch is hatched by the stylesheet, so it must NOT be given
-    // an inline background — the texture is what carries it in greyscale (§5).
+    // an inline background – the texture is what carries it in greyscale (§5).
     if (swatchKey === 'unknown') sw.setAttribute('data-class', 'unknown');
     else if (fill) sw.style.background = fill;
     return el('div.maplegend__row', {}, [
@@ -746,8 +858,8 @@
        person expresses a preference.
 
        It used to latch on the FIRST render only. A phone that loaded the page at
-       375px got it right, but a window dragged narrow — or a tablet turned to
-       portrait — kept the expanded legend it was given at desktop width, where it
+       375px got it right, but a window dragged narrow – or a tablet turned to
+       portrait – kept the expanded legend it was given at desktop width, where it
        then occupied 36% of the viewport and sat on top of the markers it exists to
        explain. Re-deriving on every breakpoint CHANGE (not every render) fixes that
        without ever overriding a choice someone made on purpose. */
@@ -811,7 +923,7 @@
     // The glyph rows explain the two marks that are NOT part of the ramp. Their
     // swatches are drawn inline rather than reusing `.pin--demo` / `.pin--dupe`,
     // whose pseudo-elements are positioned against a `.pin` that does not exist
-    // here — a legend key that quietly renders nothing is worse than no key.
+    // here – a legend key that quietly renders nothing is worse than no key.
     if (demoCount) {
       body.appendChild(el('div.maplegend__row', {}, [
         el('span.maplegend__swatch', { 'aria-hidden': 'true',
@@ -850,7 +962,7 @@
         M.renderLegend(GEO.state.get(), rows);
       }
     }, [
-      el('span', { text: t('map.legend.title') + ' — ' + t('map.legend.' + encodingKey(mode)) }),
+      el('span', { text: t('map.legend.title') + ' – ' + t('map.legend.' + encodingKey(mode)) }),
       el('span', { 'aria-hidden': 'true', text: legendCollapsed ? '▸' : '▾' })
     ]);
 
@@ -859,7 +971,7 @@
   };
 
   /* ========================================================================
-   * Districts (D1 — geometry is authoritative, so the polygon is the truth)
+   * Districts (D1 – geometry is authoritative, so the polygon is the truth)
    * ===================================================================== */
 
   function districtStyle(on, empty) {
@@ -875,7 +987,7 @@
       fill: true,
       fillColor: on ? red : token('--ink', '#1A1714'),
       fillOpacity: on ? 0.07 : 0.04,
-      // A dashed edge says "zero records here, and we know it" — a recorded
+      // A dashed edge says "zero records here, and we know it" – a recorded
       // zero, not a gap in the data (Yangihayot and Bektemir, per the oracle).
       dashArray: empty ? '4 3' : null,
       interactive: true
@@ -883,7 +995,7 @@
   }
 
   /**
-   * @param districts  [{ key, name, geometry }] — `GEO.data.districts()`, which
+   * @param districts  [{ key, name, geometry }] – `GEO.data.districts()`, which
    *                   is `window.GEO_DISTRICTS` matched onto the seed's district
    *                   list at load.
    * @param rows       optional; the result set the per-district counts describe.
@@ -939,7 +1051,7 @@
         gj.setStyle({ fillOpacity: base.fillOpacity });
       });
       // M-04: a polygon click is the same filter as the L-05 checkbox, written
-      // to the same place — which is what keeps the two from disagreeing. The
+      // to the same place – which is what keeps the two from disagreeing. The
       // native event is deliberately NOT stopped, so the layer popover still
       // closes the way a click outside any popover should close it.
       gj.on('click', function () { toggleDistrict(d.key); });
@@ -968,14 +1080,14 @@
    * @param analysis  `GEO.geo.locationAnalysis(...)`, or null to clear.
    *
    * Rendered with the SVG renderer rather than the map's canvas default, so the
-   * `.geo-radius` classes — including the 200 ms sweep, which reduced motion
-   * collapses to a static circle — actually apply.
+   * `.geo-radius` classes – including the 200 ms sweep, which reduced motion
+   * collapses to a static circle – actually apply.
    */
   M.renderRadius = function (analysis) {
     if (!map || !radiusGroup) return;
 
     // The rings are redrawn only when they would actually differ. Without this
-    // guard the 200 ms sweep would replay on every unrelated state change — a
+    // guard the 200 ms sweep would replay on every unrelated state change – a
     // pointer crossing the results list would make the map twitch.
     var sig = !analysis || !analysis.subject ? null
       : [analysis.subject.id, analysis.competitiveBandKm,
@@ -1027,7 +1139,7 @@
         interactive: false,
         keyboard: false,
         /* Leaflet orders markers in a pane by latitude, so a property marker
-           slightly north of a ring label drew straight over it — and the label
+           slightly north of a ring label drew straight over it – and the label
            carries the band's COUNT, which is the only thing making the ring
            more than decoration. Bearings alone could not fix this: the markers
            are wherever the data puts them, and neither could zIndexOffset,
@@ -1039,13 +1151,13 @@
   };
 
   /* ========================================================================
-   * AI layers (§57) — a saved result set, not a live rule
+   * AI layers (§57) – a saved result set, not a live rule
    * ===================================================================== */
 
   /**
    * Member markers are handled in `renderRecords` (they wear `.pin--layer`, and
    * non-members are muted rather than deleted). This function owns everything
-   * ELSE a layer may put on the map — today, the ring a layer built from a
+   * ELSE a layer may put on the map – today, the ring a layer built from a
    * radius search carries with it. Removing a layer removes its group whole,
    * which is the §9 "removing a layer removes its map artefacts, circles
    * included" guarantee expressed as structure rather than as a checklist.
@@ -1089,14 +1201,14 @@
   };
 
   /* ========================================================================
-   * Context layers (D5) — present, empty, and honest about why
+   * Context layers (D5) – present, empty, and honest about why
    * ===================================================================== */
 
   /* §10 allows context layers only if they can be done reliably, and §2.2
      forbids inventing coordinates. There is no metro dataset in this repo and
      the Overpass API is blocked by network policy, so the slot ships EMPTY and
      DISABLED with its reason on screen. Drop a GeoJSON into
-     `GEO_SEED.contextLayers` and the control enables itself — no code change. */
+     `GEO_SEED.contextLayers` and the control enables itself – no code change. */
   var CONTEXT_KINDS = [
     { id: 'metro', labelKey: 'map.layers.metro' },
     { id: 'roads', labelKey: 'map.layers.roads' },
@@ -1145,7 +1257,7 @@
   }
 
   /* ========================================================================
-   * Layer control — ours, because L.Control.Layers loads layers.png (T2)
+   * Layer control – ours, because L.Control.Layers loads layers.png (T2)
    * ===================================================================== */
 
   function checkbox(label, opts) {
@@ -1157,7 +1269,7 @@
     }
     var row = el('label.check', {}, [input, el('span.check__text', { text: label })]);
     if (!opts.disabled || !opts.reason) return row;
-    // §29: a disabled control states WHY, as real text in the flow — a tooltip
+    // §29: a disabled control states WHY, as real text in the flow – a tooltip
     // is not an accessible reason.
     return el('div', {}, [row, el('span.reason', { text: opts.reason })]);
   }
@@ -1179,6 +1291,20 @@
         { source: 'user', action: 'map:layer:' + key,
           summary: (on ? 'Shown: ' : 'Hidden: ') + label });
     }
+
+    /* The base map goes FIRST and is a radio group, not a menu: it is the one
+       layer control people reach for, and the set is small enough that seeing
+       every option at once beats opening something. Licensed providers stay in
+       the list, disabled, with the reason and the field that unlocks them –
+       hiding them would answer "can we use Google?" with silence. */
+    var basemapGroup = el('div.fgroup.fgroup--basemap', {}, [
+      el('h3.fgroup__hd', { text: t('basemap.label') }),
+      el('div.fgroup__body', {}, [
+        el('div.basemaps', { role: 'radiogroup', 'aria-label': t('basemap.label') },
+           B.options().map(basemapOption.bind(null, state))),
+        el('p.fgroup__note', { text: t('basemap.note') })
+      ])
+    ]);
 
     var base = el('div.fgroup', {}, [
       el('h3.fgroup__hd', { text: t('map.layers.base') }),
@@ -1233,14 +1359,104 @@
       ])
     ]);
 
-    return el('div', {}, [base, context, analysis]);
+    return el('div', {}, [basemapGroup, base, context, analysis]);
   };
+
+  /**
+   * One base-map choice. Three shapes, from the same row of the registry:
+   *
+   *   usable        a working radio.
+   *   licensed      a DISABLED radio that states what it needs, plus a field to
+   *                 paste the licensed endpoint into. §29: the control is not
+   *                 hidden and not inert-and-silent – it says why and offers
+   *                 the remedy.
+   *   caveat        Yandex additionally carries its projection warning, because
+   *                 a basemap 300 m out of register makes every marker look
+   *                 like a data error.
+   */
+  function basemapOption(state, opt) {
+    var id = 'bm-' + opt.id;
+    var current = state.basemap || B.DEFAULT_ID;
+    var input = el('input', {
+      type: 'radio', name: 'basemap', id: id, value: opt.id,
+      checked: current === opt.id || null,
+      disabled: opt.usable ? null : true,
+      onchange: function () {
+        if (!opt.usable) return;
+        GEO.state.set({ basemap: opt.id }, {
+          source: 'user', action: 'map:basemap',
+          summary: t('basemap.switched', { name: t(opt.labelKey) })
+        });
+      }
+    });
+
+    var kids = [el('label.basemap__row', { for: id }, [
+      input,
+      el('span.basemap__name', { text: t(opt.labelKey) }),
+      opt.access === 'licensed' && !opt.unlocked
+        ? el('span.chip.chip--note', { text: t('basemap.licensed') })
+        : null
+    ])];
+
+    if (opt.access === 'licensed' && !opt.unlocked && opt.needsKey) {
+      kids.push(el('p.basemap__reason', { text: t(opt.needsKey) }));
+    }
+    if (opt.caveatKey) {
+      kids.push(el('p.basemap__caveat', { text: t(opt.caveatKey) }));
+    }
+    if (opt.access === 'licensed') kids.push(endpointForm(opt));
+    if (opt.id === 'none') {
+      kids.push(el('p.basemap__reason', { text: t('basemap.none.note') }));
+    }
+
+    return el('div.basemap' + (opt.usable ? '' : '.basemap--locked'), {}, kids);
+  }
+
+  /** Paste a licensed tile endpoint. Stored per-browser, never in the dataset. */
+  function endpointForm(opt) {
+    var inputId = 'bm-url-' + opt.id;
+    var field = el('input.input.input--sm', {
+      type: 'url', id: inputId, placeholder: t('basemap.endpoint.placeholder'),
+      value: B.endpoint(opt.id) || ''
+    });
+    var msg = el('p.basemap__msg', { role: 'status' });
+
+    function save() {
+      var res = B.setEndpoint(opt.id, field.value);
+      if (!res.ok) { msg.textContent = t(res.reasonKey); return; }
+      layerPanelSig = null;
+      var name = t(opt.labelKey);
+      if (GEO.boot && GEO.boot.toast) {
+        GEO.boot.toast(field.value.trim()
+          ? t('basemap.endpoint.saved', { name: name })
+          : t('basemap.endpoint.removed', { name: name }));
+      }
+      var s2 = GEO.state.get();
+      renderLayerPanel(s2, GEO.boot ? GEO.boot.visible(s2) : []);
+    }
+
+    return el('div.basemap__form', {}, [
+      el('label.vh', { for: inputId, text: t('basemap.endpoint.label') }),
+      field,
+      el('div.row.row--tight', {}, [
+        el('button.btn.btn--quiet.btn--sm', {
+          type: 'button', text: t('basemap.endpoint.save'), onclick: save
+        }),
+        B.endpoint(opt.id) ? el('button.btn.btn--quiet.btn--sm', {
+          type: 'button', text: t('basemap.endpoint.clear'),
+          onclick: function () { field.value = ''; save(); }
+        }) : null
+      ]),
+      msg
+    ]);
+  }
 
   function renderLayerPanel(state, rows) {
     var box = Q.$('#maplayers-panel');
     if (!box || box.hidden) return;
     var sig = [rows.length, JSON.stringify(state.layerVisibility || {}),
-               state.radius ? 1 : 0, contextAvailable() ? 1 : 0].join('|');
+               state.radius ? 1 : 0, contextAvailable() ? 1 : 0,
+               state.basemap || '', GEO.i18n.locale].join('|');
     if (sig === layerPanelSig && box.firstChild) return;
     layerPanelSig = sig;
 
@@ -1286,7 +1502,7 @@
   };
 
   /** M-07: back to the whole city. Filters and selection are deliberately left
-   *  alone — "reset view" is a camera command, not an analysis command. */
+   *  alone – "reset view" is a camera command, not an analysis command. */
   M.reset = function () {
     if (!map) return;
     var s = GEO.state.get();
@@ -1315,7 +1531,7 @@
 
   /**
    * M-08. The Fullscreen API is blocked in some browsers on `file://`, and a
-   * button that does nothing is worse than no button (§29) — so the fallback is
+   * button that does nothing is worse than no button (§29) – so the fallback is
    * a real full-viewport mode, not an apology.
    */
   M.toggleFullscreen = function () {
@@ -1404,14 +1620,14 @@
   /* ------------------------------------------------------------ map chrome */
 
   /* §29: no inert controls. A map button that cannot act is disabled AND says
-     why — and because these are icon buttons with no room for inline text, the
+     why – and because these are icon buttons with no room for inline text, the
      reason goes into the accessible name as well as the tooltip, so it is not
      available only to a mouse. */
   function stateButton(node, disabled, label, reason) {
     if (!node) return;
     node.disabled = disabled;
     node.setAttribute('title', disabled ? reason : label);
-    node.setAttribute('aria-label', disabled ? label + ' — ' + reason : label);
+    node.setAttribute('aria-label', disabled ? label + ' – ' + reason : label);
   }
 
   function syncZoomButtons() {
@@ -1475,7 +1691,7 @@
   }
 
   /* ========================================================================
-   * The subscription — everything above is driven from here
+   * The subscription – everything above is driven from here
    * ===================================================================== */
 
   /**
@@ -1511,6 +1727,16 @@
 
   function render(state, rows, scope, patch, meta) {
     if (!map) return;
+
+    /* The basemap is swapped from state like everything else, so the assistant
+       or a restored session can set it and the radio group follows – rather
+       than the control owning the truth (§59). */
+    var want = state.basemap || B.DEFAULT_ID;
+    if (want !== lastBasemap) {
+      lastBasemap = want;
+      setBasemap(want);
+      layerPanelSig = null;
+    }
 
     applyStateView(state, patch, meta);
 

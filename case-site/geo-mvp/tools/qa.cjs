@@ -61,6 +61,28 @@ async function shot(page, name) {
   await page.screenshot({ path: path.join(OUT, name + '.png'), fullPage: false });
 }
 
+/**
+ * The hosts a basemap may legitimately fail to reach when offline, read from the
+ * registry in src/js/10b-basemaps.js rather than listed here.
+ *
+ * A hand-kept list drifts: the moment someone adds a provider, a real "the
+ * deliverable is missing an asset" check starts reporting a tile fetch instead,
+ * and the usual fix is to widen the list until it catches nothing. Parsing the
+ * registry means adding a provider cannot silently blunt this check.
+ */
+function tileHosts() {
+  const src = fs.readFileSync(path.join(ROOT, 'src/js/10b-basemaps.js'), 'utf8');
+  const hosts = new Set();
+  for (const m of src.matchAll(/url:\s*'https:\/\/([^'\/]+)/g)) {
+    // {s}.basemaps.cartocdn.com -> basemaps.cartocdn.com
+    hosts.add(m[1].replace(/^\{s\}\./, '').replace(/^tile-\{s\}\./, ''));
+  }
+  if (!hosts.size) throw new Error('qa: parsed no tile hosts from the basemap registry');
+  return [...hosts];
+}
+const TILE_HOSTS = tileHosts();
+const TILE_RE = new RegExp(TILE_HOSTS.map(h => h.replace(/\./g, '\\.')).join('|'));
+
 /** Attach console/network listeners. Anything logged here is a §66 failure. */
 function watch(page) {
   const errors = [], failed = [], warnings = [];
@@ -68,7 +90,7 @@ function watch(page) {
     // The prototype is tested offline on purpose, so a failed tile fetch is the
     // designed state, not a defect. Everything else is.
     const t = m.text();
-    if (/ERR_INTERNET_DISCONNECTED|ERR_NAME_NOT_RESOLVED|tile\.openstreetmap/.test(t)) return;
+    if (/ERR_INTERNET_DISCONNECTED|ERR_NAME_NOT_RESOLVED/.test(t) || TILE_RE.test(t)) return;
     if (m.type() === 'error') errors.push(t);
     if (m.type() === 'warning') warnings.push(t);
   });
@@ -79,8 +101,8 @@ function watch(page) {
     // the file is opened with no network: map tiles (the app draws a graticule and
     // says so) and the webfonts (typography falls back to Georgia / system-ui).
     // Everything else is an asset the deliverable itself is missing, which is a bug.
-    if (/tile\.openstreetmap\.org|fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u)) return;
-    failed.push(u + ' — ' + (r.failure() && r.failure().errorText));
+    if (TILE_RE.test(u) || /fonts\.googleapis\.com|fonts\.gstatic\.com/.test(u)) return;
+    failed.push(u + ' – ' + (r.failure() && r.failure().errorText));
   });
   return { errors, failed, warnings };
 }
@@ -570,6 +592,184 @@ function watch(page) {
     const rawHits = raw.filter(s => KEYISH.test(s.split(': ').slice(1).join(': ')));
     check('no computed i18n key resolves to itself', rawHits.length === 0, rawHits.join(' | '));
 
+    /* ───────────── base maps (§10) ─────────────
+       The registry is a licence surface as much as a feature. Three things must
+       hold and none of them are visible by reading the UI:
+         · every provider shipped ACTIVE carries an attribution (omitting one is
+           a licence breach, not a cosmetic slip);
+         · no provider whose terms forbid direct tile access ships with a URL;
+         · switching actually swaps the layer and leaves exactly one behind.  */
+    const bm = await page.evaluate(async () => {
+      const B = GEO.basemaps;
+      const out = { audit: B.audit(), ids: B.PROVIDERS.map(p => p.id) };
+      out.openWithoutAttribution = B.PROVIDERS
+        .filter(p => p.access === 'open' && !p.attributionKey).map(p => p.id);
+      out.licensedShippingUrls = B.PROVIDERS
+        .filter(p => p.access === 'licensed' && p.url).map(p => p.id);
+      out.lockedAreNamed = ['2gis', 'google', 'yandex']
+        .every(id => B.PROVIDERS.some(p => p.id === id));
+      out.lockedAreUnusable = ['2gis', 'google', 'yandex'].every(id => !B.usable(id));
+      out.lockedStateReason = ['2gis', 'google', 'yandex']
+        .every(id => !!B.get(id).needsKey);
+
+      // a real switch, through state, as the radio does it
+      GEO.state.set({ basemap: 'carto-dark' }, { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 1600));
+      out.dark = { attr: document.querySelector('.mapwrap').dataset.basemap,
+                   layers: document.querySelectorAll('.leaflet-tile-pane .leaflet-layer').length };
+
+      GEO.state.set({ basemap: 'none' }, { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 1600));
+      out.none = { layers: document.querySelectorAll('.leaflet-tile-pane .leaflet-layer').length,
+                   noticeHidden: document.getElementById('map-notice').hidden,
+                   chosen: document.querySelector('.mapwrap').dataset.tilesChosen };
+
+      GEO.state.set({ basemap: B.DEFAULT_ID }, { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 1600));
+      out.back = { layers: document.querySelectorAll('.leaflet-tile-pane .leaflet-layer').length };
+      return out;
+    });
+    check('§10: the basemap registry is self-consistent', bm.audit.length === 0, bm.audit.join(', '));
+    check('§10: every active basemap carries an attribution',
+          bm.openWithoutAttribution.length === 0, bm.openWithoutAttribution.join(', '));
+    check('§10: no licensed provider ships a tile URL',
+          bm.licensedShippingUrls.length === 0, bm.licensedShippingUrls.join(', '));
+    check('§10: 2GIS, Google and Yandex are named, not omitted', bm.lockedAreNamed);
+    check('§10: …and are locked, each stating what unlocks it',
+          bm.lockedAreUnusable && bm.lockedStateReason);
+    check('§10: switching to a dark basemap flips the marker-ring hook',
+          bm.dark.attr === 'dark', bm.dark.attr);
+    check('§10: a switch leaves exactly one tile layer, not a stack',
+          bm.dark.layers === 1 && bm.back.layers === 1,
+          `dark=${bm.dark.layers} back=${bm.back.layers}`);
+    check('§10: "no base map" removes the tiles entirely',
+          bm.none.layers === 0, String(bm.none.layers));
+    /* The layers panel is the one piece of map chrome that is a DIALOG, and it
+       grew tall enough to expose two stacking faults at once: Leaflet numbers
+       its panes up to 700, so with #map at `z-index: auto` a z-600 marker drew
+       over the z-10 panel and covered its own heading; and at 1765px the panel
+       ran 893px past the bottom of a 940px window with its last options simply
+       unreachable. Both are asserted from the RENDERED box, not the stylesheet. */
+    const panelGeom = await page.evaluate(async () => {
+      document.getElementById('map-layers').click();
+      await new Promise(r => setTimeout(r, 800));
+      const panel = document.getElementById('maplayers-panel');
+      const b = panel.getBoundingClientRect();
+      const top = sel => {
+        const el = panel.querySelector(sel);
+        if (!el) return 'missing';
+        const r = el.getBoundingClientRect();
+        const hit = document.elementFromPoint(Math.round(r.x + 6), Math.round(r.y + 6));
+        return hit && (panel === hit || panel.contains(hit)) ? 'panel' : 'covered';
+      };
+      /* Sampling two fixed points is not enough: whether a marker sits under the
+         heading depends on the map view, so the check passed with the fault
+         still present. Find the markers that ACTUALLY intersect the panel and
+         sample inside each intersection; assert the structural cause as well,
+         so the check keeps its teeth when no marker happens to overlap. */
+      const pr = panel.getBoundingClientRect();
+      const covered = [];
+      document.querySelectorAll('.leaflet-marker-icon').forEach(m => {
+        const mr = m.getBoundingClientRect();
+        if (!mr.width) return;
+        const x = Math.max(pr.left, mr.left), y = Math.max(pr.top, mr.top);
+        const x2 = Math.min(pr.right, mr.right), y2 = Math.min(pr.bottom, mr.bottom);
+        if (x2 <= x || y2 <= y) return;
+        const hit = document.elementFromPoint(Math.round((x + x2) / 2), Math.round((y + y2) / 2));
+        if (!(hit && (panel === hit || panel.contains(hit)))) {
+          covered.push(String(m.className).slice(0, 30));
+        }
+      });
+      const out = { fits: b.bottom <= innerHeight + 1, height: Math.round(b.height),
+                    viewport: innerHeight,
+                    heading: top('.fgroup__hd'), radio: top('input[name="basemap"]'),
+                    overlappingMarkers: document.querySelectorAll('.leaflet-marker-icon').length,
+                    covered: covered,
+                    mapIsolation: getComputedStyle(document.getElementById('map')).isolation };
+      document.getElementById('map-layers').click();
+      return out;
+    });
+    check('§10: the layers panel fits the window it opens in',
+          panelGeom.fits, `${panelGeom.height}px in ${panelGeom.viewport}px`);
+    check('§10: no map marker draws over the open layers panel',
+          panelGeom.covered.length === 0 &&
+          panelGeom.heading === 'panel' && panelGeom.radio === 'panel' &&
+          panelGeom.mapIsolation === 'isolate',
+          `covered=${panelGeom.covered.length} heading=${panelGeom.heading} ` +
+          `isolation=${panelGeom.mapIsolation}`);
+
+    check('§10: a CHOSEN grid is not reported as an outage',
+          bm.none.noticeHidden === true && bm.none.chosen === 'true',
+          `noticeHidden=${bm.none.noticeHidden} chosen=${bm.none.chosen}`);
+
+    /* ───────────── dashes ─────────────
+       The house rule is the en dash. Checked against RENDERED text rather than
+       source, because that is where it is visible and because the source also
+       contains hundreds of code comments the rule does not govern. */
+    const sweepDashes = () => page.evaluate(() => {
+      const hits = [];
+      const walk = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let n;
+      while ((n = walk.nextNode())) {
+        const tag = n.parentElement && n.parentElement.tagName;
+        if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+        if (n.textContent.indexOf('\u2014') >= 0) hits.push(n.textContent.trim().slice(0, 60));
+      }
+      // placeholders, titles and aria labels are read too — an em dash hiding in
+      // a tooltip is still on screen.
+      document.querySelectorAll('[placeholder],[title],[aria-label]').forEach(e => {
+        ['placeholder', 'title', 'aria-label'].forEach(a => {
+          const v = e.getAttribute(a);
+          if (v && v.indexOf('\u2014') >= 0) hits.push(a + ': ' + v.slice(0, 50));
+        });
+      });
+      return hits;
+    });
+
+    // One surface is not a sweep: most copy lives in panels the default view
+    // never shows, which is exactly where a missed dash would survive.
+    const dashSurfaces = [
+      ['default', null],
+      ['analytics', { rightRail: 'open', rightTab: 'analytics' }],
+      ['assistant', { rightRail: 'open', rightTab: 'assistant' }],
+      ['layers', { rightRail: 'open', rightTab: 'layers' }],
+      ['results', { leftTab: 'results' }],
+      ['filters', { leftTab: 'filters' }],
+      ['grid basemap', { basemap: 'none' }],
+      ['demo mode', { demoMode: true }]
+    ];
+    let dashHits = [];
+    for (const [name, patch] of dashSurfaces) {
+      if (patch) {
+        await page.evaluate(p => GEO.state.set(p, { source: 'user', action: 'qa' }), patch);
+        await page.waitForTimeout(700);
+      }
+      const hits = await sweepDashes();
+      if (hits.length) dashHits.push(`${name}: ${hits[0]}`);
+    }
+    await page.evaluate(() => GEO.state.set(
+      { demoMode: false, basemap: GEO.basemaps.DEFAULT_ID, rightRail: 'closed' },
+      { source: 'user', action: 'qa' }));
+    await page.waitForTimeout(500);
+    check(`house style: no em dash in rendered text (${dashSurfaces.length} surfaces)`,
+          dashHits.length === 0, dashHits.slice(0, 3).join(' | '));
+
+    /* ───────────── motion ─────────────
+       A count-up that interpolated a FORMATTED value would put digits on screen
+       that were never a measurement — the one thing this product may not do. */
+    const motion = await page.evaluate(() => {
+      const probe = document.createElement('span');
+      probe.textContent = '$32.2';
+      document.body.appendChild(probe);
+      GEO.motion.countUp(probe, '$28.6');
+      const immediate = probe.textContent;
+      probe.remove();
+      return { formattedSetDirectly: immediate === '$28.6',
+               animates: GEO.motion.animates() };
+    });
+    check('motion: a formatted value is never interpolated',
+          motion.formattedSetDirectly, 'got a tweened currency string');
+
     // §29 — no control may be inert. Every visible, enabled button must either carry
     // a handler-bearing id/data hook, or be disabled with a reason the user can read.
     const controls = await page.evaluate(() => {
@@ -595,7 +795,7 @@ function watch(page) {
         .map(b => b.textContent.trim().slice(0, 24));
       return { total: all.length, disabled: disabled.length, unexplained, anonymous };
     });
-    check(`§29: ${controls.total} controls, ${controls.disabled} disabled — every disabled one gives a reason`,
+    check(`§29: ${controls.total} controls, ${controls.disabled} disabled – every disabled one gives a reason`,
           controls.unexplained.length === 0, controls.unexplained.join(', '));
     check('§29: no anonymous unwired control', controls.anonymous.length === 0,
           controls.anonymous.join(', '));

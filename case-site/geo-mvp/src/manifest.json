@@ -34,6 +34,7 @@
       "src/js/08-analytics.js",
       "src/js/09-geo.js",
       "src/js/10-charts.js",
+      "src/js/10b-basemaps.js",
       "src/js/11-map.js",
       "src/js/12-panel-filters.js",
       "src/js/13-panel-list.js",

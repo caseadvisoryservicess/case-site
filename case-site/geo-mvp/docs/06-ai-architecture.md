@@ -1,4 +1,4 @@
-# 06 — AI action / tool architecture
+# 06 – AI action / tool architecture
 
 Brief §65 Step 6. Covers §38–§64 in full, plus the §45/§56 registries and the §63 QA scenarios.
 
@@ -73,7 +73,7 @@ data. Only the tool layer may call `GEO.state.set`. The panel only renders. This
 ```js
 /**
  * A provider turns an utterance into a Plan. It never executes anything and never
- * touches state — that is the engine's job. Two provider kinds are anticipated:
+ * touches state – that is the engine's job. Two provider kinds are anticipated:
  * a synchronous local matcher (now) and an async model call (later).
  */
 GEO.ai.providers.register({
@@ -98,7 +98,7 @@ GEO.ai.interpret = function (utterance, context) {
 
 `describeTools()` exists because a real LLM provider needs the registry rendered as a
 function-calling schema. `20-ai-tools.js` exposes `GEO.ai.tools.schema()` which emits a
-JSON-Schema-shaped description of every registered tool from its own `args` declaration — so the
+JSON-Schema-shaped description of every registered tool from its own `args` declaration – so the
 schema can never drift from the implementation. The local provider ignores it. **[ARCH]**
 
 ### 1.3 The `Plan` object
@@ -127,7 +127,7 @@ Plan = {
 **Argument binding.** Any arg value of the form `{ $: 'path' }` is resolved at execution time
 against `{ slots, resolved, s1, s2, … }`, where `sN` is the `data` object returned by step `N`.
 Resolution is a plain dotted-path lookup; an unresolvable path aborts the plan with
-`code:'BAD_ARGS'` naming the path. This is the only dynamic mechanism in the executor — there is
+`code:'BAD_ARGS'` naming the path. This is the only dynamic mechanism in the executor – there is
 no expression language, because an expression language in a plan produced by a model is an
 injection surface.
 
@@ -144,7 +144,7 @@ drawn here rather than lower:
 3. Progress reporting is event-driven (`GEO.on('ai:stage', …)`, §9), not derived from knowing what
    the engine is doing. A provider that emits no stage events simply renders no strip.
 
-### 1.4 `ask()` — the single entry point
+### 1.4 `ask()` – the single entry point
 
 ```js
 /**
@@ -156,7 +156,7 @@ GEO.ai.ask = function (utterance, opts) { … };
 ```
 
 `ask()` never rejects. A thrown parser or tool error is caught, logged to the audit trail and
-returned as a rendered `Response` with `outcome:'error'` — because in a single-file prototype an
+returned as a rendered `Response` with `outcome:'error'` – because in a single-file prototype an
 uncaught rejection is an invisible failure during a user test, which is a lost finding (X-E12).
 
 ---
@@ -189,7 +189,7 @@ GEO.ai.tools.schema();              // [ARCH] function-calling schema for an LLM
 ```
 
 `ctx` = `{ role, rows, state, turnId, confirmed:boolean, audit }`. `ctx.rows` is the working set
-the engine resolved for this turn (§4.3) — a tool never calls `GEO.data.workingSet()` itself, so
+the engine resolved for this turn (§4.3) – a tool never calls `GEO.data.workingSet()` itself, so
 demo-mode containment (D4) is decided once per turn, not per tool.
 
 ### 2.2 Result envelope (every tool, without exception)
@@ -201,7 +201,7 @@ demo-mode containment (D4) is decided once per turn, not per tool.
          coverage:{ field:'officeClass', n:16, N:148 } | null,
          containsDemo:false } }
 
-// failure — a first-class outcome, not an exception
+// failure – a first-class outcome, not an exception
 { ok:false, tool:'…', code:'INSUFFICIENT_DATA',
   message:'GLA is recorded for 0 of 148 properties.',
   detail:{ field:'gla', n:0, N:148, requires:'recorded GLA per building',
@@ -218,34 +218,34 @@ demo-mode containment (D4) is decided once per turn, not per tool.
 | `FORBIDDEN` | `access:'internal'` called with `role:'external'` | `outcome:'refused'`, §8 message |
 | `NEEDS_CONFIRMATION` | `confirm:true` and `ctx.confirmed !== tool.id` | `outcome:'confirm'`, renders the confirm chip row |
 | `NOT_IN_PROTOTYPE` | `cls:'persist'` | `outcome:'refused'`, exact string A13 (§8.4) |
-| `EMPTY_RESULT` | valid query, zero matching records | `outcome:'answered'` with the E-02/E-08 empty state — **not** an error |
+| `EMPTY_RESULT` | valid query, zero matching records | `outcome:'answered'` with the E-02/E-08 empty state – **not** an error |
 
 `EMPTY_RESULT` is deliberately separated from `INSUFFICIENT_DATA`: "no building matches" is a
 fact about the market, "the field is not recorded" is a fact about our data collection. Collapsing
 them is the exact confusion §36 exists to prevent.
 
-### 2.3 The registry — read tools
+### 2.3 The registry – read tools
 
 All read tools are pure: no `GEO.state.set`, no confirmation, callable by `external`.
 
 | # | id (§56 name where applicable) | args | returns (`data`) |
 |---|---|---|---|
-| R1 | `searchProperties` | `{query:string, limit:int=20, fields:['name','address','districtKey','tenants']}` | `{matches:[{id,name,score,matchedOn,districtKey}], n}` — uses `GEO.search` (T9 transliteration both ways) |
-| R2 | `filterProperties` | `{filters:FilterPatch, scope:'all'\|'filtered'\|'lastResult', mode:'replace'\|'merge'}` | `{recordIds:[], n, N, excluded:{classNotRecorded:int, …}, predicateHuman:string}` — **does not apply** the filter to state; that is `V1` |
+| R1 | `searchProperties` | `{query:string, limit:int=20, fields:['name','address','districtKey','tenants']}` | `{matches:[{id,name,score,matchedOn,districtKey}], n}` – uses `GEO.search` (T9 transliteration both ways) |
+| R2 | `filterProperties` | `{filters:FilterPatch, scope:'all'\|'filtered'\|'lastResult', mode:'replace'\|'merge'}` | `{recordIds:[], n, N, excluded:{classNotRecorded:int, …}, predicateHuman:string}` – **does not apply** the filter to state; that is `V1` |
 | R3 | `getProperty` | `{id:string}` | `{record, evidence:{field:EvidenceObj}, recordConfidence, completeness:{count,band}, freshness:{field:state}, districtName}` |
 | R4 | `getNearbyProperties` | `{id?:string, point?:{lat,lng}, radiusKm:number, excludeSelf:boolean=true, limit?:int, scope}` | `{origin, radiusKm, hits:[{id,name,distanceM,officeClass,askingRent}], recordIds:[], n}` |
 | R5 | `calculateRadius` | `{id?:string, point?, bandsKm:[number]=[1,3,5], scope}` | `GEO.geo.locationAnalysis()` output verbatim: `{subject,bands:[{km,count,rent:Metric,gla:Metric,classMix}],cumulative:true,subjectExcluded:true,method,competitiveSet}` |
 | R6 | `calculateAverageRent` | `{recordIds?, filters?, groupBy:'district'\|'class'\|null}` | `Metric` (ungrouped) or `{groups:[{key,label,metric:Metric}], suppressed:[{key,n,reason}]}` |
 | R7 | `calculateMedianRent` | same as R6 | same as R6, `kind:'median'` |
-| R8 | `calculateMetric` (§45 `calculate_metric`) | `{recordIds?, field:string, kind:'count'\|'sum'\|'mean'\|'median'\|'min'\|'max'}` | `Metric` — thin wrapper over `GEO.analytics.metric`, the generic form of R6/R7 |
+| R8 | `calculateMetric` (§45 `calculate_metric`) | `{recordIds?, field:string, kind:'count'\|'sum'\|'mean'\|'median'\|'min'\|'max'}` | `Metric` – thin wrapper over `GEO.analytics.metric`, the generic form of R6/R7 |
 | R9 | `aggregateByDistrict` | `{recordIds?, measure?:field, kind:'count'\|'sum'\|'mean'\|'median', includeEmpty:boolean=true}` | `{groups:[{key,label,count,metric}], unknown:{count}, order:'desc', ties:[[keys]]}` |
 | R10 | `aggregateByClass` | `{recordIds?, measure?, kind}` | same shape, ordinal order `A+,A,B+,B,C` then `Class not recorded` |
-| R11 | `rankProperties` | `{recordIds?, field:string, direction:'desc'\|'asc', limit:int}` | `{ranked:[{id,name,value}], n, N, ties:[], gate}` — **gated**: refuses when `n === 0` |
-| R12 | `getCompetitiveSet` (§45 `show_competitors`) | `{id:string, radiusKm:number=GEO.geo.COMPETITIVE_BAND_KM (3), manualAdd:[], manualRemove:[]}` | `GEO.geo.competitiveSet()` output plus the band it used: `{title:'Suggested competitive set', bandKm, qualified:[{record,distanceM,reasons[]}], proximityOnly:[], excluded:[], caveat}`. The tool passes `radiusKm` through as `competitiveBandKm`, so the peer band is always the band the user named — never silently the widest band of a 1/3/5 analysis. |
-| R13 | `getDataCoverage` | `{recordIds?, fields?:[string]}` | `{fields:[{field,label,n,N,pct,critical}], statement:string}` — `statement` is `GEO.analytics.coverageStatement()` |
-| R14 | `getSources` | `{recordIds?}` | `{sources:[{id,name,method,retrievedAt,recordCount,url,note}], profilesUsed:[id], licenceNote}` — `licenceNote` is **internal-only** and stripped for `role:'external'` |
-| R15 | `getDataQuality` (§45 `show_data_quality`) | `{recordIds?, aspect:'confidence'\|'completeness'\|'freshness'\|'duplicates'\|'conflicts'\|'entity'\|'all'}` | `{confidence:{High,Medium,Low,Unknown}, completeness:{none,minimal,partial,good}, freshness:{fresh,ageing,stale,unknown}, duplicates:{groups,records,unflaggedNearPairs}, conflicts:{districtConflict}, entity:{suspected_non_bc,name_quality,unreviewed}, buckets:{<key>:[recordIds]}}` — **internal** |
-| R16 | `getVerificationQueue` | `{recordIds?, limit:int=25}` | `{queue:[{id,name,priority,reasons:[],missingCritical:int,lastVerifiedAt,nextRefreshAt,pastDue:boolean}], pastDueCount, formula}` — **internal** |
+| R11 | `rankProperties` | `{recordIds?, field:string, direction:'desc'\|'asc', limit:int}` | `{ranked:[{id,name,value}], n, N, ties:[], gate}` – **gated**: refuses when `n === 0` |
+| R12 | `getCompetitiveSet` (§45 `show_competitors`) | `{id:string, radiusKm:number=GEO.geo.COMPETITIVE_BAND_KM (3), manualAdd:[], manualRemove:[]}` | `GEO.geo.competitiveSet()` output plus the band it used: `{title:'Suggested competitive set', bandKm, qualified:[{record,distanceM,reasons[]}], proximityOnly:[], excluded:[], caveat}`. The tool passes `radiusKm` through as `competitiveBandKm`, so the peer band is always the band the user named – never silently the widest band of a 1/3/5 analysis. |
+| R13 | `getDataCoverage` | `{recordIds?, fields?:[string]}` | `{fields:[{field,label,n,N,pct,critical}], statement:string}` – `statement` is `GEO.analytics.coverageStatement()` |
+| R14 | `getSources` | `{recordIds?}` | `{sources:[{id,name,method,retrievedAt,recordCount,url,note}], profilesUsed:[id], licenceNote}` – `licenceNote` is **internal-only** and stripped for `role:'external'` |
+| R15 | `getDataQuality` (§45 `show_data_quality`) | `{recordIds?, aspect:'confidence'\|'completeness'\|'freshness'\|'duplicates'\|'conflicts'\|'entity'\|'all'}` | `{confidence:{High,Medium,Low,Unknown}, completeness:{none,minimal,partial,good}, freshness:{fresh,ageing,stale,unknown}, duplicates:{groups,records,unflaggedNearPairs}, conflicts:{districtConflict}, entity:{suspected_non_bc,name_quality,unreviewed}, buckets:{<key>:[recordIds]}}` – **internal** |
+| R16 | `getVerificationQueue` | `{recordIds?, limit:int=25}` | `{queue:[{id,name,priority,reasons:[],missingCritical:int,lastVerifiedAt,nextRefreshAt,pastDue:boolean}], pastDueCount, formula}` – **internal** |
 
 **Verification priority formula (R16), stated in the response so the ranking is auditable:**
 
@@ -259,11 +259,11 @@ priority = 10 × (missingCriticalFields)            // 0–80, from the 8 critic
 ```
 
 Ties break by `lastVerifiedAt` ascending, then `name` ascending. No weight is a judgement about a
-building's market importance — the brief's §50 "importance of the property" and "client demand"
+building's market importance – the brief's §50 "importance of the property" and "client demand"
 inputs do not exist in this dataset and are **not** approximated. The formula is printed under the
 queue with that sentence.
 
-### 2.4 The registry — view tools (mutate `GEO.state`)
+### 2.4 The registry – view tools (mutate `GEO.state`)
 
 Every one of these calls `GEO.state.set(patch, {source:'ai', action, tools, summary})` and nothing
 else. None writes to the DOM or to Leaflet: the map and the filter panel re-render from state.
@@ -271,7 +271,7 @@ else. None writes to the DOM or to Leaflet: the map and the filter panel re-rend
 | # | id (§45 verb) | args | state written | returns |
 |---|---|---|---|---|
 | V1 | `applyFilters` (`apply_filters`) | `{patch:FilterPatch, mode:'replace'\|'merge'}` | `filters` | `{n, N, filters, changedKeys:[]}` |
-| V2 | `clearFilters` (`clear_filters`) | `{keys?:[string]}` — omit for all | `filters` | `{n, cleared:[]}` |
+| V2 | `clearFilters` (`clear_filters`) | `{keys?:[string]}` – omit for all | `filters` | `{n, cleared:[]}` |
 | V3 | `selectProperty` (`select_property`) | `{id}` | `selectedId`, `rightTab:'property'`, `rightRail:'open'` | `{id, name}` |
 | V4 | `zoomToProperty` (`zoom_to_property`) | `{id, zoom:int=16}` | `map.centre`, `map.zoom` | `{id, centre, zoom}` |
 | V5 | `createRadius` (`create_radius`) | `{id, bandsKm:[number]}` | `radius:{id,km}` | `{radiusId, bandsKm, counts:{1:n,3:n,5:n}}` |
@@ -281,17 +281,17 @@ else. None writes to the DOM or to Leaflet: the map and the filter panel re-rend
 | V9 | `clearAnalysis` | `{}` | calls `GEO.state.clearAnalysis()` | `{n:148, layersRemoved:int, radiiRemoved:int}` |
 
 `compareProperties` silently truncates above 4 (the state invariant already does) but returns
-`dropped` so the response can say so — a truncation the user is not told about is a fake result.
+`dropped` so the response can say so – a truncation the user is not told about is a fake result.
 
-### 2.5 The registry — produce and egress tools
+### 2.5 The registry – produce and egress tools
 
 | # | id | cls | args | notes |
 |---|---|---|---|---|
-| P1 | `generateChart` (`generate_chart`) | produce | `{kind:'bar'\|'column'\|'strip', series:[{label,value,unknown?}], title, coverageText, valueFormat}` | Returns a chart **spec**, not DOM. `23-ai-panel.js` hands it to `GEO.charts.render()`. Encoding rules are fixed by `10-visual-system.md` §7 — the AI may not choose colours. |
+| P1 | `generateChart` (`generate_chart`) | produce | `{kind:'bar'\|'column'\|'strip', series:[{label,value,unknown?}], title, coverageText, valueFormat}` | Returns a chart **spec**, not DOM. `23-ai-panel.js` hands it to `GEO.charts.render()`. Encoding rules are fixed by `10-visual-system.md` §7 – the AI may not choose colours. |
 | P2 | `generateTable` (`generate_table`) | produce | `{columns:[{key,label,align,format}], rows:[{…}], title, coverageText, footnote}` | Missing values render as `Not recorded`, never blank (§36). |
 | E1 | `exportDataset` (`export_results`) | **egress**, `confirm:true` | `{recordIds, format:'json'\|'csv', fields?:[string], filename?}` | First call returns `NEEDS_CONFIRMATION` with a preview `{rows, fields, containsDemo, internalFieldsIncluded}`. Second call with `ctx.confirmed === 'exportDataset'` performs it via `GEO.data.exportEnvelope` / `toCsv`. For `role:'external'`, `_meta.internalNote`, `_meta.qcFlags`, `_meta.entityReviewNote` and `_meta.seedObjectId` are stripped and the response says which fields were removed. |
 
-### 2.6 The registry — persist tools (declared, blocked) **[ARCH]**
+### 2.6 The registry – persist tools (declared, blocked) **[ARCH]**
 
 Registered so the plan vocabulary and the permission model are complete and testable, and so the
 refusal is a real code path rather than a missing feature.
@@ -304,7 +304,7 @@ refusal is a real code path rather than a missing feature.
 
 Exact returned message (string A13, i18n `ai.notInPrototype`):
 
-> **Requires confirmation and a backend — not available in the prototype.** I can list the
+> **Requires confirmation and a backend – not available in the prototype.** I can list the
 > {n} properties this would cover and you can export that list, but writing tasks or records back
 > to a dataset needs permissions and storage this prototype does not have.
 
@@ -314,7 +314,7 @@ Exact returned message (string A13, i18n `ai.notInPrototype`):
 |---|---|---|---|---|---|
 | `read` | R1–R14 | no | external | none | n/a |
 | `read` (internal) | R15, R16 | no | **internal** | none | n/a |
-| `view` | V1–V9 | `GEO.state` only | external | **none** — see rule below | `Undo this` (I-07), always |
+| `view` | V1–V9 | `GEO.state` only | external | **none** – see rule below | `Undo this` (I-07), always |
 | `produce` | P1, P2 | no | external | none | n/a |
 | `egress` | E1 | no (writes a file) | external (fields filtered) | **yes, every call** | n/a |
 | `persist` | Z1–Z3 | would write the dataset | internal | yes **and** blocked | n/a |
@@ -328,9 +328,9 @@ make the assistant slower than the filter panel and defeat §40. Therefore:
 2. `egress` requires an inline confirm chip stating row count, field count, whether demo records
    are included, and (for internal) the licence-review note.
 3. `persist` requires confirmation **and** is refused with A13.
-4. One additional gate on `view`: if a plan would **discard user-made manual work** — remove ≥1
+4. One additional gate on `view`: if a plan would **discard user-made manual work** – remove ≥1
    layer the user created manually, or clear ≥1 filter the user set by hand (`meta.source==='user'`
-   on the last write to that key) — and the utterance did not explicitly name that destruction,
+   on the last write to that key) – and the utterance did not explicitly name that destruction,
    the engine returns `outcome:'confirm'` with the chip
    `Clear {n} filters and {m} layers? [Clear] [Keep both]`. AI-8's utterance *does* explicitly name
    it ("Remove this analysis and return to all business centers"), so AI-8 executes directly.
@@ -361,7 +361,7 @@ GEO.ai.intents.parse(utterance, context) -> Plan
    `2 × (patterns matched) + 1 × (distinct keywords matched) + 0.5 × (slots the intent declares as required and that were filled)`.
    Highest score wins; `matchScore = min(1, score / intent.maxScore)`.
 6. **Threshold.** `score < 2` → `fallback.unknown`. If the utterance matched an
-   **unsupported-concept** keyword (§3.6) at any score, `fallback.unsupported` wins outright —
+   **unsupported-concept** keyword (§3.6) at any score, `fallback.unsupported` wins outright –
    answering a demographics question with a property filter is worse than refusing.
 7. **Resolve references** against session context (§4).
 8. **Emit Plan.**
@@ -423,61 +423,61 @@ aliases in data, not in the parser.
 | `filter.availability` | "Only properties with more than 2,000 m² available" | "Где свободно больше 2 000 кв.м" | `available\|vacant\|свободн` + number | availMin | gate → refusal | filtered | `availableArea` (0/148) |
 | `filter.vacancy` | "Show buildings with vacancy above 10%" | "Вакансия выше 10%" | `vacancy\|vacant\|вакан\|пуст` + `%` | vacancyMin/Max | gate → refusal | filtered | `vacancyPct` (0/148) |
 | `filter.amenities` | "Show buildings with underground parking" | "С подземным паркингом" | `amenities` filled | amenities | gate → refusal | filtered | `amenities` (0/148) |
-| `filter.name` | "Show me Trilliant" | "Покажи Trilliant" | `propertyName` above score floor, no other slot | propertyName | `searchProperties` → `selectProperty` → `zoomToProperty` | all | — |
-| `quality.confidence` | "Show low-confidence properties" · "Show properties with poor data quality" | "Покажи объекты с низкой достоверностью" | `confidence\|quality\|достоверн\|качеств данн` | confidenceLevels, qualityAspect | `getDataQuality` → `applyFilters` → `createMapLayer` | all | — (quality always has full coverage) |
-| `quality.stale` | "Show properties not verified recently" · "Which buildings need data verification?" | "Что нужно перепроверить?" | `staleness` filled, or `verif\|провер` | staleness, staleMonths | `getVerificationQueue` → `generateTable` → `createMapLayer` | all | — |
-| `quality.missing` | "Which records have the weakest data coverage?" | "Где меньше всего данных?" | `missing\|incomplete\|coverage\|gaps\|не хватает\|неполн\|пробел` | metricField? | `getDataCoverage` → `getDataQuality` → `generateChart` | filtered | — |
-| `quality.duplicates` | "Show possible duplicates" | "Покажи возможные дубли" | `duplicat\|dupe\|дубл\|повтор` | — | `getDataQuality{aspect:'duplicates'}` → `createMapLayer` | all | — |
-| `quality.conflicts` | "Which records have a district conflict?" | "Где район не совпадает?" | `conflict\|mismatch\|конфликт\|не совпад\|расхожд` | — | `getDataQuality{aspect:'conflicts'}` → `generateTable` → `createMapLayer` | all | — |
-| `competitors.radius` | "Show its competitors within 3 km" · "Find competitors around this building" | "Покажи конкурентов в радиусе 3 км" | `competitor\|rival\|конкурент\|соперник` | subjectRef, radiusKm | `getProperty` → `getNearbyProperties` → `getCompetitiveSet` → `createRadius` → `createMapLayer` | all | — |
-| `location.analyse` | "Analyse this location" | "Проанализируй эту локацию" | `analy[sz]e\|location analysis\|анализ локац\|что вокруг\|окружен` | subjectRef, bandsKm | `getProperty` → `calculateRadius` → `createRadius` → `generateTable` | all | — |
+| `filter.name` | "Show me Trilliant" | "Покажи Trilliant" | `propertyName` above score floor, no other slot | propertyName | `searchProperties` → `selectProperty` → `zoomToProperty` | all | – |
+| `quality.confidence` | "Show low-confidence properties" · "Show properties with poor data quality" | "Покажи объекты с низкой достоверностью" | `confidence\|quality\|достоверн\|качеств данн` | confidenceLevels, qualityAspect | `getDataQuality` → `applyFilters` → `createMapLayer` | all | – (quality always has full coverage) |
+| `quality.stale` | "Show properties not verified recently" · "Which buildings need data verification?" | "Что нужно перепроверить?" | `staleness` filled, or `verif\|провер` | staleness, staleMonths | `getVerificationQueue` → `generateTable` → `createMapLayer` | all | – |
+| `quality.missing` | "Which records have the weakest data coverage?" | "Где меньше всего данных?" | `missing\|incomplete\|coverage\|gaps\|не хватает\|неполн\|пробел` | metricField? | `getDataCoverage` → `getDataQuality` → `generateChart` | filtered | – |
+| `quality.duplicates` | "Show possible duplicates" | "Покажи возможные дубли" | `duplicat\|dupe\|дубл\|повтор` | – | `getDataQuality{aspect:'duplicates'}` → `createMapLayer` | all | – |
+| `quality.conflicts` | "Which records have a district conflict?" | "Где район не совпадает?" | `conflict\|mismatch\|конфликт\|не совпад\|расхожд` | – | `getDataQuality{aspect:'conflicts'}` → `generateTable` → `createMapLayer` | all | – |
+| `competitors.radius` | "Show its competitors within 3 km" · "Find competitors around this building" | "Покажи конкурентов в радиусе 3 км" | `competitor\|rival\|конкурент\|соперник` | subjectRef, radiusKm | `getProperty` → `getNearbyProperties` → `getCompetitiveSet` → `createRadius` → `createMapLayer` | all | – |
+| `location.analyse` | "Analyse this location" | "Проанализируй эту локацию" | `analy[sz]e\|location analysis\|анализ локац\|что вокруг\|окружен` | subjectRef, bandsKm | `getProperty` → `calculateRadius` → `createRadius` → `generateTable` | all | – |
 | `aggregate.byDistrict` | "Show office supply by district" | "Предложение офисов по районам" | `supply\|distribution\|breakdown\|предложение\|распредел` + `groupBy:'district'` | groupBy, classes? | `aggregateByDistrict` → `generateChart` → `generateTable` | filtered | measure field if any |
 | `aggregate.byClass` | "Show business centres by class" | "БЦ по классам" | `groupBy:'class'` | groupBy | `aggregateByClass` → `generateChart` | filtered | `officeClass` |
 | `aggregate.rentByDistrict` | "Show average known rent by district" | "Средняя известная ставка по районам" | `average\|mean\|median\|средн\|медиан` + `groupBy:'district'` | groupBy, metricField | `calculateAverageRent{groupBy:'district'}` → `generateChart` → `generateTable` | filtered | `askingRent` |
 | `rank.districtBy` | "Which district has the most known Class A GLA?" · "Which district has the most Class A offices?" | "В каком районе больше всего офисов класса А?" | `which\|where\|most\|highest\|top\|какой\|где больше\|самый` + `district` | metricField, classes, topN | `aggregateByDistrict` → `generateTable` → `generateChart` → `applyFilters` (district highlight) | filtered | `metricField` |
 | `metric.value` | "What is the average rent for Class A offices?" | "Какая средняя ставка по классу А?" | `what is\|how much\|average\|median\|total\|сколько\|какая\|средн\|итого` | metricField, kind, classes, districtKeys | `filterProperties` → `calculateMetric` | filtered | `metricField` |
-| `compare.explicit` | "Compare these properties" | "Сравни эти объекты" | `compare\|versus\|vs\|сравн` + `these\|them\|эти\|их` | — | `compareProperties{ids: compare tray or lastResult ≤4}` | last | — |
+| `compare.explicit` | "Compare these properties" | "Сравни эти объекты" | `compare\|versus\|vs\|сравн` + `these\|them\|эти\|их` | – | `compareProperties{ids: compare tray or lastResult ≤4}` | last | – |
 | `compare.topN` | "Compare the three largest properties on the map" · "Compare the three highest known asking rents" | "Сравни три самых дорогих" | `compare\|сравн` + `topN` + `metricField` | topN, metricField, direction | `rankProperties` → `compareProperties` | filtered | `metricField` |
-| `clusters` | "Show the largest office clusters" | "Покажи крупнейшие скопления офисов" | `cluster\|concentration\|скоплен\|кластер\|концентрац` | cellKm | `getDataCoverage` → `GEO.geo.clusters` via `calculateMetric` → `generateTable` → `createMapLayer` | filtered | — (counts only; density surfaces refused, §3.6) |
-| `layers.clear` | "Clear all layers" | "Убери все слои" | `clear\|remove\|delete\|hide` + `layer\|слой\|слои` | layerRef? | `removeMapLayer{all:true}` | — | — |
-| `session.reset` | "Remove this analysis and return to all business centers" | "Убери анализ и покажи все БЦ" | `reset\|start over\|return to all\|show all\|clear everything\|сброс\|всё сначала\|покажи все` | — | `clearAnalysis` | — | — |
-| `export.results` | "Export these results" | "Выгрузи результаты" | `export\|download\|csv\|json\|выгруз\|скачать\|экспорт` | format, scope | `exportDataset` (confirm-gated) | last/filtered | — |
-| `coverage.explain` | "What data do you have?" · "What is missing?" | "Какие данные есть?" | `what data\|what do you know\|coverage\|какие данные\|что известно\|что есть` | — | `getDataCoverage` → `getSources` → `generateChart` | filtered | — |
-| `help` | "What can you do?" | "Что ты умеешь?" | `help\|what can you\|commands\|помощь\|что умеешь\|команды` | — | none | — | — |
-| `fallback.unsupported` | "Which office cluster has the highest employee density?" | "Где самая высокая плотность сотрудников?" | §3.6 keyword list | concept | `getDataCoverage` (to quote real denominators) | — | — |
-| `fallback.unknown` | anything below threshold | — | — | — | `searchProperties` (to offer near matches) | — | — |
+| `clusters` | "Show the largest office clusters" | "Покажи крупнейшие скопления офисов" | `cluster\|concentration\|скоплен\|кластер\|концентрац` | cellKm | `getDataCoverage` → `GEO.geo.clusters` via `calculateMetric` → `generateTable` → `createMapLayer` | filtered | – (counts only; density surfaces refused, §3.6) |
+| `layers.clear` | "Clear all layers" | "Убери все слои" | `clear\|remove\|delete\|hide` + `layer\|слой\|слои` | layerRef? | `removeMapLayer{all:true}` | – | – |
+| `session.reset` | "Remove this analysis and return to all business centers" | "Убери анализ и покажи все БЦ" | `reset\|start over\|return to all\|show all\|clear everything\|сброс\|всё сначала\|покажи все` | – | `clearAnalysis` | – | – |
+| `export.results` | "Export these results" | "Выгрузи результаты" | `export\|download\|csv\|json\|выгруз\|скачать\|экспорт` | format, scope | `exportDataset` (confirm-gated) | last/filtered | – |
+| `coverage.explain` | "What data do you have?" · "What is missing?" | "Какие данные есть?" | `what data\|what do you know\|coverage\|какие данные\|что известно\|что есть` | – | `getDataCoverage` → `getSources` → `generateChart` | filtered | – |
+| `help` | "What can you do?" | "Что ты умеешь?" | `help\|what can you\|commands\|помощь\|что умеешь\|команды` | – | none | – | – |
+| `fallback.unsupported` | "Which office cluster has the highest employee density?" | "Где самая высокая плотность сотрудников?" | §3.6 keyword list | concept | `getDataCoverage` (to quote real denominators) | – | – |
+| `fallback.unknown` | anything below threshold | – | – | – | `searchProperties` (to offer near matches) | – | – |
 
 ### 3.5 §54 and §63 coverage map (every required example, mapped)
 
 | source | utterance | intent id | outcome on the real seed |
 |---|---|---|---|
-| §54.1 | "Show Class A business centers." | `filter.class` | answered — 8 properties (class A alone); with A+ → 12 |
-| §54.2 | "Show offices in Mirabad." | `filter.district` | answered — 28 (polygon-resolved, D1) |
-| §54.3 | "Show buildings larger than 5,000 m²." | `filter.size` | **refused** — `gla` 0/148 |
-| §54.4 | "Show low-confidence properties." | `quality.confidence` | answered — 16 Low, 132 Medium (§10.3) |
-| §54.5 | "Show properties not verified recently." | `quality.stale` | answered — 0 past due, 148 ageing at 59 days (D8) |
+| §54.1 | "Show Class A business centers." | `filter.class` | answered – 8 properties (class A alone); with A+ → 12 |
+| §54.2 | "Show offices in Mirabad." | `filter.district` | answered – 28 (polygon-resolved, D1) |
+| §54.3 | "Show buildings larger than 5,000 m²." | `filter.size` | **refused** – `gla` 0/148 |
+| §54.4 | "Show low-confidence properties." | `quality.confidence` | answered – 16 Low, 132 Medium (§10.3) |
+| §54.5 | "Show properties not verified recently." | `quality.stale` | answered – 0 past due, 148 ageing at 59 days (D8) |
 | §54.6 | "Compare these properties." | `compare.explicit` | answered if ≥2 in tray/last result, else `clarify` |
 | §54.7 | "Find competitors around this building." | `competitors.radius` | answered when a property is selected, else `clarify` |
-| §54.8 | "Show office supply by district." | `aggregate.byDistrict` | answered — 148 across 10 districts, 2 recorded zeros |
-| §54.9 | "Show average known rent by district." | `aggregate.rentByDistrict` | answered — 3 districts publishable, 2 suppressed at n<3 |
+| §54.8 | "Show office supply by district." | `aggregate.byDistrict` | answered – 148 across 10 districts, 2 recorded zeros |
+| §54.9 | "Show average known rent by district." | `aggregate.rentByDistrict` | answered – 3 districts publishable, 2 suppressed at n<3 |
 | §54.10 | "Clear all layers." | `layers.clear` | answered |
 | §63.1 / AI-1 | "Show Class A and A+ business centers." | `filter.class` | 12 |
 | §63.2 / AI-2a | "Only buildings above 5,000 m²." | `filter.size` (refinement) | **refused**, selection untouched at 12 |
 | §63.2 / AI-2b | "Only those with known rent above $30." | `filter.rent` (refinement) | 12 → 7 |
-| §63.3 / AI-3a | "Which district has the most known Class A GLA?" | `rank.districtBy` | **refused** — `gla` 0/148 (worked trace, §10.2) |
+| §63.3 / AI-3a | "Which district has the most known Class A GLA?" | `rank.districtBy` | **refused** – `gla` 0/148 (worked trace, §10.2) |
 | §63.3 / AI-3b | "Which district has the most Class A and A+ offices?" | `rank.districtBy` | Yunusobod 4 (§10.2) |
 | §63.4 / AI-4 | "Show its competitors within 3 km." | `competitors.radius` | 74 within 3 km; 9 qualified (worked trace, §10.1) |
 | §63.5 / AI-5 | "Show properties with poor data quality." | `quality.confidence` | 16 Low + 132 with 0 critical fields (§10.3) |
 | §63.6 / AI-6 | "Which buildings need data verification?" | `quality.stale` | ranked queue; 0 past due today |
-| §63.7 / AI-7a | "Compare the three largest properties currently on the map." | `compare.topN` | **refused** — `gla`/`gba` 0 |
+| §63.7 / AI-7a | "Compare the three largest properties currently on the map." | `compare.topN` | **refused** – `gla`/`gba` 0 |
 | §63.7 / AI-7b | "Compare the three highest known asking rents." | `compare.topN` | Trilliant 44.7, Nest one 40.6, Forum 39.7 |
 | §63.8 / AI-8 | "Remove this analysis and return to all business centers." | `session.reset` | full clear, session log retained |
-| §41 | "Show business centers with rent above $30/m²." | `filter.rent` | 8 — of the 16 records with a recorded rent (7 of the 8 are class A/A+) |
+| §41 | "Show business centers with rent above $30/m²." | `filter.rent` | 8 – of the 16 records with a recorded rent (7 of the 8 are class A/A+) |
 | §41 | "Show business centers with low-confidence rent data." | `quality.confidence` | 16 (all priced records carry `2GIS-RENT` = Low) |
 | §41 | "Show office buildings not verified for more than six months." | `quality.stale` (`staleMonths:6`) | 0 today; 1 after the AI-6(f) time-travel edit |
 | §41 | "Create a 5 km competitor zone around this property." | `competitors.radius` (`radiusKm:5`) | 114 within 5 km of Trilliant |
-| §41 | "Show only properties with more than 2,000 m² available." | `filter.availability` | **refused** — `availableArea` 0/148 |
-| §43 | "Compare Class A office supply in Mirabad and Yunusabad." | `aggregate.byDistrict` (2 districts, class filter) | answered — Mirobod 3, Yunusobod 4 |
+| §41 | "Show only properties with more than 2,000 m² available." | `filter.availability` | **refused** – `availableArea` 0/148 |
+| §43 | "Compare Class A office supply in Mirabad and Yunusabad." | `aggregate.byDistrict` (2 districts, class filter) | answered – Mirobod 3, Yunusobod 4 |
 | §62 | "Which office cluster has the highest employee density?" | `fallback.unsupported` | **refused** with the §62 wording |
 
 ### 3.6 Unsupported-concept list (`fallback.unsupported`)
@@ -492,16 +492,16 @@ them with a proxy is exactly the fabrication §2.8/§47 forbids.
 | `footfall` | footfall, foot traffic, pedestrian, visitors / трафик, проходимость, посетител | pedestrian counts or mobile-location data |
 | `demographics` | population, demographic, catchment population, income, purchasing power / население, демограф, доходы, покупательная способность | a population and income grid for Tashkent |
 | `driveTime` | drive time, isochrone, 15-minute, travel time / изохрон, время в пути, транспортная доступность | a routing engine and a road network |
-| `metro` | metro, station, underground, subway / метро, станци | a verified metro-station dataset — none is loaded (D5) |
+| `metro` | metro, station, underground, subway / метро, станци | a verified metro-station dataset – none is loaded (D5) |
 | `transactions` | deals, transactions, take-up, absorption, signed rents / сделки, поглощение, подписанные ставки | a transactions register; the dataset holds asking rents only |
-| `ownership` | owner, landlord, who owns / собственник, владелец, кто владеет | owner records — 0 of 148 recorded |
-| `tenants` | tenants, occupiers, who is in / арендатор, кто сидит, резидент | tenant records — `tenantsStatus` is `not_collected` for all 148 |
+| `ownership` | owner, landlord, who owns / собственник, владелец, кто владеет | owner records – 0 of 148 recorded |
+| `tenants` | tenants, occupiers, who is in / арендатор, кто сидит, резидент | tenant records – `tenantsStatus` is `not_collected` for all 148 |
 | `forecast` | forecast, predict, will be, next year, projection / прогноз, будет, спрогнозируй | a historical time series; this dataset has one collection date |
 | `valuation` | valuation, worth, cap rate, yield, price per m² sale / оценка, стоимость, доходность, капитализация | sale evidence and yields; the dataset holds asking rents only |
 
 ### 3.7 Fallback behaviour (§62)
 
-**`fallback.unsupported`** — `outcome:'refused'`. Renders all six blocks. Template:
+**`fallback.unsupported`** – `outcome:'refused'`. Renders all six blocks. Template:
 
 > **The current dataset is insufficient to answer this reliably.**
 > {Concept} data is not held in this platform. {Coverage sentence for the nearest real field, with
@@ -511,11 +511,11 @@ them with a proxy is exactly the fabrication §2.8/§47 forbids.
 Nothing on the map changes. No number is produced. This is a **success path**, counted as
 `answered-by-refusal` in the session log, not an error.
 
-**`fallback.unknown`** — `outcome:'clarify'`. The engine runs `searchProperties` on the residual
+**`fallback.unknown`** – `outcome:'clarify'`. The engine runs `searchProperties` on the residual
 tokens; if anything scores above 0.4 it offers those as "Did you mean this property?". Otherwise
 it lists the six intent families with one example each (`help` content), and states plainly:
 
-> I did not understand that. I match a fixed set of commands in this prototype — there is no
+> I did not understand that. I match a fixed set of commands in this prototype – there is no
 > language model behind this panel. Here is what I can do:
 
 That sentence is deliberate. A tester who believes they are talking to an LLM will report the
@@ -526,11 +526,11 @@ model itself").
 
 ## 4. Session context (§44, §58)
 
-### 4.1 What is remembered — the exact shape
+### 4.1 What is remembered – the exact shape
 
 `state.aiSession` as frozen in `05-state.js` carries `{turns, lastResultIds, lastIntent}`. That is
 insufficient for the §58 workspace behaviour and for contract §9's "last layer". **Required
-amendment to `src/js/05-state.js`** — replace the `aiSession` literal in `initial()`, and the two
+amendment to `src/js/05-state.js`** – replace the `aiSession` literal in `initial()`, and the two
 literals in `State.clearAnalysis` and `State.clearSession`, with:
 
 ```js
@@ -538,8 +538,8 @@ aiSession: {
   turns:            [],      // Response objects, newest last, capped at 50
   turnSeq:          0,       // monotonic; turn ids are 'T' + turnSeq
   lastIntent:       null,    // intent id of the last non-fallback turn
-  lastResultIds:    null,    // record ids of the last successful result set — the "those" referent
-  lastResultLabel:  null,    // e.g. 'Class A / A+ offices' — used verbatim in narrowing sentences
+  lastResultIds:    null,    // record ids of the last successful result set – the "those" referent
+  lastResultLabel:  null,    // e.g. 'Class A / A+ offices' – used verbatim in narrowing sentences
   lastLayerId:      null,    // last layer the assistant created
   lastRadiusId:     null,    // subject id of the last radius the assistant drew
   lastFiltersApplied: null,  // the exact filter patch the assistant last wrote, for divergence checks
@@ -550,7 +550,7 @@ aiSession: {
 
 `State.set` already merges `aiSession` one level deep, so a tool may write one key without
 clobbering the rest. `clearAnalysis` resets every key except `turns` and `turnSeq` (reset clears
-state, not history — AI-8g). `clearSession` resets all of them including `turns`.
+state, not history – AI-8g). `clearSession` resets all of them including `turns`.
 
 | remembered thing | field | written by | read by |
 |---|---|---|---|
@@ -562,7 +562,7 @@ state, not history — AI-8g). `clearSession` resets all of them including `turn
 | last radius | `aiSession.lastRadiusId` | `createRadius` | "make it 5 km instead" |
 | what the AI last applied | `aiSession.lastFiltersApplied` | `applyFilters` | divergence detection (§7.3) |
 
-### 4.2 Refinement — narrowing the previous result, not starting over (§58)
+### 4.2 Refinement – narrowing the previous result, not starting over (§58)
 
 A turn is a **refinement** when its normalised utterance begins with one of:
 
@@ -571,12 +571,12 @@ RU: `только | лишь | из них | среди них | а теперь
 
 Refinement rules (all four apply together):
 
-1. `scope = 'lastResult'` — the candidate row set is `aiSession.lastResultIds` (falling back to the
+1. `scope = 'lastResult'` – the candidate row set is `aiSession.lastResultIds` (falling back to the
    current filtered set if null, and saying so in the answer).
-2. `mode = 'merge'` — the new slots are merged into `state.filters`; previously set filter keys are
+2. `mode = 'merge'` – the new slots are merged into `state.filters`; previously set filter keys are
    **kept**. AI-2b keeps `classes:['A','A+']` and adds `rentMin:30`.
 3. The coverage gate (§4.4) is evaluated against **the previous result set**, not the whole
-   dataset. AI-2a's message must read "0 of the 12 currently selected properties", not "0 of 148" —
+   dataset. AI-2a's message must read "0 of the 12 currently selected properties", not "0 of 148" –
    the user asked about those 12.
 4. On a gate failure, **nothing is written**: filters, layers, radius, selection and
    `lastResultIds` are all left exactly as they were, and the answer states the unchanged
@@ -584,7 +584,7 @@ Refinement rules (all four apply together):
 
 A non-refinement utterance sets `mode:'replace'` and resets the filter patch to defaults before
 applying its own slots. This is the difference between "only those above $30" (narrow) and "show
-offices above $30" (start again), and it is decided solely by the leading marker — no heuristics.
+offices above $30" (start again), and it is decided solely by the leading marker – no heuristics.
 
 ### 4.3 Pronoun and reference resolution (exact rules)
 
@@ -595,21 +595,21 @@ offices above $30" (start again), and it is decided solely by the leading marker
 | **layer** | `that layer, the layer, this analysis` | `этот слой, слой, этот анализ` | `aiSession.lastLayerId`, else the only layer if exactly one exists | message S3 |
 | **radius** | `the circle, the radius, the zone` | `круг, радиус, зона` | `aiSession.lastRadiusId` | message S3 |
 
-**S1 (no property selected)** — exact copy, i18n `ai.clarify.noSubject`:
+**S1 (no property selected)** – exact copy, i18n `ai.clarify.noSubject`:
 
 > I don't know which property you mean. Select a building on the map or in the results list first,
-> or name it — for example *"competitors within 3 km of Trilliant"*. {If exactly one property is in
+> or name it – for example *"competitors within 3 km of Trilliant"*. {If exactly one property is in
 > the compare tray: "Did you mean {name}?" with a clickable chip.}
 
-**S2 (no previous result)** — i18n `ai.clarify.noSet`:
+**S2 (no previous result)** – i18n `ai.clarify.noSet`:
 
 > There is no previous result to narrow. I'll apply this to all {N} properties currently shown
-> instead — {restated request}. [Run on all {N}] [Cancel]
+> instead – {restated request}. [Run on all {N}] [Cancel]
 
 S2 is a confirm chip, not an auto-run: silently widening a narrowing request is how an assistant
 produces a number the user did not ask for.
 
-**S3 (no layer/radius)** — i18n `ai.clarify.noLayer`:
+**S3 (no layer/radius)** – i18n `ai.clarify.noLayer`:
 
 > There are no analysis layers to act on. Layers are created when I answer a question that produces
 > a set of properties, or from a saved competitive set.
@@ -619,7 +619,7 @@ produces a number the user did not ask for.
 currently selected Nest one."* Silent disagreement between what the user typed and what is
 selected is the most likely source of a wrong answer in this design.
 
-### 4.4 The coverage gate — one function, used by every intent
+### 4.4 The coverage gate – one function, used by every intent
 
 ```js
 /**
@@ -639,7 +639,7 @@ GEO.ai.gate = function (rows, field, need) {
 
 Thresholds are inherited from the analytics contract, not re-invented here: filters and rankings
 need `n ≥ 1`; means, medians and distributions need `n ≥ 3` (contract §7). `REQUIRES` is a static
-map from field key to the phrase used in "to answer this we would need …" — e.g.
+map from field key to the phrase used in "to answer this we would need …" – e.g.
 `gla → 'recorded GLA per building'`, `vacancyPct → 'a recorded vacancy or occupancy figure per building'`,
 `availableArea → 'currently available area per building'`, `status → 'a recorded building status'`.
 
@@ -676,7 +676,7 @@ Response = {
   resultIds:   ['BC-…'],            // becomes aiSession.lastResultIds when outcome === 'answered'
   resultLabel: 'Competitors within 3 km of Trilliant',
   alternatives:[ { label, utterance } ],   // clickable; mandatory when outcome === 'refused'
-  proposal:    { filters, layers:[], radius },  // what this turn applied — drives Apply/Undo
+  proposal:    { filters, layers:[], radius },  // what this turn applied – drives Apply/Undo
   trace:       { stages:[{id,label,ms}], tools:[{tool,args,ok,code,inN,outN,ms}], elapsedMs },
   applied:     true
 }
@@ -687,9 +687,9 @@ Response = {
 | block | required? | renders as | rules |
 |---|---|---|---|
 | `answer` | always | one paragraph, 13px Inter, `--text` | ≤ 3 sentences. Names the subject property or the filter in words. Carries one provenance pill top-right. |
-| `analysis` | always; when empty, the literal `No figures were calculated for this request.` | metric rows (label · value · coverage line in 11px `--text-3`), then optional table (P2), then optional chart (P1) | Every number is a `Metric` object from `GEO.analytics.metric` — the panel never computes. A metric with `sufficient:false` renders `Insufficient verified data` plus its `reason`, never a blank. |
-| `mapActions` | always; when empty, `Nothing was changed on the map.` | a list of one-line chips, each with a `×` that reverses **that** action | Written from `proposal`, not from intent — an action that was planned but failed must not be listed. |
-| `dataCoverage` | always | `statements[]` as lines, then a compact `field n/N` grid | At least one statement containing a literal denominator. Generated by `GEO.fmt.coverage()` / `t.coverage()` — never hand-written. |
+| `analysis` | always; when empty, the literal `No figures were calculated for this request.` | metric rows (label · value · coverage line in 11px `--text-3`), then optional table (P2), then optional chart (P1) | Every number is a `Metric` object from `GEO.analytics.metric` – the panel never computes. A metric with `sufficient:false` renders `Insufficient verified data` plus its `reason`, never a blank. |
+| `mapActions` | always; when empty, `Nothing was changed on the map.` | a list of one-line chips, each with a `×` that reverses **that** action | Written from `proposal`, not from intent – an action that was planned but failed must not be listed. |
+| `dataCoverage` | always | `statements[]` as lines, then a compact `field n/N` grid | At least one statement containing a literal denominator. Generated by `GEO.fmt.coverage()` / `t.coverage()` – never hand-written. |
 | `limitations` | always; when genuinely none, `No additional limitations beyond the coverage stated above.` | bulleted, `--text-2` | Always includes the single-source caveat while `sources.length === 1`. |
 | `sources` | always; when none, `No source records are attached to the values used.` | source name · method · retrieved date · record count | From `getSources`; `licenceNote` internal-only. |
 
@@ -718,7 +718,7 @@ Six tags, closed set, defined in `20-ai-tools.js`:
    stored fact launder an inference, which is the same error `D.recordConfidence` avoids.
 2. Every row in `analysis.items` carries its own tag inline (11px, after the coverage line).
 3. Every `ASSUMPTION` must be accompanied by a `limitations` entry naming the assumed value and
-   how to change it — an unexplained assumption is worse than no label.
+   how to change it – an unexplained assumption is worse than no label.
 4. `UNAVAILABLE` on a refusal appears **both** on the answer block and against the named field in
    `dataCoverage`.
 5. Tags are rendered as **dot + text**, never colour alone (visual system §4).
@@ -760,24 +760,24 @@ AiLayer = {
 
 | type | payload | re-evaluable? |
 |---|---|---|
-| `filter` | `{ filters: FilterPatch }` — the exact `state.filters` patch | yes |
+| `filter` | `{ filters: FilterPatch }` – the exact `state.filters` patch | yes |
 | `radius` | `{ origin, radiusKm, excludeSelf }` | yes |
 | `quality` | `{ aspect:'confidence'\|'completeness'\|'freshness'\|'duplicates'\|'conflicts', buckets:[…] }` | yes |
-| `set` | `{ ids:[…], derivedFrom:'competitiveSet'\|'manual', manualAdd:[], manualRemove:[] }` | no — an explicit list |
+| `set` | `{ ids:[…], derivedFrom:'competitiveSet'\|'manual', manualAdd:[], manualRemove:[] }` | no – an explicit list |
 
 ### 6.2 Operations (Y-06 … Y-11)
 
 | operation | signature | behaviour |
 |---|---|---|
 | show / hide | `GEO.ai.layers.setVisible(id, bool)` | Map re-renders from `state.aiLayers`. Hidden layers keep their records and count. |
-| rename | `GEO.ai.layers.rename(id, name)` | Name only; criteria are immutable — a renamed layer must still describe what it contains, so `criteriaHuman` is shown under the name in the inspector. |
+| rename | `GEO.ai.layers.rename(id, name)` | Name only; criteria are immutable – a renamed layer must still describe what it contains, so `criteriaHuman` is shown under the name in the inspector. |
 | remove | `GEO.ai.layers.remove(id)` | Removes the layer **and every artefact it owns**: `owns.radiusSubjectId` clears `state.radius` if it matches (AI-4f). Toast with `Undo`. |
 | inspect | `GEO.ai.layers.inspect(id)` | Y-09 disclosure: `criteriaHuman`, the `criteriaMachine` JSON, `count`, `createdBy`, `createdAt`, source turn, and the recompute banner if stale. |
 | zoom to | `GEO.ai.layers.zoomTo(id)` | Fits to `GEO.geo.bounds(records)`; disabled at `count === 0`. |
 | clear all | `GEO.ai.layers.clear()` | Y-11; confirm chip when any layer has `createdBy:'manual'`. |
 
 Layers render above district polygons and below markers as a coloured ring on each member marker
-plus an optional radius circle — they do **not** add a second marker, which would double-count
+plus an optional radius circle – they do **not** add a second marker, which would double-count
 buildings visually.
 
 ### 6.3 A layer is not a filter
@@ -797,8 +797,8 @@ while the filter shows something else entirely.
 
 ### 6.4 What happens to a layer when the underlying data is edited
 
-On `GEO.on('data:changed')` — fired by every editor save, delete, import, demo-mode toggle and
-reset — the layer store runs:
+On `GEO.on('data:changed')` – fired by every editor save, delete, import, demo-mode toggle and
+reset – the layer store runs:
 
 1. **Deletions apply immediately, always.** Ids no longer in `GEO.data` are dropped from
    `recordIds`, `count` is reduced, and the inspector shows `2 records were deleted since this
@@ -810,7 +810,7 @@ reset — the layer store runs:
    layer.stale = true;
    ```
    The layer keeps its snapshot. The Layers tab shows an amber line:
-   `Data changed — this layer would now contain 13 properties (was 12). [Refresh layer] [Keep snapshot]`
+   `Data changed – this layer would now contain 13 properties (was 12). [Refresh layer] [Keep snapshot]`
 3. `Refresh layer` replaces `recordIds`, updates `count` and `createdAt`, clears `stale`, and
    appends an audit entry. `Keep snapshot` clears `stale` and records `snapshotKeptAt` so the
    inspector can say `Snapshot kept on 16 Sep 2026 although the data has since changed`.
@@ -831,7 +831,7 @@ There is one filter object, `GEO.state.get().filters`, whose exact shape is froz
 
 - **AI → panel.** `applyFilters` calls `GEO.state.set({filters:…},{source:'ai'})`. The filter rail's
   `render(state)` reads `state.filters`. It cannot show anything else, because it holds no local
-  copy of any control value — checkbox `checked`, slider positions and text inputs are all set from
+  copy of any control value – checkbox `checked`, slider positions and text inputs are all set from
   `state` on every render.
 - **Panel → AI.** A user's change calls `GEO.state.set({filters:…},{source:'user'})`. The engine's
   next turn reads the same object as its starting point. There is no "AI filter set".
@@ -854,7 +854,7 @@ Four enforced properties, all checkable:
 
 ### 7.3 Divergence reporting (not prevention)
 
-The user *may* change a filter after an AI answer — that is the point of §59. The engine detects it
+The user *may* change a filter after an AI answer – that is the point of §59. The engine detects it
 by comparing `state.filters` with `aiSession.lastFiltersApplied` on every `state` change with
 `meta.source === 'user'`:
 
@@ -894,7 +894,7 @@ it last did.
 
 `state.role ∈ {'internal','external'}`, default `'internal'` for prototype testing, switchable in
 Settings with a persistent header chip `Role: External (restricted)` when external. This is a
-**product model, not security** — the banner says so verbatim:
+**product model, not security** – the banner says so verbatim:
 
 > Role switching in this prototype demonstrates the permission model. It is not authentication and
 > provides no security. All data in this file is visible to anyone who opens it.
@@ -904,7 +904,7 @@ Settings with a persistent header chip `Role: External (restricted)` when extern
 | role | may call | may not call | data restrictions |
 |---|---|---|---|
 | `external` | R1–R14, V1–V9, P1, P2, E1 | R15 `getDataQuality`, R16 `getVerificationQueue`, Z1–Z3 | `_meta.internalNote`, `_meta.qcFlags`, `_meta.entityReviewNote`, `_meta.seedObjectId`, `sources[].licenceNote` stripped from every result and every export; the Data workspace overlay is force-closed by the existing `State.set` invariant |
-| `internal` | everything except Z1–Z3 in practice (declared, blocked) | — | full access |
+| `internal` | everything except Z1–Z3 in practice (declared, blocked) | – | full access |
 
 Intent-level enforcement: `quality.*` intents are removed from the matcher for `external`, so the
 refusal is a clean capability message rather than a tool error:
@@ -944,7 +944,7 @@ GEO.ai.audit.push({
 
 GEO.ai.audit.entries();     // ring buffer, cap 200
 GEO.ai.audit.toJson();      // I-12 "Export session log"
-GEO.ai.audit.clear();       // I-11 "New session" — clears turns, keeps nothing
+GEO.ai.audit.clear();       // I-11 "New session" – clears turns, keeps nothing
 ```
 
 **Not persisted to `localStorage`.** Rationale, stated in the UI: the log contains free-text
@@ -983,7 +983,7 @@ with `phase ∈ {'start','end'}` and a real `performance.now()` reading.
    that ran with their real elapsed milliseconds, plus the tools and record counts. The
    transparency §53 wants is delivered as evidence after the fact rather than as animation during.
 5. **[ARCH]** An async provider drives the same strip live from the same events, with no panel
-   change. If a stage exceeds 10 s the strip shows `Still working — {stage}` and a `Cancel` button
+   change. If a stage exceeds 10 s the strip shows `Still working – {stage}` and a `Cancel` button
    that calls `provider.abort(turnId)`.
 
 ---
@@ -992,7 +992,7 @@ with `phase ∈ {'start','end'}` and a real `performance.now()` reading.
 
 All figures below were re-derived from `data/seed.json` and match `data/oracle.json`.
 
-### 10.1 §63 Test 4 (AI-4) — "Show its competitors within 3 km"
+### 10.1 §63 Test 4 (AI-4) – "Show its competitors within 3 km"
 
 **Precondition.** `Trilliant` (`BC-82f0eb0b80b7`, A+, $44.7/m²/month, Yunusobod, 41.315878 /
 69.28243) is open in the property drawer, so `state.selectedId === 'BC-82f0eb0b80b7'`.
@@ -1038,10 +1038,10 @@ resolve      : contextPinned false -> state.selectedId -> 'BC-82f0eb0b80b7'
 |---|---|---|---|
 | s1 | `getProperty` | 1 | Trilliant; recordConfidence **Low** (office class and rent both carry the `2GIS-CLASS`/`2GIS-RENT` Low profile); completeness band `minimal` (2 of 8 critical fields) |
 | s2 | `getNearbyProperties` | 148 | **74** within 3 km (cumulative, subject excluded) |
-| s3 | `getCompetitiveSet` | 74 | `bandKm` **3** (the band the user named, not the widest); **9 qualified**, **63 proximity-only** (class not recorded), **2 excluded** (`Panoramic` B, `Nova Minor` B — more than one band from A+) |
+| s3 | `getCompetitiveSet` | 74 | `bandKm` **3** (the band the user named, not the widest); **9 qualified**, **63 proximity-only** (class not recorded), **2 excluded** (`Panoramic` B, `Nova Minor` B – more than one band from A+) |
 | s4 | `calculateMetric` | 74 | mean asking rent **$31.24**, n **11** of 74 |
 | s5 | `aggregateByClass` | 74 | A+ 2 · A 7 · B+ 0 · B 2 · C 0 · **Class not recorded 63** |
-| s6 | `createRadius` | — | `state.radius = {id:'BC-82f0eb0b80b7', km:[3]}` |
+| s6 | `createRadius` | – | `state.radius = {id:'BC-82f0eb0b80b7', km:[3]}` |
 | s7 | `createMapLayer` | 74 | `LYR-1`, count 74, `owns.radiusSubjectId` set |
 | s8 | `generateTable` | 9 | 9 rows: name · class · distance · rent · why included |
 
@@ -1060,7 +1060,7 @@ Nest one (A+, 2 624 m) · Platform (A, 2 683 m) · Sapphire Business Center (A, 
                lastLayerId:'LYR-1', lastRadiusId:'BC-82f0eb0b80b7', turnSeq:1 } }
 ```
 
-`state.filters` is **not** touched — a competitive set is a layer, not a filter (§6.3), so the
+`state.filters` is **not** touched – a competitive set is a layer, not a filter (§6.3), so the
 results list still shows all 148 and the left rail correctly shows no active filter.
 
 **Rendered response.**
@@ -1071,18 +1071,18 @@ results list still shows all 148 and the left rail correctly shows no active fil
 > qualified because their class is not recorded.
 >
 > **Analysis**
-> · Within 3 km — **74 properties** · All 74 properties in the current selection. *Calculated*
-> · Average known asking rent nearby — **$31.2 /m²/month** · Based on 11 of 74 properties with
+> · Within 3 km – **74 properties** · All 74 properties in the current selection. *Calculated*
+> · Average known asking rent nearby – **$31.2 /m²/month** · Based on 11 of 74 properties with
 >   verified asking rent. *Calculated*
-> · Total known GLA nearby — **Insufficient verified data** · No properties in the current
+> · Total known GLA nearby – **Insufficient verified data** · No properties in the current
 >   selection have verified GLA. *Not available*
-> · Class mix nearby — A+ 2 · A 7 · B+ 0 · B 2 · C 0 · **Class not recorded 63**. *Platform data*
-> · **Suggested competitive set — 9 properties** (table, with a "why included" column). *AI inference*
+> · Class mix nearby – A+ 2 · A 7 · B+ 0 · B 2 · C 0 · **Class not recorded 63**. *Platform data*
+> · **Suggested competitive set – 9 properties** (table, with a "why included" column). *AI inference*
 >
 > **Map actions**
 > · Drew a 3 km circle around Trilliant  [×]
-> · Created layer **"Competitors within 3 km of Trilliant"** — 74 properties  [×]
-> · Filters unchanged — the results list still shows all 148 properties.
+> · Created layer **"Competitors within 3 km of Trilliant"** – 74 properties  [×]
+> · Filters unchanged – the results list still shows all 148 properties.
 >
 > **Data coverage**
 > · Asking rent is recorded for 11 of the 74 properties within 3 km.
@@ -1093,14 +1093,14 @@ results list still shows all 148 and the left rail correctly shows no active fil
 > · This is a *suggested* competitive set, not a definitive peer group. Add or remove properties to
 >   reflect market knowledge.
 > · 63 of the 74 nearby properties have no recorded office class and could not be qualified. They
->   are listed separately and are **not** counted as peers — the real peer group is likely larger
+>   are listed separately and are **not** counted as peers – the real peer group is likely larger
 >   than 9.
 > · Building size was not used: GLA is not recorded for Trilliant or for any nearby property.
 > · *Assumption:* the class band is ±1 step (A+ therefore admits A+ and A). 2 properties
->   (Panoramic, Nova Minor — class B) were excluded on that rule alone.
+>   (Panoramic, Nova Minor – class B) were excluded on that rule alone.
 > · *Assumption:* 3 km was taken from your request. Bands are cumulative and Trilliant is excluded
 >   from its own counts. Great-circle distance, sphere radius 6 371 008.8 m.
-> · Trilliant's own class and rent carry **Low** confidence — both are directory claims, not
+> · Trilliant's own class and rent carry **Low** confidence – both are directory claims, not
 >   landlord-confirmed.
 >
 > **Sources**
@@ -1111,7 +1111,7 @@ results list still shows all 148 and the left rail correctly shows no active fil
 **Map.** 3 km circle centred on Trilliant (1 px `--line-strong` stroke, 6 % `--case-red` fill);
 Trilliant keeps its selected treatment; the 74 layer members gain a `--case-red` ring; the 9
 qualified members get a solid ring, the 63 proximity-only a dashed ring with the legend line
-`dashed = class not recorded, could not be qualified`. Markers keep their class colours — the layer
+`dashed = class not recorded, could not be qualified`. Markers keep their class colours – the layer
 never repaints the class encoding. Clusters below zoom 13 remain, with the layer ring drawn on the
 cluster bubble as a partial arc proportional to members included.
 
@@ -1119,10 +1119,10 @@ cluster bubble as a partial arc proportional to members included.
 74 ✓ · (d) 9 qualified / 63 unqualified listed separately ✓ · (e) inclusion rule explained and the
 63 stated ✓ · (f) removing `LYR-1` removes the circle via `owns.radiusSubjectId` ✓.
 
-### 10.2 §63 Test 3 (AI-3a) — "Which district has the most known Class A GLA?"
+### 10.2 §63 Test 3 (AI-3a) – "Which district has the most known Class A GLA?"
 
 This is the key §47/§62 test: the sentence is well-formed, the intent is matched correctly, every
-component exists — and the answer must still be a refusal, because **GLA is recorded for 0 of 148
+component exists – and the answer must still be a refusal, because **GLA is recorded for 0 of 148
 observed records**.
 
 **Parse.**
@@ -1142,7 +1142,7 @@ gate         : GEO.ai.gate(rows(classes=['A']), 'gla', 'any')
 
 **Executor behaviour on a gate failure.** The plan's remaining steps are **not run**. No
 `aggregateByDistrict`, no `generateChart`, no `applyFilters`, no layer. `state` is written **not at
-all** — not even `rightTab`. The only side effect is the audit entry and the appended turn.
+all** – not even `rightTab`. The only side effect is the audit entry and the appended turn.
 
 Two coverage facts are fetched for the message (both read-only): `getDataCoverage({field:'gla'})`
 over all 148 → 0/148, and over the class-A subset → 0/8. `aiSession.lastResultIds` is left
@@ -1152,7 +1152,7 @@ unchanged.
 
 > **Answer** · *Not available*
 > **The current dataset is insufficient to answer this reliably.** GLA is recorded for **0 of 148**
-> properties — and for 0 of the 8 class A properties — so Class A GLA cannot be ranked by district.
+> properties – and for 0 of the 8 class A properties – so Class A GLA cannot be ranked by district.
 > I have not produced a figure.
 >
 > **Analysis**
@@ -1170,7 +1170,7 @@ unchanged.
 >   not part of that collection.
 >
 > **Confidence / limitations**
-> · To answer this we would need **recorded GLA per building** — from a landlord or agent schedule
+> · To answer this we would need **recorded GLA per building** – from a landlord or agent schedule
 >   of areas, a technical passport, or a field survey. Floor count and floor plate would let GLA be
 >   approximated, but both are also recorded for 0 of 148, and an approximation would not be market
 >   evidence.
@@ -1197,7 +1197,7 @@ against `officeClass` (16/148, ok). `aggregateByDistrict({recordIds: 12 class A/
 | 3 | Yashnobod | 2 |
 | 5 | Shayxontohur | 1 |
 | 6 | Mirzo Ulugbek, Chilonzor, Olmazor, Sergeli, Uchtepa | 0 |
-| — | Bektemir, Yangihayot | 0 — no business centres recorded at all |
+| – | Bektemir, Yangihayot | 0 – no business centres recorded at all |
 
 Actions: bar chart (P1, single series, `--data`), ranked table (P2), `applyFilters({classes:['A','A+'],
 includeUnknownClass:false})` so the left rail mirrors the 12 (§59), district polygon highlight on
@@ -1206,14 +1206,14 @@ Yunusobod, layer `Class A / A+ offices` (12).
 Coverage line, verbatim: *"Based on 12 of 148 properties with class A or A+ recorded; office class
 is recorded for 16 of 148, so 132 properties are excluded from this ranking."*
 Limitation, verbatim: *"A district with 0 here means no class A or A+ property is **recorded**
-there — not that none exists. Bektemir and Yangihayot contain no recorded business centres of any
+there – not that none exists. Bektemir and Yangihayot contain no recorded business centres of any
 class."*
 
 There is **no tie at the top**: Yunusobod has 4 outright, because `Trilliant` is assigned by polygon
 to Yunusobod (contract D1), not to Mirzo-Ulugbek as its source label claims. The tie-break rule
 (alphabetical, stated) still applies to the rank-3 pair Yakkasaroy / Yashnobod and is printed.
 
-### 10.3 Supporting trace — §63 Test 5 (AI-5), because its expected copy changes
+### 10.3 Supporting trace – §63 Test 5 (AI-5), because its expected copy changes
 
 `"Show properties with poor data quality"` → `quality.confidence`, `confidenceLevels:['Low','Unknown']`,
 `qualityAspect:'all'`. `getDataQuality` returns, computed from the seed under the D3 per-field model
@@ -1232,7 +1232,7 @@ to Yunusobod (contract D1), not to Mirzo-Ulugbek as its source label claims. The
 
 Answer text must carry the genuine and counter-intuitive finding:
 
-> 16 properties are graded **Low** confidence and 132 **Medium** — but the 16 are the *best
+> 16 properties are graded **Low** confidence and 132 **Medium** – but the 16 are the *best
 > covered* records, not the worst. They are Low precisely because they carry an office class and an
 > asking rent, and both come from a directory listing rather than a landlord or a survey. The other
 > 132 are Medium only because they contain nothing beyond a name, a coordinate and an address.
@@ -1263,7 +1263,7 @@ This supersedes `01-product-spec.md` AI-5(a) ("all 148 are Medium") and AI-5(b)
 | 10 | Stage instrumentation with the 120 ms paint guard | **NOW** |
 | 11 | LLM provider (`describeTools`, async `interpret`, live stage strip, `abort`) | **[ARCH]** |
 | 12 | Multi-step dependent planning, clarifying questions, plan repair | **[ARCH]** (`canPlanMultiStep` flag exists, unused) |
-| 13 | `EXTERNAL` provenance tag — external retrieval, source display (§48) | **[ARCH]** (tag defined, renderer built, no producer) |
+| 13 | `EXTERNAL` provenance tag – external retrieval, source display (§48) | **[ARCH]** (tag defined, renderer built, no producer) |
 | 14 | Persist tools: field tasks, record edits, draft records (§50) | **[ARCH]** (registered, blocked with A13) |
 | 15 | Internal dataset joins: leasing, tenants, brands, prior studies (§49) | **[ARCH]** (role gate exists; no datasets) |
 | 16 | Derived layers: office density, rent concentration, competitive intensity (§42) | **[ARCH]** (in the layer-type registry, refused by naming the missing field) |

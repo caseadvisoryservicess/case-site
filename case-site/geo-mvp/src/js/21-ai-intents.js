@@ -27,7 +27,7 @@
       .toLowerCase()
       .replace(/[’‘`]/g, "'")
       .replace(/[“”]/g, '"')
-      .replace(/[—–]/g, '-')
+      .replace(/[––]/g, '-')
       .replace(/м2|м²|m²|sq\.?\s?m|кв\.?\s?м/g, 'm2')
       .replace(/\s+/g, ' ')
       .trim();
@@ -46,7 +46,7 @@
     var mentionsClass = /\bclass|класс|категор/.test(u);
     // NOT `\b` at the end: in "A+" the "+" is a non-word character followed by a
     // space, so there is no word boundary after it and "A+" would silently degrade
-    // to "A" — turning "Class A and A+" into a filter for A alone.
+    // to "A" – turning "Class A and A+" into a filter for A alone.
     var re = /\b(a\s*\+|b\s*\+|a|b|c)(?!\w)/g, m;
     while ((m = re.exec(u))) {
       var raw = m[1].replace(/\s+/g, '');
@@ -205,7 +205,7 @@
   /* §62: the best answer is sometimes "the current dataset is insufficient".
      These match BEFORE the catalogue and override every other intent, because
      each names a concept the platform architecture anticipates (§31 phases 4-5)
-     but this dataset cannot support. The danger is not silence — it is answering
+     but this dataset cannot support. The danger is not silence – it is answering
      a NEARBY question and letting the user believe it was the one they asked.
      "Which cluster has the highest employee density?" would otherwise match the
      cluster intent and return a count of buildings, which is a different
@@ -225,7 +225,7 @@
       required: 'a routing engine and a road network' },
     { key: 'metro',
       re: /\bmetro\b|\bsubway\b|underground station|metro station|\bметро\b|станци\w* метро/,
-      required: 'a verified metro-station dataset — none is loaded in this build, and station coordinates were not invented' },
+      required: 'a verified metro-station dataset – none is loaded in this build, and station coordinates were not invented' },
     { key: 'transactions',
       re: /transaction|take[- ]up|absorption|signed rent|deal volume|сделк|поглощен|подписанн\w* ставк/,
       required: 'a transactions register; this dataset holds advertised asking rents only' },
@@ -239,7 +239,7 @@
 
   /* -------------------------------------------------------------- intents */
   /* Order matters: specific before general. Each entry declares a matcher and a
-     plan builder. The plan is data — the engine executes it — so the same plan
+     plan builder. The plan is data – the engine executes it – so the same plan
      shape works whether it came from this parser or from a language model. */
 
   I.catalogue = [
@@ -434,7 +434,7 @@
           var pair = map[c.field];
           var key = pair && (c.op === 'gte' ? pair[0] : pair[1]);
           // A filter key the state shape does not carry would be written and then
-          // silently ignored — a control that appears to work and does not (§29).
+          // silently ignored – a control that appears to work and does not (§29).
           if (!key || !(key in shape)) {
             unsupportedFilters.push({ field: c.field, op: c.op, value: c.value });
             return;

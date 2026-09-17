@@ -59,7 +59,7 @@
     var res = AI.call('getSources', { rowIds: rows.map(function (r) { return r.id; }) }, ctx());
     if (!res.ok || !res.sources) return [];
     return res.sources.map(function (s) {
-      return s.source + ' — ' + s.fields.length + ' ' + F.plural(s.fields.length, 'field') +
+      return s.source + ' – ' + s.fields.length + ' ' + F.plural(s.fields.length, 'field') +
              ' across ' + F.int(s.recordCount) + ' ' + F.plural(s.recordCount, 'record') +
              ', collected ' + F.date(s.collectedAt) + ', confidence ' + s.confidence;
     });
@@ -75,7 +75,7 @@
     if (!n) return null;
     return n + ' of the ' + F.int(rows.length) + ' ' + F.plural(rows.length, 'property', 'properties') +
            ' in this answer ' + F.plural(n, 'is a DEMO record', 'are DEMO records') +
-           ' — fictional values included so the prototype can be tested. They are not market evidence.';
+           ' – fictional values included so the prototype can be tested. They are not market evidence.';
   }
 
   /* --------------------------------------------------------------- refusal */
@@ -199,7 +199,7 @@
     switch (plan.intent) {
 
       case 'empty':
-        out.answer = 'Ask a question about the dataset — for example "Show Class A business centres" ' +
+        out.answer = 'Ask a question about the dataset – for example "Show Class A business centres" ' +
                      'or "Which district has the most Class A offices?".';
         out.dataCoverage = A.coverageStatement(scope);
         out.suggestions = suggestions();
@@ -224,7 +224,7 @@
         if (nearest) {
           var cv = A.coverage(scope, nearest);
           out.dataCoverage = 'The nearest field held is ' + F.lower(S.label(nearest)) +
-                             ', recorded for ' + cv.n + ' of ' + cv.N + ' properties — ' +
+                             ', recorded for ' + cv.n + ' of ' + cv.N + ' properties – ' +
                              'which answers a different question.';
         } else {
           out.dataCoverage = 'This platform holds ' + F.int(scope.length) +
@@ -311,7 +311,7 @@
         // only the colon reads correctly after all of them. Its letters are also
         // left alone: lowercasing "class A, A+" would yield "class a, a+".
         out.answer = F.int(rows.length) + ' ' + F.plural(rows.length, 'property', 'properties') +
-                     ' — ' + name + '.';
+                     ' – ' + name + '.';
         out.origin = AI.ORIGIN.PLATFORM;
         out.analysis = describeSet(rows);
 
@@ -324,7 +324,7 @@
           var noClass = base.length - A.withKnown(base, 'officeClass').length;
           if (noClass) {
             out.limitations.push(F.int(noClass) + ' ' + F.plural(noClass, 'property', 'properties') +
-              ' in the dataset have no recorded office class. They are excluded from this result — ' +
+              ' in the dataset have no recorded office class. They are excluded from this result – ' +
               'that is an absence of data, not evidence that they are a different class.');
           }
         }
@@ -380,7 +380,7 @@
           rows: ranked.map(function (gr) {
             return [gr.label,
                     plan.measure ? gr.metric.display : F.int(gr.count),
-                    plan.measure ? (gr.metric.n + ' of ' + gr.metric.N) : '—'];
+                    plan.measure ? (gr.metric.n + ' of ' + gr.metric.N) : '–'];
           })
         };
         out.chart = { kind: 'bar', rows: ranked.map(function (gr) {
@@ -398,7 +398,7 @@
         if (empties.length) {
           out.limitations.push(empties.map(function (gr) { return gr.label; }).join(' and ') +
             ' contain no recorded business centres. That is a true zero in this dataset, ' +
-            'not missing data — though it may simply mean nothing has been collected there yet.');
+            'not missing data – though it may simply mean nothing has been collected there yet.');
         }
         if (plan.measure) {
           var suppressed = groups.filter(function (gr) { return !gr.metric.sufficient && gr.metric.n > 0; });
@@ -510,7 +510,7 @@
                           function (r) { return r[plan.rankBy]; },
                           plan.direction).slice(0, plan.count);
         } else {
-          out.answer = 'Tell me which properties to compare — for example ' +
+          out.answer = 'Tell me which properties to compare – for example ' +
                        '"compare the three highest known asking rents", or select them on the map and say "compare these".';
           out.dataCoverage = A.coverageStatement(pool);
           out.suggestions = ['Compare the three highest known asking rents'];
@@ -524,7 +524,7 @@
         out.origin = AI.ORIGIN.PLATFORM;
         out.answer = 'Comparing ' + pick.map(function (r) { return r.name; }).join(', ') + '.' +
                      (plan.rankBy ? ' Ranked by recorded ' + S.label(plan.rankBy).toLowerCase() + '.' : '');
-        out.limitations.push('The comparison states what is recorded and what is not. It does not declare a winner — ' +
+        out.limitations.push('The comparison states what is recorded and what is not. It does not declare a winner – ' +
                              'with this much missing data, any ranking would say more about collection coverage than about the buildings.');
         return finish(out, pick, plan.rankBy ? [plan.rankBy] : ['officeClass', 'askingRent']);
       }
@@ -550,7 +550,7 @@
           ['High', 'Medium', 'Low', 'Unknown'].map(function (k) {
             return (conf[k] || 0) + ' ' + k;
           }).join(' · ') + '. ' +
-          'Confidence alone does not separate these records well, because they came from one source on one date — ' +
+          'Confidence alone does not separate these records well, because they came from one source on one date – ' +
           'completeness does: ' + F.int(sparse.length) + ' of ' + F.int(rows5.length) +
           ' have no recorded commercial data at all.';
 
@@ -632,7 +632,7 @@
                                 x.centre[0].toFixed(4) + ', ' + x.centre[1].toFixed(4)];
                       }) };
         out.limitations.push('This counts recorded buildings in a 1 km grid. It is not a floorspace, employment or ' +
-          'footfall density — GLA is recorded for ' + A.coverage(current, 'gla').n + ' of ' +
+          'footfall density – GLA is recorded for ' + A.coverage(current, 'gla').n + ' of ' +
           current.length + ' properties, so a floorspace density cannot be computed.');
         return finish(out, current, ['gla']);
       }
@@ -646,7 +646,7 @@
         out.table = { columns: ['Field', 'Recorded', 'Coverage'],
                       rows: res7.coverage.map(function (cv) {
                         return [cv.label, cv.n + ' of ' + cv.N,
-                                cv.N ? Math.round(100 * cv.n / cv.N) + '%' : '—'];
+                                cv.N ? Math.round(100 * cv.n / cv.N) + '%' : '–'];
                       }) };
         out.chart = { kind: 'coverage', rows: res7.coverage };
         out.limitations.push('Coverage is the honest ceiling on every other answer: a field recorded for zero ' +
@@ -698,7 +698,7 @@
         out.resultCount = scope.length;
         out.dataCoverage = A.coverageStatement(scope);
         out.sources = sourcesFor(scope.slice(0, 200));
-        out.limitations.push('The session log is kept — resetting clears state, not history.');
+        out.limitations.push('The session log is kept – resetting clears state, not history.');
         return out;
       }
 

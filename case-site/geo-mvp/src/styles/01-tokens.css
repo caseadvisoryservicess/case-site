@@ -114,6 +114,10 @@
   /* IA §1.5, exact. Nothing else in the codebase may use a numeric z-index. */
   --z-map: 0;             /* R3 — own stacking context; Leaflet's 200–800 lives inside */
   --z-map-chrome: 10;     /* R4 map buttons, legend, scale */
+  /* The layers panel is a dialog the reader deliberately opened, so it outranks
+     the passive chrome. Without this the offline notice sat across its heading:
+     both were --z-map-chrome, and source order decided. */
+  --z-map-dialog: 11;
   --z-rail: 20;           /* R2, R5 when docked */
   --z-tray: 30;           /* R6 compare tray */
   --z-header: 40;         /* R1, R12 */
