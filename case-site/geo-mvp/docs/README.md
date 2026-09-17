@@ -14,6 +14,15 @@ These are the outputs of that sequence, in the order they were produced.
 | 06 | [`06-ai-architecture.md`](06-ai-architecture.md) | §65 step 6 – the layered architecture and provider seam, the tool registry, the intent catalogue mapped to every §54 and §63 example, session context, the six-block response, layers, and the permission model. |
 | 10 | [`10-visual-system.md`](10-visual-system.md) | Colour, type, marks and motion. The office-class ramp was derived from the CASE brand red in OKLCH and **validated** against the ordinal checks on both surfaces; the contrast figures are computed, not estimated. |
 | **11** | [`11-coverage-vs-brief.md`](11-coverage-vs-brief.md) | §65 step 11 – every one of the brief's 69 sections audited: built, architecture-only, partial, deferred, with the verification cited for each. Written as an audit rather than a summary so a requirement that was deliberately not built is visible rather than quietly absent. |
+| **12** | [`12-data-sources.md`](12-data-sources.md) | Additional sources – Golden Pages, Google, Yandex, Yellow Pages, 2GIS, OSM, Orginfo, data.egov.uz. What each needs, what may legally be **stored** versus only shown, the ingestion pipeline, and why Google and Yandex cannot populate the dataset even with a paid key. |
+| **13** | [`13-reference-repos.md`](13-reference-repos.md) | The §68 reference repositories reviewed under the §71 safety rules – licence, install scripts, key requirements, verdict. Four of twelve carry no licence; nothing was copied from any of them. |
+| **14** | [`14-checkup-report.md`](14-checkup-report.md) | The second master prompt's §73 check-up – all 25 required checks with the test that proves each, plus the final lists: implemented features, known limitations, data limitations, AI limitations, next improvements. Includes the scoped plan for the trilingual download request. |
+
+## The project skills
+
+Fourteen skills in `../../.claude/skills/`, one per role the second master prompt names (§69),
+each written from this project's own decisions and measurements. See that folder's `README.md`
+for which to load before touching what.
 
 ## What is deliberately not here
 
