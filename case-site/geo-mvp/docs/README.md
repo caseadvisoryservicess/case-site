@@ -50,4 +50,7 @@ python3 tools/test_merge.py           # 56 ingestion assertions: matching, the f
                                       # per-field outcomes, the licence gate
 python3 tools/sources.py --check      # probe every external source's reachability
 python3 tools/geocode_check.py --dry-run  # the Yandex address check: what it would ask, no network
+python3 tools/geocode_check_page.py && node tools/test_geocode_page.cjs
+                                      # the browser version of that check, driven in Chromium
+                                      # with Yandex mocked: 36 checks
 ```

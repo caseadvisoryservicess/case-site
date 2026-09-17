@@ -154,7 +154,9 @@ def run(key, limit=None, dry_run=False):
 
     out = dict(sourceId=SOURCE_ID, storage='display', mayPopulateDataset=False,
                startedAt=datetime.now(timezone.utc).isoformat(timespec='seconds'),
-               thresholds=dict(agreeM=AGREE_M, nearM=NEAR_M), requests=0,
+               thresholds=dict(agreeM=AGREE_M, nearM=NEAR_M),
+               seedGeneratedAt=seed.get('generatedAt'), recordCount=len(records),
+               keyTest=bool(limit), requests=0,
                items=[], skipped=[dict(id=r['id'], name=r['name'], reason=q)
                                   for r, mode, q in plan if mode == 'skip'])
 
@@ -201,8 +203,12 @@ def report(out=None):
     if out is None:
         if not OUT.exists():
             sys.exit('geocode_check: no run recorded yet (%s)' % OUT.relative_to(ROOT))
-        out = json.loads(OUT.read_text(encoding='utf-8'))
+        out = json.loads(OUT.read_text(encoding='utf-8-sig'))   # a Windows editor may add a BOM
     s = out.get('summary') or {}
+    if out.get('keyTest'):
+        print('\nNOTE: this file is a KEY TEST (%d requests), not a full pass.' % out.get('requests', 0))
+    if out.get('seedGeneratedAt'):
+        print('dataset: %s records, seed generated %s' % (out.get('recordCount', '?'), out['seedGeneratedAt']))
     order = ['agree', 'near', 'disagree', 'approximate', 'vague', 'not_found', 'suggested', 'error']
     print('\n%-12s %s' % ('verdict', 'count'))
     for k in order:

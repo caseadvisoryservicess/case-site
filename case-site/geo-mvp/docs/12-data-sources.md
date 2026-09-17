@@ -222,3 +222,23 @@ python3 tools/geocode_check.py                  # the full pass, well inside the
 
 Send back `data/incoming/yandex-geocoder-check.json`. It is git-ignored, carries no key, and
 `python3 tools/geocode_check.py --report` re-prints its summary anywhere.
+
+**Without Python.** The person who holds the key has no Python, and the sandbox that has Python
+cannot reach Yandex, so the same check exists as a page: `python3 tools/geocode_check_page.py`
+writes `qa-out/geocode-check.html`, one file that opens from disk by double-click, takes the
+key in a field, runs the 139 requests from the browser, and offers the same
+`yandex-geocoder-check.json` for download. Thresholds, city words and the endpoint are imported
+from `geocode_check.py`, not retyped, so the two cannot drift. The page's first button is a
+five-request key test and says so when it finishes; only the second button's file, named
+`yandex-geocoder-check.json`, is the one to send back (a key-test download is named
+`yandex-geocoder-key-test.json` so the two cannot be confused). The page tries a cross-origin
+`fetch` first – whether the Geocoder sends CORS headers is unverified from this sandbox – and
+falls back to JSONP through the Geocoder's `callback` parameter only on a network-level failure,
+never on an HTTP status, which is an answer and is recorded on the item as the Python tool does.
+A refused key without a CORS header is indistinguishable from no network on a `file://` page, so
+that message names both causes and links the first request for the person to open and read
+Yandex's reply. The key is never stored, not even in the browser, and is redacted from error
+text. `node tools/test_geocode_page.cjs` drives the page in Chromium with the Geocoder mocked at
+the network layer, plus one real local server for the no-CORS case – 36 checks covering every
+verdict, the lon/lat order, the downloads byte for byte (no BOM on JSON, BOM on CSV), the
+key-test flow, an HTTP 429 mid-run, the JSONP fallback and a refused key both ways.
