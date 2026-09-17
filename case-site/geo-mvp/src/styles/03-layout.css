@@ -83,12 +83,56 @@
   min-width: 0;
 }
 
-.hdr__mark {
-  width: 18px;
-  height: 18px;
+/* --------------------------------------------------------------- lockup --
+   The CASE logo. Not an image file: on caseadvisory.com the mark IS the
+   typography — the wordmark in the display serif over the descriptor in
+   micro-caps — so the faithful reproduction is type, not a traced SVG. The
+   sizes and the 2.5px descriptor tracking are the site's own values.
+
+   The display face is embedded (see the @FONT marker), so this renders
+   identically from file:// with no network. That is the whole reason it was
+   embedded: a wordmark that falls back to Georgia on one machine and DejaVu
+   on another is not a wordmark. */
+.lockup {
+  display: flex;
+  flex-direction: column;
   flex: none;
-  border-radius: 3px;
-  background: var(--case-red);
+  line-height: 1;
+}
+
+.lockup__n {
+  font-family: var(--font-display);
+  font-size: 21px;
+  /* 1.35, not the site's 1. DM Serif Display's ascent + descent exceeds its em
+     square, so at 21px the glyphs overflowed their own element by 4px. Nothing
+     showed on screen because the overflow was visible, but a box that does not
+     contain its text clips the moment an ancestor hides overflow — and the
+     header's ancestors do. 1.35 is the first value that actually contains the
+     face (measured, not guessed: 1.2 still overflowed by 2px). The negative
+     margin takes the added leading back out, so the lockup reads as tightly as
+     the site's while its box stays honest. */
+  line-height: 1.35;
+  margin-bottom: -5px;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+
+.lockup__s {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* Separates the firm from the product, so "CASE" reads as the company and
+   "Geo" as the tool, rather than the two running together as one name. */
+.hdr__rule {
+  width: 1px;
+  height: 22px;
+  flex: none;
+  background: var(--line-strong);
 }
 
 .hdr__name {
@@ -96,6 +140,7 @@
   font-size: var(--fs-display);
   letter-spacing: var(--tracking-display);
   white-space: nowrap;
+  color: var(--text-2);
 }
 
 .hdr__scope,

@@ -10,8 +10,22 @@
 
   var GEO = w.GEO = w.GEO || {};
 
+  /* The firm's identity and the product's name are two different things, and the
+     header shows both: the CASE wordmark is the firm, `productWord` is what this
+     particular tool is called. They are split so the lockup can be typeset as the
+     brand sets it — the wordmark in the display serif over the descriptor in
+     micro-caps — rather than as one undifferentiated string.
+
+     `name` stays the full "CASE Geo" because it is what every export, CSV header,
+     print footer and import validator writes; splitting it would have rewritten all
+     of them. 24-selftest asserts name === firm + ' ' + productWord, so the two
+     halves cannot drift apart into a header that disagrees with the files it
+     produces. */
   GEO.PRODUCT = {
     name: 'CASE Geo',              // WORKING NAME ONLY (§8 — "ZAKY" is not approved).
+    firm: 'CASE',                  // Wordmark. Matches the caseadvisory.com lockup.
+    firmDescriptor: 'Real Estate Advisory',
+    productWord: 'Geo',            // The product half, shown after the lockup rule.
     provisional: true,             // Drives the "WORKING TITLE" chip in the header.
     version: '0.1.0-prototype',
     build: 'dev',

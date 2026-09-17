@@ -17,11 +17,18 @@
  *   requires @import to precede every other rule in a sheet, so it must be the
  *   first statement of the *bundle* — i.e. the first line of the first file —
  *   not the first line of 02-base.css, where it would be silently dropped by
- *   the parser. display=swap means first paint never waits on it, and the
- *   fallback stacks in --font-display / --font-ui carry the page unchanged
- *   when the request fails, which on file:// with no network is the norm.
+ *   the parser.
+ *
+ * WHY ONLY INTER IS IMPORTED
+ *   The display serif is no longer fetched: it is EMBEDDED as base64 by the
+ *   @FONT marker in shell.html. On file:// with no network — which is how this
+ *   prototype is actually delivered — an @import never resolves, so the brand
+ *   face was falling back to Georgia, or on Linux to whatever generic serif
+ *   the box happened to have. The wordmark changed shape per machine, which
+ *   is not a wordmark. Inter stays an import because a UI face degrading to
+ *   system-ui costs the reader nothing; the identity does not degrade at all.
  * ========================================================================= */
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 :root {
 
@@ -166,7 +173,7 @@
 
   --fs-display-l: 28px;        /* overlay titles */
   --fs-display: 20px;          /* panel titles */
-  --fs-metric: 26px;           /* stat tile value — Inter 600, never the serif */
+  --fs-metric: 30px;           /* stat tile value — the display serif (visual-system §6.1) */
   --fs-lg: 15px;
   --fs-md: 14px;
   --fs-body: 13px;             /* UI + data base */

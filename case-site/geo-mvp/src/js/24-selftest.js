@@ -47,6 +47,16 @@
     var demo = D.demoRecords();
     var all = obs.concat(demo);
 
+    /* --- identity ------------------------------------------------------ */
+    /* The header shows the firm and the product as two typeset halves; every
+       export writes PRODUCT.name as one string. If someone renames one and not
+       the other, the screen and the files it produces start disagreeing, and
+       nothing else would notice. */
+    eq('§8: the lockup and the product word compose PRODUCT.name',
+       GEO.PRODUCT.firm + ' ' + GEO.PRODUCT.productWord, GEO.PRODUCT.name);
+    has('§8: the working name is not "ZAKY"',
+        !/zaky/i.test(GEO.PRODUCT.name + GEO.PRODUCT.firm + GEO.PRODUCT.productWord));
+
     /* --- dataset shape ------------------------------------------------- */
     eq('dataset: observed record count', obs.length, 148);
     eq('dataset: demo record count', demo.length, 8);

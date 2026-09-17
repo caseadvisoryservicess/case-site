@@ -180,6 +180,15 @@
   #btn-data,
   #lang-menu { display: none; }
 
+  /* The descriptor line comes off below 768px. "REAL ESTATE ADVISORY" is 144px
+     wide at its 2.2px tracking — wider than the wordmark it sits under — and it
+     was taking 185px of a 375px header, which crushed the search field to 18px.
+     The wordmark and the product name both stay: what is lost is a line of
+     7.5px micro-type that a phone cannot usefully read anyway. */
+  .lockup__s { display: none; }
+  .lockup__n { margin-bottom: 0; }
+  .hdr__rule { height: 18px; }
+
   .hdr__name { font-size: var(--fs-lg); }
   .hdr__search { max-width: none; }
   .search__input { padding-left: var(--s-2); }

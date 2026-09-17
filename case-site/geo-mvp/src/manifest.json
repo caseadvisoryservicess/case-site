@@ -2,7 +2,9 @@
   "shell": "src/shell.html",
   "output": "index.html",
   "css": {
-    "vendor": ["vendor/leaflet.css"],
+    "vendor": [
+      "vendor/leaflet.css"
+    ],
     "app": [
       "src/styles/01-tokens.css",
       "src/styles/02-base.css",
@@ -16,7 +18,10 @@
     ]
   },
   "js": {
-    "vendor": ["vendor/leaflet.js", "vendor/leaflet.markercluster.js"],
+    "vendor": [
+      "vendor/leaflet.js",
+      "vendor/leaflet.markercluster.js"
+    ],
     "app": [
       "src/js/00-core.js",
       "src/js/01-i18n.js",
@@ -47,7 +52,20 @@
     ]
   },
   "data": {
-    "seed":      { "file": "data/seed.json",                             "global": "GEO_SEED" },
-    "districts": { "file": "data/tashkent_districts.simplified.geojson", "global": "GEO_DISTRICTS" }
+    "seed": {
+      "file": "data/seed.json",
+      "global": "GEO_SEED"
+    },
+    "districts": {
+      "file": "data/tashkent_districts.simplified.geojson",
+      "global": "GEO_DISTRICTS"
+    }
+  },
+  "fonts": {
+    "display": {
+      "file": "src/assets/dmserif-display-latin.woff2",
+      "family": "DM Serif Display",
+      "licence": "src/assets/dmserif-display-OFL.txt"
+    }
   }
 }

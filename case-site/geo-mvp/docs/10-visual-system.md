@@ -147,16 +147,38 @@ bucket must never look like a measured value:
 |---|---|---|---|
 | Display (product name, panel titles) | `'DM Serif Display', Georgia, serif` | 20–28px / 400 | −0.01em |
 | UI + data (everything else) | `'Inter', system-ui, -apple-system, sans-serif` | 13px base / 400–600 | 0 |
-| Metric value (stat tile) | Inter | 26px / 600, `font-variant-numeric: tabular-nums` | −0.02em |
+| Metric value (stat tile) | `'DM Serif Display'` | 30px / 400, proportional figures | −0.01em |
 | Coverage / denominator line | Inter | 11px / 400, `--text-3` | +0.01em |
 | Axis ticks, table numerals | Inter | 11–12px, `tabular-nums` | 0 |
 
-Fonts load from Google Fonts when online and **fall back cleanly to Georgia / system-ui
-offline** — the prototype must open from `file://` with no network. Never block first paint
-on a webfont (`font-display: swap`).
+**The display face is embedded, not fetched.** `DM Serif Display` ships base64-inlined in
+the deliverable (the `@FONT` marker in `shell.html`, SIL OFL 1.1, licence at
+`src/assets/dmserif-display-OFL.txt`). The prototype's normal home is `file://` with no
+network, where an `@import` cannot resolve — so before this the brand face fell back to
+Georgia, or on Linux to whichever generic serif the machine had. A wordmark whose shape
+depends on the machine it is opened on is not a wordmark. 25 KB buys an identical lockup
+everywhere. Inter stays an `@import`: a UI face degrading to `system-ui` costs the reader
+nothing, and the identity does not degrade at all.
 
-The serif is for headings only. Per the data-viz mark spec, a **hero/metric number is never
-set in the display serif** — metric values use Inter semibold.
+### 6.1 Departure: the metric value IS set in the display serif
+
+The data-viz mark spec says a hero or metric number is **never** set in a display or serif
+face, because "it reads as off-brand decoration". That rationale does not hold for this
+brand, and applying the rule mechanically here would have produced the opposite of what it
+is for: `caseadvisory.com` sets its own headline statistics in this exact face
+(`.hstat-n { font-family: var(--serif); font-size: 42px }`). A sans metric is the
+off-brand choice for CASE.
+
+The rest of the rule is kept as written, because the rest of its reasoning does hold:
+
+- Only the **stat tile and location-band values** take the serif — the single figure a
+  reader is meant to take away. Chart axis ticks, table numerals and in-chart labels stay
+  in the UI sans.
+- Standalone display figures use **proportional** figures. `tabular-nums` gives every digit
+  the width of a `0`, which at 30px makes `148` look gappy; tabular is kept for columns
+  that must align vertically (tables, axis ticks).
+- The unit is a separate line in the UI sans, not a serif suffix — it is a label, not a
+  figure.
 
 ---
 

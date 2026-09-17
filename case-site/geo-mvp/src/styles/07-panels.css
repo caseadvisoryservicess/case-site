@@ -62,16 +62,32 @@
 .fcount__excl { display: block; margin-top: 2px; font-size: var(--fs-xs); font-weight: 400; color: var(--text-3); }
 
 /* ═══════════════════════════════════════════════ R2 · results (§12) ═════ */
+/* Two rows, not one. The left rail is ~320px at every desktop width, so the
+   sort control, the "showing n of m" count and the distance-sort reason were
+   sharing it three ways — each landing in a ~70px column and wrapping to three
+   or four lines apiece. The control takes the first row; the two captions read
+   as a caption line beneath it, which is the order they are read in anyway. */
 .list__bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: var(--s-2);
+  gap: var(--s-1) var(--s-2);
   padding: var(--s-2) var(--s-4);
   border-bottom: 1px solid var(--line);
   background: var(--surface);
 }
 
-.list__bar .select { max-width: 220px; }
+/* `.push` is a spacer elsewhere; here it is the line break that puts the
+   captions on their own row. Zero height so it costs nothing vertically. */
+.list__bar .push {
+  flex: 1 1 100%;
+  height: 0;
+  margin: 0;
+}
+
+.list__bar .select { flex: 1 1 auto; max-width: 100%; }
+.list__bar .coverage,
+.list__bar .reason { flex: 0 1 auto; }
 
 .list {
   display: flex;
@@ -310,18 +326,38 @@
 .stat__label { font-size: var(--fs-xs); color: var(--text-3); line-height: 1.35; }
 
 /* A hero number is never set in the display serif (visual-system §6). */
+/* The metric value is set in the display serif — see 10-visual-system.md §6.1
+   for why this departs from the data-viz default of "never a serif for a hero
+   number". Short version: that rule exists because a serif figure reads as
+   off-brand decoration, and for CASE the serif IS the brand — caseadvisory.com
+   sets its own headline statistics in this exact face. */
 .stat__value {
   margin-top: var(--s-1);
-  font-family: var(--font-ui);
+  font-family: var(--font-display);
   font-size: var(--fs-metric);
-  font-weight: 600;
-  letter-spacing: var(--tracking-metric);
-  line-height: 1.1;
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
   color: var(--text);
-  font-variant-numeric: tabular-nums;
+  /* Proportional, not tabular: tabular gives every digit the width of a `0`,
+     which at display size makes a value like `148` look gappy. Tabular is for
+     COLUMNS that must align — the tables and axis ticks keep it. */
+  font-variant-numeric: proportional-nums;
 }
 
-.stat__unit { font-size: var(--fs-sm); font-weight: 400; color: var(--text-2); letter-spacing: 0; }
+/* The unit sits on its own line rather than trailing the figure. Inline, a long
+   unit like `/m²/month` wrapped mid-phrase inside a narrow card, so the reader
+   saw "$32.2" over "/m²/month" and could not tell a deliberate line from a
+   broken one. Its own line is the same two rows, read as a decision. */
+.stat__unit {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0;
+}
 
 /* The denominator line is part of the card, permanently — not only inside
    the A-02 popover (rule R3). */

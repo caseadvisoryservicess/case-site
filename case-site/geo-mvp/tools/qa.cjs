@@ -321,6 +321,60 @@ function watch(page) {
     check('UX-4 competitive set: 9 qualified, 63 proximity-only',
           r.qualified === 9 && r.proximityOnly === 63, `${r.qualified}/${r.proximityOnly}`);
 
+    // Each ring carries its band's COUNT — that number is the only thing making
+    // the circle more than decoration, and property markers were drawing through
+    // it. Leaflet orders markers within a pane by latitude, so neither a
+    // stylesheet z-index nor zIndexOffset could hold: the labels need a pane
+    // above markerPane. Asserted structurally because the labels are
+    // pointer-events:none, which makes elementFromPoint report what is beneath
+    // them however they are stacked.
+    const rings = await page.evaluate(async () => {
+      const tri = GEO.data.observed().filter(x => x.name === 'Trilliant')[0];
+      GEO.state.set({ selectedId: tri.id, radius: { id: tri.id, km: [1, 3, 5] } },
+                    { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 1200));
+      const z = sel => { const e = document.querySelector(sel);
+                         return e ? (+getComputedStyle(e).zIndex || 0) : null; };
+      const labels = [...document.querySelectorAll('.geo-radius-label')];
+      return { n: labels.length,
+               markerZ: z('.leaflet-marker-pane'),
+               labelZ: z('.leaflet-radiusLabels-pane'),
+               allInPane: labels.length > 0 && labels.every(l =>
+                 !!l.closest('.leaflet-radiusLabels-pane')),
+               texts: labels.map(l => l.textContent.trim()) };
+    });
+    check('UX-4 every radius band is labelled with its count',
+          rings.n === 3 && rings.texts.every(t => /\d/.test(t)), rings.texts.join(' | '));
+    check('UX-4 radius labels render above the markers',
+          rings.allInPane && rings.labelZ > rings.markerZ,
+          `labels z=${rings.labelZ} vs markers z=${rings.markerZ}`);
+    await page.evaluate(() => GEO.state.set({ radius: null }, { source: 'user', action: 'qa' }));
+
+    // Every result card states its completeness as a COUNT and draws a meter to
+    // match. 04-quality.js calls the two numbers known/total, the list panel calls
+    // them n/m, and the panel used to pass the quality module's object straight
+    // through — so the caption read "Not recorded of Not recorded key fields
+    // recorded" on all 148 cards and every meter computed 0%. The 0% looked
+    // right on a dataset whose true answer is mostly zero, which is precisely why
+    // nothing caught it. Assert against a record that HAS fields.
+    const comp = await page.evaluate(async () => {
+      GEO.state.set({ leftTab: 'results', listSort: 'completeness.desc' },
+                    { source: 'user', action: 'qa' });
+      await new Promise(r => setTimeout(r, 900));
+      const card = document.querySelector('#results-list .rcard');
+      if (!card) return null;
+      const cap = [...card.querySelectorAll('.coverage')].map(e => e.textContent.trim())
+        .filter(x => /key fields/.test(x))[0] || '';
+      const fill = card.querySelector('.covrow__fill');
+      return { cap: cap, width: fill ? fill.style.width : null };
+    });
+    check('UX list card: completeness is a count, not "Not recorded"',
+          !!comp && /^\d+ of \d+ /.test(comp.cap), comp && comp.cap);
+    check('UX list card: the completeness meter matches the count',
+          !!comp && comp.width === '25%', comp && `${comp.cap} -> ${comp.width}`);
+    await page.evaluate(() => GEO.state.set({ listSort: 'name.asc' },
+                                            { source: 'user', action: 'qa' }));
+
     // UX-5 — compare guard rails
     r = await api(() => {
       const ids = GEO.data.observed().slice(0, 5).map(x => x.id);
@@ -550,7 +604,14 @@ function watch(page) {
     const naming = await page.evaluate(() => ({
       product: GEO.PRODUCT.name,
       provisional: GEO.PRODUCT.provisional,
-      header: (document.getElementById('product-name') || {}).textContent,
+      // The header now shows the CASE lockup (the firm) and the product word
+      // separately, so the constant is read back from BOTH — the visible text,
+      // not a hidden copy of it. A lockup that stopped agreeing with the name
+      // written into every export is exactly what this check is for.
+      header: [(document.getElementById('brand-word') || {}).textContent,
+               (document.getElementById('product-name') || {}).textContent]
+                 .filter(Boolean).join(' '),
+      descriptor: (document.getElementById('brand-descriptor') || {}).textContent,
       // body.textContent includes the inlined <script> blocks, and one of them
       // carries the comment explaining why the name is NOT "ZAKY". Read the text
       // a person can actually see instead.
@@ -570,6 +631,8 @@ function watch(page) {
           naming.header === naming.product, `${naming.header} vs ${naming.product}`);
     check('§8: the name is not "ZAKY" anywhere', naming.zaky === false);
     check('§8: a provisional name is labelled as provisional', naming.chipShown === true);
+    check('§8: the header carries the CASE firm descriptor',
+          naming.descriptor === 'Real Estate Advisory', naming.descriptor);
 
     // X-11 — the data chip is the honest one-line summary of the dataset.
     const chip = await page.evaluate(() => (document.getElementById('data-chip') || {}).textContent || '');
@@ -703,6 +766,23 @@ function watch(page) {
             overlaps.length === 0, overlaps.join(', '));
       if (vp.w >= 1280) {
         check(`${vp.n} (${vp.w}px): map is at least 560px wide`, m.mapW >= 560, m.mapW);
+      }
+
+      // The legend's collapsed default follows the breakpoint until a PERSON
+      // changes it. It used to latch on the first render only, so a window
+      // dragged narrow kept the expanded desktop legend — 36% of a 375px
+      // viewport, sitting on the markers it exists to explain. This viewport
+      // loop resizes an already-loaded page, which is exactly that path.
+      if (vp.w <= 768) {
+        const lg = await page.evaluate(() => {
+          const l = document.getElementById('maplegend');
+          if (!l || !l.getClientRects().length) return null;
+          return { collapsed: l.dataset.collapsed,
+                   pct: Math.round(l.getBoundingClientRect().height / innerHeight * 100) };
+        });
+        check(`${vp.n} (${vp.w}px): the legend stands down when the viewport shrinks`,
+              !lg || (lg.collapsed === 'true' && lg.pct <= 15),
+              lg ? `collapsed=${lg.collapsed}, ${lg.pct}% of viewport` : 'no legend');
       }
       await shot(page, `04-responsive-${vp.n}-${vp.w}`);
       await page.close();

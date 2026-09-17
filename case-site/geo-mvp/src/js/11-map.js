@@ -109,6 +109,8 @@
   var lastFitToken = null;
   var lastSelected = null;
   var legendCollapsed = null;  /* M-10: null until the first render knows the breakpoint */
+  var legendUserSet = false;   /* true once a PERSON has opened or closed it — see below */
+  var legendBpSmall = null;    /* the small/large verdict the current default came from */
   var tileFails = [];
   var chromeWired = false;
   var registered = false;
@@ -410,6 +412,18 @@
       iconCreateFunction: clusterIcon
     });
     map.addLayer(cluster);
+
+    /* A pane of its own for the ring labels, above every marker.
+       Leaflet gives each marker an INLINE z-index derived from its latitude, so
+       a stylesheet rule cannot lift one reliably and `zIndexOffset` only orders
+       markers within the same pane — a cluster still won wherever the data put
+       it. Panes are the documented mechanism: markerPane is 600, tooltipPane
+       650, so 640 sits above every marker and below the tooltips. */
+    if (!map.getPane('radiusLabels')) {
+      map.createPane('radiusLabels');
+      map.getPane('radiusLabels').style.zIndex = 640;
+      map.getPane('radiusLabels').style.pointerEvents = 'none';
+    }
 
     radiusGroup = L.layerGroup().addTo(map);
     contextGroup = L.layerGroup().addTo(map);
@@ -727,9 +741,22 @@
     if (!box) return;
 
     var mode = ENCODINGS.indexOf(state.markerEncoding) >= 0 ? state.markerEncoding : 'officeClass';
-    if (legendCollapsed === null) {
-      legendCollapsed = (state.bp === 's' || state.bp === 'xs' || state.bp === 'xxs' || state.bp === 'm');
+
+    /* The collapsed default follows the breakpoint, and keeps following it until a
+       person expresses a preference.
+
+       It used to latch on the FIRST render only. A phone that loaded the page at
+       375px got it right, but a window dragged narrow — or a tablet turned to
+       portrait — kept the expanded legend it was given at desktop width, where it
+       then occupied 36% of the viewport and sat on top of the markers it exists to
+       explain. Re-deriving on every breakpoint CHANGE (not every render) fixes that
+       without ever overriding a choice someone made on purpose. */
+    var small = (state.bp === 's' || state.bp === 'xs' || state.bp === 'xxs' || state.bp === 'm');
+    if (legendCollapsed === null || (!legendUserSet && small !== legendBpSmall)) {
+      legendCollapsed = small;
+      legendSig = null;
     }
+    legendBpSmall = small;
 
     var counts = {}, unknownCount = 0, order, labelOf, tokenOf, coverageField;
 
@@ -818,6 +845,7 @@
       title: legendCollapsed ? t('map.legend.expand') : t('map.legend.collapse'),
       onclick: function () {
         legendCollapsed = !legendCollapsed;
+        legendUserSet = true;   /* from here the breakpoint stops deciding for them */
         legendSig = null;
         M.renderLegend(GEO.state.get(), rows);
       }
@@ -998,6 +1026,13 @@
       L.marker([origin[0] + dLat, origin[1] + dLng], {
         interactive: false,
         keyboard: false,
+        /* Leaflet orders markers in a pane by latitude, so a property marker
+           slightly north of a ring label drew straight over it — and the label
+           carries the band's COUNT, which is the only thing making the ring
+           more than decoration. Bearings alone could not fix this: the markers
+           are wherever the data puts them, and neither could zIndexOffset,
+           which only orders within one pane. The labels get their own. */
+        pane: 'radiusLabels',
         icon: L.divIcon({ className: 'geo-marker', iconSize: [160, 20], iconAnchor: [80, 10], html: chip })
       }).addTo(radiusGroup);
     });

@@ -51,11 +51,29 @@
 
   /* ------------------------------------------------------------- sorting */
 
+  /**
+   * Always {band, n, m}, whichever module answered.
+   *
+   * 04-quality.js names the same two numbers `known` and `total`; this panel and
+   * its fallback call them `n` and `m`. The primary path used to return the
+   * quality module's object verbatim, so `comp.n` and `comp.m` were undefined on
+   * every card — the caption rendered "Not recorded of Not recorded key fields
+   * recorded" and the meter computed 0% for every record regardless of how many
+   * fields it held. The FALLBACK was the only path that worked, which is why the
+   * defect survived: it looked plausible on a dataset whose true answer is
+   * mostly zero. Normalising here keeps the fix at the seam, so neither module
+   * has to know the other's spelling.
+   */
   function completenessOf(rec) {
     if (GEO.quality && GEO.quality.completeness) {
       try {
         var c = GEO.quality.completeness(rec);
-        if (c && c.band) return c;
+        if (c && c.band) {
+          return { band: c.band, bandLabel: c.bandLabel,
+                   n: U.isKnown(c.n) ? c.n : c.known,
+                   m: U.isKnown(c.m) ? c.m : c.total,
+                   present: c.present, missing: c.missing };
+        }
       } catch (e) { /* fall through to the schema's own rule */ }
     }
     var m = S.criticalFields.length, n = 0;

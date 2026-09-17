@@ -298,7 +298,11 @@
 
   /* ----------------------------------------------------------- header wiring */
   function wireHeader() {
-    Q.$('#product-name').textContent = GEO.PRODUCT.name;
+    /* The lockup is the firm; #product-name is the product. Together they read
+       GEO.PRODUCT.name, which 24-selftest pins so they cannot drift. */
+    Q.$('#brand-word').textContent = GEO.PRODUCT.firm;
+    Q.$('#brand-descriptor').textContent = GEO.PRODUCT.firmDescriptor;
+    Q.$('#product-name').textContent = GEO.PRODUCT.productWord;
     Q.$('#product-provisional').hidden = !GEO.PRODUCT.provisional;
 
     Q.$('#btn-analytics').addEventListener('click', function () {
