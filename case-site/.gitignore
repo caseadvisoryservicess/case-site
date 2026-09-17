@@ -6,6 +6,9 @@ graphify-out/
 # Выхлоп QA-тестов геоаналитики: скриншоты и временные копии страницы,
 # которые тесты создают рядом с собой при каждом прогоне
 docs/qa/tools/*.png
+# скриншоты MVP, которые v4733_geo_mvp.js кладёт рядом с файлом, если папка для снимков не задана
+docs/standalone/geo_mvp_desktop.png
+docs/standalone/geo_mvp_mobile.png
 docs/qa/tools/indep/
 docs/qa/tools/labtest/
 docs/qa/tools/legendtest/
