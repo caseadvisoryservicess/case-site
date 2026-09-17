@@ -13,8 +13,9 @@
  *     квиза и курса валют; подпись бренда «Geo Analytics Platform»;
  *   - страницы «Модули» и «Доступ» показывают только оставшиеся разделы и объясняют,
  *     что остальное отключено на сервере;
- *   - новый экран geo_platform: Geo Platform по бизнес-центрам (geo-platform.html) в iframe,
- *     доступен всем, кому доступна геоаналитика; работает и в полном режиме.
+ *   - v4.76.0: отдельного экрана «Geo Platform: бизнес-центры» больше нет (решение владельца:
+ *     те же данные, что в студии, путали людей); фильтры, список, сравнение, показатели и
+ *     тепловая карта ставок живут в студии (v4760-geo-bc.js).
  *
  * Данные других отделов в базе не трогаются: сервер их не отдаёт и не принимает, клиент их
  * не показывает. Возврат к полной платформе: 'full' в api/mode.php или config.php.
@@ -23,13 +24,10 @@
   'use strict';
   if(window.CASE_GEO_ONLY_4740)return;
   window.CASE_GEO_ONLY_4740=true;
-  var VERSION='4.74.0';
-  var GEO_VIEWS=['geoanalytics','geo_platform','map'];
-  /* свой флаг «открыт Geo Platform»: ядро не знает этот экран и при загрузке затирает его в
-     настройках интерфейса на dash, поэтому сохранённый выбор храним отдельно */
-  var PKEY='case_geo_platform_open';
-  function flag(on){try{if(on)localStorage.setItem(PKEY,'1');else localStorage.removeItem(PKEY);}catch(e){}}
-  function flagged(){try{return localStorage.getItem(PKEY)==='1';}catch(e){return false;}}
+  var VERSION='4.76.0';
+  var GEO_VIEWS=['geoanalytics','map'];
+  /* v4.76.0: флаг прежнего экрана Geo Platform убираем из памяти браузера, чтобы он не всплывал */
+  try{localStorage.removeItem('case_geo_platform_open');}catch(e){}
   var ADMIN_VIEWS=['users','admin_modules','admin_system'];
   var ALLOWED=GEO_VIEWS.concat(ADMIN_VIEWS,['analytics_hub','chat']);
   function mode(){return String(window.CASE_PLATFORM_MODE||'full')==='geo'?'geo':'full';}
@@ -40,9 +38,9 @@
   function canOpen(v){try{if(typeof window.asaasWorkspaceCanOpen==='function')return !!window.asaasWorkspaceCanOpen(v);}catch(e){}return true;}
   function moduleLabel(v){
     try{var list=window.CASE_OS_MODULES||[];for(var i=0;i<list.length;i++)if(list[i].v===v)return list[i][LANG]||list[i].ru||v;}catch(e){}
-    return v==='geo_platform'?tr('Geo Platform: бизнес-центры','Geo Platform: biznes markazlar','Geo Platform: business centers'):v;
+    return v;
   }
-  function moduleIcon(v){try{var list=window.CASE_OS_MODULES||[];for(var i=0;i<list.length;i++)if(list[i].v===v)return list[i].icon||'◦';}catch(e){}return v==='geo_platform'?'▦':'◦';}
+  function moduleIcon(v){try{var list=window.CASE_OS_MODULES||[];for(var i=0;i<list.length;i++)if(list[i].v===v)return list[i].icon||'◦';}catch(e){}return '◦';}
   function allowedView(v){return ALLOWED.indexOf(v)>=0;}
   function firstView(){return canOpen('geoanalytics')?'geoanalytics':(canOpen('map')?'map':(role().admin?'users':'geoanalytics'));}
 
@@ -60,35 +58,12 @@
     var nav=document.getElementById('nav');if(!nav)return;
     var ext=!!role().external;
     var geo=[];
-    if(canOpen('geoanalytics')){geo.push('geoanalytics');geo.push('geo_platform');}
+    if(canOpen('geoanalytics'))geo.push('geoanalytics');
     if(!ext&&canOpen('map'))geo.push('map');
     var adm=role().admin?ADMIN_VIEWS.filter(canOpen):[];
     nav.innerHTML=navGroup(tr('Геоаналитика','Geoanalitika','Geoanalytics'),geo)+navGroup(tr('Администрирование','Boshqaruv','Administration'),adm);
   }
-  function fullNavExtra(){
-    /* полный режим: пункт Geo Platform встаёт сразу после «Гео: рынок и POI» */
-    var nav=document.getElementById('nav');if(!nav||nav.querySelector('a[data-v="geo_platform"]'))return;
-    var a=nav.querySelector('a[data-v="geoanalytics"]');if(!a)return;
-    var t=document.createElement('template');t.innerHTML=navLink('geo_platform');a.after(t.content.firstChild);
-  }
-
-  /* ── экран Geo Platform (бизнес-центры) ─────────────────────────────────────────── */
-  function platformVer(){try{return (typeof APP_VERSION!=='undefined'&&APP_VERSION)?String(APP_VERSION):VERSION;}catch(e){return VERSION;}}
-  function renderPlatform(){
-    var main=document.getElementById('main');if(!main)return;
-    try{S.view='geo_platform';}catch(e){}
-    document.querySelectorAll('#nav a').forEach(function(a){a.classList.toggle('active',a.dataset.v==='geo_platform');});
-    var side=document.getElementById('side'),scrim=document.getElementById('scrim');if(side)side.classList.remove('open');if(scrim)scrim.classList.remove('open');
-    main.classList.add('geo-workspace');flag(true);
-    if(!document.getElementById('geoPlatformFrame')){
-      main.innerHTML='<div class="ph"><h1>'+h(moduleLabel('geo_platform'))+'</h1></div>'
-        +'<section class="geo-v42"><div class="geo-v42-toolbar"><span class="geo-v42-title">'+h(tr('База бизнес-центров Ташкента с происхождением каждого поля, честная аналитика, сравнение, анализ локации и Geo AI. Правки хранятся в этом браузере.','Toshkent biznes markazlari bazasi: manba, tahlil, taqqoslash, joylashuv tahlili va Geo AI.','Tashkent business centers with field-level provenance, honest analytics, comparison, location analysis and Geo AI. Edits live in this browser.'))+'</span>'
-        +'<button class="geo-v42-reload" aria-label="'+h(tr('Обновить','Yangilash','Reload'))+'" title="'+h(tr('Обновить','Yangilash','Reload'))+'" onclick="var f=document.getElementById(\'geoPlatformFrame\');if(f)f.src=f.src.split(\'&t=\')[0]+\'&t=\'+Date.now()">↻</button></div>'
-        +'<div class="geo-v42-frame"><iframe id="geoPlatformFrame" title="Geo Platform" src="geo-platform.html?embedded=1&amp;v='+h(platformVer())+'" loading="eager"></iframe></div></section>';
-    }
-    try{if(typeof saveUiPrefs==='function')saveUiPrefs();}catch(e){}
-    try{if(typeof window.caseNavSync==='function')window.caseNavSync();}catch(e){}
-  }
+  function fullNavExtra(){} /* v4.76.0: в полном режиме отдельного пункта Geo Platform тоже нет */
 
   /* ── шапка, чат, квиз, страницы администрирования ──────────────────────────────── */
   function css(){
@@ -140,9 +115,8 @@
     var oldGo=window.go;
     if(typeof oldGo==='function'&&!oldGo._geoOnly){
       window.go=function(v){
-        if(v==='geo_platform'){if(!canOpen('geoanalytics')){v=firstView();}else{var main=document.getElementById('main');if(main)main.classList.remove('geo-workspace');renderPlatform();return;}}
+        if(v==='geo_platform')v='geoanalytics'; /* v4.76.0: прежний экран Geo Platform ведёт в студию */
         if(on()&&(!allowedView(v)||v==='dash'))v=firstView();
-        flag(false);
         return oldGo.call(this,v);
       };
       window.go._geoOnly=true;
@@ -150,12 +124,8 @@
     var oldBoot=window.boot;
     if(typeof oldBoot==='function'&&!oldBoot._geoOnly){
       window.boot=function(){
-        var want=flagged();
         document.body.classList.toggle('case-geo-only',on());brand();
-        var r=oldBoot.apply(this,arguments);
-        /* сохранённый экран geo_platform ядро не знает и сбрасывает на главный - возвращаем */
-        if(want&&typeof window.go==='function')try{window.go('geo_platform');}catch(e){}
-        return r;
+        return oldBoot.apply(this,arguments);
       };
       window.boot._geoOnly=true;
     }
@@ -167,13 +137,11 @@
     try{
       if(typeof S!=='undefined'&&S&&S.user){
         brand();try{window.buildNav();}catch(e){}
-        var wantPlatform=flagged();
-        if(wantPlatform&&S.view!=='geo_platform')window.go('geo_platform');
-        else if(on()&&(!allowedView(S.view)||S.view==='dash'))window.go(firstView());
+        if(on()&&(!allowedView(S.view)||S.view==='dash'))window.go(firstView());
       }
     }catch(e){}
   }
   window.caseGeoOnly={version:VERSION,mode:mode,on:on,apply:apply,allowed:allowedView,views:function(){return GEO_VIEWS.slice();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.74.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.76.0';

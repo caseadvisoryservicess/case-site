@@ -26,11 +26,11 @@ function build(dataPath, outPath, opts) {
   const poi = data.poi && data.poi.categories ? Object.keys(data.poi.categories).reduce((s, c) => s + Object.keys(data.poi.categories[c].sub).reduce((t, k) => t + data.poi.categories[c].sub[k].length, 0), 0) : 0;
   return { bytes: Buffer.byteLength(html), records: data.bc.length, demo: data.bc.filter(r => r.meta && r.meta.demo).length, poi };
 }
-/* v4.74.0: тот же файл кладётся и в платформу (os/geo-platform.html, экран «Geo Platform:
-   бизнес-центры»), и в docs/standalone как отдельный продукт; без аргументов собираются оба */
+/* v4.76.0: собирается только автономный файл в docs/standalone (отдельный продукт для клиентов);
+   экрана «Geo Platform: бизнес-центры» в платформе больше нет, его функции живут в студии */
 if (require.main === module) {
   const dataPath = process.argv[2] || path.join(__dirname, '..', '..', 'standalone', 'data', 'geo_mvp_data.json');
-  const outs = process.argv[3] ? [process.argv[3]] : [path.join(__dirname, '..', '..', 'standalone', 'CASE_Geo_Platform_MVP.html'), path.join(__dirname, '..', '..', '..', 'os', 'geo-platform.html')];
+  const outs = [process.argv[3] || path.join(__dirname, '..', '..', 'standalone', 'CASE_Geo_Platform_MVP.html')];
   const tpl = process.argv[4] || path.join(__dirname, '..', '..', 'standalone', 'src', 'geo_mvp.template.html');
   outs.forEach(out => {
     if (path.resolve(out) === path.resolve(tpl)) { console.error('выход совпадает с шаблоном'); process.exit(2); }

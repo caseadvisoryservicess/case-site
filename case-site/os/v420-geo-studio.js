@@ -1011,7 +1011,7 @@
          по умолчанию, а не выбор пользователя), а подсказываем, как её поставить. */
       if(p.virtual&&p.pending){
         pi.innerHTML='<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">не задана</span></div>'
-          +'<div class="pi-chip">Нажмите «📍 Точка на карте» или спросите гео-агента: координаты или «адрес: …»</div>';
+          +'<div class="pi-chip">Поставьте пин на карте (кнопка 📍 внизу, клавиша P или правый клик) или спросите гео-агента: координаты или «адрес: …»</div>';
       }else{
         pi.innerHTML=(p.virtual?'<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">'+esc(p.name||'')+'</span></div>':'')
           +'<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
@@ -1187,4 +1187,4 @@
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.73.1';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.76.0';

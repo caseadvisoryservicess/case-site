@@ -71,7 +71,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
     return { cats, first: cats[0], second: cats[1], built: window.CASE_GEO_TREE.built, baseRadios: document.querySelectorAll('#geoCatAnchor-horeca, .geo-cat input[name=geoBaseOpt]').length, q: !!document.querySelector('.geo-tree-q'), poiRows: horeca ? horeca.querySelectorAll('.geo-poi-row').length : -1, horecaCat: horecaCat ? horecaCat.getAttribute('data-cat') : '', horecaN: horecaCat ? horecaCat.querySelector('.geo-cat-n').textContent : '', bcN: (document.querySelector('.geo-cat[data-cat="Бизнес-центры"] .geo-cat-n') || {}).textContent, bcAct: !!document.querySelector('.geo-cat[data-cat="Бизнес-центры"].geo-cat-active') };
   });
   ck('категории стали узлами: первым «Границы и плотность», узла «Подложка карты» нет (v4.75.0), всего не меньше 9', t1.built && /границы/i.test(t1.first) && !t1.cats.some(c => /подложка/i.test(c)) && t1.baseRadios === 1 && t1.cats.length >= 9 && t1.q, JSON.stringify(t1.cats));
-  ck('строки городских объектов (HoReCa) попали в свою категорию, счётчик «0 / 4»; «Бизнес-центры» включены «1 / 1» и подсвечены', t1.poiRows === 4 && t1.horecaCat === 'HoReCa' && t1.horecaN === '0 / 4' && t1.bcN === '1 / 1' && t1.bcAct, JSON.stringify({ rows: t1.poiRows, cat: t1.horecaCat, n: t1.horecaN, bc: t1.bcN, act: t1.bcAct }));
+  ck('строки городских объектов (HoReCa) попали в свою категорию, счётчик «0 / 4»; «Бизнес-центры» включены «1 / 2» (с v4.76.0 плюс тепловая карта ставок) и подсвечены', t1.poiRows === 4 && t1.horecaCat === 'HoReCa' && t1.horecaN === '0 / 4' && t1.bcN === '1 / 2' && t1.bcAct, JSON.stringify({ rows: t1.poiRows, cat: t1.horecaCat, n: t1.horecaN, bc: t1.bcN, act: t1.bcAct }));
 
   console.log('--- 2. Общая галочка');
   const t2 = await pg.evaluate(async () => {

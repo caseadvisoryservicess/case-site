@@ -71,11 +71,11 @@
       +'<section class="geo-v42">'
       /* v4.73.1: списка проектов CASE над студией больше нет. Студией пользуются клиенты, и
          наши проекты им не нужны (решение владельца); точку анализа задаёт гео-агент. */
-      +'<div class="geo-v42-toolbar"><span class="geo-v42-title">'+h(tr('Точку анализа задаёт гео-агент в студии: кнопка «📍 Точка», координаты или адрес','Tahlil nuqtasini studiyadagi geo-agent belgilaydi: «📍 Nuqta», koordinata yoki manzil','The geo agent in the studio sets the analysis point: “📍 Point”, coordinates or an address'))+'</span>'
+      +'<div class="geo-v42-toolbar"><span class="geo-v42-title"></span>' /* v4.76.0: строки-подсказки над студией нет (решение владельца), остались только кнопки */
       +'<button class="geo-v42-recover" id="geoRecoverBtn" style="display:none" onclick="geoV42Recover()">'+h(tr('Восстановить локальную копию','Lokal nusxani tiklash','Restore local copy'))+'</button>'
       +(canEdit()?'<button class="geo-v42-hist" title="'+h(tr('История сохранений и восстановление геоданных','Saqlashlar tarixi va tiklash','Save history & restore'))+'" onclick="geoV42History()">🕘 '+h(tr('История / восстановление','Tarix / tiklash','History / restore'))+'</button>':'')
       +'<button class="geo-v42-reload" aria-label="'+h(tr('Обновить','Yangilash','Reload'))+'" title="'+h(tr('Обновить','Yangilash','Reload'))+'" onclick="geoV42Reload()">↻</button></div>'
-      +'<div class="geo-v42-frame"><div class="geo-v42-loader" id="geoLoader">'+h(tr('Загрузка геоаналитики…','Geoanalitika yuklanmoqda…','Loading geoanalytics…'))+'</div><iframe id="geoFrame" title="CASE Universal Geoanalytics" src="geoanalytics-studio.html?embedded=1&amp;v='+geoStudioVer()+'" loading="eager"></iframe></div>'
+      +'<div class="geo-v42-frame"><div class="geo-v42-loader" id="geoLoader">'+h(tr('Загрузка геоаналитики…','Geoanalitika yuklanmoqda…','Loading geoanalytics…'))+'</div><iframe id="geoFrame" title="CASE Universal Geoanalytics" allowfullscreen allow="fullscreen" src="geoanalytics-studio.html?embedded=1&amp;v='+geoStudioVer()+'" loading="eager"></iframe></div>'
       +'</section>';
     G.ready=false;requestAnimationFrame(fitFrame);
   }

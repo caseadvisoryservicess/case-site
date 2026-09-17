@@ -3,9 +3,13 @@
 require __DIR__.'/lib.php';
 
 function publicUser(array $u): array {
+  $caps = user_caps($u);
   return ['id'=>$u['id'],'email'=>$u['email'],'name'=>$u['name'],'title'=>$u['title'],
           'role'=>$u['role_key'],'role_label'=>$u['role_label'],'broker'=>$u['broker_name'],
-          'projects'=>is_array($u['projects'] ?? null) ? $u['projects'] : []];
+          'projects'=>is_array($u['projects'] ?? null) ? $u['projects'] : [],
+          /* v4.76.0: тип доступа, срок подписки, настройки и права интерфейса */
+          'type'=>$caps['type'],'demo'=>$caps['demo'],'expires_at'=>$u['expires_at'] ?? null,'days_left'=>$caps['days_left'],
+          'settings'=>user_settings($u),'caps'=>$caps];
 }
 function rightsOf(array $u): array {
   return ['leasing'=>(bool)$u['leasing'],'finance'=>(bool)$u['finance'],'edit'=>(bool)$u['edit'],
@@ -26,8 +30,11 @@ function password_login_allowed(): bool { $c = cfg(); if (array_key_exists('allo
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  if (!$u || !$u['active']) json_out(['auth'=>false,'csrf'=>csrf_token(),'pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled(),'mode'=>platform_mode()]);
-  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
+  $flags = ['pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled(),'mode'=>platform_mode(),'registration'=>registration_enabled(),'demo_login'=>demo_login_enabled()];
+  if (!$u || !$u['active']) json_out(array_merge(['auth'=>false,'csrf'=>csrf_token()], $flags));
+  // v4.76.0: подписка истекла посреди сеанса: сеанс закрывается, клиент показывает причину
+  if (subscription_expired($u)) { audit('Сеанс закрыт: срок доступа истёк', (string)$u['email']); access_close_session(); json_out(array_merge(['auth'=>false,'expired'=>true,'message'=>'Срок доступа истёк. Данные сохранены; продление у администратора CASE.','csrf'=>csrf_token()], $flags)); }
+  json_out(array_merge(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u)], $flags));
 }
 
 // Минимальный SMTP-клиент (без внешних библиотек): порт 465 (ssl), 587 (tls/STARTTLS)
@@ -149,9 +156,16 @@ if ($a==='login') {
   if (!$row || !password_verify($pass, $row['password_hash'] ?? '')) {
     throttle_register_event($emailKey, 5, 15, 900);
     throttle_register_event($ipKey, 10, 15, 900);
+    /* v4.76.0: заявка на регистрацию ещё не подтверждена: человек сам её подал, ему можно сказать об этом */
+    if (!$row && $pass !== '') {
+      try { $ps = db()->prepare('SELECT active,settings,password_hash FROM app_users WHERE LOWER(email)=?'); $ps->execute([mb_strtolower($email)]); $pr = $ps->fetch(); } catch (Throwable $e) { $pr = null; }
+      if ($pr && !(int)$pr['active'] && password_verify($pass, $pr['password_hash'] ?? '')) { $ps2 = user_settings(['settings'=>$pr['settings'] ?? null]); if (!empty($ps2['registration_pending'])) fail('Заявка на регистрацию ещё не подтверждена администратором CASE. Мы сообщим, когда доступ будет открыт.', 403); }
+    }
     fail('Неверный логин или пароль', 401);
   }
   throttle_clear($emailKey); throttle_clear($ipKey);
+  /* v4.76.0: подписка истекла: вход закрыт, учётная запись и данные остаются */
+  if (subscription_expired($row)) { audit('Вход отклонён: срок доступа истёк', $email); fail('Срок доступа истёк '.substr((string)$row['expires_at'], 0, 10).'. Данные сохранены; продление у администратора CASE.', 403); }
   session_regenerate_id(true);
   $_SESSION['uid'] = $row['id'];
   audit('Вход в систему', 'роль: '.$row['role_key']);
@@ -221,6 +235,63 @@ if ($a==='verify_code') {
   json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
 }
 if ($a==='logout') { audit('Выход'); $_SESSION=[]; session_destroy(); json_out(['auth'=>false]); }
+
+/* v4.76.0: регистрация. Заявка создаёт отключённого пользователя-клиента; доступ и срок открывает
+   администратор на странице «Доступ». Ответ одинаков для нового и уже занятого email: иначе форма
+   становится оракулом для перебора адресов. */
+if ($a==='register') {
+  if (!registration_enabled()) fail('Регистрация отключена. Напишите в CASE.', 403);
+  $name = trim((string)($b['name'] ?? '')); $email = mb_strtolower(trim((string)($b['email'] ?? ''))); $pass = (string)($b['password'] ?? '');
+  $company = mb_substr(trim((string)($b['company'] ?? '')), 0, 120); $phone = mb_substr(trim((string)($b['phone'] ?? '')), 0, 60);
+  if (mb_strlen($name) < 2 || mb_strlen($name) > 120) fail('Укажите имя и фамилию', 400);
+  if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Укажите корректный email', 400);
+  if (strlen($pass) < 8) fail('Пароль минимум 8 символов', 400);
+  $ipKey = 'register-ip:'.client_ip();
+  $lockedFor = throttle_locked_seconds($ipKey);
+  if ($lockedFor > 0) fail('Слишком много заявок. Повторите через '.ceil($lockedFor/60).' мин.', 429);
+  throttle_register_event($ipKey, 5, 60, 1800);
+  $generic = ['ok'=>true,'pending'=>true,'message'=>'Заявка принята. Администратор CASE проверит её и откроет доступ; вы получите письмо на '.$email.'.'];
+  ensure_user_profile_columns(); ensure_access_roles();
+  $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=?'); $st->execute([$email]);
+  if ($st->fetch()) { audit('Заявка на регистрацию: email уже есть', $email); json_out($generic); }
+  $settings = json_encode(['registration_pending'=>1,'company'=>$company,'phone'=>$phone,'registered_at'=>date('Y-m-d H:i:s'),'can_export'=>false,'can_edit'=>false], JSON_UNESCAPED_UNICODE);
+  try {
+    db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,active,user_type,settings) VALUES (?,?,?,?,?,?,0,?,?)')
+      ->execute([uuid(),$email,password_hash($pass,PASSWORD_DEFAULT),mb_substr($name,0,160),$company ?: 'клиент','CL','client',$settings]);
+    try { db()->exec('COMMIT'); } catch (Throwable $eC) {}
+  } catch (Throwable $e) { fail('Не удалось сохранить заявку: '.$e->getMessage(), 500); }
+  audit('Заявка на регистрацию', $email.' · '.$name.($company ? ' · '.$company : ''));
+  json_out($generic);
+}
+
+/* v4.76.0: демо-вход. Один общий демо-пользователь с ролью DEMO: ничего не сохраняет
+   (deny_if_demo на записи), студия показывает ограниченные данные. */
+if ($a==='demo') {
+  if (!demo_login_enabled()) fail('Демо-доступ отключён', 403);
+  $ipKey = 'demo-ip:'.client_ip();
+  $lockedFor = throttle_locked_seconds($ipKey);
+  if ($lockedFor > 0) fail('Слишком много демо-входов. Повторите через '.ceil($lockedFor/60).' мин.', 429);
+  throttle_register_event($ipKey, 20, 30, 600);
+  ensure_user_profile_columns(); ensure_access_roles();
+  $email = demo_email();
+  $st = db()->prepare('SELECT * FROM app_users WHERE LOWER(email)=?'); $st->execute([mb_strtolower($email)]);
+  $row = $st->fetch();
+  if (!$row) {
+    try {
+      db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,active,user_type,settings) VALUES (?,?,?,?,?,?,1,?,?)')
+        ->execute([uuid(),$email,password_hash(bin2hex(random_bytes(16)),PASSWORD_DEFAULT),'Демо-доступ','демо','DEMO','demo',json_encode(['can_export'=>false,'can_edit'=>false], JSON_UNESCAPED_UNICODE)]);
+      try { db()->exec('COMMIT'); } catch (Throwable $eC) {}
+    } catch (Throwable $e) { fail('Не удалось подготовить демо-доступ: '.$e->getMessage(), 500); }
+    $st->execute([mb_strtolower($email)]); $row = $st->fetch();
+  }
+  if (!$row || !(int)$row['active']) fail('Демо-доступ отключён администратором', 403);
+  if (subscription_expired($row)) fail('Срок демо-доступа истёк', 403);
+  session_regenerate_id(true);
+  $_SESSION['uid'] = $row['id'];
+  audit('Демо-вход', client_ip());
+  $u = current_user();
+  json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
+}
 if ($a==='verify_ceo') {
   require_login();
   if (!can('admin')) fail('Только администратор', 403);

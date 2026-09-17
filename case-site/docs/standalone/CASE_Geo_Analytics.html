@@ -29,7 +29,7 @@ window.CASE_STANDALONE_DATA={districts:{"type":"FeatureCollection","name":"tashk
   'use strict';
   if (window.CASE_STANDALONE) return;
   var DATA = window.CASE_STANDALONE_DATA || {};
-  var S = window.CASE_STANDALONE = { version: '4.75.0', built: '2026-09-17', log: [] };
+  var S = window.CASE_STANDALONE = { version: '4.76.0', built: '2026-09-17', log: [] };
   var realFetch = window.fetch.bind(window);
 
   function jsonResponse(obj, status) {
@@ -1093,15 +1093,15 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 @media(max-width:620px){.left>.sect{margin:6px 6px 0}}
 </style></head><body class="geo-auth-pending">
 <div class="app">
-<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.75.0 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
-<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
+<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.76.0 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
+<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><!-- v4.76.0: вкладки «Сравнение стран» нет (решение владельца); страница #cmpT остаётся скрытой --><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
   <!-- v4.73.1: вместо списка проектов CASE - одна точка анализа. Список #proj остаётся в
        разметке скрытым: его читают пять модулей (отчёт, выгрузка, солнце, Хафф, студия), и в нём
        всегда ровно одна запись - текущая точка. Клиентам наши проекты не нужны (решение владельца). -->
   <div class="sect"><h3 id="projH">Точка анализа</h3><select id="proj" class="hidden" aria-labelledby="projH" aria-hidden="true" tabindex="-1"><option value="project">Точка анализа</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
-   <div class="styrow" style="margin-top:7px"><button class="btn sec" id="btnPickPoint" style="font-size:11px" onclick="if(window.CASE_GEO_AGENT)CASE_GEO_AGENT.setPick(true)" title="кликните по карте, чтобы поставить точку; можно и словами в гео-агенте: координаты или «адрес: …»">📍 Точка на карте</button></div>
+   <!-- v4.76.0: кнопки «📍 Точка на карте» нет: точку ставят пин на панели инструментов и правый клик (решение владельца) -->
    <div class="styrow" style="margin-top:4px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке анализа">▣ Аналитика по точке</button></div>
    <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по точке анализа">⤓ Выгрузить PDF · Excel · PPTX</button>
     <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать">⚙ Настройки</button></div>
@@ -1335,7 +1335,7 @@ function renderBC(){if(!map)return;
  let st=document.getElementById('labStyle');if(!st){st=document.createElement('style');st.id='labStyle';document.head.appendChild(st);}
  st.textContent='.leaflet-tooltip.bclab{font-size:'+fs.toFixed(1)+'px}';
  const placed=[];const VB=vbox();let nbc=0;
- BC.forEach(b=>{const e=eff(b);if(e.lat==null)return;const la=+e.lat,ln=+e.lng;if(isNaN(la)||isNaN(ln))return;
+ BC.forEach(b=>{const e=eff(b);if(e.lat==null)return;if(window.CASE_GEO_BC&&!window.CASE_GEO_BC.pass(e,b))return; /* v4.76.0: фильтры БЦ в левой панели */const la=+e.lat,ln=+e.lng;if(isNaN(la)||isNaN(ln))return;
   if(VB&&!VB.contains([la,ln]))return;
   let col=bySrc?(PROVCOL[e.provider]||'#666'):fix;
   if($('bcByRent')&&$('bcByRent').checked){const rv=parseFloat(e.rent);
@@ -1407,7 +1407,7 @@ function renderProj(){const p=proj(),plat=+p.lat,plng=+p.lng;$('projInfo').inner
  try{updateLegend();}catch(e){}
  L.marker([plat,plng],{icon:ic}).addTo(gProj).bindTooltip('★ '+esc(p.name),{permanent:true,direction:'top',className:'dlab'});
  map.setView([plat,plng],p.portfolio?10:13);}
-function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
+function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&(!window.CASE_GEO_BC||window.CASE_GEO_BC.pass(b,b))&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
  if(!mx){$('catchSummary').innerHTML='Все кольца отключены.';return;}
  $('catchSummary').innerHTML=`В ${mx} км: <b>${inside.length}</b> БЦ.<br>`+Object.entries(byd).sort((a,b)=>b[1]-a[1]).map(([d,n])=>`${esc(d||'?')}: ${n}`).join('<br>');}
 function buildRings(){$('rings').innerHTML='';RADII.forEach((r,i)=>{const l=document.createElement('label');l.className='ck';l.innerHTML=`<input type=checkbox ${r.on?'checked':''}> <span class="dot" style="background:${RINGC[i]}"></span> ${r.km} км`;l.querySelector('input').onchange=e=>{RADII[i].on=e.target.checked;renderProj();};$('rings').appendChild(l);});}
@@ -3981,7 +3981,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
          по умолчанию, а не выбор пользователя), а подсказываем, как её поставить. */
       if(p.virtual&&p.pending){
         pi.innerHTML='<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">не задана</span></div>'
-          +'<div class="pi-chip">Нажмите «📍 Точка на карте» или спросите гео-агента: координаты или «адрес: …»</div>';
+          +'<div class="pi-chip">Поставьте пин на карте (кнопка 📍 внизу, клавиша P или правый клик) или спросите гео-агента: координаты или «адрес: …»</div>';
       }else{
         pi.innerHTML=(p.virtual?'<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">'+esc(p.name||'')+'</span></div>':'')
           +'<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
@@ -4157,7 +4157,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.73.1';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.76.0';
 
 </script>
 <script>/* v4530-geo-export.js */
@@ -7355,7 +7355,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.75.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v1';
+  var VERSION = '4.76.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -7377,7 +7377,16 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       + '.ga-toggle .ga-toggle-ic{font-size:14px}'
       + '.ga-static-legend{margin-top:6px}.ga-static-legend .li{cursor:default}.ga-static-legend .li:hover{background:none}'
       + '.ga-static-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}'
-      + '#rings label.ck{display:inline-flex;margin:2px 10px 2px 0}'
+      + '#rings label.ck{display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0}#rings input[type=color]{width:18px;height:18px;padding:0;border:1px solid var(--line,#e3dcd1);border-radius:5px;background:none;cursor:pointer}'
+      /* v4.76.0: у каждого кольца свой цвет, общий выбор цвета у толщины линий больше не нужен */
+      + '#ringWc{display:none}'
+      /* v4.76.0: левая панель сворачивается целиком; язычок у левого края карты */
+      + '#mapT.left-off>.left{display:none}'
+      + '.left-tab{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:1006;width:22px;height:64px;border:1px solid var(--line,#e3dcd1);border-left:0;border-radius:0 9px 9px 0;background:#fff;color:var(--ink,#1b1b1b);font:700 13px inherit;cursor:pointer;box-shadow:2px 0 10px rgba(40,30,20,.12);display:flex;align-items:center;justify-content:center;padding:0}'
+      + '#mapT:not(.left-off) .left-tab{left:330px}.left-tab:hover{background:var(--paper-2,#f3f1ee)}'
+      + '@media(max-width:900px){#mapT:not(.left-off) .left-tab{left:275px}}@media(max-width:620px){.left-tab{display:none}}'
+      /* v4.76.0: полный экран для области карты; запасной режим без Fullscreen API */
+      + '#mapT:fullscreen,#mapT:-webkit-full-screen{background:#fff}#mapT.geo-fs-fallback{position:fixed;inset:0;z-index:3000;background:#fff}'
       /* при открытом ящике панель инструментов, подсказка и уведомление сдвигаются к центру видимой части карты */
       + '#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:calc(50% - 120px)}'
       + '@media(max-width:620px){.ga-drawer{width:100%}.ga-toggle{top:auto;bottom:70px;right:12px}#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:50%}}';
@@ -7450,15 +7459,18 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 
   /* --- свои радиусы охвата ------------------------------------------------------- */
   var PAL = ['#27ae60', '#e67e22', '#c0392b', '#2980b9', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
-  function ringColor(i, n) { if (i === n - 1) { var c = $('ringWc'); if (c && c.value) return c.value; } return PAL[i % PAL.length]; }
+  function ringColor(i) { var rs = radii(); return (rs[i] && /^#[0-9a-f]{6}$/i.test(rs[i].color || '')) ? rs[i].color : PAL[i % PAL.length]; }
+  function saveRings() { try { localStorage.setItem(KEY_RINGS, JSON.stringify(radii().map(function (r, i) { return { km: r.km, on: !!r.on, color: ringColor(i) }; }))); } catch (e) {} }
   function radii() { try { return Array.isArray(RADII) ? RADII : []; } catch (e) { return []; } }
   function myBuildRings() {
     var box = $('rings'); if (!box) return;
     var rs = radii(); box.innerHTML = '';
     rs.forEach(function (r, i) {
       var l = document.createElement('label'); l.className = 'ck';
-      l.innerHTML = '<input type="checkbox"' + (r.on ? ' checked' : '') + '> <span class="dot" style="background:' + ringColor(i, rs.length) + '"></span> ' + r.km + ' км';
-      l.querySelector('input').onchange = function (e) { rs[i].on = e.target.checked; try { renderProj(); } catch (x) {} };
+      l.innerHTML = '<input type="checkbox"' + (r.on ? ' checked' : '') + '> <input type="color" value="' + ringColor(i) + '" title="цвет кольца ' + r.km + ' км" aria-label="цвет кольца ' + r.km + ' км"> ' + r.km + ' км';
+      l.querySelector('input[type=checkbox]').onchange = function (e) { rs[i].on = e.target.checked; saveRings(); try { myRenderRings(); } catch (x) {} try { catchSummary(); } catch (x) {} };
+      /* цвет кольца: своя кнопка у каждого радиуса (замечание владельца: кольца были одного цвета) */
+      l.querySelector('input[type=color]').addEventListener('input', function (e) { rs[i].color = e.target.value; saveRings(); try { myRenderRings(); } catch (x) {} });
       box.appendChild(l);
     });
     var inp = $('ringKm'); if (inp && document.activeElement !== inp) inp.value = rs.map(function (r) { return r.km; }).join(', ');
@@ -7470,7 +7482,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     if (!p || !Number.isFinite(+p.lat) || !Number.isFinite(+p.lng)) return;
     var w = +(($('ringW') || {}).value || 3), rs = radii();
     rs.filter(function (r) { return r.on; }).sort(function (a, b) { return b.km - a.km; }).forEach(function (r) {
-      var i = rs.indexOf(r), col = ringColor(i, rs.length);
+      var i = rs.indexOf(r), col = ringColor(i);
       L.circle([+p.lat, +p.lng], { radius: r.km * 1000, color: col, weight: w, opacity: .95, fillColor: col, fillOpacity: .06 }).addTo(gRing).bindTooltip(r.km + ' км', { sticky: true });
     });
   }
@@ -7478,17 +7490,27 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     var nums = String(text || '').split(/[,;\s]+/).map(function (x) { return parseFloat(String(x).replace(',', '.')); }).filter(function (v) { return isFinite(v) && v > 0 && v <= 50; });
     nums = nums.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 8);
     if (!nums.length) return false;
-    try { RADII = nums.map(function (km) { return { km: km, on: true }; }); } catch (e) { return false; }
-    try { localStorage.setItem(KEY_RINGS, JSON.stringify(nums)); } catch (e) {}
+    var prev = radii();
+    /* кнопка «применить» включает все введённые кольца; цвет кольца с тем же радиусом сохраняется */
+    try { RADII = nums.map(function (km, i) { var old = null; prev.forEach(function (r) { if (+r.km === km) old = r; }); return { km: km, on: true, color: old && old.color ? old.color : PAL[i % PAL.length] }; }); } catch (e) { return false; }
+    saveRings();
     myBuildRings();
-    try { renderProj(); } catch (e) {}
+    try { myRenderRings(); } catch (e) {}
+    try { catchSummary(); } catch (e) {}
     return true;
   }
   function installRings() {
     if (typeof window.buildRings === 'function') window.buildRings = myBuildRings;
     if (typeof window.renderRings === 'function') window.renderRings = myRenderRings;
+    /* v4.76.0: пин ставит только точку, кольца охвата не появляются сами (замечание владельца):
+       по умолчанию все кольца выключены, пользователь включает их в «Зоне охвата». Память v2 хранит
+       и флажки, и цвета; старая память v1 (список километров) переносится с выключенными кольцами. */
     var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY_RINGS) || 'null'); } catch (e) {}
-    if (Array.isArray(saved) && saved.length) { try { RADII = saved.map(function (km) { return { km: +km, on: true }; }); } catch (e) {} }
+    if (!Array.isArray(saved)) { try { var old = JSON.parse(localStorage.getItem(KEY_RINGS_OLD) || 'null'); if (Array.isArray(old) && old.length) saved = old.map(function (km) { return { km: +km, on: false }; }); } catch (e) {} }
+    try {
+      if (Array.isArray(saved) && saved.length) RADII = saved.filter(function (r) { return r && isFinite(+r.km) && +r.km > 0; }).map(function (r, i) { return { km: +r.km, on: !!r.on, color: /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : PAL[i % PAL.length] }; });
+      else if (Array.isArray(RADII)) RADII.forEach(function (r, i) { r.on = false; r.color = PAL[i % PAL.length]; });
+    } catch (e) {}
     myBuildRings();
     var inp = $('ringKm'), btn = $('ringApply');
     if (btn) btn.onclick = function () { if (!applyRadii(inp && inp.value)) { if (inp) inp.value = radii().map(function (r) { return r.km; }).join(', '); } };
@@ -7496,20 +7518,68 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     try { myRenderRings(); } catch (e) {}
   }
 
+  /* --- левая панель сворачивается целиком ------------------------------------------ */
+  function leftOpen(on) {
+    var wrap = $('mapT'), tab = $('leftTab'); if (!wrap) return;
+    wrap.classList.toggle('left-off', !on);
+    if (tab) { tab.textContent = on ? '\u2039' : '\u203a'; tab.title = on ? 'Скрыть левую панель' : 'Показать левую панель'; tab.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+    try { localStorage.setItem(KEY_LEFT, on ? '1' : '0'); } catch (e) {}
+    setTimeout(function () { var M = theMap(); if (M) try { M.invalidateSize(); } catch (e) {} }, 60);
+  }
+  function mountLeftTab() {
+    var wrap = $('mapT'); if (!wrap || $('leftTab') || !wrap.querySelector('.left')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'leftTab'; b.className = 'left-tab'; b.setAttribute('aria-controls', 'mapT');
+    b.onclick = function () { leftOpen(wrap.classList.contains('left-off')); };
+    wrap.appendChild(b);
+    var saved = null; try { saved = localStorage.getItem(KEY_LEFT); } catch (e) {}
+    leftOpen(saved !== '0');
+  }
+
+  /* --- полный экран области карты --------------------------------------------------- */
+  function isFs() { var wrap = $('mapT'); return !!(wrap && ((document.fullscreenElement && document.fullscreenElement === wrap) || (document.webkitFullscreenElement && document.webkitFullscreenElement === wrap) || wrap.classList.contains('geo-fs-fallback'))); }
+  var leftWasOpen = null;
+  function fsApply(on) {
+    var wrap = $('mapT'); if (!wrap) return;
+    if (on) { leftWasOpen = !wrap.classList.contains('left-off'); if (leftWasOpen) leftOpen(false); }
+    else if (leftWasOpen) { leftOpen(true); leftWasOpen = null; }
+    setTimeout(function () { var M = theMap(); if (M) try { M.invalidateSize(); } catch (e) {} }, 120);
+    try { document.dispatchEvent(new CustomEvent('caseos:fullscreen', { detail: { on: on } })); } catch (e) {}
+  }
+  function fullscreen(on) {
+    var wrap = $('mapT'); if (!wrap) return;
+    if (on === undefined) on = !isFs();
+    if (!on) {
+      if (wrap.classList.contains('geo-fs-fallback')) { wrap.classList.remove('geo-fs-fallback'); fsApply(false); return; }
+      try { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) { var r = ex.call(document); if (r && r.catch) r.catch(function () {}); } } catch (e) {}
+      return;
+    }
+    var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+    var fallback = function () { wrap.classList.add('geo-fs-fallback'); fsApply(true); };
+    if (!req) { fallback(); return; }
+    try { var p = req.call(wrap); if (p && p.then) p.then(null, fallback); } catch (e) { fallback(); }
+  }
+  function bindFullscreen() {
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, function () { fsApply(isFs()); }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var wrap = $('mapT'); if (wrap && wrap.classList.contains('geo-fs-fallback')) fullscreen(false); } });
+  }
+
   /* --- клик по карте ничего не открывает ------------------------------------------ */
   function disableProbeClick() { var cb = $('lProbe'); if (cb) { cb.checked = false; var row = cb.closest('label'); if (row) row.style.display = 'none'; } }
 
   function install() {
-    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent();
+    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent(); mountLeftTab(); bindFullscreen();
   }
-  LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii;
+  LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.75.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.76.0';
 
 </script>
 <script>/* v4750-geo-tools.js */
-/* CASE OS v4.75.0: панель инструментов карты, контекстное меню, отмена и повтор.
+/* CASE OS v4.75.0 (4.76.0): панель инструментов карты, контекстное меню, отмена и повтор.
+ *
+ * v4.76.0: кнопка подложки карты перенесена в панель (замечание владельца), добавлен полный экран
+ * области карты (кнопка ⛶, Esc выходит).
  *
  * Замечание владельца: внизу по центру карты нужна панель как в Felt: отмена и повтор,
  * пин (P), полигон по точкам (O), полигон от руки (F), буфер-круг заданного радиуса (C),
@@ -7525,7 +7595,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_TOOLS) return;
-  var VERSION = '4.75.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var VERSION = '4.76.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
   var TL = window.CASE_GEO_TOOLS = { version: VERSION };
   var ST = { tool: null, pts: [], preview: null, undo: [], redo: [], routes: null, notes: null, notesData: [], circle: null, freeOn: false, menu: null, seq: 0 };
   function $(id) { return document.getElementById(id); }
@@ -7555,7 +7625,12 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       + '.leaflet-container.geo-tool-cursor{cursor:crosshair}.leaflet-container.geo-tool-free{cursor:cell}'
       + '.geo-info{font-size:12.5px;max-width:260px;line-height:1.45}.geo-info b{display:block}.geo-info small{color:var(--muted,#6f6a63)}'
       + '.geo-toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);z-index:1400;background:#1b1b1b;color:#fff;font:600 12px inherit;padding:8px 13px;border-radius:9px;opacity:0;transition:opacity .18s;pointer-events:none;max-width:80%}.geo-toast.on{opacity:1}'
-      + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}}';
+      /* v4.76.0: кнопка подложки живёт в панели инструментов (замечание владельца), меню раскрывается вверх */
+      + '.geo-tb .geo-tb-base{display:flex;align-items:center}.geo-tb .geo-basectl{position:relative}'
+      + '.geo-tb .geo-basectl-btn{height:38px;border:0;box-shadow:none;background:none;border-radius:10px;padding:0 10px;font:600 12px inherit;max-width:190px;color:var(--ink,#1b1b1b)}.geo-tb .geo-basectl-btn:hover{background:var(--paper-2,#f3f1ee)}'
+      + '.geo-tb .geo-basectl-menu{top:auto;bottom:46px;right:auto;left:0}'
+      + '.geo-tb button.geo-tb-full{width:38px}'
+      + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}.geo-tb .geo-basectl-btn{max-width:120px;height:34px}}';
     document.head.appendChild(s);
   }
 
@@ -7574,7 +7649,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     var tb = document.createElement('div'); tb.className = 'geo-tb'; tb.id = 'geoTb'; tb.setAttribute('role', 'toolbar'); tb.setAttribute('aria-label', 'Инструменты карты');
     tb.innerHTML = '<button type="button" data-a="undo" data-tip="Отменить · Ctrl+Z" aria-label="Отменить" disabled>↶</button><button type="button" data-a="redo" data-tip="Повторить · Ctrl+Y" aria-label="Повторить" disabled>↷</button><span class="sep"></span>'
       + TOOLS.map(function (t) { return '<button type="button" data-a="' + t.a + '" data-tip="' + esc(t.tip) + '" aria-label="' + esc(t.tip) + '">' + t.ic + '<kbd>' + t.key + '</kbd></button>'; }).join('')
-      + '<span class="sep"></span><button type="button" data-a="style" data-tip="Стиль карты: подложка" aria-label="Стиль карты">▦</button>';
+      + '<span class="sep"></span><span class="geo-tb-base" id="geoTbBase"></span><button type="button" data-a="full" class="geo-tb-full" data-tip="Полный экран карты" aria-label="Полный экран карты" aria-pressed="false">⛶</button>';
     /* внутри контейнера карты: «по центру» значит по центру карты, а не всей страницы с левой панелью */
     mapEl.appendChild(tb);
     var hint = document.createElement('div'); hint.className = 'geo-tb-hint'; hint.id = 'geoTbHint'; mapEl.appendChild(hint);
@@ -7585,7 +7660,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       var a = b.getAttribute('data-a');
       if (a === 'undo') return undo();
       if (a === 'redo') return redo();
-      if (a === 'style') { var sb = document.querySelector('.geo-basectl-btn'); if (sb) sb.click(); return; }
+      if (a === 'full') { var LY = window.CASE_GEO_LAYOUT; if (LY && LY.fullscreen) LY.fullscreen(); return; }
       setTool(ST.tool === a ? null : a);
     });
   }
@@ -7593,7 +7668,17 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   function toast(msg) { var t = $('geoToast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2800); }
   function hint(html) { var h = $('geoTbHint'); if (!h) return; if (!html) { h.classList.remove('on'); h.innerHTML = ''; return; } h.innerHTML = html; h.classList.add('on'); }
   function syncButtons() {
-    document.querySelectorAll('#geoTb button[data-a]').forEach(function (b) { var a = b.getAttribute('data-a'); if (a === 'undo') b.disabled = !ST.undo.length; else if (a === 'redo') b.disabled = !ST.redo.length; else b.classList.toggle('on', a === ST.tool); });
+    var LY = window.CASE_GEO_LAYOUT, fs = !!(LY && LY.isFullscreen && LY.isFullscreen());
+    document.querySelectorAll('#geoTb button[data-a]').forEach(function (b) { var a = b.getAttribute('data-a'); if (a === 'undo') b.disabled = !ST.undo.length; else if (a === 'redo') b.disabled = !ST.redo.length; else if (a === 'full') { b.classList.toggle('on', fs); b.setAttribute('aria-pressed', fs ? 'true' : 'false'); b.setAttribute('data-tip', fs ? 'Выйти из полного экрана (Esc)' : 'Полный экран карты'); } else b.classList.toggle('on', a === ST.tool); });
+  }
+  /* подложка карты: готовый переключатель дерева слоёв (.geo-basectl) переезжает в панель инструментов */
+  function adoptBasectl() {
+    var tries = 0;
+    (function tick() {
+      var slot = $('geoTbBase'), ctl = document.querySelector('.geo-basectl');
+      if (slot && ctl) { if (!slot.contains(ctl)) { ctl.classList.remove('leaflet-control'); slot.appendChild(ctl); } return; }
+      if (++tries < 80) setTimeout(tick, 250);
+    })();
   }
 
   /* --- отмена и повтор ---------------------------------------------------------- */
@@ -7833,12 +7918,432 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     M.on('movestart zoomstart', hideMenu);
     document.addEventListener('keydown', onKey);
     document.addEventListener('click', function (e) { if (ST.menu && !(e.target.closest && e.target.closest('.geo-cmenu'))) hideMenu(); });
+    document.addEventListener('caseos:fullscreen', syncButtons);
+    adoptBasectl();
     syncButtons();
   }
   TL.setTool = setTool; TL.cancel = function () { cancel(false); }; TL.undo = undo; TL.redo = redo; TL.state = ST; TL.finishPolygon = finishPolygon; TL.notes = function () { return ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }); }; TL.showInfo = info; TL.simplify = simplify;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.75.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.76.0';
+
+</script>
+<script>/* v4760-geo-bc.js */
+/* CASE OS v4.76.0: бизнес-центры внутри студии геоаналитики.
+ *
+ * Решение владельца: отдельный экран «Geo Platform: бизнес-центры» показывал те же данные, что
+ * и студия, и люди путались. Всё нужное из него живёт теперь здесь, в левой панели студии:
+ *
+ *   - фильтры бизнес-центров: поиск, район, класс, источник, проверка, «только с известной
+ *     ставкой», «только с правками»; счётчик «найдено N из M»; карта и счёт по кольцам
+ *     показывают только отфильтрованные объекты (студия спрашивает CASE_GEO_BC.pass);
+ *   - список отфильтрованных БЦ с расстоянием до точки анализа, переходом на карту и в карточку;
+ *   - сравнение до четырёх БЦ таблицей (пустая ячейка значит «нет данных», не ноль);
+ *   - показатели выборки с честными знаменателями (ставка известна у k из N и т.п.);
+ *   - тепловая карта ставок по известным значениям (слой в категории «Бизнес-центры»).
+ *
+ * Редактор записей с происхождением полей (источник и дата цены, комментарий CASE) в студии
+ * уже был: карточка БЦ. Данные те же: мастер-база БЦ студии.
+ */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_BC) return;
+  var VERSION = '4.76.0', KEY = 'caseos_bc_filters_v1', KEY_SECT = 'caseos_bc_sect', PAGE = 60, CELL_M = 700;
+  var B = window.CASE_GEO_BC = { version: VERSION };
+  var F = blank(), CMP = [], shown = PAGE, sortBy = 'name', listOn = true, gHeat = null, tmr = null;
+  var CLASSES = ['A+', 'A', 'B+', 'B', 'C'], CLASS_COL = { 'A+': '#6e0000', 'A': '#9E0000', 'B+': '#c0392b', 'B': '#e67e22', 'C': '#b9b2a8', none: '#d8d0c4' };
+  var RAMP = ['#ffece0', '#f7b28c', '#dc6046', '#9E0000', '#6e0000'];
+
+  function blank() { return { q: '', districts: [], classes: [], providers: [], verif: [], rentOnly: false, editedOnly: false }; }
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
+  function num(v) { if (v == null || v === '') return null; var n = parseFloat(String(v).replace(/\s/g, '').replace(',', '.')); return isFinite(n) ? n : null; }
+  function fmt(n) { return Math.round(n).toLocaleString('ru'); }
+  function all() { try { return (typeof BC !== 'undefined' && Array.isArray(BC)) ? BC : []; } catch (e) { return []; } }
+  function effOf(b) { try { return typeof eff === 'function' ? eff(b) : b; } catch (e) { return b; } }
+  function edited(b) { try { return !!(b && typeof EDITS !== 'undefined' && EDITS && EDITS[b.id]); } catch (e) { return false; } }
+  function cls(e) { return String(e['class'] || '').trim().toUpperCase().replace(/А/g, 'A').replace(/В/g, 'B').replace(/С/g, 'C'); }
+  function verif(e) { return String(e._verification || '') === 'needs_review' ? 'needs_review' : 'online'; }
+  function point() { try { var p = window.caseGeoPoint ? window.caseGeoPoint() : null; return (p && !p.pending && isFinite(+p.lat) && isFinite(+p.lng)) ? p : null; } catch (e) { return null; } }
+  function distKm(e) { var p = point(); if (!p || e.lat == null || e.lng == null) return null; try { return hav(+p.lat, +p.lng, +e.lat, +e.lng); } catch (x) { return null; } }
+  function fmtKm(km) { return km == null ? '' : (km < 1 ? Math.round(km * 1000) + ' м' : km.toFixed(km < 10 ? 1 : 0) + ' км'); }
+
+  /* --- фильтр: единственная точка правды для карты, колец, списка и показателей ------------- */
+  function pass(e, b) {
+    if (!e) return false;
+    if (F.q) { var q = F.q.toLowerCase(); if ([e.name, e.address, e.district, e.comment].join(' ').toLowerCase().indexOf(q) < 0) return false; }
+    if (F.districts.length && F.districts.indexOf(String(e.district || '')) < 0) return false;
+    if (F.classes.length && F.classes.indexOf(cls(e) || 'none') < 0) return false;
+    if (F.providers.length && F.providers.indexOf(String(e.provider || '')) < 0) return false;
+    if (F.verif.length && F.verif.indexOf(verif(e)) < 0) return false;
+    if (F.rentOnly && num(e.rent) == null) return false;
+    if (F.editedOnly && !edited(b || e)) return false;
+    return true;
+  }
+  function rows() { return all().map(function (b) { return { b: b, e: effOf(b) }; }); }
+  function filtered() { return rows().filter(function (r) { return pass(r.e, r.b); }); }
+  function active() { return !!(F.q || F.districts.length || F.classes.length || F.providers.length || F.verif.length || F.rentOnly || F.editedOnly); }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(F)); } catch (e) {} }
+  function load() { try { var s = JSON.parse(localStorage.getItem(KEY) || 'null'); if (s && typeof s === 'object') F = Object.assign(blank(), s); } catch (e) {} }
+
+  function css() {
+    if ($('geoBcCss')) return;
+    var s = document.createElement('style'); s.id = 'geoBcCss'; s.textContent =
+      '#bcSect .sbody{padding:6px 12px 12px}#bcQ{width:100%;box-sizing:border-box;font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid var(--line,#e3dcd1)}'
+      + '.bc-found{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted,#6f6a63);margin:6px 0 4px}.bc-found b{color:var(--ink,#1b1b1b);font-size:13px}.bc-found .sp{flex:1}'
+      + '.bc-reset{border:0;background:none;color:#9E0000;font:600 11px inherit;cursor:pointer;padding:2px 4px}.bc-reset:disabled{color:var(--muted,#6f6a63);cursor:default;opacity:.6}'
+      + '.bc-grp{margin:6px 0 2px}.bc-lab{display:block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#6f6a63);margin-bottom:3px}'
+      + '.bc-chips{display:flex;flex-wrap:wrap;gap:4px}.bc-chip{border:1px solid var(--line,#e3dcd1);background:#fff;border-radius:999px;padding:3px 9px;font:600 11px inherit;color:var(--ink,#1b1b1b);cursor:pointer;display:inline-flex;align-items:center;gap:5px;line-height:1.2}'
+      + '.bc-chip i{font-style:normal;color:var(--muted,#6f6a63);font-weight:500}.bc-chip:hover{border-color:#c9bfb2}.bc-chip.on{background:#9E0000;border-color:#9E0000;color:#fff}.bc-chip.on i{color:#f3d9d9}'
+      + '.bc-chip .dot{width:8px;height:8px;border-radius:50%;display:inline-block}'
+      + '.bc-toggles{display:flex;flex-wrap:wrap;gap:4px 12px;margin:6px 0 4px;font-size:11px}'
+      + '.bc-kpi{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:8px 0 6px}.bc-kcard{background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:9px;padding:7px 9px;min-width:0}'
+      + '.bc-kcard b{display:block;font-size:15px;line-height:1.1;color:var(--ink,#1b1b1b)}.bc-kcard small{display:block;font-size:10px;color:var(--muted,#6f6a63);margin-top:2px;line-height:1.25}.bc-kcard.wide{grid-column:span 2}'
+      + '.bc-bars{display:flex;gap:2px;height:8px;border-radius:4px;overflow:hidden;margin-top:5px}.bc-bars span{display:block;height:100%}'
+      + '.bc-listhead{display:flex;align-items:center;gap:6px;margin:6px 0 4px}.bc-listhead button{border:1px solid var(--line,#e3dcd1);background:#fff;border-radius:8px;padding:5px 9px;font:700 11px inherit;cursor:pointer}.bc-listhead select{font-size:11px;padding:4px 6px;flex:1;min-width:0}'
+      + '.bc-list{max-height:42vh;overflow:auto;border:1px solid var(--line,#e3dcd1);border-radius:9px;background:#fff}.bc-list.off{display:none}'
+      + '.bc-item{display:flex;align-items:center;gap:6px;padding:6px 8px;border-bottom:1px solid var(--line-2,#eee9e1);cursor:pointer}.bc-item:last-child{border-bottom:0}.bc-item:hover{background:var(--paper-2,#f3f1ee)}.bc-item.sel{background:#fbeeee}'
+      + '.bc-item .bc-main{flex:1;min-width:0}.bc-item b{display:block;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.bc-item small{display:block;font-size:10px;color:var(--muted,#6f6a63);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'
+      + '.bc-item .bc-cls{display:inline-block;min-width:22px;text-align:center;border-radius:5px;padding:1px 4px;font:700 10px inherit;color:#fff}.bc-item .bc-ed{color:#e6a700;font-weight:700}'
+      + '.bc-item .bc-act{display:flex;gap:2px}.bc-item .bc-act button{width:26px;height:26px;border:1px solid var(--line,#e3dcd1);background:#fff;border-radius:7px;cursor:pointer;font-size:12px;padding:0}.bc-item .bc-act button:hover{border-color:#9E0000;color:#9E0000}'
+      + '.bc-item input[type=checkbox]{margin:0}'
+      + '.bc-more{display:block;width:100%;border:0;background:var(--paper-2,#f3f1ee);padding:7px;font:600 11px inherit;cursor:pointer;color:var(--ink,#1b1b1b)}'
+      + '.bc-empty{padding:12px;font-size:11.5px;color:var(--muted,#6f6a63);text-align:center}'
+      + '.bc-cmpbar{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--muted,#6f6a63)}.bc-cmpbar button{border:1px solid #9E0000;background:#9E0000;color:#fff;border-radius:8px;padding:5px 10px;font:700 11px inherit;cursor:pointer}.bc-cmpbar button.sec{background:#fff;color:#9E0000}.bc-cmpbar button:disabled{opacity:.4;cursor:default}'
+      + '.bc-cmp{font-size:12px}.bc-cmp .ch{display:flex;align-items:center;gap:8px;margin-bottom:8px}.bc-cmp .ch b{flex:1;font-size:14px}.bc-cmp table{border-collapse:collapse;width:100%}.bc-cmp th,.bc-cmp td{border-bottom:1px solid var(--line-2,#eee9e1);padding:5px 7px;text-align:left;vertical-align:top;font-size:11.5px}'
+      + '.bc-cmp th{background:var(--paper,#faf8f5);font-size:11px}.bc-cmp th.col{min-width:120px}.bc-cmp td.lab{color:var(--muted,#6f6a63);white-space:nowrap}.bc-cmp td.empty{color:#c9c1b4}.bc-cmp td.best{font-weight:700;color:#0d7a6f}'
+      + '.bc-cmp .rm{border:0;background:none;color:#9E0000;cursor:pointer;font:700 11px inherit;padding:0 2px}.bc-cmp .foot{margin-top:8px;font-size:10.5px;color:var(--muted,#6f6a63)}.bc-cmp .btns{display:flex;gap:6px;margin-top:10px}.bc-cmp .btns .btn{font-size:11px}'
+      + '.bc-heatleg{margin-top:6px}.bc-heatleg .ramp{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:3px 0}.bc-heatleg .ramp span{flex:1}.bc-heatleg .lbl{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted,#6f6a63)}'
+      + '#card.bc-cmp-open{width:min(820px,96vw)!important;max-width:96vw!important}';
+    document.head.appendChild(s);
+  }
+
+  /* --- секция в левой панели ------------------------------------------------------------- */
+  function layersSection() { var hs = document.querySelectorAll('.left>.sect>h3'); for (var i = 0; i < hs.length; i++) if (/слои и стиль/i.test(hs[i].textContent)) return hs[i].parentNode; return null; }
+  function mount() {
+    if ($('bcSect')) return true;
+    var anchor = layersSection(); if (!anchor || !all().length) return false;
+    var sect = document.createElement('div'); sect.className = 'sect'; sect.id = 'bcSect';
+    sect.innerHTML = '<h3 id="bcH">Бизнес-центры</h3><div class="sbody">'
+      + '<input type="search" id="bcQ" placeholder="Название, адрес, район" aria-label="Поиск бизнес-центра" autocomplete="off">'
+      + '<div class="bc-found">найдено <b id="bcFound">0</b> из <span id="bcTotal">0</span><span class="sp"></span><button type="button" class="bc-reset" id="bcReset" disabled>сбросить</button></div>'
+      + '<div class="bc-grp"><span class="bc-lab">Район</span><div class="bc-chips" id="bcFDist"></div></div>'
+      + '<div class="bc-grp"><span class="bc-lab">Класс</span><div class="bc-chips" id="bcFClass"></div></div>'
+      + '<div class="bc-grp"><span class="bc-lab">Источник и проверка</span><div class="bc-chips" id="bcFProv"></div></div>'
+      + '<div class="bc-toggles"><label class="ck"><input type="checkbox" id="bcRentOnly"> только с известной ставкой</label><label class="ck"><input type="checkbox" id="bcEditedOnly"> только с правками</label></div>'
+      + '<div class="bc-kpi" id="bcKpi"></div>'
+      + '<div class="bc-listhead"><button type="button" id="bcListBtn" aria-expanded="true">Список ▾</button><select id="bcSort" aria-label="Порядок списка"><option value="name">по имени</option><option value="dist">по расстоянию до точки</option><option value="rent">по ставке</option><option value="class">по классу</option></select></div>'
+      + '<div class="bc-list" id="bcList"></div>'
+      + '<div class="bc-cmpbar" id="bcCmpBar"></div>'
+      + '</div>';
+    anchor.parentNode.insertBefore(sect, anchor);
+    var h3 = sect.querySelector('h3');
+    h3.style.cursor = 'pointer';
+    h3.addEventListener('click', function () { var closed = sect.classList.toggle('closed'); try { localStorage.setItem(KEY_SECT, closed ? '0' : '1'); } catch (e) {} });
+    try { if (localStorage.getItem(KEY_SECT) === '0') sect.classList.add('closed'); } catch (e) {}
+    bind();
+    buildChips();
+    syncControls();
+    return true;
+  }
+  function chip(v, label, n, on, extra) { return '<button type="button" class="bc-chip' + (on ? ' on' : '') + '" data-v="' + esc(v) + '">' + (extra || '') + esc(label) + '<i>' + n + '</i></button>'; }
+  function buildChips() {
+    var rs = rows(), byD = {}, byP = {}, byC = {}, nv = { online: 0, needs_review: 0 };
+    rs.forEach(function (r) { var e = r.e; byD[e.district || ''] = (byD[e.district || ''] || 0) + 1; byP[e.provider || ''] = (byP[e.provider || ''] || 0) + 1; var c = cls(e) || 'none'; byC[c] = (byC[c] || 0) + 1; nv[verif(e)]++; });
+    var dists = Object.keys(byD).filter(Boolean).sort(function (a, b) { return byD[b] - byD[a]; });
+    $('bcFDist').innerHTML = dists.map(function (d) { return chip(d, d, byD[d], F.districts.indexOf(d) >= 0); }).join('');
+    $('bcFClass').innerHTML = CLASSES.concat(['none']).map(function (c) { return chip(c, c === 'none' ? 'без класса' : c, byC[c] || 0, F.classes.indexOf(c) >= 0, '<span class="dot" style="background:' + CLASS_COL[c] + '"></span>'); }).join('');
+    var provs = Object.keys(byP).filter(Boolean).sort(function (a, b) { return byP[b] - byP[a]; });
+    $('bcFProv').innerHTML = provs.map(function (p) { return chip(p, p, byP[p], F.providers.indexOf(p) >= 0); }).join('')
+      + chip('v:online', 'онлайн', nv.online, F.verif.indexOf('online') >= 0) + chip('v:needs_review', 'нужна проверка', nv.needs_review, F.verif.indexOf('needs_review') >= 0);
+  }
+  function toggleIn(arr, v) { var i = arr.indexOf(v); if (i >= 0) arr.splice(i, 1); else arr.push(v); }
+  function bind() {
+    $('bcQ').addEventListener('input', function () { F.q = this.value.trim(); apply(); });
+    $('bcReset').addEventListener('click', function () { F = blank(); $('bcQ').value = ''; apply(); });
+    $('bcRentOnly').addEventListener('change', function () { F.rentOnly = this.checked; apply(); });
+    $('bcEditedOnly').addEventListener('change', function () { F.editedOnly = this.checked; apply(); });
+    $('bcFDist').addEventListener('click', function (e) { var c = e.target.closest('.bc-chip'); if (!c) return; toggleIn(F.districts, c.getAttribute('data-v')); apply(); });
+    $('bcFClass').addEventListener('click', function (e) { var c = e.target.closest('.bc-chip'); if (!c) return; toggleIn(F.classes, c.getAttribute('data-v')); apply(); });
+    $('bcFProv').addEventListener('click', function (e) { var c = e.target.closest('.bc-chip'); if (!c) return; var v = c.getAttribute('data-v'); if (v.indexOf('v:') === 0) toggleIn(F.verif, v.slice(2)); else toggleIn(F.providers, v); apply(); });
+    $('bcListBtn').addEventListener('click', function () { listOn = !listOn; $('bcList').classList.toggle('off', !listOn); this.textContent = listOn ? 'Список ▾' : 'Список ▸'; this.setAttribute('aria-expanded', listOn ? 'true' : 'false'); });
+    $('bcSort').addEventListener('change', function () { sortBy = this.value; shown = PAGE; renderList(); });
+    $('bcList').addEventListener('click', function (e) {
+      var more = e.target.closest('.bc-more'); if (more) { shown += PAGE; renderList(); return; }
+      var it = e.target.closest('.bc-item'); if (!it) return;
+      var id = +it.getAttribute('data-id');
+      if (e.target.closest('input[type=checkbox]')) { toggleCompare(id); return; }
+      var act = e.target.closest('[data-act]');
+      if (act && act.getAttribute('data-act') === 'card') { try { openCard(id); } catch (x) {} return; }
+      showOnMap(id);
+    });
+    $('bcCmpBar').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; if (b.id === 'bcCmpOpen') openCompare(); if (b.id === 'bcCmpClear') { CMP = []; renderList(); renderCmpBar(); } });
+  }
+  function syncControls() {
+    if (!$('bcQ')) return;
+    $('bcQ').value = F.q; $('bcRentOnly').checked = F.rentOnly; $('bcEditedOnly').checked = F.editedOnly;
+    ['bcFDist', 'bcFClass', 'bcFProv'].forEach(function (id) { [].slice.call($(id).querySelectorAll('.bc-chip')).forEach(function (c) { var v = c.getAttribute('data-v'); var on = id === 'bcFDist' ? F.districts.indexOf(v) >= 0 : id === 'bcFClass' ? F.classes.indexOf(v) >= 0 : (v.indexOf('v:') === 0 ? F.verif.indexOf(v.slice(2)) >= 0 : F.providers.indexOf(v) >= 0); c.classList.toggle('on', on); }); });
+    $('bcReset').disabled = !active();
+  }
+
+  /* --- применение: карта, кольца, список, показатели, тепловая карта -------------------- */
+  function apply() {
+    save(); shown = PAGE; syncControls();
+    try { renderBC(); } catch (e) {}
+    try { catchSummary(); } catch (e) {}
+    renderAll();
+    if (gHeat && $('lRentHeat') && $('lRentHeat').checked) drawHeat();
+  }
+  function renderAll() { if (!$('bcSect')) return; var rs = filtered(); $('bcFound').textContent = rs.length; $('bcTotal').textContent = all().length; renderKpi(rs); renderList(rs); renderCmpBar(); }
+  function schedule() { clearTimeout(tmr); tmr = setTimeout(renderAll, 80); }
+
+  function median(a) { if (!a.length) return null; var s = a.slice().sort(function (x, y) { return x - y; }), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; }
+  function renderKpi(rs) {
+    var n = rs.length, byC = {}, withC = 0, rents = [], glas = [], ed = 0, src = {};
+    rs.forEach(function (r) { var e = r.e, c = cls(e); if (c) { withC++; byC[c] = (byC[c] || 0) + 1; } var rv = num(e.rent); if (rv != null) rents.push(rv); var g = num(e.gla); if (g != null) glas.push(g); if (edited(r.b)) ed++; src[e.provider || 'прочее'] = (src[e.provider || 'прочее'] || 0) + 1; });
+    var bars = withC ? '<div class="bc-bars" title="доли классов среди объектов с известным классом">' + CLASSES.map(function (c) { return byC[c] ? '<span style="width:' + (byC[c] / withC * 100) + '%;background:' + CLASS_COL[c] + '" title="' + c + ': ' + byC[c] + '"></span>' : ''; }).join('') + '</div>' : '';
+    var h = '<div class="bc-kcard"><b>' + n + '</b><small>объектов в выборке' + (active() ? ' из ' + all().length : '') + '</small></div>'
+      + '<div class="bc-kcard"><b>' + withC + '</b><small>класс известен' + (withC ? ': ' + CLASSES.filter(function (c) { return byC[c]; }).map(function (c) { return c + ' ' + byC[c]; }).join(', ') : '') + '</small>' + bars + '</div>'
+      + '<div class="bc-kcard"><b>' + (rents.length ? '$' + fmt(median(rents)) : '-') + '</b><small>медиана ставки, $/м²/мес · известна у ' + rents.length + ' из ' + n + (rents.length ? ' · ' + fmt(Math.min.apply(null, rents)) + '..' + fmt(Math.max.apply(null, rents)) : '') + '</small></div>'
+      + '<div class="bc-kcard"><b>' + (glas.length ? fmt(glas.reduce(function (s, v) { return s + v; }, 0)) : '-') + '</b><small>GLA, м² · известна у ' + glas.length + ' из ' + n + '</small></div>'
+      + '<div class="bc-kcard wide"><b>' + Object.keys(src).sort(function (a, b) { return src[b] - src[a]; }).map(function (k) { return esc(k) + ' ' + src[k]; }).join(' · ') + '</b><small>источники записей · правок CASE: ' + ed + '. Пусто значит «нет данных», не ноль.</small></div>';
+    $('bcKpi').innerHTML = h;
+  }
+  function sorted(rs) {
+    var s = rs.slice();
+    if (sortBy === 'dist' && point()) s.sort(function (a, b) { var x = distKm(a.e), y = distKm(b.e); return (x == null ? 1e9 : x) - (y == null ? 1e9 : y); });
+    else if (sortBy === 'rent') s.sort(function (a, b) { var x = num(a.e.rent), y = num(b.e.rent); return (y == null ? -1 : y) - (x == null ? -1 : x); });
+    else if (sortBy === 'class') s.sort(function (a, b) { var x = CLASSES.indexOf(cls(a.e)), y = CLASSES.indexOf(cls(b.e)); return (x < 0 ? 9 : x) - (y < 0 ? 9 : y) || String(a.e.name).localeCompare(String(b.e.name), 'ru'); });
+    else s.sort(function (a, b) { return String(a.e.name).localeCompare(String(b.e.name), 'ru'); });
+    return s;
+  }
+  function renderList(rs) {
+    var box = $('bcList'); if (!box) return;
+    rs = rs || filtered();
+    if (!rs.length) { box.innerHTML = '<div class="bc-empty">Ничего не найдено: ослабьте фильтры.</div>'; return; }
+    var s = sorted(rs), h = '';
+    s.slice(0, shown).forEach(function (r) {
+      var e = r.e, c = cls(e), d = distKm(e), rv = num(e.rent);
+      h += '<div class="bc-item' + (CMP.indexOf(r.b.id) >= 0 ? ' sel' : '') + '" data-id="' + r.b.id + '" title="клик: показать на карте">'
+        + '<input type="checkbox" aria-label="в сравнение" title="в сравнение (до четырёх)"' + (CMP.indexOf(r.b.id) >= 0 ? ' checked' : '') + '>'
+        + '<div class="bc-main"><b>' + (c ? '<span class="bc-cls" style="background:' + (CLASS_COL[c] || '#888') + '">' + esc(c) + '</span> ' : '') + esc(e.name) + (edited(r.b) ? ' <span class="bc-ed" title="есть правки CASE">✎</span>' : '') + '</b>'
+        + '<small>' + esc([e.district, e.provider, d != null ? fmtKm(d) + ' от точки' : ''].filter(Boolean).join(' · ')) + '</small>'
+        + (rv != null ? '<small>ставка $' + fmt(rv) + '/м²/мес' + (e.psrc ? ' · ' + esc(e.psrc) : '') + (e.pdate ? ' · ' + esc(e.pdate) : '') + '</small>' : '')
+        + '</div><div class="bc-act"><button type="button" data-act="card" title="карточка БЦ" aria-label="карточка">✎</button></div></div>';
+    });
+    if (s.length > shown) h += '<button type="button" class="bc-more">показать ещё ' + Math.min(PAGE, s.length - shown) + ' из ' + (s.length - shown) + '</button>';
+    box.innerHTML = h;
+  }
+  function showOnMap(id) {
+    var M = theMap(), b = all()[id]; if (!M || !b) return;
+    var e = effOf(b); if (e.lat == null) return;
+    var la = +e.lat, ln = +e.lng;
+    try { M.setView([la, ln], Math.max(M.getZoom(), 16)); } catch (x) {}
+    try { markSel(la, ln); } catch (x) {}
+    try {
+      var found = null; if (typeof gBC !== 'undefined' && gBC) gBC.eachLayer(function (l) { if (!found && l.getLatLng) { var p = l.getLatLng(); if (Math.abs(p.lat - la) < 1e-7 && Math.abs(p.lng - ln) < 1e-7) found = l; } });
+      if (found) { if (gBC.zoomToShowLayer) gBC.zoomToShowLayer(found, function () { found.openPopup(); }); else found.openPopup(); }
+    } catch (x) {}
+    [].slice.call(document.querySelectorAll('.bc-item')).forEach(function (it) { it.classList.toggle('sel', +it.getAttribute('data-id') === id || CMP.indexOf(+it.getAttribute('data-id')) >= 0); });
+  }
+
+  /* --- сравнение ---------------------------------------------------------------------------- */
+  function toggleCompare(id) {
+    var i = CMP.indexOf(id);
+    if (i >= 0) CMP.splice(i, 1); else { if (CMP.length >= 4) { toast('В сравнении не больше четырёх БЦ'); syncCompareMarks(); return; } CMP.push(id); }
+    syncCompareMarks(); renderCmpBar();
+  }
+  /* отметки в списке правим на месте: перерисовка списка сбивала прокрутку и второй клик подряд */
+  function syncCompareMarks() { [].slice.call(document.querySelectorAll('.bc-item')).forEach(function (it) { var id = +it.getAttribute('data-id'), on = CMP.indexOf(id) >= 0, cb = it.querySelector('input[type=checkbox]'); if (cb) cb.checked = on; it.classList.toggle('sel', on); }); }
+  function renderCmpBar() { var bar = $('bcCmpBar'); if (!bar) return; bar.innerHTML = '<button type="button" id="bcCmpOpen"' + (CMP.length < 2 ? ' disabled' : '') + '>Сравнить (' + CMP.length + ')</button><button type="button" class="sec" id="bcCmpClear"' + (CMP.length ? '' : ' disabled') + '>очистить</button><span>отметьте до четырёх БЦ в списке</span>'; }
+  var CMP_FIELDS = [['Класс', 'class'], ['Район', 'district'], ['Адрес', 'address'], ['Этажей', 'floors', 'n'], ['GLA, м²', 'gla', 'n'], ['GBA, м²', 'gba', 'n'], ['Парковка, мест', 'parking', 'n'], ['Год постройки', 'year', 'n'], ['Ставка, $/м²/мес', 'rent', 'n', 'low'], ['Свободно, м²', 'avail', 'n'], ['Продажа, $/м²', 'sale', 'n'], ['Источник цены', 'psrc'], ['Дата цены', 'pdate'], ['Рейтинг', 'rating', 'n', 'high'], ['Отзывов', 'reviews', 'n', 'high'], ['Источник записи', 'provider'], ['Проверка', '_verification'], ['До точки анализа', '__dist'], ['Комментарий CASE', 'comment']];
+  function openCompare() {
+    var card = $('card'), bg = $('cardbg'); if (!card || !bg || CMP.length < 2) return;
+    var items = CMP.map(function (id) { return all()[id]; }).filter(Boolean).map(function (b) { return { b: b, e: effOf(b) }; });
+    var h = '<div class="bc-cmp"><div class="ch"><b>Сравнение бизнес-центров</b><button type="button" class="btn sec" onclick="closeCard()">✕</button></div><div class="body"><table><thead><tr><th></th>'
+      + items.map(function (it) { return '<th class="col">' + esc(it.e.name) + ' <button type="button" class="rm" data-rm="' + it.b.id + '" title="убрать из сравнения">✕</button></th>'; }).join('') + '</tr></thead><tbody>';
+    CMP_FIELDS.forEach(function (f) {
+      var vals = items.map(function (it) { if (f[1] === '__dist') { var d = distKm(it.e); return d == null ? null : fmtKm(d); } var v = it.e[f[1]]; if (f[1] === '_verification') v = v === 'needs_review' ? 'нужна проверка' : (v ? 'онлайн' : ''); return v == null || String(v).trim() === '' ? null : String(v); });
+      if (vals.every(function (v) { return v == null; })) return;
+      var best = -1;
+      if (f[2] === 'n' && f[3]) { var nums = vals.map(function (v) { return num(v); }); var cand = nums.map(function (v, i) { return v == null ? null : i; }).filter(function (i) { return i != null; }); if (cand.length > 1) { best = cand[0]; cand.forEach(function (i) { if (f[3] === 'low' ? nums[i] < nums[best] : nums[i] > nums[best]) best = i; }); } }
+      h += '<tr><td class="lab">' + esc(f[0]) + '</td>' + vals.map(function (v, i) { return v == null ? '<td class="empty">нет данных</td>' : '<td' + (i === best ? ' class="best"' : '') + '>' + esc(v) + '</td>'; }).join('') + '</tr>';
+    });
+    h += '</tbody></table><div class="foot">Пустая ячейка значит «нет данных», не ноль. Выделено лучшее значение среди известных: ниже ставка, выше рейтинг. Значения из мастер-базы CASE с правками команды; источник и дата цены указаны построчно.</div>'
+      + '<div class="btns"><button type="button" class="btn sec" onclick="closeCard()">Закрыть</button><button type="button" class="btn sec" id="bcCmpCsv">⤓ CSV</button></div></div></div>';
+    card.innerHTML = h; card.classList.add('open', 'bc-cmp-open'); bg.classList.add('open');
+    card.querySelector('.bc-cmp').addEventListener('click', function (e) { var rm = e.target.closest('[data-rm]'); if (rm) { toggleCompare(+rm.getAttribute('data-rm')); if (CMP.length >= 2) openCompare(); else closeCard(); } });
+    var csv = $('bcCmpCsv'); if (csv) csv.onclick = function () { exportCompare(items); };
+  }
+  function exportCompare(items) {
+    var lines = [['Показатель'].concat(items.map(function (it) { return it.e.name; }))];
+    CMP_FIELDS.forEach(function (f) { lines.push([f[0]].concat(items.map(function (it) { if (f[1] === '__dist') { var d = distKm(it.e); return d == null ? '' : fmtKm(d); } var v = it.e[f[1]]; return v == null ? '' : String(v); }))); });
+    var txt = lines.map(function (r) { return r.map(function (c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(';'); }).join('\r\n');
+    try { var blob = new Blob(['﻿' + txt], { type: 'text/csv;charset=utf-8' }), a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'CASE_сравнение_БЦ.csv'; document.body.appendChild(a); a.click(); a.remove(); } catch (e) { toast('Браузер не дал сохранить файл'); }
+  }
+
+  /* --- тепловая карта ставок ------------------------------------------------------------------ */
+  function heatRow() {
+    var cat = document.querySelector('.geo-cat[data-cat="Бизнес-центры"] .geo-cat-body') || (function () { var t = [].slice.call(document.querySelectorAll('.geo-cat-title')).filter(function (x) { return /бизнес-центры/i.test(x.textContent); })[0]; return t ? t.parentNode : null; })();
+    if (!cat || $('lRentHeat')) return !!$('lRentHeat');
+    var row = document.createElement('div'); row.className = 'styrow'; row.innerHTML = '<label class="ck"><input type="checkbox" id="lRentHeat"> Тепловая карта ставок (известные значения)</label>';
+    var srcRow = cat.querySelector('#bcBySrc') ? cat.querySelector('#bcBySrc').closest('.styrow') : null;
+    if (srcRow && srcRow.nextSibling) cat.insertBefore(row, srcRow.nextSibling); else cat.appendChild(row);
+    $('lRentHeat').addEventListener('change', function () { if (this.checked) drawHeat(); else clearHeat(); });
+    return true;
+  }
+  function cellsOf(rs) {
+    var dLat = CELL_M / 111320, out = {};
+    rs.forEach(function (r) { var e = r.e, v = num(e.rent); if (v == null || e.lat == null || e.lng == null) return; var la = +e.lat, ln = +e.lng, dLng = CELL_M / (111320 * Math.cos(la * Math.PI / 180)); var ky = Math.floor(la / dLat), kx = Math.floor(ln / dLng), k = ky + '_' + kx; if (!out[k]) out[k] = { la0: ky * dLat, ln0: kx * dLng, la1: (ky + 1) * dLat, ln1: (kx + 1) * dLng, sum: 0, n: 0 }; out[k].sum += v; out[k].n++; });
+    return Object.keys(out).map(function (k) { var c = out[k]; c.mean = c.sum / c.n; return c; });
+  }
+  function drawHeat() {
+    var M = theMap(); if (!M) return;
+    if (!gHeat) gHeat = L.layerGroup().addTo(M);
+    gHeat.clearLayers();
+    var cells = cellsOf(filtered());
+    if (!cells.length) { toast('В выборке нет БЦ с известной ставкой'); heatLegend(null); return; }
+    var mn = Math.min.apply(null, cells.map(function (c) { return c.mean; })), mx = Math.max.apply(null, cells.map(function (c) { return c.mean; }));
+    cells.forEach(function (c) { var t = mx > mn ? (c.mean - mn) / (mx - mn) : .5, col = RAMP[Math.min(RAMP.length - 1, Math.floor(t * RAMP.length))]; L.rectangle([[c.la0, c.ln0], [c.la1, c.ln1]], { color: col, weight: 1, fillColor: col, fillOpacity: .45, interactive: true }).addTo(gHeat).bindTooltip('средняя ставка $' + fmt(c.mean) + '/м²/мес · ' + c.n + ' БЦ с известной ценой', { sticky: true }); });
+    heatLegend({ mn: mn, mx: mx, n: cells.length });
+  }
+  function clearHeat() { if (gHeat) gHeat.clearLayers(); heatLegend(null); }
+  function heatLegend(info) {
+    var lg = $('mlgd'), body = lg && lg.querySelector('.body'); if (!body) return;
+    var el = $('bcHeatLeg');
+    if (!info) { if (el) el.remove(); return; }
+    if (!el) { el = document.createElement('div'); el.id = 'bcHeatLeg'; el.className = 'bc-heatleg'; body.appendChild(el); }
+    el.innerHTML = '<div class="grp2">Ставки БЦ · ' + info.n + ' ячеек по ' + CELL_M + ' м</div><div class="ramp">' + RAMP.map(function (c) { return '<span style="background:' + c + '"></span>'; }).join('') + '</div><div class="lbl"><span>$' + fmt(info.mn) + '</span><span>$' + fmt(info.mx) + ' /м²/мес</span></div>';
+  }
+
+  /* --- служебное ------------------------------------------------------------------------------ */
+  var toastT = null;
+  function toast(msg) { var t = $('geoToast'); if (t) { t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2800); } }
+  function hooks() {
+    ['saveCard', 'resetCard'].forEach(function (n) { var o = window[n]; if (typeof o === 'function' && !o._bc) { var w = function () { var r = o.apply(this, arguments); schedule(); return r; }; w._bc = true; window[n] = w; } });
+    var rp = window.renderProj; if (typeof rp === 'function' && !rp._bc) { var w2 = function () { var r = rp.apply(this, arguments); schedule(); return r; }; w2._bc = true; window.renderProj = w2; }
+    var cc = window.closeCard; if (typeof cc === 'function' && !cc._bc) { var w3 = function () { var c = $('card'); if (c) c.classList.remove('bc-cmp-open'); return cc.apply(this, arguments); }; w3._bc = true; window.closeCard = w3; }
+    var ul = window.updateLegend; if (typeof ul === 'function' && !ul._bc) { var w4 = function () { var r = ul.apply(this, arguments); if ($('lRentHeat') && $('lRentHeat').checked && gHeat && gHeat.getLayers().length) { var cells = cellsOf(filtered()); if (cells.length) heatLegend({ mn: Math.min.apply(null, cells.map(function (c) { return c.mean; })), mx: Math.max.apply(null, cells.map(function (c) { return c.mean; })), n: cells.length }); } return r; }; w4._bc = true; window.updateLegend = w4; }
+  }
+  function install() {
+    css(); load();
+    var tries = 0;
+    (function tick() {
+      var ok = mount(); heatRow();
+      if (ok) { hooks(); apply(); return; }
+      if (++tries < 80) setTimeout(tick, 250);
+    })();
+  }
+  B.pass = pass; B.filters = function () { return JSON.parse(JSON.stringify(F)); }; B.set = function (patch) { Object.keys(patch || {}).forEach(function (k) { F[k] = patch[k]; }); if ($('bcQ')) $('bcQ').value = F.q || ''; apply(); }; B.reset = function () { F = blank(); if ($('bcQ')) $('bcQ').value = ''; apply(); };
+  B.filtered = function () { return filtered().map(function (r) { return r.e; }); }; B.compare = function () { return CMP.slice(); }; B.toggleCompare = toggleCompare; B.openCompare = openCompare; B.showOnMap = showOnMap; B.heat = function (on) { var cb = $('lRentHeat'); if (cb) { cb.checked = !!on; cb.dispatchEvent(new Event('change', { bubbles: true })); } }; B.cells = function () { return cellsOf(filtered()); }; B.refresh = renderAll;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-bc'] = '4.76.0';
+
+</script>
+<script>/* v4760-geo-caps.js */
+/* CASE OS v4.76.0: права пользователя внутри студии геоаналитики.
+ *
+ * Платформа (v4760-access.js) кладёт в window.CASE_USER_CAPS права вошедшего: тип доступа
+ * (администратор, сотрудник, клиент, демо), можно ли выгружать и править. Студия в iframe
+ * читает их у родителя и подстраивается:
+ *   - без права выгрузки: кнопки PDF, Excel, PPTX, CSV скрыты, функции выгрузки отвечают отказом;
+ *   - без права правок: карточка БЦ только для чтения;
+ *   - демо: показаны 40 бизнес-центров из базы (ближайшие к центру города), вкладка «Управление
+ *     данными» скрыта, выгрузка и правки отключены, вверху пояснение.
+ * Автономный файл и прямое открытие студии без платформы работают как раньше (полные права).
+ * Права здесь только для удобства: сервер проверяет их сам (роль без edit не пишет геоданные,
+ * демо-пользователь не сохраняет ничего).
+ */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_CAPS) return;
+  var VERSION = '4.76.0', DEMO_N = 40, CENTER = [41.3111, 69.2797];
+  var C = window.CASE_GEO_CAPS = { version: VERSION, caps: null, demoTotal: null };
+  function $(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function readCaps() {
+    var c = null;
+    try { if (window.parent && window.parent !== window && window.parent.CASE_USER_CAPS) c = Object.assign({}, window.parent.CASE_USER_CAPS); } catch (e) {}
+    var q = null; try { q = new URLSearchParams(location.search); } catch (e) {}
+    if (q && q.get('demo') === '1') c = Object.assign({ type: 'demo' }, c || {}, { demo: true, export: false, edit: false });
+    if (!c) c = { type: 'full', demo: false, export: true, edit: true };
+    if (c.export == null) c.export = true; if (c.edit == null) c.edit = true; c.demo = !!c.demo;
+    return c;
+  }
+  function css() {
+    if ($('geoCapsCss')) return;
+    var s = document.createElement('style'); s.id = 'geoCapsCss'; s.textContent =
+      '.geo-caps-banner{display:flex;align-items:center;gap:10px;padding:7px 12px;background:#fff7e6;border-bottom:1px solid #f0d9a0;color:#7a5a00;font-size:12px}.geo-caps-banner b{color:#1b1b1b}.geo-caps-banner .sp{flex:1}'
+      + '.geo-no-export #btnProjExport,.geo-no-export #btnExpCfg,.geo-no-export button[onclick^="exportProbe"],.geo-no-export button[onclick^="exportDB"],.geo-no-export button[onclick^="caseGeoExport"],.geo-no-export button[onclick^="geoExport"],.geo-no-export button[onclick^="geoPrintDataset"],.geo-no-export #bcCmpCsv{display:none!important}'
+      + '.geo-no-edit .cbtns .btn.pri,.geo-no-edit button[onclick^="resetCard"],.geo-no-edit button[onclick^="geoAddRecord"],.geo-no-edit button[onclick^="geoDeleteSelected"]{display:none!important}'
+      + '.geo-demo .tabs button[data-t="dataT"]{display:none!important}';
+    document.head.appendChild(s);
+  }
+  var toastT = null;
+  function toast(msg) { var t = $('geoToast'); if (!t) { alert(msg); return; } t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 3000); }
+  function deny(msg) { return function () { toast(msg); return false; }; }
+  function hav(a, b, c, d) { var R = 6371, r = function (x) { return x * Math.PI / 180; }; var s = Math.pow(Math.sin(r(c - a) / 2), 2) + Math.cos(r(a)) * Math.cos(r(c)) * Math.pow(Math.sin(r(d - b) / 2), 2); return R * 2 * Math.asin(Math.sqrt(s)); }
+  function trimDemo() {
+    var list = null; try { list = (typeof BC !== 'undefined' && Array.isArray(BC)) ? BC : null; } catch (e) {}
+    if (!list) return;
+    C.demoTotal = list.length;
+    if (list.length > DEMO_N) {
+      var keep = list.slice().filter(function (b) { return b.lat != null && b.lng != null; }).sort(function (a, b) { return hav(CENTER[0], CENTER[1], +a.lat, +a.lng) - hav(CENTER[0], CENTER[1], +b.lat, +b.lng); }).slice(0, DEMO_N);
+      var ids = {}; keep.forEach(function (b) { ids[b.id] = 1; });
+      for (var i = list.length - 1; i >= 0; i--) if (!ids[list[i].id]) list.splice(i, 1);
+      list.forEach(function (b, i) { b.id = i; });
+    }
+    /* правки прошлых сеансов этого браузера привязаны к номерам записей полной базы: в демо они не применяются */
+    try { if (typeof EDITS !== 'undefined' && EDITS) Object.keys(EDITS).forEach(function (k) { delete EDITS[k]; }); } catch (e) {}
+    ['renderBC', 'catchSummary', 'analytics', 'dataTab'].forEach(function (n) { try { if (typeof window[n] === 'function') window[n](); } catch (e) {} });
+    try { var hc = $('hdrCount'); if (hc) hc.textContent = list.length + ' БЦ · демо'; } catch (e) {}
+    try { if (window.CASE_GEO_BC && window.CASE_GEO_BC.refresh) window.CASE_GEO_BC.refresh(); } catch (e) {}
+  }
+  function banner(caps) {
+    if ($('geoCapsBanner')) return;
+    var app = document.querySelector('.app') || document.body, tabs = document.querySelector('.tabs');
+    var d = document.createElement('div'); d.id = 'geoCapsBanner'; d.className = 'geo-caps-banner';
+    var txt = caps.demo
+      ? '<b>Демо-версия.</b> Показаны ' + Math.min(DEMO_N, C.demoTotal || DEMO_N) + ' бизнес-центров из ' + (C.demoTotal || '') + ', выгрузка и правки отключены. Полный доступ открывает CASE после заявки на регистрацию.'
+      : (!caps.export && !caps.edit ? '<b>Просмотр.</b> Выгрузка и правки в вашем доступе отключены.' : !caps.export ? '<b>Выгрузка отключена</b> для вашего доступа.' : '<b>Только чтение:</b> правки записей отключены для вашего доступа.');
+    d.innerHTML = '<span>' + txt + '</span><span class="sp"></span>' + (caps.days_left != null && caps.days_left <= 5 ? '<span>Доступ истекает ' + (caps.days_left <= 0 ? 'сегодня' : 'через ' + caps.days_left + ' дн.') + (caps.expires_at ? ' (' + esc(String(caps.expires_at).slice(0, 10)) + ')' : '') + '</span>' : '');
+    if (tabs && tabs.parentNode) tabs.parentNode.insertBefore(d, tabs); else app.insertBefore(d, app.firstChild);
+  }
+  function apply(caps) {
+    var body = document.body;
+    if (!caps.export) {
+      body.classList.add('geo-no-export');
+      ['exportProbe', 'exportProbePdf', 'exportDB', 'caseGeoExportAll', 'caseGeoExportXlsx', 'geoExportProject', 'geoExportDataset', 'geoExportTableCSV', 'geoPrintDataset'].forEach(function (n) { window[n] = deny('Выгрузка недоступна для вашего доступа'); });
+      var orig = window.caseGeoProjectReport; if (typeof orig === 'function') window.caseGeoProjectReport = function (exp) { if (exp) { toast('Выгрузка недоступна для вашего доступа'); return; } return orig.apply(this, arguments); };
+    }
+    if (!caps.edit) {
+      body.classList.add('geo-no-edit');
+      window.saveCard = deny('Правки недоступны для вашего доступа'); window.resetCard = deny('Правки недоступны для вашего доступа');
+      ['geoAddRecord', 'geoDeleteSelected', 'geoDeleteMapRecord'].forEach(function (n) { window[n] = deny('Правки недоступны для вашего доступа'); });
+    }
+    if (caps.demo) { body.classList.add('geo-demo'); trimDemo(); }
+    if (caps.demo || !caps.export || !caps.edit) banner(caps);
+  }
+  function embedded() { try { return !!(window.parent && window.parent !== window); } catch (e) { return false; } }
+  function parentCapsReady() { try { return !embedded() || !!window.parent.CASE_USER_CAPS; } catch (e) { return true; } }
+  function install() {
+    css();
+    /* внутри платформы права могут появиться на долю секунды позже загрузки студии: ждём до 8 с */
+    var tries = 0;
+    (function tick() {
+      if (!parentCapsReady() && ++tries < 32) { setTimeout(tick, 250); return; }
+      var caps = readCaps(); C.caps = caps;
+      if (caps.type === 'full' && caps.export && caps.edit && !caps.demo) return;
+      /* модули студии, чьи функции здесь подменяются, уже загружены: этот файл подключён последним */
+      apply(caps);
+    })();
+  }
+  C.readCaps = readCaps; C.apply = apply;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-caps'] = '4.76.0';
 
 </script>
 <script>

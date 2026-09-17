@@ -1020,14 +1020,14 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 </style></head><body class="geo-auth-pending">
 <div class="app">
 <header class="top"><span class="lg"><b>CASE</b> OS</span><span class="tag">Universal Geo Analytics · preliminary online data</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
-<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
+<div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><!-- v4.76.0: вкладки «Сравнение стран» нет (решение владельца); страница #cmpT остаётся скрытой --><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
   <!-- v4.73.1: вместо списка проектов CASE - одна точка анализа. Список #proj остаётся в
        разметке скрытым: его читают пять модулей (отчёт, выгрузка, солнце, Хафф, студия), и в нём
        всегда ровно одна запись - текущая точка. Клиентам наши проекты не нужны (решение владельца). -->
   <div class="sect"><h3 id="projH">Точка анализа</h3><select id="proj" class="hidden" aria-labelledby="projH" aria-hidden="true" tabindex="-1"><option value="project">Точка анализа</option></select><div class="note" id="projInfo" style="margin-top:6px"></div>
-   <div class="styrow" style="margin-top:7px"><button class="btn sec" id="btnPickPoint" style="font-size:11px" onclick="if(window.CASE_GEO_AGENT)CASE_GEO_AGENT.setPick(true)" title="кликните по карте, чтобы поставить точку; можно и словами в гео-агенте: координаты или «адрес: …»">📍 Точка на карте</button></div>
+   <!-- v4.76.0: кнопки «📍 Точка на карте» нет: точку ставят пин на панели инструментов и правый клик (решение владельца) -->
    <div class="styrow" style="margin-top:4px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке анализа">▣ Аналитика по точке</button></div>
    <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по точке анализа">⤓ Выгрузить PDF · Excel · PPTX</button>
     <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать">⚙ Настройки</button></div>
@@ -1261,7 +1261,7 @@ function renderBC(){if(!map)return;
  let st=document.getElementById('labStyle');if(!st){st=document.createElement('style');st.id='labStyle';document.head.appendChild(st);}
  st.textContent='.leaflet-tooltip.bclab{font-size:'+fs.toFixed(1)+'px}';
  const placed=[];const VB=vbox();let nbc=0;
- BC.forEach(b=>{const e=eff(b);if(e.lat==null)return;const la=+e.lat,ln=+e.lng;if(isNaN(la)||isNaN(ln))return;
+ BC.forEach(b=>{const e=eff(b);if(e.lat==null)return;if(window.CASE_GEO_BC&&!window.CASE_GEO_BC.pass(e,b))return; /* v4.76.0: фильтры БЦ в левой панели */const la=+e.lat,ln=+e.lng;if(isNaN(la)||isNaN(ln))return;
   if(VB&&!VB.contains([la,ln]))return;
   let col=bySrc?(PROVCOL[e.provider]||'#666'):fix;
   if($('bcByRent')&&$('bcByRent').checked){const rv=parseFloat(e.rent);
@@ -1333,7 +1333,7 @@ function renderProj(){const p=proj(),plat=+p.lat,plng=+p.lng;$('projInfo').inner
  try{updateLegend();}catch(e){}
  L.marker([plat,plng],{icon:ic}).addTo(gProj).bindTooltip('★ '+esc(p.name),{permanent:true,direction:'top',className:'dlab'});
  map.setView([plat,plng],p.portfolio?10:13);}
-function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
+function catchSummary(){const p=proj();const mx=Math.max(...RADII.filter(r=>r.on).map(r=>r.km),0);const inside=BC.map(eff).filter(b=>b.lat!=null&&(!window.CASE_GEO_BC||window.CASE_GEO_BC.pass(b,b))&&hav(p.lat,p.lng,+b.lat,+b.lng)<=mx);const byd={};inside.forEach(b=>byd[b.district]=(byd[b.district]||0)+1);
  if(!mx){$('catchSummary').innerHTML='Все кольца отключены.';return;}
  $('catchSummary').innerHTML=`В ${mx} км: <b>${inside.length}</b> БЦ.<br>`+Object.entries(byd).sort((a,b)=>b[1]-a[1]).map(([d,n])=>`${esc(d||'?')}: ${n}`).join('<br>');}
 function buildRings(){$('rings').innerHTML='';RADII.forEach((r,i)=>{const l=document.createElement('label');l.className='ck';l.innerHTML=`<input type=checkbox ${r.on?'checked':''}> <span class="dot" style="background:${RINGC[i]}"></span> ${r.km} км`;l.querySelector('input').onchange=e=>{RADII[i].on=e.target.checked;renderProj();};$('rings').appendChild(l);});}
@@ -2550,14 +2550,16 @@ setTimeout(initPop,800);
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
 <script src="geo-direct.js?v=4.75.0"></script>
-<script src="v420-geo-studio.js?v=4.73.1"></script>
+<script src="v420-geo-studio.js?v=4.76.0"></script>
 <script src="v4530-geo-export.js?v=4.73.1"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
 <script src="v4730-geo-agent.js?v=4.75.0"></script>
 <script src="v4740-geo-tree.js?v=4.75.0"></script>
-<script src="v4750-geo-layout.js?v=4.75.0"></script>
-<script src="v4750-geo-tools.js?v=4.75.0"></script>
+<script src="v4750-geo-layout.js?v=4.76.0"></script>
+<script src="v4750-geo-tools.js?v=4.76.0"></script>
+<script src="v4760-geo-bc.js?v=4.76.0"></script>
+<script src="v4760-geo-caps.js?v=4.76.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span

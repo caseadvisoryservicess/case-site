@@ -106,6 +106,59 @@ if ($a==='delete_user') {
   audit('Удалён пользователь', $uid.' · '.$u['email'].' · '.$u['name']);
   json_out(['ok'=>true]);
 }
+/* v4.76.0: настройки пользователя: тип доступа, срок подписки, выгрузка и правки, заметка */
+if ($a==='set_profile') {
+  $uid = (string)($b['id'] ?? ''); if (!$uid) fail('Нужен id пользователя', 400);
+  ensure_user_profile_columns();
+  $st = db()->prepare('SELECT id,email,user_type,expires_at,settings,role_key FROM app_users WHERE id=?'); $st->execute([$uid]);
+  $cur = $st->fetch(); if (!$cur) fail('Пользователь не найден', 404);
+  $type = (string)($b['user_type'] ?? $cur['user_type'] ?? 'employee');
+  if (!in_array($type, ['employee','client','demo'], true)) fail('Тип доступа: employee, client или demo', 400);
+  $exp = array_key_exists('expires_at', $b) ? trim((string)$b['expires_at']) : (string)($cur['expires_at'] ?? '');
+  if ($exp !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}/', $exp)) fail('Срок доступа: дата ГГГГ-ММ-ДД', 400);
+  $exp = $exp === '' ? null : substr($exp, 0, 10).' 23:59:59';
+  $settings = user_settings(['settings'=>$cur['settings'] ?? null]);
+  if (isset($b['settings']) && is_array($b['settings'])) {
+    foreach (['can_export','can_edit'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = !empty($b['settings'][$k]);
+    if (array_key_exists('note', $b['settings'])) $settings['note'] = mb_substr(trim((string)$b['settings']['note']), 0, 500);
+    foreach (['company','phone'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = mb_substr(trim((string)$b['settings'][$k]), 0, 120);
+  }
+  /* клиенту нельзя оставить внутреннюю роль с правами правок: тип client переводит на роль CL */
+  $role = (string)$cur['role_key'];
+  if ($type === 'client' && $role !== 'CL') { ensure_access_roles(); $role = 'CL'; }
+  if ($type === 'demo' && $role !== 'DEMO') { ensure_access_roles(); $role = 'DEMO'; }
+  db()->prepare('UPDATE app_users SET user_type=?, expires_at=?, settings=?, role_key=? WHERE id=?')->execute([$type, $exp, json_encode($settings, JSON_UNESCAPED_UNICODE), $role, $uid]);
+  try { db()->exec('COMMIT'); } catch (Throwable $e) {}
+  audit('Настройки пользователя', $cur['email'].' · тип '.$type.' · до '.($exp ? substr($exp,0,10) : 'бессрочно').' · выгрузка '.(!empty($settings['can_export'])?'да':'нет').' · правки '.(!empty($settings['can_edit'])?'да':'нет'));
+  json_out(['ok'=>true,'user_type'=>$type,'expires_at'=>$exp,'settings'=>$settings,'role_key'=>$role]);
+}
+/* v4.76.0: подтверждение заявки на регистрацию: включает учётную запись клиента и задаёт срок */
+if ($a==='approve') {
+  $uid = (string)($b['id'] ?? ''); if (!$uid) fail('Нужен id пользователя', 400);
+  ensure_user_profile_columns();
+  $st = db()->prepare('SELECT id,email,name,settings FROM app_users WHERE id=?'); $st->execute([$uid]);
+  $cur = $st->fetch(); if (!$cur) fail('Пользователь не найден', 404);
+  $exp = trim((string)($b['expires_at'] ?? ''));
+  if ($exp !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}/', $exp)) fail('Срок доступа: дата ГГГГ-ММ-ДД', 400);
+  $exp = $exp === '' ? null : substr($exp, 0, 10).' 23:59:59';
+  $settings = user_settings(['settings'=>$cur['settings'] ?? null]);
+  $settings['registration_pending'] = 0; $settings['approved_at'] = date('Y-m-d H:i:s'); $settings['approved_by'] = (string)(current_user()['name'] ?? '');
+  $settings['can_export'] = !empty($b['can_export']); $settings['can_edit'] = false;
+  ensure_access_roles();
+  db()->prepare("UPDATE app_users SET active=1, user_type='client', role_key='CL', expires_at=?, settings=? WHERE id=?")->execute([$exp, json_encode($settings, JSON_UNESCAPED_UNICODE), $uid]);
+  try { db()->exec('COMMIT'); } catch (Throwable $e) {}
+  audit('Заявка подтверждена: доступ открыт', $cur['email'].' · до '.($exp ? substr($exp,0,10) : 'бессрочно'));
+  json_out(['ok'=>true,'expires_at'=>$exp]);
+}
+/* v4.76.0: журнал действий одного пользователя (audit_log на сервере) */
+if ($a==='log') {
+  $uid = (string)($b['id'] ?? ''); if (!$uid) fail('Нужен id пользователя', 400);
+  $lim = max(20, min(1000, (int)($b['limit'] ?? 300)));
+  $rows = [];
+  try { $st = db()->prepare('SELECT id,by_name,role_key,action,detail,at FROM audit_log WHERE by_id=? ORDER BY id DESC LIMIT '.$lim); $st->execute([$uid]); $rows = $st->fetchAll(); }
+  catch (Throwable $e) { fail('Журнал недоступен: '.$e->getMessage(), 500); }
+  json_out(['rows'=>$rows]);
+}
 if ($a==='setpass') {
   $uid = $b['id'] ?? ''; $pass = (string)($b['password'] ?? '');
   if (!$uid || strlen($pass) < 8) fail('Нужны id и пароль (мин. 8 символов)', 400);

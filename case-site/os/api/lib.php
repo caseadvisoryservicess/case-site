@@ -126,15 +126,25 @@ function require_valid_csrf(array $payload=[]): void {
 
 
 // ── Текущий пользователь и права ──────────────────────────────────────
+// v4.76.0: тип доступа (сотрудник, клиент, демо), срок подписки и личные настройки пользователя.
+// Колонки дочиниваются сами при первом обращении, миграция os/sql/migrations/2026_09_17_v4760_access.sql
+// делает то же самое явно. Без колонок вход не ломается: тип «сотрудник», без срока.
+function ensure_user_profile_columns(): void {
+  static $done = false; if ($done) return; $done = true;
+  foreach (['user_type'=>"VARCHAR(16) NOT NULL DEFAULT 'employee'", 'expires_at'=>'DATETIME NULL', 'settings'=>'TEXT NULL'] as $col=>$def) {
+    try { db()->exec('ALTER TABLE app_users ADD COLUMN '.$col.' '.$def); } catch (Throwable $e) {}
+  }
+}
 function current_user(): ?array {
   if (empty($_SESSION['uid'])) return null;
   static $u = null;
   if ($u && $u['id']===$_SESSION['uid']) return $u;
-  try {
-    $st = db()->prepare('SELECT u.id,u.email,u.name,u.title,u.role_key,u.broker_name,u.projects,u.active,
+  $full = 'SELECT u.id,u.email,u.name,u.title,u.role_key,u.broker_name,u.projects,u.active,u.user_type,u.expires_at,u.settings,
         r.label AS role_label,r.leasing,r.finance,r.edit,r.approve,r.plans,r.own_only,r.project_scope,r.admin
-      FROM app_users u JOIN roles r ON r.`key`=u.role_key WHERE u.id=?');
-    $st->execute([$_SESSION['uid']]);
+      FROM app_users u JOIN roles r ON r.`key`=u.role_key WHERE u.id=?';
+  try {
+    try { $st = db()->prepare($full); $st->execute([$_SESSION['uid']]); }
+    catch (Throwable $e0) { ensure_user_profile_columns(); $st = db()->prepare($full); $st->execute([$_SESSION['uid']]); }
     $u = $st->fetch() ?: null;
   } catch (Throwable $e) {
     // старая схема БД (миграции ещё не применены) — работаем без project_scope/projects,
@@ -147,13 +157,75 @@ function current_user(): ?array {
     if ($u) { $u['project_scope'] = 0; $u['projects'] = null; }
   }
   if ($u && is_string($u['projects'] ?? null)) $u['projects'] = json_decode($u['projects'], true) ?: [];
+  if ($u) { if (!array_key_exists('user_type', $u)) $u['user_type'] = 'employee'; if (!array_key_exists('expires_at', $u)) $u['expires_at'] = null; $u['settings'] = user_settings($u); }
   return $u;
 }
 function require_login(): array {
   $u = current_user();
   if (!$u || !$u['active']) fail('Не авторизован', 401);
+  // v4.76.0: подписка истекла: вход закрыт, данные и учётная запись остаются
+  if (subscription_expired($u)) { access_close_session(); fail('Срок доступа истёк. Данные сохранены; продление у администратора CASE.', 403); }
   return $u;
 }
+
+// Закрыть сеанс, но оставить клиенту рабочий CSRF-токен: после session_destroy() новый токен
+// не сохранился бы, и следующий вход падал бы с «сессия устарела».
+function access_close_session(): void {
+  $_SESSION = [];
+  try { session_regenerate_id(true); } catch (Throwable $e) {}
+}
+// ── v4.76.0: типы доступа, подписка, настройки пользователя ──────────────
+// Администратор: флаг admin роли. Сотрудник: любая внутренняя роль. Клиент: роль CL (только
+// просмотр студии; выгрузка и правки включаются администратором в настройках пользователя).
+// Демо: роль DEMO, общий демо-пользователь, ничего не сохраняет, видит ограниченные данные.
+function user_type(array $u): string {
+  if (!empty($u['admin'])) return 'admin';
+  $t = (string)($u['user_type'] ?? '');
+  if (in_array($t, ['employee','client','demo'], true)) return $t;
+  $rk = (string)($u['role_key'] ?? '');
+  return $rk === 'CL' ? 'client' : ($rk === 'DEMO' ? 'demo' : 'employee');
+}
+function is_demo_user(?array $u): bool { return $u ? user_type($u) === 'demo' : false; }
+function user_settings(array $u): array {
+  $s = $u['settings'] ?? null;
+  if (is_string($s)) { $s = json_decode($s, true); }
+  return is_array($s) ? $s : [];
+}
+// Дата окончания хранится днём: доступ действует весь этот день включительно.
+function subscription_end_ts(array $u): ?int {
+  $e = trim((string)($u['expires_at'] ?? ''));
+  if ($e === '' || $e === '0000-00-00' || $e === '0000-00-00 00:00:00') return null;
+  $t = strtotime(strlen($e) <= 10 ? $e.' 23:59:59' : $e);
+  return $t ? $t : null;
+}
+function subscription_days_left(array $u): ?int {
+  $t = subscription_end_ts($u);
+  if ($t === null) return null;
+  return (int)floor(($t - time()) / 86400);
+}
+function subscription_expired(array $u): bool { $d = subscription_days_left($u); return $d !== null && $d < 0; }
+// Что можно на клиенте: выгрузка и правки. Сервер проверяет права сам, это подсказка интерфейсу.
+function user_caps(array $u): array {
+  $t = user_type($u); $s = user_settings($u);
+  $export = $t === 'admin' || $t === 'employee' ? (array_key_exists('can_export', $s) ? !empty($s['can_export']) : true) : ($t === 'client' ? !empty($s['can_export']) : false);
+  $edit = $t === 'admin' ? true : ($t === 'employee' ? (array_key_exists('can_edit', $s) ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : asaas_geo_can_edit($u)) : ($t === 'client' ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : false));
+  return ['type'=>$t, 'demo'=>$t === 'demo', 'export'=>$export, 'edit'=>$edit, 'days_left'=>subscription_days_left($u), 'expires_at'=>$u['expires_at'] ?? null];
+}
+function deny_if_demo(): void {
+  $u = current_user();
+  if ($u && is_demo_user($u)) fail('Демо-доступ: изменения не сохраняются. Полный доступ открывает CASE после регистрации.', 403);
+}
+// Роли клиента и демо создаются при первой регистрации или демо-входе (и миграцией).
+function ensure_access_roles(): void {
+  static $done = false; if ($done) return; $done = true;
+  $ig = (cfg()['driver'] ?? 'mysql') === 'sqlite' ? 'INSERT OR IGNORE' : 'INSERT IGNORE';
+  foreach ([['CL','Клиент (просмотр геоаналитики)'], ['DEMO','Демо-доступ']] as $r) {
+    try { db()->prepare($ig.' INTO roles (`key`,label,leasing,finance,edit,approve,plans,own_only,project_scope,admin) VALUES (?,?,0,0,0,0,0,0,0,0)')->execute($r); } catch (Throwable $e) {}
+  }
+}
+function registration_enabled(): bool { $c = cfg(); return !array_key_exists('allow_registration', $c) || !empty($c['allow_registration']); }
+function demo_login_enabled(): bool { $c = cfg(); return !array_key_exists('demo_login', $c) || !empty($c['demo_login']); }
+function demo_email(): string { $c = cfg(); return (string)($c['demo_email'] ?? 'demo@caseadvisory.local'); }
 function can(string $p): bool {
   $u = current_user();
   return $u ? (bool)($u[$p] ?? false) : false;
@@ -189,6 +261,8 @@ function asaas_workspace_default_views(): array {
     'BA'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','geoanalytics','bench','kpi','org','study','rating'],
     'AG'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
     'AGX'=>['dash','work_tasks','work_kanban','brands','v32_investors'],
+    /* v4.76.0: клиенты и демо видят только студию геоаналитики */
+    'CL'=>['dash','geoanalytics'], 'DEMO'=>['dash','geoanalytics'],
     'HO'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
     'BSH'=>['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','registry','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
     'HM'=>['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
@@ -221,7 +295,7 @@ function geo_only(): bool { return platform_mode() === 'geo'; }
 // Разделы, которые остаются в режиме «только геоаналитика». dash и users защищены от
 // скрытия флагами модулей (asaas_protected_module_ids), поэтому входят сюда явно.
 function geo_only_module_ids(): array {
-  return ['dash','map','geoanalytics','analytics_hub','geo_platform','users','admin_modules','admin_system'];
+  return ['dash','map','geoanalytics','analytics_hub','users','admin_modules','admin_system']; // v4.76.0: экрана geo_platform больше нет
 }
 function geo_only_allows(string $view): bool { return !geo_only() || in_array($view, geo_only_module_ids(), true); }
 // Ставится в начало эндпоинтов других отделов: в гео-режиме они отвечают 403 всем, включая
@@ -234,6 +308,7 @@ function asaas_workspace_hard_allowed(array $u, string $view): bool {
   // External agents never receive corporate registries; junior data admins never receive LCR/projects.
   $rk = (string)($u['role_key'] ?? '');
   if ($rk === 'AGX') return in_array($view, ['dash','work_tasks','work_kanban','brands','v32_investors'], true);
+  if ($rk === 'CL' || $rk === 'DEMO') return in_array($view, ['dash','geoanalytics'], true); // v4.76.0: граница безопасности, не пресет меню
   if ($rk === 'BRJ') return in_array($view, ['dash','work_tasks','work_kanban','brands','geoanalytics','market_data','macro_data','data_quality','data_import_export'], true);
   return true;
 }
@@ -389,7 +464,7 @@ function tables(): array {
     // видеть список активных сотрудников для ЛЮБОЙ leasing-роли. Но email/роль/брокер/проекты -
     // это уже не то, что нужно для упоминания в чате; redact_unless_admin прячет их не-админам
     // на уровне list_table() (см. ниже), а не полагается на то, что фронтенд "просто не покажет".
-    'app_users'=>['pk'=>'id','idtype'=>'uuid','cols'=>['id','email','name','title','role_key','broker_name','projects','active'],'json'=>['projects'],'read'=>'leasing','write'=>'admin','redact_unless_admin'=>['email','title','role_key','broker_name','projects']],
+    'app_users'=>['pk'=>'id','idtype'=>'uuid','cols'=>['id','email','name','title','role_key','broker_name','projects','active','user_type','expires_at','settings'],'json'=>['projects','settings'],'read'=>'leasing','write'=>'admin','redact_unless_admin'=>['email','title','role_key','broker_name','projects','user_type','expires_at','settings']],
     // activity_log: не используется фронтендом для записи (реальный журнал - audit_log,
     // пишется только сервером через audit()). write=>leasing раньше позволяло любой
     // leasing-роли вставлять поддельные записи; отключаем клиентскую запись полностью.
@@ -424,6 +499,7 @@ function q(string $id): string { return '`'.str_replace('`','',$id).'`'; } // б
 // ── Чтение таблицы ────────────────────────────────────────────────────
 function list_table(string $table, array $filters): array {
   $defs = tables(); if (!isset($defs[$table])) fail('Неизвестная таблица', 400);
+  if ($table === 'app_users') ensure_user_profile_columns(); // v4.76.0: старые базы без колонок типа и срока
   $d = $defs[$table];
   require_login();
   require_table_allowed($table);

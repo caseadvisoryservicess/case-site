@@ -5,6 +5,7 @@
 require __DIR__.'/lib.php';
 $u = require_login();
 $m = $_SERVER['REQUEST_METHOD'];
+if ($m !== 'GET') deny_if_demo(); // v4.76.0: демо-доступ ничего не сохраняет
 
 function ensure_app_state_schema(): void {
   $pdo = db();

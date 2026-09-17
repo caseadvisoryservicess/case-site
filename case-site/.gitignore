@@ -10,6 +10,7 @@ docs/qa/tools/*.png
 docs/standalone/geo_mvp_desktop.png
 docs/standalone/geo_mvp_mobile.png
 docs/qa/tools/indep/
+docs/qa/tools/indep_*/
 docs/qa/tools/labtest/
 docs/qa/tools/legendtest/
 docs/qa/tools/exporttest/

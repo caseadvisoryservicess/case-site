@@ -37,7 +37,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
   const appVer = (fs.readFileSync(path.join(OS, 'index.html'), 'utf8').match(/APP_VERSION='([\d.]+)'/) || [])[1];
   ck('один файл, рядом ничего нет', fs.readdirSync(tmp).length === 1, fs.readdirSync(tmp).join(', '));
   ck('размер разумный (2-8 МБ)', r.bytes > 2e6 && r.bytes < 8e6, (r.bytes / 1048576).toFixed(2) + ' МБ');
-  ck('внешних скриптов нет, все десять встроены (с v4.75.0 ещё компоновка и инструменты карты)', !/<script src=/.test(html) && r.inlined.length === 10 && r.inlined.indexOf('geo-direct.js') >= 0 && r.inlined.indexOf('v4740-geo-tree.js') >= 0 && r.inlined.indexOf('v4750-geo-layout.js') >= 0 && r.inlined.indexOf('v4750-geo-tools.js') >= 0, r.inlined.join(', '));
+  ck('внешних скриптов нет, все двенадцать встроены (с v4.76.0 ещё бизнес-центры и права студии)', !/<script src=/.test(html) && r.inlined.length === 12 && r.inlined.indexOf('geo-direct.js') >= 0 && r.inlined.indexOf('v4740-geo-tree.js') >= 0 && r.inlined.indexOf('v4750-geo-layout.js') >= 0 && r.inlined.indexOf('v4750-geo-tools.js') >= 0 && r.inlined.indexOf('v4760-geo-bc.js') >= 0 && r.inlined.indexOf('v4760-geo-caps.js') >= 0, r.inlined.join(', '));
   ck('версия равна APP_VERSION платформы', r.version === appVer && html.indexOf("version: '" + appVer + "'") > 0, r.version + ' / ' + appVer);
   ck('шапка «CASE Geo Analytics», данные и шим на месте', /<b>CASE<\/b> Geo Analytics/.test(html) && /CASE_STANDALONE_DATA=/.test(html) && /window\.CASE_STANDALONE =/.test(html) && /<title>CASE Geo Analytics/.test(html));
   ck('районов 12, мастер-база с БЦ, медициной и аптеками', r.districts === 12 && r.master.bc > 100 && r.master.medicine > 1000 && r.master.pharmacies > 500, JSON.stringify(r.master));
@@ -95,7 +95,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
   ck('файл открылся с диска, гейт входа пройден без сервера', s.standalone && !s.pending && !s.denied && s.ver === appVer, JSON.stringify({ pending: s.pending, denied: s.denied }));
   ck('шапка «CASE Geo Analytics», карта и Leaflet из файла', /Geo Analytics/.test(s.header) && s.L && s.map, s.header);
   ck('мастер-геобаза из файла: БЦ и медицина', s.master && s.bc > 100 && s.med > 1000, 'БЦ ' + s.bc + ', медицина ' + s.med);
-  ck('правка разрешена локально, вкладок про проект нет', /РЕДАКТИРОВАНИЕ/.test(s.edit) && s.tabs.length === 4, s.edit + ' / ' + s.tabs.join(','));
+  ck('правка разрешена локально, вкладок про проект и «Сравнения стран» нет (v4.76.0)', /РЕДАКТИРОВАНИЕ/.test(s.edit) && s.tabs.length === 3, s.edit + ' / ' + s.tabs.join(','));
   ck('ошибок сценария при открытии нет', errs.length === 0, errs[0] || 'нет');
 
   const dist = await pg.evaluate(async () => { const cb = document.getElementById('lDist'); cb.checked = true; cb.dispatchEvent(new Event('change', { bubbles: true }));

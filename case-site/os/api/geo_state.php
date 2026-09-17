@@ -86,6 +86,38 @@ function geo_history_ensure(PDO $pdo): void {
   }
 }
 
+/* v4.76.0: корзина геоданных. Строки, которые исчезли из набора при сохранении, попадают сюда;
+   администратор видит их на странице «Доступ» и восстанавливает одной кнопкой. */
+function geo_trash_ensure(PDO $pdo): void {
+  $driver = (string)$pdo->getAttribute(PDO::ATTR_DRIVER_NAME);
+  if ($driver === 'sqlite') {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS geo_trash (id INTEGER PRIMARY KEY AUTOINCREMENT, dataset TEXT NOT NULL, row_key TEXT NOT NULL, row_json TEXT NOT NULL, deleted_by_id TEXT NULL, deleted_by TEXT NULL, deleted_at TEXT NOT NULL, restored_at TEXT NULL, restored_by TEXT NULL)');
+  } else {
+    $pdo->exec('CREATE TABLE IF NOT EXISTS geo_trash (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, dataset VARCHAR(80) NOT NULL, row_key VARCHAR(255) NOT NULL, row_json LONGTEXT NOT NULL, deleted_by_id CHAR(36) NULL, deleted_by VARCHAR(190) NULL, deleted_at DATETIME NOT NULL, restored_at DATETIME NULL, restored_by VARCHAR(190) NULL, KEY idx_geo_trash_deleted (deleted_at)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+  }
+}
+function geo_removed_rows(array $incoming, array $old): array {
+  $out = [];
+  $oldSets = isset($old['datasets']) && is_array($old['datasets']) ? $old['datasets'] : [];
+  $newSets = isset($incoming['datasets']) && is_array($incoming['datasets']) ? $incoming['datasets'] : [];
+  foreach ($oldSets as $name=>$rows) {
+    if (!is_array($rows)) continue;
+    $keep = [];
+    if (isset($newSets[$name]) && is_array($newSets[$name])) foreach ($newSets[$name] as $i=>$r) if (is_array($r) && !geo_is_list_array($r)) $keep[geo_row_key($r, (int)$i)] = 1;
+    foreach ($rows as $i=>$r) {
+      if (!is_array($r) || geo_is_list_array($r)) continue;
+      $k = geo_row_key($r, (int)$i);
+      if (!isset($keep[$k])) $out[] = [(string)$name, $k, $r];
+      if (count($out) >= 2000) return $out; // защита от сброса всей базы одним сохранением
+    }
+  }
+  return $out;
+}
+function geo_row_title(array $r): string {
+  foreach (['name','n','title','address'] as $k) { $v = trim((string)($r[$k] ?? '')); if ($v !== '') return mb_substr($v, 0, 120); }
+  return 'запись';
+}
+
 function geo_is_list_array(array $a): bool {
   $i = 0; foreach ($a as $k=>$v) { if ($k !== $i++) return false; } return true;
 }
@@ -141,6 +173,14 @@ if ($m === 'POST' || isset($_GET['history'])) {
   try { geo_history_ensure($pdo); $historyReady = true; } catch (Throwable $e) { $historyReady = false; }
 }
 if ($m === 'GET') {
+  if (isset($_GET['trash'])) {
+    if (empty($u['admin'])) fail('Корзина доступна администратору', 403);
+    try { geo_trash_ensure($pdo); } catch (Throwable $e) { fail('Корзина недоступна: '.$e->getMessage(), 503); }
+    $st = $pdo->query('SELECT id,dataset,row_key,row_json,deleted_by,deleted_at,restored_at,restored_by FROM geo_trash ORDER BY id DESC LIMIT 300');
+    $rows = [];
+    foreach ($st->fetchAll() as $r) { $row = json_decode((string)$r['row_json'], true); $rows[] = ['id'=>(int)$r['id'],'dataset'=>$r['dataset'],'row_key'=>$r['row_key'],'title'=>is_array($row) ? geo_row_title($row) : 'запись','deleted_by'=>$r['deleted_by'],'deleted_at'=>$r['deleted_at'],'restored_at'=>$r['restored_at'],'restored_by'=>$r['restored_by']]; }
+    json_out(['trash'=>$rows]);
+  }
   if (isset($_GET['history'])) {
     if (!asaas_geo_can_edit($u)) fail('История доступна только редакторам', 403);
     if (!$historyReady) fail('История сохранений пока недоступна. Запустите api/migrate.php.', 503);
@@ -157,9 +197,31 @@ if ($m === 'GET') {
 }
 
 if ($m === 'POST') {
+  deny_if_demo(); // v4.76.0
   if (!asaas_geo_can_edit($u)) fail('Нет прав на изменение геоданных', 403);
   $b = body();
   $action = (string)($b['action'] ?? 'save');
+  $restoreTrashId = 0;
+  if ($action === 'restore_trash') {
+    /* v4.76.0: восстановление записи из корзины: та же дорога сохранения, строка возвращается в свой набор */
+    if (empty($u['admin'])) fail('Восстановление из корзины доступно администратору', 403);
+    $restoreTrashId = (int)($b['trash_id'] ?? 0);
+    if ($restoreTrashId <= 0) fail('Не указана запись корзины', 400);
+    try { geo_trash_ensure($pdo); } catch (Throwable $e) { fail('Корзина недоступна: '.$e->getMessage(), 503); }
+    $ts = $pdo->prepare('SELECT dataset,row_key,row_json,restored_at FROM geo_trash WHERE id=?'); $ts->execute([$restoreTrashId]);
+    $tr = $ts->fetch(); if (!$tr) fail('Запись корзины не найдена', 404);
+    if (!empty($tr['restored_at'])) fail('Запись уже восстановлена', 409);
+    $trRow = json_decode((string)$tr['row_json'], true); if (!is_array($trRow)) fail('Запись корзины повреждена', 500);
+    $cs = $pdo->query('SELECT data FROM app_state WHERE id=1'); $cr = $cs->fetch();
+    $call = ($cr && !empty($cr['data'])) ? json_decode((string)$cr['data'], true) : [];
+    $cgeo = (is_array($call) && isset($call['GEO_DATA']) && is_array($call['GEO_DATA'])) ? $call['GEO_DATA'] : ['datasets'=>[], 'projects'=>[]];
+    if (!isset($cgeo['datasets']) || !is_array($cgeo['datasets'])) $cgeo['datasets'] = [];
+    $ds = (string)$tr['dataset'];
+    if (!isset($cgeo['datasets'][$ds]) || !is_array($cgeo['datasets'][$ds])) $cgeo['datasets'][$ds] = [];
+    $exists = false; foreach ($cgeo['datasets'][$ds] as $i=>$r) if (is_array($r) && geo_row_key($r, (int)$i) === (string)$tr['row_key']) { $exists = true; break; }
+    if (!$exists) $cgeo['datasets'][$ds][] = $trRow;
+    $b['data'] = $cgeo; $b['reason'] = 'Восстановление из корзины #'.$restoreTrashId; unset($b['expected_geo_revision']);
+  }
   if ($action === 'restore') {
     if (empty($u['admin'])) fail('Восстановление снимка доступно администратору', 403);
     $id = (int)($b['history_id'] ?? 0);
@@ -210,6 +272,16 @@ if ($m === 'POST') {
       $hist = $pdo->prepare('INSERT INTO geo_state_history (app_revision,geo_revision,geo_json,checksum,reason,updated_by,created_at) VALUES (?,?,?,?,?,?,?)');
       $hist->execute([(int)($row['revision'] ?? 0),$serverGeoRev,$oldJson,hash('sha256',$oldJson),$reason,(string)($u['name'] ?? '-'),$nowDb]);
     }
+    /* v4.76.0: строки, пропавшие из наборов, уходят в корзину (кто и когда удалил) */
+    $removed = [];
+    try { $removed = geo_removed_rows($incoming, $oldGeo); } catch (Throwable $e) { $removed = []; }
+    if ($removed) {
+      try {
+        geo_trash_ensure($pdo);
+        $ti = $pdo->prepare('INSERT INTO geo_trash (dataset,row_key,row_json,deleted_by_id,deleted_by,deleted_at) VALUES (?,?,?,?,?,?)');
+        foreach ($removed as $rm) $ti->execute([$rm[0], $rm[1], json_encode($rm[2], JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES), (string)($u['id'] ?? ''), (string)($u['name'] ?? '-'), $nowDb]);
+      } catch (Throwable $e) { /* корзина не должна ломать сохранение */ }
+    }
     $all['GEO_DATA'] = $incoming;
     // Освобождаем крупные промежуточные копии перед финальным encode (пик памяти на
     // гео-мастербазе доходил до fatal 128 МБ). $incomingJson ещё нужен для checksum ниже.
@@ -226,7 +298,8 @@ if ($m === 'POST') {
       $ins->execute([$allJson,$nowDb,(string)($u['name'] ?? '-'),$appRev]);
     }
     $pdo->commit();
-    try { audit('geo_state_saved','reason='.$reason.' geo_revision='.($serverGeoRev+1)); } catch (Throwable $e) {}
+    if ($restoreTrashId > 0) { try { $pdo->prepare('UPDATE geo_trash SET restored_at=?, restored_by=? WHERE id=?')->execute([$nowDb, (string)($u['name'] ?? '-'), $restoreTrashId]); } catch (Throwable $e) {} }
+    try { audit($restoreTrashId > 0 ? 'Корзина: запись восстановлена' : 'Геоданные сохранены', 'reason='.$reason.' geo_revision='.($serverGeoRev+1).($removed ? ' удалено строк='.count($removed) : '')); } catch (Throwable $e) {}
     json_out(['ok'=>true,'data'=>$incoming,'geo_revision'=>$serverGeoRev+1,'app_revision'=>$appRev,'updated_at'=>$nowDb,'updated_by'=>(string)($u['name'] ?? '-'),'checksum'=>hash('sha256',$incomingJson)]);
   } catch (Throwable $e) {
     if ($pdo->inTransaction()) $pdo->rollBack();

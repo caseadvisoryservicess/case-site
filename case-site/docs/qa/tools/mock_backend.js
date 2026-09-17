@@ -34,15 +34,19 @@ function createMockServer(OS_DIR, opts) {
       const ep = p.slice(5);
       // истёкшая сессия: auth.php отвечает «не авторизован», остальные - 401
       if (!state.sessionValid) {
-        if (ep === 'auth.php' && req.method === 'GET') { json(rsp, 200, { auth: false }); return; }
-        json(rsp, 401, { error: 'Не авторизован' }); return;
+        if (ep === 'auth.php' && req.method === 'GET') { json(rsp, 200, { auth: false, csrf: 't0k3n', pass_login: true, code_login: false, mode: state.mode || 'full', registration: state.registration !== false, demo_login: state.demoLogin !== false }); return; }
+        if (ep !== 'auth.php') { json(rsp, 401, { error: 'Не авторизован' }); return; } /* v4.76.0: вход, регистрация и демо работают без сеанса */
       }
       if (ep === 'auth.php') {
         /* v4.74.0: боевой auth.php отдаёт режим платформы; по умолчанию мок отвечает full, чтобы старые проверки других разделов не уходили в гео-режим */
-        if (req.method === 'GET') { json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf, pass_login: true, code_login: false, mode: state.mode || 'full' }); return; }
+        /* v4.76.0: флаги регистрации и демо, срок доступа */
+        const flags = { pass_login: true, code_login: false, mode: state.mode || 'full', registration: state.registration !== false, demo_login: state.demoLogin !== false };
+        if (req.method === 'GET') { json(rsp, 200, Object.assign({ auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf }, flags)); return; }
         const b = await readBody(req);
         if (b.action === 'logout') { json(rsp, 200, { ok: true }); return; }
-        if (b.action === 'login') { state.sessionValid = true; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
+        if (b.action === 'login') { if (state.loginError) { json(rsp, 403, { error: state.loginError }); return; } state.sessionValid = true; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
+        if (b.action === 'register') { state.registrations = state.registrations || []; state.registrations.push(b); json(rsp, 200, { ok: true, pending: true, message: 'Заявка принята. Администратор CASE проверит её и откроет доступ; вы получите письмо на ' + b.email + '.' }); return; }
+        if (b.action === 'demo') { if (state.demoLogin === false) { json(rsp, 403, { error: 'Демо-доступ отключён' }); return; } state.sessionValid = true; state.user = state.demoUser || { id: 'u-demo', name: 'Демо-доступ', role: 'DEMO', role_key: 'DEMO', role_label: 'Демо-доступ', admin: false, edit: false, csrf: 't0k3n', type: 'demo', demo: true, days_left: null, expires_at: null, settings: {}, caps: { type: 'demo', demo: true, export: false, edit: false, days_left: null, expires_at: null } }; state.rights = { leasing: 0, finance: 0, edit: 0, approve: 0, plans: 0, admin: 0, own_only: 0, project_scope: 0 }; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
         json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf }); return;
       }
       if (ep === 'workspace_access.php') { json(rsp, 200, { allowed: true, can_edit: true }); return; }
@@ -98,15 +102,28 @@ function createMockServer(OS_DIR, opts) {
         json(rsp, 200, { ok: true, applied: true, revision: ++state.appState.revision, updated: [] }); return;
       }
       if (ep === 'geo_state.php') {
-        if (req.method === 'GET') { json(rsp, 200, { data: state.geo.data, geo_revision: state.geo.geo_revision, app_revision: state.appState.revision, updated_at: null }); return; }
+        if (req.method === 'GET') {
+          if (/[?&]trash=1/.test(req.url)) { json(rsp, 200, { trash: state.trash || [] }); return; } /* v4.76.0: корзина геоданных */
+          json(rsp, 200, { data: state.geo.data, geo_revision: state.geo.geo_revision, app_revision: state.appState.revision, updated_at: null }); return; }
         const b = await readBody(req);
+        if (b.action === 'restore_trash') { const t = (state.trash || []).find(x => x.id === b.trash_id); if (!t) { json(rsp, 404, { error: 'Запись корзины не найдена' }); return; } t.restored_at = '2026-09-17 12:00:00'; t.restored_by = state.user.name; state.geo.geo_revision++; json(rsp, 200, { ok: true, geo_revision: state.geo.geo_revision }); return; }
         if (state.failMode === 'geo-403') { json(rsp, 403, { error: 'Нет доступа к геоаналитике' }); return; }
         if (state.failMode === 'geo-conflict') { json(rsp, 409, { error: 'Геоданные изменены другим пользователем' }); return; }
         state.geo.data = b.data || state.geo.data; state.geo.geo_revision++;
         json(rsp, 200, { ok: true, geo_revision: state.geo.geo_revision, updated_at: '2026-07-24 12:00:02', updated_by: state.user.name }); return;
       }
       if (ep === 'data.php') {
-        if (req.method === 'GET') { json(rsp, 200, { rows: [] }); return; }
+        if (req.method === 'GET') { const t = (req.url.match(/[?&]table=([^&]+)/) || [])[1]; json(rsp, 200, { rows: t === 'app_users' ? (state.users || []) : t === 'roles' ? (state.roles || []) : [] }); return; }
+        json(rsp, 200, { ok: true }); return;
+      }
+      /* v4.76.0: настройки доступа, подтверждение заявок, журнал пользователя */
+      if (ep === 'users.php') {
+        const b = await readBody(req); state.userPosts = state.userPosts || []; state.userPosts.push(b);
+        const row = (state.users || []).find(u => u.id === b.id);
+        if (b.action === 'set_profile') { if (!row) { json(rsp, 404, { error: 'Пользователь не найден' }); return; } row.user_type = b.user_type; row.expires_at = b.expires_at ? b.expires_at + ' 23:59:59' : null; row.settings = Object.assign({}, row.settings || {}, b.settings || {}); if (b.user_type === 'client') row.role_key = 'CL'; json(rsp, 200, { ok: true }); return; }
+        if (b.action === 'approve') { if (!row) { json(rsp, 404, { error: 'Пользователь не найден' }); return; } row.active = 1; row.user_type = 'client'; row.role_key = 'CL'; row.expires_at = b.expires_at ? b.expires_at + ' 23:59:59' : null; row.settings = Object.assign({}, row.settings || {}, { registration_pending: 0, can_export: !!b.can_export }); json(rsp, 200, { ok: true }); return; }
+        if (b.action === 'delete_user') { state.users = (state.users || []).filter(u => u.id !== b.id); json(rsp, 200, { ok: true }); return; }
+        if (b.action === 'log') { json(rsp, 200, { rows: (state.userLog && state.userLog[b.id]) || [] }); return; }
         json(rsp, 200, { ok: true }); return;
       }
       if (ep === 'geo_master.php') { json(rsp, 404, { error: 'no master' }); return; }

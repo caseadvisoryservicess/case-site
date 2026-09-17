@@ -1,4 +1,7 @@
-/* CASE OS v4.75.0: панель инструментов карты, контекстное меню, отмена и повтор.
+/* CASE OS v4.75.0 (4.76.0): панель инструментов карты, контекстное меню, отмена и повтор.
+ *
+ * v4.76.0: кнопка подложки карты перенесена в панель (замечание владельца), добавлен полный экран
+ * области карты (кнопка ⛶, Esc выходит).
  *
  * Замечание владельца: внизу по центру карты нужна панель как в Felt: отмена и повтор,
  * пин (P), полигон по точкам (O), полигон от руки (F), буфер-круг заданного радиуса (C),
@@ -14,7 +17,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_TOOLS) return;
-  var VERSION = '4.75.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var VERSION = '4.76.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
   var TL = window.CASE_GEO_TOOLS = { version: VERSION };
   var ST = { tool: null, pts: [], preview: null, undo: [], redo: [], routes: null, notes: null, notesData: [], circle: null, freeOn: false, menu: null, seq: 0 };
   function $(id) { return document.getElementById(id); }
@@ -44,7 +47,12 @@
       + '.leaflet-container.geo-tool-cursor{cursor:crosshair}.leaflet-container.geo-tool-free{cursor:cell}'
       + '.geo-info{font-size:12.5px;max-width:260px;line-height:1.45}.geo-info b{display:block}.geo-info small{color:var(--muted,#6f6a63)}'
       + '.geo-toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);z-index:1400;background:#1b1b1b;color:#fff;font:600 12px inherit;padding:8px 13px;border-radius:9px;opacity:0;transition:opacity .18s;pointer-events:none;max-width:80%}.geo-toast.on{opacity:1}'
-      + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}}';
+      /* v4.76.0: кнопка подложки живёт в панели инструментов (замечание владельца), меню раскрывается вверх */
+      + '.geo-tb .geo-tb-base{display:flex;align-items:center}.geo-tb .geo-basectl{position:relative}'
+      + '.geo-tb .geo-basectl-btn{height:38px;border:0;box-shadow:none;background:none;border-radius:10px;padding:0 10px;font:600 12px inherit;max-width:190px;color:var(--ink,#1b1b1b)}.geo-tb .geo-basectl-btn:hover{background:var(--paper-2,#f3f1ee)}'
+      + '.geo-tb .geo-basectl-menu{top:auto;bottom:46px;right:auto;left:0}'
+      + '.geo-tb button.geo-tb-full{width:38px}'
+      + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}.geo-tb .geo-basectl-btn{max-width:120px;height:34px}}';
     document.head.appendChild(s);
   }
 
@@ -63,7 +71,7 @@
     var tb = document.createElement('div'); tb.className = 'geo-tb'; tb.id = 'geoTb'; tb.setAttribute('role', 'toolbar'); tb.setAttribute('aria-label', 'Инструменты карты');
     tb.innerHTML = '<button type="button" data-a="undo" data-tip="Отменить · Ctrl+Z" aria-label="Отменить" disabled>↶</button><button type="button" data-a="redo" data-tip="Повторить · Ctrl+Y" aria-label="Повторить" disabled>↷</button><span class="sep"></span>'
       + TOOLS.map(function (t) { return '<button type="button" data-a="' + t.a + '" data-tip="' + esc(t.tip) + '" aria-label="' + esc(t.tip) + '">' + t.ic + '<kbd>' + t.key + '</kbd></button>'; }).join('')
-      + '<span class="sep"></span><button type="button" data-a="style" data-tip="Стиль карты: подложка" aria-label="Стиль карты">▦</button>';
+      + '<span class="sep"></span><span class="geo-tb-base" id="geoTbBase"></span><button type="button" data-a="full" class="geo-tb-full" data-tip="Полный экран карты" aria-label="Полный экран карты" aria-pressed="false">⛶</button>';
     /* внутри контейнера карты: «по центру» значит по центру карты, а не всей страницы с левой панелью */
     mapEl.appendChild(tb);
     var hint = document.createElement('div'); hint.className = 'geo-tb-hint'; hint.id = 'geoTbHint'; mapEl.appendChild(hint);
@@ -74,7 +82,7 @@
       var a = b.getAttribute('data-a');
       if (a === 'undo') return undo();
       if (a === 'redo') return redo();
-      if (a === 'style') { var sb = document.querySelector('.geo-basectl-btn'); if (sb) sb.click(); return; }
+      if (a === 'full') { var LY = window.CASE_GEO_LAYOUT; if (LY && LY.fullscreen) LY.fullscreen(); return; }
       setTool(ST.tool === a ? null : a);
     });
   }
@@ -82,7 +90,17 @@
   function toast(msg) { var t = $('geoToast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2800); }
   function hint(html) { var h = $('geoTbHint'); if (!h) return; if (!html) { h.classList.remove('on'); h.innerHTML = ''; return; } h.innerHTML = html; h.classList.add('on'); }
   function syncButtons() {
-    document.querySelectorAll('#geoTb button[data-a]').forEach(function (b) { var a = b.getAttribute('data-a'); if (a === 'undo') b.disabled = !ST.undo.length; else if (a === 'redo') b.disabled = !ST.redo.length; else b.classList.toggle('on', a === ST.tool); });
+    var LY = window.CASE_GEO_LAYOUT, fs = !!(LY && LY.isFullscreen && LY.isFullscreen());
+    document.querySelectorAll('#geoTb button[data-a]').forEach(function (b) { var a = b.getAttribute('data-a'); if (a === 'undo') b.disabled = !ST.undo.length; else if (a === 'redo') b.disabled = !ST.redo.length; else if (a === 'full') { b.classList.toggle('on', fs); b.setAttribute('aria-pressed', fs ? 'true' : 'false'); b.setAttribute('data-tip', fs ? 'Выйти из полного экрана (Esc)' : 'Полный экран карты'); } else b.classList.toggle('on', a === ST.tool); });
+  }
+  /* подложка карты: готовый переключатель дерева слоёв (.geo-basectl) переезжает в панель инструментов */
+  function adoptBasectl() {
+    var tries = 0;
+    (function tick() {
+      var slot = $('geoTbBase'), ctl = document.querySelector('.geo-basectl');
+      if (slot && ctl) { if (!slot.contains(ctl)) { ctl.classList.remove('leaflet-control'); slot.appendChild(ctl); } return; }
+      if (++tries < 80) setTimeout(tick, 250);
+    })();
   }
 
   /* --- отмена и повтор ---------------------------------------------------------- */
@@ -322,9 +340,11 @@
     M.on('movestart zoomstart', hideMenu);
     document.addEventListener('keydown', onKey);
     document.addEventListener('click', function (e) { if (ST.menu && !(e.target.closest && e.target.closest('.geo-cmenu'))) hideMenu(); });
+    document.addEventListener('caseos:fullscreen', syncButtons);
+    adoptBasectl();
     syncButtons();
   }
   TL.setTool = setTool; TL.cancel = function () { cancel(false); }; TL.undo = undo; TL.redo = redo; TL.state = ST; TL.finishPolygon = finishPolygon; TL.notes = function () { return ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }); }; TL.showInfo = info; TL.simplify = simplify;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.75.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.76.0';

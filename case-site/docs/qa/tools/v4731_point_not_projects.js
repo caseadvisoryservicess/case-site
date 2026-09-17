@@ -50,7 +50,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
   const top = await pg.evaluate(() => ({ sel: !!document.getElementById('geoProject'), title: (document.querySelector('.geo-v42-title') || {}).textContent || '',
     hist: !!document.querySelector('.geo-v42-hist'), reload: !!document.querySelector('.geo-v42-reload'), recover: !!document.getElementById('geoRecoverBtn') }));
   ck('над студией нет списка проектов', !top.sel);
-  ck('вместо него подсказка про гео-агента, кнопки истории и обновления на месте', /гео-агент/i.test(top.title) && top.hist && top.reload && top.recover, top.title);
+  ck('строки-подсказки над студией нет (v4.76.0), кнопки истории и обновления на месте', top.title.trim() === '' && top.hist && top.reload && top.recover, top.title);
   const fr = pg.frames().find(f => /geoanalytics-studio/.test(f.url()));
   ck('студия открылась во фрейме', !!fr);
   let inFrame = null;
@@ -90,7 +90,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
       btnReport: (document.getElementById('btnProjReport') || {}).textContent || '' };
   });
   ck('присланные проекты отброшены: в студии одна точка анализа', s2.keys.length === 1 && s2.keys[0] === 'project' && s2.opts.length === 1 && s2.opts[0] === 'Точка анализа', JSON.stringify({ keys: s2.keys, opts: s2.opts }));
-  ck('список проектов скрыт, галочки портфеля нет, секция называется «Точка анализа»', s2.selHidden && !s2.lProj && s2.heading === 'Точка анализа' && s2.pick && /по точке/.test(s2.btnReport), s2.heading + ' / ' + s2.btnReport);
+  ck('список проектов скрыт, галочки портфеля нет, секция называется «Точка анализа», кнопки «Точка на карте» нет (v4.76.0)', s2.selHidden && !s2.lProj && s2.heading === 'Точка анализа' && !s2.pick && /по точке/.test(s2.btnReport), s2.heading + ' / ' + s2.btnReport);
   ck('вкладки про проект скрыты, карта, аналитика и данные видны', s2.tabs.siteT === false && s2.tabs.planT === false && s2.tabs.objT === false && s2.tabs.mapT && s2.tabs.anaT && s2.tabs.dataT, JSON.stringify(s2.tabs));
   ck('в легенде нет проектов портфеля', !/Проекты портфеля|Проект портфеля/.test(s2.legend));
   ck('незаданная точка не нарисована на карте и названа незаданной', s2.drawn === 0 && /не задана/.test(s2.info) && s2.point.pending === true, s2.info + ' / меток ' + s2.drawn);

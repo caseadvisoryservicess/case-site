@@ -15,7 +15,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.75.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v1';
+  var VERSION = '4.76.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -37,7 +37,16 @@
       + '.ga-toggle .ga-toggle-ic{font-size:14px}'
       + '.ga-static-legend{margin-top:6px}.ga-static-legend .li{cursor:default}.ga-static-legend .li:hover{background:none}'
       + '.ga-static-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}'
-      + '#rings label.ck{display:inline-flex;margin:2px 10px 2px 0}'
+      + '#rings label.ck{display:inline-flex;align-items:center;gap:4px;margin:2px 10px 2px 0}#rings input[type=color]{width:18px;height:18px;padding:0;border:1px solid var(--line,#e3dcd1);border-radius:5px;background:none;cursor:pointer}'
+      /* v4.76.0: у каждого кольца свой цвет, общий выбор цвета у толщины линий больше не нужен */
+      + '#ringWc{display:none}'
+      /* v4.76.0: левая панель сворачивается целиком; язычок у левого края карты */
+      + '#mapT.left-off>.left{display:none}'
+      + '.left-tab{position:absolute;left:0;top:50%;transform:translateY(-50%);z-index:1006;width:22px;height:64px;border:1px solid var(--line,#e3dcd1);border-left:0;border-radius:0 9px 9px 0;background:#fff;color:var(--ink,#1b1b1b);font:700 13px inherit;cursor:pointer;box-shadow:2px 0 10px rgba(40,30,20,.12);display:flex;align-items:center;justify-content:center;padding:0}'
+      + '#mapT:not(.left-off) .left-tab{left:330px}.left-tab:hover{background:var(--paper-2,#f3f1ee)}'
+      + '@media(max-width:900px){#mapT:not(.left-off) .left-tab{left:275px}}@media(max-width:620px){.left-tab{display:none}}'
+      /* v4.76.0: полный экран для области карты; запасной режим без Fullscreen API */
+      + '#mapT:fullscreen,#mapT:-webkit-full-screen{background:#fff}#mapT.geo-fs-fallback{position:fixed;inset:0;z-index:3000;background:#fff}'
       /* при открытом ящике панель инструментов, подсказка и уведомление сдвигаются к центру видимой части карты */
       + '#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:calc(50% - 120px)}'
       + '@media(max-width:620px){.ga-drawer{width:100%}.ga-toggle{top:auto;bottom:70px;right:12px}#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:50%}}';
@@ -110,15 +119,18 @@
 
   /* --- свои радиусы охвата ------------------------------------------------------- */
   var PAL = ['#27ae60', '#e67e22', '#c0392b', '#2980b9', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
-  function ringColor(i, n) { if (i === n - 1) { var c = $('ringWc'); if (c && c.value) return c.value; } return PAL[i % PAL.length]; }
+  function ringColor(i) { var rs = radii(); return (rs[i] && /^#[0-9a-f]{6}$/i.test(rs[i].color || '')) ? rs[i].color : PAL[i % PAL.length]; }
+  function saveRings() { try { localStorage.setItem(KEY_RINGS, JSON.stringify(radii().map(function (r, i) { return { km: r.km, on: !!r.on, color: ringColor(i) }; }))); } catch (e) {} }
   function radii() { try { return Array.isArray(RADII) ? RADII : []; } catch (e) { return []; } }
   function myBuildRings() {
     var box = $('rings'); if (!box) return;
     var rs = radii(); box.innerHTML = '';
     rs.forEach(function (r, i) {
       var l = document.createElement('label'); l.className = 'ck';
-      l.innerHTML = '<input type="checkbox"' + (r.on ? ' checked' : '') + '> <span class="dot" style="background:' + ringColor(i, rs.length) + '"></span> ' + r.km + ' км';
-      l.querySelector('input').onchange = function (e) { rs[i].on = e.target.checked; try { renderProj(); } catch (x) {} };
+      l.innerHTML = '<input type="checkbox"' + (r.on ? ' checked' : '') + '> <input type="color" value="' + ringColor(i) + '" title="цвет кольца ' + r.km + ' км" aria-label="цвет кольца ' + r.km + ' км"> ' + r.km + ' км';
+      l.querySelector('input[type=checkbox]').onchange = function (e) { rs[i].on = e.target.checked; saveRings(); try { myRenderRings(); } catch (x) {} try { catchSummary(); } catch (x) {} };
+      /* цвет кольца: своя кнопка у каждого радиуса (замечание владельца: кольца были одного цвета) */
+      l.querySelector('input[type=color]').addEventListener('input', function (e) { rs[i].color = e.target.value; saveRings(); try { myRenderRings(); } catch (x) {} });
       box.appendChild(l);
     });
     var inp = $('ringKm'); if (inp && document.activeElement !== inp) inp.value = rs.map(function (r) { return r.km; }).join(', ');
@@ -130,7 +142,7 @@
     if (!p || !Number.isFinite(+p.lat) || !Number.isFinite(+p.lng)) return;
     var w = +(($('ringW') || {}).value || 3), rs = radii();
     rs.filter(function (r) { return r.on; }).sort(function (a, b) { return b.km - a.km; }).forEach(function (r) {
-      var i = rs.indexOf(r), col = ringColor(i, rs.length);
+      var i = rs.indexOf(r), col = ringColor(i);
       L.circle([+p.lat, +p.lng], { radius: r.km * 1000, color: col, weight: w, opacity: .95, fillColor: col, fillOpacity: .06 }).addTo(gRing).bindTooltip(r.km + ' км', { sticky: true });
     });
   }
@@ -138,17 +150,27 @@
     var nums = String(text || '').split(/[,;\s]+/).map(function (x) { return parseFloat(String(x).replace(',', '.')); }).filter(function (v) { return isFinite(v) && v > 0 && v <= 50; });
     nums = nums.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 8);
     if (!nums.length) return false;
-    try { RADII = nums.map(function (km) { return { km: km, on: true }; }); } catch (e) { return false; }
-    try { localStorage.setItem(KEY_RINGS, JSON.stringify(nums)); } catch (e) {}
+    var prev = radii();
+    /* кнопка «применить» включает все введённые кольца; цвет кольца с тем же радиусом сохраняется */
+    try { RADII = nums.map(function (km, i) { var old = null; prev.forEach(function (r) { if (+r.km === km) old = r; }); return { km: km, on: true, color: old && old.color ? old.color : PAL[i % PAL.length] }; }); } catch (e) { return false; }
+    saveRings();
     myBuildRings();
-    try { renderProj(); } catch (e) {}
+    try { myRenderRings(); } catch (e) {}
+    try { catchSummary(); } catch (e) {}
     return true;
   }
   function installRings() {
     if (typeof window.buildRings === 'function') window.buildRings = myBuildRings;
     if (typeof window.renderRings === 'function') window.renderRings = myRenderRings;
+    /* v4.76.0: пин ставит только точку, кольца охвата не появляются сами (замечание владельца):
+       по умолчанию все кольца выключены, пользователь включает их в «Зоне охвата». Память v2 хранит
+       и флажки, и цвета; старая память v1 (список километров) переносится с выключенными кольцами. */
     var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY_RINGS) || 'null'); } catch (e) {}
-    if (Array.isArray(saved) && saved.length) { try { RADII = saved.map(function (km) { return { km: +km, on: true }; }); } catch (e) {} }
+    if (!Array.isArray(saved)) { try { var old = JSON.parse(localStorage.getItem(KEY_RINGS_OLD) || 'null'); if (Array.isArray(old) && old.length) saved = old.map(function (km) { return { km: +km, on: false }; }); } catch (e) {} }
+    try {
+      if (Array.isArray(saved) && saved.length) RADII = saved.filter(function (r) { return r && isFinite(+r.km) && +r.km > 0; }).map(function (r, i) { return { km: +r.km, on: !!r.on, color: /^#[0-9a-f]{6}$/i.test(r.color || '') ? r.color : PAL[i % PAL.length] }; });
+      else if (Array.isArray(RADII)) RADII.forEach(function (r, i) { r.on = false; r.color = PAL[i % PAL.length]; });
+    } catch (e) {}
     myBuildRings();
     var inp = $('ringKm'), btn = $('ringApply');
     if (btn) btn.onclick = function () { if (!applyRadii(inp && inp.value)) { if (inp) inp.value = radii().map(function (r) { return r.km; }).join(', '); } };
@@ -156,13 +178,58 @@
     try { myRenderRings(); } catch (e) {}
   }
 
+  /* --- левая панель сворачивается целиком ------------------------------------------ */
+  function leftOpen(on) {
+    var wrap = $('mapT'), tab = $('leftTab'); if (!wrap) return;
+    wrap.classList.toggle('left-off', !on);
+    if (tab) { tab.textContent = on ? '\u2039' : '\u203a'; tab.title = on ? 'Скрыть левую панель' : 'Показать левую панель'; tab.setAttribute('aria-expanded', on ? 'true' : 'false'); }
+    try { localStorage.setItem(KEY_LEFT, on ? '1' : '0'); } catch (e) {}
+    setTimeout(function () { var M = theMap(); if (M) try { M.invalidateSize(); } catch (e) {} }, 60);
+  }
+  function mountLeftTab() {
+    var wrap = $('mapT'); if (!wrap || $('leftTab') || !wrap.querySelector('.left')) return;
+    var b = document.createElement('button'); b.type = 'button'; b.id = 'leftTab'; b.className = 'left-tab'; b.setAttribute('aria-controls', 'mapT');
+    b.onclick = function () { leftOpen(wrap.classList.contains('left-off')); };
+    wrap.appendChild(b);
+    var saved = null; try { saved = localStorage.getItem(KEY_LEFT); } catch (e) {}
+    leftOpen(saved !== '0');
+  }
+
+  /* --- полный экран области карты --------------------------------------------------- */
+  function isFs() { var wrap = $('mapT'); return !!(wrap && ((document.fullscreenElement && document.fullscreenElement === wrap) || (document.webkitFullscreenElement && document.webkitFullscreenElement === wrap) || wrap.classList.contains('geo-fs-fallback'))); }
+  var leftWasOpen = null;
+  function fsApply(on) {
+    var wrap = $('mapT'); if (!wrap) return;
+    if (on) { leftWasOpen = !wrap.classList.contains('left-off'); if (leftWasOpen) leftOpen(false); }
+    else if (leftWasOpen) { leftOpen(true); leftWasOpen = null; }
+    setTimeout(function () { var M = theMap(); if (M) try { M.invalidateSize(); } catch (e) {} }, 120);
+    try { document.dispatchEvent(new CustomEvent('caseos:fullscreen', { detail: { on: on } })); } catch (e) {}
+  }
+  function fullscreen(on) {
+    var wrap = $('mapT'); if (!wrap) return;
+    if (on === undefined) on = !isFs();
+    if (!on) {
+      if (wrap.classList.contains('geo-fs-fallback')) { wrap.classList.remove('geo-fs-fallback'); fsApply(false); return; }
+      try { var ex = document.exitFullscreen || document.webkitExitFullscreen; if (ex) { var r = ex.call(document); if (r && r.catch) r.catch(function () {}); } } catch (e) {}
+      return;
+    }
+    var req = wrap.requestFullscreen || wrap.webkitRequestFullscreen;
+    var fallback = function () { wrap.classList.add('geo-fs-fallback'); fsApply(true); };
+    if (!req) { fallback(); return; }
+    try { var p = req.call(wrap); if (p && p.then) p.then(null, fallback); } catch (e) { fallback(); }
+  }
+  function bindFullscreen() {
+    ['fullscreenchange', 'webkitfullscreenchange'].forEach(function (ev) { document.addEventListener(ev, function () { fsApply(isFs()); }); });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var wrap = $('mapT'); if (wrap && wrap.classList.contains('geo-fs-fallback')) fullscreen(false); } });
+  }
+
   /* --- клик по карте ничего не открывает ------------------------------------------ */
   function disableProbeClick() { var cb = $('lProbe'); if (cb) { cb.checked = false; var row = cb.closest('label'); if (row) row.style.display = 'none'; } }
 
   function install() {
-    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent();
+    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent(); mountLeftTab(); bindFullscreen();
   }
-  LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii;
+  LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.75.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.76.0';

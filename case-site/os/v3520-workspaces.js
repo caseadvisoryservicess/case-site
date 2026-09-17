@@ -139,6 +139,8 @@
     BA:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','project_handover','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v32_partners','v326_lease','leasing_layouts','plans','leasing_opening','feasibility','mep','map','geoanalytics','bench','kpi','org','study','rating'],
     AG:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v32_sales','v32_investors','v326_lease','leasing_layouts','plans','leasing_opening','map','geoanalytics','kpi','org','study','rating'],
     AGX:['dash','work_tasks','work_kanban','brands','v32_investors'],
+    /* v4.76.0: клиент и демо видят только студию геоаналитики (то же на сервере, lib.php) */
+    CL:['dash','geoanalytics'],DEMO:['dash','geoanalytics'],
     HO:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','leasing_portfolio_map','project_workspace','project_layouts','plan_master','case_projects','docs','registry','brands','v32_demand','v32_requests','v326_lease','leasing_layouts','plans','leasing_opening','kpi','org','study'],
     BSH:['dash','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','registry','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_concept','advisory_area','plans','mep','lift','map','geoanalytics','org','study'],
     HM:['dash','v32_action','dates','work_tasks','work_kanban','workload','work_approvals','crm_clients','project_workspace','project_layouts','plan_master','case_projects','docs','advisory_pipeline','advisory_proposal_builder','advisory_proposals','advisory_portfolio_map','advisory_contracts','advisory_scope','advisory_delivery','advisory_reports','advisory_cross_sell','advisory_research','advisory_concept','advisory_area','plans','feasibility','advisory_business_plan','mep','lift','map','geoanalytics','market_data','macro_data','bench','data_quality','kpi','org','study','rating'],
@@ -167,7 +169,7 @@
   function roleStore(){try{ROLE_WORKSPACES=mapObj(ROLE_WORKSPACES);return ROLE_WORKSPACES;}catch(e){return {};}}
   function userStore(){try{USER_WORKSPACES=mapObj(USER_WORKSPACES);return USER_WORKSPACES;}catch(e){return {};}}
   function uniq(a){var out=[];(Array.isArray(a)?a:[]).forEach(function(v){if(ALL.indexOf(v)>=0&&out.indexOf(v)<0)out.push(v);});return out;}
-  function hardAllowed(v,rk){rk=rk||currentRole();if(rk==='AGX')return (DEFAULTS.AGX||[]).indexOf(v)>=0;if(rk==='BRJ')return (DEFAULTS.BRJ||[]).indexOf(v)>=0;return true;}
+  function hardAllowed(v,rk){rk=rk||currentRole();if(rk==='AGX')return (DEFAULTS.AGX||[]).indexOf(v)>=0;if(rk==='BRJ')return (DEFAULTS.BRJ||[]).indexOf(v)>=0;if(rk==='CL'||rk==='DEMO')return (DEFAULTS[rk]||[]).indexOf(v)>=0;return true;}
   function locked(rk,v){return v==='dash';}
   function roleViews(rk){
     var configured=roleStore()[rk];
@@ -343,4 +345,4 @@
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.71.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v3520-workspaces']='4.76.0';
