@@ -142,3 +142,43 @@ python3 tools/oracle.py && bash tools/verify.sh       # every figure recomputed
 
 The last line is not optional. Every applied fill changes a denominator somewhere, and the oracle
 is the only thing that recomputes all of them independently.
+
+## 12.7 Yandex: the keyed run, and handing the capture back
+
+A Yandex key arrived on 2026-09-17 (free tier: 500 Geosearch requests a day, results must be
+shown on a public map and may not be stored). Two facts about it:
+
+- **The key does not change the storage class.** Yandex stays `display`: the collector runs, the
+  proposal reports matches, conflicts and buildings the dataset lacks, and every fill is counted
+  as withheld. That is the report the key buys, and it is worth having.
+- **The key does not unlock a Leaflet basemap.** Yandex issues keys for its own JavaScript API;
+  it has no tile product for a third-party map engine, and the raster endpoint the CASE OS page
+  calls directly is not a licensed one. The Yandex basemap entry stays off until an agreement
+  names an endpoint.
+
+The sandbox this prototype is built in cannot reach Yandex hosts at all (the egress proxy
+refuses the tunnel), so the run happens on a machine that can – any laptop – and the capture is
+handed back. The key is passed as an environment variable so it never enters shell history or a
+file:
+
+```bash
+cd geo-mvp
+export YANDEX_MAPS_API_KEY="…"                          # the key, once, in this shell only
+python3 tools/collect.py --source SRC-YANDEX-SEARCH     # -> data/incoming/src-yandex-search.observations.json
+python3 tools/merge_incoming.py --in data/incoming/src-yandex-search.observations.json
+```
+
+Send back `data/incoming/src-yandex-search.observations.json`. It holds the observations and
+never the key; `data/incoming/` is git-ignored, so it cannot be committed by accident. Anyone
+without network can then replay it with `--from` and build the same proposal.
+
+To check the key before running anything, open this in a browser and expect JSON with a
+`features` list (one request, of the day's 500):
+
+```
+https://search-maps.yandex.ru/v1/?apikey=<key>&text=бизнес центр Ташкент&lang=ru_RU&type=biz&results=5
+```
+
+An `"Invalid key"` reply means the key was connected to *JavaScript API и HTTP Геокодер* only;
+Geosearch (*Поиск по организациям*) is a separate service in the same cabinet and needs its own
+key.

@@ -5,7 +5,13 @@ Collect observations from a registered source into data/incoming/.
     python3 tools/collect.py --list
     python3 tools/collect.py --source SRC-OSM-OVERPASS
     python3 tools/collect.py --source SRC-GOOGLE-PLACES --key "$GOOGLE_MAPS_API_KEY"
+    YANDEX_MAPS_API_KEY=... python3 tools/collect.py --source SRC-YANDEX-SEARCH
     python3 tools/collect.py --source SRC-OSM-OVERPASS --from fixture.json
+
+A key is read from --key, or from the environment variable the registry names
+for that source (`auth` in tools/sources.py). It is used for the request and
+nothing else: it is not written into the observations file, and it is redacted
+from any error text recorded there.
 
 WHAT THIS WRITES, AND WHAT IT DOES NOT
 --------------------------------------
@@ -37,6 +43,7 @@ over a capture for someone without it to process.
 """
 import argparse
 import json
+import os
 import sys
 import urllib.parse
 import urllib.request
@@ -353,7 +360,9 @@ def collect(source_id, key=None, replay=None, terms_checked_by=None):
                  % source_id)
 
     if src['auth'] and not key and not replay:
-        sys.exit('collect: %s needs %s. Pass --key, or --from a saved response.\n'
+        key = os.environ.get(src['auth']) or None
+    if src['auth'] and not key and not replay:
+        sys.exit('collect: %s needs %s. Pass --key, set that variable, or --from a saved response.\n'
                  '         There is no unauthenticated fallback on purpose: the one\n'
                  '         Google offers returns an empty candidate list that reads\n'
                  '         exactly like "no business centres found".'
@@ -381,7 +390,10 @@ def collect(source_id, key=None, replay=None, terms_checked_by=None):
     except Exception as e:
         # A failure is RECORDED, not swallowed. An empty observations list and a
         # failed fetch are indistinguishable a week later and mean the opposite.
-        envelope['error'] = '%s: %s' % (type(e).__name__, str(e)[:200])
+        msg = str(e)
+        if key:
+            msg = msg.replace(key, '<key>')   # a URL in an error message can carry the query string
+        envelope['error'] = '%s: %s' % (type(e).__name__, msg[:200])
 
     envelope['count'] = len(envelope['observations'])
     OUT_DIR.mkdir(parents=True, exist_ok=True)
