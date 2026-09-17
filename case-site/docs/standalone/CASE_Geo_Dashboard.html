@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CASE Geo Analytics · Ташкент</title>
+<meta name="description" content="Панель геоаналитики: карта локаций, показатели, графики и таблица. Один файл, открывается в браузере.">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--red:#9E0000;--red-d:#6e0000;--ink:#1b1b1b;--muted:#6f6a63;--paper:#faf8f5;--paper-2:#f3f1ee;--line:#e3dcd1;--card:#fff;
+  --green:#1a7f37;--blue:#1565c0;--amber:#a16000;--teal:#0d8484;--grey:#6b6b6b;
+  --shadow:0 1px 3px rgba(60,48,36,.08),0 8px 26px rgba(60,48,36,.06)}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--paper);color:var(--ink);font-family:Montserrat,"Segoe UI",Arial,sans-serif;font-size:14px;line-height:1.45}
+a{color:var(--red)}
+.wrap{max-width:1440px;margin:0 auto;padding:16px}
+header.top{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:6px 0 14px}
+.brand{font-size:22px;font-weight:800;letter-spacing:.01em}.brand b{color:var(--red)}
+.brand small{display:block;font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.asof{margin-left:auto;font-size:11.5px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:6px 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+.filters{display:flex;flex-wrap:wrap;gap:10px;align-items:end;padding:12px 14px;margin-bottom:14px}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f label{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.f select,.f input{font:inherit;font-size:13px;padding:8px 10px;border:1px solid var(--line);border-radius:9px;background:#fff;color:var(--ink);min-width:150px}
+.f select:focus,.f input:focus{outline:none;border-color:var(--red);box-shadow:0 0 0 3px rgba(158,0,0,.12)}
+.presets{display:flex;gap:4px}
+.presets button,.btn{font:inherit;font-size:12px;font-weight:700;padding:8px 12px;border:1px solid var(--line);border-radius:9px;background:var(--paper-2);color:var(--ink);cursor:pointer}
+.presets button:hover,.btn:hover{background:#fff;border-color:#c9bfb2}
+.presets button.on{background:var(--red);border-color:var(--red);color:#fff}
+.btn.reset{margin-left:auto;background:#fff}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi{padding:14px 16px;border-top:4px solid var(--red)}
+.kpi.k2{border-top-color:var(--blue)}.kpi.k3{border-top-color:var(--teal)}.kpi.k4{border-top-color:var(--amber)}
+.kpi .lab{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.kpi .val{font-size:28px;font-weight:800;letter-spacing:-.01em;margin:4px 0 2px;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:12px;color:var(--muted)}
+.delta{display:inline-block;font-size:11.5px;font-weight:800;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
+.delta.up{background:#e8f5ea;color:var(--green)}.delta.down{background:#fdeaea;color:var(--red)}.delta.flat{background:var(--paper-2);color:var(--muted)}
+.grid{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-bottom:14px}
+.card h2{margin:0;padding:14px 16px 6px;font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#4a443c}
+.card h2 span{font-weight:600;letter-spacing:0;text-transform:none;color:var(--muted);margin-left:8px;font-size:12px}
+.mapwrap{position:relative;height:560px;border-radius:0 0 14px 14px;overflow:hidden}
+#map{height:100%;background:#eee9e1}
+.legend{position:absolute;left:12px;bottom:12px;z-index:800;background:rgba(255,255,255,.95);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:11.5px;box-shadow:var(--shadow);max-width:230px}
+.legend h4{margin:0 0 6px;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.legend .li{display:flex;align-items:center;gap:7px;margin:3px 0}
+.legend .dot{width:11px;height:11px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.legend .sizes{display:flex;align-items:center;gap:6px;margin-top:6px;color:var(--muted)}
+.legend .sizes i{display:inline-block;border-radius:50%;background:rgba(158,0,0,.25);border:1.5px solid var(--red)}
+.charts{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px 14px}
+.chart{position:relative;height:240px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff}
+.chart h3{margin:0 0 4px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.chart canvas{max-height:200px}
+.tablewrap{overflow-x:auto;padding:0 14px 14px}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:720px}
+th{position:sticky;top:0;background:var(--paper-2);color:#4a443c;text-align:left;padding:9px 10px;border-bottom:2px solid var(--line);font-size:11px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;cursor:pointer;user-select:none;white-space:nowrap}
+th.num,td.num{text-align:right;font-variant-numeric:tabular-nums}
+th .arr{opacity:.35;font-size:10px;margin-left:4px}th.on .arr{opacity:1;color:var(--red)}
+td{padding:9px 10px;border-bottom:1px solid #efeae2;vertical-align:middle}
+tr.row{cursor:pointer}tr.row:hover{background:#fbf7f2}tr.row.hl{background:#fff1f1}
+td .nm{font-weight:700}td .cat{display:block;font-size:11px;color:var(--muted)}
+.badge{display:inline-block;font-size:11px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.s-high{background:#e8f5ea;color:var(--green)}.s-grow{background:#e7f0fb;color:var(--blue)}.s-flat{background:var(--paper-2);color:var(--grey)}.s-down{background:#fdeaea;color:var(--red)}
+.leaflet-tooltip.tt{background:rgba(255,255,255,.96);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);font-family:inherit;font-size:12px;padding:6px 9px}
+.leaflet-popup-content{font-family:inherit;font-size:12.5px;line-height:1.45;margin:10px 12px}
+.leaflet-popup-content b.t{display:block;font-size:14px;margin-bottom:2px}
+.leaflet-popup-content .m{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;margin:6px 0}
+.leaflet-popup-content .m span{color:var(--muted)}
+.leaflet-popup-content button{font:inherit;font-size:12px;font-weight:700;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--paper-2);cursor:pointer}
+.leaflet-container{font-family:inherit}
+.empty{padding:24px;text-align:center;color:var(--muted)}
+footer{font-size:11.5px;color:var(--muted);padding:8px 2px 20px;line-height:1.5}
+footer b{color:var(--ink)}
+@media(max-width:1100px){.kpis{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.mapwrap{height:440px}}
+@media(max-width:640px){.wrap{padding:10px}.kpis{grid-template-columns:1fr 1fr;gap:8px}.kpi .val{font-size:22px}.charts{grid-template-columns:1fr}.mapwrap{height:360px}
+  .f select,.f input{min-width:0;width:100%}.f{flex:1 1 45%}.f.wide{flex-basis:100%}.presets{flex-wrap:wrap}.btn.reset{margin-left:0;flex-basis:100%}.asof{margin-left:0}.legend{max-width:170px;font-size:10.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><b>CASE</b> Geo Analytics<small>Ташкент · панель локаций</small></div>
+    <div class="asof" id="asof"></div>
+  </header>
+
+  <section class="card filters" aria-label="Фильтры">
+    <div class="f wide"><label>Период</label>
+      <div class="presets" id="presets">
+        <button type="button" data-w="4">4 нед</button><button type="button" data-w="12" class="on">12 нед</button><button type="button" data-w="26">26 нед</button><button type="button" data-w="52">52 нед</button>
+      </div></div>
+    <div class="f"><label for="fFrom">С</label><input type="date" id="fFrom"></div>
+    <div class="f"><label for="fTo">По</label><input type="date" id="fTo"></div>
+    <div class="f"><label for="fDistrict">Район</label><select id="fDistrict"><option value="">Все районы</option></select></div>
+    <div class="f"><label for="fCat">Категория</label><select id="fCat"><option value="">Все категории</option></select></div>
+    <div class="f"><label for="fStatus">Статус</label><select id="fStatus"><option value="">Любой статус</option></select></div>
+    <div class="f"><label for="fSearch">Поиск</label><input type="search" id="fSearch" placeholder="название или адрес"></div>
+    <button type="button" class="btn reset" id="fReset">Сбросить фильтры</button>
+  </section>
+
+  <section class="kpis" aria-label="Ключевые показатели">
+    <div class="card kpi k1"><div class="lab">Посещения за период</div><div class="val" id="kVisits">0</div><div class="sub" id="kVisitsSub"></div></div>
+    <div class="card kpi k2"><div class="lab">Активные локации</div><div class="val" id="kActive">0</div><div class="sub" id="kActiveSub"></div></div>
+    <div class="card kpi k3"><div class="lab">Конверсия</div><div class="val" id="kConv">0%</div><div class="sub" id="kConvSub"></div></div>
+    <div class="card kpi k4"><div class="lab">Выручка, $</div><div class="val" id="kRev">0</div><div class="sub" id="kRevSub"></div></div>
+  </section>
+
+  <section class="grid">
+    <div class="card">
+      <h2>Карта локаций <span id="mapCount"></span></h2>
+      <div class="mapwrap">
+        <div id="map" role="application" aria-label="Карта локаций Ташкента"></div>
+        <div class="legend" id="legend">
+          <h4>Статус</h4>
+          <div class="li"><i class="dot" style="background:#1a7f37"></i>Высокая эффективность</div>
+          <div class="li"><i class="dot" style="background:#1565c0"></i>Рост</div>
+          <div class="li"><i class="dot" style="background:#6b6b6b"></i>Стабильно</div>
+          <div class="li"><i class="dot" style="background:#9E0000"></i>Снижение</div>
+          <div class="sizes"><i style="width:8px;height:8px"></i><i style="width:14px;height:14px"></i><i style="width:20px;height:20px"></i>размер круга: посещения за период</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Графики <span>по отфильтрованным локациям</span></h2>
+      <div class="charts">
+        <div class="chart"><h3>Посещения по неделям</h3><canvas id="cTrend"></canvas></div>
+        <div class="chart"><h3>По районам</h3><canvas id="cDistrict"></canvas></div>
+        <div class="chart"><h3>По категориям</h3><canvas id="cCat"></canvas></div>
+        <div class="chart"><h3>Топ-10 по конверсии</h3><canvas id="cTop"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Локации <span id="tableCount"></span></h2>
+    <div class="tablewrap">
+      <table id="tbl">
+        <thead><tr>
+          <th data-k="n">Локация<span class="arr">▾</span></th>
+          <th data-k="d">Район<span class="arr">▾</span></th>
+          <th class="num" data-k="visits">Посещения<span class="arr">▾</span></th>
+          <th class="num" data-k="revenue">Выручка, $<span class="arr">▾</span></th>
+          <th class="num" data-k="conv">Конверсия<span class="arr">▾</span></th>
+          <th data-k="status">Статус<span class="arr">▾</span></th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+      <div class="empty" id="empty" hidden>Под фильтры не попала ни одна локация.</div>
+    </div>
+  </section>
+
+  <footer>
+    <b>Данные.</b> Названия, районы и координаты локаций взяты из базы CASE (бизнес-центры, рестораны и кафе Ташкента).
+    Посещения, выручка и конверсия сгенерированы для показа и помечены как демо: замените массив <code>LOCATIONS</code> и функцию <code>buildSeries</code> своими данными.
+    Карта: © OpenStreetMap contributors (ODbL). Графики: Chart.js. Один файл, открывается в браузере.
+  </footer>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script>
+/* ── Данные ─────────────────────────────────────────────────────────────────────
+   LOCATIONS: реальные объекты Ташкента из базы CASE (имя, район, категория, класс БЦ, координаты).
+   Показатели по неделям (посещения, выручка, конверсия) генерируются детерминированно:
+   один и тот же объект всегда получает одни и те же демо-числа. */
+var AS_OF = new Date('2026-09-14T00:00:00');   /* понедельник, конец последней недели ряда */
+var WEEKS = 52;
+var LOCATIONS = [
+  {"n": "Gross Plaza", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.29723, "lng": 69.2817},
+  {"n": "Panoramic", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "B", "lat": 41.30051, "lng": 69.27},
+  {"n": "Platform", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.29179, "lng": 69.28413},
+  {"n": "Sapphire Business Center", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.28919, "lng": 69.28136},
+  {"n": "Trilliant", "d": "Мирзо-Улугбекский", "c": "Бизнес-центр", "cl": "A+", "lat": 41.31588, "lng": 69.28243},
+  {"n": "Nest one", "d": "Шайхантахурский", "c": "Бизнес-центр", "cl": "A+", "lat": 41.31206, "lng": 69.25143},
+  {"n": "Modera Towers", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "A+", "lat": 41.29278, "lng": 69.26362},
+  {"n": "New Era", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "A", "lat": 41.28744, "lng": 69.25519},
+  {"n": "Solid Premium", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "B+", "lat": 41.29224, "lng": 69.25718},
+  {"n": "Ventum plaza", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "B", "lat": 41.27492, "lng": 69.26346},
+  {"n": "Infinity Business Сenter", "d": "Яшнабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.30195, "lng": 69.29206},
+  {"n": "Kayan", "d": "Яшнабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.30451, "lng": 69.30694},
+  {"n": "Forum Business Center", "d": "Юнусабадский", "c": "Бизнес-центр", "cl": "A+", "lat": 41.31772, "lng": 69.27225},
+  {"n": "Nova Minor", "d": "Юнусабадский", "c": "Бизнес-центр", "cl": "B", "lat": 41.33303, "lng": 69.27838},
+  {"n": "Nova Plaza", "d": "Юнусабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.32203, "lng": 69.28392},
+  {"n": "Orient", "d": "Юнусабадский", "c": "Бизнес-центр", "cl": "A", "lat": 41.32062, "lng": 69.28351},
+  {"n": "Baltic Center", "d": "Чиланзарский", "c": "Бизнес-центр", "cl": "", "lat": 41.29351, "lng": 69.22331},
+  {"n": "C-Space Chust", "d": "Мирзо-Улугбекский", "c": "Бизнес-центр", "cl": "", "lat": 41.33024, "lng": 69.33277},
+  {"n": "Бизнес-центр Renaissance", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "", "lat": 41.307, "lng": 69.29099},
+  {"n": "Summit", "d": "Шайхантахурский", "c": "Бизнес-центр", "cl": "", "lat": 41.31737, "lng": 69.25311},
+  {"n": "St.Petersburg", "d": "Шайхантахурский", "c": "Бизнес-центр", "cl": "", "lat": 41.31779, "lng": 69.25969},
+  {"n": "Индустриальный Бизнес-Центр ТехноПлаза", "d": "Мирзо-Улугбекский", "c": "Бизнес-центр", "cl": "", "lat": 41.30906, "lng": 69.34423},
+  {"n": "GetSpace", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "", "lat": 41.29527, "lng": 69.22582},
+  {"n": "Silver", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "", "lat": 41.28923, "lng": 69.27255},
+  {"n": "BHH Tower", "d": "Алмазарский", "c": "Бизнес-центр", "cl": "", "lat": 41.34193, "lng": 69.23723},
+  {"n": "Diplomat", "d": "Юнусабадский", "c": "Бизнес-центр", "cl": "", "lat": 41.32126, "lng": 69.28793},
+  {"n": "Parkent", "d": "Мирзо-Улугбекский", "c": "Бизнес-центр", "cl": "", "lat": 41.31506, "lng": 69.32935},
+  {"n": "Sigma", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "", "lat": 41.28906, "lng": 69.27514},
+  {"n": "Dmaar", "d": "Мирабадский", "c": "Бизнес-центр", "cl": "", "lat": 41.29914, "lng": 69.27141},
+  {"n": "G BUILD", "d": "Яккасарайский", "c": "Бизнес-центр", "cl": "", "lat": 41.28006, "lng": 69.26849},
+  {"n": "Южанин", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29173, "lng": 69.28352},
+  {"n": "成都饭店 Cheng Du", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29269, "lng": 69.26899},
+  {"n": "Бурбон", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.27336, "lng": 69.29693},
+  {"n": "Gōsht West", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.30549, "lng": 69.28329},
+  {"n": "Koryoin by Miso", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29179, "lng": 69.28452},
+  {"n": "TomYumBar", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29709, "lng": 69.2817},
+  {"n": "The Mayfair Pub", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.2796, "lng": 69.27599},
+  {"n": "Yemali", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.28925, "lng": 69.29149},
+  {"n": "Rasputin", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.27407, "lng": 69.30029},
+  {"n": "Bamonti by Olivo", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29162, "lng": 69.27309},
+  {"n": "Tanuki", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29704, "lng": 69.28166},
+  {"n": "Ди Гави", "d": "Мирабадский", "c": "Ресторан", "cl": "", "lat": 41.29894, "lng": 69.27454},
+  {"n": "Coffee Nation", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.29908, "lng": 69.27068},
+  {"n": "Costa Coffee", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.29783, "lng": 69.28036},
+  {"n": "Organic food", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.30439, "lng": 69.26932},
+  {"n": "B&B Coffee House", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.2948, "lng": 69.27171},
+  {"n": "Master Coffee", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.29657, "lng": 69.27042},
+  {"n": "Bon!", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.29503, "lng": 69.2716},
+  {"n": "Rassvet", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.30553, "lng": 69.27279},
+  {"n": "Shavi Coffee Roasters", "d": "Мирабадский", "c": "Кафе", "cl": "", "lat": 41.31053, "lng": 69.26995}
+];
+
+var STATUS = {
+  high: { label: 'Высокая эффективность', color: '#1a7f37', cls: 's-high' },
+  grow: { label: 'Рост', color: '#1565c0', cls: 's-grow' },
+  flat: { label: 'Стабильно', color: '#6b6b6b', cls: 's-flat' },
+  down: { label: 'Снижение', color: '#9E0000', cls: 's-down' }
+};
+var CAT_COLOR = { 'Бизнес-центр': '#9E0000', 'Ресторан': '#a16000', 'Кафе': '#0d8484' };
+
+function hash(s) { var h = 2166136261; for (var i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rng(seed) { return function () { seed |= 0; seed = seed + 0x6D2B79F5 | 0; var t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function weekEnd(i) { var d = new Date(AS_OF); d.setDate(d.getDate() - (WEEKS - 1 - i) * 7); return d; }
+function fmtD(d) { return String(d.getDate()).padStart(2, '0') + '.' + String(d.getMonth() + 1).padStart(2, '0'); }
+function iso(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function fmtN(n) { return Math.round(n).toLocaleString('ru-RU'); }
+function fmtPct(n) { return (Math.round(n * 10) / 10).toLocaleString('ru-RU') + '%'; }
+
+/* Недельный ряд посещений и параметры локации. База зависит от категории и класса, поверх
+   сезонность, тренд и шум; всё от одного зерна по имени. */
+function buildSeries(loc) {
+  var r = rng(hash(loc.n + loc.d));
+  var base, ticket, convBase;
+  if (loc.c === 'Бизнес-центр') { base = ({ 'A+': 2300, 'A': 1600, 'B+': 1100, 'B': 850 })[loc.cl] || 650; ticket = 2.4; convBase = 3.2; }
+  else if (loc.c === 'Ресторан') { base = 320; ticket = 9.5; convBase = 22; }
+  else { base = 180; ticket = 4.5; convBase = 15; }
+  base = base * (0.75 + r() * 0.5) * 7;
+  var slope = (r() - 0.45) * 0.5, phase = r() * Math.PI * 2, conv = convBase * (0.8 + r() * 0.5);
+  var visits = [];
+  for (var w = 0; w < WEEKS; w++) {
+    var season = 1 + 0.12 * Math.sin(2 * Math.PI * w / WEEKS + phase), trend = 1 + slope * (w - WEEKS / 2) / WEEKS, noise = 0.9 + r() * 0.2;
+    visits.push(Math.round(base * season * trend * noise));
+  }
+  var last = visits.slice(-4).reduce(function (a, b) { return a + b; }, 0), prev = visits.slice(-8, -4).reduce(function (a, b) { return a + b; }, 0);
+  var growth = prev ? (last - prev) / prev : 0, status;
+  if (growth >= 0.08) status = 'grow'; else if (growth <= -0.08) status = 'down'; else status = conv >= convBase * 1.05 ? 'high' : 'flat';
+  return { visits: visits, ticket: ticket, conv: conv, growth: growth, status: status };
+}
+LOCATIONS.forEach(function (l) { l.s = buildSeries(l); });
+
+/* ── Состояние фильтров ───────────────────────────────────────────────────────── */
+var F = { from: null, to: null, district: '', cat: '', status: '', q: '', sortKey: 'visits', sortDir: -1 };
+var $ = function (id) { return document.getElementById(id); };
+function weeksInRange() {
+  var idx = []; for (var i = 0; i < WEEKS; i++) { var e = weekEnd(i); if (e >= F.from && e <= F.to) idx.push(i); } return idx;
+}
+function sumWeeks(arr, idx) { var s = 0; idx.forEach(function (i) { s += arr[i] || 0; }); return s; }
+function filtered() {
+  var q = F.q.trim().toLowerCase();
+  return LOCATIONS.filter(function (l) {
+    if (F.district && l.d !== F.district) return false;
+    if (F.cat && l.c !== F.cat) return false;
+    if (F.status && l.s.status !== F.status) return false;
+    if (q && (l.n + ' ' + l.d + ' ' + l.c).toLowerCase().indexOf(q) < 0) return false;
+    return true;
+  });
+}
+function stats(l, idx) {
+  var v = sumWeeks(l.s.visits, idx);
+  return { visits: v, revenue: v * l.s.ticket * l.s.conv / 100, conv: l.s.conv };
+}
+
+/* ── Карта ────────────────────────────────────────────────────────────────────── */
+var map = L.map('map', { zoomControl: true }).setView([41.311, 69.279], 12);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap contributors' }).addTo(map);
+var markers = L.featureGroup().addTo(map), MK = {};
+function drawMap(rows, idx) {
+  markers.clearLayers(); MK = {};
+  var max = 1; rows.forEach(function (r) { if (r.st.visits > max) max = r.st.visits; });
+  rows.forEach(function (r) {
+    var l = r.l, st = STATUS[l.s.status], radius = 6 + 18 * Math.sqrt(r.st.visits / max);
+    var m = L.circleMarker([l.lat, l.lng], { radius: radius, color: '#fff', weight: 1.5, fillColor: st.color, fillOpacity: .78 });
+    m.bindTooltip('<b>' + esc(l.n) + '</b><br>' + esc(l.c) + (l.cl ? ' · класс ' + esc(l.cl) : '') + '<br>' + fmtN(r.st.visits) + ' посещений · ' + fmtPct(r.st.conv), { className: 'tt', direction: 'top', offset: [0, -radius] });
+    m.bindPopup('<b class="t">' + esc(l.n) + '</b>' + esc(l.d) + ' район · ' + esc(l.c) + (l.cl ? ' класса ' + esc(l.cl) : '')
+      + '<div class="m"><span>Посещения</span><b>' + fmtN(r.st.visits) + '</b><span>Выручка</span><b>$' + fmtN(r.st.revenue) + '</b><span>Конверсия</span><b>' + fmtPct(r.st.conv) + '</b><span>Динамика</span><b>' + (l.s.growth >= 0 ? '+' : '') + fmtPct(l.s.growth * 100) + '</b><span>Статус</span><b>' + st.label + '</b></div>'
+      + '<button type="button" onclick="focusRow(' + l.i + ')">Показать в таблице</button>');
+    m.on('click', function () { highlightRow(l.i, false); });
+    m.addTo(markers); MK[l.i] = m;
+  });
+  if (rows.length) map.fitBounds(markers.getBounds().pad(0.15), { maxZoom: 14 });
+  $('mapCount').textContent = rows.length + ' из ' + LOCATIONS.length;
+}
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+/* ── Графики ──────────────────────────────────────────────────────────────────── */
+Chart.defaults.font.family = 'Montserrat, "Segoe UI", Arial, sans-serif';
+Chart.defaults.color = '#6f6a63';
+var CH = {};
+function mkChart(id, type, opts) { CH[id] = new Chart($(id), Object.assign({ type: type, data: { labels: [], datasets: [] } }, opts)); }
+mkChart('cTrend', 'line', { options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return fmtN(c.parsed.y) + ' посещений'; } } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 8 } }, y: { beginAtZero: true, ticks: { callback: function (v) { return v >= 1000 ? (v / 1000) + ' тыс.' : v; } } } } } });
+mkChart('cDistrict', 'bar', { options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { size: 10 } } }, y: { beginAtZero: true, ticks: { callback: function (v) { return v >= 1000 ? (v / 1000) + ' тыс.' : v; } } } } } });
+mkChart('cCat', 'doughnut', { options: { responsive: true, maintainAspectRatio: false, cutout: '62%', plugins: { legend: { position: 'right', labels: { boxWidth: 10, font: { size: 11 } } } } } });
+mkChart('cTop', 'bar', { options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: function (c) { return fmtPct(c.parsed.x); } } } }, scales: { x: { beginAtZero: true, ticks: { callback: function (v) { return v + '%'; } } }, y: { ticks: { font: { size: 10 } } } } } });
+function setData(id, labels, datasets) { var c = CH[id]; c.data.labels = labels; c.data.datasets = datasets; c.update(); }
+function drawCharts(rows, idx) {
+  var trend = idx.map(function (i) { var s = 0; rows.forEach(function (r) { s += r.l.s.visits[i]; }); return s; });
+  setData('cTrend', idx.map(function (i) { return fmtD(weekEnd(i)); }), [{ data: trend, borderColor: '#9E0000', backgroundColor: 'rgba(158,0,0,.10)', fill: true, tension: .3, pointRadius: idx.length > 20 ? 0 : 3 }]);
+  var byD = {}; rows.forEach(function (r) { byD[r.l.d] = (byD[r.l.d] || 0) + r.st.visits; });
+  var dk = Object.keys(byD).sort(function (a, b) { return byD[b] - byD[a]; });
+  setData('cDistrict', dk, [{ data: dk.map(function (k) { return byD[k]; }), backgroundColor: '#9E0000', borderRadius: 4 }]);
+  var byC = {}; rows.forEach(function (r) { byC[r.l.c] = (byC[r.l.c] || 0) + r.st.visits; });
+  var ck = Object.keys(byC);
+  setData('cCat', ck, [{ data: ck.map(function (k) { return byC[k]; }), backgroundColor: ck.map(function (k) { return CAT_COLOR[k] || '#888'; }), borderWidth: 0 }]);
+  var top = rows.slice().sort(function (a, b) { return b.st.conv - a.st.conv; }).slice(0, 10);
+  setData('cTop', top.map(function (r) { return r.l.n.length > 22 ? r.l.n.slice(0, 21) + '…' : r.l.n; }), [{ data: top.map(function (r) { return Math.round(r.st.conv * 10) / 10; }), backgroundColor: top.map(function (r) { return STATUS[r.l.s.status].color; }), borderRadius: 4 }]);
+}
+
+/* ── Показатели ───────────────────────────────────────────────────────────────── */
+function delta(cur, prev) {
+  if (!prev) return '<span class="delta flat">нет базы</span>';
+  var d = (cur - prev) / prev * 100, cls = d > 1 ? 'up' : d < -1 ? 'down' : 'flat';
+  return '<span class="delta ' + cls + '">' + (d > 0 ? '+' : '') + fmtPct(d) + '</span>';
+}
+function drawKpis(rows, idx) {
+  var n = idx.length, prevIdx = []; for (var i = idx[0] - n; i < idx[0]; i++) if (i >= 0) prevIdx.push(i);
+  var visits = 0, rev = 0, wconv = 0, pv = 0, prev = 0;
+  rows.forEach(function (r) { visits += r.st.visits; rev += r.st.revenue; wconv += r.st.conv * r.st.visits; var p = sumWeeks(r.l.s.visits, prevIdx); prev += p; pv += p * r.l.s.ticket * r.l.s.conv / 100; });
+  var conv = visits ? wconv / visits : 0, active = rows.filter(function (r) { return r.st.visits > 0; }).length;
+  $('kVisits').textContent = fmtN(visits); $('kVisitsSub').innerHTML = (prevIdx.length === n ? 'к прошлому периоду' : 'прошлый период короче') + delta(visits, prevIdx.length === n ? prev : 0);
+  $('kActive').textContent = active; $('kActiveSub').textContent = 'из ' + LOCATIONS.length + ' в базе · ' + n + ' нед.';
+  $('kConv').textContent = fmtPct(conv); $('kConvSub').textContent = 'взвешена по посещениям';
+  $('kRev').textContent = fmtN(rev); $('kRevSub').innerHTML = 'к прошлому периоду' + delta(rev, prevIdx.length === n ? pv : 0);
+}
+
+/* ── Таблица ──────────────────────────────────────────────────────────────────── */
+function drawTable(rows) {
+  var k = F.sortKey, dir = F.sortDir;
+  rows.sort(function (a, b) {
+    var va = k === 'n' || k === 'd' ? a.l[k] : k === 'status' ? STATUS[a.l.s.status].label : a.st[k];
+    var vb = k === 'n' || k === 'd' ? b.l[k] : k === 'status' ? STATUS[b.l.s.status].label : b.st[k];
+    return (typeof va === 'string' ? va.localeCompare(vb, 'ru') : va - vb) * dir;
+  });
+  document.querySelectorAll('#tbl th').forEach(function (th) { th.classList.toggle('on', th.dataset.k === k); th.querySelector('.arr').textContent = th.dataset.k === k && dir > 0 ? '▴' : '▾'; });
+  $('tbody').innerHTML = rows.map(function (r) {
+    var l = r.l, st = STATUS[l.s.status];
+    return '<tr class="row" data-i="' + l.i + '"><td><span class="nm">' + esc(l.n) + '</span><span class="cat">' + esc(l.c) + (l.cl ? ' · класс ' + esc(l.cl) : '') + '</span></td><td>' + esc(l.d) + '</td>'
+      + '<td class="num">' + fmtN(r.st.visits) + '</td><td class="num">' + fmtN(r.st.revenue) + '</td><td class="num">' + fmtPct(r.st.conv) + '</td><td><span class="badge ' + st.cls + '">' + st.label + '</span></td></tr>';
+  }).join('');
+  $('empty').hidden = rows.length > 0;
+  $('tableCount').textContent = rows.length + ' локаций';
+}
+function highlightRow(i, scroll) {
+  document.querySelectorAll('tr.row').forEach(function (tr) { tr.classList.toggle('hl', +tr.dataset.i === i); });
+  var tr = document.querySelector('tr.row[data-i="' + i + '"]');
+  if (tr && scroll) tr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+window.focusRow = function (i) { highlightRow(i, true); };
+$('tbody').addEventListener('click', function (e) {
+  var tr = e.target.closest('tr.row'); if (!tr) return;
+  var i = +tr.dataset.i, m = MK[i]; highlightRow(i, false);
+  if (m) { map.setView(m.getLatLng(), Math.max(map.getZoom(), 14)); m.openPopup(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+});
+document.querySelectorAll('#tbl th').forEach(function (th) {
+  th.addEventListener('click', function () { var k = th.dataset.k; if (F.sortKey === k) F.sortDir *= -1; else { F.sortKey = k; F.sortDir = (k === 'n' || k === 'd' || k === 'status') ? 1 : -1; } apply(); });
+});
+
+/* ── Применение фильтров ──────────────────────────────────────────────────────── */
+function apply() {
+  var idx = weeksInRange(); if (!idx.length) idx = [WEEKS - 1];
+  var rows = filtered().map(function (l) { return { l: l, st: stats(l, idx) }; });
+  drawKpis(rows, idx); drawMap(rows, idx); drawCharts(rows, idx); drawTable(rows);
+}
+function setPreset(w) {
+  F.to = new Date(AS_OF); F.from = weekEnd(WEEKS - w);
+  $('fFrom').value = iso(F.from); $('fTo').value = iso(F.to);
+  document.querySelectorAll('#presets button').forEach(function (b) { b.classList.toggle('on', +b.dataset.w === w); });
+}
+document.querySelectorAll('#presets button').forEach(function (b) { b.addEventListener('click', function () { setPreset(+b.dataset.w); apply(); }); });
+$('fFrom').addEventListener('change', function () { var d = new Date(this.value); if (!isNaN(d)) { F.from = d; document.querySelectorAll('#presets button').forEach(function (b) { b.classList.remove('on'); }); apply(); } });
+$('fTo').addEventListener('change', function () { var d = new Date(this.value); if (!isNaN(d)) { F.to = d; document.querySelectorAll('#presets button').forEach(function (b) { b.classList.remove('on'); }); apply(); } });
+$('fDistrict').addEventListener('change', function () { F.district = this.value; apply(); });
+$('fCat').addEventListener('change', function () { F.cat = this.value; apply(); });
+$('fStatus').addEventListener('change', function () { F.status = this.value; apply(); });
+$('fSearch').addEventListener('input', function () { F.q = this.value; apply(); });
+$('fReset').addEventListener('click', function () { F.district = F.cat = F.status = F.q = ''; $('fDistrict').value = $('fCat').value = $('fStatus').value = ''; $('fSearch').value = ''; setPreset(12); apply(); });
+
+/* ── Старт ────────────────────────────────────────────────────────────────────── */
+(function init() {
+  LOCATIONS.forEach(function (l, i) { l.i = i; });
+  var opt = function (sel, vals) { vals.forEach(function (v) { var o = document.createElement('option'); o.value = v; o.textContent = v; $(sel).appendChild(o); }); };
+  opt('fDistrict', Array.from(new Set(LOCATIONS.map(function (l) { return l.d; }))).sort(function (a, b) { return a.localeCompare(b, 'ru'); }));
+  opt('fCat', Array.from(new Set(LOCATIONS.map(function (l) { return l.c; }))));
+  Object.keys(STATUS).forEach(function (k) { var o = document.createElement('option'); o.value = k; o.textContent = STATUS[k].label; $('fStatus').appendChild(o); });
+  $('asof').textContent = 'данные на ' + fmtD(AS_OF) + '.' + AS_OF.getFullYear() + ' · ' + LOCATIONS.length + ' локаций · демо-показатели';
+  setPreset(12); apply();
+})();
+</script>
+</body>
+</html>
