@@ -39,7 +39,7 @@
 ## Executive summary
 
 The Leasing & Sales Operating Platform is specified here as **LSP**, a self-contained
-module at `os/leasing/` that ships beside CASE OS without modifying it. Twelve documents
+module at `os/leasing/` that ships beside CASE OS without modifying it. Thirteen documents
 cover the product scope, a critical review of the requirements, the data model, roles and
 visibility, the configuration layer, the floor-plan architecture, the calculation rules,
 persistence, the implementation plan, QA, a licence and security audit of every external
@@ -79,6 +79,7 @@ named a commission invoice.
 | `10_QA_PLAN.md` | Test catalogue for every §64 flow and §65 check | 10 |
 | `11_REPOSITORY_AUDIT.md` | Licence and security audit of all 27 referenced repositories | §61 |
 | `12_AI_AND_ECOSYSTEM_ARCHITECTURE.md` | Tool registry, permissions, Geoanalytics and Building OS hooks | §66 G |
+| `13_CASE_OS_v4731_REUSE.md` | What LSP reuses from the live CASE OS v4.73.1 build, and how it installs beside it | — |
 
 Working software: `os/leasing/` (prototype and its README). Tests:
 `docs/qa/tools/lsp_e2e.js`, results in `docs/qa/lsp/`. Project skills:
@@ -140,12 +141,26 @@ adopted by default unless the sponsor objects.
       defaults must match the firm's fee model before any internal report circulates.
 - [ ] **Packaging and the repository gap (D18, Q-09-5, Q-09-7).** Release LSP as its own
       add-on zip, and commit the live CASE OS v4.73.1 `os/` folder to the repository first
-      (without `api/config.php`), since git is 22 releases behind the live site.
+      (without `api/config.php`), since git is 22 releases behind the live site. Before any
+      upload, confirm the hosting disk has room: it sits at 1.89 of 1.95 GB, and a partial
+      write stays silent until the checksum file is verified (Q-13-9).
 
-The remaining 81 questions across the twelve documents are answered with a recommendation
+The remaining open questions across the thirteen documents are answered with a recommendation
 each. They are listed in their own documents under "Open questions", grouped by owner:
 Founder / product sponsor for scope, money and data governance; Head of Leasing & Sales
 for operational definitions.
+
+---
+
+## Two limitations worth knowing before the demo
+
+The CASE OS service worker controls the whole `/os/` path, so with no network a navigation
+to `/os/leasing/` is answered with the CASE OS page rather than LSP. Fixing it means editing
+`os/sw.js`, which the no-touch rule forbids, so LSP is not offline-capable in v0.1 (Q-13-7).
+
+The prototype uses the system font stack rather than Montserrat over Google Fonts. That
+removes an external dependency and keeps the page working from disk, but it means LSP does
+not match the CASE OS typography exactly (A-13-4).
 
 ---
 
