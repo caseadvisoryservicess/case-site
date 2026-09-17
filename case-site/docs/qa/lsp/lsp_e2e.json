@@ -1,0 +1,457 @@
+{
+ "tool": "lsp_e2e.js",
+ "at": "2026-09-17T07:53:26Z",
+ "dir": "/home/user/case-site/case-site/os/leasing",
+ "summary": {
+  "total": 98,
+  "pass": 98,
+  "fail": 0
+ },
+ "results": [
+  {
+   "test": "page loads without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "prototype-auth warning visible",
+   "status": "PASS"
+  },
+  {
+   "test": "demo users listed (>=6)",
+   "status": "PASS",
+   "info": "users: 7"
+  },
+  {
+   "test": "Enter key logs in",
+   "status": "PASS"
+  },
+  {
+   "test": "role badge shown",
+   "status": "PASS"
+  },
+  {
+   "test": "30–50 units in demo",
+   "status": "PASS",
+   "info": "units: 42"
+  },
+  {
+   "test": "20–30 brands",
+   "status": "PASS",
+   "info": "brands: 24"
+  },
+  {
+   "test": "2 projects",
+   "status": "PASS"
+  },
+  {
+   "test": "every unit flagged demoRecord",
+   "status": "PASS"
+  },
+  {
+   "test": "a deal spans several units",
+   "status": "PASS"
+  },
+  {
+   "test": "a unit has 3+ prospects",
+   "status": "PASS"
+  },
+  {
+   "test": "a unit deliberately has no area",
+   "status": "PASS",
+   "info": "units without area: 1"
+  },
+  {
+   "test": "4 floor plans",
+   "status": "PASS"
+  },
+  {
+   "test": "inventory buckets partition measured GLA",
+   "status": "PASS",
+   "info": "total 8988 vs sum 8988"
+  },
+  {
+   "test": "units without area excluded, not zeroed",
+   "status": "PASS"
+  },
+  {
+   "test": "several buckets are populated",
+   "status": "PASS",
+   "info": "buckets with area: 5"
+  },
+  {
+   "test": "multi-unit deal area sums its units",
+   "status": "PASS",
+   "info": "got 375 expected 375"
+  },
+  {
+   "test": "view dash renders",
+   "status": "PASS",
+   "info": "chars 2416"
+  },
+  {
+   "test": "view dash without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view projects renders",
+   "status": "PASS",
+   "info": "chars 340"
+  },
+  {
+   "test": "view projects without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view project renders",
+   "status": "PASS",
+   "info": "chars 340"
+  },
+  {
+   "test": "view project without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view plan renders",
+   "status": "PASS",
+   "info": "chars 1860"
+  },
+  {
+   "test": "view plan without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view units renders",
+   "status": "PASS",
+   "info": "chars 2789"
+  },
+  {
+   "test": "view units without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view mix renders",
+   "status": "PASS",
+   "info": "chars 1264"
+  },
+  {
+   "test": "view mix without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view leasing renders",
+   "status": "PASS",
+   "info": "chars 3027"
+  },
+  {
+   "test": "view leasing without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view sales renders",
+   "status": "PASS",
+   "info": "chars 840"
+  },
+  {
+   "test": "view sales without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view brands renders",
+   "status": "PASS",
+   "info": "chars 1874"
+  },
+  {
+   "test": "view brands without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view companies renders",
+   "status": "PASS",
+   "info": "chars 780"
+  },
+  {
+   "test": "view companies without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view contacts renders",
+   "status": "PASS",
+   "info": "chars 4625"
+  },
+  {
+   "test": "view contacts without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view requirements renders",
+   "status": "PASS",
+   "info": "chars 656"
+  },
+  {
+   "test": "view requirements without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view tasks renders",
+   "status": "PASS",
+   "info": "chars 1063"
+  },
+  {
+   "test": "view tasks without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view activities renders",
+   "status": "PASS",
+   "info": "chars 846"
+  },
+  {
+   "test": "view activities without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view documents renders",
+   "status": "PASS",
+   "info": "chars 1127"
+  },
+  {
+   "test": "view documents without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view reports renders",
+   "status": "PASS",
+   "info": "chars 2682"
+  },
+  {
+   "test": "view reports without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view portal renders",
+   "status": "PASS",
+   "info": "chars 1145"
+  },
+  {
+   "test": "view portal without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view settings renders",
+   "status": "PASS",
+   "info": "chars 2810"
+  },
+  {
+   "test": "view settings without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view io renders",
+   "status": "PASS",
+   "info": "chars 727"
+  },
+  {
+   "test": "view io without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "view ask renders",
+   "status": "PASS",
+   "info": "chars 580"
+  },
+  {
+   "test": "view ask without JS errors",
+   "status": "PASS"
+  },
+  {
+   "test": "plan has real clickable polygons",
+   "status": "PASS",
+   "info": "bound polygons: 17"
+  },
+  {
+   "test": "clicking a unit opens the drawer",
+   "status": "PASS"
+  },
+  {
+   "test": "drawer shows the clicked unit",
+   "status": "PASS",
+   "info": "drawer: A-101 Occupied expected A-101"
+  },
+  {
+   "test": "plan mode mix renders with legend",
+   "status": "PASS",
+   "info": "polys 17 legend 14"
+  },
+  {
+   "test": "plan mode target renders with legend",
+   "status": "PASS",
+   "info": "polys 17 legend 4"
+  },
+  {
+   "test": "plan mode manager renders with legend",
+   "status": "PASS",
+   "info": "polys 17 legend 5"
+  },
+  {
+   "test": "plan mode avail renders with legend",
+   "status": "PASS",
+   "info": "polys 17 legend 4"
+  },
+  {
+   "test": "plan mode status renders with legend",
+   "status": "PASS",
+   "info": "polys 17 legend 18"
+  },
+  {
+   "test": "status change updates leased GLA correctly",
+   "status": "PASS",
+   "info": "615 + 180 = 795 (expected 795)"
+  },
+  {
+   "test": "status change writes status history",
+   "status": "PASS"
+  },
+  {
+   "test": "plan colour follows the new status",
+   "status": "PASS",
+   "info": "fill: rgb(47, 138, 79)"
+  },
+  {
+   "test": "kanban columns render",
+   "status": "PASS"
+  },
+  {
+   "test": "deal stage change recorded with history",
+   "status": "PASS",
+   "info": "lead → qualified history 2"
+  },
+  {
+   "test": "Closed Lost without a reason is refused",
+   "status": "PASS",
+   "info": "signed → signed"
+  },
+  {
+   "test": "tool registry answers and refuses unknown tools",
+   "status": "PASS",
+   "info": "tools: 20"
+  },
+  {
+   "test": "changes survive a reload",
+   "status": "PASS",
+   "info": "status after reload: contract"
+  },
+  {
+   "test": "session survives a reload",
+   "status": "PASS"
+  },
+  {
+   "test": "client sees only assigned projects",
+   "status": "PASS",
+   "info": "visible: 1"
+  },
+  {
+   "test": "client view model carries no commission data",
+   "status": "PASS"
+  },
+  {
+   "test": "client UI shows no commission wording",
+   "status": "PASS"
+  },
+  {
+   "test": "client cannot see internal notes",
+   "status": "PASS"
+  },
+  {
+   "test": "client does not see another client project",
+   "status": "PASS"
+  },
+  {
+   "test": "client navigation is reduced",
+   "status": "PASS",
+   "info": "nav items: 5"
+  },
+  {
+   "test": "client floor plan renders clickable units",
+   "status": "PASS",
+   "info": "polys: 17"
+  },
+  {
+   "test": "client unit drawer hides commercial terms",
+   "status": "PASS"
+  },
+  {
+   "test": "client can post a comment",
+   "status": "PASS"
+  },
+  {
+   "test": "client comment appears internally",
+   "status": "PASS"
+  },
+  {
+   "test": "client report renders with live figures",
+   "status": "PASS"
+  },
+  {
+   "test": "client report excludes commission data",
+   "status": "PASS"
+  },
+  {
+   "test": "client report excludes internal task wording",
+   "status": "PASS"
+  },
+  {
+   "test": "print stylesheet hides navigation",
+   "status": "PASS"
+  },
+  {
+   "test": "report exports to PDF",
+   "status": "PASS",
+   "info": "bytes: 75652"
+  },
+  {
+   "test": "units CSV export produces a file",
+   "status": "PASS",
+   "info": "bytes: 2925"
+  },
+  {
+   "test": "no horizontal overflow at 1920×1080",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "no horizontal overflow at 1440×900",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "no horizontal overflow at 1366×768",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "no horizontal overflow at 1024×768",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "no horizontal overflow at 820×1180",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "no horizontal overflow at 390×844",
+   "status": "PASS",
+   "info": "overflow px: 0"
+  },
+  {
+   "test": "opens from disk (file://) with demo data",
+   "status": "PASS",
+   "info": "units 42 errors "
+  },
+  {
+   "test": "floor plan works from disk",
+   "status": "PASS",
+   "info": "polys: 17"
+  }
+ ]
+}
