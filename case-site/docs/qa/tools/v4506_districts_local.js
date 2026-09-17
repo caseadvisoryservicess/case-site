@@ -1,11 +1,11 @@
 /* v4.50.6: границы районов Ташкента должны браться из локального файла, без интернета.
 
    До этого `ensureGeo()` в geoanalytics-studio.html пробовал по очереди:
-     1) data/tashkent_districts.geojson  — локально, но файла НЕ БЫЛО;
+     1) data/tashkent_districts.geojson  - локально, но файла НЕ БЫЛО;
      2) cdn.jsdelivr.net/gh/akbartus/GeoJSON-Uzbekistan…;
      3) raw.githubusercontent.com/…
    То есть слой районов работал только при доступе к GitHub, а при неудаче молча
-   пропускался — в консоль писалось «границы районов города недоступны». Для Узбекистана,
+   пропускался - в консоль писалось «границы районов города недоступны». Для Узбекистана,
    где часть внешних сервисов отдаёт ответ через раз, это означало слой-невидимку.
 
    Тест режет ВЕСЬ внешний трафик и проверяет, что районы всё равно отрисовались.
@@ -21,7 +21,7 @@ const EXPECTED = ['Olmazor', 'Yunusabad', 'Shaykhantakhur', 'Mirzo-Ulugbek', 'Ya
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -32,7 +32,7 @@ function check(name, cond, detail) {
   const errs = [];
   pg.on('pageerror', e => errs.push(e.message));
 
-  /* Всё, что не наш сервер, — обрываем. Если слой отрисуется, значит взят локальный файл. */
+  /* Всё, что не наш сервер, - обрываем. Если слой отрисуется, значит взят локальный файл. */
   const external = [];
   await pg.route('**/*', route => {
     const u = route.request().url();
@@ -53,7 +53,7 @@ function check(name, cond, detail) {
     if (!cb) return { err: 'нет переключателя районов' };
     cb.checked = true;
     cb.dispatchEvent(new Event('change', { bubbles: true }));
-    /* DISTGEO/gDist объявлены через let — свойствами window они НЕ становятся,
+    /* DISTGEO/gDist объявлены через let - свойствами window они НЕ становятся,
        обращаемся по имени напрямую из области видимости страницы. */
     for (let i = 0; i < 40; i++) {
       try { if (DISTGEO && DISTGEO.features && DISTGEO.features.length) break; } catch (_) {}
@@ -76,7 +76,7 @@ function check(name, cond, detail) {
     'получено ' + drew.features + (drew.err ? ' (' + drew.err + ')' : ''));
   check('слой отрисован на карте', drew.layers > 0, 'слоёв: ' + drew.layers);
 
-  /* Каждый район должен опознаться таблицей синонимов — иначе не будет подписи и статистики */
+  /* Каждый район должен опознаться таблицей синонимов - иначе не будет подписи и статистики */
   const matched = await pg.evaluate(exp => {
     if (typeof matchD !== 'function') return { err: 'matchD недоступна' };
     let fc = null; try { fc = DISTGEO; } catch (_) {}
@@ -88,7 +88,7 @@ function check(name, cond, detail) {
     matched.got && matched.got.length === 12 && matched.missing.length === 0,
     matched.err || (matched.missing.length ? 'не опознаны: ' + matched.missing.join(', ') : 'все 12'));
 
-  /* Ни один внешний адрес не должен был помочь — проверяем, что мы их действительно резали */
+  /* Ни один внешний адрес не должен был помочь - проверяем, что мы их действительно резали */
   const github = external.filter(u => /githubusercontent|jsdelivr/i.test(u));
   check('внешние источники были недоступны', true,
     github.length ? 'попыток к GitHub: ' + github.length + ' (все оборваны)' : 'к GitHub не обращались');

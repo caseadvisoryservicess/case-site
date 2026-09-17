@@ -19,7 +19,7 @@ const CHROME = process.env.CASE_CHROME || '/opt/pw-browsers/chromium-1194/chrome
 
 let failed = 0;
 function check(name, cond, detail) {
-  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' — ' + detail));
+  console.log((cond ? 'OK  ' : '!!  ') + name + (detail === undefined ? '' : ' - ' + detail));
   if (!cond) failed++;
 }
 
@@ -27,13 +27,13 @@ function check(name, cond, detail) {
   const { srv, base, state } = await createMockServer(OS, {
     initialState: { OBJECTS: [{ id: 'ca', name: 'CASE Mall' }], U: [], BRANDS: [], CHANGES: [], TRASH: [] }
   });
-  /* Мок по умолчанию отдаёт роль «Администратор аренды» — она НЕ администратор системы.
+  /* Мок по умолчанию отдаёт роль «Администратор аренды» - она НЕ администратор системы.
      Справочник правит только системный админ, поэтому подменяем пользователя. */
   state.user = Object.assign({}, state.user, {
     id: 'u-adm', name: 'Администратор', role: 'ADM', role_key: 'ADM',
     role_label: 'Администратор', admin: true, edit: true
   });
-  /* Права клиент берёт из ответа сервера, а не из локальной таблицы ролей —
+  /* Права клиент берёт из ответа сервера, а не из локальной таблицы ролей -
      без этого R().admin остаётся false даже у роли ADM. */
   state.rights = Object.assign({}, state.rights, { admin: 1, edit: 1, approve: 1 });
 
@@ -65,11 +65,11 @@ function check(name, cond, detail) {
     _taxoCat = 'F&B / рестораны и кафе';
     renderAdminSystem();
     const el = document.getElementById('taxo_new_sub');
-    el.value = 'Ресторан — славянская';
+    el.value = 'Ресторан - славянская';
     taxoAdd('subs', 'taxo_new_sub');
     return { custom: (TAXO.subs['F&B / рестораны и кафе'] || []).slice(), cleared: document.getElementById('taxo_new_sub').value };
   });
-  check('подкатегория добавлена в справочник', added.custom.indexOf('Ресторан — славянская') >= 0,
+  check('подкатегория добавлена в справочник', added.custom.indexOf('Ресторан - славянская') >= 0,
     added.custom.join(', ') || 'пусто');
   check('поле ввода очищено', added.cleared === '');
 
@@ -88,7 +88,7 @@ function check(name, cond, detail) {
   const dup = await pg.evaluate(() => {
     const before = (TAXO.subs['F&B / рестораны и кафе'] || []).length;
     let el = document.getElementById('taxo_new_sub');
-    el.value = 'ресторан — славянская';              /* тот же текст в другом регистре */
+    el.value = 'ресторан - славянская';              /* тот же текст в другом регистре */
     taxoAdd('subs', 'taxo_new_sub');
     const afterSame = (TAXO.subs['F&B / рестораны и кафе'] || []).length;
     el = document.getElementById('taxo_new_sub');
@@ -114,7 +114,7 @@ function check(name, cond, detail) {
     const types = [...document.querySelectorAll('#brandTypeDL option')].map(o => o.value);
     const cats = [...document.querySelectorAll('#brandCatDL option')].map(o => o.value);
     return {
-      sub: subs.indexOf('Ресторан — славянская') >= 0,
+      sub: subs.indexOf('Ресторан - славянская') >= 0,
       type: types.indexOf('Славянская / русская кухня') >= 0,
       cat: cats.indexOf('Коворкинг для стартапов') >= 0,
       builtinKept: subs.indexOf('Кофейня') >= 0 && types.indexOf('Итальянская') >= 0,
@@ -126,7 +126,7 @@ function check(name, cond, detail) {
   check('новая категория видна в форме бренда', inForm.cat);
   check('встроенные значения на месте', inForm.builtinKept);
 
-  /* Встроенное удалить нельзя — среди кнопок «убрать» только добавленные вручную */
+  /* Встроенное удалить нельзя - среди кнопок «убрать» только добавленные вручную */
   await pg.evaluate(() => go('admin_system'));
   await pg.waitForTimeout(900);
   const removable = await pg.evaluate(() => {
@@ -141,7 +141,7 @@ function check(name, cond, detail) {
   await pg.waitForTimeout(2500);
   const onServer = state.appState.data.TAXO;
   check('справочник сохранён на сервере под TAXO',
-    !!onServer && (onServer.subs['F&B / рестораны и кафе'] || []).indexOf('Ресторан — славянская') >= 0,
+    !!onServer && (onServer.subs['F&B / рестораны и кафе'] || []).indexOf('Ресторан - славянская') >= 0,
     onServer ? JSON.stringify(onServer).slice(0, 90) : 'ключа нет');
 
   check('ошибок сценария за весь прогон нет', errs.length === 0, errs[0] || 'ошибок нет');

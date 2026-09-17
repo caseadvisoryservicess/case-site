@@ -3,7 +3,7 @@
 const { chromium } = require('playwright-core');
 const fs=require('fs'), path=require('path');
 const FILE = process.argv[2] || '/home/user/case-site/case-site/docs/standalone/CASE_OS_Geo_Analytics.html';
-let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' — '+d)); if(!c)failed++;};
+let failed=0; const ck=(n,c,d)=>{console.log((c?'OK  ':'!!  ')+n+(d===undefined?'':' - '+d)); if(!c)failed++;};
 const EDU={src:'тест',points:[
  {n:'Школа №110',la:41.3200,ln:69.2800,t:'school',s:'OSM'},
  {n:'Inha University',la:41.3450,ln:69.2870,t:'university',s:'OSM'},
@@ -69,7 +69,7 @@ const EDU={src:'тест',points:[
     `смещение ${drag.ml}/${drag.mt}, на экране сдвинулась на ${drag.dx}/${drag.dy}`);
   ck('сдвиг записан в память',/\-?\d+/.test(drag.saved)&&drag.saved.length>5,drag.saved.slice(0,60));
 
-  /* сдвиг должен пережить панораму и зум — Leaflet переписывает transform, а мы храним margin */
+  /* сдвиг должен пережить панораму и зум - Leaflet переписывает transform, а мы храним margin */
   const after=await pg.evaluate(async()=>{
     map.panBy([120,80]); await new Promise(r=>setTimeout(r,600));
     map.setZoom(map.getZoom()-1); await new Promise(r=>setTimeout(r,900));

@@ -1,4 +1,4 @@
-/* CASE OS v4.43.1 — автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
+/* CASE OS v4.43.1 - автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -34,7 +34,7 @@ srv.listen(0,'127.0.0.1',async()=>{
    return {open:p&&p.classList.contains('open'),
      hasTitle:p&&/Отчёт по точке/.test(p.textContent),
      hasCoords:p&&/41\.315/.test(p.textContent),
-     hasPdfBtn:p&&/Скачать PDF/.test(p.innerHTML),
+     hasPdfBtn:p&&/exportProbePdf\(\)/.test(p.innerHTML),   /* проверяем действие, а не подпись: в v4.53.0 кнопку переименовали в «⤓ PDF», и тест молча краснел с тех пор */
      hasPop:p&&/Население/.test(p.textContent),
      hasScoring:p&&/Быстрый скоринг/.test(p.textContent)};
  });
@@ -62,11 +62,13 @@ srv.listen(0,'127.0.0.1',async()=>{
  rec('карта перелетела к проекту (центр ~41.315,69.28, зум ≥15)',
    Math.abs(center.c.lat-41.315)<0.01&&Math.abs(center.c.lng-69.28)<0.01&&center.z>=15,JSON.stringify(center));
 
- // v4.43.2: после закрытия отчёт переоткрывается кнопкой в попапе объекта
+ // v4.43.2: после закрытия отчёт переоткрывается кнопкой в попапе объекта.
+ // v4.73.1: проектов CASE в студии нет; координаты присланного проекта стали точкой анализа
+ // с id 'project', и кнопка «Отчёт по точке» в попапе её метки открывает тот же отчёт.
  const reopen=await page.evaluate(async()=>{
    closeProbe();
    const closed=!document.getElementById('probe').classList.contains('open');
-   geoObjProbe('p1');
+   geoObjProbe('project');
    await new Promise(r=>setTimeout(r,900));
    const p=document.getElementById('probe');
    return {closed,reopened:p.classList.contains('open')&&/Отчёт по точке/.test(p.textContent),

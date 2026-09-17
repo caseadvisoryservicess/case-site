@@ -1,4 +1,4 @@
-# CASE OS v4.32.0 — Staging Acceptance Checklist
+# CASE OS v4.32.0 - Staging Acceptance Checklist
 
 ## A. Развёртывание и кэш
 

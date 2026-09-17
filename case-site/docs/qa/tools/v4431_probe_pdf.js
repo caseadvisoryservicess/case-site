@@ -1,4 +1,4 @@
-/* CASE OS v4.43.1 — автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
+/* CASE OS v4.43.1 - автo-отчёт по точке проекта при переходе «Аналитика» + PDF-выгрузка */
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http');
 const {chromium}=require('playwright-core');
@@ -34,7 +34,7 @@ srv.listen(0,'127.0.0.1',async()=>{
    return {open:p&&p.classList.contains('open'),
      hasTitle:p&&/Отчёт по точке/.test(p.textContent),
      hasCoords:p&&/41\.315/.test(p.textContent),
-     hasPdfBtn:p&&/Скачать PDF/.test(p.innerHTML),
+     hasPdfBtn:p&&/exportProbePdf\(\)/.test(p.innerHTML),   /* проверяем действие, а не подпись: в v4.53.0 кнопку переименовали в «⤓ PDF», и тест молча краснел с тех пор */
      hasPop:p&&/Население/.test(p.textContent),
      hasScoring:p&&/Быстрый скоринг/.test(p.textContent)};
  });

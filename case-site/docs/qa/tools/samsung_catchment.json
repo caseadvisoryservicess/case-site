@@ -1,0 +1,60 @@
+{
+ "center": {
+  "lat": 41.34874282632705,
+  "lng": 69.28821941229232,
+  "source": "geoanalytics-studio.html, owner record"
+ },
+ "portfolio_center": {
+  "lat": 41.314564,
+  "lng": 69.217462,
+  "source": "case_portfolio_projects_v4.9.3.json, inferred_city",
+  "offset_km": 7.02
+ },
+ "grid": {
+  "cell_m": 1005.0,
+  "cells": 6865,
+  "total_population": 5843484
+ },
+ "rings": [
+  {
+   "radius_m": 500,
+   "area_km2": 0.79,
+   "population": 1541,
+   "density": 1961,
+   "cells_touched": 4,
+   "bc": 0
+  },
+  {
+   "radius_m": 1000,
+   "area_km2": 3.14,
+   "population": 6448,
+   "density": 2053,
+   "cells_touched": 9,
+   "bc": 0
+  },
+  {
+   "radius_m": 2000,
+   "area_km2": 12.57,
+   "population": 24602,
+   "density": 1958,
+   "cells_touched": 23,
+   "bc": 9
+  },
+  {
+   "radius_m": 3000,
+   "area_km2": 28.27,
+   "population": 53711,
+   "density": 1900,
+   "cells_touched": 46,
+   "bc": 23
+  },
+  {
+   "radius_m": 5000,
+   "area_km2": 78.54,
+   "population": 148281,
+   "density": 1888,
+   "cells_touched": 109,
+   "bc": 59
+  }
+ ]
+}

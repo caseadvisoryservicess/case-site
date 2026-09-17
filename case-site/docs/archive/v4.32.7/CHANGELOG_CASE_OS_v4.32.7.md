@@ -1,4 +1,4 @@
-# CASE OS v4.32.7 — Changelog
+# CASE OS v4.32.7 - Changelog
 
 Дата релиза: 23 июля 2026 г.
 

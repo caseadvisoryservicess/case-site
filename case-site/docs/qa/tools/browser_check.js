@@ -1,4 +1,4 @@
-/* CASE OS — проверка платформы со стороны браузера.
+/* CASE OS - проверка платформы со стороны браузера.
 
    ЗАЧЕМ: серверный скрипт server_check.php видит файлы и базу, но не видит,
    что реально загрузилось у сотрудника в браузере (старый кэш, недокачанный
@@ -20,7 +20,7 @@
   function ok(b) { return b ? 'OK  ' : '!!  '; }
   function n(v) { return (v && v.length !== undefined) ? v.length : 0; }
 
-  say('CASE OS — ПРОВЕРКА ИЗ БРАУЗЕРА');
+  say('CASE OS - ПРОВЕРКА ИЗ БРАУЗЕРА');
   say('дата: ' + new Date().toLocaleString());
   say('адрес: ' + location.href.split('?')[0]);
   say('браузер: ' + navigator.userAgent);
@@ -31,18 +31,18 @@
   var appv = (typeof APP_VERSION !== 'undefined') ? APP_VERSION : '?';
   say('версия платформы: ' + appv);
   /* CASE_EXPECTED_MODULES объявлена как const в index.html: она видна по имени,
-     но её НЕТ в window — обращение только через window вернуло бы пустую карту. */
+     но её НЕТ в window - обращение только через window вернуло бы пустую карту. */
   var exp = (typeof CASE_EXPECTED_MODULES !== 'undefined') ? CASE_EXPECTED_MODULES
           : (window.CASE_EXPECTED_MODULES || {});
   var got = window.CASE_MODULE_VERSIONS || {};
   var bad = 0, keys = Object.keys(exp);
   if (!keys.length) {
-    say('!!  карта ожидаемых версий не найдена — версия платформы старше 4.46.4');
+    say('!!  карта ожидаемых версий не найдена - версия платформы старше 4.46.4');
   } else {
     keys.forEach(function (k) {
       var want = exp[k], have = got[k] || 'НЕ ЗАГРУЖЕН';
       if (have !== want) bad++;
-      say('  ' + ok(have === want) + k + ' — ждём ' + want + ', загружено ' + have);
+      say('  ' + ok(have === want) + k + ' - ждём ' + want + ', загружено ' + have);
     });
     say(bad ? '!!  Расхождений: ' + bad + '. У этого сотрудника старые файлы: нужен Ctrl+Shift+R, '
             + 'либо на сервер залита не вся папка os.'
@@ -57,7 +57,7 @@
       say('регистраций SW: ' + regs.length);
       regs.forEach(function (r) {
         say('  область: ' + r.scope + ' | активен: ' + (r.active ? 'да' : 'нет')
-          + ' | ожидает обновления: ' + (r.waiting ? 'ДА — нужен Ctrl+Shift+R' : 'нет'));
+          + ' | ожидает обновления: ' + (r.waiting ? 'ДА - нужен Ctrl+Shift+R' : 'нет'));
       });
     }
     if (window.caches) {
@@ -65,7 +65,7 @@
       say('кэши: ' + (cn.join(', ') || '(пусто)'));
       var want = 'case-os-v' + String(appv).split('.').join('');
       var hit = cn.indexOf(want) >= 0;
-      say(ok(hit || !cn.length) + 'ожидался кэш ' + want + (hit ? '' : ' — его нет, браузер держит старую версию'));
+      say(ok(hit || !cn.length) + 'ожидался кэш ' + want + (hit ? '' : ' - его нет, браузер держит старую версию'));
       var stale = cn.filter(function (x) { return /^case-os-v/.test(x) && x !== want; });
       if (stale.length) say('!!  старые кэши не удалены: ' + stale.join(', '));
     }
@@ -75,19 +75,19 @@
   hr('3. ПОЛЬЗОВАТЕЛЬ И ПРАВА');
   try {
     var u = (typeof S !== 'undefined' && S.user) ? S.user : null;
-    /* S.role — это КЛЮЧ роли (строка), а сами права лежат в ROLES[ключ]. */
+    /* S.role - это КЛЮЧ роли (строка), а сами права лежат в ROLES[ключ]. */
     var rk = (typeof S !== 'undefined') ? S.role : null;
     var r  = (rk && typeof ROLES !== 'undefined') ? ROLES[rk] : null;
-    if (!u) say('!!  вход не выполнен — часть проверок пропущена');
+    if (!u) say('!!  вход не выполнен - часть проверок пропущена');
     else {
-      say('сотрудник: ' + (u.name || '?') + ' | почта: ' + (u.email || '—')
+      say('сотрудник: ' + (u.name || '?') + ' | почта: ' + (u.email || '-')
         + ' | роль: ' + (rk || u.role || '?') + (r && r.label ? ' (' + r.label + ')' : ''));
       if (!r) say('!!  описание прав роли не найдено');
       else {
         say('права роли:');
         ['edit', 'finance', 'admin', 'leasing', 'approve', 'plans', 'geoEdit', 'own_only']
           .forEach(function (k) { if (k in r) say('  ' + k + ': ' + (r[k] ? 'да' : 'НЕТ')); });
-        if (!r.edit) say('!!  У этой роли НЕТ права на правку. Любое сохранение будет отклонено — '
+        if (!r.edit) say('!!  У этой роли НЕТ права на правку. Любое сохранение будет отклонено - '
                        + 'снаружи это выглядит как «данные пропали».');
         if (!r.geoEdit) say('!!  У этой роли НЕТ права на изменение геоданных.');
       }
@@ -136,7 +136,7 @@
   var st = await probe('api/state.php');
   say(ok(st.status === 200) + 'api/state.php → ' + (st.status || st.err)
     + (st.ms ? ' (' + st.ms + ' мс, ' + Math.round(st.len / 1024) + ' КБ)' : ''));
-  if (st.status === 401 || st.status === 403) say('!!  Сервер не признаёт сессию — сохранение работать не будет. Войдите заново.');
+  if (st.status === 401 || st.status === 403) say('!!  Сервер не признаёт сессию - сохранение работать не будет. Войдите заново.');
   if (st.status === 200) {
     try {
       var j = JSON.parse(st.body), dd = j.data || {};
@@ -146,7 +146,7 @@
       var srvU = n(dd.U), memU = (typeof U !== 'undefined') ? n(U) : 0;
       if (srvU !== memU)
         say('!!  РАСХОЖДЕНИЕ: на сервере ' + srvU + ' помещений, в браузере ' + memU
-          + '. Часть данных не долетела — обновите страницу и повторите проверку.');
+          + '. Часть данных не долетела - обновите страницу и повторите проверку.');
       else say('  Данные в браузере совпадают с сервером.');
       var sg = dd.GEO_DATA && dd.GEO_DATA.datasets, sgn = 0;
       if (sg) Object.keys(sg).forEach(function (k) { sgn += (sg[k] || []).length; });
@@ -173,19 +173,19 @@
       if (!inView) { offscreen++; return; }
       checked++;
       /* Chromium умеет отдавать корректный прямоугольник у ячейки, которая на самом
-         деле не отрисована. Поэтому проверяем ещё и попадание точки — это
+         деле не отрисована. Поэтому проверяем ещё и попадание точки - это
          единственный надёжный признак того, что шапку реально видно. */
       var hitEl = document.elementFromPoint(rect.left + Math.min(20, rect.width / 2), rect.top + rect.height / 2);
       var painted = !!(hitEl && (hitEl === th || th.contains(hitEl) || hitEl.contains(th)));
       say('  таблица ' + checked + ' («' + (th.textContent || '').trim().slice(0, 16) + '»): position='
         + cs.position + ', top=' + cs.top + ', шапка видна: ' + (painted ? 'да' : 'НЕТ'));
-      if (!painted) say('  !!  Шапка не отрисована — её перекрывает <'
+      if (!painted) say('  !!  Шапка не отрисована - её перекрывает <'
         + (hitEl ? hitEl.tagName.toLowerCase() + ' class="' + String(hitEl.className).slice(0, 40) + '"' : 'ничего')
         + '>. Пришлите скриншот этой таблицы.');
     });
     if (offscreen) say('  пропущено таблиц вне видимой области: ' + offscreen
       + ' (прокрутите к таблице и запустите проверку ещё раз)');
-    if (!checked) say('  на видимой части экрана таблиц нет — откройте Реестр, прокрутите к таблице и повторите');
+    if (!checked) say('  на видимой части экрана таблиц нет - откройте Реестр, прокрутите к таблице и повторите');
   } catch (e) { say('ошибка: ' + e.message); }
 
   /* ---- 7. ошибки ---- */
@@ -202,14 +202,14 @@
     window.addEventListener('unhandledrejection', function (ev) {
       errs.push('promise: ' + ((ev.reason && ev.reason.message) || ev.reason));
     });
-    say('Счётчик ошибок включён. Поработайте 2–3 минуты и запустите скрипт ещё раз — '
+    say('Счётчик ошибок включён. Поработайте 2-3 минуты и запустите скрипт ещё раз - '
       + 'здесь появятся ошибки, если они возникнут.');
   }
 
   hr('ГОТОВО');
   var out = L.join('\n');
   console.log(out);
-  try { if (typeof copy === 'function') { copy(out); console.log('%cОтчёт скопирован в буфер обмена — вставьте его в ответ.', 'color:#0a0;font-weight:bold'); } }
+  try { if (typeof copy === 'function') { copy(out); console.log('%cОтчёт скопирован в буфер обмена - вставьте его в ответ.', 'color:#0a0;font-weight:bold'); } }
   catch (e) {}
   return out;
 })();

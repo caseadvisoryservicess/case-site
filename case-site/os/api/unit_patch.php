@@ -10,6 +10,8 @@ $b = body();
 $id = trim((string)($b['id'] ?? ''));
 $changes = $b['changes'] ?? null;
 if ($id === '' || !is_array($changes)) fail('Нужны id и changes', 400);
+/* Отказ должен быть слышен: молча выбросив поле, мы показали бы пользователю «сохранено»
+   там, где ничего не сохранилось, и он узнал бы об этом на переговорах с арендатором. */
 
 // Only business fields of a unit may be changed. Object/id/source links are immutable here.
 $allowed = array_flip([
@@ -19,10 +21,19 @@ $allowed = array_flip([
   'contractSign','contractEnd','rateReview','fitout','handover','specialTerms','brand','tenant',
   'layoutVersionId','layoutVersionNo','layoutSource','manualOverride','updatedAt','updatedBy'
 ]);
+/* P0-SEC-02: право edit разрешало агенту аренды менять ставку, бюджет и CAPEX через этот
+   эндпоинт, хотя по описанию роли он ведёт показы и брони. Экран этих полей ему не
+   показывает, но эндпоинт принимал их без единой проверки. Список финансовых полей -
+   общий с state.php и units_batch.php (lib.php: unit_finance_fields). */
+$financeLocked = !unit_can_see_finance($u) ? array_flip(unit_finance_fields()) : [];
+$blocked = [];
+
 $clean = [];
 foreach ($changes as $k=>$v) {
   $k = (string)$k;
   if (!isset($allowed[$k])) continue;
+  if (isset($financeLocked[$k])) { $blocked[] = $k; continue; }
+  if ($k === 'offer' && !unit_can_see_finance($u)) { $blocked[] = $k; continue; }
   if (in_array($k, ['code','block','floor','cat','sub','status','broker','assignedTo','assigned_to','comment','leaseModel','vat','terms','opening','reservationEnd','contractSign','contractEnd','rateReview','fitout','handover','specialTerms','brand','tenant','layoutVersionId','layoutVersionNo','layoutSource','updatedAt','updatedBy'], true)) {
     $clean[$k] = mb_substr(trim((string)$v), 0, 4000);
   } elseif (in_array($k, ['area','terr','rate','budget','budLand','factLand','capex','total','gap'], true)) {
@@ -80,7 +91,11 @@ try {
       ->execute([$json, $now, (string)($u['name'] ?? '-'), $newRev]);
   try { audit('LCR: атомарная правка помещения', $id.' · '.implode(',', array_keys($clean))); } catch (Throwable $e) {}
   $pdo->commit();
-  json_out(['ok'=>true,'unit'=>$unit,'revision'=>$newRev,'updated_at'=>$now]);
+  /* Отданное помещение тоже чистим: иначе ответ вернул бы ставку роли, которой её
+     только что запретили менять, и она увидела бы её в ответе эндпоинта. */
+  $safeUnit = unit_can_see_finance($u) ? $unit : (redact_units_for([$unit], $u)[0] ?? $unit);
+  json_out(['ok'=>true,'unit'=>$safeUnit,'revision'=>$newRev,'updated_at'=>$now]
+    + (!empty($blocked) ? ['blocked_fields'=>array_values(array_unique($blocked))] : []));
 } catch (Throwable $e) {
   if ($pdo->inTransaction()) $pdo->rollBack();
   if ($e instanceof PDOException) fail('Не удалось сохранить помещение', 500);
