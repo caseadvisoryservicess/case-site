@@ -49,6 +49,9 @@ run node tools/test-search.cjs
 step "Assistant — the eight §63 scenarios and the §62 refusals"
 run node tools/test-assistant.cjs
 
+step "Ingestion: matching, the four per-field outcomes, the licence gate"
+run python3 tools/test_merge.py
+
 step "i18n key audit"
 run node tools/check-i18n.cjs
 
