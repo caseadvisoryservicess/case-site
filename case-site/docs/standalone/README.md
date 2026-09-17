@@ -1,5 +1,11 @@
 # Автономная геоаналитика
 
+В папке два продукта одним файлом: `CASE_Geo_Analytics.html` (вся студия геоаналитики
+CASE OS, около 4 МБ, описана ниже) и `CASE_Geo_Platform_MVP.html` (база бизнес-центров с
+происхождением полей, честной аналитикой и Geo AI по брифу владельца, около 720 КБ,
+описание в `GEO_MVP_README.md`; сборка `node docs/qa/tools/build_geo_mvp.js`, проверка
+`docs/qa/tools/v4733_geo_mvp.js`).
+
 ## CASE Geo Analytics: сборка из студии одним файлом (с v4.73.1)
 
 `CASE_Geo_Analytics.html` - отдельный продукт: студия геоаналитики CASE OS целиком в одном
