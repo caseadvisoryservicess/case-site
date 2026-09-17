@@ -81,15 +81,21 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
   });
 
   await pg.goto(base + '/geoanalytics-studio.html?embedded=1', { waitUntil: 'domcontentloaded' });
-  await pg.waitForFunction(() => window.CASE_GEO_AGENT && document.getElementById('gaPanel') && document.getElementById('gaSend'), null, { timeout: 20000 });
+  await pg.waitForFunction(() => window.CASE_GEO_AGENT && document.getElementById('gaPanel') && document.getElementById('gaSend') && document.getElementById('gaToggle'), null, { timeout: 20000 });
   await pg.waitForTimeout(1500);
+  /* v4.75.0: агент живёт в правой выдвижной панели, по умолчанию закрытой; открываем кнопкой */
+  const drawer0 = await pg.evaluate(() => ({ open: document.getElementById('gaDrawer').classList.contains('open'), inDrawer: !!document.getElementById('gaPanel').closest('#gaDrawer') }));
+  await pg.click('#gaToggle');
+  await pg.waitForTimeout(300);
+  const drawer1 = await pg.evaluate(() => ({ open: document.getElementById('gaDrawer').classList.contains('open'), vis: getComputedStyle(document.getElementById('gaSend')).visibility !== 'hidden' && document.getElementById('gaSend').getBoundingClientRect().width > 0, saved: localStorage.getItem('caseos_ga_drawer') }));
+  ck('агент в правой панели: закрыт по умолчанию, кнопка «Гео-агент» открывает и запоминает', drawer0.inDrawer && !drawer0.open && drawer1.open && drawer1.vis && drawer1.saved === '1', JSON.stringify({ drawer0, drawer1 }));
 
   const ask = t => pg.evaluate(async t => {
     const A = window.CASE_GEO_AGENT, n0 = A.state.log.length;
     await A.ask(t);
     return A.state.log.slice(n0).map(m => m.who + ':' + m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
   }, t);
-  const st = () => pg.evaluate(() => { const S = window.CASE_GEO_AGENT.state; return { site: S.site, zone: S.zone.map(z => ({ kind: z.kind, r: z.r, n: z.ring ? z.ring.length : 0 })), merged: S.merged, draw: S.draw ? S.draw.pts.length : null, pick: S.pick, b: S.data.buildings ? S.data.buildings.length : null, r: S.data.roads ? S.data.roads.length : null, styles: S.styles, lastLayer: S.lastLayer, probe: document.getElementById('lProbe').checked, done: document.getElementById('gaDone').disabled, lastIntents: S.lastIntents }; });
+  const st = () => pg.evaluate(() => { const S = window.CASE_GEO_AGENT.state; return { site: S.site, zone: S.zone.map(z => ({ kind: z.kind, r: z.r, n: z.ring ? z.ring.length : 0 })), merged: S.merged, draw: S.draw ? S.draw.pts.length : null, pick: S.pick, b: S.data.buildings ? S.data.buildings.length : null, r: S.data.roads ? S.data.roads.length : null, styles: S.styles, lastLayer: S.lastLayer, probe: (function () { const cb = document.getElementById('lProbe'); return cb ? cb.checked : false; })(), done: document.getElementById('gaDone').disabled, lastIntents: S.lastIntents }; });
   const has = (log, who, re) => log.some(l => l.indexOf(who + ':') === 0 && re.test(l));
 
   console.log('--- 0. Панель, оформление, подложка');
@@ -105,14 +111,14 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
       ids: ['gaPick', 'gaPoly', 'gaDone', 'gaPing', 'gaInput', 'gaSend', 'gaLog', 'gaSite'].every(id => !!document.getElementById(id)),
       dash: DASH.test(p.innerHTML) || DASH.test(document.getElementById('gaCss').textContent),
       osmFirst: Object.keys(window.BASES || {})[0] === 'OpenStreetMap', cartoKeyed: Object.keys(window.BASES || {}).filter(k => /CARTO/.test(k)).every(k => /ключ/.test(k)),
-      probe: document.getElementById('lProbe').checked, noAi: !/anthropic|claude|openai/i.test(p.textContent),
+      probe: (function () { const cb = document.getElementById('lProbe'); return cb ? cb.checked : false; })(), inDrawer: !!p.closest('#gaDrawer'), noAi: !/anthropic|claude|openai/i.test(p.textContent),
       tools: Object.keys(A.TOOLS).sort().join(',') };
   });
-  ck('модуль 4.73.1 зарегистрирован', s0.ver === '4.73.1' && s0.mod === '4.73.1');
+  ck('модуль 4.75.0 зарегистрирован', s0.ver === '4.75.0' && s0.mod === '4.75.0', s0.ver + ' / ' + s0.mod);
   ck('заголовок «Гео-агент» с меткой «свой движок»', /Гео-агент/.test(s0.title) && s0.badge, s0.title);
-  ck('панель и секции - карточки со скруглением 12px на бумаге CASE', s0.radius === '12px' && s0.sectRadius === '12px' && s0.sectBg === 'rgb(255, 255, 255)' && s0.leftBg === 'rgb(250, 248, 245)', [s0.radius, s0.sectRadius, s0.sectBg, s0.leftBg].join(' / '));
+  ck('панель агента в правом ящике без скругления, секции слева - карточки 12px на бумаге CASE', s0.inDrawer && s0.radius === '0px' && s0.sectRadius === '12px' && s0.sectBg === 'rgb(255, 255, 255)' && s0.leftBg === 'rgb(250, 248, 245)', [s0.inDrawer, s0.radius, s0.sectRadius, s0.sectBg, s0.leftBg].join(' / '));
   ck('шапка агента тёмная, кнопка отправки круглая и в оксбладе CASE', s0.h3dark && s0.sendRed && s0.sendRound === '50%');
-  ck('элементы управления на месте: 12 чипов, 3 цвета, кнопки и поле', s0.ids && s0.chips === 12 && s0.colors === 3, s0.chips + ' чипов, ' + s0.colors + ' цветов');
+  ck('элементы управления на месте: 13 чипов (с v4.75.0 «зона охвата по методике»), 3 цвета, кнопки и поле', s0.ids && s0.chips === 13 && s0.colors === 3, s0.chips + ' чипов, ' + s0.colors + ' цветов');
   ck('в панели и её стилях нет длинных тире', !s0.dash);
   /* В тесте тайлы заблокированы, и студия честно переключает подложку по ошибкам загрузки,
      поэтому «какая подложка сейчас» здесь не показатель. Проверяем исходник: по умолчанию
@@ -120,7 +126,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
   const studioSrc = require('fs').readFileSync(path.join(OS, 'geoanalytics-studio.html'), 'utf8');
   ck('подложка по умолчанию OpenStreetMap, CARTO помечен «нужен ключ»', s0.osmFirst && s0.cartoKeyed && studioSrc.includes("window.BASES['OpenStreetMap'].addTo(map)") && /order=\['OpenStreetMap'/.test(studioSrc) && !/BASES\['CARTO[^']*'\]\.addTo/.test(studioSrc));
   ck('в панели нет упоминаний внешних ИИ', s0.noAi);
-  ck('набор инструментов полный', s0.tools === 'cancel_polygon,clear_layers,count_competitors,count_population,draw_isochrone,draw_polygon,draw_radius,finish_polygon,help,load_buildings,load_roads,merge_zones,ping,select_features,set_site,style_layer,zone_area', s0.tools);
+  ck('набор инструментов полный', s0.tools === 'cancel_polygon,catchment,clear_layers,count_competitors,count_population,draw_circle,draw_isochrone,draw_polygon,draw_radius,finish_polygon,help,load_buildings,load_roads,merge_zones,ping,select_features,set_site,style_layer,zone_area', s0.tools);
 
   console.log('\n--- 1. Разбор фраз');
   const P = await pg.evaluate(() => {
@@ -231,10 +237,13 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
   ck('ползунок цвета в панели меняет слой', colorInput === '#123456');
 
   console.log('\n--- 4. Полигон и точка кликами по карте');
-  const probe0 = await pg.evaluate(() => { document.getElementById('lProbe').checked = true; return document.getElementById('lProbe').checked; });
+  /* v4.75.0: клик по карте больше не открывает отчёт по точке, флажок lProbe снят и скрыт
+     компоновкой; агент по-прежнему снимает и возвращает его, но он всегда false. */
+  const probe0 = await pg.evaluate(() => { const cb = document.getElementById('lProbe'); return cb ? cb.checked : false; });
+  ck('флажок «клик = отчёт по точке» снят и скрыт (клик по карте ничего не открывает)', probe0 === false && (await pg.evaluate(() => { const cb = document.getElementById('lProbe'); if (!cb) return true; const l = cb.closest('label'); return !l || getComputedStyle(l).display === 'none'; })));
   log = await ask('полигон');
   s = await st();
-  ck('«полигон» включает рисование, снимает флажок отчёта по точке, включает «Готово»', s.draw === 0 && s.probe === false && s.done === false && has(log, 'ai', /кликайте/i), JSON.stringify({ draw: s.draw, probe: s.probe, done: s.done }));
+  ck('«полигон» включает рисование, флажок отчёта снят, включает «Готово»', s.draw === 0 && s.probe === false && s.done === false && has(log, 'ai', /кликайте/i), JSON.stringify({ draw: s.draw, probe: s.probe, done: s.done }));
   await pg.evaluate(() => { [[41.3105, 69.2790], [41.3140, 69.2790], [41.3140, 69.2810], [41.3105, 69.2810]].forEach(p => map.fire('click', { latlng: L.latLng(p[0], p[1]) })); });
   s = await st();
   ck('четыре клика - четыре вершины, отчёт по точке не открылся', s.draw === 4 && (await pg.evaluate(() => !document.getElementById('probe').classList.contains('open'))));

@@ -8,7 +8,7 @@
  *   - категории («Бизнес-центры», «Медицина и аптеки», «Ритейл» ...) становятся узлами
  *     дерева: общая галочка включает и выключает все слои категории, счётчик «включено /
  *     всего», категория сворачивается, состояние помнится в localStorage;
- *   - «Границы и плотность» поднимаются наверх, перед ними узел «Подложка» с выбором карты;
+ *   - «Границы и плотность» поднимаются наверх; подложку выбирает только кнопка у карты (v4.75.0);
  *   - поиск по слоям: строка «найти слой» показывает только подходящие строки и раскрывает
  *     их категории;
  *   - у карты появляется кнопка подложки с именем текущей карты и списком остальных;
@@ -20,7 +20,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_TREE) return;
-  var VERSION = '4.74.0', KEY = 'caseos_geo_tree_v1';
+  var VERSION = '4.75.0', KEY = 'caseos_geo_tree_v1';
   var T = window.CASE_GEO_TREE = { version: VERSION };
   /* карта студии объявлена как let map (глобальная лексическая), а theMap() - это <div id="map">;
      берём именно объект Leaflet */
@@ -150,7 +150,7 @@
     var frag = document.createDocumentFragment();
     var q = document.createElement('input'); q.type = 'search'; q.className = 'geo-tree-q'; q.placeholder = 'Найти слой: районы, метро, кафе, аптеки'; q.setAttribute('aria-label', 'Найти слой');
     frag.appendChild(q);
-    var base = baseCategory(); if (base) frag.appendChild(base);
+    /* v4.75.0: узла «Подложка карты» в дереве нет: подложку выбирает кнопка у карты (решение владельца) */
     order.forEach(function (g) {
       var opened = (st.open && Object.prototype.hasOwnProperty.call(st.open, g.title)) ? !!st.open[g.title] : !!openDefault[g.title];
       g.titleEl.remove();
@@ -196,4 +196,4 @@
   T.setBase = setBase; T.currentBase = currentBase; T.bases = bases; T.refresh = refreshAll; T.filter = function (t) { var s = findLayersSection(); if (s) filterTree(s.querySelector('.sbody') || s, t); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4740-geo-tree'] = '4.74.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4740-geo-tree'] = '4.75.0';

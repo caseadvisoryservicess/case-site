@@ -1038,10 +1038,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
      onclick="caseHuffOpen()" title="какую долю жителей зоны реально заберёт объект с учётом конкурентов, и у кого именно">◱ Доля рынка (модель Хаффа)</button></div>
    <label class="ck" style="margin-top:4px"><input type="checkbox" id="lQibla" onchange="caseQiblaToggle(this.checked)"> Направление киблы на карте</label></div>
   <div class="sect"><h3>Анализ локации</h3>
-   <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
+   <!-- v4.75.0: клик по карте ничего не открывает (решение владельца); отчёт по точке дают кнопка «Аналитика по точке» и карточки -->
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
-   <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">▱ Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
-   <div class="mini" id="zoneNote"></div>
+   <!-- v4.75.0: кнопок «Зона: рисовать» нет: полигон и круг рисуются инструментами внизу карты -->
    <div class="styrow"><label for="isoMin">Изохрона авто</label><select id="isoMin" style="width:auto;font-size:11px"><option>5</option><option selected>10</option><option>15</option><option>20</option></select><button class="btn sec" id="btnIso" style="font-size:11px">▶ От проекта</button></div>
    <div class="mini" id="isoNote"></div>
    <div class="sect"><h3>Модель зон пригодности</h3>
@@ -1075,9 +1074,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
     <div class="mini" id="zonesNote"></div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
    </div></div>
-  <div class="sect"><h3>Зона охвата</h3><div id="rings"></div>
+  <div class="sect"><h3>Зона охвата</h3><div class="styrow sub"><label for="ringKm">радиусы, км</label><input type="text" id="ringKm" value="1, 3, 5" style="width:120px;font-size:11px" title="через запятую, до восьми значений"><button class="btn sec" id="ringApply" style="font-size:11px" title="применить радиусы">✓</button></div><div id="rings"></div>
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
-   <div class="mini">1 · 3 · 5 км - каждая своим цветом.</div></div>
+   <div class="mini">Свои радиусы через запятую, каждый своим цветом. Круг любого радиуса и полигон произвольной формы рисуются инструментами внизу карты (C, O, F).</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
    <div class="geo-cat-title">Бизнес-центры</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
@@ -1132,9 +1131,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div class="mini" id="heatNote"></div>
    <div id="geoCatAnchor-boundaries"></div>
   </div>
-  <div class="sect"><h3>Легенда</h3>
-   <div class="mini"><span class="dot" style="background:#0d7a6f"></span> БЦ (единый цвет) &nbsp;<span class="dot" style="background:#9E0000;border-radius:0"></span> проект &nbsp;<span class="dot" style="background:#fff;border:2px solid #e6a700"></span> ред. · источник виден в карточке/вкладке «Данные»</div>
-   <div class="mini" style="margin-top:5px">Наведи на точку → данные · Клик → карточка (ред. + сохранить).</div></div>
+  <!-- v4.75.0: легенда обозначений переехала в плашку «На экране» на карте (v4750-geo-layout.js) -->
   <div class="sect"><h3>Итог по catchment</h3><div id="catchSummary" class="note"></div></div>
  </div>
  <div id="map"></div>
@@ -2417,9 +2414,9 @@ $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);
 $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm);renderPharm();}else map.removeLayer(gPharm);};
 $('phC').addEventListener('input',renderPharm);['phR','phO','phLS','phClu'].forEach(id=>{if($(id))$(id).addEventListener('input',renderPharm);});if($('phLab'))$('phLab').addEventListener('change',renderPharm);
 
-$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
+if($('btnZone')){$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
 $('btnZoneDone').onclick=zoneDone;
-$('btnZoneClr').onclick=zoneClr;
+$('btnZoneClr').onclick=zoneClr;} /* v4.75.0: кнопок в разметке больше нет */
 $('btnIso').onclick=()=>{const p=proj();isochrone(p.lat,p.lng,+$('isoMin').value);};
 $('btnZones').onclick=zoneMapBuild;
 $('btnZonesClr').onclick=zonesClr;
@@ -2552,13 +2549,15 @@ setTimeout(initPop,800);
 })();
 </script>
 <script src="leaflet.markercluster.js?v=4.32.7"></script>
-<script src="geo-direct.js?v=4.74.0"></script>
+<script src="geo-direct.js?v=4.75.0"></script>
 <script src="v420-geo-studio.js?v=4.73.1"></script>
 <script src="v4530-geo-export.js?v=4.73.1"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
-<script src="v4730-geo-agent.js?v=4.73.1"></script>
-<script src="v4740-geo-tree.js?v=4.74.0"></script>
+<script src="v4730-geo-agent.js?v=4.75.0"></script>
+<script src="v4740-geo-tree.js?v=4.75.0"></script>
+<script src="v4750-geo-layout.js?v=4.75.0"></script>
+<script src="v4750-geo-tools.js?v=4.75.0"></script>
 <script>
 /* v4.58.0: студия — отдельная страница и слой доступности из v4450-ux-system.js сюда не
    подключается (он завязан на S/go/#main главного окна). Поэтому кликабельные div/span

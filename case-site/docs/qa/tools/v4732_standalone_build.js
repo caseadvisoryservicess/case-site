@@ -37,7 +37,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
   const appVer = (fs.readFileSync(path.join(OS, 'index.html'), 'utf8').match(/APP_VERSION='([\d.]+)'/) || [])[1];
   ck('один файл, рядом ничего нет', fs.readdirSync(tmp).length === 1, fs.readdirSync(tmp).join(', '));
   ck('размер разумный (2-8 МБ)', r.bytes > 2e6 && r.bytes < 8e6, (r.bytes / 1048576).toFixed(2) + ' МБ');
-  ck('внешних скриптов нет, все восемь встроены (с v4.74.0 ещё geo-direct.js и дерево слоёв)', !/<script src=/.test(html) && r.inlined.length === 8 && r.inlined.indexOf('geo-direct.js') >= 0 && r.inlined.indexOf('v4740-geo-tree.js') >= 0, r.inlined.join(', '));
+  ck('внешних скриптов нет, все десять встроены (с v4.75.0 ещё компоновка и инструменты карты)', !/<script src=/.test(html) && r.inlined.length === 10 && r.inlined.indexOf('geo-direct.js') >= 0 && r.inlined.indexOf('v4740-geo-tree.js') >= 0 && r.inlined.indexOf('v4750-geo-layout.js') >= 0 && r.inlined.indexOf('v4750-geo-tools.js') >= 0, r.inlined.join(', '));
   ck('версия равна APP_VERSION платформы', r.version === appVer && html.indexOf("version: '" + appVer + "'") > 0, r.version + ' / ' + appVer);
   ck('шапка «CASE Geo Analytics», данные и шим на месте', /<b>CASE<\/b> Geo Analytics/.test(html) && /CASE_STANDALONE_DATA=/.test(html) && /window\.CASE_STANDALONE =/.test(html) && /<title>CASE Geo Analytics/.test(html));
   ck('районов 12, мастер-база с БЦ, медициной и аптеками', r.districts === 12 && r.master.bc > 100 && r.master.medicine > 1000 && r.master.pharmacies > 500, JSON.stringify(r.master));
@@ -143,7 +143,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
   });
   ck('транспорт: остановки без имени названы по улице, маршруты из отношений, платформа без признака отброшена', tr.length === 2 && tr.some(x => /Автобусная остановка - Амира Темура\|автобус: 3, 12\|2/.test(x)) && tr.some(x => /^Сквер\|автобус: 12\|1$/.test(x)), tr.join(' ; '));
 
-  const probe = await pg.evaluate(async () => { const cb = document.getElementById('lProbe'); cb.checked = true; await probeAt(41.3111, 69.2797); await new Promise(r => setTimeout(r, 1200));
+  const probe = await pg.evaluate(async () => { await probeAt(41.3111, 69.2797); await new Promise(r => setTimeout(r, 1200));
     return { open: document.getElementById('probe').classList.contains('open'), la: typeof LASTPROBE === 'object' && LASTPROBE ? LASTPROBE.la : null, exportBtn: !!document.getElementById('btnProjExport'), settings: typeof window.caseGeoExportSettings === 'function', sun: typeof window.caseSunOpen === 'function', huff: typeof window.caseHuffOpen === 'function' }; });
   ck('отчёт по точке, выгрузка, солнце и Хафф на месте', probe.open && near(probe.la, 41.3111, 1e-4) && probe.exportBtn && probe.settings && probe.sun && probe.huff, JSON.stringify(probe));
   await pg.evaluate(() => closeProbe());

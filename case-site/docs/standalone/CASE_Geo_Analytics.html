@@ -29,7 +29,7 @@ window.CASE_STANDALONE_DATA={districts:{"type":"FeatureCollection","name":"tashk
   'use strict';
   if (window.CASE_STANDALONE) return;
   var DATA = window.CASE_STANDALONE_DATA || {};
-  var S = window.CASE_STANDALONE = { version: '4.74.0', built: '2026-09-17', log: [] };
+  var S = window.CASE_STANDALONE = { version: '4.75.0', built: '2026-09-17', log: [] };
   var realFetch = window.fetch.bind(window);
 
   function jsonResponse(obj, status) {
@@ -1093,7 +1093,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 @media(max-width:620px){.left>.sect{margin:6px 6px 0}}
 </style></head><body class="geo-auth-pending">
 <div class="app">
-<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.74.0 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
+<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.75.0 · сборка 2026-09-17</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
 <div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><button data-t="cmpT">Сравнение стран</button><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
@@ -1112,10 +1112,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
      onclick="caseHuffOpen()" title="какую долю жителей зоны реально заберёт объект с учётом конкурентов, и у кого именно">◱ Доля рынка (модель Хаффа)</button></div>
    <label class="ck" style="margin-top:4px"><input type="checkbox" id="lQibla" onchange="caseQiblaToggle(this.checked)"> Направление киблы на карте</label></div>
   <div class="sect"><h3>Анализ локации</h3>
-   <label class="ck"><input type="checkbox" id="lProbe" checked> Клик по карте = отчёт по точке</label>
+   <!-- v4.75.0: клик по карте ничего не открывает (решение владельца); отчёт по точке дают кнопка «Аналитика по точке» и карточки -->
    <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
-   <div class="styrow"><button class="btn sec" id="btnZone" style="font-size:11px">▱ Зона: рисовать</button><button class="btn sec" id="btnZoneDone" style="font-size:11px" disabled>✓ Замкнуть</button><button class="btn sec" id="btnZoneClr" style="font-size:11px">✕</button></div>
-   <div class="mini" id="zoneNote"></div>
+   <!-- v4.75.0: кнопок «Зона: рисовать» нет: полигон и круг рисуются инструментами внизу карты -->
    <div class="styrow"><label for="isoMin">Изохрона авто</label><select id="isoMin" style="width:auto;font-size:11px"><option>5</option><option selected>10</option><option>15</option><option>20</option></select><button class="btn sec" id="btnIso" style="font-size:11px">▶ От проекта</button></div>
    <div class="mini" id="isoNote"></div>
    <div class="sect"><h3>Модель зон пригодности</h3>
@@ -1149,9 +1148,9 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
     <div class="mini" id="zonesNote"></div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
    </div></div>
-  <div class="sect"><h3>Зона охвата</h3><div id="rings"></div>
+  <div class="sect"><h3>Зона охвата</h3><div class="styrow sub"><label for="ringKm">радиусы, км</label><input type="text" id="ringKm" value="1, 3, 5" style="width:120px;font-size:11px" title="через запятую, до восьми значений"><button class="btn sec" id="ringApply" style="font-size:11px" title="применить радиусы">✓</button></div><div id="rings"></div>
    <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
-   <div class="mini">1 · 3 · 5 км - каждая своим цветом.</div></div>
+   <div class="mini">Свои радиусы через запятую, каждый своим цветом. Круг любого радиуса и полигон произвольной формы рисуются инструментами внизу карты (C, O, F).</div></div>
   <div class="sect"><h3>Слои и стиль</h3>
    <div class="geo-cat-title">Бизнес-центры</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
@@ -1206,9 +1205,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div class="mini" id="heatNote"></div>
    <div id="geoCatAnchor-boundaries"></div>
   </div>
-  <div class="sect"><h3>Легенда</h3>
-   <div class="mini"><span class="dot" style="background:#0d7a6f"></span> БЦ (единый цвет) &nbsp;<span class="dot" style="background:#9E0000;border-radius:0"></span> проект &nbsp;<span class="dot" style="background:#fff;border:2px solid #e6a700"></span> ред. · источник виден в карточке/вкладке «Данные»</div>
-   <div class="mini" style="margin-top:5px">Наведи на точку → данные · Клик → карточка (ред. + сохранить).</div></div>
+  <!-- v4.75.0: легенда обозначений переехала в плашку «На экране» на карте (v4750-geo-layout.js) -->
   <div class="sect"><h3>Итог по catchment</h3><div id="catchSummary" class="note"></div></div>
  </div>
  <div id="map"></div>
@@ -2491,9 +2488,9 @@ $('lRoad').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gRoad);
 $('lPharm').onchange=e=>{if(!map)return;if(e.target.checked){map.addLayer(gPharm);renderPharm();}else map.removeLayer(gPharm);};
 $('phC').addEventListener('input',renderPharm);['phR','phO','phLS','phClu'].forEach(id=>{if($(id))$(id).addEventListener('input',renderPharm);});if($('phLab'))$('phLab').addEventListener('change',renderPharm);
 
-$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
+if($('btnZone')){$('btnZone').onclick=()=>{if(!map)return;ZMODE=!ZMODE;$('btnZone').textContent=ZMODE?'▱ кликайте по карте…':'▱ Зона: рисовать';$('btnZoneDone').disabled=!ZMODE;if(ZMODE){ZPTS=[];zoneDraw();}};
 $('btnZoneDone').onclick=zoneDone;
-$('btnZoneClr').onclick=zoneClr;
+$('btnZoneClr').onclick=zoneClr;} /* v4.75.0: кнопок в разметке больше нет */
 $('btnIso').onclick=()=>{const p=proj();isochrone(p.lat,p.lng,+$('isoMin').value);};
 $('btnZones').onclick=zoneMapBuild;
 $('btnZonesClr').onclick=zonesClr;
@@ -2653,7 +2650,7 @@ setTimeout(initPop,800);
 (function () {
   'use strict';
   if (window.CASE_GEO_DIRECT) return;
-  var VERSION = '4.74.0';
+  var VERSION = '4.75.0';
   var realFetch = window.fetch.bind(window);
   var D = window.CASE_GEO_DIRECT = {
     version: VERSION,
@@ -2874,6 +2871,21 @@ setTimeout(initPop,800);
     });
   }
 
+  /* v4.75.0: точка -> адрес (Nominatim reverse), для «Получить сведения» по правому клику */
+  function reverse(lat, lon, lang) {
+    lat = num(lat); lon = num(lon); if (lat == null || lon == null) return Promise.resolve({ ok: false, message: 'нет координат' });
+    var key = 'rev|' + lat.toFixed(5) + '|' + lon.toFixed(5) + '|' + (lang || 'ru');
+    if (D.geocodeCache[key]) return Promise.resolve(D.geocodeCache[key]);
+    var url = D.nominatim + '/reverse?lat=' + lat + '&lon=' + lon + '&format=jsonv2&zoom=18&accept-language=' + (lang || 'ru');
+    return getText(url, 15000).then(function (r) {
+      if (r.status === 0) return { ok: false, message: 'геокодер недоступен из браузера' };
+      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
+      if (r.status !== 200 || !j || !j.display_name) return { ok: false, message: 'адрес не найден' };
+      var out = { ok: true, name: String(j.display_name).slice(0, 200), type: String(j.type || ''), attribution: '© OpenStreetMap contributors' };
+      D.geocodeCache[key] = out; return out;
+    });
+  }
+
   /* Проверка связи из браузера. opts.standalone: сервера CASE OS нет вовсе. */
   function ping(opts) {
     opts = opts || {};
@@ -2900,6 +2912,7 @@ setTimeout(initPop,800);
     if (mode === 'poi') return poi(qs);
     if (mode === 'buildings' || mode === 'roads') return features(mode, qs);
     if (mode === 'geocode') return geocode(qs);
+    if (mode === 'reverse') return reverse(qs.get('lat'), qs.get('lon'), qs.get('lang'));
     if (mode === 'ping') return ping({ standalone: !!window.CASE_STANDALONE });
     return Promise.resolve({ ok: false, message: 'Режим «' + mode + '» из браузера недоступен: платные провайдеры и серверный кэш есть только на сервере CASE OS.' });
   }
@@ -2948,10 +2961,10 @@ setTimeout(initPop,800);
       }, function (e) { return direct(String(e && e.message || e)); });
     };
   }
-  D.poi = poi; D.features = features; D.geocode = geocode; D.ping = ping; D.handle = handle; D.install = install; D.serverNetworkFailure = serverNetworkFailure;
+  D.poi = poi; D.features = features; D.geocode = geocode; D.reverse = reverse; D.ping = ping; D.handle = handle; D.install = install; D.serverNetworkFailure = serverNetworkFailure;
   install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['geo-direct'] = '4.74.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['geo-direct'] = '4.75.0';
 
 </script>
 <script>/* v420-geo-studio.js */
@@ -6182,7 +6195,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.73.1';
+  var VERSION = '4.75.0';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -6548,6 +6561,70 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     },
     cancel_polygon: function () { var was = !!ST.draw; stopDraw(); return Promise.resolve({ ok: true, cancelled: was }); },
 
+    /* v4.75.0: круг с произвольным центром (инструмент «буфер» на панели карты, правый клик) */
+    draw_circle: function (inp) {
+      inp = inp || {};
+      var lat = num(inp.lat), lon = num(inp.lon), r = clampRadius(inp.radius_m);
+      if (lat == null || lon == null) { var s0 = needSite(); lat = s0.lat; lon = s0.lon; }
+      if (hexOk(inp.color)) { ST.styles.zone.color = inp.color; ST.styles.zone.fill = inp.color; }
+      addShape({ kind: 'circle', lat: lat, lon: lon, r: r, label: inp.label || humanM(r) }); fitZone();
+      return Promise.resolve({ ok: true, lat: lat, lon: lon, radius_m: r, area_m2: Math.round(Math.PI * r * r), drawn: true });
+    },
+
+    /* v4.75.0: зоны охвата по методике CASE (PTA / STA / TTA по времени в пути на авто,
+       население по сетке, домохозяйства 4,5 чел., RDE $349/чел/год для Ташкента, capture rate
+       от GLA и ставки при rent-to-sales 15%). Всё помечено как расчёт и сопровождается списком
+       требуемых входных данных: доходы по зонам и опрос жителей в базе отсутствуют. */
+    catchment: function (inp) {
+      inp = inp || {};
+      var s = needSite();
+      var DEF = { regional: [10, 20, 30], community: [5, 10, 15], convenience: [3, 6, 10], office: [5, 10, 15] };
+      var format = DEF[inp.format] ? inp.format : 'regional';
+      var mins = (Array.isArray(inp.minutes) && inp.minutes.length ? inp.minutes : DEF[format]).map(function (m) { return Math.max(1, Math.min(60, Math.round(+m) || 0)); }).filter(function (v, i, a) { return v > 0 && a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 3);
+      while (mins.length < 3) mins.push((mins[mins.length - 1] || 10) + 10);
+      var HH = 4.5, RDE_PP_USD = 349, SHARES = [0.75, 0.20, 0.05], R2S = 0.15;
+      var gla = num(inp.gla_m2), rent = num(inp.rent_usd_m2_month);
+      var rings = [], mode = 'isochrone';
+      function circleRing(rM) { var out = [], n = 48; for (var i = 0; i < n; i++) { var th = i / n * 2 * Math.PI; out.push([s.lat + rM / 111320 * Math.cos(th), s.lon + rM / (111320 * Math.cos(s.lat * Math.PI / 180)) * Math.sin(th)]); } return out; }
+      function isoRing(m) {
+        if (typeof isochrone !== 'function') return Promise.resolve(null);
+        return Promise.resolve().then(function () { return isochrone(s.lat, s.lon, m); }).then(function () {
+          var gi = null; try { gi = (typeof gIso !== 'undefined') ? gIso : null; } catch (e) {}
+          var ring = null; if (gi) gi.eachLayer(function (l) { try { var ll = l.getLatLngs(); ll = Array.isArray(ll[0]) ? ll[0] : ll; if (ll.length >= 3) ring = ll.map(function (p) { return [p.lat, p.lng]; }); } catch (e) {} });
+          try { if (gi) gi.clearLayers(); } catch (e) {}
+          return ring;
+        }, function () { return null; });
+      }
+      var chain = Promise.resolve();
+      mins.forEach(function (m) { chain = chain.then(function () { if (mode !== 'isochrone') { rings.push(null); return; } return isoRing(m).then(function (r) { if (!r) mode = 'radius'; rings.push(r); }); }); });
+      return chain.then(ensureCalibrated).then(function () {
+        var g = geoData(), pop = g && Array.isArray(g.POP) ? g.POP : null;
+        if (!pop || !pop.length) throw new Error(T('noPop'));
+        if (mode === 'radius') rings = mins.map(function (m) { return circleRing(m * 400); });
+        var grp = group('catchment'); if (grp) grp.clearLayers();
+        var NAMES = ['PTA', 'STA', 'TTA'], RU = ['первичная', 'вторичная', 'третичная'], COLS = ['#9E0000', '#e67e22', '#2980b9'];
+        var cum = rings.map(function (r) { return popInZone([{ kind: 'polygon', ring: r }], pop).population; });
+        var zones = rings.map(function (r, i) {
+          var band = Math.max(0, cum[i] - (i ? cum[i - 1] : 0)), hh = band / HH, rde = band * RDE_PP_USD;
+          if (grp) L.polygon(r, { color: COLS[i], weight: 2, fillColor: COLS[i], fillOpacity: .07, dashArray: i ? '5' : null }).addTo(grp).bindTooltip(NAMES[i] + ' · ' + mins[i] + ' мин · ' + fmt(band) + ' жит.', { sticky: true });
+          return { name: NAMES[i], name_ru: RU[i], minutes: mins[i], population: Math.round(band), cum_population: Math.round(cum[i]), households: Math.round(hh), rde_usd: Math.round(rde), share: SHARES[i] };
+        });
+        try { mapObj().fitBounds(L.latLngBounds(rings[2]).pad(0.05)); } catch (e) {}
+        var res = { ok: true, format: format, minutes: mins, mode: mode, zones: zones, household_size: HH, rde_per_person_usd: RDE_PP_USD, rent_to_sales: R2S,
+          provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)',
+            method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км на минуту), население по сетке', at: today(),
+            note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' },
+          inputs_needed: ['доходы домохозяйств по зонам (аналитик CASE)', 'полевой опрос жителей зоны, n не меньше 400', 'коррекция границ по барьерам и заторам', 'GLA и ставка проекта для capture rate'] };
+        if (gla != null && rent != null && gla > 0 && rent > 0) {
+          var turnover = gla * rent * 12 / R2S;
+          res.gla_m2 = gla; res.rent_usd_m2_month = rent; res.required_turnover_usd = Math.round(turnover);
+          res.captures = zones.map(function (z) { return { name: z.name, share: z.share, required_usd: Math.round(turnover * z.share), capture_rate: z.rde_usd > 0 ? turnover * z.share / z.rde_usd : null }; });
+          res.inputs_needed = res.inputs_needed.slice(0, 3);
+        }
+        return res;
+      });
+    },
+
     merge_zones: function () {
       if (ST.zone.length < 1) throw new Error(T('needZone'));
       ST.merged = true; renderZone(); fitZone();
@@ -6659,7 +6736,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
 
     clear_layers: function (inp) {
       var want = Array.isArray(inp && inp.layers) && inp.layers.length ? inp.layers.map(String) : ['all'];
-      var all = ['buildings', 'roads', 'zone', 'selection', 'draw'], done = [];
+      var all = ['buildings', 'roads', 'zone', 'selection', 'draw', 'catchment'], done = [];
       (want.indexOf('all') >= 0 ? all : want).forEach(function (n) {
         if (n === 'zone') { ST.zone = []; ST.merged = false; try { if (typeof gIso !== 'undefined' && gIso) gIso.clearLayers(); } catch (e) {} }
         if (n === 'draw') stopDraw(); else clearGroup(n);
@@ -6686,7 +6763,8 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   function run(name, input) {
     var fn = TOOLS[name]; if (!fn) return Promise.reject(new Error('Неизвестный инструмент: ' + name));
     var p; try { p = fn(input || {}); } catch (e) { return Promise.reject(e); }
-    return Promise.resolve(p);
+    /* v4.75.0: последний результат каждого инструмента доступен другим модулям и тестам */
+    return Promise.resolve(p).then(function (res) { ST.lastResults = ST.lastResults || {}; ST.lastResults[name] = res; return res; });
   }
 
   /* ── Движок: язык, разбор, состояние ─────────────────────────────────────── */
@@ -6765,6 +6843,16 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     if (addr && !coords) calls.push({ name: 'set_site', input: { address: addr[1].replace(/[«»"]/g, '').trim() } });
     if (/^(точка|point|nuqta)$/.test(low)) { setPick(true); return [{ name: 'help', input: { pick: true } }]; }
 
+    /* v4.75.0: зоны охвата по методике CASE: PTA/STA/TTA по времени в пути */
+    if (/зон[аыу] охвата|catchment|торгов(ая|ой|ую) зон|(^|[^a-z])pta([^a-z]|$)|по методике/.test(low)) {
+      var cm = {}, mm3 = low.match(/(\d+)\s*[\/,и ]+\s*(\d+)\s*[\/,и ]+\s*(\d+)\s*(мин|min|daqiqa)/);
+      if (mm3) cm.minutes = [parseInt(mm3[1], 10), parseInt(mm3[2], 10), parseInt(mm3[3], 10)]; else { var m1 = low.match(/(\d+)\s*(мин|min|daqiqa)/); if (m1) cm.minutes = [parseInt(m1[1], 10)]; }
+      cm.format = /трц|региональн|regional|mall/.test(low) ? 'regional' : /районн|community|соседск|(^|[^а-я])тц(?![а-я])/.test(low) ? 'community' : /у дома|convenience|шаговой/.test(low) ? 'convenience' : /(^|[^а-я])бц(?![а-я])|бизнес.центр|офис|office/.test(low) ? 'office' : 'regional';
+      var gm = low.match(/gla\s*[:=]?\s*(\d[\d\s]*)/), rm = low.match(/(?:ставк[аеиу]|rent)\s*[:=]?\s*\$?\s*(\d+(?:[.,]\d+)?)/) || low.match(/\$\s*(\d+(?:[.,]\d+)?)/) || low.match(/(\d+(?:[.,]\d+)?)\s*\$/);
+      if (gm) cm.gla_m2 = parseInt(gm[1].replace(/\s/g, ''), 10); if (rm) cm.rent_usd_m2_month = parseFloat(rm[1].replace(',', '.'));
+      calls.push({ name: 'catchment', input: cm }); return calls;
+    }
+
     /* Полигон: начать, закончить, отменить, по координатам */
     if (/^(готово|закончи|замкни|done|finish|tayyor)(?![а-яa-z])/.test(low)) return [{ name: 'finish_polygon', input: {} }];
     if (/^(отмена|отмени|cancel|bekor)(?![а-яa-z])/.test(low)) return [{ name: 'cancel_polygon', input: {} }];
@@ -6840,6 +6928,16 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       if ((n === 'draw_polygon' && r.drawn) || n === 'finish_polygon') s.push(w('Полигон из ' + r.points + ' точек, площадь ' + (r.area_m2 / 1e6).toFixed(2) + ' км².', 'Polygon with ' + r.points + ' points, area ' + (r.area_m2 / 1e6).toFixed(2) + ' km².', r.points + ' nuqtali poligon, maydoni ' + (r.area_m2 / 1e6).toFixed(2) + ' km².'));
       if (n === 'merge_zones') s.push(w('Объединил ' + r.shapes + ' фигур в одну зону, площадь ' + (r.area_m2 / 1e6).toFixed(2) + ' км² (сеточная выборка).', 'Merged ' + r.shapes + ' shapes into one zone, area ' + (r.area_m2 / 1e6).toFixed(2) + ' km² (grid sampling).', r.shapes + ' ta figurani bitta zonaga birlashtirdim, maydoni ' + (r.area_m2 / 1e6).toFixed(2) + ' km².'));
       if (n === 'zone_area') s.push(w('Площадь зоны ' + (r.area_m2 / 1e6).toFixed(2) + ' км².', 'Zone area ' + (r.area_m2 / 1e6).toFixed(2) + ' km².', 'Zona maydoni ' + (r.area_m2 / 1e6).toFixed(2) + ' km².'));
+      if (n === 'draw_circle') s.push(w('Круг ' + humanM(r.radius_m) + ' с центром ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Circle ' + humanM(r.radius_m) + ' centred at ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Aylana ' + humanM(r.radius_m) + '.'));
+      if (n === 'catchment') {
+        var zz = r.zones.map(function (z) { return z.name + ' ' + z.minutes + ' мин: ' + fmt(z.population) + ' жит., ' + fmt(z.households) + ' д/х, RDE около $' + (z.rde_usd / 1e6).toFixed(1) + ' млн/год'; }).join('; ');
+        s.push(w('Зоны охвата по методике CASE (' + (r.mode === 'isochrone' ? 'по времени в пути на авто' : 'по радиусам: маршрутизатор недоступен') + '): ' + zz + '. Оценка, не факт: границы без коррекции на барьеры, доходы по национальной структуре расходов.', 'CASE catchment zones (' + (r.mode === 'isochrone' ? 'by drive time' : 'by radius, router unavailable') + '): ' + zz + '. Estimate, not a fact.', 'CASE qamrov zonalari: ' + zz + '. Bu hisob, fakt emas.'));
+        if (r.captures) s.push(w('Требуемый оборот при rent-to-sales 15%: $' + fmt(r.required_turnover_usd) + ' в год; capture rate PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '% (ориентир CASE 0,39%), STA ' + (r.captures[1].capture_rate * 100).toFixed(3) + '%, TTA ' + (r.captures[2].capture_rate * 100).toFixed(3) + '%.', 'Required turnover at 15% rent-to-sales: $' + fmt(r.required_turnover_usd) + ' per year; capture PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '%.', 'Talab qilinadigan aylanma: $' + fmt(r.required_turnover_usd) + '.'));
+        else s.push(w('Для capture rate добавьте GLA и ставку: «зона охвата, GLA 20000, ставка $25».', 'Add GLA and rent for the capture rate: "catchment, GLA 20000, rent $25".', 'Capture rate uchun GLA va stavkani qo‘shing.'));
+        /* проверка на здравый смысл: ориентир CASE 0,39% по PTA; на порядок выше значит, что RDE первичной
+           зоны такой оборот не даст: либо GLA и ставка завышены, либо зона мала, либо нужен другой формат */
+        if (r.captures && r.captures[0].capture_rate != null && r.captures[0].capture_rate > 0.02) s.push(w('Внимание: capture rate PTA выше 2%, это в разы больше ориентира CASE. RDE первичной зоны такой оборот не покроет: проверьте GLA и ставку, расширьте зону или измените формат.', 'Warning: PTA capture rate above 2%, several times the CASE reference. The primary zone cannot support this turnover: check GLA and rent, widen the zone or change the format.', 'Diqqat: PTA capture rate 2% dan yuqori, CASE mo‘ljalidan ancha ko‘p. GLA va stavkani tekshiring yoki zonani kengaytiring.'));
+      }
       if (n === 'count_population') s.push(w((r.zone ? 'В зоне' : 'В радиусе ' + humanM(r.radius_m)) + ' около ' + fmt(r.population) + ' жителей - расчёт по сетке, порядок величины, не факт.', (r.zone ? 'In the zone' : 'Within ' + humanM(r.radius_m)) + ' about ' + fmt(r.population) + ' residents - modelled from a grid, an order of magnitude, not a fact.', (r.zone ? 'Zonada' : humanM(r.radius_m) + ' radiusda') + ' taxminan ' + fmt(r.population) + ' aholi - to‘r bo‘yicha hisob, taxmin, fakt emas.'));
       if (n === 'load_buildings') s.push(w((r.zone ? 'В зоне ' : 'В ' + humanM(r.radius_m) + ' ') + fmt(r.count) + ' зданий OSM, пятно застройки ' + fmt(r.footprint_area_m2) + ' м²' + (r.max_levels ? ', до ' + r.max_levels + ' этажей' : '') + (r.by_kind.length ? '; чаще всего ' + r.by_kind[0].kind + ' (' + r.by_kind[0].count + ')' : '') + '.', (r.zone ? 'In the zone ' : 'Within ' + humanM(r.radius_m) + ' ') + fmt(r.count) + ' OSM buildings, footprint ' + fmt(r.footprint_area_m2) + ' m²' + (r.max_levels ? ', up to ' + r.max_levels + ' floors' : '') + '.', (r.zone ? 'Zonada ' : humanM(r.radius_m) + ' ichida ') + fmt(r.count) + ' ta OSM binosi, qurilish izi ' + fmt(r.footprint_area_m2) + ' m²' + (r.max_levels ? ', ' + r.max_levels + ' qavatgacha' : '') + '.'));
       if (n === 'load_roads') s.push(w((r.zone ? 'В зоне ' : 'В ' + humanM(r.radius_m) + ' ') + fmt(r.count) + ' участков дорог, ' + r.length_km + ' км' + (r.by_class.length ? '; больше всего ' + r.by_class[0].cls + ' (' + r.by_class[0].count + ')' : '') + '.', (r.zone ? 'In the zone ' : 'Within ' + humanM(r.radius_m) + ' ') + fmt(r.count) + ' road segments, ' + r.length_km + ' km.', (r.zone ? 'Zonada ' : humanM(r.radius_m) + ' ichida ') + fmt(r.count) + ' ta yo‘l bo‘lagi, ' + r.length_km + ' km.'));
@@ -6856,7 +6954,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
 
   /* ── Журнал и факты ───────────────────────────────────────────────────────── */
 
-  var TOOL_RU = { set_site: 'Точка', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
+  var TOOL_RU = { draw_circle: 'Круг', catchment: 'Зоны охвата', set_site: 'Точка', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
   var CONF_RU = { verified: ['✓', 'подтв.', 'ga-v'], asking: ['≈', 'наблюдение', 'ga-a'], modelled: ['ƒ', 'расчёт', 'ga-m'] };
   function provChip(p) {
     if (!p) return ''; var c = CONF_RU[p.conf] || CONF_RU.modelled;
@@ -6880,6 +6978,8 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       case 'style_layer': h += esc(res.layer) + ': ' + esc(res.style.color); break;
       case 'select_features': h += '<span class="ga-num">' + fmt(res.matched) + '</span> из ' + fmt(res.of) + ' (' + esc(res.criteria) + ')' + (res.note ? '<div class="ga-note">' + esc(res.note) + '</div>' : ''); break;
       case 'count_competitors': h += '<span class="ga-num">' + fmt(res.business_centers) + '</span> БЦ ' + (res.zone ? 'в зоне' : 'в ' + humanM(res.radius_m)) + ' ' + provChip(res.provenance) + (res.nearest.length ? '<div class="ga-note">' + res.nearest.slice(0, 4).map(function (b) { return esc(b.name) + (b.dist_m != null ? ' (' + b.dist_m + ' м)' : ''); }).join(', ') + '</div>' : ''); break;
+      case 'draw_circle': h += humanM(res.radius_m) + ' · ' + (res.area_m2 / 1e6).toFixed(2) + ' км² · центр ' + res.lat.toFixed(4) + ', ' + res.lon.toFixed(4); break;
+      case 'catchment': h += (res.mode === 'isochrone' ? 'по времени в пути' : 'по радиусам') + ' ' + provChip(res.provenance) + '<table class="ga-tbl"><tr><th>зона</th><th>мин</th><th>жителей</th><th>д/х</th><th>RDE, $ млн</th>' + (res.captures ? '<th>capture</th>' : '') + '</tr>' + res.zones.map(function (z, i) { var c = res.captures ? res.captures[i].capture_rate : null; return '<tr><td>' + z.name + '</td><td>' + z.minutes + '</td><td>' + fmt(z.population) + '</td><td>' + fmt(z.households) + '</td><td>' + (z.rde_usd / 1e6).toFixed(1) + '</td>' + (res.captures ? '<td>' + (c == null ? '-' : (c * 100).toFixed(c * 100 >= 1 ? 1 : 3) + '%') + '</td>' : '') + '</tr>'; }).join('') + '</table><div class="ga-note">' + esc(res.provenance.note) + (res.inputs_needed && res.inputs_needed.length ? ' Требуемые входные данные: ' + esc(res.inputs_needed.join('; ')) + '.' : '') + '</div>'; break;
       case 'clear_layers': h += esc(res.cleared.join(', ')); break;
       case 'ping': h += (res.advice || []).map(function (a) { return '<div class="ga-note" style="color:inherit;font-size:11px">' + esc(a) + '</div>'; }).join(''); break;
       case 'help': h += esc(T('help')); break;
@@ -6974,7 +7074,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     + '.ga-foot{font-size:10px;color:var(--ga-muted);margin-top:8px;line-height:1.4}'
     + '.ga-prov{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:4px;vertical-align:middle;cursor:help;white-space:nowrap}.ga-prov i{font-style:normal}'
     + '.ga-v{background:#e8f5ea;border:1px solid #2e7d32;color:#1b5e20}.ga-a{background:#fff;border:1px solid #8d6e00;color:#6b5300}.ga-m{background:#f4f4f4;border:1px dashed #757575;color:#4a4a4a}';
-  var CHIPS = ['радиус 500 м и 1 км', 'население 1 км', 'здания 500 м', 'дороги 1 км', 'полигон', 'объедини', 'население в зоне', 'выдели дома выше 9 этажей', 'сделай здания синими', 'конкуренты 2 км', 'очистить', 'помощь'];
+  var CHIPS = ['зона охвата по методике', 'радиус 500 м и 1 км', 'население 1 км', 'здания 500 м', 'дороги 1 км', 'полигон', 'объедини', 'население в зоне', 'выдели дома выше 9 этажей', 'сделай здания синими', 'конкуренты 2 км', 'очистить', 'помощь'];
 
   function panelHtml() {
     return '<h3>Гео-агент <span class="ga-badge" title="Разбор запросов и все расчёты выполняются внутри CASE OS. Внешних платных сервисов ИИ нет.">свой движок</span></h3><div class="sbody">'
@@ -6998,7 +7098,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
 
   function install() {
     try {
-      if (!document.getElementById('gaCss')) { var st = document.createElement('style'); st.id = 'gaCss'; st.textContent = CSS; document.head.appendChild(st); }
+      if (!document.getElementById('gaCss')) { var st = document.createElement('style'); st.id = 'gaCss'; st.textContent = CSS + '.ga-tbl{width:100%;border-collapse:collapse;font-size:11px;margin:4px 0}.ga-tbl th,.ga-tbl td{border-bottom:1px solid var(--ga-line);padding:2px 4px;text-align:right}.ga-tbl th:first-child,.ga-tbl td:first-child{text-align:left}.ga-tbl th{color:var(--ga-muted);font-weight:700}'; document.head.appendChild(st); }
       var left = document.querySelector('#mapT .left') || document.querySelector('.left');
       if (!left || $('gaPanel')) return;
       var sect = document.createElement('div'); sect.className = 'sect'; sect.id = 'gaPanel'; sect.innerHTML = panelHtml();
@@ -7026,7 +7126,9 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   window.CASE_GEO_AGENT = {
     version: VERSION, TOOLS: TOOLS, run: run, ask: ask, parse: parse, state: ST, narrative: narrative,
     popInRadius: popInRadius, popInZone: popInZone, lens: lens, cellAreaM2: cellAreaM2, zoneAreaM2: zoneAreaM2, inRing: inRing, lineNearM: lineNearM, lineInZone: lineInZone,
-    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick
+    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick,
+    /* v4.75.0: панель инструментов карты рисует фигуры через агента и пишет в его журнал */
+    say: say, renderZone: renderZone, addShape: addShape, removeShape: function (sh) { var i = ST.zone.indexOf(sh); if (i >= 0) { ST.zone.splice(i, 1); renderZone(); } return i >= 0; }, startDraw: startDraw, stopDraw: stopDraw
   };
   window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {};
   window.CASE_MODULE_VERSIONS['v4730-geo-agent'] = VERSION;
@@ -7044,7 +7146,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
  *   - категории («Бизнес-центры», «Медицина и аптеки», «Ритейл» ...) становятся узлами
  *     дерева: общая галочка включает и выключает все слои категории, счётчик «включено /
  *     всего», категория сворачивается, состояние помнится в localStorage;
- *   - «Границы и плотность» поднимаются наверх, перед ними узел «Подложка» с выбором карты;
+ *   - «Границы и плотность» поднимаются наверх; подложку выбирает только кнопка у карты (v4.75.0);
  *   - поиск по слоям: строка «найти слой» показывает только подходящие строки и раскрывает
  *     их категории;
  *   - у карты появляется кнопка подложки с именем текущей карты и списком остальных;
@@ -7056,7 +7158,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
 (function () {
   'use strict';
   if (window.CASE_GEO_TREE) return;
-  var VERSION = '4.74.0', KEY = 'caseos_geo_tree_v1';
+  var VERSION = '4.75.0', KEY = 'caseos_geo_tree_v1';
   var T = window.CASE_GEO_TREE = { version: VERSION };
   /* карта студии объявлена как let map (глобальная лексическая), а theMap() - это <div id="map">;
      берём именно объект Leaflet */
@@ -7186,7 +7288,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     var frag = document.createDocumentFragment();
     var q = document.createElement('input'); q.type = 'search'; q.className = 'geo-tree-q'; q.placeholder = 'Найти слой: районы, метро, кафе, аптеки'; q.setAttribute('aria-label', 'Найти слой');
     frag.appendChild(q);
-    var base = baseCategory(); if (base) frag.appendChild(base);
+    /* v4.75.0: узла «Подложка карты» в дереве нет: подложку выбирает кнопка у карты (решение владельца) */
     order.forEach(function (g) {
       var opened = (st.open && Object.prototype.hasOwnProperty.call(st.open, g.title)) ? !!st.open[g.title] : !!openDefault[g.title];
       g.titleEl.remove();
@@ -7232,7 +7334,511 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   T.setBase = setBase; T.currentBase = currentBase; T.bases = bases; T.refresh = refreshAll; T.filter = function (t) { var s = findLayersSection(); if (s) filterTree(s.querySelector('.sbody') || s, t); };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4740-geo-tree'] = '4.74.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4740-geo-tree'] = '4.75.0';
+
+</script>
+<script>/* v4750-geo-layout.js */
+/* CASE OS v4.75.0: компоновка студии геоаналитики по замечаниям владельца.
+ *
+ *   - гео-агент живёт в отдельной выдвижной панели справа от карты с одной кнопкой
+ *     «открыть / закрыть» (раньше был секцией в левой колонке);
+ *   - легенда обозначений (цвет БЦ, точка анализа, отредактированные записи) переехала из
+ *     левой панели в плашку «На экране» в левом нижнем углу карты;
+ *   - у надписи Leaflet в правом нижнем углу убран флаг: остаётся ссылка на библиотеку
+ *     и атрибуция источника карты;
+ *   - «Зона охвата»: радиусы задаются свои (список через запятую, до восьми), а не только
+ *     1 · 3 · 5 км; выбор помнится; цвет самого большого круга по-прежнему из палитры;
+ *   - клик по карте больше не открывает отчёт по точке: отчёт открывают кнопка
+ *     «Аналитика по точке» и карточки объектов (разметка флажка убрана из HTML, этот
+ *     модуль подстраховывает старую разметку).
+ */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_LAYOUT) return;
+  var VERSION = '4.75.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v1';
+  var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
+  function $(id) { return document.getElementById(id); }
+  function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function css() {
+    if ($('geoLayoutCss')) return;
+    var s = document.createElement('style'); s.id = 'geoLayoutCss'; s.textContent =
+      '#mapT{position:relative}'
+      + '.ga-drawer{position:absolute;top:0;right:0;bottom:0;width:min(400px,92vw);background:#fff;border-left:1px solid var(--line,#e3dcd1);box-shadow:-8px 0 30px rgba(20,20,20,.14);z-index:1010;display:flex;flex-direction:column;transform:translateX(102%);visibility:hidden;transition:transform .2s,visibility 0s .2s}'
+      + '.ga-drawer.open{transform:none;visibility:visible;transition:transform .2s}'
+      + '.ga-drawer-head{display:flex;align-items:center;gap:8px;padding:9px 12px;background:#1b1b1b;color:#fff;font:800 12px/1 inherit;letter-spacing:.08em;text-transform:uppercase}'
+      + '.ga-drawer-head .ga-badge{margin-left:2px}.ga-drawer-head .sp{flex:1}'
+      + '.ga-drawer-x{width:30px;height:30px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:none;color:#fff;font:700 14px inherit;cursor:pointer}.ga-drawer-x:hover{background:rgba(255,255,255,.12)}'
+      + '.ga-drawer>#gaPanel{flex:1;min-height:0;overflow:auto;border:0;border-radius:0;margin:0;padding:10px 12px 14px}'
+      + '.ga-drawer>#gaPanel>h3{display:none}.ga-drawer>#gaPanel>.sbody{display:block!important}'
+      + '.ga-toggle{position:absolute;right:10px;top:54px;z-index:1006;display:flex;align-items:center;gap:7px;height:34px;padding:0 12px;border:1px solid var(--line,#e3dcd1);border-radius:9px;background:#9E0000;color:#fff;font:700 12px inherit;cursor:pointer;box-shadow:0 1px 2px rgba(40,30,20,.06),0 8px 24px rgba(40,30,20,.14);white-space:nowrap}'
+      + '.ga-toggle:hover{background:#6e0000}.ga-toggle.on{display:none}'
+      + '.ga-toggle .ga-toggle-ic{font-size:14px}'
+      + '.ga-static-legend{margin-top:6px}.ga-static-legend .li{cursor:default}.ga-static-legend .li:hover{background:none}'
+      + '.ga-static-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex:0 0 auto}'
+      + '#rings label.ck{display:inline-flex;margin:2px 10px 2px 0}'
+      /* при открытом ящике панель инструментов, подсказка и уведомление сдвигаются к центру видимой части карты */
+      + '#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:calc(50% - 120px)}'
+      + '@media(max-width:620px){.ga-drawer{width:100%}.ga-toggle{top:auto;bottom:70px;right:12px}#mapT.ga-open .geo-tb,#mapT.ga-open .geo-tb-hint,#mapT.ga-open .geo-toast{left:50%}}';
+    document.head.appendChild(s);
+  }
+
+  /* --- гео-агент в правой панели --------------------------------------------------- */
+  /* focus: переводить ли курсор в строку агента. Только по явному нажатию кнопки: когда ящик
+     открывается сам после фигуры, фокус остаётся на карте, и хоткеи P/O/C/R продолжают работать. */
+  function openDrawer(on, focus) {
+    var d = $('gaDrawer'), b = $('gaToggle'), wrap = $('mapT'); if (!d) return;
+    d.classList.toggle('open', !!on); if (b) b.classList.toggle('on', !!on); if (wrap) wrap.classList.toggle('ga-open', !!on);
+    try { localStorage.setItem(KEY_DRAWER, on ? '1' : '0'); } catch (e) {}
+    setTimeout(function () { var M = theMap(); if (M) try { M.invalidateSize(); } catch (e) {} }, 220);
+    if (on && focus) { var inp = $('gaInput'); if (inp) try { inp.focus({ preventScroll: true }); } catch (e) {} }
+    if (!on) { try { var ae = document.activeElement; if (ae && d.contains(ae)) ae.blur(); } catch (e) {} }
+  }
+  function mountDrawer() {
+    var panel = $('gaPanel'), wrap = $('mapT');
+    if (!panel || !wrap) return false;
+    if ($('gaDrawer')) return true;
+    var drawer = document.createElement('aside'); drawer.id = 'gaDrawer'; drawer.className = 'ga-drawer'; drawer.setAttribute('aria-label', 'Гео-агент');
+    var badge = panel.querySelector('.ga-badge');
+    var head = document.createElement('div'); head.className = 'ga-drawer-head';
+    head.innerHTML = '<span>Гео-агент</span>' + (badge ? badge.outerHTML : '') + '<span class="sp"></span><button type="button" class="ga-drawer-x" id="gaDrawerClose" aria-label="Закрыть панель агента" title="Закрыть (Esc)">✕</button>';
+    drawer.appendChild(head);
+    panel.classList.remove('closed');
+    drawer.appendChild(panel);
+    wrap.appendChild(drawer);
+    var btn = document.createElement('button'); btn.type = 'button'; btn.id = 'gaToggle'; btn.className = 'ga-toggle'; btn.title = 'Гео-агент: открыть панель'; btn.setAttribute('aria-controls', 'gaDrawer');
+    btn.innerHTML = '<span class="ga-toggle-ic">✦</span><span>Гео-агент</span>';
+    wrap.appendChild(btn);
+    btn.onclick = function () { openDrawer(!drawer.classList.contains('open'), true); };
+    $('gaDrawerClose').onclick = function () { openDrawer(false); };
+    var saved = null; try { saved = localStorage.getItem(KEY_DRAWER); } catch (e) {}
+    openDrawer(saved === '1');
+    return true;
+  }
+  function waitForAgent() {
+    var tries = 0;
+    (function tick() { if (mountDrawer() || ++tries > 60) return; setTimeout(tick, 250); })();
+  }
+
+  /* --- легенда обозначений в плашке «На экране» --------------------------------- */
+  var STATIC = '<div class="grp2">Обозначения</div>'
+    + '<div class="li"><span class="dot" style="background:#0d7a6f"></span>бизнес-центр (единый цвет)</div>'
+    + '<div class="li"><span class="dot" style="background:#9E0000;border-radius:0"></span>точка анализа</div>'
+    + '<div class="li"><span class="dot" style="background:#fff;border:2px solid #e6a700"></span>отредактированная запись</div>'
+    + '<div class="li" style="color:var(--muted,#6f6a63)">наведите: данные · клик: карточка</div>';
+  function wrapLegend() {
+    var orig = window.updateLegend;
+    if (typeof orig !== 'function' || orig._layout475) return;
+    var w = function () {
+      var r = orig.apply(this, arguments);
+      try {
+        var el = $('mlgd'), body = el && el.querySelector('.body');
+        if (body && !body.querySelector('.ga-static-legend')) { var d = document.createElement('div'); d.className = 'ga-static-legend'; d.innerHTML = STATIC; body.appendChild(d); }
+      } catch (e) {}
+      return r;
+    };
+    w._layout475 = true; window.updateLegend = w;
+    try { w(); } catch (e) {}
+  }
+
+  /* --- атрибуция без флага ------------------------------------------------------ */
+  function fixAttribution() {
+    var M = theMap(); if (!M || !M.attributionControl) return;
+    try { M.attributionControl.setPrefix('<a href="https://leafletjs.com" target="_blank" rel="noopener" title="Библиотека карты">Leaflet</a>'); } catch (e) {}
+  }
+
+  /* --- свои радиусы охвата ------------------------------------------------------- */
+  var PAL = ['#27ae60', '#e67e22', '#c0392b', '#2980b9', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
+  function ringColor(i, n) { if (i === n - 1) { var c = $('ringWc'); if (c && c.value) return c.value; } return PAL[i % PAL.length]; }
+  function radii() { try { return Array.isArray(RADII) ? RADII : []; } catch (e) { return []; } }
+  function myBuildRings() {
+    var box = $('rings'); if (!box) return;
+    var rs = radii(); box.innerHTML = '';
+    rs.forEach(function (r, i) {
+      var l = document.createElement('label'); l.className = 'ck';
+      l.innerHTML = '<input type="checkbox"' + (r.on ? ' checked' : '') + '> <span class="dot" style="background:' + ringColor(i, rs.length) + '"></span> ' + r.km + ' км';
+      l.querySelector('input').onchange = function (e) { rs[i].on = e.target.checked; try { renderProj(); } catch (x) {} };
+      box.appendChild(l);
+    });
+    var inp = $('ringKm'); if (inp && document.activeElement !== inp) inp.value = rs.map(function (r) { return r.km; }).join(', ');
+  }
+  function myRenderRings() {
+    var M = theMap(); if (!M) return;
+    try { gRing.clearLayers(); } catch (e) { return; }
+    var p = null; try { p = proj(); } catch (e) {}
+    if (!p || !Number.isFinite(+p.lat) || !Number.isFinite(+p.lng)) return;
+    var w = +(($('ringW') || {}).value || 3), rs = radii();
+    rs.filter(function (r) { return r.on; }).sort(function (a, b) { return b.km - a.km; }).forEach(function (r) {
+      var i = rs.indexOf(r), col = ringColor(i, rs.length);
+      L.circle([+p.lat, +p.lng], { radius: r.km * 1000, color: col, weight: w, opacity: .95, fillColor: col, fillOpacity: .06 }).addTo(gRing).bindTooltip(r.km + ' км', { sticky: true });
+    });
+  }
+  function applyRadii(text) {
+    var nums = String(text || '').split(/[,;\s]+/).map(function (x) { return parseFloat(String(x).replace(',', '.')); }).filter(function (v) { return isFinite(v) && v > 0 && v <= 50; });
+    nums = nums.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 8);
+    if (!nums.length) return false;
+    try { RADII = nums.map(function (km) { return { km: km, on: true }; }); } catch (e) { return false; }
+    try { localStorage.setItem(KEY_RINGS, JSON.stringify(nums)); } catch (e) {}
+    myBuildRings();
+    try { renderProj(); } catch (e) {}
+    return true;
+  }
+  function installRings() {
+    if (typeof window.buildRings === 'function') window.buildRings = myBuildRings;
+    if (typeof window.renderRings === 'function') window.renderRings = myRenderRings;
+    var saved = null; try { saved = JSON.parse(localStorage.getItem(KEY_RINGS) || 'null'); } catch (e) {}
+    if (Array.isArray(saved) && saved.length) { try { RADII = saved.map(function (km) { return { km: +km, on: true }; }); } catch (e) {} }
+    myBuildRings();
+    var inp = $('ringKm'), btn = $('ringApply');
+    if (btn) btn.onclick = function () { if (!applyRadii(inp && inp.value)) { if (inp) inp.value = radii().map(function (r) { return r.km; }).join(', '); } };
+    if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
+    try { myRenderRings(); } catch (e) {}
+  }
+
+  /* --- клик по карте ничего не открывает ------------------------------------------ */
+  function disableProbeClick() { var cb = $('lProbe'); if (cb) { cb.checked = false; var row = cb.closest('label'); if (row) row.style.display = 'none'; } }
+
+  function install() {
+    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent();
+  }
+  LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.75.0';
+
+</script>
+<script>/* v4750-geo-tools.js */
+/* CASE OS v4.75.0: панель инструментов карты, контекстное меню, отмена и повтор.
+ *
+ * Замечание владельца: внизу по центру карты нужна панель как в Felt: отмена и повтор,
+ * пин (P), полигон по точкам (O), полигон от руки (F), буфер-круг заданного радиуса (C),
+ * маршрут между двумя точками (R), комментарий (M), стиль карты. По правому клику на карте:
+ * добавить метку здесь, круг отсюда, маршрут отсюда, переместиться сюда, получить сведения,
+ * скопировать координаты, вставить объект из буфера обмена.
+ *
+ * Все фигуры уходят в гео-агент (точка анализа, зона): пин = точка анализа, полигон и круг =
+ * фигуры зоны, по которым агент считает население, площадь и конкурентов. Маршрут строится
+ * по дорогам OSM через OSRM из браузера; комментарии живут в localStorage этого браузера.
+ * Обычный левый клик по карте ничего не открывает; карточку даёт клик по объекту.
+ */
+(function () {
+  'use strict';
+  if (window.CASE_GEO_TOOLS) return;
+  var VERSION = '4.75.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var TL = window.CASE_GEO_TOOLS = { version: VERSION };
+  var ST = { tool: null, pts: [], preview: null, undo: [], redo: [], routes: null, notes: null, notesData: [], circle: null, freeOn: false, menu: null, seq: 0 };
+  function $(id) { return document.getElementById(id); }
+  function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
+  function agent() { return window.CASE_GEO_AGENT || null; }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function km(a, b, c, d) { var R = 6371, r = function (x) { return x * Math.PI / 180; }; var s = Math.pow(Math.sin(r(c - a) / 2), 2) + Math.cos(r(a)) * Math.cos(r(c)) * Math.pow(Math.sin(r(d - b) / 2), 2); return R * 2 * Math.asin(Math.sqrt(s)); }
+  function fmtKm(m) { return m >= 1000 ? (Math.round(m / 100) / 10) + ' км' : Math.round(m) + ' м'; }
+
+  function css() {
+    if ($('geoToolsCss')) return;
+    var s = document.createElement('style'); s.id = 'geoToolsCss'; s.textContent =
+      '.geo-tb{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);z-index:1005;display:flex;align-items:center;gap:2px;padding:6px;background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:14px;box-shadow:0 8px 24px rgba(40,30,20,.16);user-select:none}'
+      + '.geo-tb button{width:38px;height:38px;border:0;background:none;border-radius:10px;font-size:17px;line-height:1;cursor:pointer;color:var(--ink,#1b1b1b);display:flex;align-items:center;justify-content:center;position:relative;padding:0}'
+      + '.geo-tb button:hover{background:var(--paper-2,#f3f1ee)}.geo-tb button.on{background:#9E0000;color:#fff}.geo-tb button:disabled{opacity:.3;cursor:default;background:none}'
+      + '.geo-tb .sep{width:1px;height:24px;background:var(--line,#e3dcd1);margin:0 4px}'
+      + '.geo-tb button[data-tip]:hover::after{content:attr(data-tip);position:absolute;bottom:46px;left:50%;transform:translateX(-50%);white-space:nowrap;background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:9px;padding:6px 10px;font:600 12px inherit;color:var(--ink,#1b1b1b);box-shadow:0 6px 18px rgba(40,30,20,.14);pointer-events:none}'
+      + '.geo-tb button kbd{position:absolute;right:3px;bottom:2px;font:700 8px/1 inherit;color:var(--muted,#6f6a63);background:var(--paper-2,#f3f1ee);border-radius:3px;padding:1px 3px}.geo-tb button.on kbd{color:#9E0000;background:#fff}'
+      + '.geo-tb-hint{position:absolute;left:50%;bottom:68px;transform:translateX(-50%);z-index:1005;background:#1b1b1b;color:#fff;font:600 12px inherit;padding:7px 12px;border-radius:9px;white-space:nowrap;display:none;align-items:center;gap:6px;box-shadow:0 6px 18px rgba(0,0,0,.2)}.geo-tb-hint.on{display:flex}'
+      + '.geo-tb-hint input{width:64px;border-radius:6px;border:0;padding:4px 6px;font:inherit;font-size:12px}.geo-tb-hint button{border:0;border-radius:6px;padding:4px 9px;font:700 12px inherit;cursor:pointer;background:#fff;color:#1b1b1b}.geo-tb-hint button.pri{background:#9E0000;color:#fff}'
+      + '.geo-cmenu{position:absolute;z-index:1300;background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:12px;box-shadow:0 10px 30px rgba(40,30,20,.2);padding:6px;min-width:262px;font-size:12.5px}'
+      + '.geo-cmenu button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;font:inherit;font-size:12.5px;color:var(--ink,#1b1b1b);cursor:pointer}.geo-cmenu button:hover{background:var(--paper-2,#f3f1ee)}.geo-cmenu .ic{width:18px;text-align:center;flex:0 0 auto}.geo-cmenu hr{border:0;border-top:1px solid var(--line-2,#eee9e1);margin:4px 0}'
+      + '.geo-cmenu .geo-cmenu-xy{padding:4px 10px 6px;font-size:10.5px;color:var(--muted,#6f6a63)}'
+      + '.geo-note-ic{width:28px;height:28px;border-radius:50% 50% 50% 0;background:#1b1b1b;color:#fff;display:flex;align-items:center;justify-content:center;font-size:14px;transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.35)}.geo-note-ic span{transform:rotate(45deg)}'
+      + '.geo-note-form textarea{width:220px;min-height:64px;border:1px solid var(--line,#e3dcd1);border-radius:8px;padding:6px 8px;font:inherit;font-size:12px;resize:vertical}.geo-note-form .row{display:flex;gap:6px;margin-top:6px}.geo-note-form button{border:1px solid var(--line,#e3dcd1);border-radius:7px;background:#fff;padding:5px 10px;font:700 12px inherit;cursor:pointer}.geo-note-form button.pri{background:#9E0000;color:#fff;border-color:#9E0000}'
+      + '.geo-note-view{font-size:12.5px;max-width:240px;white-space:pre-wrap}.geo-note-view small{display:block;color:var(--muted,#6f6a63);margin-top:4px}.geo-note-view button{margin-top:6px;border:1px solid var(--line,#e3dcd1);border-radius:7px;background:#fff;padding:4px 9px;font:700 11px inherit;cursor:pointer;color:#9E0000}'
+      + '.leaflet-container.geo-tool-cursor{cursor:crosshair}.leaflet-container.geo-tool-free{cursor:cell}'
+      + '.geo-info{font-size:12.5px;max-width:260px;line-height:1.45}.geo-info b{display:block}.geo-info small{color:var(--muted,#6f6a63)}'
+      + '.geo-toast{position:absolute;left:50%;bottom:120px;transform:translateX(-50%);z-index:1400;background:#1b1b1b;color:#fff;font:600 12px inherit;padding:8px 13px;border-radius:9px;opacity:0;transition:opacity .18s;pointer-events:none;max-width:80%}.geo-toast.on{opacity:1}'
+      + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}}';
+    document.head.appendChild(s);
+  }
+
+  var TOOLS = [
+    { a: 'pin', ic: '📍', key: 'P', tip: 'Пин: точка анализа · P' },
+    { a: 'poly', ic: '⬠', key: 'O', tip: 'Полигон по точкам · O (Enter замкнуть, Esc отмена)' },
+    { a: 'free', ic: '✎', key: 'F', tip: 'Полигон от руки · F (тяните мышью)' },
+    { a: 'circle', ic: '◯', key: 'C', tip: 'Буфер: круг заданного радиуса · C' },
+    { a: 'route', ic: '⤳', key: 'R', tip: 'Маршрут между двумя точками · R' },
+    { a: 'note', ic: '💬', key: 'M', tip: 'Комментарий на карте · M' }
+  ];
+  var HINTS = { pin: 'Кликните по карте, чтобы поставить точку анализа', poly: 'Кликайте по карте: вершины полигона. Enter или двойной клик замкнёт, Esc отменит', free: 'Зажмите кнопку мыши и обведите область', circle: 'Кликните центр круга, затем кликните на нужном расстоянии', route: 'Кликните начало маршрута, затем конец', note: 'Кликните по карте, чтобы оставить комментарий' };
+
+  function toolbar() {
+    var mapEl = $('map'); if (!mapEl || $('geoTb')) return;
+    var tb = document.createElement('div'); tb.className = 'geo-tb'; tb.id = 'geoTb'; tb.setAttribute('role', 'toolbar'); tb.setAttribute('aria-label', 'Инструменты карты');
+    tb.innerHTML = '<button type="button" data-a="undo" data-tip="Отменить · Ctrl+Z" aria-label="Отменить" disabled>↶</button><button type="button" data-a="redo" data-tip="Повторить · Ctrl+Y" aria-label="Повторить" disabled>↷</button><span class="sep"></span>'
+      + TOOLS.map(function (t) { return '<button type="button" data-a="' + t.a + '" data-tip="' + esc(t.tip) + '" aria-label="' + esc(t.tip) + '">' + t.ic + '<kbd>' + t.key + '</kbd></button>'; }).join('')
+      + '<span class="sep"></span><button type="button" data-a="style" data-tip="Стиль карты: подложка" aria-label="Стиль карты">▦</button>';
+    /* внутри контейнера карты: «по центру» значит по центру карты, а не всей страницы с левой панелью */
+    mapEl.appendChild(tb);
+    var hint = document.createElement('div'); hint.className = 'geo-tb-hint'; hint.id = 'geoTbHint'; mapEl.appendChild(hint);
+    var toast = document.createElement('div'); toast.className = 'geo-toast'; toast.id = 'geoToast'; mapEl.appendChild(toast);
+    try { L.DomEvent.disableClickPropagation(tb); L.DomEvent.disableScrollPropagation(tb); L.DomEvent.disableClickPropagation(hint); } catch (e) {}
+    tb.addEventListener('click', function (e) {
+      var b = e.target.closest('button'); if (!b || b.disabled) return;
+      var a = b.getAttribute('data-a');
+      if (a === 'undo') return undo();
+      if (a === 'redo') return redo();
+      if (a === 'style') { var sb = document.querySelector('.geo-basectl-btn'); if (sb) sb.click(); return; }
+      setTool(ST.tool === a ? null : a);
+    });
+  }
+  var toastT = null;
+  function toast(msg) { var t = $('geoToast'); if (!t) return; t.textContent = msg; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(function () { t.classList.remove('on'); }, 2800); }
+  function hint(html) { var h = $('geoTbHint'); if (!h) return; if (!html) { h.classList.remove('on'); h.innerHTML = ''; return; } h.innerHTML = html; h.classList.add('on'); }
+  function syncButtons() {
+    document.querySelectorAll('#geoTb button[data-a]').forEach(function (b) { var a = b.getAttribute('data-a'); if (a === 'undo') b.disabled = !ST.undo.length; else if (a === 'redo') b.disabled = !ST.redo.length; else b.classList.toggle('on', a === ST.tool); });
+  }
+
+  /* --- отмена и повтор ---------------------------------------------------------- */
+  function push(action) { ST.undo.push(action); ST.redo = []; syncButtons(); }
+  function undo() { var a = ST.undo.pop(); if (!a) return; try { a.undo(); } catch (e) {} ST.redo.push(a); syncButtons(); toast('Отменено: ' + a.label); }
+  function redo() { var a = ST.redo.pop(); if (!a) return; try { a.redo(); } catch (e) {} ST.undo.push(a); syncButtons(); toast('Повторено: ' + a.label); }
+
+  /* --- режимы --------------------------------------------------------------------- */
+  function previewGroup() { var M = theMap(); if (!M) return null; if (!ST.preview) ST.preview = L.layerGroup().addTo(M); return ST.preview; }
+  function clearPreview() { if (ST.preview) ST.preview.clearLayers(); }
+  function setTool(name) {
+    var M = theMap(); if (!M) return;
+    cancel(true);
+    ST.tool = name || null;
+    var A = agent(); if (A && A.setPick) try { A.setPick(false); } catch (e) {}
+    M.getContainer().classList.toggle('geo-tool-cursor', !!name && name !== 'free');
+    M.getContainer().classList.toggle('geo-tool-free', name === 'free');
+    if (name === 'poly' || name === 'free') { try { ST.dblWas = M.doubleClickZoom.enabled(); M.doubleClickZoom.disable(); } catch (e) {} }
+    if (name === 'free') { try { ST.dragWas = M.dragging.enabled(); M.dragging.disable(); } catch (e) {} }
+    hint(name ? esc(HINTS[name] || '') : '');
+    syncButtons();
+  }
+  function cancel(silent) {
+    var M = theMap();
+    ST.pts = []; ST.circle = null; ST.freeOn = false; clearPreview();
+    if (M) { try { if (ST.dblWas) M.doubleClickZoom.enable(); } catch (e) {} try { if (ST.dragWas) M.dragging.enable(); } catch (e) {} }
+    ST.dblWas = null; ST.dragWas = null;
+    if (!silent) { ST.tool = null; if (M) { M.getContainer().classList.remove('geo-tool-cursor'); M.getContainer().classList.remove('geo-tool-free'); } hint(''); syncButtons(); }
+  }
+  function finishTool() { setTool(null); }
+
+  /* --- пин: точка анализа ----------------------------------------------------------- */
+  function setSite(lat, lon, name) {
+    var A = agent(); if (!A) { toast('Гео-агент не загружен'); return Promise.resolve(); }
+    var prev = A.state.site ? { lat: A.state.site.lat, lon: A.state.site.lon, name: A.state.site.name } : null;
+    return A.run('set_site', { lat: lat, lon: lon, name: name || 'точка на карте' }).then(function (res) {
+      try { A.say('fact', A.factHtml('set_site', res)); A.say('ai', A.narrative([{ name: 'set_site', res: res }])); } catch (e) {}
+      push({ label: 'точка анализа', undo: function () { if (prev) A.run('set_site', prev); else toast('Прежней точки не было: точка остаётся'); }, redo: function () { A.run('set_site', { lat: lat, lon: lon, name: name || 'точка на карте' }); } });
+    }, function (e) { toast(String(e && e.message || e)); });
+  }
+
+  /* --- полигоны и круги: фигуры зоны агента ---------------------------------------- */
+  function simplify(pts, tolM) {
+    if (pts.length < 4) return pts;
+    var lat0 = pts[0][0], kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 111320;
+    var P = pts.map(function (p) { return [p[1] * kx, p[0] * ky]; });
+    /* если концы отрезка совпадают (замкнутая обводка: отпустили там же, где нажали), расстояние
+       считаем до точки, иначе все вершины «лежат на отрезке» и обводка схлопывается в две точки */
+    function dp(i, j, keep) { var maxD = 0, idx = -1, ax = P[i][0], ay = P[i][1], bx = P[j][0], by = P[j][1], dx = bx - ax, dy = by - ay, len = Math.sqrt(dx * dx + dy * dy); for (var k = i + 1; k < j; k++) { var d = len < 1e-6 ? Math.sqrt(Math.pow(P[k][0] - ax, 2) + Math.pow(P[k][1] - ay, 2)) : Math.abs(dy * P[k][0] - dx * P[k][1] + bx * ay - by * ax) / len; if (d > maxD) { maxD = d; idx = k; } } if (maxD > tolM && idx > 0) { dp(i, idx, keep); keep[idx] = true; dp(idx, j, keep); } }
+    var keep = {}; keep[0] = true; keep[pts.length - 1] = true; dp(0, pts.length - 1, keep);
+    return pts.filter(function (p, i) { return keep[i]; });
+  }
+  function commitShape(kind, data) {
+    var A = agent(); if (!A) { toast('Гео-агент не загружен'); return; }
+    var call = kind === 'circle' ? A.run('draw_circle', data) : A.run('draw_polygon', { points: data });
+    call.then(function (res) {
+      var shape = A.state.zone[A.state.zone.length - 1];
+      try { A.say('fact', A.factHtml(kind === 'circle' ? 'draw_circle' : 'draw_polygon', res)); } catch (e) {}
+      push({ label: kind === 'circle' ? 'круг' : 'полигон', undo: function () { A.removeShape(shape); }, redo: function () { A.addShape(shape); } });
+      if (window.CASE_GEO_LAYOUT && window.CASE_GEO_LAYOUT.openAgent) window.CASE_GEO_LAYOUT.openAgent(true);
+      return A.ask('площадь зоны, население в зоне, конкуренты в зоне');
+    }, function (e) { toast(String(e && e.message || e)); });
+  }
+  function drawPolyPreview(closing) {
+    var g = previewGroup(); if (!g) return; g.clearLayers();
+    if (ST.pts.length > 1) L.polyline(ST.pts, { color: '#9E0000', weight: 2, dashArray: '5' }).addTo(g);
+    ST.pts.forEach(function (p, i) { L.circleMarker(p, { radius: i === 0 ? 5 : 3, color: '#9E0000', fillColor: '#fff', fillOpacity: 1, weight: 2 }).addTo(g); });
+    if (closing && ST.pts.length >= 3) L.polygon(ST.pts, { color: '#9E0000', weight: 1, fillColor: '#9E0000', fillOpacity: .06, dashArray: '3' }).addTo(g);
+  }
+  function finishPolygon() {
+    if (ST.pts.length < 3) { toast('Нужно минимум три точки'); return; }
+    var ring = ST.pts.slice(); finishTool(); commitShape('polygon', ring);
+  }
+  function circlePreview(lat, lon, r) {
+    var g = previewGroup(); if (!g) return; g.clearLayers();
+    L.circleMarker([lat, lon], { radius: 4, color: '#9E0000', fillColor: '#fff', fillOpacity: 1, weight: 2 }).addTo(g);
+    if (r > 0) L.circle([lat, lon], { radius: r, color: '#9E0000', weight: 2, dashArray: '5', fillColor: '#9E0000', fillOpacity: .06 }).addTo(g);
+  }
+  function circleAsk(lat, lon, r) {
+    ST.circle = { lat: lat, lon: lon, r: r, fixed: true };
+    circlePreview(lat, lon, r);
+    hint('Радиус, км: <input type="number" id="geoCircleKm" min="0.05" max="50" step="0.05" value="' + (Math.round(r / 10) / 100) + '"> <button type="button" class="pri" id="geoCircleOk">Готово</button><button type="button" id="geoCircleNo">Отмена</button>');
+    var inp = $('geoCircleKm');
+    inp.addEventListener('input', function () { var v = parseFloat(inp.value); if (v > 0) { ST.circle.r = v * 1000; circlePreview(lat, lon, ST.circle.r); } });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); $('geoCircleOk').click(); } });
+    $('geoCircleOk').onclick = function () { var c = ST.circle; finishTool(); commitShape('circle', { lat: c.lat, lon: c.lon, radius_m: Math.round(c.r) }); };
+    $('geoCircleNo').onclick = function () { finishTool(); };
+    setTimeout(function () { try { inp.focus(); inp.select(); } catch (e) {} }, 0);
+  }
+  TL.circleAt = function (lat, lon) { setTool('circle'); ST.circle = { lat: lat, lon: lon, r: 0, fixed: false }; circlePreview(lat, lon, 0); hint('Кликните на нужном расстоянии от центра'); };
+
+  /* --- маршрут ------------------------------------------------------------------- */
+  function routeGroup() { var M = theMap(); if (!M) return null; if (!ST.routes) ST.routes = L.layerGroup().addTo(M); return ST.routes; }
+  function route(a, b) {
+    var g = routeGroup(); if (!g) return;
+    hint('Строю маршрут по дорогам OSM…');
+    var url = OSRM + a[1].toFixed(6) + ',' + a[0].toFixed(6) + ';' + b[1].toFixed(6) + ',' + b[0].toFixed(6) + '?overview=full&geometries=geojson';
+    fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (j) {
+      var rt = j && j.routes && j.routes[0]; if (!rt || !rt.geometry) throw new Error('маршрут не найден');
+      var line = rt.geometry.coordinates.map(function (c) { return [c[1], c[0]]; }), dist = rt.distance, mins = Math.round(rt.duration / 60);
+      var lg = L.layerGroup();
+      L.polyline(line, { color: '#1565c0', weight: 5, opacity: .9 }).addTo(lg).bindTooltip('🚗 ' + fmtKm(dist) + ' · ' + mins + ' мин (OSRM, дороги OSM)', { sticky: true });
+      L.circleMarker(a, { radius: 5, color: '#fff', weight: 2, fillColor: '#1565c0', fillOpacity: 1 }).addTo(lg).bindTooltip('старт');
+      L.circleMarker(b, { radius: 5, color: '#fff', weight: 2, fillColor: '#9E0000', fillOpacity: 1 }).addTo(lg).bindTooltip('финиш · ' + fmtKm(dist) + ' · ' + mins + ' мин', { permanent: true, direction: 'top' });
+      lg.addTo(g);
+      push({ label: 'маршрут', undo: function () { g.removeLayer(lg); }, redo: function () { g.addLayer(lg); } });
+      finishTool(); toast('Маршрут: ' + fmtKm(dist) + ', около ' + mins + ' мин на авто (OSRM, дороги OSM)');
+      var A = agent(); if (A && A.say) try { A.say('fact', '<div class="ga-fbody"><b>Маршрут</b> ' + fmtKm(dist) + ' · ' + mins + ' мин на авто <span class="ga-prov ga-m" title="Источник: OSRM (project-osrm.org), дороги OSM"><i>ƒ</i>расчёт</span></div>'); } catch (e) {}
+    }).catch(function (e) { finishTool(); var d = km(a[0], a[1], b[0], b[1]) * 1000; toast('Маршрутизатор недоступен (' + String(e && e.message || e) + '); по прямой ' + fmtKm(d)); });
+  }
+  TL.routeFrom = function (lat, lon) { setTool('route'); ST.pts = [[lat, lon]]; drawPolyPreview(false); hint('Кликните конец маршрута'); };
+
+  /* --- комментарии --------------------------------------------------------------- */
+  function notesGroup() { var M = theMap(); if (!M) return null; if (!ST.notes) ST.notes = L.layerGroup().addTo(M); return ST.notes; }
+  function saveNotes() { try { localStorage.setItem(NOTES_KEY, JSON.stringify(ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }))); } catch (e) {} }
+  function noteIcon() { return L.divIcon({ className: '', html: '<div class="geo-note-ic"><span>💬</span></div>', iconSize: [28, 28], iconAnchor: [4, 28], popupAnchor: [10, -26] }); }
+  function noteMarker(n) {
+    var m = L.marker([n.lat, n.lon], { icon: noteIcon(), title: n.text.slice(0, 60) });
+    m.bindTooltip(esc(n.text.slice(0, 80)), { direction: 'top', offset: [10, -26] });
+    m.bindPopup(function () { var d = document.createElement('div'); d.className = 'geo-note-view'; d.innerHTML = esc(n.text) + '<small>' + esc(n.at) + '</small>'; var b = document.createElement('button'); b.type = 'button'; b.textContent = 'Удалить'; b.onclick = function () { removeNote(n, true); }; d.appendChild(b); return d; });
+    m._note = n; return m;
+  }
+  function addNote(n, silent) { var g = notesGroup(); if (!g) return; var m = noteMarker(n); m.addTo(g); n._m = m; if (ST.notesData.indexOf(n) < 0) ST.notesData.push(n); saveNotes(); if (!silent) push({ label: 'комментарий', undo: function () { removeNote(n, false); }, redo: function () { addNote(n, true); } }); }
+  function removeNote(n, withUndo) { var g = notesGroup(); if (g && n._m) g.removeLayer(n._m); var i = ST.notesData.indexOf(n); if (i >= 0) ST.notesData.splice(i, 1); saveNotes(); try { theMap().closePopup(); } catch (e) {} if (withUndo) push({ label: 'удаление комментария', undo: function () { addNote(n, true); }, redo: function () { removeNote(n, false); } }); }
+  function noteForm(lat, lon) {
+    var M = theMap(); if (!M) return;
+    var d = document.createElement('div'); d.className = 'geo-note-form';
+    d.innerHTML = '<textarea placeholder="Комментарий к этому месту" aria-label="Текст комментария"></textarea><div class="row"><button type="button" class="pri">Сохранить</button><button type="button">Отмена</button></div>';
+    var pop = L.popup({ closeButton: false, autoClose: true, className: 'geo-note-pop' }).setLatLng([lat, lon]).setContent(d).openOn(M);
+    var ta = d.querySelector('textarea'), btns = d.querySelectorAll('button');
+    btns[0].onclick = function () { var t = ta.value.trim(); if (!t) { ta.focus(); return; } M.closePopup(pop); addNote({ id: 'n' + Date.now().toString(36), lat: lat, lon: lon, text: t.slice(0, 500), at: new Date().toISOString().slice(0, 16).replace('T', ' ') }, false); finishTool(); };
+    btns[1].onclick = function () { M.closePopup(pop); finishTool(); };
+    setTimeout(function () { try { ta.focus(); } catch (e) {} }, 0);
+  }
+  function loadNotes() { try { var arr = JSON.parse(localStorage.getItem(NOTES_KEY) || '[]'); if (Array.isArray(arr)) arr.forEach(function (n) { if (n && Number.isFinite(+n.lat) && Number.isFinite(+n.lon) && n.text) addNote({ id: n.id || ('n' + Math.random().toString(36).slice(2)), lat: +n.lat, lon: +n.lon, text: String(n.text), at: n.at || '' }, true); }); } catch (e) {} }
+
+  /* --- события карты ------------------------------------------------------------ */
+  function onClick(e) {
+    var lat = e.latlng.lat, lon = e.latlng.lng, t = ST.tool;
+    if (!t) return;
+    if (t === 'pin') { finishTool(); setSite(lat, lon); return; }
+    if (t === 'poly') {
+      if (ST.pts.length >= 3 && km(lat, lon, ST.pts[0][0], ST.pts[0][1]) * 1000 < 12 * metersPerPixel()) { finishPolygon(); return; }
+      ST.pts.push([lat, lon]); drawPolyPreview(false); hint('Вершин: ' + ST.pts.length + '. Enter, двойной клик или клик по первой точке замкнёт'); return;
+    }
+    if (t === 'circle') {
+      if (!ST.circle || ST.circle.fixed) { ST.circle = { lat: lat, lon: lon, r: 0, fixed: false }; circlePreview(lat, lon, 0); hint('Кликните на нужном расстоянии от центра'); return; }
+      var r = Math.max(20, km(ST.circle.lat, ST.circle.lon, lat, lon) * 1000); circleAsk(ST.circle.lat, ST.circle.lon, r); return;
+    }
+    if (t === 'route') {
+      if (!ST.pts.length) { ST.pts = [[lat, lon]]; drawPolyPreview(false); hint('Кликните конец маршрута'); return; }
+      var a = ST.pts[0]; ST.pts = []; clearPreview(); route(a, [lat, lon]); return;
+    }
+    if (t === 'note') { noteForm(lat, lon); return; }
+  }
+  function metersPerPixel() { var M = theMap(); try { var c = M.getCenter(); return 40075016.686 * Math.abs(Math.cos(c.lat * Math.PI / 180)) / Math.pow(2, M.getZoom() + 8); } catch (e) { return 10; } }
+  function onMove(e) {
+    if (ST.tool === 'circle' && ST.circle && !ST.circle.fixed) { var r = km(ST.circle.lat, ST.circle.lon, e.latlng.lat, e.latlng.lng) * 1000; circlePreview(ST.circle.lat, ST.circle.lon, r); hint('Радиус ' + fmtKm(r) + ': кликните, чтобы зафиксировать'); }
+    if (ST.tool === 'free' && ST.freeOn) { ST.pts.push([e.latlng.lat, e.latlng.lng]); drawPolyPreview(false); }
+  }
+  function onDown(e) { if (ST.tool === 'free') { ST.freeOn = true; ST.pts = [[e.latlng.lat, e.latlng.lng]]; } }
+  function onUp() {
+    if (ST.tool !== 'free' || !ST.freeOn) return;
+    ST.freeOn = false;
+    var ring = simplify(ST.pts, Math.max(8, metersPerPixel() * 3));
+    if (ring.length < 3) { toast('Обведите область: слишком мало точек'); ST.pts = []; clearPreview(); return; }
+    finishTool(); commitShape('polygon', ring);
+  }
+  function onDbl(e) { if (ST.tool === 'poly') { try { L.DomEvent.stop(e); } catch (x) {} finishPolygon(); } }
+  function onKey(e) {
+    var tgt = e.target, tag = tgt && tgt.tagName ? tgt.tagName.toLowerCase() : '';
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || (tgt && tgt.isContentEditable)) { if (e.key === 'Escape' && ST.tool) cancel(false); return; }
+    if ((e.ctrlKey || e.metaKey) && !e.altKey) { var k = e.key.toLowerCase(); if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; } if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; } return; }
+    if (e.key === 'Escape') { if (ST.menu) hideMenu(); if (ST.tool) cancel(false); return; }
+    if (e.key === 'Enter' && ST.tool === 'poly') { e.preventDefault(); finishPolygon(); return; }
+    var m = { p: 'pin', o: 'poly', f: 'free', c: 'circle', r: 'route', m: 'note' }[e.key.toLowerCase()];
+    if (m) { e.preventDefault(); setTool(ST.tool === m ? null : m); }
+  }
+
+  /* --- контекстное меню --------------------------------------------------------- */
+  function hideMenu() { if (ST.menu) { ST.menu.remove(); ST.menu = null; } }
+  function districtOf(lat, lon) { try { return (typeof distFast === 'function' && distFast(lat, lon)) || ''; } catch (e) { return ''; } }
+  function nearestBc(lat, lon) {
+    try { var rows = (typeof BC !== 'undefined' && Array.isArray(BC) ? BC : []).map(function (b) { return typeof eff === 'function' ? eff(b) : b; }).filter(function (b) { return b && b.lat != null && b.lng != null; }); var best = null; rows.forEach(function (b) { var d = km(lat, lon, +b.lat, +b.lng) * 1000; if (!best || d < best.d) best = { d: d, name: b.name || '' }; }); return best; } catch (e) { return null; }
+  }
+  function copyText(t) { return (navigator.clipboard && navigator.clipboard.writeText ? navigator.clipboard.writeText(t) : Promise.reject(new Error('нет доступа к буферу'))).then(function () { toast('Скопировано: ' + t); }, function () { window.prompt('Скопируйте координаты', t); }); }
+  function pasteFromClipboard() {
+    if (!navigator.clipboard || !navigator.clipboard.readText) { toast('Браузер не даёт читать буфер обмена: вставьте текст в строку гео-агента'); return; }
+    navigator.clipboard.readText().then(function (t) {
+      t = String(t || '').trim(); if (!t) { toast('Буфер обмена пуст'); return; }
+      var m = t.match(/(-?\d{1,2}\.\d{3,})[,;\s]+(-?\d{1,3}\.\d{3,})/);
+      if (m) { setSite(parseFloat(m[1]), parseFloat(m[2]), 'из буфера обмена'); return; }
+      var A = agent(); if (A) { if (window.CASE_GEO_LAYOUT && window.CASE_GEO_LAYOUT.openAgent) window.CASE_GEO_LAYOUT.openAgent(true); A.ask('адрес: ' + t.slice(0, 120)); } else toast('Не координаты и не адрес: ' + t.slice(0, 60));
+    }, function () { toast('Доступ к буферу обмена не разрешён'); });
+  }
+  function info(lat, lon) {
+    var M = theMap(); if (!M) return;
+    var d = districtOf(lat, lon), nb = nearestBc(lat, lon), A = agent();
+    var html = '<div class="geo-info"><b>' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</b>' + (d ? 'Район: ' + esc(d) + '<br>' : '') + (nb ? 'Ближайший БЦ: ' + esc(nb.name) + ' (' + fmtKm(nb.d) + ')<br>' : '') + (A && A.state && A.state.site ? 'До точки анализа: ' + fmtKm(km(lat, lon, A.state.site.lat, A.state.site.lon) * 1000) + '<br>' : '') + '<small id="geoInfoAddr">Адрес: ищу в OpenStreetMap…</small></div>';
+    var pop = L.popup({ maxWidth: 300 }).setLatLng([lat, lon]).setContent(html).openOn(M);
+    var D = window.CASE_GEO_DIRECT;
+    if (D && D.reverse) D.reverse(lat, lon, 'ru').then(function (r) { var el = $('geoInfoAddr'); if (!el) return; el.textContent = r && r.ok ? 'Адрес: ' + r.name + ' (OSM, ODbL)' : 'Адрес: ' + (r && r.message || 'не найден'); }, function () { var el = $('geoInfoAddr'); if (el) el.textContent = 'Адрес: геокодер недоступен'; });
+    else { var el = $('geoInfoAddr'); if (el) el.textContent = 'Адрес: геокодер недоступен'; }
+    void pop;
+  }
+  function showMenu(e) {
+    hideMenu();
+    var M = theMap(), mapEl = $('map'); if (!M || !mapEl) return;
+    var lat = e.latlng.lat, lon = e.latlng.lng;
+    var m = document.createElement('div'); m.className = 'geo-cmenu'; m.setAttribute('role', 'menu');
+    var items = [
+      ['pin', '📍', 'Добавить метку здесь (точка анализа)'], ['circle', '◯', 'Круг охвата отсюда…'], ['route', '⤳', 'Маршрут отсюда…'], ['center', '⤢', 'Переместиться сюда'], null,
+      ['info', 'ℹ', 'Получить сведения'], ['copy', '⧉', 'Скопировать координаты'], ['paste', '📋', 'Вставить объект из буфера обмена']
+    ];
+    m.innerHTML = '<div class="geo-cmenu-xy">' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>' + items.map(function (it) { return it ? '<button type="button" data-a="' + it[0] + '"><span class="ic">' + it[1] + '</span>' + esc(it[2]) + '</button>' : '<hr>'; }).join('');
+    var rect = mapEl.getBoundingClientRect(), x = e.containerPoint.x, y = e.containerPoint.y;
+    m.style.left = Math.min(x, rect.width - 275) + 'px'; m.style.top = Math.min(y, rect.height - 330) + 'px';
+    mapEl.appendChild(m); ST.menu = m;
+    try { L.DomEvent.disableClickPropagation(m); L.DomEvent.disableScrollPropagation(m); } catch (x) {}
+    m.addEventListener('click', function (ev) {
+      var b = ev.target.closest('button'); if (!b) return; var a = b.getAttribute('data-a'); hideMenu();
+      if (a === 'pin') setSite(lat, lon);
+      else if (a === 'circle') TL.circleAt(lat, lon);
+      else if (a === 'route') TL.routeFrom(lat, lon);
+      else if (a === 'center') M.panTo([lat, lon]);
+      else if (a === 'info') info(lat, lon);
+      else if (a === 'copy') copyText(lat.toFixed(6) + ', ' + lon.toFixed(6));
+      else if (a === 'paste') pasteFromClipboard();
+    });
+  }
+
+  function install() {
+    var M = theMap(); if (!M) return;
+    css(); toolbar(); loadNotes();
+    M.on('click', onClick); M.on('mousemove', onMove); M.on('mousedown', onDown); M.on('mouseup', onUp); M.on('dblclick', onDbl);
+    M.on('contextmenu', function (e) { try { L.DomEvent.preventDefault(e.originalEvent); } catch (x) {} showMenu(e); });
+    M.on('movestart zoomstart', hideMenu);
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('click', function (e) { if (ST.menu && !(e.target.closest && e.target.closest('.geo-cmenu'))) hideMenu(); });
+    syncButtons();
+  }
+  TL.setTool = setTool; TL.cancel = function () { cancel(false); }; TL.undo = undo; TL.redo = redo; TL.state = ST; TL.finishPolygon = finishPolygon; TL.notes = function () { return ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }); }; TL.showInfo = info; TL.simplify = simplify;
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
+})();
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.75.0';
 
 </script>
 <script>

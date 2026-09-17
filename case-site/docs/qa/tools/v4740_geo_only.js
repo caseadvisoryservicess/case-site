@@ -1,4 +1,4 @@
-/* v4.74.0: режим «только геоаналитика» в браузере.
+/* v4.75.0: режим «только геоаналитика» в браузере.
 
    Решение владельца: на хостинге остаётся только геоаналитика, остальные отделы отключаются,
    данные в базе сохраняются. Режим приходит с сервера (auth.php -> mode). Что проверяется:
@@ -53,11 +53,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   ck('режим geo пришёл с сервера, тело помечено, главный экран = студия геоаналитики', s1.mode === 'geo' && s1.geoOnly && s1.view === 'geoanalytics' && s1.frame, JSON.stringify({ mode: s1.mode, view: s1.view, frame: s1.frame }));
   ck('меню: только гео и администрирование, Geo Platform после «рынок и POI»', s1.links.join() === 'geoanalytics,geo_platform,map,users,admin_modules,admin_system' && s1.groups.length === 2 && /Геоаналитика/.test(s1.groups[0]) && /Администрирование/.test(s1.groups[1]) && /Geo Platform/.test(s1.modName), s1.links.join() + ' | ' + s1.groups.join(' / '));
   if (process.env.SHOTS) await pg.screenshot({ path: path.join(process.env.SHOTS, 'geo_only_studio.png') });
-  ck('шапка без переключателя объектов, поиска и чата; подпись бренда и заголовок про геоаналитику', s1.objSel === 'none' && s1.search === 'none' && s1.chat && /Geo Analytics Platform/.test(s1.brand) && /Геоаналитика/.test(s1.title) && /v4\.74\.0/.test(s1.ver), JSON.stringify({ obj: s1.objSel, search: s1.search, chat: s1.chat, brand: s1.brand, title: s1.title, ver: s1.ver }));
+  ck('шапка без переключателя объектов, поиска и чата; подпись бренда и заголовок про геоаналитику', s1.objSel === 'none' && s1.search === 'none' && s1.chat && /Geo Analytics Platform/.test(s1.brand) && /Геоаналитика/.test(s1.title) && /v4\.75\.0/.test(s1.ver), JSON.stringify({ obj: s1.objSel, search: s1.search, chat: s1.chat, brand: s1.brand, title: s1.title, ver: s1.ver }));
 
   console.log('--- 2. Чужой раздел, Geo Platform, перезагрузка');
   const s2 = await pg.evaluate(async () => { go('registry'); await new Promise(r => setTimeout(r, 300)); const afterReg = S.view; go('dash'); await new Promise(r => setTimeout(r, 300)); const afterDash = S.view; go('geo_platform'); await new Promise(r => setTimeout(r, 400)); const f = document.getElementById('geoPlatformFrame'); return { afterReg, afterDash, view: S.view, frame: !!f, src: f ? f.getAttribute('src') : '', active: [...document.querySelectorAll('#nav a.active')].map(a => a.dataset.v), h1: (document.querySelector('#main .ph h1') || {}).textContent || '' }; });
-  ck('реестр и главный экран уводят в геоаналитику; Geo Platform открывается в iframe geo-platform.html с активным пунктом меню', s2.afterReg === 'geoanalytics' && s2.afterDash === 'geoanalytics' && s2.view === 'geo_platform' && s2.frame && /^geo-platform\.html\?embedded=1&v=4\.74\.0/.test(s2.src) && s2.active.join() === 'geo_platform' && /Geo Platform/.test(s2.h1), JSON.stringify(s2));
+  ck('реестр и главный экран уводят в геоаналитику; Geo Platform открывается в iframe geo-platform.html с активным пунктом меню', s2.afterReg === 'geoanalytics' && s2.afterDash === 'geoanalytics' && s2.view === 'geo_platform' && s2.frame && /^geo-platform\.html\?embedded=1&v=4\.75\.0/.test(s2.src) && s2.active.join() === 'geo_platform' && /Geo Platform/.test(s2.h1), JSON.stringify(s2));
   const frameOk = await pg.evaluate(async () => { const f = document.getElementById('geoPlatformFrame'); for (let i = 0; i < 40; i++) { try { if (f.contentWindow && f.contentWindow.Data && f.contentWindow.Data.all().length) return { n: f.contentWindow.Data.all().length, title: f.contentDocument.title }; } catch (e) {} await new Promise(r => setTimeout(r, 250)); } return { n: 0 }; });
   if (process.env.SHOTS) await pg.screenshot({ path: path.join(process.env.SHOTS, 'geo_only_platform.png') });
   ck('внутри iframe платформа бизнес-центров загрузилась (154 записи)', frameOk.n === 154 && /Geo Platform/.test(frameOk.title), JSON.stringify(frameOk));

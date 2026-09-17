@@ -21,7 +21,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_DIRECT) return;
-  var VERSION = '4.74.0';
+  var VERSION = '4.75.0';
   var realFetch = window.fetch.bind(window);
   var D = window.CASE_GEO_DIRECT = {
     version: VERSION,
@@ -242,6 +242,21 @@
     });
   }
 
+  /* v4.75.0: точка -> адрес (Nominatim reverse), для «Получить сведения» по правому клику */
+  function reverse(lat, lon, lang) {
+    lat = num(lat); lon = num(lon); if (lat == null || lon == null) return Promise.resolve({ ok: false, message: 'нет координат' });
+    var key = 'rev|' + lat.toFixed(5) + '|' + lon.toFixed(5) + '|' + (lang || 'ru');
+    if (D.geocodeCache[key]) return Promise.resolve(D.geocodeCache[key]);
+    var url = D.nominatim + '/reverse?lat=' + lat + '&lon=' + lon + '&format=jsonv2&zoom=18&accept-language=' + (lang || 'ru');
+    return getText(url, 15000).then(function (r) {
+      if (r.status === 0) return { ok: false, message: 'геокодер недоступен из браузера' };
+      var j = null; try { j = JSON.parse(r.body); } catch (e) {}
+      if (r.status !== 200 || !j || !j.display_name) return { ok: false, message: 'адрес не найден' };
+      var out = { ok: true, name: String(j.display_name).slice(0, 200), type: String(j.type || ''), attribution: '© OpenStreetMap contributors' };
+      D.geocodeCache[key] = out; return out;
+    });
+  }
+
   /* Проверка связи из браузера. opts.standalone: сервера CASE OS нет вовсе. */
   function ping(opts) {
     opts = opts || {};
@@ -268,6 +283,7 @@
     if (mode === 'poi') return poi(qs);
     if (mode === 'buildings' || mode === 'roads') return features(mode, qs);
     if (mode === 'geocode') return geocode(qs);
+    if (mode === 'reverse') return reverse(qs.get('lat'), qs.get('lon'), qs.get('lang'));
     if (mode === 'ping') return ping({ standalone: !!window.CASE_STANDALONE });
     return Promise.resolve({ ok: false, message: 'Режим «' + mode + '» из браузера недоступен: платные провайдеры и серверный кэш есть только на сервере CASE OS.' });
   }
@@ -316,7 +332,7 @@
       }, function (e) { return direct(String(e && e.message || e)); });
     };
   }
-  D.poi = poi; D.features = features; D.geocode = geocode; D.ping = ping; D.handle = handle; D.install = install; D.serverNetworkFailure = serverNetworkFailure;
+  D.poi = poi; D.features = features; D.geocode = geocode; D.reverse = reverse; D.ping = ping; D.handle = handle; D.install = install; D.serverNetworkFailure = serverNetworkFailure;
   install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['geo-direct'] = '4.74.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['geo-direct'] = '4.75.0';

@@ -5,14 +5,15 @@
    объекты по категориям и подкатегориям», а PHP хостинга не выпускают в интернет. Что
    проверяется на студии с мок-бэкендом:
 
-     1. «Слои и стиль» стали деревом: первым узел «Подложка карты», затем «Границы и
-        плотность», далее категории с общей галочкой и счётчиком; строки городских объектов,
-        дорисованные позже, попали в свои категории.
+     1. «Слои и стиль» стали деревом: первым узел «Границы и плотность» (с v4.75.0 узла
+        «Подложка карты» в дереве нет, подложку меняет кнопка у карты), далее категории с
+        общей галочкой и счётчиком; строки городских объектов, дорисованные позже, попали в
+        свои категории.
      2. Общая галочка включает все слои категории (обработчики слоёв срабатывают: границы
         районов рисуются), счётчик и подсветка узла; повторный клик выключает.
      3. Узел сворачивается и помнится; поиск по слоям оставляет только подходящие категории.
      4. Кнопка подложки у карты: имя текущей карты, выбор Google меняет тайлы, выбор помнится,
-        стандартный переключатель Leaflet скрыт; дерево и кнопка синхронны.
+        стандартный переключатель Leaflet скрыт; в дереве радио подложки больше нет.
      5. geo-direct: сервер отвечает «Overpass недоступен с сервера», здания и адрес приходят из
         браузера с пометкой; когда сервер отвечает сам, браузер не дёргается; «Связь» показывает
         оба пути.
@@ -69,7 +70,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
     const horeca = document.querySelector('#geoCatAnchor-horeca'), horecaCat = horeca && horeca.closest('.geo-cat');
     return { cats, first: cats[0], second: cats[1], built: window.CASE_GEO_TREE.built, baseRadios: document.querySelectorAll('#geoCatAnchor-horeca, .geo-cat input[name=geoBaseOpt]').length, q: !!document.querySelector('.geo-tree-q'), poiRows: horeca ? horeca.querySelectorAll('.geo-poi-row').length : -1, horecaCat: horecaCat ? horecaCat.getAttribute('data-cat') : '', horecaN: horecaCat ? horecaCat.querySelector('.geo-cat-n').textContent : '', bcN: (document.querySelector('.geo-cat[data-cat="Бизнес-центры"] .geo-cat-n') || {}).textContent, bcAct: !!document.querySelector('.geo-cat[data-cat="Бизнес-центры"].geo-cat-active') };
   });
-  ck('категории стали узлами: первым «Подложка карты», затем «Границы и плотность», всего не меньше 10', t1.built && /подложка/i.test(t1.first) && /границы/i.test(t1.second) && t1.cats.length >= 10 && t1.q, JSON.stringify(t1.cats));
+  ck('категории стали узлами: первым «Границы и плотность», узла «Подложка карты» нет (v4.75.0), всего не меньше 9', t1.built && /границы/i.test(t1.first) && !t1.cats.some(c => /подложка/i.test(c)) && t1.baseRadios === 1 && t1.cats.length >= 9 && t1.q, JSON.stringify(t1.cats));
   ck('строки городских объектов (HoReCa) попали в свою категорию, счётчик «0 / 4»; «Бизнес-центры» включены «1 / 1» и подсвечены', t1.poiRows === 4 && t1.horecaCat === 'HoReCa' && t1.horecaN === '0 / 4' && t1.bcN === '1 / 1' && t1.bcAct, JSON.stringify({ rows: t1.poiRows, cat: t1.horecaCat, n: t1.horecaN, bc: t1.bcN, act: t1.bcAct }));
 
   console.log('--- 2. Общая галочка');
@@ -122,7 +123,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
     return { has: !!ctl, hiddenLeaflet, name0, menuOpen, cur, name1, saved, tile: /google/.test(tile), treeRadio, menuClosed };
   });
   ck('кнопка подложки у карты, стандартный переключатель скрыт, имя текущей карты показано', t4.has && t4.hiddenLeaflet && t4.name0.length > 3, JSON.stringify({ has: t4.has, h: t4.hiddenLeaflet, n: t4.name0 }));
-  ck('выбор Google меняет тайлы, имя, память и радио в дереве; меню закрывается', t4.menuOpen && t4.cur === 'Google Карта' && t4.name1 === 'Google Карта' && t4.saved === 'Google Карта' && t4.tile && t4.treeRadio.join() === 'Google Карта' && t4.menuClosed, JSON.stringify(t4));
+  ck('выбор Google меняет тайлы, имя и память; радио в дереве нет; меню закрывается', t4.menuOpen && t4.cur === 'Google Карта' && t4.name1 === 'Google Карта' && t4.saved === 'Google Карта' && t4.tile && t4.treeRadio.length === 0 && t4.menuClosed, JSON.stringify(t4));
 
   console.log('--- 5. OSM из браузера');
   const ask = t => pg.evaluate(async t => { const A = window.CASE_GEO_AGENT, n0 = A.state.log.length; await A.ask(t); return A.state.log.slice(n0).map(m => m.who + ':' + m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()); }, t);
