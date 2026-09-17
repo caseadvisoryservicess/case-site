@@ -1,6 +1,6 @@
 {
  "tool": "lsp_e2e.js",
- "at": "2026-09-17T07:53:26Z",
+ "at": "2026-09-17T11:03:25Z",
  "dir": "/home/user/case-site/case-site/os/leasing",
  "summary": {
   "total": 98,
@@ -86,7 +86,7 @@
   {
    "test": "view dash renders",
    "status": "PASS",
-   "info": "chars 2416"
+   "info": "chars 2432"
   },
   {
    "test": "view dash without JS errors",
@@ -140,7 +140,7 @@
   {
    "test": "view leasing renders",
    "status": "PASS",
-   "info": "chars 3027"
+   "info": "chars 3046"
   },
   {
    "test": "view leasing without JS errors",
@@ -185,7 +185,7 @@
   {
    "test": "view requirements renders",
    "status": "PASS",
-   "info": "chars 656"
+   "info": "chars 691"
   },
   {
    "test": "view requirements without JS errors",
@@ -221,7 +221,7 @@
   {
    "test": "view reports renders",
    "status": "PASS",
-   "info": "chars 2682"
+   "info": "chars 2703"
   },
   {
    "test": "view reports without JS errors",
@@ -230,7 +230,7 @@
   {
    "test": "view portal renders",
    "status": "PASS",
-   "info": "chars 1145"
+   "info": "chars 1171"
   },
   {
    "test": "view portal without JS errors",
@@ -406,7 +406,7 @@
   {
    "test": "report exports to PDF",
    "status": "PASS",
-   "info": "bytes: 75652"
+   "info": "bytes: 75728"
   },
   {
    "test": "units CSV export produces a file",
