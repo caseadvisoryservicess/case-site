@@ -182,3 +182,43 @@ https://search-maps.yandex.ru/v1/?apikey=<key>&text=бизнес центр Та
 An `"Invalid key"` reply means the key was connected to *JavaScript API и HTTP Геокодер* only;
 Geosearch (*Поиск по организациям*) is a separate service in the same cabinet and needs its own
 key.
+
+## 12.8 Yandex Geocoder: checking the addresses we already hold
+
+The second key Yandex issued on 2026-09-17 is bound to **API Геокодера** (free tier, 1,000
+requests a day). In the new Yandex console every product has its own key: the JavaScript key
+is refused by the Geocoder, and the Geocoder key will be refused by organisation search. The
+key is registered as `SRC-YANDEX-GEOCODER`, storage `display`, and it is not a collector.
+
+What it is good for is the one thing no collector does: **checking the 148 against
+themselves.** `tools/geocode_check.py` geocodes each recorded street address forward and
+measures the distance from the point Yandex returns to the coordinates on file; for a record
+without an address it reverse-geocodes the pin and records the house Yandex names as a
+*suggestion*. Nothing it returns is written into the dataset. The report is a queue for a
+person, sorted by how far apart the address and the pin are.
+
+| verdict | meaning |
+|---|---|
+| `agree` | house-level match within 75 m – the address and the pin describe one building |
+| `near` | house-level match within 300 m – probably the same block, a person looks |
+| `disagree` | house-level match further away – the address or the pin is wrong |
+| `approximate` / `vague` | Yandex could only place the address roughly or at street level – it cannot settle anything |
+| `not_found` | Yandex has no such address inside the Tashkent window |
+| `suggested` | reverse lookup for a record with no address – a candidate for a person to confirm |
+
+A dry run before any request found something the completeness figures hide: **nine records
+carry the word "Tashkent" alone as their address.** They count as "address known" today. The
+tool skips them without spending a request; the ETL should stop treating a bare city name as
+an address, which is a one-line rule in `build_seed.py` and a change to the completeness
+count. Real street addresses are 100 of 148, not 109.
+
+```bash
+cd geo-mvp
+export YANDEX_GEOCODER_API_KEY="…"
+python3 tools/geocode_check.py --dry-run        # 139 requests: 100 forward, 39 reverse, 9 skipped
+python3 tools/geocode_check.py --limit 5        # proves the key with five requests
+python3 tools/geocode_check.py                  # the full pass, well inside the daily 1,000
+```
+
+Send back `data/incoming/yandex-geocoder-check.json`. It is git-ignored, carries no key, and
+`python3 tools/geocode_check.py --report` re-prints its summary anywhere.

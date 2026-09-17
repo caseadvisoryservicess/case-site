@@ -347,6 +347,9 @@ def collect(source_id, key=None, replay=None, terms_checked_by=None):
     if not src:
         sys.exit('collect: unknown source %s (see tools/sources.py)' % source_id)
 
+    if src.get('tool'):
+        sys.exit('collect: %s is not a collector – run %s instead.' % (source_id, src['tool']))
+
     adapter = ADAPTERS.get(source_id)
     if not adapter:
         sys.exit('collect: %s has no adapter yet. Directory sites need an HTML\n'

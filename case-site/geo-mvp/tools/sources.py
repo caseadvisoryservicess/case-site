@@ -152,6 +152,24 @@ SOURCES = [
              'tile basemap, which is EPSG:3395 – see 10b-basemaps.js.',
     ),
     dict(
+        id='SRC-YANDEX-GEOCODER',
+        name='Yandex Geocoder (HTTP)',
+        method='geocoder check',
+        endpoint='https://geocode-maps.yandex.ru/1.x/',
+        probe='https://geocode-maps.yandex.ru/1.x/',
+        auth='YANDEX_GEOCODER_API_KEY',
+        storage='display',
+        licence='Yandex Maps API terms – free tier, 1,000 requests a day, results shown and not stored',
+        attribution='© Яндекс',
+        fields=[],
+        tool='tools/geocode_check.py',
+        note='Not a collector. tools/geocode_check.py uses it to CHECK a recorded address '
+             'against the recorded coordinates, and to SUGGEST an address where none is held. '
+             'The report is for a person; nothing it returns enters the dataset. In the new '
+             'Yandex console the Geocoder is its own product with its own key – the '
+             'JavaScript API key is refused here.',
+    ),
+    dict(
         id='SRC-2GIS-CATALOG',
         name='2GIS Catalog API',
         method='map service',

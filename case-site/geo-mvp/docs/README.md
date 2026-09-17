@@ -46,7 +46,8 @@ node    tools/qa.cjs                  # the built file, in Chromium, from file:/
 python3 tools/etl_districts_check.py  # re-audit the source district labels against the boundaries
 python3 tools/name_dupes.py           # re-run the proximity-gated duplicate detection
 python3 build.py --check              # fail if index.html has drifted from src/
-python3 tools/test_merge.py           # 46 ingestion assertions: matching, the four
+python3 tools/test_merge.py           # 56 ingestion assertions: matching, the four
                                       # per-field outcomes, the licence gate
 python3 tools/sources.py --check      # probe every external source's reachability
+python3 tools/geocode_check.py --dry-run  # the Yandex address check: what it would ask, no network
 ```

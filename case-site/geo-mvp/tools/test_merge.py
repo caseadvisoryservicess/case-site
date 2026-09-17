@@ -196,6 +196,41 @@ lst_note = C.parse_case_os_prices({'prices': {'X': {'rent': 20, 'avail': 175, 'p
 ok('a listing rent\'s note carries the per-m²/per-object disambiguation caveat',
    'disambiguated' in lst_note and '175' in lst_note, lst_note)
 
+print('\n\033[1mgeocoder check (show-only)\033[0m')
+import geocode_check as G  # noqa: E402
+
+def yx(lat, lng, precision='exact', kind='house', text='Ташкент, улица Тестовая, 1'):
+    return {'response': {'GeoObjectCollection': {
+        'metaDataProperty': {'GeocoderResponseMetaData': {'found': '1'}},
+        'featureMember': [{'GeoObject': {'Point': {'pos': '%s %s' % (lng, lat)},
+                                         'metaDataProperty': {'GeocoderMetaData': {
+                                             'precision': precision, 'kind': kind, 'text': text}}}}]}}}
+
+mode, q = G.query_for(t)
+ok('a record with a street address is geocoded FORWARD with that address', mode == 'forward' and q == t['address'], str((mode, q)))
+mode, q = G.query_for(dict(t, address='Tashkent'))
+ok('an address that is only the city name is SKIPPED without a request', mode == 'skip', str((mode, q)))
+mode, q = G.query_for(dict(t, address=None))
+ok('a record without an address is REVERSE-geocoded, longitude first',
+   mode == 'reverse' and q == '%s,%s' % (t['lng'], t['lat']), str((mode, q)))
+
+parsed = G.parse_response(yx(t['lat'], t['lng']))
+ok('Point.pos "lon lat" is parsed into lat/lng the right way round',
+   abs(parsed['hit']['lat'] - t['lat']) < 1e-9 and abs(parsed['hit']['lng'] - t['lng']) < 1e-9, str(parsed['hit']))
+ok('a house on the pin is AGREE', G.verdict_for('forward', t, parsed)[0] == 'agree')
+ok('a house 1 km away is DISAGREE, and the distance is reported',
+   G.verdict_for('forward', t, G.parse_response(yx(t['lat'] + 0.009, t['lng'])))[0] == 'disagree'
+   and 900 < G.verdict_for('forward', t, G.parse_response(yx(t['lat'] + 0.009, t['lng'])))[1] < 1100)
+ok('a street-level match is VAGUE whatever the distance, never a disagreement',
+   G.verdict_for('forward', t, G.parse_response(yx(t['lat'], t['lng'], precision='street', kind='street')))[0] == 'vague')
+ok('an empty result is NOT_FOUND',
+   G.verdict_for('forward', t, G.parse_response({'response': {'GeoObjectCollection': {'featureMember': []}}}))[0] == 'not_found')
+ok('a reverse lookup yields a SUGGESTION, which is not a fill',
+   G.verdict_for('reverse', t, parsed)[0] == 'suggested')
+ok('the geocoder is registered as display-only and routed to its tool, not the collector',
+   SRC.by_id('SRC-YANDEX-GEOCODER')['storage'] == 'display' and not SRC.may_populate('SRC-YANDEX-GEOCODER')
+   and SRC.by_id('SRC-YANDEX-GEOCODER').get('tool'))
+
 print('\n\033[1mapply\033[0m')
 before = json.loads(json.dumps(SEED))
 try:
