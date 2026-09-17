@@ -1,0 +1,208 @@
+{
+ "origin": "CASE_OS_Geo_Analytics_2.html, embedded BC array – addresses present there and absent from the prototype's dataset",
+ "extractedAt": "2026-09-17",
+ "provenance": "Street addresses collected from the GoldenPages Uzbekistan directory and geocoded by CASE through 2GIS by address (four by POI name). The archive's own bc.json – the origin of the 148 – holds these rows with address blank, so this page is a LATER collection state, not a re-export.",
+ "licence": "UNRESOLVED. The address text is directory content. CASE's own source register (sources.csv, 919 rows) marks every GoldenPages entry license_review_required = Проверить, cleared 0. Registered here as SRC-CASE-OS-GEO2-ADDR with storage 'unverified' so the proposal is built and the fills are WITHHELD until a person records that check.",
+ "records": [
+  {
+   "name": "C.U. CORPORATION",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.260944,
+   "lng": 69.195834,
+   "address": "Bunyodkor 100, Tashkent",
+   "matchesRecord": "BC-e02abdc23721",
+   "recordName": "C.U. CORPORATION"
+  },
+  {
+   "name": "CHILANZAR BIZNES CENTER",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.286998,
+   "lng": 69.210568,
+   "address": "Chilanzar-1, Chilanzar 6, Tashkent",
+   "matchesRecord": "BC-a27df72e7856",
+   "recordName": "CHILANZAR BIZNES CENTER"
+  },
+  {
+   "name": "INTEGRO",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.277291,
+   "lng": 69.205194,
+   "address": "Bunyodkor 52, Tashkent",
+   "matchesRecord": "BC-6b34a39498d7",
+   "recordName": "INTEGRO"
+  },
+  {
+   "name": "INTERNATIONAL BANK FINANCIAL CENTRE",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.305989,
+   "lng": 69.252085,
+   "address": "Beshagach 1, Tashkent",
+   "matchesRecord": "BC-c9a9815e3507",
+   "recordName": "INTERNATIONAL BANK FINANCIAL CENTRE"
+  },
+  {
+   "name": "SEYYAM",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.297545,
+   "lng": 69.215468,
+   "address": "Mukimi 178A, Tashkent",
+   "matchesRecord": "BC-3acf452dee22",
+   "recordName": "SEYYAM"
+  },
+  {
+   "name": "T-RED-APPLE",
+   "district": "Chilanzar",
+   "provider": "GoldenPages",
+   "lat": 41.275286,
+   "lng": 69.22452,
+   "address": "Arnasay 23A, Tashkent",
+   "matchesRecord": "BC-891e3525914c",
+   "recordName": "T-RED-APPLE"
+  },
+  {
+   "name": "THE TOWER",
+   "district": "Yakkasaray",
+   "provider": "GoldenPages",
+   "lat": 41.286378,
+   "lng": 69.262997,
+   "address": "Furkat 191, Tashkent",
+   "matchesRecord": "BC-74adfc95fcd8",
+   "recordName": "THE TOWER"
+  },
+  {
+   "name": "BARAKAT CENTRE",
+   "district": "Mirabad",
+   "provider": "GoldenPages",
+   "lat": 41.303197,
+   "lng": 69.267748,
+   "address": "Afrosiab 2, Tashkent",
+   "matchesRecord": "BC-0f66a24048bf",
+   "recordName": "BARAKAT CENTRE"
+  },
+  {
+   "name": "BURHAN",
+   "district": "Olmazor",
+   "provider": "GoldenPages",
+   "lat": 41.340907,
+   "lng": 69.242976,
+   "address": "Nurafshon bypass 14A, Tashkent",
+   "matchesRecord": "BC-569e91ebeb18",
+   "recordName": "BURHAN"
+  },
+  {
+   "name": "AUTO BUSINESS CENTER",
+   "district": "Sergeli",
+   "provider": "GoldenPages",
+   "lat": 41.220657,
+   "lng": 69.223608,
+   "address": "Yangi Sergeli Yuli 56, Tashkent",
+   "matchesRecord": "BC-31c8c8986bbe",
+   "recordName": "AUTO BUSINESS CENTER"
+  },
+  {
+   "name": "NEXUS",
+   "district": "Shaykhantakhur",
+   "provider": "GoldenPages",
+   "lat": 41.341286,
+   "lng": 69.260416,
+   "address": "Takhtapul Darvoza 314, Tashkent",
+   "matchesRecord": "BC-f410da32f7fb",
+   "recordName": "NEXUS"
+  },
+  {
+   "name": "OAZIS CITY CENTRE",
+   "district": "Uchtepa",
+   "provider": "GoldenPages",
+   "lat": 41.281986,
+   "lng": 69.186319,
+   "address": "Chilanzar-12 blk 21A, Tashkent",
+   "matchesRecord": "BC-bf4bedc10d91",
+   "recordName": "OAZIS CITY CENTRE"
+  },
+  {
+   "name": "RAKATBOSHI",
+   "district": "Yakkasaray",
+   "provider": "GoldenPages",
+   "lat": 41.293932,
+   "lng": 69.245547,
+   "address": "Urikzor 7, Tashkent",
+   "matchesRecord": "BC-b9df42c720f5",
+   "recordName": "RAKATBOSHI"
+  },
+  {
+   "name": "ILFAR DIYOR TEKSTIL",
+   "district": "Yashnabad",
+   "provider": "GoldenPages",
+   "lat": 41.29428,
+   "lng": 69.362258,
+   "address": "Tuzel-1 blk 1, Tashkent",
+   "matchesRecord": "BC-c915e6fc798a",
+   "recordName": "ILFAR DIYOR TEKSTIL"
+  },
+  {
+   "name": "RS",
+   "district": "Yashnabad",
+   "provider": "GoldenPages",
+   "lat": 41.308009,
+   "lng": 69.327691,
+   "address": "Sultanali Mashkhadi 210A, Tashkent",
+   "matchesRecord": "BC-6722c331ece2",
+   "recordName": "RS"
+  },
+  {
+   "name": "SIMURG JSC",
+   "district": "Yashnabad",
+   "provider": "GoldenPages",
+   "lat": 41.318195,
+   "lng": 69.319394,
+   "address": "7th Parkent 2, Tashkent",
+   "matchesRecord": "BC-77f09d2bf07e",
+   "recordName": "SIMURG JSC"
+  },
+  {
+   "name": "TECHNOPLAZA",
+   "district": "Yashnabad",
+   "provider": "GoldenPages",
+   "lat": 41.345776,
+   "lng": 69.361575,
+   "address": "Temur Malik 146, Tashkent",
+   "matchesRecord": "BC-c006dac8a39a",
+   "recordName": "TECHNOPLAZA"
+  },
+  {
+   "name": "OPTIMA",
+   "district": "Yunusabad",
+   "provider": "GoldenPages",
+   "lat": 41.331661,
+   "lng": 69.277633,
+   "address": "Sh.Rashidov ave 96A, Tashkent",
+   "matchesRecord": "BC-cf94f511c8e4",
+   "recordName": "OPTIMA"
+  },
+  {
+   "name": "SEVEN TOWER",
+   "district": "Yunusabad",
+   "provider": "GoldenPages",
+   "lat": 41.326916,
+   "lng": 69.290312,
+   "address": "Osiyo 56, Tashkent",
+   "matchesRecord": "BC-c7f0c07560b9",
+   "recordName": "SEVEN TOWER"
+  },
+  {
+   "name": "SIMURG",
+   "district": "Yunusabad",
+   "provider": "GoldenPages",
+   "lat": 41.333582,
+   "lng": 69.286082,
+   "address": "Amir Temur 88A, Tashkent",
+   "matchesRecord": "BC-9dfae0fe4e96",
+   "recordName": "SIMURG"
+  }
+ ]
+}

@@ -80,15 +80,20 @@ _NOISE = {
 }
 
 
+def _fold_name(s):
+    """Case-folded, accent-stripped, punctuation-free tokens – the stop-list not
+    yet applied."""
+    s = unicodedata.normalize('NFKD', str(s or '')).lower()
+    s = ''.join(c for c in s if not unicodedata.combining(c))
+    s = re.sub(r'[^0-9a-zа-яё\s]+', ' ', s)
+    return [t for t in s.split() if t]
+
+
 def norm_name(s):
     """Fold case, strip accents and punctuation, drop the words every business
     centre shares. Without the stop-list, "Бизнес центр Alpha" and "Бизнес
     центр Beta" score as near-identical on the two words they have in common."""
-    s = unicodedata.normalize('NFKD', str(s or '')).lower()
-    s = ''.join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r'[^0-9a-zа-яё\s]+', ' ', s)
-    toks = [t for t in s.split() if t and t not in _NOISE]
-    return toks
+    return [t for t in _fold_name(s) if t not in _NOISE]
 
 
 def name_similarity(a, b):
@@ -98,6 +103,13 @@ def name_similarity(a, b):
     is the same building, but plain Jaccard scores it 0.5 because one side
     carries an extra token the stop-list did not catch."""
     ta, tb = set(norm_name(a)), set(norm_name(b))
+    # A name made entirely of stop-words – "THE TOWER" – stops out to nothing,
+    # and scored 0.0 against an identical string. One building in this dataset is
+    # called exactly that. When either side empties, compare the unstopped
+    # tokens instead: the stop-list exists to stop shared words dominating a
+    # comparison, not to make a name unmatchable against itself.
+    if not ta or not tb:
+        ta, tb = set(_fold_name(a)), set(_fold_name(b))
     if not ta or not tb:
         return 0.0
     inter = len(ta & tb)

@@ -87,6 +87,40 @@ SOURCES = [
              'prices, not building rates: Low confidence, unit size in the note.',
     ),
     dict(
+        id='SRC-CASE-OS-GEO2-BC',
+        name='CASE OS Geo Analytics 2 – CASE-owned business centres',
+        method='internal record',
+        endpoint=None, probe=None, auth=None,
+        storage='open',
+        licence='CASE internal record',
+        attribution='CASE Advisory',
+        fields=['name', 'lat', 'lng', 'address', 'districtKey'],
+        localOnly=True,
+        note='Two buildings CASE is itself involved in, absent from the 148. Coordinates and '
+             'district only. They enter as NEW records through the proposal path, never by '
+             'editing the seed.',
+    ),
+    dict(
+        id='SRC-CASE-OS-GEO2-ADDR',
+        name='CASE OS Geo Analytics 2 – street addresses for GoldenPages-sourced buildings',
+        method='directory listing via CASE collection',
+        endpoint=None, probe=None, auth=None,
+        # NOT 'open', although it arrives inside a CASE file. The address text is
+        # GoldenPages directory content that CASE geocoded; CASE's own register marks
+        # every GoldenPages row "Проверить" and clears none. Filing it as internal
+        # would launder that open question instead of answering it, so the proposal
+        # is built and every fill is withheld until someone records the check.
+        storage='unverified',
+        licence=None,
+        attribution='goldenpages.uz, collected and geocoded by CASE Advisory',
+        fields=['address'],
+        localOnly=True,
+        note='Twenty addresses this dataset does not hold, for buildings it already has. '
+             'The archive\'s bc.json carries the same rows with address blank, so this is a '
+             'later collection state rather than a re-export. Clearing GoldenPages in the '
+             'source register releases all twenty at once.',
+    ),
+    dict(
         id='SRC-GOOGLE-PLACES',
         name='Google Places API',
         method='map service',

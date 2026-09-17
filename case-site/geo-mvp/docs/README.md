@@ -18,6 +18,7 @@ These are the outputs of that sequence, in the order they were produced.
 | **13** | [`13-reference-repos.md`](13-reference-repos.md) | The §68 reference repositories reviewed under the §71 safety rules – licence, install scripts, key requirements, verdict. Four of twelve carry no licence; nothing was copied from any of them. |
 | **14** | [`14-checkup-report.md`](14-checkup-report.md) | The second master prompt's §73 check-up – all 25 required checks with the test that proves each, plus the final lists: implemented features, known limitations, data limitations, AI limitations, next improvements. Includes the scoped plan for the trilingual download request. |
 | **15** | [`15-case-os-archive-review.md`](15-case-os-archive-review.md) | Review of the CASE OS v4.73.1 hosting archive: it is the origin of the 148 records, and its price bundle holds 12 asking rents and 15 available-area values the dataset lacks – proposal built, 0 conflicts. Also the source register (919 sources, none licence-cleared), the population grid's own "methodological layer" caveat, and a security sweep. |
+| **16** | [`16-geo-analytics-page-review.md`](16-geo-analytics-page-review.md) | Review of the standalone CASE OS Geo Analytics 2 page under a business-centres-only scope: two CASE-owned buildings absent from the 148, twenty street addresses withheld pending a GoldenPages terms check, the listing-price disambiguation rule now carried in every rent’s evidence note, and a matcher defect the page exposed (a name of nothing but stop-words scored 0.0 against itself). Also what the page holds that this dataset will not take, and the layers set aside by the scope. |
 
 ## The project skills
 
@@ -45,7 +46,7 @@ node    tools/qa.cjs                  # the built file, in Chromium, from file:/
 python3 tools/etl_districts_check.py  # re-audit the source district labels against the boundaries
 python3 tools/name_dupes.py           # re-run the proximity-gated duplicate detection
 python3 build.py --check              # fail if index.html has drifted from src/
-python3 tools/test_merge.py           # 30 ingestion assertions: matching, the four
+python3 tools/test_merge.py           # 46 ingestion assertions: matching, the four
                                       # per-field outcomes, the licence gate
 python3 tools/sources.py --check      # probe every external source's reachability
 ```

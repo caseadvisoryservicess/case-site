@@ -243,8 +243,14 @@ def parse_case_os_prices(payload):
         if p.get('cls'):
             fields['officeClass'] = p['cls']
         note = src
+        if method == 'listing platform':
+            # The page that published these states the method: listings filtered on
+            # "office"; a board price quoted per object rather than per m² was
+            # disambiguated by plausibility of the rate ($2–60/m²). A reader of the
+            # evidence must know a heuristic sat between the listing and this figure.
+            note += ' – per-m² vs per-object disambiguated by rate plausibility ($2–60/m²)'
         if p.get('avail') is not None and method == 'listing platform':
-            note += ' – listed unit of %s m², not a building rate' % p['avail']
+            note += '; listed unit of %s m², not a building rate' % p['avail']
         out.append(dict(
             externalId='case-os-bundle/' + name,
             externalUrl=None,
@@ -260,7 +266,64 @@ def fetch_case_os_prices(_key):
     raise RuntimeError('SRC-CASE-OS-PRICES is a local file: pass --from data/external/case-os-4.73.1/bundle_prices.json')
 
 
+def parse_bc_records(payload):
+    """A plain list of building records with coordinates. `status` in this file is
+    the page's QC state ("Reviewed"), not a building status, and is not carried."""
+    out = []
+    for r in payload.get('records') or []:
+        if not r.get('name') or r.get('lat') is None or r.get('lng') is None:
+            continue
+        fields = {'name': r['name'], 'lat': float(r['lat']), 'lng': float(r['lng'])}
+        if r.get('address'):
+            fields['address'] = r['address']
+        out.append(dict(
+            externalId='case-os-geo2/' + r['name'],
+            externalUrl=None,
+            fields=fields,
+            evidence={'method': 'internal record', 'confidence': 'Medium',
+                      'note': 'provider: %s; district as stated: %s' % (r.get('provider'), r.get('district')),
+                      'collectedAt': '2026-09'},
+            rawTags={'provider': r.get('provider'), 'districtLabel': r.get('district')},
+        ))
+    return out
+
+
+def parse_bc_addresses(payload):
+    """Street addresses for buildings the dataset already holds. Same shape as
+    parse_bc_records, different evidence: the address text is directory content
+    (GoldenPages) that CASE geocoded, so it enters at Low confidence with the
+    directory named. Matching is by coordinates – these rows ARE the dataset's
+    own buildings, at the same coordinates, with one more field."""
+    out = []
+    for r in payload.get('records') or []:
+        if not r.get('address') or r.get('lat') is None or r.get('lng') is None:
+            continue
+        out.append(dict(
+            externalId='case-os-geo2-addr/' + (r.get('name') or ''),
+            externalUrl=None,
+            fields={'name': r.get('name'), 'lat': float(r['lat']), 'lng': float(r['lng']),
+                    'address': r['address']},
+            evidence={'method': 'directory listing via CASE collection', 'confidence': 'Low',
+                      'note': 'directory: %s; geocoded by CASE through 2GIS by address. '
+                              'Licence for the directory text is unresolved.' % (r.get('provider') or 'unknown'),
+                      'collectedAt': '2026-09'},
+            rawTags={'provider': r.get('provider'), 'districtLabel': r.get('district')},
+        ))
+    return out
+
+
+def fetch_bc_addresses(_key):
+    raise RuntimeError('SRC-CASE-OS-GEO2-ADDR is a local file: pass --from data/external/case-os-geo-analytics-2/address_fills.json')
+
+
+def fetch_bc_records(_key):
+    raise RuntimeError('SRC-CASE-OS-GEO2-BC is a local file: pass --from data/external/case-os-geo-analytics-2/bc_additions.json')
+
+
 ADAPTERS = {
+    'SRC-CASE-OS-GEO2-BC': dict(fetch=fetch_bc_records, parse=parse_bc_records),
+    'SRC-CASE-OS-GEO2-ADDR': dict(fetch=fetch_bc_addresses, parse=parse_bc_addresses),
+
     'SRC-CASE-OS-PRICES': dict(fetch=fetch_case_os_prices, parse=parse_case_os_prices),
 
     'SRC-OSM-OVERPASS':  dict(fetch=fetch_overpass, parse=parse_overpass),

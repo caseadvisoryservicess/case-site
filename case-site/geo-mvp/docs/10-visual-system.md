@@ -269,7 +269,7 @@ they just do not move. Map pan/zoom easing is also disabled there.
 ## 11. House style: the en dash
 
 User-visible text uses the **en dash (–)**, never the em dash (—). This is enforced on rendered
-text rather than on source, across eight surfaces, by `tools/qa.cjs` — source also contains
+text rather than on source, across eight surfaces, by `tools/qa.cjs` – source also contains
 hundreds of code comments, which the rule does not govern, and a source-level check would have
 been both noisier and weaker. The sweep across surfaces is what caught the last one: an em dash
 in the demo records' own names, in `tools/build_seed.py`, which a single-surface check missed.
@@ -280,7 +280,7 @@ in the demo records' own names, in `tools/build_seed.py`, which a single-surface
 visual:
 
 - A **dark** provider (CARTO Dark Matter, Esri imagery) sets `data-basemap="dark"` on `.mapwrap`,
-  which flips `--marker-ring` to a light value. One token, not a second palette — a white ring
+  which flips `--marker-ring` to a light value. One token, not a second palette – a white ring
   vanishes into satellite imagery and takes the marker's legibility with it.
 - Switching **crossfades**. The outgoing layer is held until the incoming one paints, or until its
   first `tileerror`, whichever comes first. Offline the `load` event never fires at all, so

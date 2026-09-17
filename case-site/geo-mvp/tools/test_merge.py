@@ -71,6 +71,14 @@ ok('names: "Trilliant" ~ "Trilliant Business Center"',
 ok('names: two different centres do NOT match on their shared words',
    M.name_similarity('Бизнес центр Alpha', 'Бизнес центр Beta') < M.NAME_STRONG,
    '%.3f' % M.name_similarity('Бизнес центр Alpha', 'Бизнес центр Beta'))
+# One building in the 148 is called "THE TOWER" – every token is a stop-word, so
+# before the fallback it scored 0.0 against its own name and went to review.
+ok('names: a name made entirely of stop-words still matches itself',
+   M.name_similarity('THE TOWER', 'THE TOWER') == 1.0,
+   '%.3f' % M.name_similarity('THE TOWER', 'THE TOWER'))
+ok('…and the fallback does not make it match an unrelated all-stop-word name',
+   M.name_similarity('THE TOWER', 'Business Center') < M.NAME_STRONG,
+   '%.3f' % M.name_similarity('THE TOWER', 'Business Center'))
 ok('names: cyrillic and latin forms of one name are not forced together',
    M.name_similarity('Renaissance', 'Ренессанс') < M.NAME_STRONG)
 
@@ -164,6 +172,29 @@ near = dict(externalId='z', externalUrl=None, fields=dict(name='Business Park', 
 m_near = M.match_by_name(near, RECORDS)
 ok('"Business Park" vs "Park view" is a REVIEW item, not a match (0.95)',
    m_near['kind'] == 'review', str(m_near))
+
+import collect as C  # noqa: E402
+geo2 = C.parse_bc_records(json.loads((ROOT / 'data/external/case-os-geo-analytics-2/bc_additions.json').read_text(encoding='utf-8')))
+ok('the Geo Analytics 2 adapter yields the two CASE-owned buildings', len(geo2) == 2, str(len(geo2)))
+p_geo2 = M.build_proposal(envelope('SRC-CASE-OS-GEO2-BC', geo2), SEED)
+ok('…and both are NEW against the 148, not stretched matches',
+   all(i['match']['kind'] == 'new' for i in p_geo2['items']), str([i['match'] for i in p_geo2['items']]))
+addr_payload = json.loads((ROOT / 'data/external/case-os-geo-analytics-2/address_fills.json').read_text(encoding='utf-8'))
+addrs = C.parse_bc_addresses(addr_payload)
+ok('the address adapter yields the twenty addresses the dataset lacks', len(addrs) == 20, str(len(addrs)))
+p_addr = M.build_proposal(envelope('SRC-CASE-OS-GEO2-ADDR', addrs), SEED)
+ok('…every one matches an existing building by coordinates, none is NEW',
+   all(i['match']['kind'] == 'matched' for i in p_addr['items']),
+   str([i['match']['kind'] for i in p_addr['items'] if i['match']['kind'] != 'matched']))
+ok('…and the directory licence withholds all twenty rather than filling them',
+   not p_addr['mayPopulateDataset'] and p_addr['summary']['proposedFills'] == 0
+   and p_addr['summary']['fillsWithheldByLicence'] == 20, str(p_addr['summary']))
+ok('…with no address conflicting with one already recorded',
+   sum(len(i['conflicts']) for i in p_addr['items']) == 0,
+   str([i['conflicts'] for i in p_addr['items'] if i['conflicts']]))
+lst_note = C.parse_case_os_prices({'prices': {'X': {'rent': 20, 'avail': 175, 'psrc': 'OLX 07.2026'}}})[0]['evidence']['note']
+ok('a listing rent\'s note carries the per-m²/per-object disambiguation caveat',
+   'disambiguated' in lst_note and '175' in lst_note, lst_note)
 
 print('\n\033[1mapply\033[0m')
 before = json.loads(json.dumps(SEED))
