@@ -152,8 +152,35 @@ def is_known(v):
     return True
 
 
-def match_one(obs, records):
+def match_by_name(obs, records):
+    """For a source that carries no coordinates and is keyed by canonical name.
+
+    Exact (normalised) agreement matches; a strong-but-inexact score is a REVIEW
+    item, because "Business Park" scores 0.95 against "Park view" once the noise
+    words are stripped, and those are not the same building."""
+    name = (obs.get('fields') or {}).get('name')
+    if not name:
+        return dict(kind='unmatchable', reason='observation has no name')
+    scored = sorted(((name_similarity(name, r.get('name')), r) for r in records),
+                    key=lambda x: -x[0])
+    sim, rec = scored[0]
+    rivals = [x for x in scored[1:] if abs(x[0] - sim) < 0.02 and x[0] >= NAME_STRONG]
+    if rivals:
+        return dict(kind='ambiguous', recordId=rec['id'], nameSimilarity=round(sim, 3),
+                    reason='%d records match the name equally well' % (len(rivals) + 1))
+    if sim >= 0.99:
+        return dict(kind='matched', recordId=rec['id'], nameSimilarity=round(sim, 3),
+                    reason='names agree')
+    if sim >= NAME_STRONG:
+        return dict(kind='review', recordId=rec['id'], nameSimilarity=round(sim, 3),
+                    reason='names are close but not the same: %r vs %r' % (name, rec.get('name')))
+    return dict(kind='new', reason='no record with this name (best %.2f)' % sim)
+
+
+def match_one(obs, records, mode='coords'):
     """Best candidate for one observation, with the reason it was chosen."""
+    if mode == 'name':
+        return match_by_name(obs, records)
     f = obs.get('fields') or {}
     if f.get('lat') is None or f.get('lng') is None:
         return dict(kind='unmatchable', reason='observation has no coordinates')
@@ -198,24 +225,33 @@ def match_one(obs, records):
     return dict(kind='new', reason='nearest record is %.0f m away with a different name' % d)
 
 
-def diff_fields(obs_fields, rec):
+# What an EVIDENCE-CLASS source may additionally propose. A listing or an owner
+# rate is an acceptable source for an asking rent, an available area and a stated
+# class – and for nothing else. GLA, GBA, occupancy, vacancy, service charge and
+# tenants stay refused from every source: a listing does not measure a building.
+COMMERCIAL_EVIDENCE_OK = {'askingRent', 'availableArea', 'officeClass'}
+
+
+def diff_fields(obs_fields, rec, allow_commercial=False):
     fills, corroborations, conflicts, refused = [], [], [], []
     for key, val in (obs_fields or {}).items():
-        if key in NEVER_IMPORT:
+        if key in NEVER_IMPORT and not (allow_commercial and key in COMMERCIAL_EVIDENCE_OK):
             refused.append(dict(field=key, value=val,
                                 reason='commercial figures are never imported from a '
                                        'map service or directory'))
             continue
-        if key not in PROPOSABLE:
+        if key not in PROPOSABLE and not (allow_commercial and key in COMMERCIAL_EVIDENCE_OK):
             continue
         if not is_known(val):
             continue
         cur = rec.get(key)
         if not is_known(cur):
             fills.append(dict(field=key, value=val))
-        elif isinstance(cur, float) and isinstance(val, (int, float)):
-            # Coordinates never compare equal to the digit. Anything inside the
-            # auto-match radius is the same point recorded twice, not a change.
+        elif isinstance(cur, (int, float)) and isinstance(val, (int, float)) \
+                and not isinstance(cur, bool) and abs(float(cur) - float(val)) < 0.05:
+            # Same figure to the precision anything here is recorded at. For
+            # coordinates, anything inside the auto-match radius is the same point
+            # recorded twice, not a change.
             corroborations.append(dict(field=key, value=cur))
         elif str(cur).strip().lower() == str(val).strip().lower():
             corroborations.append(dict(field=key, value=cur))
@@ -238,6 +274,9 @@ def diff_fields(obs_fields, rec):
 def build_proposal(envelope, seed):
     src_id = envelope['sourceId']
     may_populate = SRC.may_populate(src_id)
+    src = SRC.by_id(src_id) or {}
+    allow_commercial = bool(src.get('commercialEvidence'))
+    match_mode = src.get('matchBy', 'coords')
     records = [r for r in seed['records'] if r.get('recordType') == 'VERIFIED_SOURCE']
 
     proposal = dict(
@@ -245,6 +284,7 @@ def build_proposal(envelope, seed):
         sourceId=src_id, sourceName=envelope.get('sourceName'),
         licence=envelope.get('licence'), storage=envelope.get('storage'),
         mayPopulateDataset=may_populate,
+        commercialEvidence=allow_commercial, matchBy=match_mode,
         observationCount=envelope.get('count', 0),
         items=[], summary={},
     )
@@ -253,14 +293,14 @@ def build_proposal(envelope, seed):
     n_fill = n_corr = n_conf = n_refused = 0
 
     for obs in envelope.get('observations', []):
-        m = match_one(obs, records)
+        m = match_one(obs, records, match_mode)
         counts[m['kind']] = counts.get(m['kind'], 0) + 1
         item = dict(externalId=obs.get('externalId'), externalUrl=obs.get('externalUrl'),
-                    incoming=obs.get('fields'), match=m)
+                    incoming=obs.get('fields'), evidence=obs.get('evidence'), match=m)
 
         if m['kind'] in ('matched', 'review'):
             rec = next(r for r in records if r['id'] == m['recordId'])
-            fills, corr, conf, refused = diff_fields(obs.get('fields'), rec)
+            fills, corr, conf, refused = diff_fields(obs.get('fields'), rec, allow_commercial)
             # The licence gate. A 'display' source can tell you your address is
             # wrong; it may not be the reason your dataset says something new.
             item['fills'] = fills if may_populate else []
@@ -292,16 +332,26 @@ def apply_proposal(proposal, seed, reviewer):
                  '       who accepted it; that is what makes it auditable later.')
 
     by_id = {r['id']: r for r in seed['records']}
-    profile_id = 'IMPORT-' + proposal['sourceId'].replace('SRC-', '')
-    seed.setdefault('evidenceProfiles', {})[profile_id] = dict(
-        source=proposal['sourceName'], sourceId=proposal['sourceId'],
-        sourceUrl=None, method='import', confidence='Medium',
-        collectorId='tools/collect.py', reviewer=reviewer,
-        qcStatus='needs_check',
-        note='Imported from %s under %s and accepted by %s. Only fields that were '
-             'previously unrecorded were filled; conflicts were left unresolved.'
-             % (proposal['sourceName'], proposal['licence'], reviewer),
-    )
+    base_id = 'IMPORT-' + proposal['sourceId'].replace('SRC-', '')
+    profiles = seed.setdefault('evidenceProfiles', {})
+
+    def profile_for(ev):
+        """One profile per (source, method): an OLX listing and a management
+        company's owner rate must not share a confidence letter."""
+        ev = ev or {}
+        method = ev.get('method') or 'import'
+        pid = base_id if method == 'import' else base_id + '-' + re.sub(r'[^a-z0-9]+', '-', method.lower()).strip('-').upper()
+        if pid not in profiles:
+            profiles[pid] = dict(
+                source=proposal['sourceName'], sourceId=proposal['sourceId'],
+                sourceUrl=None, method=method, confidence=ev.get('confidence', 'Medium'),
+                collectorId='tools/collect.py', reviewer=reviewer,
+                qcStatus='needs_check',
+                note='Imported from %s under %s and accepted by %s. Only fields that were '
+                     'previously unrecorded were filled; conflicts were left unresolved.'
+                     % (proposal['sourceName'], proposal['licence'], reviewer),
+            )
+        return pid
 
     applied = 0
     for item in proposal['items']:
@@ -310,11 +360,15 @@ def apply_proposal(proposal, seed, reviewer):
         rec = by_id.get(item['match']['recordId'])
         if not rec:
             continue
+        pid = profile_for(item.get('evidence'))
         for f in item.get('fills', []):
             if is_known(rec.get(f['field'])):
                 continue                  # changed since the proposal was built
             rec[f['field']] = f['value']
-            rec.setdefault('_evidence', {})[f['field']] = profile_id
+            rec.setdefault('_evidence', {})[f['field']] = pid
+            note = (item.get('evidence') or {}).get('note')
+            if note:
+                rec.setdefault('_meta', {}).setdefault('importNotes', {})[f['field']] = note
             applied += 1
     return applied
 

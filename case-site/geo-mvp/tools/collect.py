@@ -220,7 +220,49 @@ def fetch_2gis(key):
         return json.loads(r.read().decode('utf-8'))
 
 
+def parse_case_os_prices(payload):
+    """bundle.prices -> observations. One per named building; no coordinates.
+
+    The evidence class travels WITH each observation, because it differs per row:
+    an owner rate from a management company is not the same evidence as one OLX
+    listing for a 175 m² unit, and the proposal must say which it is."""
+    out = []
+    for name, p in (payload.get('prices') or {}).items():
+        src = str(p.get('psrc') or '')
+        if 'собственник' in src or 'soffice' in src:
+            method, conf = 'owner rate (management company)', 'Medium'
+        elif 'Instagram' in src or 'реклам' in src:
+            method, conf = 'advert', 'Low'
+        else:
+            method, conf = 'listing platform', 'Low'
+        fields = {'name': name}
+        if p.get('rent') is not None:
+            fields['askingRent'] = float(p['rent'])
+        if p.get('avail') is not None:
+            fields['availableArea'] = float(p['avail'])
+        if p.get('cls'):
+            fields['officeClass'] = p['cls']
+        note = src
+        if p.get('avail') is not None and method == 'listing platform':
+            note += ' – listed unit of %s m², not a building rate' % p['avail']
+        out.append(dict(
+            externalId='case-os-bundle/' + name,
+            externalUrl=None,
+            fields=fields,
+            evidence={'method': method, 'confidence': conf, 'note': note,
+                      'collectedAt': '2026-07'},
+            rawTags={'psrc': src, 'sale': p.get('sale'), 'addr': p.get('addr')},
+        ))
+    return out
+
+
+def fetch_case_os_prices(_key):
+    raise RuntimeError('SRC-CASE-OS-PRICES is a local file: pass --from data/external/case-os-4.73.1/bundle_prices.json')
+
+
 ADAPTERS = {
+    'SRC-CASE-OS-PRICES': dict(fetch=fetch_case_os_prices, parse=parse_case_os_prices),
+
     'SRC-OSM-OVERPASS':  dict(fetch=fetch_overpass, parse=parse_overpass),
     'SRC-GOOGLE-PLACES': dict(fetch=fetch_google_places, parse=parse_google_places),
     'SRC-YANDEX-SEARCH': dict(fetch=fetch_yandex, parse=parse_yandex),

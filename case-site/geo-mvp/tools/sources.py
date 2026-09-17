@@ -63,6 +63,30 @@ SOURCES = [
              'bbox for building=office / office=* in the Tashkent boundary.',
     ),
     dict(
+        id='SRC-CASE-OS-PRICES',
+        name='CASE OS bundle – listing and owner-rate evidence (July 2026)',
+        method='listing evidence',
+        endpoint=None,
+        probe=None,
+        auth=None,
+        storage='open',
+        licence='CASE internal collection; each record cites its listing platform or owner source',
+        attribution='CASE Advisory research; OLX.uz, uybor.uz, soffice.uz as cited per record',
+        fields=['askingRent', 'availableArea', 'officeClass'],
+        # THE TWO FLAGS. `commercialEvidence` lifts the commercial-field refusal for
+        # THIS source only: listing platforms and a management company's owner rate
+        # are the broker/landlord/document class those figures are allowed to come
+        # from. A map service or directory never gets this flag. `matchBy: 'name'`
+        # because the bundle carries no coordinates – it is keyed by the canonical
+        # names this dataset was built from, and 28 of 32 match exactly.
+        commercialEvidence=True,
+        matchBy='name',
+        localOnly=True,
+        note='Twelve rents and fifteen available-area values the dataset did not hold, '
+             'from CASE\'s own July-2026 collection. Listing rents are unit-level asking '
+             'prices, not building rates: Low confidence, unit size in the note.',
+    ),
+    dict(
         id='SRC-GOOGLE-PLACES',
         name='Google Places API',
         method='map service',
@@ -193,6 +217,8 @@ def may_populate(sid):
 
 def probe(source, timeout=12):
     """Cheap reachability check. Never the real query."""
+    if source.get('localOnly'):
+        return {'ok': True, 'status': None, 'detail': 'local file – nothing to reach'}
     req = urllib.request.Request(
         source['probe'],
         headers={'User-Agent': 'CASE-Geo-MVP/0.1 (source reachability probe)'},

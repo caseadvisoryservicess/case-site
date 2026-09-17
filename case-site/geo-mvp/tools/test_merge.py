@@ -144,6 +144,27 @@ p_contract = M.build_proposal(envelope('SRC-2GIS-CATALOG', o), SEED)
 ok('a contract source is withheld until the contract is recorded',
    not p_contract['mayPopulateDataset'], str(p_contract['summary']))
 
+print('\n\033[1mevidence-class sources (listings, owner rates)\033[0m')
+lst = dict(externalId='x', externalUrl=None, fields=dict(name=t['name'], askingRent=41.0, availableArea=500, gla=9000),
+           evidence=dict(method='listing platform', confidence='Low', note='OLX'), rawTags={})
+p_ev = M.build_proposal(envelope('SRC-CASE-OS-PRICES', [lst]), SEED)
+it = p_ev['items'][0]
+ok('a name-only source matches by name', it['match']['kind'] == 'matched', str(it['match']))
+ok('an evidence-class source may propose availableArea',
+   any(f['field'] == 'availableArea' for f in it['fills']), str(it['fills']))
+ok('…and a known rent that differs is a CONFLICT, still never overwritten',
+   any(c['field'] == 'askingRent' for c in it['conflicts']), str(it['conflicts']))
+ok('…but GLA is refused even from an evidence-class source',
+   any(r['field'] == 'gla' for r in it['refusedFields']), str(it['refusedFields']))
+osm_rent = dict(externalId='y', externalUrl=None, fields=dict(name=t['name'], lat=t['lat'], lng=t['lng'], askingRent=41.0), rawTags={})
+p_osm = M.build_proposal(envelope('SRC-OSM-OVERPASS', [osm_rent]), SEED)
+ok('a map source still cannot propose a rent',
+   any(r['field'] == 'askingRent' for r in p_osm['items'][0]['refusedFields']), str(p_osm['items'][0]['refusedFields']))
+near = dict(externalId='z', externalUrl=None, fields=dict(name='Business Park', askingRent=19.9), evidence={}, rawTags={})
+m_near = M.match_by_name(near, RECORDS)
+ok('"Business Park" vs "Park view" is a REVIEW item, not a match (0.95)',
+   m_near['kind'] == 'review', str(m_near))
+
 print('\n\033[1mapply\033[0m')
 before = json.loads(json.dumps(SEED))
 try:
@@ -159,6 +180,12 @@ except SystemExit as e:
     ok('--apply refuses without a named reviewer', 'reviewer' in str(e).lower())
 
 n = M.apply_proposal(p_open, before, 'Tester')
+before2 = json.loads(json.dumps(SEED))
+p_ev2 = M.build_proposal(envelope('SRC-CASE-OS-PRICES', [lst]), before2)
+M.apply_proposal(p_ev2, before2, 'Tester')
+prof2 = before2['evidenceProfiles'].get('IMPORT-CASE-OS-PRICES-LISTING-PLATFORM', {})
+ok('an applied listing fill gets its OWN profile at Low confidence',
+   prof2.get('confidence') == 'Low' and prof2.get('method') == 'listing platform', str(prof2))
 applied = next(r for r in before['records'] if r['id'] == t['id'])
 ok('an applied fill lands on the record', n >= 1 and applied.get('floors') == 14,
    'n=%s floors=%s' % (n, applied.get('floors')))

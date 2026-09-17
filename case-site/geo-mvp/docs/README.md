@@ -17,6 +17,7 @@ These are the outputs of that sequence, in the order they were produced.
 | **12** | [`12-data-sources.md`](12-data-sources.md) | Additional sources – Golden Pages, Google, Yandex, Yellow Pages, 2GIS, OSM, Orginfo, data.egov.uz. What each needs, what may legally be **stored** versus only shown, the ingestion pipeline, and why Google and Yandex cannot populate the dataset even with a paid key. |
 | **13** | [`13-reference-repos.md`](13-reference-repos.md) | The §68 reference repositories reviewed under the §71 safety rules – licence, install scripts, key requirements, verdict. Four of twelve carry no licence; nothing was copied from any of them. |
 | **14** | [`14-checkup-report.md`](14-checkup-report.md) | The second master prompt's §73 check-up – all 25 required checks with the test that proves each, plus the final lists: implemented features, known limitations, data limitations, AI limitations, next improvements. Includes the scoped plan for the trilingual download request. |
+| **15** | [`15-case-os-archive-review.md`](15-case-os-archive-review.md) | Review of the CASE OS v4.73.1 hosting archive: it is the origin of the 148 records, and its price bundle holds 12 asking rents and 15 available-area values the dataset lacks – proposal built, 0 conflicts. Also the source register (919 sources, none licence-cleared), the population grid's own "methodological layer" caveat, and a security sweep. |
 
 ## The project skills
 
