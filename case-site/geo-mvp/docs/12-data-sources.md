@@ -1,0 +1,244 @@
+# 12. Additional data sources – what was built, what is blocked, what it needs
+
+The ask was to collect from Golden Pages, Google Maps, Yandex Maps, Yellow Pages "and so on".
+This document records what that actually requires, what it was possible to do here, and what it
+was not.
+
+---
+
+## 12.1 The finding, first
+
+**No external source can be collected from this environment, and one of the named sources could
+not be stored even with a working network.** Those are two separate blockers and they need
+separate decisions.
+
+`python3 tools/sources.py --check` probes all eight and writes the result. At the time of
+writing:
+
+| Source | Reachable here | May its values be stored? | What it needs |
+|---|---|---|---|
+| OpenStreetMap (Overpass) | **no** – proxy 403 | **yes**, ODbL | network access |
+| Google Places API | **yes** | **no** – see 12.2 | a key, and a decision about 12.2 |
+| Yandex Places API | no – proxy 403 | **no** – terms restrict storage | a key + commercial terms |
+| 2GIS Catalog API | no – proxy 403 | **only under contract** | the licence CASE may already hold |
+| Golden Pages UZ | no – proxy 403 | **unverified** | robots.txt + terms read by a person |
+| Yellow Pages UZ | no – proxy 403 | **unverified** | robots.txt + terms read by a person |
+| Orginfo.uz | no – proxy 403 | **unverified** | robots.txt + terms read by a person |
+| data.egov.uz | no – proxy 403 | **unverified** | per-dataset licence check |
+
+The 403s are this container's egress policy, not the sources refusing. Google answers because
+`maps.googleapis.com` is on the allowlist – and answers `REQUEST_DENIED`, because there is no key.
+
+**Nothing was invented to fill the gap.** Producing a plausible set of "collected" records would
+have been the single clearest breach of §2.2 available, and the least detectable: nobody audits a
+building that looks real.
+
+## 12.2 Google and Yandex cannot populate this dataset, key or no key
+
+This is the finding most likely to be a surprise, so it is stated plainly.
+
+Google Maps Platform's terms prohibit pre-fetching, caching, indexing or storing Places content,
+with a narrow exception for `place_id` and limited short-lived caching for performance. Yandex's
+API terms restrict storage and redistribution outside Yandex surfaces in the same spirit.
+
+So the pipeline may **query** them and **show** you what they say – including that your recorded
+address disagrees with theirs, which is genuinely useful – but writing their values into
+`seed.json` would be a licence breach even though every request was properly authorised and paid
+for. The registry marks this `storage: 'display'`, and `merge_incoming.py` enforces it: fills from
+a display-only source are withheld and counted, never applied. Its conflicts still come through,
+because that is the part you are actually allowed to use.
+
+**If CASE wants Google or Yandex content inside the dataset, that is a commercial licensing
+conversation with Google or Yandex, not an engineering task.** The engineering is done and waiting.
+
+## 12.3 What was built
+
+Three tools, each doing one thing, none of which writes to the dataset by itself.
+
+```
+tools/sources.py          the registry: endpoint, auth, licence, storage class
+tools/collect.py          source -> data/incoming/<id>.observations.json
+tools/merge_incoming.py   observations -> a PROPOSAL a person applies
+tools/test_merge.py       30 assertions, offline, against the real seed
+```
+
+**`sources.py`** is the single place that decides what may be collected. Its important column is
+not `endpoint`, it is `storage`: `open` (ODbL – may populate), `display` (query and show only),
+`contract` (depends on an agreement), `unverified` (robots and terms unread → refuse).
+
+**`collect.py`** has working adapters for Overpass, Google Places, Yandex Geosearch and the 2GIS
+Catalog. It refuses before making a request when a key is missing, when terms are unverified, or
+when the host is unreachable – and a failed fetch writes a *failure record*, not an empty
+observations file. An empty file and a failed fetch look identical the next morning and mean the
+opposite.
+
+`--from` replays a saved API response instead of calling out. That is how the parsers are tested
+offline, and how somebody with network access can hand a capture to somebody without it.
+
+**`merge_incoming.py`** is where the care lives. Per field, exactly four outcomes:
+
+| outcome | when | what happens |
+|---|---|---|
+| **fill** | recorded value is unknown, incoming has one | proposed |
+| **corroborate** | both known and equal | noted; the value is never rewritten |
+| **conflict** | both known and different | recorded, **never resolved here** |
+| **ignore** | incoming is blank | nothing – absence is not evidence of absence |
+
+Matching is coordinates **and** name, never either alone: a business centre and the café in its
+lobby are 15 m apart and share nothing else. Auto-match is 40 m plus a strong name match;
+40–150 m goes to a human. Two equally good candidates is `ambiguous`, which is a person's problem
+– picking one silently is how the wrong building gets edited.
+
+**Commercial figures are refused outright, from every source.** `askingRent`, `gla`, `gba`,
+`occupancyPct`, `vacancyPct`, `availableArea`, `serviceCharge`, `officeClass` and `tenants` can
+never be imported by any adapter at any confidence. No map service or business directory is an
+acceptable source for a rent; those come from a broker, a landlord or a document. This is the
+constraint that keeps the ingestion path from quietly undoing what the rest of the product is for.
+
+`--apply` writes fills only from a storable source, only for `matched` items, only into fields
+still unknown at apply time, and only with a named `--reviewer` recorded in the evidence profile
+it creates. The profile ships `qcStatus: needs_check`: an import is a lead, not a verification.
+
+## 12.4 Why a proposal and not a merge
+
+The dataset already answers this shape of problem: duplicate groups ship `undecided` and nothing
+collapses until a human adjudicates (D6). Ingestion is the same problem arriving from outside, so
+it gets the same answer.
+
+A second source **agreeing** is worth recording. A second source **disagreeing** is the most
+valuable thing an ingest produces – it is how you learn which of your records is wrong. An
+importer that picks a winner throws exactly that away, and does it silently.
+
+## 12.5 What each source is actually worth here
+
+Ranked by what it would add to a dataset whose coverage is 2 fields of 18:
+
+1. **2GIS Catalog API** – the existing 148 records were desk-collected from 2GIS listings, with
+   `licenceReview: required` still open against them. Going back through the API is the cheapest
+   enrichment available *and* it settles that outstanding licence question. Start here.
+2. **OpenStreetMap / Overpass** – the only source that can populate the dataset outright. Carries
+   `building:levels`, `start_date` and `operator`, which are three of the zero-coverage fields.
+   ODbL means attribution and share-alike on derived data.
+3. **Orginfo.uz** – the only candidate that carries what no map service does: **who owns the
+   building**. Ownership is 0/148 today. Matching is by company name, which is the hardest and
+   most error-prone match of the set.
+4. **Golden Pages / Yellow Pages** – weakest, and worth naming why: directories describe
+   **companies**, this dataset describes **buildings**. Eight records are already flagged as
+   probably a company rather than a building; these sources add more of exactly that failure mode
+   unless every match is reviewed.
+5. **Google / Yandex** – excellent for *checking* an address or a name, useless for populating,
+   per 12.2.
+
+## 12.6 To run it, once there is network
+
+```bash
+python3 tools/sources.py --check                      # what answers today
+python3 tools/collect.py --source SRC-OSM-OVERPASS    # -> data/incoming/…observations.json
+python3 tools/merge_incoming.py --in data/incoming/src-osm-overpass.observations.json
+#   read the proposal, then:
+python3 tools/merge_incoming.py --in <same file> --apply --reviewer "Your Name"
+python3 tools/oracle.py && bash tools/verify.sh       # every figure recomputed
+```
+
+The last line is not optional. Every applied fill changes a denominator somewhere, and the oracle
+is the only thing that recomputes all of them independently.
+
+## 12.7 Yandex: the keyed run, and handing the capture back
+
+A Yandex key arrived on 2026-09-17 (free tier: 500 Geosearch requests a day, results must be
+shown on a public map and may not be stored). Two facts about it:
+
+- **The key does not change the storage class.** Yandex stays `display`: the collector runs, the
+  proposal reports matches, conflicts and buildings the dataset lacks, and every fill is counted
+  as withheld. That is the report the key buys, and it is worth having.
+- **The key does not unlock a Leaflet basemap.** Yandex issues keys for its own JavaScript API;
+  it has no tile product for a third-party map engine, and the raster endpoint the CASE OS page
+  calls directly is not a licensed one. The Yandex basemap entry stays off until an agreement
+  names an endpoint.
+
+The sandbox this prototype is built in cannot reach Yandex hosts at all (the egress proxy
+refuses the tunnel), so the run happens on a machine that can – any laptop – and the capture is
+handed back. The key is passed as an environment variable so it never enters shell history or a
+file:
+
+```bash
+cd geo-mvp
+export YANDEX_MAPS_API_KEY="…"                          # the key, once, in this shell only
+python3 tools/collect.py --source SRC-YANDEX-SEARCH     # -> data/incoming/src-yandex-search.observations.json
+python3 tools/merge_incoming.py --in data/incoming/src-yandex-search.observations.json
+```
+
+Send back `data/incoming/src-yandex-search.observations.json`. It holds the observations and
+never the key; `data/incoming/` is git-ignored, so it cannot be committed by accident. Anyone
+without network can then replay it with `--from` and build the same proposal.
+
+To check the key before running anything, open this in a browser and expect JSON with a
+`features` list (one request, of the day's 500):
+
+```
+https://search-maps.yandex.ru/v1/?apikey=<key>&text=бизнес центр Ташкент&lang=ru_RU&type=biz&results=5
+```
+
+An `"Invalid key"` reply means the key was connected to *JavaScript API и HTTP Геокодер* only;
+Geosearch (*Поиск по организациям*) is a separate service in the same cabinet and needs its own
+key.
+
+## 12.8 Yandex Geocoder: checking the addresses we already hold
+
+The second key Yandex issued on 2026-09-17 is bound to **API Геокодера** (free tier, 1,000
+requests a day). In the new Yandex console every product has its own key: the JavaScript key
+is refused by the Geocoder, and the Geocoder key will be refused by organisation search. The
+key is registered as `SRC-YANDEX-GEOCODER`, storage `display`, and it is not a collector.
+
+What it is good for is the one thing no collector does: **checking the 148 against
+themselves.** `tools/geocode_check.py` geocodes each recorded street address forward and
+measures the distance from the point Yandex returns to the coordinates on file; for a record
+without an address it reverse-geocodes the pin and records the house Yandex names as a
+*suggestion*. Nothing it returns is written into the dataset. The report is a queue for a
+person, sorted by how far apart the address and the pin are.
+
+| verdict | meaning |
+|---|---|
+| `agree` | house-level match within 75 m – the address and the pin describe one building |
+| `near` | house-level match within 300 m – probably the same block, a person looks |
+| `disagree` | house-level match further away – the address or the pin is wrong |
+| `approximate` / `vague` | Yandex could only place the address roughly or at street level – it cannot settle anything |
+| `not_found` | Yandex has no such address inside the Tashkent window |
+| `suggested` | reverse lookup for a record with no address – a candidate for a person to confirm |
+
+A dry run before any request found something the completeness figures hide: **nine records
+carry the word "Tashkent" alone as their address.** They count as "address known" today. The
+tool skips them without spending a request; the ETL should stop treating a bare city name as
+an address, which is a one-line rule in `build_seed.py` and a change to the completeness
+count. Real street addresses are 100 of 148, not 109.
+
+```bash
+cd geo-mvp
+export YANDEX_GEOCODER_API_KEY="…"
+python3 tools/geocode_check.py --dry-run        # 139 requests: 100 forward, 39 reverse, 9 skipped
+python3 tools/geocode_check.py --limit 5        # proves the key with five requests
+python3 tools/geocode_check.py                  # the full pass, well inside the daily 1,000
+```
+
+Send back `data/incoming/yandex-geocoder-check.json`. It is git-ignored, carries no key, and
+`python3 tools/geocode_check.py --report` re-prints its summary anywhere.
+
+**Without Python.** The person who holds the key has no Python, and the sandbox that has Python
+cannot reach Yandex, so the same check exists as a page: `python3 tools/geocode_check_page.py`
+writes `qa-out/geocode-check.html`, one file that opens from disk by double-click, takes the
+key in a field, runs the 139 requests from the browser, and offers the same
+`yandex-geocoder-check.json` for download. Thresholds, city words and the endpoint are imported
+from `geocode_check.py`, not retyped, so the two cannot drift. The page's first button is a
+five-request key test and says so when it finishes; only the second button's file, named
+`yandex-geocoder-check.json`, is the one to send back (a key-test download is named
+`yandex-geocoder-key-test.json` so the two cannot be confused). The page tries a cross-origin
+`fetch` first – whether the Geocoder sends CORS headers is unverified from this sandbox – and
+falls back to JSONP through the Geocoder's `callback` parameter only on a network-level failure,
+never on an HTTP status, which is an answer and is recorded on the item as the Python tool does.
+A refused key without a CORS header is indistinguishable from no network on a `file://` page, so
+that message names both causes and links the first request for the person to open and read
+Yandex's reply. The key is never stored, not even in the browser, and is redacted from error
+text. `node tools/test_geocode_page.cjs` drives the page in Chromium with the Geocoder mocked at
+the network layer, plus one real local server for the no-CORS case – 36 checks covering every
+verdict, the lon/lat order, the downloads byte for byte (no BOM on JSON, BOM on CSV), the
+key-test flow, an HTTP 429 mid-run, the JSONP fallback and a refused key both ways.

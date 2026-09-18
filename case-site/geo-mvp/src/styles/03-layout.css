@@ -1,0 +1,565 @@
+/* ===========================================================================
+ * 03-layout — the shell: header, rails, map, tab bar, overlays
+ *
+ * IA §2.1, exactly. One grid inside one grid; no absolute positioning is used
+ * for layout, only for overlays.
+ *
+ * The two rules that make the whole thing work and are easy to lose:
+ *   - `min-height:0` on every grid/flex child that contains a scroller.
+ *     Without it a grid child refuses to shrink below its content and the
+ *     inner `overflow-y:auto` silently never engages.
+ *   - `.mapwrap` gets `isolation:isolate`, which confines Leaflet's internal
+ *     z-indexes (panes 200–700, controls 800) to the map's own stacking
+ *     context. That single line removes the entire class of "Leaflet control
+ *     painting over my drawer" bug (IA §1.3 R3).
+ *
+ * Rail open/close animates `grid-template-columns`, not a transform, so the
+ * map genuinely resizes as the panel moves and 11-map.js can call
+ * `invalidateSize()` once on `transitionend` instead of 60 times.
+ * ========================================================================= */
+
+/* =========================================================== R13 boot ==== */
+.boot {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: var(--z-boot);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-5);
+  background: var(--bg);
+}
+
+.boot__panel {
+  width: min(560px, 100%);
+  padding: var(--s-5);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+}
+
+.boot__title { margin-bottom: var(--s-3); }
+.boot__msg { color: var(--text-2); margin-bottom: var(--s-4); }
+
+.boot__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
+
+/* ============================================================= the app ==== */
+.app {
+  display: grid;
+  grid-template-rows: var(--header-h) 1fr;
+  height: 100vh;               /* fallback */
+  height: 100dvh;              /* mobile browser chrome must not create a scrollbar */
+  min-height: 0;
+  /* `.app` is a flex child of `<body>` so the notice bar and demo banner can
+     take flow space above it; flex-shrink lets the declared 100dvh give way
+     to them instead of overflowing the viewport. */
+  flex: 1 1 auto;
+  overflow: hidden;            /* the page never scrolls; only panel bodies do */
+}
+
+/* ============================================================ R1 header === */
+.hdr {
+  position: relative;          /* z-index is inert on a static box */
+  display: grid;
+  /* The search track has a FLOOR. minmax(0, 1fr) let it collapse to 0px the
+     moment the auto tracks summed to the header width — which they did at 768
+     and again at 1024 — and the input then drew across whatever sat beside it.
+     140px is the narrowest a search field is still a search field. */
+  grid-template-columns: auto auto minmax(140px, 1fr) auto;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+  padding: 0 var(--s-3);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-strong);
+  z-index: var(--z-header);
+}
+
+.hdr__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+/* --------------------------------------------------------------- lockup --
+   The CASE logo. Not an image file: on caseadvisory.com the mark IS the
+   typography — the wordmark in the display serif over the descriptor in
+   micro-caps — so the faithful reproduction is type, not a traced SVG. The
+   sizes and the 2.5px descriptor tracking are the site's own values.
+
+   The display face is embedded (see the @FONT marker), so this renders
+   identically from file:// with no network. That is the whole reason it was
+   embedded: a wordmark that falls back to Georgia on one machine and DejaVu
+   on another is not a wordmark. */
+.lockup {
+  display: flex;
+  flex-direction: column;
+  flex: none;
+  line-height: 1;
+}
+
+.lockup__n {
+  font-family: var(--font-display);
+  font-size: 21px;
+  /* 1.35, not the site's 1. DM Serif Display's ascent + descent exceeds its em
+     square, so at 21px the glyphs overflowed their own element by 4px. Nothing
+     showed on screen because the overflow was visible, but a box that does not
+     contain its text clips the moment an ancestor hides overflow — and the
+     header's ancestors do. 1.35 is the first value that actually contains the
+     face (measured, not guessed: 1.2 still overflowed by 2px). The negative
+     margin takes the added leading back out, so the lockup reads as tightly as
+     the site's while its box stays honest. */
+  line-height: 1.35;
+  margin-bottom: -5px;
+  letter-spacing: 1px;
+  color: var(--ink);
+}
+
+.lockup__s {
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+/* Separates the firm from the product, so "CASE" reads as the company and
+   "Geo" as the tool, rather than the two running together as one name. */
+.hdr__rule {
+  width: 1px;
+  height: 22px;
+  flex: none;
+  background: var(--line-strong);
+}
+
+.hdr__name {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  letter-spacing: var(--tracking-display);
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.hdr__scope,
+.hdr__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.hdr__actions { justify-content: flex-end; }
+
+.hdr__search {
+  position: relative;
+  min-width: 0;
+  justify-self: center;
+  width: 100%;
+  max-width: 420px;
+}
+
+/* ============================================================== body ===== */
+.app__body {
+  /* The rails become absolutely positioned drawers below 1024px and are
+     anchored to THIS box, not the viewport — so the notice bar and the demo
+     banner can push the whole shell down without the drawers sliding out
+     from under the header. */
+  position: relative;
+  display: grid;
+  grid-template-columns: var(--left-w) minmax(var(--map-min), 1fr) var(--right-w);
+  min-height: 0;               /* without this the grid children refuse to scroll */
+  min-width: 0;
+  transition: grid-template-columns var(--dur-panel) var(--ease-panel);
+}
+
+/* =========================================================== R2 / R5 ===== */
+.rail {
+  position: relative;          /* owns its rung of the z-ladder */
+  min-height: 0;
+  min-width: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  z-index: var(--z-rail);
+}
+
+.rail--left { border-right: 1px solid var(--line-strong); }
+.rail--right { border-left: 1px solid var(--line-strong); }
+
+/* A zero-width rail must not keep focusable content: `visibility:hidden`
+   removes it from the tab order and the accessibility tree while leaving the
+   track-width transition intact (`display:none` would kill the animation). */
+.app[data-left="closed"] .rail--left { visibility: hidden; }
+
+.rail__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  flex: none;
+  min-height: var(--hit);
+  padding: 0 var(--s-1);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+.rail__tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: var(--hit);
+  padding: var(--s-2) var(--s-3);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.rail__tab:hover { color: var(--text); }
+
+.rail__tab[aria-selected="true"] {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* The underline is a pseudo-element so the tab's own box never shifts. */
+.rail__tab::after {
+  content: "";
+  position: absolute;
+  left: var(--s-2);
+  right: var(--s-2);
+  bottom: -1px;
+  height: 2px;
+  background: var(--case-red);
+  transform: scaleX(0);
+  transition: transform var(--dur-modal) var(--ease-panel);
+}
+
+.rail__tab[aria-selected="true"]::after { transform: scaleX(1); }
+
+.rail__collapse,
+.rail__close {
+  margin-left: auto;
+  flex: none;
+  width: var(--hit);
+  height: var(--hit);
+  align-self: center;
+  border-radius: var(--r-btn);
+  color: var(--text-2);
+  font-size: var(--fs-md);
+  line-height: 1;
+}
+
+.rail__collapse:hover,
+.rail__close:hover { background: var(--surface-3); color: var(--text); }
+
+.app[data-left="collapsed"] .rail__collapse { transform: rotate(180deg); }
+
+.rail__count {
+  flex: none;
+  padding: var(--s-2) var(--s-4);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-2);
+  transition: opacity var(--dur-count) var(--ease-out);
+}
+
+.rail__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  flex: 1;
+  min-height: 0;
+  padding: var(--s-4);
+}
+
+/* The AI pane manages its own internal rows (log / suggestions / composer),
+   so it does not get the generic padding or the generic scroller. */
+.rail__body--ai {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+}
+
+.rail__foot {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.rail__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- collapsed left rail (52px icon strip, P2) ---------------------------- */
+/* The rail collapses to a 52px strip at 1024–1279 whenever the right rail
+   opens. There are no icon glyphs in the shell markup, so the tab labels turn
+   vertical rather than being hidden: the accessible name, the hit target and
+   the visible text all survive a 52px track, which a truncated horizontal
+   label would not. */
+.app[data-left="collapsed"] .rail__count,
+.app[data-left="collapsed"] .rail__body,
+.app[data-left="collapsed"] .rail__foot { display: none; }
+
+.app[data-left="collapsed"] .rail--left .rail__tabs {
+  flex-direction: column;
+  align-items: center;
+  padding: var(--s-2) 0;
+  border-bottom: 0;
+}
+
+.app[data-left="collapsed"] .rail--left .rail__tab {
+  writing-mode: vertical-rl;
+  padding: var(--s-3) var(--s-2);
+  min-height: 88px;
+}
+
+.app[data-left="collapsed"] .rail--left .rail__tab::after {
+  left: auto;
+  right: -1px;
+  top: var(--s-2);
+  bottom: var(--s-2);
+  width: 2px;
+  height: auto;
+  transform: scaleY(0);
+}
+
+.app[data-left="collapsed"] .rail--left .rail__tab[aria-selected="true"]::after {
+  transform: scaleY(1);
+}
+
+.app[data-left="collapsed"] .rail--left .rail__collapse {
+  margin: var(--s-2) 0 0;
+}
+
+/* ============================================================ R3 map ===== */
+.mapwrap {
+  position: relative;
+  z-index: var(--z-map);
+  isolation: isolate;          /* contains Leaflet's 200–800 z-indexes */
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface-3);
+}
+
+#map {
+  position: absolute;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: var(--surface-3);
+}
+
+/* ========================================================= R12 tab bar === */
+.tabbar {
+  position: relative;
+  display: none;               /* <768 only; turned on in 08-responsive.css */
+  z-index: var(--z-header);
+}
+
+/* ============================================================= scrim ===== */
+.scrim {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  background: var(--scrim-bg);
+  opacity: 0;
+  z-index: var(--z-modal-scrim);
+  transition: opacity var(--dur-panel) var(--ease-out);
+}
+
+.scrim[data-open="true"] { opacity: 1; }
+
+/* One element serves both jobs; the level says which ladder rung it is on.
+   Sheets and overlay rails sit under app chrome (--z-scrim); R7/R8/R9 sit
+   above it (--z-modal-scrim). */
+.scrim[data-level="sheet"] { z-index: var(--z-scrim); }
+
+/* ====================================================== R7 / R8 overlays == */
+.overlay {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+  animation: geo-modal-in var(--dur-modal) var(--ease-panel);
+}
+
+@keyframes geo-modal-in {
+  from { opacity: 0; transform: translate(-50%, calc(-50% + 8px)); }
+  to   { opacity: 1; transform: translate(-50%, -50%); }
+}
+
+#overlay-compare { width: min(1100px, 94vw); height: min(760px, 90vh); }
+#overlay-data    { width: min(1320px, 96vw); height: min(900px, 92vh); }
+
+.overlay__hdr {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: none;
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  min-width: 0;
+}
+
+.overlay__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  letter-spacing: var(--tracking-display);
+  white-space: nowrap;
+  flex: none;
+}
+
+.overlay__tabs {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  flex: 1 1 auto;
+}
+
+.overlay__tab {
+  position: relative;
+  min-height: var(--hit);
+  padding: var(--s-2) var(--s-3);
+  white-space: nowrap;
+  font-size: var(--fs-body);
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.overlay__tab:hover { color: var(--text); }
+
+.overlay__tab[aria-selected="true"] { color: var(--text); font-weight: 600; }
+
+.overlay__tab::after {
+  content: "";
+  position: absolute;
+  left: var(--s-2);
+  right: var(--s-2);
+  bottom: 0;
+  height: 2px;
+  background: var(--case-red);
+  transform: scaleX(0);
+  transition: transform var(--dur-modal) var(--ease-panel);
+}
+
+.overlay__tab[aria-selected="true"]::after { transform: scaleX(1); }
+
+.overlay__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-left: auto;
+  flex: none;
+}
+
+.overlay__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4);
+}
+
+/* ============================================================ R9 dialog == */
+.dialog {
+  position: fixed;
+  top: 0; right: 0; bottom: 0; left: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--s-4);
+  /* The dialog's own backdrop, so a confirm can stack above an open overlay
+     (P8, maximum depth 2) without borrowing the shared scrim. */
+  background: var(--scrim-bg);
+}
+
+.dialog__panel {
+  width: min(520px, 100%);
+  max-height: 86vh;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: var(--s-4);
+  background: var(--surface);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+  animation: geo-dialog-in var(--dur-modal) var(--ease-panel);
+}
+
+@keyframes geo-dialog-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.dialog__title {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  letter-spacing: var(--tracking-display);
+  margin-bottom: var(--s-3);
+}
+
+.dialog__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  color: var(--text-2);
+}
+
+.dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--s-2);
+  margin-top: var(--s-4);
+}
+
+/* =========================================================== R11 toasts == */
+.toasts {
+  position: fixed;
+  right: var(--s-4);
+  bottom: calc(var(--s-4) + var(--tabbar-h));
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column-reverse;   /* newest nearest the pointer */
+  gap: var(--s-2);
+  width: min(380px, calc(100vw - var(--s-4) * 2));
+  pointer-events: none;             /* the container never eats map clicks */
+}
+
+.toasts > * { pointer-events: auto; }

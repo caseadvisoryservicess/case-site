@@ -1,0 +1,126 @@
+{
+ "coverage_observed": {
+  "name": 148,
+  "address": 109,
+  "districtKey": 148,
+  "officeClass": 16,
+  "askingRent": 16,
+  "status": 0,
+  "gla": 0,
+  "gba": 0,
+  "floors": 0,
+  "parkingSpaces": 0,
+  "yearOpened": 0,
+  "occupancyPct": 0,
+  "vacancyPct": 0,
+  "availableArea": 0,
+  "serviceCharge": 0,
+  "owner": 0,
+  "operator": 0,
+  "developer": 0
+ },
+ "by_district": {
+  "yangihayot": 0,
+  "sergeli": 3,
+  "yashnobod": 17,
+  "mirobod": 28,
+  "yunusobod": 22,
+  "mirzo-ulugbek": 26,
+  "yakkasaroy": 24,
+  "uchtepa": 1,
+  "chilonzor": 13,
+  "bektemir": 0,
+  "olmazor": 4,
+  "shayxontohur": 10
+ },
+ "by_class": {
+  "A+": 4,
+  "A": 8,
+  "B+": 1,
+  "B": 3,
+  "C": 0
+ },
+ "class_unknown": 132,
+ "ux1_a_aplus": 12,
+ "rent": {
+  "n": 16,
+  "N": 148,
+  "mean": 32.22,
+  "median": 32.3,
+  "min": 19.9,
+  "max": 44.7
+ },
+ "ux3_rent_below_30": 8,
+ "rent_by_district": {
+  "mirobod": {
+   "n": 4,
+   "mean": 28.58
+  },
+  "yunusobod": {
+   "n": 5,
+   "mean": 33.76
+  },
+  "shayxontohur": {
+   "n": 1,
+   "mean": 40.6
+  },
+  "yakkasaroy": {
+   "n": 4,
+   "mean": 31.8
+  },
+  "yashnobod": {
+   "n": 2,
+   "mean": 32.3
+  }
+ },
+ "ai3b_rank": [
+  [
+   "yunusobod",
+   4
+  ],
+  [
+   "mirobod",
+   3
+  ],
+  [
+   "yakkasaroy",
+   2
+  ],
+  [
+   "yashnobod",
+   2
+  ],
+  [
+   "shayxontohur",
+   1
+  ]
+ ],
+ "ai3b_top": [
+  "yunusobod"
+ ],
+ "radius_trilliant": {
+  "1": 7,
+  "3": 74,
+  "5": 114
+ },
+ "radius_trilliant_rent3km": {
+  "n": 11,
+  "N": 74,
+  "mean": 31.24
+ },
+ "compset_trilliant": {
+  "qualified": 9,
+  "proximity_only": 63
+ },
+ "ai7b_top3": [
+  "Trilliant",
+  "Nest one",
+  "Forum Business Center"
+ ],
+ "near_pairs": 9,
+ "observed_age_days": 59,
+ "completeness_buckets": {
+  "none (0 critical fields)": 132,
+  "minimal (1-2)": 16
+ }
+}

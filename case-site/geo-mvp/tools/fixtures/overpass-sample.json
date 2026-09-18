@@ -1,0 +1,25 @@
+{
+  "_fixture": "SYNTHETIC. Hand-written to exercise every merge path offline. Not a real Overpass response and never a source of market data.",
+  "elements": [
+    {"type":"way","id":1001,"center":{"lat":41.315881,"lon":69.282436},
+     "tags":{"name":"Trilliant Business Center","building":"office",
+             "addr:street":"Шахрисабзская улица","addr:housenumber":"2","building:levels":"12"}},
+
+    {"type":"way","id":1002,"center":{"lat":41.300386,"lon":69.247266},
+     "tags":{"name":"Korea Uzbekistan Business Centre","building":"office",
+             "addr:street":"Afrosiab","addr:housenumber":"41","operator":"KOTRA"}},
+
+    {"type":"way","id":1003,"center":{"lat":41.286807,"lon":69.228149},
+     "tags":{"name":"Chilonzor","building":"office","addr:street":"Чиланзар 1-й квартал",
+             "addr:housenumber":"6"}},
+
+    {"type":"way","id":1004,"center":{"lat":41.3702,"lon":69.3902},
+     "tags":{"name":"Северная башня","building":"office","building:levels":"9"}},
+
+    {"type":"way","id":1005,"center":{"lat":41.315884,"lon":69.282441},
+     "tags":{"building":"office","addr:street":"Шахрисабзская улица"}},
+
+    {"type":"way","id":1006,"center":{"lat":41.31588,"lon":69.282433},
+     "tags":{"name":"Trilliant","building":"office","start_date":"2019-06-01"}}
+  ]
+}

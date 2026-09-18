@@ -1,0 +1,888 @@
+/* ===========================================================================
+ * 07-panels — the content of every region
+ *
+ * Filter rail · result list · property detail · analytics · compare ·
+ * location analysis · data workspace · assistant · AI layers.
+ *
+ * The recurring structural decision across all of them: a value and its
+ * provenance are one unit. A number never appears without its denominator
+ * (`.coverage`), a confidence dot never appears without its label, and an
+ * unknown renders `.unk` — never a dash, a blank or a zero. Where a panel
+ * could cheat by dropping the caveat to fit, the caveat wins and the layout
+ * gives way.
+ * ========================================================================= */
+
+/* ═══════════════════════════════════════════════ R2 · filters (§11) ═════ */
+.filters { display: flex; flex-direction: column; gap: var(--s-4); }
+
+.fgroup { border-bottom: 1px solid var(--line); padding-bottom: var(--s-3); }
+.fgroup:last-child { border-bottom: 0; }
+
+.fgroup__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-bottom: var(--s-2);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.fgroup__hd .push { font-weight: 400; color: var(--text-3); font-size: var(--fs-xs); }
+
+.fgroup__body { display: flex; flex-direction: column; }
+
+/* A zero-coverage filter is disabled with its count on screen, and it
+   re-enables itself the moment coverage becomes non-zero (rule R2, L-07…L-12).
+   The reason is text in the flow — a title attribute alone is not a reason. */
+.fgroup--disabled .fgroup__hd { color: var(--text-3); }
+.fgroup--disabled .fgroup__body { opacity: .6; pointer-events: none; }
+.fgroup__reason { display: block; margin-top: var(--s-1); font-size: var(--fs-xs); color: var(--text-3); }
+
+/* The permanent coverage note under the rent filter (L-08) and its siblings.
+   Not a hint that appears on hover: the exclusion is part of the control. */
+.fgroup__note {
+  margin-top: var(--s-2);
+  padding: var(--s-2);
+  background: var(--surface-2);
+  border-left: 2px solid var(--line-strong);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* Active filter chips (L-19) sit above the counter. */
+.fchips { display: flex; flex-wrap: wrap; gap: var(--s-1); }
+
+.fmore { border-top: 1px solid var(--line); padding-top: var(--s-3); }
+
+/* L-20 result counter, inside `.rail__count`. */
+.fcount { display: flex; align-items: baseline; gap: var(--s-2); }
+.fcount__n { font-size: var(--fs-md); font-weight: 600; font-variant-numeric: tabular-nums; }
+.fcount__excl { display: block; margin-top: 2px; font-size: var(--fs-xs); font-weight: 400; color: var(--text-3); }
+
+/* ═══════════════════════════════════════════════ R2 · results (§12) ═════ */
+/* Two rows, not one. The left rail is ~320px at every desktop width, so the
+   sort control, the "showing n of m" count and the distance-sort reason were
+   sharing it three ways — each landing in a ~70px column and wrapping to three
+   or four lines apiece. The control takes the first row; the two captions read
+   as a caption line beneath it, which is the order they are read in anyway. */
+.list__bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1) var(--s-2);
+  padding: var(--s-2) var(--s-4);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+
+/* `.push` is a spacer elsewhere; here it is the line break that puts the
+   captions on their own row. Zero height so it costs nothing vertically. */
+.list__bar .push {
+  flex: 1 1 100%;
+  height: 0;
+  margin: 0;
+}
+
+.list__bar .select { flex: 1 1 auto; max-width: 100%; }
+.list__bar .coverage,
+.list__bar .reason { flex: 0 1 auto; }
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+}
+
+/* 148 cards render without a virtual scroller at this dataset size, and none
+   may be added (§2.6). `content-visibility` buys the same win for free. */
+.rcard {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 92px;
+  display: block;
+  width: 100%;
+  padding: var(--s-3);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  transition: box-shadow var(--dur-hover) var(--ease-out),
+              transform var(--dur-hover) var(--ease-out),
+              border-color var(--dur-hover) var(--ease-out);
+}
+
+.rcard:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* Selection is carried by a 3px accent edge and a surface change, not by the
+   1px border alone — --line is decorative and may never signal state. */
+.rcard[aria-current="true"] {
+  border-color: var(--case-red);
+  box-shadow: inset 3px 0 0 var(--case-red), var(--shadow-card);
+  background: var(--surface-2);
+}
+
+.rcard__top { display: flex; align-items: flex-start; gap: var(--s-2); }
+
+.rcard__name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-md);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+  color: var(--text);
+  /* RU labels run ~25% longer than EN: wrap, never truncate (IA §9.4). */
+  overflow-wrap: anywhere;
+}
+
+.rcard__sub { margin-top: 2px; font-size: var(--fs-sm); color: var(--text-2); }
+
+.rcard__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: var(--s-1) var(--s-3);
+  margin-top: var(--s-2);
+}
+
+.rcard__k { font-size: var(--fs-xs); color: var(--text-3); }
+.rcard__v { font-size: var(--fs-sm); color: var(--text); font-variant-numeric: tabular-nums; }
+
+.rcard__foot {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-2);
+  padding-top: var(--s-2);
+  border-top: 1px solid var(--line);
+}
+
+/* Revealed on hover or keyboard focus; never the only route to the action. */
+.rcard__zoom { opacity: 0; transition: opacity var(--dur-hover) var(--ease-out); }
+.rcard:hover .rcard__zoom,
+.rcard:focus-within .rcard__zoom,
+.rcard__zoom:focus-visible { opacity: 1; }
+
+/* L-21: records with no value for the sort key are never interleaved as if
+   they were zero. They go into their own labelled block at the end. */
+.list__group {
+  margin-top: var(--s-4);
+  padding: var(--s-2) 0;
+  border-top: 1px solid var(--line-strong);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* L-15: an unresolved duplicate group is shown as a pair, never merged (D6). */
+.list__dupe {
+  padding: var(--s-2);
+  border: 1px dashed var(--line-strong);
+  border-radius: var(--r-card);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.list__dupe-hd { font-size: var(--fs-xs); color: var(--text-3); }
+
+/* Staggered re-render (animation 9) — first 8 cards only, 12ms apart. */
+.list--fresh .rcard:nth-child(-n+8) { animation: geo-fade-in var(--dur-count) var(--ease-out) both; }
+.list--fresh .rcard:nth-child(2) { animation-delay: 12ms; }
+.list--fresh .rcard:nth-child(3) { animation-delay: 24ms; }
+.list--fresh .rcard:nth-child(4) { animation-delay: 36ms; }
+.list--fresh .rcard:nth-child(5) { animation-delay: 48ms; }
+.list--fresh .rcard:nth-child(6) { animation-delay: 60ms; }
+.list--fresh .rcard:nth-child(7) { animation-delay: 72ms; }
+.list--fresh .rcard:nth-child(8) { animation-delay: 84ms; }
+
+/* ═══════════════════════════════════════════ R5 · property (§13) ═══════ */
+.prop { display: flex; flex-direction: column; gap: var(--s-3); }
+
+.prop__hd { display: flex; align-items: flex-start; gap: var(--s-2); }
+
+.prop__title {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--tracking-display);
+  overflow-wrap: anywhere;
+}
+
+.prop__sub {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+
+/* Sticky under the title block (IA §2.4), so the five actions stay reachable
+   however far the reader has scrolled into the sections. */
+.prop__actions {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-local-raised);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+}
+
+/* Key/value rows. The value column is min-content-safe so a long Cyrillic
+   address wraps instead of pushing the provenance button off the panel. */
+.kv { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto; gap: var(--s-1) var(--s-2); align-items: baseline; }
+
+.kv__k { font-size: var(--fs-sm); color: var(--text-3); }
+.kv__v { font-size: var(--fs-body); color: var(--text); overflow-wrap: anywhere; }
+.kv__v--num { font-variant-numeric: tabular-nums; }
+
+.kv__row { display: contents; }
+
+/* P-08 — the per-field provenance disclosure. Small, quiet, always present:
+   every displayed field can be traced to its source (§2.3). */
+.prov {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  color: var(--text-3);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.prov:hover { background: var(--surface-3); color: var(--text); }
+
+.provpop { display: grid; gap: var(--s-2); }
+.provpop__k { font-size: var(--fs-xs); color: var(--text-3); }
+.provpop__v { font-size: var(--fs-sm); color: var(--text); }
+
+/* A field whose value was edited in this browser is labelled, not silently
+   shown as if it came from the source (M12). */
+.kv__v--edited::after {
+  content: "\00B7";
+  margin-left: var(--s-1);
+  color: var(--case-red);
+}
+
+.prop__sec { border-top: 1px solid var(--line); padding-top: var(--s-2); }
+
+/* ═══════════════════════════════════════ R5 · analytics (§14) ══════════ */
+/* A-01: analytics are scoped to the FILTERED set, not the selection, and the
+   scope line says so on every render — otherwise a reader assumes the
+   numbers describe the building they just clicked. */
+.scope {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface-2);
+  border-left: 2px solid var(--line-strong);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s-3);
+  margin: var(--s-4) 0;
+}
+
+.stat {
+  /* A column, not a block. The panel builds the card from <span>s, and inline
+     children would run the label, the value and the denominator together on one
+     line. Making the card a flex column turns its parts into flex items, which
+     stack regardless of the tag the panel chose — the layout no longer depends
+     on two independently written files agreeing about element display. */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  width: 100%;
+  padding: var(--s-3);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  transition: box-shadow var(--dur-hover) var(--ease-out),
+              transform var(--dur-hover) var(--ease-out);
+}
+
+.stat:hover { transform: translateY(-1px); box-shadow: var(--shadow-overlay); }
+
+.stat__label { font-size: var(--fs-xs); color: var(--text-3); line-height: 1.35; }
+
+/* A hero number is never set in the display serif (visual-system §6). */
+/* The metric value is set in the display serif — see 10-visual-system.md §6.1
+   for why this departs from the data-viz default of "never a serif for a hero
+   number". Short version: that rule exists because a serif figure reads as
+   off-brand decoration, and for CASE the serif IS the brand — caseadvisory.com
+   sets its own headline statistics in this exact face. */
+.stat__value {
+  margin-top: var(--s-1);
+  font-family: var(--font-display);
+  font-size: var(--fs-metric);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
+  line-height: 1.05;
+  color: var(--text);
+  /* Proportional, not tabular: tabular gives every digit the width of a `0`,
+     which at display size makes a value like `148` look gappy. Tabular is for
+     COLUMNS that must align — the tables and axis ticks keep it. */
+  font-variant-numeric: proportional-nums;
+}
+
+/* The unit sits on its own line rather than trailing the figure. Inline, a long
+   unit like `/m²/month` wrapped mid-phrase inside a narrow card, so the reader
+   saw "$32.2" over "/m²/month" and could not tell a deliberate line from a
+   broken one. Its own line is the same two rows, read as a decision. */
+.stat__unit {
+  display: block;
+  margin-top: 1px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-2);
+  letter-spacing: 0;
+}
+
+/* The denominator line is part of the card, permanently — not only inside
+   the A-02 popover (rule R3). */
+.stat__cov { margin-top: var(--s-2); }
+
+.stat--insufficient .stat__value {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  letter-spacing: 0;
+  color: var(--text-2);
+}
+
+/* Any metric computed over a set that includes DEMO records says so. */
+.stat__demo { margin-top: var(--s-1); }
+
+/* ═══════════════════════════════════════════ R7 · compare (§15) ════════ */
+.cmp { display: flex; flex-direction: column; gap: var(--s-3); min-height: 0; }
+
+.cmp__bar { display: flex; align-items: center; flex-wrap: wrap; gap: var(--s-2); }
+
+.cmp__scroll { overflow: auto; overscroll-behavior: contain; }
+
+.cmp__table { width: 100%; font-size: var(--fs-sm); border-collapse: separate; border-spacing: 0; }
+
+.cmp__table th,
+.cmp__table td {
+  padding: var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--line);
+  vertical-align: top;
+  min-width: 160px;
+}
+
+/* The row-label column stays put while the property columns scroll. */
+.cmp__table th[scope="row"],
+.cmp__rowhd {
+  position: sticky;
+  left: 0;
+  z-index: var(--z-local-raised);
+  min-width: 150px;
+  background: var(--surface-2);
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.cmp__table thead th {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-local-raised);
+  background: var(--surface);
+  border-bottom: 1px solid var(--line-strong);
+  text-align: left;
+}
+
+.cmp__table thead th.cmp__rowhd { z-index: var(--z-local-top); }
+
+.cmp__colname {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.cmp__colmeta { margin-top: 2px; font-size: var(--fs-xs); color: var(--text-3); font-weight: 400; }
+
+.cmp__val { font-variant-numeric: tabular-nums; }
+
+/* C-11: there is NO winner affordance, deliberately. No cell may be bolded,
+   coloured, arrow-marked or sorted as "best" (§15). If a future change adds
+   one, it belongs in the IA table first. */
+
+.cmp__foot { font-size: var(--fs-xs); color: var(--text-3); }
+
+/* ═══════════════════════════════════ property · location (§16, §17) ════ */
+.loc { display: flex; flex-direction: column; gap: var(--s-3); }
+
+.loc__bands { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-2); }
+
+.band {
+  padding: var(--s-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-btn);
+  text-align: left;
+}
+
+.band[aria-pressed="true"] { border-color: var(--case-red); background: var(--data-soft); }
+
+.band__km { font-size: var(--fs-xs); color: var(--text-3); }
+.band__n { font-size: var(--fs-lg); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+/* Both conventions are defensible and a reader cannot tell which produced a
+   number, so both are stated on the panel, always (§7 of the contract). */
+.loc__method { font-size: var(--fs-xs); color: var(--text-3); line-height: 1.45; }
+
+.compset { display: flex; flex-direction: column; gap: var(--s-2); }
+
+/* R5/§17: the two buckets are ALWAYS labelled. Records with unknown class are
+   neither silently included nor silently dropped — they are their own group
+   and their count is in the heading. */
+.compset__group { border-top: 1px solid var(--line); padding-top: var(--s-2); }
+
+.compset__title {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: var(--s-2);
+}
+
+.compset__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.compset__name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.compset__dist { flex: none; font-size: var(--fs-sm); color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+/* ═══════════════════════════════════════ R8 · data workspace (§21) ═════ */
+.dw { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--s-4); min-height: 0; height: 100%; }
+
+.dw__nav { display: flex; flex-direction: column; gap: var(--s-1); }
+
+.dw__navbtn {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--hit);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-btn);
+  text-align: left;
+  color: var(--text-2);
+  font-size: var(--fs-body);
+}
+
+.dw__navbtn:hover { background: var(--surface-3); color: var(--text); }
+.dw__navbtn[aria-selected="true"] { background: var(--surface-3); color: var(--text); font-weight: 600; }
+
+.dw__body { min-width: 0; min-height: 0; overflow: auto; overscroll-behavior: contain; }
+
+/* D-13 — one row per schema field. This view is the honest centre of the
+   data-moat argument: it shows what is NOT known, at full size (M14). */
+.covrow {
+  display: grid;
+  grid-template-columns: minmax(120px, 1.2fr) 88px minmax(80px, 2fr);
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: var(--hit);
+  padding: var(--s-1) var(--s-2);
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.covrow:hover { background: var(--surface-2); }
+
+.covrow__n { font-size: var(--fs-sm); color: var(--text-2); font-variant-numeric: tabular-nums; text-align: right; }
+
+.covrow__bar { position: relative; height: 8px; background: var(--surface-3); border-radius: 2px; overflow: hidden; }
+
+.covrow__fill {
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  background: var(--data);
+  transition: width var(--dur-chart) var(--ease-panel);
+}
+
+/* Zero coverage is the common case here and must look like a fact, not a
+   rendering failure: the track stays, hatched, and the count says 0 of 148. */
+.covrow__bar[data-zero="true"] {
+  background-color: var(--unknown);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--hatch-line) 0, var(--hatch-line) 1px,
+    transparent 1px, transparent 4px
+  );
+}
+
+.qrow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  width: 100%;
+  padding: var(--s-2);
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+
+.qrow:hover { background: var(--surface-2); }
+.qrow__why { font-size: var(--fs-xs); color: var(--text-3); }
+
+.dupe {
+  display: grid;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  margin-bottom: var(--s-3);
+}
+
+.dupe__pair { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--s-3); }
+.dupe__verdict { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+
+.form { display: grid; gap: var(--s-3); max-width: 560px; }
+.form__row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: var(--s-3); }
+.form__foot { display: flex; gap: var(--s-2); flex-wrap: wrap; padding-top: var(--s-3); border-top: 1px solid var(--line); }
+
+.diff { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--s-2); align-items: baseline; font-size: var(--fs-sm); }
+.diff__before { color: var(--text-3); text-decoration: line-through; }
+.diff__after { color: var(--text); font-weight: 600; }
+
+/* ═══════════════════════════════════════ R5 · assistant (§40, §46) ═════ */
+.ai__log {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.ai__suggest {
+  flex: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-4);
+  border-top: 1px solid var(--line);
+}
+
+.ai__form {
+  flex: none;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s-2);
+  padding: var(--s-3) var(--s-4);
+  border-top: 1px solid var(--line);
+  background: var(--surface);
+  padding-bottom: calc(var(--s-3) + env(safe-area-inset-bottom));
+}
+
+.ai__input {
+  flex: 1;
+  min-width: 0;
+  min-height: var(--hit);
+  max-height: 140px;            /* auto-grow 1 → 5 rows (I-01) */
+  padding: var(--s-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  resize: none;
+}
+
+.ai__ctx { padding: 0 var(--s-4) var(--s-2); }
+
+/* --- message bubbles ----------------------------------------------------- */
+.msg { display: flex; flex-direction: column; gap: var(--s-2); max-width: 100%; }
+
+.msg--user {
+  align-self: flex-end;
+  align-items: flex-end;
+  max-width: 88%;
+}
+
+.msg--user .msg__body {
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface-3);
+  border-radius: var(--r-card) var(--r-card) var(--r-chip) var(--r-card);
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.msg--ai { align-self: stretch; }
+
+.msg--ai .msg__body {
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  animation: geo-msg-in var(--dur-modal) var(--ease-out);
+}
+
+@keyframes geo-msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.msg__time { font-size: var(--fs-xs); color: var(--text-3); }
+
+/* --- the six §46 blocks -------------------------------------------------- */
+/* A block is NEVER omitted. When it is empty it says why, which is the whole
+   reason the contract names all six: a missing "Data coverage" block reads as
+   "no caveats", and that is the failure mode §47 exists to prevent. */
+.blocks { display: flex; flex-direction: column; gap: var(--s-3); }
+
+.block { border-top: 1px solid var(--line); padding-top: var(--s-2); }
+.block:first-child { border-top: 0; padding-top: 0; }
+
+.block__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: var(--s-1);
+}
+
+.block__body { font-size: var(--fs-body); color: var(--text); line-height: var(--lh-body); }
+
+.block__body ul { display: flex; flex-direction: column; gap: var(--s-1); }
+.block__body li { padding-left: var(--s-3); position: relative; }
+.block__body li::before { content: "\00B7"; position: absolute; left: var(--s-1); color: var(--text-3); }
+
+/* The answer block is the one the reader acts on, so it is the only one set
+   at reading size; the other five are supporting apparatus. */
+.block[data-block="answer"] .block__body { font-size: var(--fs-md); }
+
+.block[data-block="dataCoverage"] .block__body,
+.block[data-block="limitations"] .block__body,
+.block[data-block="sources"] .block__body { font-size: var(--fs-sm); color: var(--text-2); }
+
+/* An empty block states its reason instead of disappearing. */
+.block__empty { font-size: var(--fs-sm); color: var(--text-3); font-style: normal; }
+
+/* --- provenance badges (§2.8, §47) --------------------------------------- */
+/* Every figure carries one. They are distinguished by border treatment and
+   wording, not by hue alone: this is a tool for people who will be asked
+   "where did that number come from?" in a client meeting. */
+.prov-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 1px var(--s-1);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.prov-badge[data-prov="platform-data"] { background: var(--surface-3); color: var(--text-2); }
+
+.prov-badge[data-prov="calculated"] { background: var(--surface); color: var(--text-2); }
+
+.prov-badge[data-prov="external"] { border-style: dotted; }
+
+/* Inference and assumption are the two the reader must not mistake for
+   evidence, so they are the two that carry an accent. */
+.prov-badge[data-prov="ai-inference"] {
+  border-color: var(--case-red);
+  color: var(--case-red);
+}
+
+.prov-badge[data-prov="assumption"] {
+  border-color: var(--demo-line);
+  background: var(--demo-bg);
+  color: var(--demo-text);
+}
+
+/* UNAVAILABLE is a first-class success, not an error (§62): the assistant
+   refused because the field has no coverage. It reads as a stated fact. */
+.prov-badge[data-prov="unavailable"] {
+  border-style: dashed;
+  background: var(--surface-2);
+  color: var(--text-3);
+}
+
+/* --- "How this was answered" (I-05) -------------------------------------- */
+/* This replaces the §53 progress theatre. There is no fake latency anywhere;
+   the transparency is the substitute, so it is styled to be read, not hidden. */
+.how { margin-top: var(--s-2); border-top: 1px solid var(--line); }
+
+.how__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-micro);
+  color: var(--text-3);
+}
+
+.how__hd::before {
+  content: "\25B8";
+  font-size: 9px;
+  transition: transform var(--dur-modal) var(--ease-out);
+}
+
+.how[data-open="true"] .how__hd::before { transform: rotate(90deg); }
+
+.how__body { padding-bottom: var(--s-2); font-size: var(--fs-xs); color: var(--text-2); }
+
+.how__row { display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: var(--s-2); padding: 2px 0; }
+.how__k { color: var(--text-3); }
+.how__v { overflow-wrap: anywhere; font-family: var(--font-mono); font-size: 10px; }
+
+.msg__actions { display: flex; flex-wrap: wrap; gap: var(--s-1); margin-top: var(--s-2); }
+
+/* ═══════════════════════════════════════════ R5 · AI layers (§57) ══════ */
+.layers { display: flex; flex-direction: column; gap: var(--s-4); }
+
+.layer {
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  animation: geo-layer-in var(--dur-layer) var(--ease-out);
+}
+
+@keyframes geo-layer-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.layer__hd { display: flex; align-items: center; gap: var(--s-2); }
+.layer__name { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.layer__count { flex: none; font-size: var(--fs-sm); color: var(--text-3); font-variant-numeric: tabular-nums; }
+
+/* A layer is a SAVED RESULT SET; a filter is a LIVE PREDICATE. The criteria
+   sentence is shown in words with the machine form beside it so the
+   difference is legible rather than folklore (§57). */
+.layer__criteria { margin-top: var(--s-1); font-size: var(--fs-sm); color: var(--text-2); }
+
+.layer__json {
+  margin-top: var(--s-2);
+  padding: var(--s-2);
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.layer__by { font-size: var(--fs-xs); color: var(--text-3); }
+.layer__acts { display: flex; flex-wrap: wrap; gap: var(--s-1); margin-top: var(--s-2); }
+
+.layer__swatch {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  background: var(--ink);
+  box-shadow: 0 0 0 1px var(--line-strong);
+}
+
+/* Y-05: the context-layer group ships disabled with its reason and a footnote
+   that states, in the product, that this prototype does not approximate
+   coordinates it cannot verify (D5). */
+.layers__footnote {
+  padding: var(--s-2);
+  background: var(--surface-2);
+  border-left: 2px solid var(--line-strong);
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+/* ===================================================== result card entry ===
+   A short rise on the first screenful of cards when the set changes, so a
+   filter reads as "this list responded" rather than as a silent repaint.
+
+   Only the first twelve are staggered, and the step is 18ms: enough to see a
+   direction, not enough to make the reader wait. Beyond twelve there is no
+   delay at all — a 148-card stagger would take two seconds to finish drawing
+   and would be a cost, not a cue. Transform and opacity only, so it runs on the
+   compositor and never reflows the rail.
+
+   `content-visibility: auto` on .rcard means off-screen cards are not rendered
+   anyway, which is why animating the whole list would be wasted work. */
+@keyframes geo-card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
+}
+
+.list--fresh .rcard {
+  animation: geo-card-in var(--dur-count) var(--ease-out) both;
+}
+
+.list--fresh .rcard:nth-child(1)  { animation-delay: 0ms; }
+.list--fresh .rcard:nth-child(2)  { animation-delay: 18ms; }
+.list--fresh .rcard:nth-child(3)  { animation-delay: 36ms; }
+.list--fresh .rcard:nth-child(4)  { animation-delay: 54ms; }
+.list--fresh .rcard:nth-child(5)  { animation-delay: 72ms; }
+.list--fresh .rcard:nth-child(6)  { animation-delay: 90ms; }
+.list--fresh .rcard:nth-child(7)  { animation-delay: 108ms; }
+.list--fresh .rcard:nth-child(8)  { animation-delay: 126ms; }
+.list--fresh .rcard:nth-child(9)  { animation-delay: 144ms; }
+.list--fresh .rcard:nth-child(10) { animation-delay: 162ms; }
+.list--fresh .rcard:nth-child(11) { animation-delay: 180ms; }
+.list--fresh .rcard:nth-child(12) { animation-delay: 198ms; }
+.list--fresh .rcard:nth-child(n+13) { animation-delay: 0ms; }
+
+/* The global reduced-motion rules in 02-base.css already collapse durations to
+   near-zero, but `both` fill would still hold the card at opacity 0 for a frame.
+   Removing the animation outright is the only safe form. */
+@media (prefers-reduced-motion: reduce) {
+  .list--fresh .rcard { animation: none; }
+}
+
+:root[data-motion="reduce"] .list--fresh .rcard { animation: none; }

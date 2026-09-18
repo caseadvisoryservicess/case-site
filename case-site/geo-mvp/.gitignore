@@ -1,0 +1,19 @@
+# Headless-browser QA output (screenshots + report) — regenerate with `node tools/qa.cjs --shots`
+qa-out/
+
+# Incremental-build scaffolding used while the modules were being written.
+# The real build is `python3 build.py` → index.html.
+index.partial.html
+build.partial.py
+src/manifest.partial.json
+
+# Collected observations and merge proposals. Regenerate with:
+#   python3 tools/collect.py --source <id>
+#   python3 tools/merge_incoming.py --in data/incoming/<id>.observations.json
+# They are outputs of a point-in-time fetch, not source. The one exception is
+# the reachability report, whose finding is written up in docs/12-data-sources.md.
+data/incoming/
+
+# Python bytecode from the ingestion tools.
+__pycache__/
+*.pyc

@@ -1,0 +1,23 @@
+{
+ "origin": "CASE_OS_Geo_Analytics_2.html (standalone 'Tashkent Office/BC Benchmark' page), embedded BC array, 150 records",
+ "extractedAt": "2026-09-17",
+ "note": "The other 148 records are byte-for-byte the prototype's dataset. These two carry provider 'CASE (owner)' – CASE's own projects – with coordinates, district and no other fields. Their 'status: Reviewed' is the page's QC state, not a building status, and is not imported.",
+ "records": [
+  {
+   "name": "Botanica BC",
+   "district": "Mirzo-Ulugbek",
+   "provider": "CASE (owner)",
+   "lat": 41.3485,
+   "lng": 69.31656,
+   "status": "Reviewed"
+  },
+  {
+   "name": "Taxtapul BC",
+   "district": "Shaykhantakhur",
+   "provider": "CASE (owner)",
+   "lat": 41.33894,
+   "lng": 69.26336,
+   "status": "Reviewed"
+  }
+ ]
+}

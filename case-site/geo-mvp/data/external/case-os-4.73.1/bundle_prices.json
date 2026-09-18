@@ -1,0 +1,304 @@
+{
+ "origin": "CASE_OS_v4.73.1_HOSTING_READY_20260916.zip → os/data/bundle_tashkent_realdata.json",
+ "extractedAt": "2026-09-17",
+ "collectedNote": "OLX.uz (622 аренда + 551 продажа, курс ЦБ 12 075,98) и uybor.uz API (10 092 аренда + 2 335 продажа, цены в USD). Сбор 13.07.2026.",
+ "classSource": "soffice.uz - управляющая компания 18 БЦ (220 000 м²), ставки собственника, курс ЦБ 12 075,98. Сбор 13.07.2026.",
+ "prices": {
+  "Bomi": {
+   "rent": 40,
+   "avail": 2100,
+   "psrc": "OLX 07.2026"
+  },
+  "New level": {
+   "rent": 25,
+   "avail": 175,
+   "psrc": "OLX 07.2026"
+  },
+  "Seoul Plaza": {
+   "rent": 21.5,
+   "avail": 830,
+   "psrc": "OLX 07.2026"
+  },
+  "Summit": {
+   "rent": 45,
+   "avail": 172,
+   "psrc": "uybor 07.2026"
+  },
+  "Nest one": {
+   "rent": 40.6,
+   "avail": 42,
+   "sale": 3520,
+   "psrc": "soffice.uz 07.2026 (ставка собственника)",
+   "cls": "A+",
+   "addr": "Батыра Закирова 1А/1"
+  },
+  "Ventum plaza": {
+   "rent": 24.8,
+   "avail": 25,
+   "psrc": "soffice.uz 07.2026 (ставка собственника)",
+   "cls": "B",
+   "addr": "Абдулла Каххор 56А"
+  },
+  "Sigma": {
+   "rent": 20,
+   "avail": 75,
+   "sale": 2098,
+   "psrc": "uybor 07.2026"
+  },
+  "Atrium": {
+   "rent": 20,
+   "avail": 135,
+   "psrc": "uybor 07.2026"
+  },
+  "Savdo Taraqqiyoti": {
+   "rent": 17,
+   "avail": 1760,
+   "psrc": "uybor 07.2026"
+  },
+  "Baltic Center": {
+   "rent": 16.7,
+   "avail": 15,
+   "psrc": "uybor 07.2026"
+  },
+  "Missuri": {
+   "rent": 15.4,
+   "avail": 180,
+   "sale": 847,
+   "psrc": "uybor 07.2026"
+  },
+  "Inkonel": {
+   "rent": 10,
+   "avail": 270,
+   "sale": 1667,
+   "psrc": "uybor 07.2026"
+  },
+  "Avalon Group": {
+   "rent": 7.5,
+   "avail": 200,
+   "psrc": "uybor 07.2026"
+  },
+  "Aviapark": {
+   "sale": 2100,
+   "avail": 80,
+   "psrc": "uybor 07.2026"
+  },
+  "Dmaar": {
+   "sale": 4105,
+   "avail": 95,
+   "psrc": "uybor 07.2026"
+  },
+  "Terminal": {
+   "sale": 1800,
+   "psrc": "Instagram (реклама БЦ), 07.2026"
+  },
+  "Trilliant": {
+   "rent": 44.7,
+   "cls": "A+",
+   "addr": "Шахрисабз 2",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Forum Business Center": {
+   "rent": 39.7,
+   "cls": "A+",
+   "addr": "пр. Ш.Рашидова 16",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Modera Towers": {
+   "rent": 37.8,
+   "cls": "A+",
+   "addr": "Шота Руставели 2",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Dream": {
+   "rent": 35.6,
+   "cls": "B",
+   "addr": "Махмуда Тароби 16",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Gross Plaza": {
+   "rent": 34.8,
+   "cls": "A",
+   "addr": "Тараса Шевченко 21А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Sapphire Business Center": {
+   "rent": 34.8,
+   "cls": "A",
+   "addr": "Авлиё Ота 128",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Infinity Business Сenter": {
+   "rent": 34.8,
+   "cls": "A",
+   "addr": "Истикбол 41",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Solid Premium": {
+   "rent": 34.8,
+   "cls": "B+",
+   "addr": "Тафаккур 68А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Orient": {
+   "rent": 29.8,
+   "cls": "A",
+   "addr": "Олой Бозори 64",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Kayan": {
+   "rent": 29.8,
+   "cls": "A",
+   "addr": "Махтумкули 1",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Nova Plaza": {
+   "rent": 29.8,
+   "cls": "A",
+   "addr": "Абдулла Кодирий 1А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "New Era": {
+   "rent": 29.8,
+   "cls": "A",
+   "addr": "Шота Руставели 44А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Platform": {
+   "rent": 24.8,
+   "cls": "A",
+   "addr": "Туркистон 12А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Nova Minor": {
+   "rent": 24.8,
+   "cls": "B",
+   "addr": "пр. Ш.Рашидова 99А",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Business Park": {
+   "rent": 19.9,
+   "cls": "B+",
+   "addr": "Махтумкули 114",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  },
+  "Panoramic": {
+   "rent": 19.9,
+   "cls": "B",
+   "addr": "Афросиёб 1",
+   "psrc": "soffice.uz 07.2026 (ставка собственника)"
+  }
+ },
+ "market": {
+  "olx": {
+   "rent": {
+    "med": 18,
+    "p25": 13,
+    "p75": 25,
+    "n": 180
+   },
+   "sale": {
+    "med": 2427,
+    "p25": 2002,
+    "p75": 3004,
+    "n": 54
+   }
+  },
+  "uybor": {
+   "rent": {
+    "med": 15,
+    "p25": 10.1,
+    "p75": 20,
+    "n": 103
+   },
+   "sale": {
+    "med": 2100,
+    "p25": 1498,
+    "p75": 3179,
+    "n": 79
+   }
+  },
+  "rent": {
+   "med": 16.5,
+   "p25": 11,
+   "p75": 22,
+   "n": 283
+  },
+  "sale": {
+   "med": 2260,
+   "p25": 1750,
+   "p75": 3090,
+   "n": 133
+  },
+  "rentByD": {
+   "Shaykhantakhur": {
+    "olx": 26.9,
+    "uybor": 17.9
+   },
+   "Mirabad": {
+    "olx": 22,
+    "uybor": 16.7
+   },
+   "Yakkasaray": {
+    "olx": 20.3,
+    "uybor": 16.2
+   },
+   "Yashnabad": {
+    "olx": 20,
+    "uybor": null
+   },
+   "Chilanzar": {
+    "olx": 16.7,
+    "uybor": 16.1
+   },
+   "Yunusabad": {
+    "olx": 15.8,
+    "uybor": 13.1
+   },
+   "Uchtepa": {
+    "olx": 11.1,
+    "uybor": 16.2
+   },
+   "Olmazor": {
+    "olx": 11.4,
+    "uybor": 11.7
+   },
+   "Mirzo-Ulugbek": {
+    "olx": null,
+    "uybor": 10.8
+   }
+  },
+  "ref": {
+   "A_rent": 34.6,
+   "B_rent": 26.4,
+   "A_vac": "23.3%",
+   "src": "открытые рыночные обзоры, 2025"
+  },
+  "byClass": {
+   "A+": {
+    "n": 4,
+    "min": 37.8,
+    "avg": 40.7,
+    "max": 44.7
+   },
+   "A": {
+    "n": 8,
+    "min": 24.8,
+    "avg": 31.1,
+    "max": 34.8
+   },
+   "B+": {
+    "n": 2,
+    "min": 19.9,
+    "avg": 27.3,
+    "max": 34.8
+   },
+   "B": {
+    "n": 4,
+    "min": 19.9,
+    "avg": 26.3,
+    "max": 35.6
+   }
+  },
+  "classSrc": "soffice.uz - управляющая компания 18 БЦ (220 000 м²), ставки собственника, курс ЦБ 12 075,98. Сбор 13.07.2026."
+ }
+}

@@ -1,0 +1,942 @@
+/* ===========================================================================
+ * 04-components — the shared vocabulary
+ *
+ * Buttons, chips, badges, the confidence dot, the "Not recorded" token,
+ * form controls, the search combobox, tables, the coverage line's siblings,
+ * empty and insufficient states, toasts, the notice bar, the demo banner.
+ *
+ * Two product rules are enforced here rather than left to each panel:
+ *   §29 — no fake controls. A disabled control keeps `:disabled` styling AND
+ *         renders `.reason` next to it. A tooltip alone is not an accessible
+ *         reason, so `.reason` is real text in the flow, never `content:`.
+ *   §36 — unknown is never zero. `.unk` (in 02-base) is the only styling a
+ *         missing value gets, and `.conf__dot` is never valid without
+ *         `.conf__label` beside it.
+ * ========================================================================= */
+
+/* ============================================================= buttons ==== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  min-height: var(--hit);
+  padding: 0 var(--s-3);
+  border: 1px solid transparent;
+  border-radius: var(--r-btn);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-body);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background-color var(--dur-hover) var(--ease-out),
+              border-color var(--dur-hover) var(--ease-out),
+              color var(--dur-hover) var(--ease-out);
+}
+
+.btn--primary {
+  background: var(--case-red);
+  border-color: var(--case-red);
+  color: var(--text-on-red);
+}
+
+.btn--primary:hover:not(:disabled) {
+  background: var(--case-red-dark);
+  border-color: var(--case-red-dark);
+}
+
+.btn--ghost {
+  background: var(--surface);
+  border-color: var(--line-strong);
+  color: var(--text);
+}
+
+.btn--ghost:hover:not(:disabled) { background: var(--surface-3); }
+
+.btn--ghost[aria-pressed="true"],
+.btn--ghost[aria-expanded="true"] {
+  background: var(--surface-3);
+  border-color: var(--text-3);   /* state is never carried by --line alone */
+  font-weight: 600;
+}
+
+.btn--quiet {
+  background: transparent;
+  color: var(--text-2);
+}
+
+.btn--quiet:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+
+.btn--icon {
+  width: var(--hit);
+  min-width: var(--hit);
+  padding: 0;
+  font-size: var(--fs-md);
+  line-height: 1;
+  color: var(--text-2);
+}
+
+.btn--icon:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+
+/* "Small" is horizontal compactness only — the hit target stays ≥32px. */
+.btn--sm {
+  padding: 0 var(--s-2);
+  font-size: var(--fs-sm);
+}
+
+.btn--menu::after {
+  content: "\25BE";            /* decorative disclosure caret */
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.btn--danger {
+  background: var(--surface);
+  border-color: var(--case-red);
+  color: var(--case-red);
+}
+
+.btn--danger:hover:not(:disabled) {
+  background: var(--case-red);
+  color: var(--text-on-red);
+}
+
+.btn--block { width: 100%; }
+
+.btn:disabled,
+.btn[aria-disabled="true"] {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text-3);
+}
+
+/* The §29 partner of every disabled control: a visible, adjacent reason.
+   Hidden reasons are the defect this class exists to prevent. */
+.reason {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--fs-xs);
+  line-height: 1.4;
+  color: var(--text-3);
+}
+
+.reason--inline {
+  display: inline;
+  margin: 0 0 0 var(--s-2);
+}
+
+/* Segmented control (radius selector, role switch, motion setting). */
+.seg {
+  display: inline-flex;
+  padding: 2px;
+  gap: 2px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+}
+
+.seg__btn {
+  min-height: 28px;
+  padding: 0 var(--s-3);
+  border-radius: 2px;
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.seg__btn[aria-pressed="true"],
+.seg__btn[aria-checked="true"] {
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+
+.seg__btn:disabled { color: var(--text-3); }
+
+/* =============================================================== chips ==== */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+  max-width: 100%;
+  min-height: 24px;
+  padding: 2px var(--s-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--fs-sm);
+  line-height: 1.3;
+}
+
+.chip__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Interactive chips still need a 32px hit target; the visible chip stays
+   24px and the target is grown with padding on the removal button. */
+.chip__x {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: -4px -4px -4px 0;
+  border-radius: var(--r-chip);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+  line-height: 1;
+}
+
+.chip__x:hover { background: var(--surface-3); color: var(--text); }
+
+.chip--note {
+  border-style: dashed;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+/* The data chip is a whole sentence of prose sitting in a header that hands it
+   whatever column is left over. It must never wrap, at any width: given 68px at
+   tablet size it turned "148 records · 2 sources · updated 19 Jul 2026 · 0
+   field-verified" into a 162px vertical ribbon that burst out of a 56px header
+   and pushed the CASE lockup off the top of the page.
+
+   So the single-line rule lives here rather than in a breakpoint, and the
+   breakpoints only tune how much width it may take. Truncation is honest here:
+   the chip is a button, and the full summary is one tap away in the data
+   workspace it opens. */
+.chip--data {
+  min-height: var(--hit);
+  font-variant-numeric: tabular-nums;
+  color: var(--text-2);
+  text-align: left;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chip--data:hover { background: var(--surface-3); color: var(--text); }
+
+/* An active filter value. `--ai` marks the ones the assistant applied — the
+   only place an AI-applied filter is visually distinguished (L-19, §59). */
+.chip--filter {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+.chip--ai { border-color: var(--case-red); }
+
+.chip--ai::before {
+  content: "\2726";            /* decorative assistant glyph */
+  color: var(--case-red);
+  font-size: 10px;
+}
+
+/* A suggested prompt (I-03) — a real button that fills and sends. */
+.chip--suggest {
+  min-height: var(--hit);
+  text-align: left;
+  white-space: normal;
+  color: var(--text);
+}
+
+.chip--suggest:hover { background: var(--surface-3); }
+
+/* The assistant's context chip (I-04). */
+.chip--ctx {
+  background: var(--data-soft);
+  border-color: var(--case-red);
+  color: var(--text);
+}
+
+/* ============================================================== badges ==== */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: var(--r-chip);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-micro);
+  line-height: 1;
+}
+
+/* Office class wears the ordinal ramp. The letter is always present — the
+   colour re-states the order, it never carries it alone (visual-system §3). */
+.badge--class[data-class="A+"] { background: var(--class-aplus); color: var(--class-aplus-ink); }
+.badge--class[data-class="A"]  { background: var(--class-a);     color: var(--class-a-ink); }
+.badge--class[data-class="B+"] { background: var(--class-bplus); color: var(--class-bplus-ink); }
+.badge--class[data-class="B"]  { background: var(--class-b);     color: var(--class-b-ink); }
+.badge--class[data-class="C"]  { background: var(--class-c);     color: var(--class-c-ink); }
+
+/* Unknown sits OUTSIDE the ramp: it is not a grade between B and C. It is
+   the neutral, and it is hatched everywhere it is large enough to hold a
+   texture (badges are not, so the literal word carries it instead). */
+.badge--class[data-class="unknown"] {
+  background: var(--surface-2);
+  color: var(--text-3);
+  border: 1px dashed var(--line-strong);
+  font-weight: 400;
+}
+
+.badge--demo {
+  background: var(--demo-bg);
+  color: var(--demo-text);
+  border: 1px solid var(--demo-line);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+}
+
+.badge--flag {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  color: var(--text-2);
+}
+
+/* ================================================== confidence dot+label == */
+/* A dot without its label is a defect (visual-system §4, IA §6.4): Medium
+   (1.83:1) and Low (2.64:1) are below the 3:1 mark floor on purpose, and the
+   text is the mitigation. Both parts are always rendered together. */
+.conf {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.conf__dot {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--status-neutral);
+}
+
+.conf[data-conf="High"]   .conf__dot { background: var(--conf-high); }
+.conf[data-conf="Medium"] .conf__dot { background: var(--conf-medium); }
+.conf[data-conf="Low"]    .conf__dot { background: var(--conf-low); }
+
+/* Not verified is a hollow ring — a different shape, not a paler colour. */
+.conf[data-conf="Unknown"] .conf__dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--conf-unknown);
+}
+
+.conf__label { color: var(--text-2); }
+
+/* Freshness reuses the status scale and always carries its date in words. */
+.fresh { display: inline-flex; align-items: center; gap: var(--s-2); font-size: var(--fs-sm); }
+.fresh__dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--status-neutral); }
+.fresh[data-fresh="fresh"]  .fresh__dot { background: var(--status-good); }
+.fresh[data-fresh="ageing"] .fresh__dot { background: var(--status-warn); }
+.fresh[data-fresh="stale"]  .fresh__dot { background: var(--status-serious); }
+.fresh[data-fresh="stale"]  { color: var(--text); font-weight: 500; }
+
+/* Small red notification dot (header AI dot, P7 filters-changed dot). */
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--case-red);
+  vertical-align: middle;
+}
+
+.dot--ai { animation: geo-dot-pulse 300ms var(--ease-inout) 2; }
+
+@keyframes geo-dot-pulse {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.6); }
+}
+
+/* ======================================================== form controls === */
+.field { display: block; margin-bottom: var(--s-3); }
+
+.field__label {
+  display: block;
+  margin-bottom: var(--s-1);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.field__hint {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+/* Validation copy is never a colour alone: it is prefixed text in --case-red
+   with a persistent role="alert" node supplied by the panel module. */
+.field__err {
+  display: block;
+  margin-top: var(--s-1);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  color: var(--case-red);
+}
+
+.input,
+.select,
+.textarea {
+  display: block;
+  width: 100%;
+  min-height: var(--hit);
+  padding: 0 var(--s-2);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-chip);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-body);
+}
+
+.textarea {
+  padding: var(--s-2);
+  line-height: var(--lh-body);
+  resize: vertical;
+}
+
+.input[type="number"],
+.input--num { font-variant-numeric: tabular-nums; }
+
+.input::placeholder,
+.textarea::placeholder { color: var(--text-3); opacity: 1; }
+
+.input:disabled,
+.select:disabled,
+.textarea:disabled {
+  background: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text-3);
+}
+
+.input[aria-invalid="true"] { border-color: var(--case-red); }
+
+.select {
+  padding-right: var(--s-5);
+  appearance: none;
+  -webkit-appearance: none;
+  /* The caret is an inline SVG data URI, not an image file: the prototype is
+     one HTML file and must render with no external requests. A data URI
+     cannot read a custom property, so the stroke is --text-2's literal value
+     (#5C554C) and is the one place in this sheet that must be kept in sync
+     with 01-tokens.css by hand. */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%235C554C' stroke-width='1.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--s-2) center;
+}
+
+/* Native checkbox with the brand accent: a real control, keyboard-operable
+   and announced correctly, rather than a styled div pretending to be one. */
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  min-height: var(--hit);
+  padding: var(--s-1) 0;
+  cursor: pointer;
+  font-size: var(--fs-body);
+  color: var(--text);
+}
+
+.check input[type="checkbox"],
+.check input[type="radio"] {
+  flex: none;
+  width: 15px;
+  height: 15px;
+  margin-top: 2px;
+  accent-color: var(--case-red);
+  cursor: inherit;
+}
+
+.check__text {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+
+/* Counts are part of the label, greyed at (0) rather than hidden — a zero
+   option is selectable and produces a named empty state (L-05, E-03). */
+.check__count {
+  margin-left: var(--s-1);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Kept as three separate rules on purpose: an engine that does not understand
+   `:has()` drops the whole rule it appears in, taking the sibling selectors
+   with it, and this stylesheet has to parse in an old tablet Safari. */
+.check input:disabled ~ .check__text { color: var(--text-3); cursor: not-allowed; }
+
+.check--disabled { color: var(--text-3); cursor: not-allowed; }
+
+.check:has(input:disabled) { color: var(--text-3); cursor: not-allowed; }
+
+/* Range inputs. Two of them plus two number boxes make one dual-range
+   control; both views write the same value (L-08). */
+.range {
+  width: 100%;
+  min-height: var(--hit);
+  accent-color: var(--case-red);
+  background: transparent;
+}
+
+.range:disabled { accent-color: var(--line-strong); }
+
+.rangepair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-2);
+  align-items: center;
+}
+
+.rangepair__sliders { grid-column: 1 / -1; display: grid; gap: 2px; }
+
+/* ==================================================== search combobox ===== */
+.search__input {
+  width: 100%;
+  min-height: var(--hit);
+  padding: 0 var(--hit) 0 var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--fs-body);
+}
+
+.search__input::-webkit-search-cancel-button { display: none; }
+
+.search__clear {
+  position: absolute;
+  top: 50%;
+  right: 2px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-btn);
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.search__clear:hover { background: var(--surface-3); color: var(--text); }
+
+.search__results {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-popover);
+  max-height: 60vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-1);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+}
+
+.search__group {
+  padding: var(--s-2) var(--s-2) var(--s-1);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.search__opt {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-btn);
+  text-align: left;
+  cursor: pointer;
+}
+
+.search__opt:hover,
+.search__opt[aria-selected="true"] { background: var(--surface-3); }
+
+.search__opt-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.search__opt-meta {
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+/* ============================================================== popovers == */
+.pop {
+  position: absolute;
+  z-index: var(--z-popover);
+  min-width: 220px;
+  max-width: min(360px, 90vw);
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+  animation: geo-pop-in var(--dur-fast) var(--ease-out);
+}
+
+@keyframes geo-pop-in {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+.menu { padding: var(--s-1); }
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  padding: var(--s-1) var(--s-2);
+  border-radius: var(--r-btn);
+  text-align: left;
+  color: var(--text);
+}
+
+.menu__item:hover:not(:disabled) { background: var(--surface-3); }
+
+.menu__item[aria-checked="true"] { font-weight: 600; }
+
+.menu__item[aria-checked="true"]::before { content: "\2713"; color: var(--case-red); }
+
+.menu__item:disabled { color: var(--text-3); }
+
+/* A disabled menu entry states its reason on the row, not only in a title. */
+.menu__reason {
+  margin-left: auto;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.menu__foot {
+  padding: var(--s-2);
+  border-top: 1px solid var(--line);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+/* Hover/focus tooltip. Never the only route to information (IA §6.4). */
+.tip {
+  position: absolute;
+  z-index: var(--z-popover);
+  max-width: 260px;
+  padding: var(--s-2);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-overlay);
+  font-size: var(--fs-sm);
+  color: var(--text);
+  pointer-events: none;
+}
+
+/* =============================================================== tables === */
+.tbl {
+  width: 100%;
+  font-size: var(--fs-sm);
+}
+
+.tbl th {
+  padding: var(--s-2);
+  text-align: left;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--line-strong);
+  white-space: nowrap;
+}
+
+.tbl td {
+  padding: var(--s-2);
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  vertical-align: top;
+}
+
+.tbl tbody tr:hover td { background: var(--surface-2); }
+
+.tbl--zebra tbody tr:nth-child(even) td { background: var(--surface-2); }
+
+.tbl__num,
+.tbl td.tbl__num,
+.tbl th.tbl__num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.tbl__rowhd {
+  font-weight: 600;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
+.tbl caption {
+  caption-side: top;
+  padding-bottom: var(--s-2);
+  text-align: left;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+/* ======================================== insufficient / empty states ===== */
+/* E-06. Replaces the *value*, never the denominator line: the coverage
+   sentence below it is the explanation, so both always render. */
+.insufficient {
+  padding: var(--s-3);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  background: var(--surface-2);
+}
+
+.insufficient__title {
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.insufficient__why {
+  margin-top: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+}
+
+.insufficient .coverage { margin-top: var(--s-2); }
+
+/* E-01…E-13. An empty state always names the cause and offers the escape. */
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-5) var(--s-4);
+  color: var(--text-2);
+}
+
+.empty--center { align-items: center; text-align: center; }
+
+.empty__title {
+  font-size: var(--fs-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.empty__body { font-size: var(--fs-body); color: var(--text-2); max-width: 46ch; }
+
+.empty__actions { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+
+/* ============================================================== toasts ==== */
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-left: 3px solid var(--text-3);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-overlay);
+  animation: geo-toast-in var(--dur-modal) var(--ease-out);
+}
+
+@keyframes geo-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.toast--error { border-left-color: var(--case-red); }
+.toast--success { border-left-color: var(--status-good); }
+
+.toast__msg { flex: 1; min-width: 0; font-size: var(--fs-body); color: var(--text); }
+
+.toast__action {
+  flex: none;
+  min-height: var(--hit);
+  padding: 0 var(--s-2);
+  border-radius: var(--r-btn);
+  font-weight: 600;
+  color: var(--case-red);
+}
+
+.toast__action:hover { background: var(--data-soft); }
+
+.toast__close {
+  flex: none;
+  width: var(--hit);
+  height: var(--hit);
+  border-radius: var(--r-btn);
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.toast__close:hover { background: var(--surface-3); color: var(--text); }
+
+/* ========================================================= R10 notice ===== */
+.notice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: none;
+  padding: var(--s-2) var(--s-4);
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--line-strong);
+  color: var(--text);
+  font-size: var(--fs-sm);
+  z-index: var(--z-notice);
+}
+
+.notice__msg { flex: 1; min-width: 0; }
+
+.notice__detail { color: var(--text-2); }
+
+.notice__actions { display: flex; align-items: center; gap: var(--s-2); flex: none; }
+
+/* ======================================================= demo banner ====== */
+/* D4. Deliberately not dismissible: while demo mode is on, every number on
+   screen may include synthetic values, and that has to be visible from
+   anywhere in the app. Full width, above the header, in the app's only
+   warning wash. The "turn off" button is the escape — the banner itself has
+   no close control on purpose. */
+.demobar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-3);
+  flex: none;
+  padding: var(--s-2) var(--s-4);
+  background: var(--demo-bg);
+  border-bottom: 1px solid var(--demo-line);
+  color: var(--demo-text);
+  font-size: var(--fs-sm);
+  z-index: var(--z-notice);
+}
+
+.demobar strong { letter-spacing: var(--tracking-caps); }
+
+.demobar span { flex: 1; min-width: 12ch; }
+
+.demobar__off {
+  flex: none;
+  min-height: var(--hit);
+  padding: 0 var(--s-3);
+  border: 1px solid var(--demo-line);
+  border-radius: var(--r-btn);
+  background: var(--surface);
+  color: var(--demo-text);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+}
+
+.demobar__off:hover { background: var(--demo-bg); }
+
+/* ========================================================== disclosure ==== */
+/* 0fr → 1fr is the one height animation that works without measuring the
+   content in JS, which matters because these wrap variable-length data. */
+.disc { border-bottom: 1px solid var(--line); }
+
+.disc__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  padding: var(--s-2) 0;
+  text-align: left;
+  font-size: var(--fs-body);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.disc__hd::before {
+  content: "\25B8";
+  flex: none;
+  color: var(--text-3);
+  font-size: 10px;
+  transition: transform var(--dur-modal) var(--ease-out);
+}
+
+.disc[data-open="true"] > .disc__hd::before { transform: rotate(90deg); }
+
+.disc__count {
+  margin-left: auto;
+  font-weight: 400;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.disc__wrap {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-modal) var(--ease-out);
+}
+
+.disc[data-open="true"] > .disc__wrap { grid-template-rows: 1fr; }
+
+.disc__body { overflow: hidden; min-height: 0; }
+
+.disc[data-open="true"] > .disc__wrap > .disc__body { padding-bottom: var(--s-3); }
+
+/* ============================================================ utilities === */
+.stack { display: flex; flex-direction: column; gap: var(--s-2); }
+.stack--lg { gap: var(--s-4); }
+.row { display: flex; align-items: center; gap: var(--s-2); flex-wrap: wrap; }
+.row--tight { gap: var(--s-1); }
+.push { margin-left: auto; }
+.sep { color: var(--line-strong); }
+.muted { color: var(--text-2); }
+.micro { font-size: var(--fs-xs); color: var(--text-3); }
+
+.sectitle {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: var(--s-2);
+}
+
+.card {
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+}
+
+.card--flat { box-shadow: none; }

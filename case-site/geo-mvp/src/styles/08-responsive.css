@@ -1,0 +1,502 @@
+/* ===========================================================================
+ * 08-responsive — XXL · XL · L · M · S · XS · XXS
+ *
+ * IA §2.2 (exact track widths) and §2.3 (the mobile transformation).
+ *
+ * Two things this file is responsible for and must not get wrong:
+ *   P1 — the map is never narrower than 560px at ≥1280 or 520px at 1024–1279.
+ *        That is enforced by `minmax(var(--map-min), 1fr)` in the body grid
+ *        plus these per-breakpoint track values; nothing else may shrink it.
+ *   X-8 — at 375px there is no horizontal page scroll and nothing is clipped.
+ *        Every track here is either `1fr` or a `min()` against the viewport,
+ *        and every text box wraps rather than truncating.
+ *
+ * Below 768px the interface is RE-COMPOSED, not re-scaled (§26): panels
+ * become bottom sheets with a drag handle and a close button, and the tab bar
+ * becomes the switcher. A narrow copy of the desktop panel is the failure
+ * this section exists to avoid.
+ * ========================================================================= */
+
+/* ============================================ rail state (all desktop) ==== */
+/* Specificity note: `.app[data-left]` (0,2,0) beats the `:root` declarations
+   below, and setting the custom property on `.app` overrides what `.app`
+   inherits — so these win at every breakpoint without !important. */
+.app[data-left="collapsed"] { --left-w: var(--left-w-collapsed); }
+.app[data-left="closed"]    { --left-w: 0px; }
+
+/* ================================================== XXL — ≥1920px ======== */
+@media (min-width: 1920px) {
+  :root { --left-w: 360px; --map-min: 640px; }
+  .app[data-right="open"] { --right-w: 520px; }
+}
+
+/* =================================================== XL — 1440–1919 ====== */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .app[data-right="open"] { --right-w: 440px; }
+}
+
+/* ==================================================== L — 1280–1439 ====== */
+/* 300 + 560 + 420 = 1280 exactly — both rails open sits precisely on the P1
+   floor, which is why 1280 is the breakpoint and not a round number. */
+/* 1280–1599: the header carries everything, and the data chip left uncapped
+   takes 312px for its full sentence — which pushed the search to its 140px
+   floor on a 1440px screen. The chip says less; the search gets to be a search. */
+@media (min-width: 1280px) and (max-width: 1599px) {
+  .chip--data { max-width: 240px; }
+}
+
+@media (min-width: 1280px) and (max-width: 1439px) {
+  :root { --left-w: 300px; }
+  .app[data-right="open"] { --right-w: 420px; }
+}
+
+/* ==================================================== M — 1024–1279 ====== */
+/* P2: opening the right rail collapses the left rail to the 52px strip.
+   52 + 572 + 400 = 1024. The rails swap here; they never squeeze. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root { --left-w: 280px; --map-min: 520px; }
+  .app[data-right="open"] { --right-w: 400px; }
+}
+
+/* ============================== S — ≤1023: rails float over the map ====== */
+/* 1024–1279: rails are a collapsed icon strip, so no tab bar — but the header
+   still carries every control and has no room to spare for a prose chip. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  /* The rails are a collapsed icon strip here, so Analytics / Assistant / Data
+     stay in the header — 412px of actions — and with the lockup, the WORKING
+     TITLE chip and the two scope buttons the auto tracks came to 1023px on a
+     1024px screen. The search track was 0.
+
+     So the boundary is now one rule, not a set of caps: the scope selectors
+     and the provisional-name chip are header controls at 1280 and above; below
+     that they live in Settings. They are single-value and rarely changed, and
+     the search is used constantly — the header should be tight around the
+     thing people actually type into. */
+  .hdr__scope { display: none; }
+  #product-provisional { display: none; }
+  .chip--data { min-width: 150px; max-width: 210px; }
+  .hdr__search { max-width: 320px; }
+}
+
+@media (max-width: 1023px) {
+  /* Touch breakpoints: every hit target grows to 44px (IA §6, X-8). */
+  :root { --hit: var(--hit-touch); }
+
+  .app__body { grid-template-columns: minmax(0, 1fr); }
+
+  /* P3: at most one drawer is open; opening one closes the other. The drawer
+     is anchored to `.app__body`, not the viewport, so a visible notice bar or
+     demo banner moves it down with the rest of the shell instead of letting
+     it slide under the header. */
+  .rail {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: auto;
+    width: var(--rail-overlay-w);
+    z-index: var(--z-sheet);
+    border-right: 1px solid var(--line-strong);
+    border-left: 0;
+    box-shadow: var(--shadow-overlay);
+    transform: translateX(-100%);
+    visibility: hidden;
+    /* The visibility delay keeps the panel in the tab order while it is
+       sliding out, and removes it the instant it has gone. */
+    transition: transform var(--dur-panel) var(--ease-panel),
+                visibility 0s linear var(--dur-panel);
+  }
+
+  .rail--right {
+    left: auto;
+    right: 0;
+    border-left: 1px solid var(--line-strong);
+    border-right: 0;
+    transform: translateX(100%);
+  }
+
+  /* Keyed on the attribute render() ACTUALLY WRITES — `data-left` / `data-right`
+     on #app — and not on a `data-open` on the rail, which nothing ever set.
+
+     That mismatch meant the drawer never opened on any touch width: state said
+     "open", #app said "open", the rail stayed translated off-screen with
+     visibility:hidden, and Filters and List were unreachable on every phone and
+     tablet. The screenshots looked fine because a closed drawer looks exactly
+     like a map. Same fix for the phone sheet below.
+
+     (0,3,0) and later in the cascade, so it beats the docked-state rule in
+     03-layout.css that hides a zero-width left rail. */
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right {
+    transform: none;
+    visibility: visible;
+    transition: transform var(--dur-panel) var(--ease-panel), visibility 0s;
+  }
+
+  /* The collapsed icon strip is a ≥1024 idea; below that the rail is either
+     a drawer or it is closed. */
+  .app[data-left="collapsed"] .rail--left .rail__tabs { flex-direction: row; }
+  .app[data-left="collapsed"] .rail--left .rail__tab { writing-mode: horizontal-tb; min-height: var(--hit); }
+  /* Restored explicitly rather than with `revert`, which is not safe on the
+     oldest engine this has to run on. */
+  .app[data-left="collapsed"] .rail__count { display: block; }
+  .app[data-left="collapsed"] .rail__body { display: block; }
+  .app[data-left="collapsed"] .rail__body--ai { display: flex; }
+  .app[data-left="collapsed"] .rail__foot { display: flex; }
+
+  /* M-10: the legend defaults to collapsed below 1024 and must never cover
+     the map's bottom-left corner when open. */
+  .maplegend { max-width: min(240px, 60vw); }
+
+  /* The data workspace sub-nav becomes a horizontal scrolling strip. */
+  .dw { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); }
+
+  .dw__nav {
+    flex-direction: row;
+    gap: var(--s-1);
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: var(--s-1);
+  }
+
+  .dw__navbtn { flex: none; white-space: nowrap; }
+
+  /* ── the tab bar belongs to the DRAWER band, not to phones ──────────────
+     This was the tablet bug. The rails become off-screen drawers at 1023px,
+     but the bottom tab bar that opens them only existed below 768px — so from
+     768 to 1023, iPad portrait included, the left rail sat parked at x:-400
+     with nothing on screen able to reach it. Filters, the results list, the
+     assistant and the data workspace were all unreachable on a tablet.
+
+     The boundary is now the honest one: wherever the rails are drawers, the
+     tab bar exists to open them. Below 768 the phone block narrows it further;
+     it does not re-declare it. */
+  :root { --tabbar-h: 56px; }
+
+  .app { grid-template-rows: var(--header-h) minmax(0, 1fr) var(--tabbar-h); }
+
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    background: var(--surface);
+    border-top: 1px solid var(--line-strong);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tabbar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--hit-touch);
+    padding: 0 var(--s-1);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabbar__btn[aria-current="page"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 2px 0 var(--case-red);
+  }
+
+  /* Analytics, Assistant and Data are IN the tab bar at this width, so the
+     header must stop carrying them too. Keeping both was what squeezed the data
+     chip down to 18px — a chip that renders as an ellipsis and nothing else.
+     The phone block already did this; it belongs to the tab bar's existence,
+     not to phone-ness. The city and asset-type selectors stay: a tablet has the
+     room, and they carry the scope every figure on screen is computed over. */
+  #btn-analytics,
+  #btn-ai,
+  #btn-data { display: none; }
+
+  #product-provisional { display: none; }
+
+  /* The search sits in the header's 1fr track, and `minmax(0, 1fr)` lets that
+     track shrink to ZERO. At 768px it did: the auto tracks — lockup 195, scope
+     244, actions 269 — plus gaps and padding came to exactly 768, the search
+     track measured 0px, and the <input> inside drew 120px straight across the
+     scope buttons and the first third of the data chip. A min-width on the
+     ITEM cannot grow the TRACK, which is why the first attempt changed nothing.
+
+     Two things, both structural. The city and asset-type selectors move into
+     Settings here, as they already do on phones — I had assumed a tablet had
+     the room for them and the measurement says it does not. And the track gets
+     a floor of its own, so no future control added to the header can push the
+     search back to nothing. */
+  .hdr__scope { display: none; }
+  .search__input { width: 100%; min-width: 0; }
+
+  /* The data chip is prose, and the header gives it whatever column is left.
+     Unconstrained at tablet width that column was 68px, so "148 records · 2
+     sources · updated 19 Jul 2026 · 0 field-verified" wrapped into a 162px
+     vertical ribbon that burst out of a 56px header and pushed the CASE
+     lockup off the top of the page. It truncates here as it already did on
+     phones — just with the width a tablet can actually spare. */
+  .chip--data {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Nothing anchored to the bottom of the map may sit under the tab bar.
+     The NOTICE is not in this list: it lives at the top precisely so it never
+     shares a corner with the legend, and including it here re-created the
+     overlap the earlier move had fixed — 527px² of notice across the legend
+     at 768. */
+  .maplegend { bottom: calc(var(--tabbar-h) + var(--s-2)); }
+
+  /* Overlays go full-bleed: a centred card with 4vw margins wastes the only
+     width the comparison table has. */
+  .overlay {
+    top: 0;
+    left: 0;
+    transform: none;
+    /* 100% of the initial containing block, not 100vw: vw includes a
+       classic scrollbar's width and would push the page sideways. */
+    width: 100%;
+    height: 100%;
+    height: 100dvh;
+    max-width: none;
+    border: 0;
+    border-radius: 0;
+    animation: geo-modal-in-full var(--dur-modal) var(--ease-panel);
+  }
+
+  #overlay-compare,
+  #overlay-data { width: 100%; height: 100dvh; }
+
+  .overlay__hdr { flex-wrap: wrap; }
+}
+
+@keyframes geo-modal-in-full {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ========================= XS / XXS — ≤767: sheets + bottom tab bar ====== */
+@media (max-width: 767px) {
+  :root {
+    --header-h: 52px;
+    --tabbar-h: 56px;
+  }
+
+  .app { grid-template-rows: var(--header-h) minmax(0, 1fr) var(--tabbar-h); }
+
+  /* --- header: wordmark · search · data chip · settings (IA §2.3) -------- */
+  /* The city and property-type selectors carry one value each and move into
+     the settings sheet; Analytics / Assistant / Data move into the tab bar.
+     Nothing is lost — each function has exactly one place at this width. */
+  .hdr {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: var(--s-2);
+    padding: 0 var(--s-2);
+  }
+
+  .hdr__scope { display: none; }
+  #product-provisional { display: none; }
+  #btn-analytics,
+  #btn-ai,
+  #btn-data,
+  #lang-menu { display: none; }
+
+  /* The descriptor line comes off below 768px. "REAL ESTATE ADVISORY" is 144px
+     wide at its 2.2px tracking — wider than the wordmark it sits under — and it
+     was taking 185px of a 375px header, which crushed the search field to 18px.
+     The wordmark and the product name both stay: what is lost is a line of
+     7.5px micro-type that a phone cannot usefully read anyway. */
+  .lockup__s { display: none; }
+  .lockup__n { margin-bottom: 0; }
+  .hdr__rule { height: 18px; }
+
+  .hdr__name { font-size: var(--fs-lg); }
+  .hdr__search { max-width: none; }
+  .search__input { padding-left: var(--s-2); }
+
+  .chip--data {
+    max-width: 88px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* --- rails become bottom sheets --------------------------------------- */
+  /* Sheets never cover more than 94dvh so the map stays visible as an
+     orientation anchor, and they sit above the tab bar so the switcher is
+     always reachable (P4, X-8). */
+  .rail {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: min(var(--sheet-h, 72dvh), 94%);
+    border: 0;
+    border-top: 1px solid var(--line-strong);
+    border-radius: var(--r-sheet) var(--r-sheet) 0 0;
+    transform: translateY(100%);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .rail--right { transform: translateY(100%); }
+
+  .app[data-left="open"] .rail--left,
+  .app[data-right="open"] .rail--right { transform: none; }
+
+  /* Q-8: drag is captured by the handle strip and the sheet header only, so
+     the sheet body still scrolls and the map underneath is untouched. The
+     handle is a visible affordance AND there is always a close button — drag
+     is never the only way out. */
+  .rail__tabs {
+    position: relative;
+    padding-top: var(--s-4);
+    touch-action: none;
+  }
+
+  .rail__tabs::before {
+    content: "";
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--line-strong);
+  }
+
+  /* --- tab bar (R12) ----------------------------------------------------- */
+  .tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    align-items: stretch;
+    background: var(--surface);
+    border-top: 1px solid var(--line-strong);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .tabbar__btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--hit-touch);
+    padding: 0 var(--s-1);
+    font-size: var(--fs-sm);
+    font-weight: 500;
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .tabbar__btn[aria-current="page"] {
+    color: var(--text);
+    font-weight: 600;
+    box-shadow: inset 0 2px 0 var(--case-red);
+  }
+
+  /* --- map chrome ------------------------------------------------------- */
+  .mapchrome { top: var(--s-2); right: var(--s-2); gap: var(--s-1); }
+  .maplegend { left: var(--s-2); bottom: var(--s-2); max-width: min(220px, 62vw); }
+
+  /* --- compare tray: pinned above the tab bar, full width ---------------- */
+  .tray {
+    left: var(--s-2);
+    right: var(--s-2);
+    bottom: var(--s-2);
+    transform: none;
+    max-width: none;
+    min-height: 44px;
+    animation: geo-fade-in var(--dur-modal) var(--ease-out);
+  }
+
+  /* --- toasts span the width so the action is thumb-reachable ------------ */
+  .toasts {
+    left: var(--s-2);
+    right: var(--s-2);
+    width: auto;
+    bottom: calc(var(--tabbar-h) + var(--s-2));
+  }
+
+  /* --- panels ----------------------------------------------------------- */
+  .rail__body { padding: var(--s-3); }
+  .rail__body--ai { padding: 0; }
+  .list { padding: var(--s-2) var(--s-3); }
+  .stats { grid-template-columns: minmax(0, 1fr); }
+  .loc__bands { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .form { max-width: none; }
+  .form__row { grid-template-columns: minmax(0, 1fr); }
+  .kv { grid-template-columns: minmax(0, 1fr) auto; }
+  .kv__k { grid-column: 1 / -1; }
+
+  /* Charts drop to one column at a fixed 260px height (IA §2.3). */
+  .chart { padding: var(--s-3); }
+  .chart__svg { height: 260px; }
+
+  .dialog__panel { width: 100%; max-height: 92dvh; }
+
+  .ai__log { padding: var(--s-3); }
+  .ai__form { padding: var(--s-2) var(--s-3) calc(var(--s-2) + env(safe-area-inset-bottom)); }
+  .msg--user { max-width: 100%; }
+
+  .covrow { grid-template-columns: minmax(0, 1fr) 72px; grid-template-rows: auto auto; }
+  .covrow__bar { grid-column: 1 / -1; }
+}
+
+/* ================================================= XXS — ≤480px ========== */
+@media (max-width: 480px) {
+  /* Below 480 the comparison is paged one property at a time (IA §2.3): four
+     140px columns plus a sticky row-label column cannot be read at 375px, and
+     a horizontally scrolling table is not a comparison. */
+  .cmp__table th,
+  .cmp__table td { min-width: 132px; padding: var(--s-2); }
+  .cmp__table th[scope="row"],
+  .cmp__rowhd { min-width: 112px; }
+
+  .cmp__pager {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-2);
+    padding: var(--s-2) 0;
+    border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .loc__bands { grid-template-columns: minmax(0, 1fr); }
+
+  .rcard__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+  .tabbar__btn { font-size: var(--fs-xs); }
+
+  .hdr__name { font-size: var(--fs-md); }
+
+  /* Last line of defence for X-8. If anything below still overflows it is a
+     bug in that component, not something to be papered over here — but a
+     horizontal scrollbar on the page is never the user's problem. */
+  html, body { max-width: 100%; overflow-x: hidden; }
+}
+
+/* =========================================== coarse pointers, any width == */
+/* A touchscreen laptop gets the larger targets without the layout change. */
+@media (pointer: coarse) {
+  :root { --hit: var(--hit-touch); }
+
+  /* Hover-revealed affordances have no hover on touch, so they are always on.
+     M-02 additionally suppresses the marker tooltip on touch — a tap selects. */
+  .rcard__zoom { opacity: 1; }
+}
+
+/* ================================================= very short viewports == */
+/* A landscape phone has ~360px of height: the sheets must not become taller
+   than the screen, and the legend must get out of the way. */
+@media (max-height: 460px) and (max-width: 1023px) {
+  .rail { height: min(var(--sheet-h, 72dvh), 88%); }
+  .maplegend { display: none; }
+}

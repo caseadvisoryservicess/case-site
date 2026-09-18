@@ -1,0 +1,167 @@
+#!/usr/bin/env python3
+"""
+Assembler for the Geoanalytics MVP prototype.
+
+Reads src/manifest.json and inlines every CSS file, JS module, vendor library and
+generated dataset into ONE self-contained index.html that opens directly from file://
+with no server, no build tooling and no network (except optional OSM map tiles).
+
+    python3 build.py             # build index.html
+    python3 build.py --check     # verify index.html is up to date (CI / QA)
+    python3 build.py --partial   # build from whatever modules exist yet, to
+                                 # index.partial.html — for testing mid-build.
+                                 # Never the deliverable; it is gitignored.
+
+The prototype is AUTHORED as modules under src/ (brief §30: keep conceptual modules
+separate) and SHIPPED as a single file (brief §29: one main HTML file, no build process
+required to run it). Running this assembler is only required to rebuild after editing src/.
+"""
+import json, sys, re, hashlib, base64
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+MANIFEST = json.loads((ROOT / 'src' / 'manifest.json').read_text(encoding='utf-8'))
+
+if '--partial' in sys.argv:
+    # Drop manifest entries whose file does not exist yet, so the app can be
+    # loaded and driven in a browser before every module is written. A missing
+    # module makes its features inert rather than breaking the page, because
+    # every caller guards on the namespace it needs.
+    for group in ('css', 'js'):
+        for name, files in MANIFEST[group].items():
+            MANIFEST[group][name] = [f for f in files if (ROOT / f).exists()]
+    MANIFEST['output'] = 'index.partial.html'
+
+MARKER = re.compile(r'^(?P<indent>[ \t]*)<!--@(?P<kind>[A-Z_]+):(?P<name>[^>]+?)-->[ \t]*$', re.M)
+
+
+def read(rel: str) -> str:
+    p = ROOT / rel
+    if not p.exists():
+        sys.exit(f'build.py: missing file referenced by manifest: {rel}')
+    return p.read_text(encoding='utf-8')
+
+
+def js_safe(payload: str) -> str:
+    """Make a JSON payload safe to embed inside <script>.
+
+    `</script>` anywhere inside a string literal terminates the block — and these notes are
+    free text scraped from a third party, so it is not hypothetical. U+2028/U+2029 are line
+    terminators in JS but not in JSON, and would be a syntax error inside a string literal.
+    """
+    return (payload.replace('<', r'\u003c')
+                   .replace('\u2028', r'\u2028')
+                   .replace('\u2029', r'\u2029'))
+
+
+def banner(rel: str) -> str:
+    return f'/* ==== {rel} ==== */'
+
+
+def bundle(kind: str, name: str) -> str:
+    """Expand one <!--@KIND:name--> marker into inlined content."""
+    if kind == 'CSS':
+        parts = [f'{banner(f)}\n{read(f)}' for f in MANIFEST['css'][name]]
+        return '<style>\n' + '\n'.join(parts) + '\n</style>'
+
+    if kind == 'JS':
+        parts = [f'{banner(f)}\n{read(f)}' for f in MANIFEST['js'][name]]
+        # A syntax error in one module would silently kill every later module in the same
+        # <script>, so each module gets its own tag: the browser then reports the real file.
+        return '\n'.join(
+            f'<script>\n{p}\n</script>' for p in parts
+        )
+
+    if kind == 'FONT':
+        # The brand's display face, inlined as base64.
+        #
+        # WHY INLINE AND NOT @import. The deliverable's normal home is file:// with no
+        # network, where a Google Fonts request cannot resolve — so the serif, which is
+        # the CASE identity's strongest signal, was never actually rendering in the mode
+        # the prototype is delivered in. It fell back to Georgia, or on Linux to whatever
+        # generic serif exists. A logo that changes shape depending on the machine it is
+        # opened on is not a logo. 25 KB (33 KB base64) buys an identical wordmark
+        # everywhere, online or off.
+        #
+        # LICENCE. DM Serif Display is SIL Open Font License 1.1 — embedding is expressly
+        # permitted. The OFL requires the notice to travel with the font, so the full
+        # licence ships beside it at src/assets/dmserif-display-OFL.txt and is named in
+        # the @font-face comment below.
+        spec = MANIFEST['fonts'][name]
+        raw = (ROOT / spec['file']).read_bytes()
+        b64 = base64.b64encode(raw).decode('ascii')
+        return ('<style>\n'
+                f'/* {spec["family"]} — SIL Open Font License 1.1.\n'
+                f'   Copyright 2014-2018 Adobe (Reserved Font Name \'Source\'); Copyright 2019 Google LLC.\n'
+                f'   Full licence: {spec["licence"]} */\n'
+                f'@font-face{{font-family:\'{spec["family"]}\';font-style:normal;font-weight:400;'
+                f'font-display:swap;src:url(data:font/woff2;base64,{b64}) format(\'woff2\');}}\n'
+                '</style>')
+
+    if kind == 'DATA':
+        # Generated seed data: emitted as a JS assignment so it loads over file:// where
+        # fetch() of a local JSON file is blocked by CORS.
+        spec = MANIFEST['data'][name]
+        payload = read(spec['file'])
+        json.loads(payload)  # fail the build rather than ship malformed seed data
+        return (f'<script>\n{banner(spec["file"])}\n'
+                f'window.{spec["global"]} = {js_safe(payload)};\n</script>')
+
+    sys.exit(f'build.py: unknown marker kind @{kind}')
+
+
+def stamp() -> str:
+    """Record what went into this build so a stale index.html is detectable by eye."""
+    files = ([MANIFEST['shell']]
+             + [f for v in MANIFEST['css'].values() for f in v]
+             + [f for v in MANIFEST['js'].values() for f in v]
+             + [d['file'] for d in MANIFEST['data'].values()]
+             + [f['file'] for f in MANIFEST.get('fonts', {}).values()])
+    lines = [f'  {hashlib.sha256((ROOT / f).read_bytes()).hexdigest()[:12]}  {f}' for f in files]
+    return ('<!--\n  BUILT BY build.py — DO NOT EDIT THIS FILE BY HAND.\n'
+            '  Edit the sources under src/ and re-run:  python3 build.py\n'
+            '  Verify it is current with:               python3 build.py --check\n\n'
+            + '\n'.join(lines) + '\n-->')
+
+
+def build() -> str:
+    shell = read(MANIFEST['shell'])
+    out = MARKER.sub(lambda m: bundle(m.group('kind'), m.group('name').strip()), shell)
+    left = MARKER.search(out)
+    if left:
+        sys.exit(f'build.py: unexpanded marker {left.group(0).strip()}')
+    out = out.replace('<!--@STAMP-->', stamp())
+
+    # On file:// there is no HTTP header to declare the encoding, and the data is largely
+    # Cyrillic — a wrong guess renders the whole dataset as mojibake. Assert, don't hope.
+    head = out[:out.index('>', out.index('<head')) + 1]
+    if 'charset="utf-8"' not in out[:400].lower().replace("'", '"'):
+        sys.exit('build.py: <meta charset="utf-8"> must be the first element of <head>')
+    if out.startswith('\ufeff'):
+        sys.exit('build.py: output must be UTF-8 without BOM')
+    return out
+
+
+def main() -> None:
+    html = build()
+    target = ROOT / MANIFEST['output']
+    digest = hashlib.sha256(html.encode('utf-8')).hexdigest()[:12]
+
+    if '--check' in sys.argv:
+        if not target.exists():
+            sys.exit(f'build.py --check: {target.name} has not been built')
+        current = target.read_text(encoding='utf-8')
+        if current != html:
+            sys.exit(f'build.py --check: {target.name} is STALE — run `python3 build.py`')
+        print(f'build.py --check: {target.name} is up to date ({len(html):,} bytes, sha {digest})')
+        return
+
+    target.write_text(html, encoding='utf-8')
+    n_js = sum(len(v) for v in MANIFEST['js'].values())
+    n_css = sum(len(v) for v in MANIFEST['css'].values())
+    print(f'built {target.name}: {len(html):,} bytes  '
+          f'({n_css} css + {n_js} js modules + {len(MANIFEST["data"])} datasets)  sha {digest}')
+
+
+if __name__ == '__main__':
+    main()

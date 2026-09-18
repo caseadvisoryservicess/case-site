@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en" data-motion="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>CASE Geo – Tashkent Business Centres</title>
+<meta name="description" content="Geoanalytics prototype for commercial real estate: Tashkent business centres, with visible data provenance and coverage.">
+<meta name="color-scheme" content="light">
+<!-- The CASE mark, not a generic map pin: the red field from the brand palette
+     carrying the wordmark's initial. An SVG favicon cannot use the embedded
+     webfont, so the letter is set in a generic serif stack — at 16px the face is
+     indistinguishable and the recognisable signal is the red tile plus the C. -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23B01F22'/%3E%3Ctext x='16' y='23.5' font-family='Georgia,%20Times%20New%20Roman,serif' font-size='23' text-anchor='middle' fill='%23F5F3EF'%3EC%3C/text%3E%3C/svg%3E">
+<!--@STAMP-->
+<!--@FONT:display-->
+<!--@CSS:vendor-->
+<!--@CSS:app-->
+</head>
+<body>
+
+<!-- R13 boot / recovery surface. Blocks the app; shown only on a boot failure. -->
+<div class="boot" id="boot" hidden role="alertdialog" aria-modal="true" aria-labelledby="boot-title">
+  <div class="boot__panel">
+    <h1 class="boot__title" id="boot-title">Could not start</h1>
+    <p class="boot__msg" id="boot-msg"></p>
+    <div class="boot__actions" id="boot-actions"></div>
+  </div>
+</div>
+
+<a class="skiplink" href="#results-list">Skip to the results list</a>
+
+<!-- R10 persistent system notice (storage unavailable, tiles offline, schema mismatch) -->
+<div class="notice" id="notice" role="status" hidden></div>
+
+<!-- The demo banner is deliberately NOT dismissible: while demo mode is on, every
+     number on screen may include synthetic values, and the user must be able to see
+     that at a glance from anywhere in the app (build contract D4). -->
+<div class="demobar" id="demobar" role="status" hidden>
+  <strong>DEMO DATA ACTIVE</strong>
+  <span>Figures on screen may include synthetic records and are not market evidence.</span>
+  <button type="button" class="demobar__off" id="demo-off">Turn off demo records</button>
+</div>
+
+<div class="app" id="app"
+     data-left="open" data-right="closed" data-left-tab="filters" data-right-tab="property">
+
+  <!-- ══════════════ R1 HEADER ══════════════ -->
+  <header class="hdr" role="banner">
+    <div class="hdr__brand">
+      <!-- The CASE lockup, typeset as caseadvisory.com sets it: the wordmark in the
+           display serif over the descriptor in micro-caps. Both halves are written by
+           99-boot from GEO.PRODUCT, never hard-coded here. -->
+      <span class="lockup">
+        <span class="lockup__n" id="brand-word">CASE</span>
+        <span class="lockup__s" id="brand-descriptor">Real Estate Advisory</span>
+      </span>
+      <span class="hdr__rule" aria-hidden="true"></span>
+      <span class="hdr__name" id="product-name">Geo</span>
+      <span class="chip chip--note" id="product-provisional" role="note"
+            title="Product name not final">WORKING TITLE</span>
+    </div>
+
+    <div class="hdr__scope">
+      <button type="button" class="btn btn--ghost btn--menu" id="city-menu"
+              aria-haspopup="menu" aria-expanded="false">Tashkent</button>
+      <button type="button" class="btn btn--ghost btn--menu" id="type-menu"
+              aria-haspopup="menu" aria-expanded="false">Business Centres</button>
+    </div>
+
+    <div class="hdr__search" role="search">
+      <label class="vh" for="search">Search properties, districts and tenants</label>
+      <input id="search" type="search" class="search__input" autocomplete="off" spellcheck="false"
+             role="combobox" aria-expanded="false" aria-controls="search-results"
+             aria-autocomplete="list" placeholder="Search name, address, district…">
+      <button type="button" class="search__clear" id="search-clear" hidden aria-label="Clear search">×</button>
+      <div class="search__results" id="search-results" role="listbox" hidden></div>
+    </div>
+
+    <div class="hdr__actions">
+      <button type="button" class="chip chip--data" id="data-chip"
+              aria-label="Dataset coverage summary. Opens the data workspace."></button>
+      <button type="button" class="btn btn--ghost" id="btn-analytics" aria-pressed="false">Analytics</button>
+      <button type="button" class="btn btn--ghost" id="btn-ai" aria-pressed="false">
+        Assistant<span class="dot" id="ai-dot" hidden aria-label="new response"></span>
+      </button>
+      <button type="button" class="btn btn--ghost" id="btn-data">Data</button>
+      <button type="button" class="btn btn--ghost btn--menu" id="lang-menu"
+              aria-haspopup="menu" aria-expanded="false">EN</button>
+      <button type="button" class="btn btn--icon" id="btn-settings"
+              aria-haspopup="dialog" aria-expanded="false" aria-label="Settings">⚙</button>
+    </div>
+  </header>
+
+  <div class="app__body">
+
+    <!-- ══════════════ R2 LEFT RAIL ══════════════ -->
+    <aside class="rail rail--left" id="rail-left" role="region" aria-label="Filters and results">
+      <div class="rail__tabs" role="tablist" aria-label="Left panel">
+        <button type="button" role="tab" id="tab-filters" aria-selected="true"
+                aria-controls="pane-filters" class="rail__tab">
+          Filters<span class="rail__badge" id="filters-badge" hidden></span>
+          <span class="dot dot--ai" id="filters-ai-dot" hidden aria-label="changed by the assistant"></span>
+        </button>
+        <button type="button" role="tab" id="tab-results" aria-selected="false"
+                aria-controls="pane-results" class="rail__tab">List</button>
+        <button type="button" class="rail__collapse" id="rail-left-collapse"
+                aria-label="Collapse the filter panel">‹</button>
+      </div>
+
+      <div class="rail__count" id="result-count" aria-live="polite"></div>
+
+      <div class="rail__body" id="pane-filters" role="tabpanel" aria-labelledby="tab-filters"></div>
+      <div class="rail__body" id="pane-results" role="tabpanel" aria-labelledby="tab-results" hidden>
+        <ol class="list" id="results-list" tabindex="-1"></ol>
+      </div>
+
+      <div class="rail__foot">
+        <button type="button" class="btn btn--quiet" id="btn-reset-filters" disabled>Reset filters</button>
+        <button type="button" class="btn btn--quiet" id="btn-export-csv">Export CSV</button>
+      </div>
+    </aside>
+
+    <!-- ══════════════ R3 + R4 MAP ══════════════ -->
+    <main class="mapwrap" role="main">
+      <div id="map" role="application" aria-label="Map of Tashkent business centres"></div>
+
+      <div class="mapchrome" id="mapchrome">
+        <div class="mapchrome__group">
+          <button type="button" class="mbtn" id="map-zoom-in" aria-label="Zoom in">+</button>
+          <button type="button" class="mbtn" id="map-zoom-out" aria-label="Zoom out">−</button>
+        </div>
+        <div class="mapchrome__group">
+          <button type="button" class="mbtn" id="map-fit" aria-label="Fit results to the map" title="Fit results">⤢</button>
+          <button type="button" class="mbtn" id="map-reset" aria-label="Reset the map view" title="Reset view">⟲</button>
+          <button type="button" class="mbtn" id="map-full" aria-label="Full screen map" title="Full screen">⛶</button>
+        </div>
+        <div class="mapchrome__group">
+          <button type="button" class="mbtn" id="map-layers" aria-haspopup="dialog"
+                  aria-expanded="false" aria-label="Map layers" title="Layers">≣</button>
+        </div>
+      </div>
+
+      <div class="maplayers" id="maplayers-panel" hidden role="dialog" aria-label="Map layers"></div>
+      <div class="maplegend" id="maplegend"></div>
+      <div class="mapnotice" id="map-notice" role="status" hidden></div>
+
+      <!-- R6 compare tray -->
+      <div class="tray" id="compare-tray" hidden role="region" aria-label="Compare tray">
+        <span class="tray__label" id="compare-tray-label"></span>
+        <div class="tray__items" id="compare-tray-items"></div>
+        <button type="button" class="btn btn--primary btn--sm" id="btn-open-compare">Compare</button>
+        <button type="button" class="btn btn--quiet btn--sm" id="btn-clear-compare">Clear</button>
+      </div>
+    </main>
+
+    <!-- ══════════════ R5 RIGHT RAIL ══════════════ -->
+    <aside class="rail rail--right" id="rail-right" role="region" aria-label="Detail panel" hidden>
+      <div class="rail__tabs" role="tablist" aria-label="Right panel">
+        <button type="button" role="tab" id="tab-property"  aria-selected="true"  aria-controls="pane-property"  class="rail__tab">Property</button>
+        <button type="button" role="tab" id="tab-analytics" aria-selected="false" aria-controls="pane-analytics" class="rail__tab">Analytics</button>
+        <button type="button" role="tab" id="tab-ai"        aria-selected="false" aria-controls="pane-ai"        class="rail__tab">Assistant</button>
+        <button type="button" role="tab" id="tab-layers"    aria-selected="false" aria-controls="pane-layers"    class="rail__tab">
+          Layers<span class="rail__badge" id="layers-badge" hidden></span>
+        </button>
+        <button type="button" class="rail__close" id="rail-right-close" aria-label="Close panel">×</button>
+      </div>
+
+      <div class="rail__body" id="pane-property"  role="tabpanel" aria-labelledby="tab-property"></div>
+      <div class="rail__body" id="pane-analytics" role="tabpanel" aria-labelledby="tab-analytics" hidden></div>
+      <div class="rail__body rail__body--ai" id="pane-ai" role="tabpanel" aria-labelledby="tab-ai" hidden>
+        <div class="ai__log" id="ai-log" aria-live="polite"></div>
+        <div class="ai__suggest" id="ai-suggest"></div>
+        <form class="ai__form" id="ai-form">
+          <label class="vh" for="ai-input">Ask the assistant</label>
+          <textarea id="ai-input" class="ai__input" rows="2" placeholder="Ask about the data – e.g. “Show Class A business centres”"></textarea>
+          <button type="submit" class="btn btn--primary btn--sm" id="ai-send">Ask</button>
+        </form>
+      </div>
+      <div class="rail__body" id="pane-layers" role="tabpanel" aria-labelledby="tab-layers" hidden></div>
+    </aside>
+  </div>
+
+  <!-- R12 mobile tab bar -->
+  <nav class="tabbar" id="tabbar" aria-label="Sections">
+    <button type="button" class="tabbar__btn" data-go="map"       aria-current="page">Map</button>
+    <button type="button" class="tabbar__btn" data-go="results">List</button>
+    <button type="button" class="tabbar__btn" data-go="analytics">Analytics</button>
+    <button type="button" class="tabbar__btn" data-go="ai">Assistant</button>
+    <button type="button" class="tabbar__btn" data-go="data">Data</button>
+  </nav>
+</div>
+
+<!-- ══════════════ R7 / R8 / R9 OVERLAYS ══════════════ -->
+<div class="scrim" id="scrim" hidden></div>
+
+<section class="overlay" id="overlay-compare" hidden role="dialog" aria-modal="true" aria-labelledby="compare-title">
+  <header class="overlay__hdr">
+    <h2 class="overlay__title" id="compare-title">Compare properties</h2>
+    <div class="overlay__actions">
+      <button type="button" class="btn btn--quiet btn--sm" id="compare-print">Print</button>
+      <button type="button" class="btn btn--icon" id="compare-close" aria-label="Close comparison">×</button>
+    </div>
+  </header>
+  <div class="overlay__body" id="compare-body"></div>
+</section>
+
+<section class="overlay" id="overlay-data" hidden role="dialog" aria-modal="true" aria-labelledby="data-title">
+  <header class="overlay__hdr">
+    <h2 class="overlay__title" id="data-title">Data workspace</h2>
+    <div class="overlay__tabs" role="tablist" aria-label="Data workspace sections">
+      <button type="button" role="tab" class="overlay__tab" data-datatab="records"  aria-selected="true">Records</button>
+      <button type="button" role="tab" class="overlay__tab" data-datatab="coverage" aria-selected="false">Coverage</button>
+      <button type="button" role="tab" class="overlay__tab" data-datatab="quality"  aria-selected="false">Quality</button>
+      <button type="button" role="tab" class="overlay__tab" data-datatab="dupes"    aria-selected="false">Duplicates</button>
+      <button type="button" role="tab" class="overlay__tab" data-datatab="changes"  aria-selected="false">Local changes</button>
+      <button type="button" role="tab" class="overlay__tab" data-datatab="io"       aria-selected="false">Import / Export</button>
+    </div>
+    <button type="button" class="btn btn--icon" id="data-close" aria-label="Close the data workspace">×</button>
+  </header>
+  <div class="overlay__body" id="data-body"></div>
+</section>
+
+<div class="dialog" id="dialog" hidden role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+  <div class="dialog__panel">
+    <h2 class="dialog__title" id="dialog-title"></h2>
+    <div class="dialog__body" id="dialog-body"></div>
+    <div class="dialog__actions" id="dialog-actions"></div>
+  </div>
+</div>
+
+<!-- R11 toasts -->
+<div class="toasts" id="toasts" aria-live="polite" aria-atomic="false"></div>
+
+<!-- ══════════════ DATA + CODE ══════════════ -->
+<!--@DATA:seed-->
+<!--@DATA:districts-->
+<!--@JS:vendor-->
+<!--@JS:app-->
+</body>
+</html>

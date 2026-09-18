@@ -1,0 +1,634 @@
+/* ===========================================================================
+ * 05-map — markers, clusters, polygons, radii and the map chrome
+ *
+ * visual-system §3 (marker design), §5 (the no-data treatment), IA R3/R4.
+ *
+ * MARKUP CONTRACT for 11-map.js (L.divIcon only — T2: an inlined Leaflet has
+ * no script src, so L.Icon.Default 404s every image):
+ *
+ *   L.divIcon({
+ *     className: 'geo-marker',          // the Leaflet-positioned host
+ *     iconSize:  [26, 26],
+ *     iconAnchor:[13, 13],
+ *     html: '<span class="pin" data-class="A+">' +
+ *             '<span class="pin__label">A+</span>' +
+ *           '</span>'
+ *   })
+ *
+ * `.geo-marker` is the element Leaflet writes `transform: translate3d(...)`
+ * to, so it must stay untouched by us. `.pin` is the inner mark and owns the
+ * state classes. Size changes are done with `transform: scale()`, never with
+ * width/height — §25's last line forbids animating width/top/left on the map
+ * layer, and a scale runs on the compositor.
+ *
+ * The class letter is inside every circle. That is the point of the design:
+ * identity never depends on colour alone, so the map stays readable under
+ * colour-vision deficiency, in greyscale print and at low zoom.
+ * ========================================================================= */
+
+/* ================================================= Leaflet base overrides = */
+.leaflet-container {
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  background: var(--surface-3);
+}
+
+.leaflet-container a { color: var(--case-red); }
+
+/* leaflet.css gives div icons a white fill and a border. Ours are pure
+   containers for the mark, so both have to go. */
+.leaflet-div-icon,
+.geo-marker {
+  background: transparent;
+  border: 0;
+}
+
+/* Leaflet's own focus outline on the container is removed in some builds;
+   the map is a single tab stop (M-13) and must show it. */
+.leaflet-container:focus-visible {
+  outline: 2px solid var(--case-red);
+  outline-offset: -2px;
+}
+
+/* ================================================================= pins === */
+.geo-marker { overflow: visible; }
+
+.pin {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;                 /* r = 13px */
+  height: 26px;
+  border-radius: 50%;
+  background: var(--class-unknown);
+  color: var(--class-unknown-ink);
+  /* The 2px surface ring is the spacer that keeps overlapping pins legible. */
+  box-shadow: 0 0 0 2px var(--marker-ring);
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-out);
+  will-change: transform;
+}
+
+.pin__label {
+  font-family: var(--font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0;
+  pointer-events: none;
+}
+
+/* The ordinal ramp. Fill and label colour move together; the label colour is
+   the mechanical white-or-ink rule from visual-system §3, not a preference. */
+.pin[data-class="A+"] { background: var(--class-aplus); color: var(--class-aplus-ink); }
+.pin[data-class="A"]  { background: var(--class-a);     color: var(--class-a-ink); }
+.pin[data-class="B+"] { background: var(--class-bplus); color: var(--class-bplus-ink); }
+.pin[data-class="B"]  { background: var(--class-b);     color: var(--class-b-ink); }
+.pin[data-class="C"]  { background: var(--class-c);     color: var(--class-c-ink); }
+.pin[data-class="unknown"] { background: var(--class-unknown); color: var(--class-unknown-ink); }
+
+/* Alternative encodings (S-04). Same geometry, same letter-inside rule; only
+   the fill changes, and the legend re-renders to match. */
+.pin[data-conf="High"]    { background: var(--conf-high);    color: var(--text-on-red); }
+.pin[data-conf="Medium"]  { background: var(--conf-medium);  color: var(--ink); }
+.pin[data-conf="Low"]     { background: var(--conf-low);     color: var(--ink); }
+.pin[data-conf="Unknown"] { background: var(--conf-unknown); color: var(--text-on-red); }
+
+.pin[data-cmpl="good"]    { background: var(--class-aplus); color: var(--class-aplus-ink); }
+.pin[data-cmpl="partial"] { background: var(--class-bplus); color: var(--class-bplus-ink); }
+.pin[data-cmpl="minimal"] { background: var(--class-c);     color: var(--class-c-ink); }
+.pin[data-cmpl="none"]    { background: var(--class-unknown); color: var(--class-unknown-ink); }
+
+/* r13 → r16 hovered → r19 selected, expressed as scale so nothing reflows. */
+.pin--hover { transform: scale(1.231); }        /* 26 → 32px */
+
+.pin--selected {
+  transform: scale(1.462);                      /* 26 → 38px */
+  box-shadow: 0 0 0 2px var(--marker-ring),
+              0 0 0 5px var(--case-red);
+}
+
+/* DEMO records are drawn with a dashed surface ring: visibly not real market
+   evidence at a glance, without changing the class encoding (D4, §6). */
+.pin--demo::before {
+  content: "";
+  position: absolute;
+  top: -4px; right: -4px; bottom: -4px; left: -4px;
+  border: 2px dashed var(--marker-ring);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+/* A record in an unresolved duplicate group carries a notch. Duplicates are
+   never auto-merged (D6), so the map has to disclose the suspicion. */
+.pin--dupe::after {
+  content: "\2731";
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 9px;
+  line-height: 1;
+  box-shadow: 0 0 0 1px var(--line-strong);
+  pointer-events: none;
+}
+
+/* A record hidden behind a filter but kept on the map as context (AI layers
+   dim the non-members rather than deleting them). */
+.pin--muted { opacity: .35; }
+
+/* AI layer membership ring — the layer's own accent, added on top of the
+   class fill so both readings survive. */
+.pin--layer { box-shadow: 0 0 0 2px var(--marker-ring), 0 0 0 4px var(--ink); }
+
+/* Selected marker is raised inside the map's pane (never above app chrome —
+   .mapwrap isolates the whole stacking context). */
+.leaflet-marker-icon.geo-marker--top { z-index: var(--z-local-top); }
+
+/* ============================================================= clusters === */
+/* T8 / visual-system §3: clusters are CHROME, not data. Surface fill, a
+   --line-strong border and ink text — a cluster wearing the data colour
+   would read as a very high-class building. */
+.marker-cluster {
+  background: transparent;
+  border: 0;
+}
+
+.marker-cluster div,
+.geo-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--line-strong);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-card);
+}
+
+.marker-cluster:hover div,
+.geo-cluster:hover { border-color: var(--text-3); }
+
+.marker-cluster span { line-height: 1; }
+
+/* Spiderfy legs and the cluster zoom animation. */
+.marker-cluster-spider-leg,
+.leaflet-cluster-anim .leaflet-marker-icon,
+.leaflet-cluster-anim .leaflet-marker-shadow {
+  transition: transform var(--dur-layer) var(--ease-out),
+              opacity var(--dur-layer) var(--ease-out);
+}
+
+/* ============================================== districts & radius rings == */
+.geo-district {
+  fill: var(--ink);
+  fill-opacity: .04;
+  stroke: var(--line-strong);
+  stroke-width: 1;
+  transition: fill-opacity var(--dur-fast) var(--ease-out);
+}
+
+.geo-district--hover { fill-opacity: .09; }
+
+/* A selected district is a filter, so it wears the accent — but the polygon
+   is still a wash, never a solid block that would hide the markers. */
+.geo-district--on {
+  fill: var(--case-red);
+  fill-opacity: .07;
+  stroke: var(--case-red);
+  stroke-width: 2;
+}
+
+.geo-district--empty { stroke-dasharray: 4 3; }   /* a recorded zero, not missing */
+
+.geo-dlabel {
+  padding: 1px var(--s-1);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-chip);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: var(--shadow-card);
+}
+
+/* Cumulative 1 / 3 / 5 km bands (§16). The emphasised band is the one the
+   nearby figures are computed from; the other two stay visible so the three
+   counts can be read together. */
+.geo-radius {
+  fill: var(--case-red);
+  fill-opacity: .03;
+  stroke: var(--case-red);
+  stroke-opacity: .45;
+  stroke-width: 1.5;
+}
+
+.geo-radius--on {
+  stroke-opacity: 1;
+  stroke-width: 2;
+  fill-opacity: .06;
+}
+
+/* 200ms sweep on draw (animation 15). Collapsed to 0.01ms by 02-base under
+   reduced motion, which leaves the circle drawn — just not drawn *in*. */
+.geo-radius--draw {
+  stroke-dasharray: 2000;
+  stroke-dashoffset: 2000;
+  animation: geo-sweep var(--dur-layer) var(--ease-out) forwards;
+}
+
+@keyframes geo-sweep { to { stroke-dashoffset: 0; } }
+
+.geo-radius-label {
+  padding: 1px var(--s-1);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-chip);
+  color: var(--text-2);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* ============================================== R4 map control cluster ==== */
+.mapchrome {
+  position: absolute;
+  top: var(--s-3);
+  right: var(--s-3);
+  z-index: var(--z-map-chrome);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+
+.mapchrome__group {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.mbtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  color: var(--text-2);
+  font-size: var(--fs-lg);
+  line-height: 1;
+}
+
+.mbtn + .mbtn { border-top: 1px solid var(--line); }
+
+.mbtn:hover:not(:disabled) { background: var(--surface-3); color: var(--text); }
+
+.mbtn[aria-pressed="true"],
+.mbtn[aria-expanded="true"] { background: var(--surface-3); color: var(--text); }
+
+.mbtn:disabled { color: var(--line-strong); }
+
+/* The layers popover node exists in the shell; M-09 routes "Layers" to the
+   right rail so there is exactly one layer UI. Styled anyway, because an
+   unstyled visible node is worse than an unused styled one. */
+/* Leaflet numbers its internal panes from 200 to 700 (markerPane is 600). With
+   `#map` at `z-index: auto` those numbers were competing directly with the map
+   chrome in .mapwrap's stacking context, and a z-600 marker drew straight over
+   the z-10 layers panel — the panel's own heading was half-covered by a cluster.
+   Isolating the map container keeps Leaflet's ladder inside the map, which is
+   where it was always meant to apply. */
+#map { isolation: isolate; }
+
+.maplayers {
+  position: absolute;
+  top: var(--s-3);
+  right: calc(44px + var(--s-3) * 2);
+  z-index: var(--z-map-dialog);
+  width: min(300px, 62vw);
+  /* The basemap group made this panel taller than any viewport it opens in:
+     1765px against a 940px window, with the last options simply off-screen and
+     unreachable. It scrolls within the map instead. */
+  max-height: calc(100% - var(--s-3) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+}
+
+/* ============================================================== legend ==== */
+.maplegend {
+  position: absolute;
+  left: var(--s-3);
+  bottom: var(--s-3);
+  z-index: var(--z-map-chrome);
+  max-width: 260px;
+  padding: var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-card);
+  font-size: var(--fs-xs);
+  color: var(--text-2);
+}
+
+.maplegend[data-collapsed="true"] {
+  padding: 0;
+  max-width: none;
+  width: auto;
+}
+
+.maplegend[data-collapsed="true"] .maplegend__body { display: none; }
+
+.maplegend__hd {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  width: 100%;
+  min-height: var(--hit);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.maplegend__body { margin-top: var(--s-2); display: grid; gap: var(--s-1); }
+
+.maplegend__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.maplegend__swatch {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--marker-ring), 0 0 0 2px var(--line);
+}
+
+.maplegend__swatch[data-class="A+"] { background: var(--class-aplus); }
+.maplegend__swatch[data-class="A"]  { background: var(--class-a); }
+.maplegend__swatch[data-class="B+"] { background: var(--class-bplus); }
+.maplegend__swatch[data-class="B"]  { background: var(--class-b); }
+.maplegend__swatch[data-class="C"]  { background: var(--class-c); }
+
+/* The unknown swatch is hatched, not just grey — the texture is what makes
+   it readable in greyscale and by people who cannot separate the hues (§5). */
+.maplegend__swatch[data-class="unknown"] {
+  background-color: var(--unknown);
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--hatch-line) 0, var(--hatch-line) 1px,
+    transparent 1px, transparent 4px
+  );
+}
+
+.maplegend__count { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--text-3); }
+
+/* ===================================================== tiles unavailable == */
+/* X-E1 / T7. The basemap is replaced by a neutral graticule; every marker,
+   polygon, radius and label still renders, so the whole app keeps working
+   with zero tiles. The repeating-linear-gradients here draw 1px rules — they
+   are a grid, not the decorative gradients §24 forbids. */
+.mapwrap[data-tiles="off"] #map,
+.map--notiles {
+  background-color: var(--surface-3);
+  background-image:
+    repeating-linear-gradient(0deg, var(--tile-grid) 0, var(--tile-grid) 1px, transparent 1px, transparent 24px),
+    repeating-linear-gradient(90deg, var(--tile-grid) 0, var(--tile-grid) 1px, transparent 1px, transparent 24px);
+}
+
+.mapwrap[data-tiles="off"] .leaflet-tile-pane { display: none; }
+
+.mapnotice {
+  /* TOP centre, not bottom. The legend is bottom-left and the scale bar is
+     bottom-right, so a bottom-centred notice collides with one or both as soon
+     as the map narrows — and this notice appears precisely when the map is at
+     its least legible. The top edge is free: the controls are top-right and the
+     notice is capped short of them. */
+  position: absolute;
+  left: 50%;
+  top: var(--s-3);
+  transform: translateX(-50%);
+  z-index: var(--z-map-chrome);
+  max-width: min(460px, calc(100% - 120px));
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-btn);
+  box-shadow: var(--shadow-card);
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+/* ================================================ attribution & scale ===== */
+/* OSM attribution is mandatory and non-removable (T7). */
+.leaflet-control-attribution {
+  background: var(--surface);
+  border-top-left-radius: var(--r-chip);
+  padding: 1px var(--s-1);
+  font-size: 10px;
+  color: var(--text-3);
+}
+
+.leaflet-control-attribution a { color: var(--text-2); }
+
+/* M-11: greyed, not removed, when there is no connection to follow it. */
+.leaflet-control-attribution a[data-offline="true"] {
+  color: var(--text-3);
+  text-decoration: none;
+  cursor: default;
+}
+
+.leaflet-control-scale-line {
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-top: 0;
+  color: var(--text-2);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  padding: 1px var(--s-1);
+}
+
+/* Leaflet's own zoom control is replaced by .mapchrome (M-05), so if one is
+   ever created it must not sit next to ours pretending to be a second one. */
+.leaflet-control-zoom { display: none; }
+
+/* ======================================================= R6 compare tray == */
+.tray {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s-4);
+  transform: translateX(-50%);
+  z-index: var(--z-tray);
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: calc(100% - var(--s-5));
+  min-height: 52px;
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--r-card);
+  box-shadow: var(--shadow-overlay);
+  animation: geo-tray-in var(--dur-modal) var(--ease-panel);
+}
+
+@keyframes geo-tray-in {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.tray__label {
+  flex: none;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.tray__items {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-width: 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.tray__items .chip { flex: none; max-width: 160px; }
+
+/* ================================================= crosshair pick mode ==== */
+/* M-14: the map is a coordinate picker while the editor asks for one. The
+   cursor change is the whole affordance, plus the mapnotice above it. */
+.mapwrap[data-pick="true"] #map,
+.mapwrap[data-pick="true"] .leaflet-container { cursor: crosshair; }
+
+/* ---------------------------------------------------------------------------
+ * Vendored-Leaflet image guards (build contract T2).
+ *
+ * `vendor/leaflet.css` references `images/marker-icon.png` and
+ * `images/layers-2x.png`, and neither file is vendored — we ship no `images/`
+ * directory at all. Nothing in this app should create the elements that use
+ * them: markers are `L.divIcon` exclusively, and the layer control is our own.
+ * But a 404 on a marker image renders as a *missing pin*, which looks like a
+ * data problem rather than an asset problem and is easy to stare past. These
+ * two rules make the request impossible rather than merely unlikely.
+ * ------------------------------------------------------------------------- */
+.leaflet-default-icon-path { background-image: none !important; }
+.leaflet-control-layers-toggle { background-image: none !important; }
+
+/* ======================================================= basemap switcher ==
+   The base-map chooser at the top of the layers panel. A radio group rather
+   than a select: the set is small, and seeing every option — including the
+   ones this firm is not licensed for, with the reason — answers the question
+   "can we use Google?" better than a list that quietly omits it. */
+.fgroup--basemap { border-bottom: 1px solid var(--line); }
+
+.basemaps {
+  display: grid;
+  gap: var(--s-1);
+}
+
+.basemap {
+  border-radius: var(--r-card);
+  padding: 2px var(--s-1);
+  transition: background var(--dur-hover) var(--ease-out);
+}
+
+.basemap:hover { background: var(--surface-2); }
+
+.basemap__row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-1) 0;
+  cursor: pointer;
+}
+
+.basemap--locked .basemap__row { cursor: not-allowed; }
+
+.basemap__name { font-size: var(--fs-body); }
+
+.basemap--locked .basemap__name { color: var(--text-3); }
+
+/* The reason and the remedy. Indented under the option they belong to so a
+   locked row reads as one block rather than as loose prose in the panel. */
+.basemap__reason,
+.basemap__caveat,
+.basemap__msg {
+  margin: 0 0 var(--s-1) calc(var(--s-3) + var(--s-2));
+  font-size: var(--fs-xs);
+  line-height: 1.45;
+  color: var(--text-3);
+}
+
+/* Yandex's projection warning is not a footnote: an unreprojected basemap puts
+   every marker a few hundred metres out, which reads as a data error. */
+.basemap__caveat {
+  color: var(--text-2);
+  border-left: 2px solid var(--status-warn);
+  padding-left: var(--s-2);
+}
+
+.basemap__msg:empty { display: none; }
+
+.basemap__form {
+  display: grid;
+  gap: var(--s-1);
+  margin: 0 0 var(--s-2) calc(var(--s-3) + var(--s-2));
+}
+
+/* ============================================================ dark tiles ===
+   Satellite and dark basemaps swallow a marker's white ring. One attribute
+   set by the map module flips the ring token — not a second palette. */
+.mapwrap[data-basemap="dark"] {
+  --marker-ring: rgba(255, 255, 255, .92);
+}
+
+.mapwrap[data-basemap="dark"] .geo-radius-label,
+.mapwrap[data-basemap="dark"] .maplegend,
+.mapwrap[data-basemap="dark"] .mapnotice {
+  box-shadow: 0 1px 8px rgba(0, 0, 0, .35);
+}
+
+/* ========================================================== tile crossfade ==
+   Swapping providers fades rather than blinks: the outgoing layer is held until
+   the incoming one has painted. Without it the map drops to the empty
+   background between two tile sets, which reads as a fault. */
+.leaflet-tile-pane .leaflet-layer {
+  transition: opacity var(--dur-layer) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .leaflet-tile-pane .leaflet-layer { transition: none; }
+}
+
+:root[data-motion="reduce"] .leaflet-tile-pane .leaflet-layer { transition: none; }
+
+/* A graticule the reader ASKED for is not an outage, so it does not wear the
+   muted "something is wrong" treatment the offline fallback uses. */
+.mapwrap[data-tiles="off"][data-tiles-chosen="true"] #map { opacity: 1; }
