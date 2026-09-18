@@ -209,7 +209,26 @@ function user_caps(array $u): array {
   $t = user_type($u); $s = user_settings($u);
   $export = $t === 'admin' || $t === 'employee' ? (array_key_exists('can_export', $s) ? !empty($s['can_export']) : true) : ($t === 'client' ? !empty($s['can_export']) : false);
   $edit = $t === 'admin' ? true : ($t === 'employee' ? (array_key_exists('can_edit', $s) ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : asaas_geo_can_edit($u)) : ($t === 'client' ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : false));
-  return ['type'=>$t, 'demo'=>$t === 'demo', 'export'=>$export, 'edit'=>$edit, 'days_left'=>subscription_days_left($u), 'expires_at'=>$u['expires_at'] ?? null];
+  $profile = (string)($s['profile'] ?? '');
+  if (!in_array($profile, ['office','developer','asset','consulting','leasing','full'], true)) $profile = '';
+  return ['type'=>$t, 'demo'=>$t === 'demo', 'export'=>$export, 'edit'=>$edit, 'days_left'=>subscription_days_left($u), 'expires_at'=>$u['expires_at'] ?? null,
+    /* v4.77.0: профиль студии (панели под задачу пользователя) и согласие с офертой */
+    'profile'=>$profile, 'offer_accepted'=>offer_accepted($u), 'offer_version'=>offer_version()];
+}
+// ── v4.77.0: публичная оферта и обратная связь ───────────────────────────
+// Версия оферты живёт здесь и в os/offer.html; при смене версии пользователи принимают её заново.
+function offer_version(): string { $c = cfg(); return (string)($c['offer_version'] ?? '1.0'); }
+function offer_accepted(array $u): bool {
+  $s = user_settings($u); $a = $s['offer_accepted'] ?? null;
+  return is_array($a) && (string)($a['version'] ?? '') === offer_version();
+}
+function feedback_bot_token(): string { $c = cfg(); return (string)($c['feedback_bot_token'] ?? ''); }
+function feedback_ensure_table(): void {
+  $driver = (cfg()['driver'] ?? 'mysql') === 'sqlite' ? 'sqlite' : 'mysql';
+  try {
+    if ($driver === 'sqlite') db()->exec('CREATE TABLE IF NOT EXISTS feedback (id INTEGER PRIMARY KEY AUTOINCREMENT, user_id TEXT NULL, user_name TEXT NULL, user_email TEXT NULL, channel TEXT NOT NULL DEFAULT \'app\', kind TEXT NOT NULL DEFAULT \'idea\', text TEXT NOT NULL, page TEXT NULL, status TEXT NOT NULL DEFAULT \'new\', reply TEXT NULL, replied_by TEXT NULL, created_at TEXT NOT NULL, updated_at TEXT NULL)');
+    else db()->exec('CREATE TABLE IF NOT EXISTS feedback (id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id CHAR(36) NULL, user_name VARCHAR(190) NULL, user_email VARCHAR(190) NULL, channel VARCHAR(16) NOT NULL DEFAULT \'app\', kind VARCHAR(16) NOT NULL DEFAULT \'idea\', text TEXT NOT NULL, page VARCHAR(190) NULL, status VARCHAR(16) NOT NULL DEFAULT \'new\', reply TEXT NULL, replied_by VARCHAR(190) NULL, created_at DATETIME NOT NULL, updated_at DATETIME NULL, KEY idx_feedback_status (status), KEY idx_feedback_user (user_id)) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci');
+  } catch (Throwable $e) {}
 }
 function deny_if_demo(): void {
   $u = current_user();

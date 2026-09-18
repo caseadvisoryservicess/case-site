@@ -37,8 +37,11 @@ function build(OS, OUT) {
   const shim = fs.readFileSync(shimPath, 'utf8').replace(/%VERSION%/g, version).replace(/%BUILT%/g, built);
   const districts = JSON.parse(fs.readFileSync(path.join(OS, 'data', 'tashkent_districts.geojson'), 'utf8'));
   const master = JSON.parse(fs.readFileSync(path.join(OS, 'data', 'geo_master', 'runtime.json'), 'utf8'));
-  const dataScript = '<script>/* данные, встроенные при сборке: границы районов и мастер-геобаза */\nwindow.CASE_STANDALONE_DATA={districts:'
-    + safeInline(JSON.stringify(districts)) + ',master:' + safeInline(JSON.stringify(master)) + '};</script>';
+  /* v4.77.0: демография Ташкента (ряды, пол, возраст, доходы, КИПЦ) встроена как window.CASE_DEMOGRAPHY:
+     модуль махаллей и демографии читает её раньше, чем data/demography_tashkent.json */
+  const demography = JSON.parse(fs.readFileSync(path.join(OS, 'data', 'demography_tashkent.json'), 'utf8'));
+  const dataScript = '<script>/* данные, встроенные при сборке: границы районов, мастер-геобаза, демография */\nwindow.CASE_STANDALONE_DATA={districts:'
+    + safeInline(JSON.stringify(districts)) + ',master:' + safeInline(JSON.stringify(master)) + '};\nwindow.CASE_DEMOGRAPHY=' + safeInline(JSON.stringify(demography)) + ';</script>';
 
   const inlined = [];
   let html = src.replace(/<script src="([^"?]+)(\?v=[^"]*)?"><\/script>/g, (m, f) => {
@@ -56,7 +59,7 @@ function build(OS, OUT) {
   html = html.replace(headerOld, '<span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия ' + version + ' · сборка ' + built + '</span>');
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, html);
-  return { out: OUT, bytes: Buffer.byteLength(html), version, built, inlined, districts: (districts.features || []).length, master: { bc: master.bc.length, medicine: master.medicine.length, pharmacies: master.pharmacies.length } };
+  return { out: OUT, bytes: Buffer.byteLength(html), version, built, inlined, districts: (districts.features || []).length, master: { bc: master.bc.length, medicine: master.medicine.length, pharmacies: master.pharmacies.length, mahallas: master.mahallas.length }, demography: demography.version };
 }
 
 if (require.main === module) {

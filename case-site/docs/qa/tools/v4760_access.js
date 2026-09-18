@@ -53,13 +53,14 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
   await pg.waitForFunction(() => document.getElementById('l_extra') && typeof window.caseAccess === 'object' && document.getElementById('login') && !document.getElementById('login').classList.contains('hidden'), null, { timeout: 30000 });
   await wait(800);
   const l1 = await pg.evaluate(() => { const cs = e => e ? getComputedStyle(e).display : 'none'; return { reg: cs(document.getElementById('l_regBtn')), demo: cs(document.getElementById('l_demoBtn')), form: document.getElementById('regForm').hidden, ver: window.CASE_MODULE_VERSIONS['v4760-access'] }; });
-  ck('ссылки «Регистрация» и «Демо-доступ» видны, форма скрыта, модуль 4.76.0', l1.reg !== 'none' && l1.demo !== 'none' && l1.form === true && l1.ver === '4.76.0', JSON.stringify(l1));
+  ck('ссылки «Регистрация» и «Демо-доступ» видны, форма скрыта, модуль 4.77.0', l1.reg !== 'none' && l1.demo !== 'none' && l1.form === true && l1.ver === '4.77.0', JSON.stringify(l1));
   await pg.click('#l_regBtn'); await wait(200);
   const l2 = await pg.evaluate(() => ({ form: !document.getElementById('regForm').hidden, loginHidden: getComputedStyle(document.getElementById('lemail')).display === 'none', fields: ['r_name', 'r_company', 'r_email', 'r_phone', 'r_pass', 'r_go', 'r_back'].every(id => !!document.getElementById(id)) }));
   ck('форма заявки открыта, поля входа скрыты', l2.form && l2.loginHidden && l2.fields, JSON.stringify(l2));
   await pg.click('#r_go'); await wait(200);
   ck('пустая форма: подсказка про имя', /имя/i.test(await pg.evaluate(() => document.getElementById('r_hint').textContent)));
   await pg.fill('#r_name', 'Иван Проверяющий'); await pg.fill('#r_company', 'ООО Проверка'); await pg.fill('#r_email', 'ivan@proverka.uz'); await pg.fill('#r_phone', '+998 90 000 00 00'); await pg.fill('#r_pass', 'secret123');
+  await pg.check('#r_offer'); /* v4.77.0: согласие с офертой обязательно */
   await pg.click('#r_go'); await wait(500);
   const l3 = await pg.evaluate(() => ({ hint: document.getElementById('r_hint').textContent, disabled: document.getElementById('r_email').disabled }));
   ck('заявка ушла на сервер и принята, поля заблокированы', state.registrations && state.registrations.length === 1 && state.registrations[0].email === 'ivan@proverka.uz' && state.registrations[0].company === 'ООО Проверка' && /Заявка принята/.test(l3.hint) && l3.disabled, JSON.stringify({ reg: state.registrations, hint: l3.hint }));

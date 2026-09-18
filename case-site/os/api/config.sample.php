@@ -23,6 +23,14 @@ return [
   // 'demo_login' => false,
   // 'demo_email' => 'demo@caseadvisory.local',
 
+  // v4.77.0: публичная оферта и обратная связь.
+  // offer_version: номер версии оферты (os/offer.html, meta case-offer-version). При смене номера платформа
+  // попросит каждого пользователя подтвердить согласие заново.
+  // feedback_bot_token: секрет для внешнего Telegram-бота (bot/telegram_feedback_bot.js), который присылает
+  // обращения в api/feedback.php. Пусто или строка не задана: приём от бота выключен.
+  // 'offer_version' => '1.0',
+  // 'feedback_bot_token' => 'ПРИДУМАЙТЕ_ДЛИННУЮ_СЛУЧАЙНУЮ_СТРОКУ',
+
   // Отправка кодов входа через SMTP (надёжнее, чем PHP mail(); на многих хостингах mail() отключён).
   // 1. cPanel → Email Accounts → создайте ящик, например no-reply@ваш-домен, задайте пароль.
   // 2. Впишите данные ниже (host обычно mail.ваш-домен, порт 465, secure 'ssl'; либо 587 + 'tls').

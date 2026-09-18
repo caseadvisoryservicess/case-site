@@ -1,0 +1,153 @@
+{
+  "schema": "case-demography/v1",
+  "version": "2026-09-18",
+  "note": "Демография Ташкента для студии геоаналитики CASE OS. Каждое число с источником и датой. Пустое значение (null) значит «нет открытых данных»: студия показывает его в списке требуемых входных данных, а не выдумывает. Файл можно заменить более полным, сохранив структуру.",
+  "city": {
+    "name": "Toshkent shahri",
+    "population_series": [
+      { "date": "2019-01-01", "value": 2509900, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
+      { "date": "2020-01-01", "value": 2571700, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
+      { "date": "2021-01-01", "value": 2694400, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
+      { "date": "2022-04-01", "value": 2879800, "source": "stat.uz, пресс-релиз «Распределение численности постоянного населения в городе Ташкент»", "conf": "verified", "note": "с 2022 года в границах города район Янгихаёт и присоединённые территории области" },
+      { "date": "2022-07-01", "value": 2909500, "source": "stat.uz, пресс-релиз", "conf": "verified" },
+      { "date": "2022-10-01", "value": 2934100, "source": "stat.uz, пресс-релиз", "conf": "verified" },
+      { "date": "2023-04-01", "value": 2978200, "source": "stat.uz, пресс-релиз", "conf": "verified" },
+      { "date": "2023-10-01", "value": 3020500, "source": "stat.uz, пресс-релиз", "conf": "verified" },
+      { "date": "2024-01-01", "value": 3040800, "source": "stat.uz, «Численность постоянного населения по регионам», 01.01.2024", "conf": "verified" },
+      { "date": "2025-01-01", "value": 3112800, "source": "Toshkent shahar statistika boshqarmasi, 01.01.2025", "conf": "verified" },
+      { "date": "2025-10-01", "value": 3164000, "source": "Toshkent shahar statistika boshqarmasi, демографический бюллетень 27.10.2025", "conf": "verified" },
+      { "date": "2026-07-01", "value": 3212200, "source": "Milliy statistika qo'mitasi, пресс-релиз «Демографическая ситуация», II квартал 2026 (stat.uz/img/press-relizlar/q2_2026-en.pdf); исследование CASE 18.09.2026, уверенность B", "conf": "asking", "note": "число найдено в релизе, таблица по городу ещё не сверена с файлом" }
+    ],
+    "population_series_disputed": [
+      { "date": "2026-01-15", "value": 3225000, "source": "инфографика Sputnik O'zbekiston со ссылкой на Milliy statistika qo'mitasi, 15.07.2026", "why": "противоречит официальному релизу за II квартал 2026 (3 212,2 тыс. на 01.07.2026): в ряд не включено, ждёт сверки" }
+    ],
+    "population_series_missing": ["2016-01-01", "2017-01-01", "2018-01-01", "2022-01-01", "2023-01-01"],
+    "growth_reported": { "value": 0.021, "period": "2025-2026", "source": "Milliy statistika qo'mitasi, релиз II квартал 2026; исследование CASE 18.09.2026, уверенность B", "note": "годовой прирост по городу; территориальная детализация не проверена" },
+    "sex": { "female_share": 0.509, "date": "2025-10-01", "source": "Toshkent shahar statistika boshqarmasi: женщины 1 610,2 тыс. (50,9%), мужчины 1 553,8 тыс.", "conf": "verified",
+      "history": [
+        { "date": "2024-01-01", "male": 1492100, "female": 1548700, "source": "stat.uz, «Toshkent shahri doimiy aholisi sonining taqsimlanishi», 01.01.2024", "conf": "verified" },
+        { "date": "2025-10-01", "male": 1553800, "female": 1610200, "source": "Toshkent shahar statistika boshqarmasi, бюллетень 27.10.2025", "conf": "verified" },
+        { "date": "2026-07-01", "male": 1630000, "female": 1582000, "source": "сводка поиска по релизу stat.uz за II квартал 2026; исследование CASE 18.09.2026, уверенность D", "conf": "modelled", "note": "приблизительно, противоречит доле женщин 50,9% в двух официальных публикациях: не использовать до сверки с таблицей" }
+      ] },
+    "age3": {
+      "working_share": 0.59,
+      "working_date": "2026-01-15",
+      "working_source": "Milliy statistika qo'mitasi: 1 901 тыс. трудоспособного возраста из 3 225 тыс. (59%)",
+      "under_share": null,
+      "over_share": null,
+      "note": "Доли моложе и старше трудоспособного возраста по Ташкенту в открытых релизах не найдены: студия делит остаток (41%) в национальной пропорции 32,2 : 11,8 и помечает это как допущение."
+    },
+    "age5": {
+      "groups": ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75+"],
+      "male": null,
+      "female": null,
+      "source": null,
+      "note": "Пятилетние группы по Ташкенту в открытом доступе не найдены (Toshstat публикует их в демографических бюллетенях PDF). До получения студия распределяет население внутри трёх официальных групп равномерно и подписывает это как допущение."
+    },
+    "income": {
+      "per_capita_uzs_year": { "2024": 60600000, "2025": 73910000 },
+      "per_capita_usd_year_2025": 5870,
+      "real_growth_2025": 0.085,
+      "source": "Milliy statistika qo'mitasi, совокупный доход на душу населения за 2025 год (gazeta.uz, 03.02.2026); библиотека CASE (Silk Hub, сл. 13)",
+      "conf": "verified"
+    },
+    "wage": { "avg_nominal_uzs_month_2025": 10750000, "growth_2025": 0.183, "source": "библиотека CASE (CA Macro сл. 24; Silk Hub сл. 11)", "conf": "verified" },
+    "household": {
+      "size": 4.3,
+      "size_range": "4,2-4,4",
+      "count_range": "723-741 тыс.",
+      "with_children_under16": 0.68,
+      "with_3plus_children": 0.18,
+      "six_plus_share": 0.368,
+      "source": "библиотека CASE (Silk Hub сл. 12; CA Macro сл. 21); stat.uz: в Ташкенте 36,8% домохозяйств из 6 и более человек",
+      "conf": "verified",
+      "note": "В расчётах зон охвата CASE использует 4,5 чел. на домохозяйство (Silk Hub); здесь для города берётся 4,3 как середина диапазона."
+    },
+    "spending": {
+      "consumer_share_of_income": null,
+      "rde_share_of_consumer": 0.14,
+      "rde_per_capita_uzs_year_2024": 4410000,
+      "rde_per_capita_usd_year": 349,
+      "source": "CASE, Wonderland Databook (демандная модель), 2024: retail 11,8% + питание вне дома 1,9% + культура и спорт 0,3% = 14,0%",
+      "note": "База потребительских расходов на душу выводится как RDE / 0,14; структура расходов по разделам КИПЦ (ниже) национальная, для Ташкента это допущение CASE."
+    },
+    "fx": { "uzs_per_usd": 12600, "date": "2025", "source": "курс, использованный в библиотеке CASE при пересчёте дохода 2025 года" }
+  },
+  "uzbekistan": {
+    "age3": { "under_share": 0.322, "working_share": 0.56, "over_share": 0.118, "date": "2025-07-01", "source": "stat.uz: моложе трудоспособного 12,2 млн (32,2%), трудоспособного 21,2 млн (56%), старше 4,5 млн (11,8%)", "conf": "verified" },
+    "age_broad_2026": { "0_14": 0.2388, "15_64": 0.7086, "65p": 0.0525, "source": "оценка ООН (Worldometers), 2026", "conf": "asking" },
+    "median_age": { "value": 29.5, "date": "2026-01-01", "source": "Milliy statistika qo'mitasi" },
+    "income_per_capita_uzs_year": { "2024": 24100000, "2025": 29940000, "source": "Milliy statistika qo'mitasi (gazeta.uz, 03.02.2026)" },
+    "household_size": { "value": 5.0, "source": "библиотека CASE (Silk Hub сл. 12)" },
+    "household_size_distribution_2022": { "1": 0.027, "2": 0.067, "3": 0.11, "4": 0.184, "5": 0.226, "6+": 0.394, "source": "stat.uz, выборочное наблюдение домохозяйств, январь-ноябрь 2022" }
+  },
+  "kipc": {
+    "source": "stat.uz, индикатор 1.11.01.0004 «Индекс потребительских цен по КИПЦ-2018, динамика удельных весов» (библиотека CASE, Spending 2021-2025)",
+    "years": ["2021", "2023", "2025"],
+    "divisions": [
+      { "code": "01", "name": "Продукты питания и безалкогольные напитки", "w": [0.39957, 0.40033, 0.43084], "rde": false },
+      { "code": "02", "name": "Алкогольные напитки, табачные изделия", "w": [0.00964, 0.00938, 0.00816], "rde": false },
+      { "code": "03", "name": "Одежда и обувь", "w": [0.11625, 0.11631, 0.09906], "rde": true },
+      { "code": "04", "name": "Жилищные услуги, вода, электричество, газ", "w": [0.10625, 0.10456, 0.12125], "rde": false },
+      { "code": "05", "name": "Предметы домашнего обихода, бытовая техника", "w": [0.07234, 0.07217, 0.05154], "rde": true },
+      { "code": "06", "name": "Здравоохранение", "w": [0.06361, 0.06595, 0.05334], "rde": false },
+      { "code": "07", "name": "Транспорт", "w": [0.08386, 0.08261, 0.09224], "rde": false },
+      { "code": "08", "name": "Информация и связь", "w": [0.03383, 0.03313, 0.02899], "rde": false },
+      { "code": "09", "name": "Отдых, спорт и культура", "w": [0.02653, 0.02369, 0.01365], "rde": true },
+      { "code": "10", "name": "Услуги в области образования", "w": [0.02339, 0.02317, 0.03386], "rde": false },
+      { "code": "11", "name": "Рестораны и гостиничное обслуживание", "w": [0.01755, 0.01897, 0.01884], "rde": true },
+      { "code": "12", "name": "Страхование и финансовые услуги", "w": [0.00487, 0.00540, 0.00230], "rde": false },
+      { "code": "13", "name": "Бытовые товары и услуги, соцзащита, прочее", "w": [0.04231, 0.04432, 0.04592], "rde": false }
+    ],
+    "groups": {
+      "years": ["2021", "2022", "2023", "2024", "2025"],
+      "food": [0.42248, 0.42266, 0.42431, 0.44041, 0.45305],
+      "nonfood": [0.34689, 0.34718, 0.34489, 0.32718, 0.31908],
+      "services": [0.23063, 0.23016, 0.23080, 0.23242, 0.22787]
+    }
+  },
+  "mahallas": {
+    "note": "Число махаллей по районам, о котором сообщают поисковые сводки по Open Data Tashkent (исследование CASE 18.09.2026, уверенность D: файлы ещё не открыты). Мастер-база студии содержит точки махаллей из справочников; студия показывает «в базе N из ~M заявленных».",
+    "reported_counts": { "Chilanzar": 55, "Shaykhantakhur": 64, "Uchtepa": 60, "Olmazor": 64, "Yunusabad": 64, "Yangihayot": 30 },
+    "boundary_layers": [
+      { "district": "Yunusabad", "title": "Слой границ махаллей, Юнусабадский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/819/download", "date": "2024-10-24", "legal": "решение Кенгаша Ташкента VI-109-173-14-0-K/24 от 23.10.2024", "conf": "D" },
+      { "district": "Chilanzar", "title": "Слой границ махаллей, Чиланзарский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/291/download", "date": "2024-10-24", "legal": "решение Кенгаша Ташкента VI-109-174-14-0-K/24 от 23.10.2024", "conf": "D" },
+      { "district": "Uchtepa", "title": "Слой границ махаллей, Учтепинский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/153/download", "date": "2024-09-05", "legal": "решение Кенгаша Ташкента VI-107-144-14-0-K/24 от 04.09.2024", "conf": "D" },
+      { "district": "Olmazor", "title": "Слой границ махаллей, Алмазарский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/197/download", "date": "2024-07-31", "legal": "решение Кенгаша Ташкента VI-105-114-14-0-K/24 от 31.07.2024", "conf": "D" },
+      { "district": "Mirzo-Ulugbek", "title": "Слой границ махаллей, Мирзо-Улугбекский район", "page": "https://opendata.tashkent.uz/data/139", "download": "https://opendata-back.tashkent.uz/en/api/data/all/346/download", "date": "2024-04-03", "legal": "решение Кенгаша Ташкента VI-99-35-14-0-K/24 от 02.04.2024", "conf": "D" },
+      { "district": "Shaykhantakhur", "title": "Слой границ махаллей, Шайхантахурский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/179/download", "date": null, "legal": null, "conf": "D" },
+      { "district": "Mirabad", "title": "Слой границ махаллей, Мирабадский район", "page": "https://opendata.tashkent.uz/", "download": null, "date": "2023-11-24", "legal": null, "conf": "D" }
+    ],
+    "district_datasets": [
+      { "title": "Население столицы по районам", "page": "https://opendata.tashkent.uz/eng/data/41", "date": "2024-04-14", "conf": "D" },
+      { "title": "Площадь территории районов", "download": "https://opendata-back.tashkent.uz/en/api/data/all/67/download", "date": "2024-12-02", "conf": "D" }
+    ],
+    "boundaries_file": "data/mahalla_boundaries.geojson",
+    "boundaries_note": "Если положить в os/data файл mahalla_boundaries.geojson (FeatureCollection, у каждого полигона свойства name и district в написании студии, например district = \"Yunusabad\"), студия рисует границы и считает население махалли суммой ячеек сетки внутри полигона вместо оценки по радиусу."
+  },
+  "census_2026": { "name": "Перепись населения и сельского хозяйства 2026", "period": "2026-01-15 .. 2026-02-28", "preliminary": "2026-06-30", "final": "ожидается в 2027 году", "portal": "https://aholi.stat.uz/", "source": "gov.uz/pages/2026; исследование CASE 18.09.2026", "note": "итоги по районам и махаллям после публикации заменят оценки студии" },
+  "sources_register": [
+    { "id": "SRC-001", "title": "Распределение постоянного населения Ташкента, 01.01.2024", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/en/press-center/news-of-committee/49989-toshkent-shahri-doimiy-ah-olisi-sonining-taqsimlanishi-4", "conf": "B" },
+    { "id": "SRC-002", "title": "Демографическая ситуация, II квартал 2026 (PDF)", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/img/press-relizlar/q2_2026-en.pdf", "conf": "B" },
+    { "id": "SRC-003", "title": "Демография: официальная статистика", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/en/official-statistics/demography", "conf": "B" },
+    { "id": "SRC-005", "title": "Портал переписи 2026", "org": "Milliy statistika qo'mitasi", "url": "https://aholi.stat.uz/en/", "conf": "F" },
+    { "id": "SRC-006", "title": "Районы города", "org": "Хокимият Ташкента", "url": "https://tashkent.uz/en/districts", "conf": "B" },
+    { "id": "SRC-007", "title": "Население столицы (набор данных)", "org": "Open Data Tashkent", "url": "https://opendata.tashkent.uz/eng/data/41", "conf": "D" },
+    { "id": "SRC-010", "title": "Тематические слои махаллей", "org": "Open Data Tashkent", "url": "https://opendata.tashkent.uz/eng/?page=1&category__id=3", "conf": "D" },
+    { "id": "SRC-011", "title": "Постановление ПҚ-4888 от 11.11.2020 об образовании Янгихаётского района (44,2 км²)", "org": "LexUZ", "url": "https://lex.uz/docs/7564429", "conf": "A" },
+    { "id": "SRC-013", "title": "Цифровая махалля (реестр, доступ по входу)", "org": "mahalla.ijro.uz", "url": "https://mahalla.ijro.uz/", "conf": "F" },
+    { "id": "SRC-016", "title": "Открытый геопортал НГИС: границы махаллей и другие слои (указан владельцем 18.09.2026, из сети CASE OS недоступен, выгружается вручную)", "org": "open.ngis.uz", "url": "https://open.ngis.uz/", "conf": "D" }
+  ],
+  "inputs_needed": [
+    { "what": "Население Ташкента на 1 января 2016, 2017, 2018, 2022, 2023", "owner": "аналитик CASE", "where": "stat.uz, SIAT: доимий аҳоли сони по регионам" },
+    { "what": "Сверка 3 212,2 тыс. на 01.07.2026 с таблицей релиза stat.uz (сейчас число из сводки, уверенность B)", "owner": "аналитик CASE", "where": "stat.uz/img/press-relizlar/q2_2026-en.pdf" },
+    { "what": "Пятилетние возрастные группы по полу, Ташкент (последний бюллетень)", "owner": "аналитик CASE", "where": "toshstat.uz, демографический бюллетень (PDF), раздел «возрастной состав»; aholi.stat.uz после итогов переписи" },
+    { "what": "Население по районам Ташкента за 2016-2026 (ряд, пол, возраст)", "owner": "аналитик CASE", "where": "toshstat.uz; opendata.tashkent.uz/eng/data/41 (население столицы по районам)" },
+    { "what": "Границы махаллей по районам (официальные слои Open Data Tashkent, ID 819, 291, 153, 197, 346, 179)", "owner": "аналитик CASE", "where": "opendata-back.tashkent.uz/en/api/data/all/<ID>/download; после проверки CRS и состава положить как os/data/mahalla_boundaries.geojson" },
+    { "what": "Полный реестр махаллей с кодами и названиями на трёх языках", "owner": "команда CASE (запрос в хокимият города, mahalla.ijro.uz)", "where": "реестр закрыт для публичного доступа; сравнить со списком из мастер-базы" },
+    { "what": "Население и число домохозяйств по махаллям", "owner": "команда CASE (запрос в районные хокимияты, mahalla.uz)", "where": "нет в открытых источниках; вносится вручную в карточку махалли; итоги переписи 2026 ожидаются в 2027 году" },
+    { "what": "Доход на душу и расходы по районам Ташкента", "owner": "аналитик CASE", "where": "toshstat.uz, обследование домохозяйств; не публикуется по районам" },
+    { "what": "Доля потребительских расходов в совокупном доходе (Ташкент)", "owner": "аналитик CASE", "where": "stat.uz, обследование бюджетов домашних хозяйств" },
+    { "what": "Коды районов (СОАТО, кадастр), рождаемость, смертность, миграция по районам", "owner": "аналитик CASE", "where": "stat.uz, классификатор SIAT; демографические файлы по кварталам" }
+  ]
+}

@@ -121,6 +121,7 @@ if ($a==='set_profile') {
   if (isset($b['settings']) && is_array($b['settings'])) {
     foreach (['can_export','can_edit'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = !empty($b['settings'][$k]);
     if (array_key_exists('note', $b['settings'])) $settings['note'] = mb_substr(trim((string)$b['settings']['note']), 0, 500);
+    if (array_key_exists('profile', $b['settings'])) { $pf = (string)$b['settings']['profile']; $settings['profile'] = in_array($pf, ['office','developer','asset','consulting','leasing','full'], true) ? $pf : ''; } /* v4.77.0 */
     foreach (['company','phone'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = mb_substr(trim((string)$b['settings'][$k]), 0, 120);
   }
   /* клиенту нельзя оставить внутреннюю роль с правами правок: тип client переводит на роль CL */

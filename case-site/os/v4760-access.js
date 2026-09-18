@@ -1,4 +1,4 @@
-/* CASE OS v4.76.0: модель доступа на клиенте.
+/* CASE OS v4.76.0 (4.77.0): модель доступа на клиенте. v4.77.0: галочка согласия с офертой при регистрации.
  *
  * Решение владельца: три типа входа (администратор, сотрудники, клиенты с открытым доступом),
  * настройки на каждого пользователя, журнал действий по пользователю, корзина удалённого,
@@ -14,7 +14,7 @@
   'use strict';
   if(window.CASE_ACCESS_4760)return;
   window.CASE_ACCESS_4760=true;
-  var VERSION='4.76.0';
+  var VERSION='4.77.0';
   function $(id){return document.getElementById(id);}
   function h(v){try{return typeof esc==='function'?esc(v):String(v==null?'':v);}catch(e){return String(v==null?'':v);}}
   function tr(ru,uz,en){try{return LANG==='uz'?uz:(LANG==='en'?en:ru);}catch(e){return ru;}}
@@ -64,6 +64,8 @@
       +'<label for="r_email">Email</label><input id="r_email" type="email" autocomplete="email">'
       +'<label for="r_phone">'+h(tr('Телефон','Telefon','Phone'))+'</label><input id="r_phone" type="tel" autocomplete="tel">'
       +'<label for="r_pass">'+h(tr('Пароль (минимум 8 символов)','Parol (kamida 8 belgi)','Password (8+ characters)'))+'</label><input id="r_pass" type="password" autocomplete="new-password">'
+      /* v4.77.0: согласие с публичной офертой обязательно */
+      +'<label class="l-offer"><input type="checkbox" id="r_offer"> <span>'+h(tr('Я прочитал(а) ','Men o‘qidim ','I have read the '))+'<a href="offer.html" target="_blank" rel="noopener">'+h(tr('публичную оферту','ommaviy ofertani','public offer'))+'</a>'+h(tr(' и принимаю её условия: данные ориентировочные и носят рекомендательный характер, распространять их без разрешения CASE нельзя',' va shartlarini qabul qilaman',' and accept its terms'))+'</span></label>'
       +'<button type="button" class="go" id="r_go">'+h(tr('Отправить заявку','Ariza yuborish','Send request'))+'</button>'
       +'<button type="button" class="l-link l-back" id="r_back">'+h(tr('Назад ко входу','Kirishga qaytish','Back to sign in'))+'</button>'
       +'<div class="hint" id="r_hint"></div>';
@@ -99,8 +101,9 @@
     if(name.trim().length<2){regHint(tr('Укажите имя и фамилию','Ism va familiyani kiriting','Enter your name'));return;}
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){regHint(tr('Укажите корректный email','To‘g‘ri email kiriting','Enter a valid email'));return;}
     if(pass.length<8){regHint(tr('Пароль минимум 8 символов','Parol kamida 8 belgi','Password must be 8+ characters'));return;}
+    if(!($('r_offer')&&$('r_offer').checked)){regHint(tr('Нужно согласие с публичной офертой','Ommaviy ofertaga rozilik kerak','You need to accept the public offer'));return;}
     var b=$('r_go');if(b)b.disabled=true;
-    try{var j=await apiPOST('auth.php',{action:'register',name:name.trim(),email:email,password:pass,company:company.trim(),phone:phone.trim()});
+    try{var j=await apiPOST('auth.php',{action:'register',name:name.trim(),email:email,password:pass,company:company.trim(),phone:phone.trim(),offer_accepted:true});
       regHint(j&&j.message||tr('Заявка принята.','Ariza qabul qilindi.','Request received.'),true);
       ['r_name','r_company','r_email','r_phone','r_pass'].forEach(function(id){var e=$(id);if(e)e.disabled=true;});
       try{if(typeof audit==='function')audit('Заявка на регистрацию отправлена',email);}catch(e){}
@@ -180,6 +183,7 @@
     if($('accessCss'))return;
     var s=document.createElement('style');s.id='accessCss';s.textContent=
       '.l-extra{display:flex;justify-content:center;align-items:center;gap:8px;margin-top:12px;font-size:12px;color:var(--muted)}.l-link{border:0;background:none;color:var(--red,#9E0000);font:600 12.5px inherit;cursor:pointer;padding:2px 4px}.l-link:hover{text-decoration:underline}'
+      +'.l-offer{display:flex;gap:8px;align-items:flex-start;font-size:11.5px;line-height:1.35;margin:12px 0 0;color:var(--muted)}.l-offer input{margin-top:2px}.l-offer a{color:var(--red,#9E0000)}'
       +'.lcard.reg-open>:not(.lg):not(.tag):not(#regForm){display:none!important}.l-reg-h{font-size:16px;font-weight:800;margin:4px 0 2px}.l-reg-p{font-size:11.5px;color:var(--muted);margin:0 0 4px;line-height:1.4}.l-reg .l-back{display:block;margin:10px auto 0}'
       +'.sub-banner{display:flex;align-items:center;gap:10px;padding:8px 14px;background:#fff7e6;border-bottom:1px solid #f0d9a0;color:#6b4e00;font-size:12.5px}.sub-banner b{color:#1b1b1b}.sub-banner-x{margin-left:auto;border:0;background:none;cursor:pointer;font-size:14px;color:#6b4e00}body.dark .sub-banner{background:#3a2f12;color:#f4e3b5}body.dark .sub-banner b{color:#fff}'
       +'.ac-st{display:inline-block;border-radius:999px;padding:2px 8px;font-size:11px;font-weight:600;background:#eef2ee;color:#0d7a6f}.ac-st-soon{background:#fff3d6;color:#8a5a00}.ac-st-expired,.ac-st-off{background:#fdeaea;color:#9E0000}.ac-st-pending{background:#e9eefc;color:#2b4b9b}';
@@ -203,4 +207,4 @@
   window.caseAccess={version:VERSION,caps:computeCaps,register:register,demoLogin:demoLogin,openRegistration:openReg,cards:accessCards,loadTrash:loadTrash,showLog:showLog,typeOf:typeOf,statusOf:statusOf};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4760-access']='4.76.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4760-access']='4.77.0';

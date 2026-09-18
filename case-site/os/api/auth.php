@@ -30,7 +30,7 @@ function password_login_allowed(): bool { $c = cfg(); if (array_key_exists('allo
 
 if ($_SERVER['REQUEST_METHOD']==='GET') {
   $u = current_user();
-  $flags = ['pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled(),'mode'=>platform_mode(),'registration'=>registration_enabled(),'demo_login'=>demo_login_enabled()];
+  $flags = ['pass_login'=>password_login_allowed(),'code_login'=>code_login_enabled(),'mode'=>platform_mode(),'registration'=>registration_enabled(),'demo_login'=>demo_login_enabled(),'offer_version'=>offer_version(),'offer_url'=>'offer.html'];
   if (!$u || !$u['active']) json_out(array_merge(['auth'=>false,'csrf'=>csrf_token()], $flags));
   // v4.76.0: подписка истекла посреди сеанса: сеанс закрывается, клиент показывает причину
   if (subscription_expired($u)) { audit('Сеанс закрыт: срок доступа истёк', (string)$u['email']); access_close_session(); json_out(array_merge(['auth'=>false,'expired'=>true,'message'=>'Срок доступа истёк. Данные сохранены; продление у администратора CASE.','csrf'=>csrf_token()], $flags)); }
@@ -246,6 +246,7 @@ if ($a==='register') {
   if (mb_strlen($name) < 2 || mb_strlen($name) > 120) fail('Укажите имя и фамилию', 400);
   if (!$email || !filter_var($email, FILTER_VALIDATE_EMAIL)) fail('Укажите корректный email', 400);
   if (strlen($pass) < 8) fail('Пароль минимум 8 символов', 400);
+  if (empty($b['offer_accepted'])) fail('Нужно согласие с публичной офертой: отметьте галочку «принимаю условия»', 400); /* v4.77.0 */
   $ipKey = 'register-ip:'.client_ip();
   $lockedFor = throttle_locked_seconds($ipKey);
   if ($lockedFor > 0) fail('Слишком много заявок. Повторите через '.ceil($lockedFor/60).' мин.', 429);
@@ -254,7 +255,8 @@ if ($a==='register') {
   ensure_user_profile_columns(); ensure_access_roles();
   $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=?'); $st->execute([$email]);
   if ($st->fetch()) { audit('Заявка на регистрацию: email уже есть', $email); json_out($generic); }
-  $settings = json_encode(['registration_pending'=>1,'company'=>$company,'phone'=>$phone,'registered_at'=>date('Y-m-d H:i:s'),'can_export'=>false,'can_edit'=>false], JSON_UNESCAPED_UNICODE);
+  $settings = json_encode(['registration_pending'=>1,'company'=>$company,'phone'=>$phone,'registered_at'=>date('Y-m-d H:i:s'),'can_export'=>false,'can_edit'=>false,
+    'offer_accepted'=>['version'=>offer_version(),'at'=>date('Y-m-d H:i:s'),'ip'=>client_ip()]], JSON_UNESCAPED_UNICODE);
   try {
     db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,active,user_type,settings) VALUES (?,?,?,?,?,?,0,?,?)')
       ->execute([uuid(),$email,password_hash($pass,PASSWORD_DEFAULT),mb_substr($name,0,160),$company ?: 'клиент','CL','client',$settings]);
@@ -291,6 +293,53 @@ if ($a==='demo') {
   audit('Демо-вход', client_ip());
   $u = current_user();
   json_out(['auth'=>true,'csrf'=>csrf_token(),'user'=>publicUser($u),'rights'=>rightsOf($u),'mode'=>platform_mode()]);
+}
+/* v4.77.0: личный кабинет: согласие с офертой, профиль, пароль, свой журнал */
+function auth_save_settings(array $u, array $settings): void {
+  ensure_user_profile_columns();
+  db()->prepare('UPDATE app_users SET settings=? WHERE id=?')->execute([json_encode($settings, JSON_UNESCAPED_UNICODE), $u['id']]);
+  try { db()->exec('COMMIT'); } catch (Throwable $e) {}
+}
+if ($a==='accept_offer') {
+  $u = require_login();
+  if (is_demo_user($u)) json_out(['ok'=>true,'demo'=>true,'version'=>offer_version()]); /* общий демо-пользователь: согласие не сохраняем */
+  $s = user_settings($u); $s['offer_accepted'] = ['version'=>offer_version(),'at'=>date('Y-m-d H:i:s'),'ip'=>client_ip()];
+  auth_save_settings($u, $s);
+  audit('Принята публичная оферта', 'версия '.offer_version());
+  json_out(['ok'=>true,'version'=>offer_version(),'at'=>$s['offer_accepted']['at']]);
+}
+if ($a==='update_profile') {
+  $u = require_login(); deny_if_demo();
+  $name = mb_substr(trim((string)($b['name'] ?? $u['name'])), 0, 120);
+  if (mb_strlen($name) < 2) fail('Укажите имя и фамилию', 400);
+  $s = user_settings($u);
+  if (array_key_exists('company', $b)) $s['company'] = mb_substr(trim((string)$b['company']), 0, 120);
+  if (array_key_exists('phone', $b)) $s['phone'] = mb_substr(trim((string)$b['phone']), 0, 60);
+  if (array_key_exists('profile', $b)) { $pf = (string)$b['profile']; $s['profile'] = in_array($pf, ['office','developer','asset','consulting','leasing','full'], true) ? $pf : ''; }
+  ensure_user_profile_columns();
+  db()->prepare('UPDATE app_users SET name=?, settings=? WHERE id=?')->execute([$name, json_encode($s, JSON_UNESCAPED_UNICODE), $u['id']]);
+  try { db()->exec('COMMIT'); } catch (Throwable $e) {}
+  audit('Профиль изменён пользователем', $name.($s['company'] ?? '' ? ' · '.$s['company'] : ''));
+  $u2 = current_user(); if ($u2) { $u2['name'] = $name; $u2['settings'] = $s; }
+  json_out(['ok'=>true,'name'=>$name,'settings'=>$s]);
+}
+if ($a==='change_password') {
+  $u = require_login(); deny_if_demo();
+  $old = (string)($b['old_password'] ?? ''); $new = (string)($b['password'] ?? '');
+  if (strlen($new) < 8) fail('Новый пароль минимум 8 символов', 400);
+  $st = db()->prepare('SELECT password_hash FROM app_users WHERE id=?'); $st->execute([$u['id']]); $row = $st->fetch();
+  if (!$row || !password_verify($old, $row['password_hash'] ?? '')) { audit('Смена пароля: неверный текущий пароль', ''); fail('Текущий пароль неверный', 403); }
+  db()->prepare('UPDATE app_users SET password_hash=? WHERE id=?')->execute([password_hash($new, PASSWORD_DEFAULT), $u['id']]);
+  try { db()->exec('COMMIT'); } catch (Throwable $e) {}
+  audit('Пароль изменён пользователем', '');
+  json_out(['ok'=>true]);
+}
+if ($a==='my_log') {
+  $u = require_login();
+  $lim = max(10, min(200, (int)($b['limit'] ?? 30)));
+  $rows = [];
+  try { $st = db()->prepare('SELECT id,action,detail,at FROM audit_log WHERE by_id=? ORDER BY id DESC LIMIT '.$lim); $st->execute([$u['id']]); $rows = $st->fetchAll(); } catch (Throwable $e) { $rows = []; }
+  json_out(['rows'=>$rows]);
 }
 if ($a==='verify_ceo') {
   require_login();

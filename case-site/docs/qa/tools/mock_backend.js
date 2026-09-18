@@ -40,12 +40,17 @@ function createMockServer(OS_DIR, opts) {
       if (ep === 'auth.php') {
         /* v4.74.0: боевой auth.php отдаёт режим платформы; по умолчанию мок отвечает full, чтобы старые проверки других разделов не уходили в гео-режим */
         /* v4.76.0: флаги регистрации и демо, срок доступа */
-        const flags = { pass_login: true, code_login: false, mode: state.mode || 'full', registration: state.registration !== false, demo_login: state.demoLogin !== false };
+        const flags = { pass_login: true, code_login: false, mode: state.mode || 'full', registration: state.registration !== false, demo_login: state.demoLogin !== false, offer_version: state.offerVersion || '1.0', offer_url: 'offer.html' };
         if (req.method === 'GET') { json(rsp, 200, Object.assign({ auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf }, flags)); return; }
         const b = await readBody(req);
         if (b.action === 'logout') { json(rsp, 200, { ok: true }); return; }
         if (b.action === 'login') { if (state.loginError) { json(rsp, 403, { error: state.loginError }); return; } state.sessionValid = true; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
-        if (b.action === 'register') { state.registrations = state.registrations || []; state.registrations.push(b); json(rsp, 200, { ok: true, pending: true, message: 'Заявка принята. Администратор CASE проверит её и откроет доступ; вы получите письмо на ' + b.email + '.' }); return; }
+        if (b.action === 'register') { if (!b.offer_accepted) { json(rsp, 400, { error: 'Нужно согласие с публичной офертой: отметьте галочку «принимаю условия»' }); return; } state.registrations = state.registrations || []; state.registrations.push(b); json(rsp, 200, { ok: true, pending: true, message: 'Заявка принята. Администратор CASE проверит её и откроет доступ; вы получите письмо на ' + b.email + '.' }); return; }
+        /* v4.77.0: личный кабинет */
+        if (b.action === 'accept_offer') { state.user.settings = Object.assign({}, state.user.settings || {}, { offer_accepted: { version: state.offerVersion || '1.0', at: '2026-09-18 10:00:00' } }); if (state.user.caps) state.user.caps.offer_accepted = true; state.offerAccepts = (state.offerAccepts || 0) + 1; json(rsp, 200, { ok: true, version: state.offerVersion || '1.0' }); return; }
+        if (b.action === 'update_profile') { state.profilePosts = state.profilePosts || []; state.profilePosts.push(b); if (b.name) state.user.name = b.name; state.user.settings = Object.assign({}, state.user.settings || {}, { company: b.company, phone: b.phone }, b.profile != null ? { profile: b.profile } : {}); json(rsp, 200, { ok: true, name: state.user.name, settings: state.user.settings }); return; }
+        if (b.action === 'change_password') { state.passwordPosts = state.passwordPosts || []; state.passwordPosts.push(b); if (b.old_password !== 'password1') { json(rsp, 403, { error: 'Текущий пароль неверный' }); return; } json(rsp, 200, { ok: true }); return; }
+        if (b.action === 'my_log') { json(rsp, 200, { rows: state.myLog || [{ id: 1, action: 'Вход в систему', detail: 'роль: ' + state.user.role, at: '2026-09-18 09:00:00' }] }); return; }
         if (b.action === 'demo') { if (state.demoLogin === false) { json(rsp, 403, { error: 'Демо-доступ отключён' }); return; } state.sessionValid = true; state.user = state.demoUser || { id: 'u-demo', name: 'Демо-доступ', role: 'DEMO', role_key: 'DEMO', role_label: 'Демо-доступ', admin: false, edit: false, csrf: 't0k3n', type: 'demo', demo: true, days_left: null, expires_at: null, settings: {}, caps: { type: 'demo', demo: true, export: false, edit: false, days_left: null, expires_at: null } }; state.rights = { leasing: 0, finance: 0, edit: 0, approve: 0, plans: 0, admin: 0, own_only: 0, project_scope: 0 }; json(rsp, 200, { ok: true, user: state.user, rights: state.rights, csrf: state.user.csrf, mode: state.mode || 'full' }); return; }
         json(rsp, 200, { auth: true, user: state.user, rights: state.rights, csrf: state.user.csrf }); return;
       }
@@ -115,6 +120,20 @@ function createMockServer(OS_DIR, opts) {
       if (ep === 'data.php') {
         if (req.method === 'GET') { const t = (req.url.match(/[?&]table=([^&]+)/) || [])[1]; json(rsp, 200, { rows: t === 'app_users' ? (state.users || []) : t === 'roles' ? (state.roles || []) : [] }); return; }
         json(rsp, 200, { ok: true }); return;
+      }
+      /* v4.77.0: обратная связь */
+      if (ep === 'feedback.php') {
+        state.feedback = state.feedback || [];
+        if (req.method === 'GET') {
+          if (/[?&]count=1/.test(req.url)) { json(rsp, 200, { new: state.feedback.filter(f => f.status === 'new').length }); return; }
+          if (/[?&]mine=1/.test(req.url) || !state.user.admin) { json(rsp, 200, { rows: state.feedback.filter(f => f.user_id === state.user.id) }); return; }
+          json(rsp, 200, { rows: state.feedback.slice() }); return;
+        }
+        const b = await readBody(req);
+        if (b.action === 'status') { const f = state.feedback.find(x => x.id === b.id); if (f) { f.status = b.status; if (b.reply != null) { f.reply = b.reply; f.replied_by = state.user.name; } f.updated_at = '2026-09-18 12:00:00'; } json(rsp, 200, { ok: true }); return; }
+        const id = state.feedback.length + 1;
+        state.feedback.unshift({ id, user_id: state.user.id, user_name: state.user.name, user_email: state.user.email || '', channel: 'app', kind: b.kind || 'idea', text: b.text, page: b.page || '', status: 'new', reply: null, created_at: '2026-09-18 11:00:00' });
+        json(rsp, 200, { ok: true, id }); return;
       }
       /* v4.76.0: настройки доступа, подтверждение заявок, журнал пользователя */
       if (ep === 'users.php') {
