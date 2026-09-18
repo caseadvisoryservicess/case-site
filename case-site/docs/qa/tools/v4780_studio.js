@@ -17,8 +17,8 @@
      5. Тренды: пять рядов (население, домохозяйства, доход, расходы, RDE), три диаграммы, CSV с RDE;
         exportRows для Excel/PPTX: строки, слайд, подпись.
      5b. Генплан из локальной выгрузки без сети (источник local, махалля зоны, налоговая зона), слой
-        генплана на карте с легендой, mahallaAt; реестр 585 / 402 и участки 90 113 загружены,
-        Чиланзарский район: строки базы + махалли реестра, площади, плотность, участки.
+        генплана на карте с легендой, mahallaAt; реестр 585 / 402 загружен, кадастровых участков нет,
+        Чиланзарский район: строки базы + махалли реестра, площади, плотность.
      6. Бесплатный ограниченный доступ (?limited=1): класс geo-limited, 40 БЦ, баннер, профиль «Ищу
         офис», без вкладки данных.
      7. Ошибок страницы нет, длинных тире в новых файлах нет.
@@ -140,8 +140,8 @@ const sq = (c, d) => [[c.lng - d, c.lat - d], [c.lng + d, c.lat - d], [c.lng + d
   if (process.env.SHOTS) await pg.screenshot({ path: path.join(process.env.SHOTS, 'v4780_genplan_layer.png') });
   await pg.click('#ngisLayer'); await pg.waitForTimeout(200);
   ck('слой генплана выключен', await pg.evaluate(() => window.CASE_GEO_NGIS.layerOn === false));
-  const r1 = await pg.evaluate(() => { const D = window.CASE_GEO_DEMO, R = D.registry(), P = D.parcels(), e = D.estimateDistrict('Chilanzar'); const reg = e.rows.filter(r => r.regOnly), sim = e.rows.filter(r => r.regHow === 'similar' || r.regHow === 'polygon'); return { total: R && R.total, poly: R && R.with_polygon, parcels: P && P.total, chil: e.rows.length, base: e.baseN, official: e.official, matched: e.matched, regOnly: reg.length, regNames: reg.slice(0, 3).map(r => r.name), missing: e.missing.length, how: sim.length, withArea: e.rows.filter(r => r.area_ha != null).length, withParcels: e.rows.filter(r => r.parcels).length, dens: e.rows.filter(r => r.density != null).length }; });
-  ck('реестр 585 (402 с полигоном) и участки НГИС загружены; Чиланзарский: строки базы + махалли реестра без точки в базе, площади, плотность и участки у строк, список махаллей без полигона и точки', r1.total === 585 && r1.poly === 402 && r1.parcels === 90113 && r1.chil === r1.base + r1.regOnly && r1.official === 55 && r1.matched >= 45 && r1.regOnly >= 1 && r1.withArea >= 50 && r1.withParcels >= 40 && r1.dens >= 40, JSON.stringify(r1));
+  const r1 = await pg.evaluate(() => { const D = window.CASE_GEO_DEMO, R = D.registry(), e = D.estimateDistrict('Chilanzar'); const reg = e.rows.filter(r => r.regOnly), sim = e.rows.filter(r => r.regHow === 'similar' || r.regHow === 'polygon'); return { total: R && R.total, poly: R && R.with_polygon, chil: e.rows.length, base: e.baseN, official: e.official, matched: e.matched, regOnly: reg.length, regNames: reg.slice(0, 3).map(r => r.name), missing: e.missing.length, how: sim.length, withArea: e.rows.filter(r => r.area_ha != null).length, noParcels: e.rows.every(r => r.parcels === undefined) && D.parcels === undefined, dens: e.rows.filter(r => r.density != null).length }; });
+  ck('реестр 585 (402 с полигоном) загружен, кадастровых участков в студии нет (замечание владельца); Чиланзарский: строки базы + махалли реестра без точки в базе, площади и плотность у строк, список махаллей без границы и точки', r1.total === 585 && r1.poly === 402 && r1.noParcels && r1.chil === r1.base + r1.regOnly && r1.official === 55 && r1.matched >= 45 && r1.regOnly >= 1 && r1.withArea >= 50 && r1.dens >= 40, JSON.stringify(r1));
 
   console.log('--- 6. Бесплатный ограниченный доступ');
   await pg.evaluate(() => { localStorage.removeItem('caseos_geo_profile'); localStorage.removeItem('caseos_ngis_auto'); });

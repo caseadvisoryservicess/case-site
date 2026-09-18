@@ -25,7 +25,7 @@
   if (window.CASE_GEO_DEMO) return;
   var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
   var D = window.CASE_GEO_DEMO = { version: VERSION, data: null, ready: false };
-  var OVR = {}, BNDL = {}, gMah = null, gSel = null, curDist = '', curMah = null, sortBy = 'pop', cache = {}, BND = null, REG = null, REGI = {}, REGC = {}, PARC = null;
+  var OVR = {}, BNDL = {}, gMah = null, gSel = null, curDist = '', curMah = null, sortBy = 'pop', cache = {}, BND = null, REG = null, REGI = {}, REGC = {};
   var DIST_RU = { 'Yunusabad': 'Юнусабадский', 'Mirzo-Ulugbek': 'Мирзо-Улугбекский', 'Uchtepa': 'Учтепинский', 'Yashnabad': 'Яшнабадский', 'Olmazor': 'Алмазарский', 'Chilanzar': 'Чиланзарский', 'Sergeli': 'Сергелийский', 'Shaykhantakhur': 'Шайхантахурский', 'Mirabad': 'Мирабадский', 'Yangihayot': 'Янгихаётский', 'Yakkasaray': 'Яккасарайский', 'Bektemir': 'Бектемирский' };
 
   function $(id) { return document.getElementById(id); }
@@ -106,7 +106,8 @@
     var s = 0; for (var i = 0; i < P.length; i++) { var h = P[i]; if (inB(b, h[0], h[1])) s += h[2]; } return s;
   }
   D.boundaries = function () { return BND; };
-  /* v4.78.0: единый реестр 585 махаллей (Etirof + слой хокимията) и сводка нежилых участков НГИС */
+  /* v4.78.0: единый реестр 585 махаллей (Etirof + слой хокимията). Кадастровые участки по замечанию
+     владельца не подключаются: они меняются слишком быстро, чтобы держать их в студии */
   function loadRegistry() {
     var f = (D.data && D.data.mahallas && D.data.mahallas.registry_file) || 'data/mahalla_registry_tashkent.json';
     var src = window.CASE_MAHALLA_REGISTRY ? Promise.resolve(window.CASE_MAHALLA_REGISTRY) : fetch(f, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; });
@@ -118,11 +119,7 @@
       return j;
     }).catch(function () { return null; });
   }
-  function loadParcels() {
-    var src = window.CASE_NGIS_PARCELS ? Promise.resolve(window.CASE_NGIS_PARCELS) : fetch('data/ngis_parcels_tashkent.json', { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; });
-    return src.then(function (j) { if (j && j.mahallas) { PARC = j; invalidate(); try { renderList(); } catch (e) {} } return PARC; }).catch(function () { return null; });
-  }
-  D.registry = function () { return REG; }; D.parcels = function () { return PARC; };
+  D.registry = function () { return REG; };
   /* имена в мастер-базе в английской транслитерации (KH, K за q, U за oʻ), в реестре узбекская латиница
      и кириллица: сравнение по упрощённой форме и расстоянию Левенштейна внутри района; одна запись
      реестра присоединяется к одной строке базы */
@@ -157,7 +154,7 @@
   D.mahallaAt = mahallaAt;
   function mahallaLine(ma) {
     if (!ma) return 'Махалля точки: границы и точки базы рядом нет';
-    return 'Махалля точки: ' + ma.name + (ma.name_ru ? ' (' + ma.name_ru + ')' : '') + (ma.district ? ', ' + distRu(ma.district) + ' район' : '') + (ma.code ? ', код ' + ma.code : '') + (ma.area_ha != null ? ', ' + Math.round(ma.area_ha) + ' га' : '') + (ma.origin === 'point' ? '; ближайшая точка базы в ' + Math.round(ma.dist_km * 1000) + ' м, границы нет' : ma.origin === 'manual' ? '; граница введена вручную' : '; граница из кадастрового слоя НГИС');
+    return 'Махалля точки: ' + ma.name + (ma.name_ru ? ' (' + ma.name_ru + ')' : '') + (ma.district ? ', ' + distRu(ma.district) + ' район' : '') + (ma.code ? ', код ' + ma.code : '') + (ma.area_ha != null ? ', ' + Math.round(ma.area_ha) + ' га' : '') + (ma.origin === 'point' ? '; ближайшая точка базы в ' + Math.round(ma.dist_km * 1000) + ' м, границы нет' : ma.origin === 'manual' ? '; граница введена вручную' : '; граница из слоя махаллей НГИС');
   }
   function city() { return (D.data && D.data.city) || null; }
   function cityPop() {
@@ -227,12 +224,11 @@
     var out = rows.map(function (m, i) {
       var mp = manualPop(m), est = null, conf = 'modelled', src = '', poly = null, r = reg[i] ? reg[i].r : null;
       if (mp) { est = mp.value; conf = 'verified'; src = mp.src; }
-      else if (bnd[i]) { est = bnd[i].v; conf = 'asking'; src = bnd[i].b.manual ? 'сетка населения внутри границы, введённой вручную с карты' : 'сетка населения внутри официальной границы махалли (' + (bnd[i].b.origin === 'ngis' ? 'НГИС, живой запрос' : 'кадастровый слой НГИС') + ')'; poly = bnd[i].b; }
+      else if (bnd[i]) { est = bnd[i].v; conf = 'asking'; src = bnd[i].b.manual ? 'сетка населения внутри границы, введённой вручную с карты' : 'сетка населения внутри официальной границы махалли (' + (bnd[i].b.origin === 'ngis' ? 'НГИС, живой запрос' : 'слой махаллей НГИС') + ')'; poly = bnd[i].b; }
       else if (rest != null && sumW > 0) { est = rest * w[i] / sumW; src = 'оценка: население района × доля махалли по сетке населения (' + Math.round(KERNEL_KM * 1000) + ' м)'; }
       else if (sumW > 0) { est = null; src = 'нет официального населения района'; }
       var area = r && r.area_ha != null ? r.area_ha : (r && r.area_ha_hokimiyat != null ? r.area_ha_hokimiyat : (poly && poly.props && poly.props.area_ha != null ? poly.props.area_ha : null));
-      var pc = r && PARC && PARC.mahallas ? PARC.mahallas[String(r.code)] : null;
-      return { m: m, key: keyOf(m), name: m.name, pop: est, conf: conf, src: src, hh: manualHh(m), manual: !!mp, poly: poly, lat: +m.lat, lng: +m.lng, reg: r, regHow: reg[i] ? reg[i].how : null, regOnly: !!m.reg_only, area_ha: area, density: area && est != null ? est / (area / 100) : null, parcels: pc ? { total: pc.total, classified: pc.classified, types: pc.types } : null };
+      return { m: m, key: keyOf(m), name: m.name, pop: est, conf: conf, src: src, hh: manualHh(m), manual: !!mp, poly: poly, lat: +m.lat, lng: +m.lng, reg: r, regHow: reg[i] ? reg[i].how : null, regOnly: !!m.reg_only, area_ha: area, density: area && est != null ? est / (area / 100) : null };
     });
     var official = REGI[dk] ? REGI[dk].length : null, matched = reg.filter(function (x) { return x && x.how !== 'registry'; }).length, regOnlyN = rows.filter(function (m) { return m.reg_only; }).length;
     var missing = official != null ? (REGI[dk] || []).filter(function (r) { return !usedCodes[r.code] && !r.polygon; }).map(function (r) { return r.name; }) : [];
@@ -404,20 +400,19 @@
     var rt = lastOf(dr.retail_turnover_bn_uzs); if (rt) items.push(kpi('Оборот розницы', (rt.v / 1000).toFixed(1).replace('.', ',') + ' трлн сум', period(rt.k)));
     var en = lastOf(dr.enterprises), sb = lastOf(dr.small_business); if (en) items.push(kpi('Предприятий', fmt(en.v), period(en.k) + (sb ? ' · малый бизнес ' + fmt(sb.v) : '')));
     var mg = lastOf(dr.migration_net); if (mg) items.push(kpi('Миграция, сальдо', (mg.v >= 0 ? '+' : '') + fmt(mg.v), period(mg.k)));
-    if (dr.area_km2_geodesic) items.push(kpi('Площадь', String(dr.area_km2_geodesic).replace('.', ',') + ' км²', 'кадастр, геодезическая' + (dr.density_2026_01_01 ? ' · ' + fmt(dr.density_2026_01_01) + ' чел./км² (01.01.2026)' : '')));
-    if (dr.mahallas_official) items.push(kpi('Махаллей', fmt(dr.mahallas_official), 'реестр Etirof' + (dr.mahallas_with_polygon ? ' · с границей в кадастре ' + dr.mahallas_with_polygon : '')));
+    if (dr.area_km2_geodesic) items.push(kpi('Площадь', String(dr.area_km2_geodesic).replace('.', ',') + ' км²', 'геодезическая по официальной границе' + (dr.density_2026_01_01 ? ' · ' + fmt(dr.density_2026_01_01) + ' чел./км² (01.01.2026)' : '')));
+    if (dr.mahallas_official) items.push(kpi('Махаллей', fmt(dr.mahallas_official), 'реестр Etirof' + (dr.mahallas_with_polygon ? ' · с официальной границей ' + dr.mahallas_with_polygon : '')));
     var hp = lastOf(dr.hospitals), pl = lastOf(dr.polyclinics), ps = lastOf(dr.preschools); if (hp || pl || ps) items.push(kpi('Соцобъекты', (hp ? hp.v + ' больниц' : '') + (pl ? (hp ? ' · ' : '') + pl.v + ' поликлиник' : ''), ps ? ps.v + ' детсадов (' + period(ps.k) + ')' : (hp ? period(hp.k) : '')));
     if (!items.length) return '';
-    return '<h4>Район: факты Toshstat</h4><div class="dm-kpi dm-facts">' + items.join('') + '</div><div class="dm-mut">Toshstat: зарплата за полугодие, оборот розницы январь-июль 2026, реестр предприятий 01.08.2026, миграция за полугодие; SOATO ' + esc(dr.soato || '') + (dr.cadastre_prefix ? ', кадастровый префикс ' + esc(dr.cadastre_prefix) : '') + (dr.former_names ? '; прежние названия: ' + esc(dr.former_names) : '') + '.</div>';
+    return '<h4>Район: факты Toshstat</h4><div class="dm-kpi dm-facts">' + items.join('') + '</div><div class="dm-mut">Toshstat: зарплата за полугодие, оборот розницы январь-июль 2026, реестр предприятий 01.08.2026, миграция за полугодие; SOATO ' + esc(dr.soato || '') +  + (dr.former_names ? '; прежние названия: ' + esc(dr.former_names) : '') + '.</div>';
   }
   function mahallaFacts(r) {
     if (!r) return ''; var g = r.reg, items = [];
     if (g) items.push(kpi('Реестр Etirof', esc(g.name), (g.code ? 'код ' + g.code : '') + (g.name_cyr ? ' · ' + g.name_cyr : '')));
-    if (r.area_ha != null) items.push(kpi('Площадь', Math.round(r.area_ha) + ' га', (g && g.area_ha != null ? 'геодезическая по полигону кадастра' : 'слой хокимията 2024') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '')));
-    if (r.parcels) { var tp = Object.keys(r.parcels.types || {}).sort(function (a, b) { return r.parcels.types[b] - r.parcels.types[a]; }).slice(0, 2); items.push(kpi('Нежилые участки', fmt(r.parcels.total), 'НГИС, слой NOTURAR' + (tp.length ? ' · ' + tp.map(function (t) { return t.replace(/ yerlar[i]?$/i, '').slice(0, 28) + ' ' + r.parcels.types[t]; }).join(', ') : ''))); }
-    if (r.poly) items.push(kpi('Граница', r.poly.manual ? 'вручную' : 'кадастр', r.poly.manual ? 'введена с карты' : 'слой UZKAD/MAHALLA, open.ngis.uz'));
+    if (r.area_ha != null) items.push(kpi('Площадь', Math.round(r.area_ha) + ' га', (g && g.area_ha != null ? 'геодезическая по официальному полигону' : 'слой хокимията 2024') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '')));
+    if (r.poly) items.push(kpi('Граница', r.poly.manual ? 'вручную' : 'официальная', r.poly.manual ? 'введена с карты' : 'слой махаллей, open.ngis.uz'));
     if (!items.length) return '';
-    return '<h4>Махалля: реестр и кадастр</h4><div class="dm-kpi dm-facts">' + items.join('') + '</div>' + (r.regOnly ? '<div class="dm-mut">Этой махалли нет в мастер-базе: строка из реестра Etirof с центроидом полигона кадастра.</div>' : '');
+    return '<h4>Махалля: реестр и границы</h4><div class="dm-kpi dm-facts">' + items.join('') + '</div>' + (r.regOnly ? '<div class="dm-mut">Этой махалли нет в мастер-базе: строка из реестра Etirof с центроидом официального полигона.</div>' : '');
   }
   function demoHtml(scope, opts) {
     opts = opts || {};
@@ -616,7 +611,7 @@
       + '<div class="mah-edit" id="mahEdit" hidden><span id="mahEditName"></span><input type="number" id="mahPop" min="0" step="100" placeholder="население"><button type="button" class="btn sec" id="mahPopSave" style="font-size:11px">✓</button><button type="button" class="btn sec" id="mahPopClear" style="font-size:11px" title="убрать ручное значение">↺</button></div>'
       + '<div class="mah-edit" id="mahBnd" hidden><span>Граница:</span><button type="button" class="btn sec" id="mahBndSet" style="font-size:11px" title="взять последний полигон, нарисованный инструментом O или F внизу карты, как границу этой махалли; население пересчитается внутри границы">▱ из полигона на карте</button><button type="button" class="btn sec" id="mahBndClear" style="font-size:11px" title="убрать границу махалли">✕</button><span class="mini" id="mahBndInfo"></span></div>'
       + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Махалли района на карте</label>'
-      + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, границы 402 из них из кадастрового слоя НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района. Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
+      + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района. Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
       + '</div>';
     anchor.parentNode.insertBefore(sect, anchor);
     var h3 = sect.querySelector('h3'); h3.style.cursor = 'pointer';
@@ -653,16 +648,16 @@
     else rows.sort(function (a, b) { return (b.pop || 0) - (a.pop || 0); });
     var st = structure(e.total), dr = D.data && D.data.districts && D.data.districts.rows && D.data.districts.rows[curDist];
     sum.innerHTML = '<b>' + esc(distRu(curDist)) + '</b>: ' + (e.total != null ? '<b>' + fmt(e.total) + '</b> жителей (Toshstat, 01.07.2026)' : 'население района неизвестно')
-      + (e.official != null ? ' · в реестре Etirof <b>' + e.official + '</b> махаллей, полигонов в кадастре ' + (e.polygons != null ? e.polygons : '-') : '')
+      + (e.official != null ? ' · в реестре Etirof <b>' + e.official + '</b> махаллей, официальных границ ' + (e.polygons != null ? e.polygons : '-') : '')
       + ' · в базе <b>' + e.baseN + '</b>' + (e.official != null ? ' (сопоставлено с реестром ' + e.matched + (e.regOnly ? ', добавлено из реестра ' + e.regOnly : '') + ')' : '')
-      + (dr && dr.soato ? ' · SOATO ' + esc(dr.soato) + (dr.cadastre_prefix ? ' · кадастр ' + esc(dr.cadastre_prefix) : '') : '')
+      + (dr && dr.soato ? ' · SOATO ' + esc(dr.soato) : '')
       + (dr && dr.area_km2_geodesic ? ' · ' + String(dr.area_km2_geodesic).replace('.', ',') + ' км²' : '')
       + (st && st.households != null ? ' · ' + fmt(st.households) + ' домохозяйств' : '') + (e.manualN ? ' · вручную: ' + e.manualN : '') + (e.boundedN ? ' · с границами: ' + e.boundedN : '') + (e.calibrated ? '' : ' · <span style="color:#9b6b00">сетка населения ещё не откалибрована</span>')
-      + (e.missing && e.missing.length ? '<details class="mah-miss"><summary>' + e.missing.length + ' махаллей реестра без полигона в кадастре и без точки в базе</summary>' + esc(e.missing.join(', ')) + '</details>' : '');
+      + (e.missing && e.missing.length ? '<details class="mah-miss"><summary>' + e.missing.length + ' махаллей реестра без официальной границы и без точки в базе</summary>' + esc(e.missing.join(', ')) + '</details>' : '');
     box.innerHTML = rows.map(function (r) {
       var off = r.reg && r.reg.name && !r.regOnly && nrmX(r.reg.name) !== nrmX(r.name) ? ' <i class="mah-off" title="официальное имя в реестре Etirof">' + esc(r.reg.name) + '</i>' : '';
       return '<div class="mah-row' + (curMah && curMah.key === r.key ? ' sel' : '') + (r.regOnly ? ' reg' : '') + '" data-k="' + esc(r.key) + '" role="button" tabindex="0"><span class="n">' + esc(r.name) + off + (r.regOnly ? ' <i class="mah-tag" title="официальная махалля из реестра Etirof, в мастер-базе точки нет">реестр</i>' : '') + '</span><span class="p' + (r.manual ? ' man' : '') + '">' + (r.pop != null ? fmt(r.pop) : '-') + '<i>' + (r.manual ? '✓' : 'ƒ') + '</i></span>'
-        + '<span class="s">' + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.parcels ? r.parcels.total + ' нежилых участков · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : 'кадастр') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
+        + '<span class="s">' + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : 'официальная') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
     }).join('') || '<div class="mah-sum">В этом районе махаллей в мастер-базе нет</div>';
     box.querySelectorAll('.mah-row').forEach(function (el) {
       el.onclick = function () { selectMah(el.dataset.k); };
@@ -706,7 +701,7 @@
       var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx), sel = curMah && curMah.key === r.key;
       if (r.poly) L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2 : 1, fillColor: '#c9a86a', fillOpacity: .12, dashArray: r.poly.manual ? '6 4' : null, interactive: false }).addTo(gMah);
       var c = L.circleMarker([r.lat, r.lng], { radius: rad, color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 3 : 1.5, fillColor: r.manual ? '#14675B' : '#c9a86a', fillOpacity: .45 });
-      c.bindTooltip('<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + (r.parcels ? '<br>' + r.parcels.total + ' нежилых участков (НГИС)' : '') + '<br><small>' + esc(r.src) + '</small>');
+      c.bindTooltip('<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small>');
       c.on('click', function () { selectMah(r.key); });
       c.addTo(gMah);
       if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: '<span class="mah-lbl">' + esc(r.name) + '</span>', iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
@@ -726,7 +721,7 @@
      снимает обёртки, поставленные раньше: перепроверяем и оборачиваем заново первые полторы минуты */
   function rehook() { try { hooks(); hookProbe(); hookAnalytics(); var box = $('anaT'); if (box && box.innerHTML && !box.querySelector('.dm-ana')) injectAnalytics(); } catch (e) {} }
   function install() {
-    css(); loadOvr(); loadBndl(); loadData().then(function () { loadRegistry(); loadParcels(); try { injectAnalytics(); } catch (e) {} return loadBoundaries(); });
+    css(); loadOvr(); loadBndl(); loadData().then(function () { loadRegistry(); try { injectAnalytics(); } catch (e) {} return loadBoundaries(); });
     /* вкладка «Аналитика» заполняется студией при загрузке данных; раздел демографии дорисовывается при открытии вкладки */
     document.addEventListener('click', function (ev) { var b = ev.target && ev.target.closest ? ev.target.closest('.tabs button[data-t="anaT"]') : null; if (b) setTimeout(function () { try { var box = $('anaT'); if (box && box.innerHTML && !box.querySelector('.dm-ana')) injectAnalytics(); } catch (e) {} }, 60); }, true);
     var tries = 0;

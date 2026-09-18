@@ -12,7 +12,7 @@
  * временно сменить переключателем на вкладках студии (запоминается в этом браузере). Профиль
  * только прячет лишние разделы левой панели, права доступа он не меняет: они в v4760-geo-caps.js.
  *
- * Блок «Что рядом» в «Точке анализа»: удобства в 300 / 500 / 800 м по слоям студии (метро,
+ * Блок «Что рядом» в «Точке анализа»: удобства в любом радиусе (свой ввод, быстрые 300 / 500 / 800 м) по слоям студии (метро,
  * остановки, парковки, еда, банки, спорт, супермаркеты, аптеки, клиники, образование, парки,
  * бизнес-центры). Числа только по загруженным слоям: пустой слой показан как «слой не загружен».
  * Длинных тире в тексте нет намеренно.
@@ -85,7 +85,8 @@
       + '#geoProfile{margin-left:auto;align-self:center;font:600 11px inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--line,#e3dcd1);background:#fff;color:var(--ink,#1b1b1b);max-width:190px}'
       + '.tabs{align-items:center}'
       + '.amen{margin-top:8px;border-top:1px dashed var(--line,#e3dcd1);padding-top:6px}.amen-h{display:flex;align-items:center;gap:6px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red-d,#7a0000)}.amen-h .sp{flex:1}'
-      + '.amen-r{display:flex;gap:2px}.amen-r button{border:1px solid var(--line,#e3dcd1);background:#fff;border-radius:999px;padding:1px 7px;font:600 10px inherit;cursor:pointer;color:var(--ink,#1b1b1b)}.amen-r button.on{background:#9E0000;border-color:#9E0000;color:#fff}'
+      + '.amen-own{display:inline-flex;align-items:center;gap:2px;margin-left:4px;font-size:10px;color:var(--muted,#6f6a63)}.amen-own input{width:52px;font:600 10px inherit;padding:1px 4px;border:1px solid var(--line,#e3dcd1);border-radius:6px;text-align:right}'
+      + '.amen-r{display:flex;gap:2px;align-items:center;flex-wrap:wrap}.amen-r button{border:1px solid var(--line,#e3dcd1);background:#fff;border-radius:999px;padding:1px 7px;font:600 10px inherit;cursor:pointer;color:var(--ink,#1b1b1b)}.amen-r button.on{background:#9E0000;border-color:#9E0000;color:#fff}'
       + '.amen-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;margin-top:6px}.amen-i{display:flex;align-items:center;gap:6px;font-size:11px;background:#fff;border:1px solid var(--line,#e3dcd1);border-radius:8px;padding:4px 7px;min-width:0}.amen-i .ic{width:18px;text-align:center;font-weight:800;color:#9E0000;flex:none}.amen-i b{font-variant-numeric:tabular-nums}.amen-i small{color:var(--muted,#6f6a63);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.amen-i.off{opacity:.55}'
       + '.amen-note{font-size:10px;color:var(--muted,#6f6a63);margin-top:4px}body.prof-office .amen{order:-1}';
     document.head.appendChild(s);
@@ -101,7 +102,12 @@
   }
 
   /* --- «Что рядом» ---------------------------------------------------------------------------- */
-  function radius() { var r = 500; try { r = +localStorage.getItem(KEY_R) || 500; } catch (e) {} return RADII_M.indexOf(r) >= 0 ? r : 500; }
+  /* по замечанию владельца (v4.78.0): радиус любой, какой нужен человеку, от 50 до 5000 м; 300 / 500 / 800 остались
+     как быстрые кнопки */
+  var R_MIN = 50, R_MAX = 5000;
+  function radius() { var r = 500; try { r = Math.round(+localStorage.getItem(KEY_R) || 500); } catch (e) {} return r >= R_MIN && r <= R_MAX ? r : 500; }
+  function setRadius(v) { v = Math.round(+v); if (!isFinite(v)) return false; if (v < R_MIN) v = R_MIN; if (v > R_MAX) v = R_MAX; try { localStorage.setItem(KEY_R, String(v)); } catch (e) {} renderAmen(); return true; }
+  P.setRadius = setRadius; P.radius = radius;
   function metroNear(p, km) {
     var out = [], best = null;
     try {
@@ -144,14 +150,17 @@
   function renderAmen() {
     var box = $('amen'); if (!box) return;
     var p = point(), r = radius();
-    var head = '<div class="amen-h"><span>Что рядом</span><span class="sp"></span><div class="amen-r">' + RADII_M.map(function (m) { return '<button type="button" data-r="' + m + '"' + (m === r ? ' class="on"' : '') + '>' + m + ' м</button>'; }).join('') + '</div></div>';
+    var head = '<div class="amen-h"><span>Что рядом</span><span class="sp"></span><div class="amen-r">' + RADII_M.map(function (m) { return '<button type="button" data-r="' + m + '"' + (m === r ? ' class="on"' : '') + '>' + m + ' м</button>'; }).join('') + '<label class="amen-own" title="свой радиус в метрах, от ' + R_MIN + ' до ' + R_MAX + '"><input type="number" id="amenR" min="' + R_MIN + '" max="' + R_MAX + '" step="10" value="' + r + '" aria-label="Радиус, м"><span>м</span></label></div></div>';
     if (!p) { box.innerHTML = head + '<div class="amen-note">Поставьте точку анализа: пин на панели инструментов или правый клик по карте.</div>'; bindR(box); return; }
     var items = amenities(p, r);
     box.innerHTML = head + '<div class="amen-g">' + items.map(function (it) { return '<div class="amen-i' + (it.ok ? '' : ' off') + '" data-k="' + it.k + '" title="' + esc(it.label) + '"><span class="ic">' + it.ic + '</span><span style="min-width:0"><b>' + (it.ok ? it.n : '·') + '</b> ' + esc(it.label) + (it.sub ? '<br><small>' + esc(it.sub) + '</small>' : (it.ok ? '' : '<br><small>слой не загружен</small>')) + '</span></div>'; }).join('') + '</div>'
       + '<div class="amen-note">Считается по загруженным слоям студии в радиусе ' + r + ' м от точки. Включите слои в «Слои и стиль», чтобы увидеть объекты на карте.</div>';
     bindR(box);
   }
-  function bindR(box) { box.querySelectorAll('.amen-r button').forEach(function (b) { b.onclick = function () { try { localStorage.setItem(KEY_R, b.dataset.r); } catch (e) {} renderAmen(); }; }); }
+  function bindR(box) {
+    box.querySelectorAll('.amen-r button').forEach(function (b) { b.onclick = function () { setRadius(b.dataset.r); }; });
+    var inp = box.querySelector('#amenR'); if (inp) { var apply = function () { if (+inp.value !== radius()) setRadius(inp.value); }; inp.onchange = apply; inp.onkeydown = function (ev) { if (ev.key === 'Enter') { ev.preventDefault(); apply(); } }; }
+  }
   function mountAmen() {
     if ($('amen')) return true;
     var info = $('projInfo'); if (!info || !info.parentNode) return false;

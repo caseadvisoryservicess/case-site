@@ -12,7 +12,7 @@
  *      data/demography_tashkent.json (districts.rows), имя из атрибутов. Полигоны уходят в модуль
  *      махаллей тем же путём, что файл data/mahalla_boundaries.geojson: население считается внутри
  *      границы, полигон рисуется. Слой НГИС покрывает около половины МФЙ страны: не полный реестр.
- *   2. «Генплан и налоговая зона (НГИС)» под точкой анализа: зона генплана Ташкента в точке
+ *   2. «Генплан и налоговая зона (НГИС)» в разделе «Махалли и демография» (по точке анализа): зона генплана Ташкента в точке
  *      (функция, этажность, застройка участка, сейсмика, стратегия) и класс налоговой зоны.
  *      Сначала точка ищется в локальных выгрузках владельца data/ngis_genplan_tashkent.geojson
  *      (7 419 зон, 18.09.2026) и data/ngis_nalog_tashkent.geojson без сети; живой запрос к НГИС
@@ -208,10 +208,12 @@
   N.genplanAt = genplanAt; N.rowsOf = rowsOf;
   function mountPoint() {
     if ($('ngisPoint')) return true;
-    var amen = $('amen'); var info = $('projInfo'); var host = amen || info; if (!host || !host.parentNode) return false;
+    /* по замечанию владельца (v4.78.0): блок живёт в разделе «Махалли и демография», в конце его тела,
+       а не под «Точкой анализа»; обновляется по точке анализа, как и раньше */
+    var sect = $('mahSect'); var host = sect && sect.querySelector('.sbody'); if (!host) return false;
     var d = document.createElement('div'); d.id = 'ngisPoint'; d.className = 'ngis-point';
     d.innerHTML = '<div id="ngisPointBody"></div><label class="ck" style="margin-top:4px"><input type="checkbox" id="ngisLayer"> Зоны генплана на карте <span class="mini" style="display:inline">(выгрузка НГИС, 7 419 зон)</span></label><div class="ngis-legend" id="ngisLegend" hidden></div>';
-    host.parentNode.insertBefore(d, host.nextSibling);
+    host.appendChild(d);
     gLegend = $('ngisLegend');
     $('ngisLayer').onchange = function () { toggleLayer(this.checked); };
     renderGenplan(N.genplan);

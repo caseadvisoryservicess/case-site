@@ -1024,8 +1024,8 @@
       /* v4.73.1: у точки анализа до первого задания координаты не показываем (это центр города
          по умолчанию, а не выбор пользователя), а подсказываем, как её поставить. */
       if(p.virtual&&p.pending){
-        pi.innerHTML='<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">не задана</span></div>'
-          +'<div class="pi-chip">Поставьте пин на карте (кнопка 📍 внизу, клавиша P или правый клик) или спросите гео-агента: координаты или «адрес: …»</div>';
+        /* по замечанию владельца (v4.78.0): жёлтой подсказки нет, только строка «не задана» */
+        pi.innerHTML='<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">не задана</span></div>';
       }else{
         pi.innerHTML=(p.virtual?'<div class="pi-row"><span class="pi-k">Точка</span><span class="pi-v">'+esc(p.name||'')+'</span></div>':'')
           +'<div class="pi-row"><span class="pi-k">Район</span><span class="pi-v">'
