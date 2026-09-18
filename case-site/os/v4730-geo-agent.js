@@ -38,7 +38,7 @@
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.78.1';
+  var VERSION = '4.78.2';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -57,7 +57,8 @@
     lastLayer: null, lastRadius: 1000, lastIntents: [],
     draw: null,                 /* {pts:[]} пока рисуем полигон */
     pick: false, probeWas: null, dblWas: null,
-    lang: 'ru', busy: false, cellArea: null, log: []
+    lang: 'ru', busy: false, cellArea: null, log: [],
+    catchments: {}, catchWeight: null /* v4.78.2: зоны охвата по режимам (car, metro) рисуются вместе; толщина линий общая */
   };
 
   /* ── Помощники ───────────────────────────────────────────────────────────── */
@@ -366,21 +367,39 @@
       return { shapes: shapes, stations: st };
     });
   }
-  var CATCH_COLS = ['#9E0000', '#e67e22', '#2980b9'], CATCH_NAMES = ['PTA', 'STA', 'TTA'];
+  var CATCH_COLS = ['#9E0000', '#e67e22', '#2980b9'], CATCH_NAMES = ['PTA', 'STA', 'TTA'], CATCH_SLOTS = ['car', 'metro'];
+  /* v4.78.2 (замечание владельца «авто и метро по очереди стирают друг друга»): записи зон хранятся
+     по режимам (ST.catchments.car, ST.catchments.metro) и рисуются вместе, у каждого режима свои цвета
+     и скрытые зоны; толщина линий общая (ST.catchWeight, ползунок «Толщина линий» в студии) */
+  function catchRecords() { return CATCH_SLOTS.map(function (k) { return ST.catchments[k]; }).filter(Boolean); }
   function drawCatchment() {
-    var c = ST.catchment, grp = group('catchment'); if (!grp) return; grp.clearLayers(); if (!c) return;
-    c.shapes.forEach(function (sh, i) {
-      if (c.hidden && c.hidden[i]) return;
-      var col = (c.colors && /^#[0-9a-f]{6}$/i.test(c.colors[i] || '')) ? c.colors[i] : CATCH_COLS[i], z = c.zones[i];
-      var tip = CATCH_NAMES[i] + ' · ' + c.minutes[i] + ' мин · ' + fmt(z.population) + ' жит.';
-      sh.forEach(function (s, k) {
-        var o = { color: col, weight: k === 0 ? 2 : 1, opacity: k === 0 ? .95 : .7, fillColor: col, fillOpacity: k === 0 ? .07 : .05, dashArray: i ? '5' : null };
-        var l = s.kind === 'circle' ? L.circle([s.lat, s.lon], Object.assign({ radius: s.r }, o)) : L.polygon(s.ring, o);
-        l.addTo(grp).bindTooltip(tip + (k && s.label ? ' · ' + esc(s.label) : ''), { sticky: true });
+    var grp = group('catchment'); if (!grp) return; grp.clearLayers();
+    var w = (ST.catchWeight != null && isFinite(+ST.catchWeight)) ? Math.max(1, Math.min(8, +ST.catchWeight)) : 2;
+    catchRecords().forEach(function (c) {
+      var lab = c.slot === 'metro' ? 'метро' : 'авто';
+      c.shapes.forEach(function (sh, i) {
+        if (c.hidden && c.hidden[i]) return;
+        var col = (c.colors && /^#[0-9a-f]{6}$/i.test(c.colors[i] || '')) ? c.colors[i] : CATCH_COLS[i], z = c.zones[i];
+        var tip = CATCH_NAMES[i] + ' · ' + lab + ' · ' + c.minutes[i] + ' мин · ' + fmt(z.population) + ' жит.';
+        sh.forEach(function (s, k) {
+          var o = { color: col, weight: k === 0 ? w : Math.max(1, w - 1), opacity: k === 0 ? .95 : .7, fillColor: col, fillOpacity: k === 0 ? .07 : .05, dashArray: i ? '5' : null };
+          var l = s.kind === 'circle' ? L.circle([s.lat, s.lon], Object.assign({ radius: s.r }, o)) : L.polygon(s.ring, o);
+          l._catchSlot = c.slot; l._catchZone = i;
+          l.addTo(grp).bindTooltip(tip + (k && s.label ? ' · ' + esc(s.label) : ''), { sticky: true });
+        });
       });
     });
   }
-  function recolorCatchment(colors, hidden) { if (!ST.catchment) return false; if (Array.isArray(colors)) ST.catchment.colors = colors.slice(0, 3); if (Array.isArray(hidden)) ST.catchment.hidden = hidden.slice(0, 3); drawCatchment(); return true; }
+  /* перекраска без пересчёта: colors и hidden для режима opts.mode (без него: последняя запись),
+     opts.weight: толщина линий всех зон; третий аргумент строкой = режим */
+  function recolorCatchment(colors, hidden, opts) {
+    opts = (typeof opts === 'string') ? { mode: opts } : (opts || {});
+    if (opts.weight != null && isFinite(+opts.weight)) ST.catchWeight = +opts.weight;
+    var c = opts.mode ? ST.catchments[opts.mode] : ST.catchment;
+    if (c) { if (Array.isArray(colors)) c.colors = colors.slice(0, 3); if (Array.isArray(hidden)) c.hidden = hidden.slice(0, 3); }
+    if (!c && opts.weight == null) return false;
+    drawCatchment(); return true;
+  }
   var TOOLS = {
     clear_site: function () {
       var had = clearSite();
@@ -476,6 +495,8 @@
       /* v4.78.0 (замечание владельца): режим «метро и пешком», свои цвета и скрытые зоны из раздела «Зона охвата» */
       var want = inp.mode === 'metro' ? 'metro' : 'car';
       var colors = Array.isArray(inp.colors) ? inp.colors.slice(0, 3) : null, hidden = Array.isArray(inp.hidden) ? inp.hidden.slice(0, 3) : null;
+      /* v4.78.2: keep оставляет зоны другого режима на карте (авто и метро вместе); weight: толщина линий */
+      var keep = !!inp.keep; if (inp.weight != null && isFinite(+inp.weight)) ST.catchWeight = +inp.weight;
       var rings = [], mode = want === 'metro' ? 'metro' : 'isochrone', metroInfo = null;
       function circleRing(rM) { var out = [], n = 48; for (var i = 0; i < n; i++) { var th = i / n * 2 * Math.PI; out.push([s.lat + rM / 111320 * Math.cos(th), s.lon + rM / (111320 * Math.cos(s.lat * Math.PI / 180)) * Math.sin(th)]); } return out; }
       function isoRing(m) {
@@ -505,11 +526,13 @@
           if (mode === 'metro') { z.stations = metroInfo[i].stations.length; z.station_names = metroInfo[i].stations.slice(0, 12); }
           return z;
         });
-        ST.catchment = { mode: mode, minutes: mins, shapes: shapesPer, zones: zones, colors: colors, hidden: hidden };
+        var rec = { mode: mode, slot: want, minutes: mins, shapes: shapesPer, zones: zones, colors: colors, hidden: hidden };
+        if (!keep) ST.catchments = {};
+        ST.catchments[want] = rec; ST.catchment = rec;
         drawCatchment();
         try { var bb = zoneBbox(shapesPer[2]); mapObj().fitBounds([[bb[0], bb[1]], [bb[2], bb[3]]], { padding: [20, 20] }); } catch (e) {}
         if (mode === 'metro') { try { var cb = document.getElementById('lMetro'); if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event('change')); } } catch (e) {} }
-        var res = { ok: true, format: format, minutes: mins, mode: mode, zones: zones, household_size: HH, rde_per_person_usd: RDE_PP_USD, rent_to_sales: R2S,
+        var res = { ok: true, format: format, minutes: mins, mode: mode, slot: want, kept: keep, zones: zones, household_size: HH, rde_per_person_usd: RDE_PP_USD, rent_to_sales: R2S,
           provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)' + (mode === 'metro' ? '; линии и станции метро из базы студии (2ГИС)' : ''),
             method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : mode === 'metro' ? 'метро и пешком за ' + mins.join('/') + ' мин: пешком 5 км/ч, ожидание поезда 3 мин, перегон 2,5 мин, пересадка 4 мин; зона = круги досягаемости вокруг точки и вокруг станций, куда успеваешь доехать; население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км за минуту в городе)',
             note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' + (mode === 'metro' ? ' Время метро по нормативам, не по расписанию.' : '') },
@@ -639,7 +662,7 @@
       (want.indexOf('all') >= 0 ? all : want).forEach(function (n) {
         if (n === 'zone') { ST.zone = []; ST.merged = false; try { if (typeof gIso !== 'undefined' && gIso) gIso.clearLayers(); } catch (e) {} }
         if (n === 'draw') stopDraw(); else clearGroup(n);
-        if (n === 'catchment') ST.catchment = null;
+        if (n === 'catchment') { ST.catchment = null; ST.catchments = {}; }
         if (n === 'buildings') ST.data.buildings = null;
         if (n === 'roads') ST.data.roads = null;
         done.push(n);
@@ -1032,7 +1055,7 @@
   window.CASE_GEO_AGENT = {
     version: VERSION, TOOLS: TOOLS, run: run, ask: ask, parse: parse, state: ST, narrative: narrative,
     popInRadius: popInRadius, popInZone: popInZone, lens: lens, cellAreaM2: cellAreaM2, zoneAreaM2: zoneAreaM2, inRing: inRing, lineNearM: lineNearM, lineInZone: lineInZone,
-    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick, clearSite: clearSite, recolorCatchment: recolorCatchment, catchment: function () { return ST.catchment; },
+    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick, clearSite: clearSite, recolorCatchment: recolorCatchment, catchment: function () { return ST.catchment; }, catchments: function () { return ST.catchments; },
     /* v4.75.0: панель инструментов карты рисует фигуры через агента и пишет в его журнал */
     say: say, renderZone: renderZone, addShape: addShape, removeShape: function (sh) { var i = ST.zone.indexOf(sh); if (i >= 0) { ST.zone.splice(i, 1); renderZone(); } return i >= 0; }, startDraw: startDraw, stopDraw: stopDraw
   };

@@ -93,7 +93,7 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
       ringKm: !!document.getElementById('ringKm') && !!document.getElementById('ringApply'), rings: document.querySelectorAll('#rings label').length,
       dash: DASH.test(document.getElementById('geoTb').outerHTML) || DASH.test(document.getElementById('geoToolsCss').textContent) || DASH.test(document.getElementById('geoLayoutCss') ? document.getElementById('geoLayoutCss').textContent : '') || DASH.test(leftTxt) };
   });
-  ck('модули зарегистрированы: инструменты, компоновка и агент 4.78.1, дерево, geo-direct 4.75.0', v.tools === '4.78.1' && v.layout === '4.78.1' && v.agent === '4.78.1' && v.tree === '4.75.0' && v.direct === '4.75.0', JSON.stringify([v.tools, v.layout, v.agent, v.tree, v.direct]));
+  ck('модули зарегистрированы: инструменты 4.78.1, компоновка и агент 4.78.2, дерево, geo-direct 4.75.0', v.tools === '4.78.1' && v.layout === '4.78.2' && v.agent === '4.78.2' && v.tree === '4.75.0' && v.direct === '4.75.0', JSON.stringify([v.tools, v.layout, v.agent, v.tree, v.direct]));
   ck('атрибуция без флага, ссылка Leaflet осталась', !v.flag && v.attrLeaflet, v.attrHtml.slice(0, 120));
   ck('в дереве нет узла «Подложка карты», кнопка подложки у карты есть', !v.baseNode && v.basectl);
   ck('«Легенда» ушла из левой панели в плашку «На экране» (обозначения: БЦ, точка анализа)', !v.legendSectLeft && v.legendInPlate);

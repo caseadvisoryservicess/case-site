@@ -15,7 +15,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.78.1', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
+  var VERSION = '4.78.2', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -178,70 +178,122 @@
     try { myRenderRings(); } catch (e) {}
   }
 
-  /* --- зоны по времени в пути (замечание владельца, v4.78.0): три зоны сразу, авто или метро,
-     свои цвета, каждая зона включается отдельно; считает и рисует гео-агент (catchment) --- */
-  var KEY_TZ = 'caseos_time_zones_v1', TZ_PAL = ['#9E0000', '#e67e22', '#2980b9'], TZ = null;
+  /* --- зоны по времени в пути (замечание владельца, v4.78.0): три зоны сразу, свои цвета, каждая
+     зона включается отдельно; считает и рисует гео-агент (catchment). v4.78.2 (замечание владельца):
+     список «как едем» с вариантами «на авто», «метро и пешком» и «оба сразу»: оба режима рисуются
+     одновременно, у авто и у метро раздельные цвета и флажки, ползунок «Толщина линий» меняет и
+     толщину зон; всё запоминается --- */
+  var KEY_TZ = 'caseos_time_zones_v1', TZ_PAL = { car: ['#9E0000', '#e67e22', '#2980b9'], metro: ['#1b5e20', '#00897b', '#6a1b9a'] }, TZ_MODES = ['car', 'metro'], TZ_RU = { car: 'на авто', metro: 'метро и пешком' }, TZ = null;
   function tzAgent() { return window.CASE_GEO_AGENT || null; }
   function tzToast(m) { var t = $('geoToast'); if (t) { t.textContent = m; t.classList.add('on'); clearTimeout(tzToast.t); tzToast.t = setTimeout(function () { t.classList.remove('on'); }, 2800); } }
+  function tzHex(c) { return /^#[0-9a-f]{6}$/i.test(c || ''); }
   function tzLoad() {
-    var d = { mode: 'car', mins: [10, 20, 30], colors: TZ_PAL.slice(), on: [true, true, true] };
-    try { var j = JSON.parse(localStorage.getItem(KEY_TZ) || 'null'); if (j && typeof j === 'object') { if (j.mode === 'metro' || j.mode === 'car') d.mode = j.mode; if (Array.isArray(j.mins) && j.mins.length === 3 && j.mins.every(function (v) { return isFinite(+v) && +v > 0; })) d.mins = j.mins.map(Number); if (Array.isArray(j.colors)) d.colors = d.colors.map(function (c, i) { return /^#[0-9a-f]{6}$/i.test(j.colors[i] || '') ? j.colors[i] : c; }); if (Array.isArray(j.on)) d.on = d.on.map(function (v, i) { return j.on[i] !== false; }); } } catch (e) {}
+    var d = { mode: 'car', mins: [10, 20, 30], colors: { car: TZ_PAL.car.slice(), metro: TZ_PAL.metro.slice() }, on: { car: [true, true, true], metro: [true, true, true] }, weight: null, res: null };
+    try {
+      var j = JSON.parse(localStorage.getItem(KEY_TZ) || 'null');
+      if (j && typeof j === 'object') {
+        if (j.mode === 'metro' || j.mode === 'car' || j.mode === 'both') d.mode = j.mode;
+        if (Array.isArray(j.mins) && j.mins.length === 3 && j.mins.every(function (v) { return isFinite(+v) && +v > 0; })) d.mins = j.mins.map(Number);
+        /* память v4.78.0 и v4.78.1 хранила один набор цветов и флажков: он относится к авто */
+        var cols = Array.isArray(j.colors) ? { car: j.colors } : (j.colors && typeof j.colors === 'object' ? j.colors : {}), on = Array.isArray(j.on) ? { car: j.on } : (j.on && typeof j.on === 'object' ? j.on : {});
+        TZ_MODES.forEach(function (m) {
+          if (Array.isArray(cols[m])) d.colors[m] = d.colors[m].map(function (c, i) { return tzHex(cols[m][i]) ? cols[m][i] : c; });
+          if (Array.isArray(on[m])) d.on[m] = d.on[m].map(function (v, i) { return on[m][i] !== false; });
+        });
+        if (isFinite(+j.weight) && +j.weight >= 1 && +j.weight <= 8) d.weight = +j.weight;
+      }
+    } catch (e) {}
     return d;
   }
-  function tzSave() { try { localStorage.setItem(KEY_TZ, JSON.stringify({ mode: TZ.mode, mins: TZ.mins, colors: TZ.colors, on: TZ.on })); } catch (e) {} }
+  function tzSave() { try { localStorage.setItem(KEY_TZ, JSON.stringify({ mode: TZ.mode, mins: TZ.mins, colors: TZ.colors, on: TZ.on, weight: TZ.weight })); } catch (e) {} }
+  function tzModes() { return TZ.mode === 'both' ? TZ_MODES.slice() : [TZ.mode === 'metro' ? 'metro' : 'car']; }
   function tzParseMins() {
     var nums = String(($('tzMin') || {}).value || '').split(/[,;\s\/]+/).map(function (x) { return parseInt(x, 10); }).filter(function (v) { return isFinite(v) && v >= 1 && v <= 60; });
     nums = nums.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 3);
     while (nums.length && nums.length < 3) nums.push(Math.min(60, nums[nums.length - 1] + 10));
     return nums.length === 3 ? nums : null;
   }
-  function tzRows(res) {
+  function tzRows(resMap) {
     var box = $('tzZones'); if (!box) return; box.innerHTML = '';
-    var mins = res ? res.minutes : TZ.mins, zones = res ? res.zones : null;
-    mins.forEach(function (m, i) {
-      var l = document.createElement('label'); l.className = 'ck tz-row';
-      l.innerHTML = '<input type="checkbox"' + (TZ.on[i] ? ' checked' : '') + ' title="показывать зону"> <input type="color" value="' + TZ.colors[i] + '" title="цвет зоны ' + m + ' мин" aria-label="цвет зоны ' + m + ' мин"> ' + m + ' мин' + (zones ? ' <span class="tz-pop">· ' + Math.round(zones[i].population).toLocaleString('ru') + ' жит.' + (zones[i].stations != null ? ' · станций ' + zones[i].stations : '') + '</span>' : '');
-      l.querySelector('input[type=checkbox]').onchange = function (e) { TZ.on[i] = e.target.checked; tzSave(); tzApply(); };
-      l.querySelector('input[type=color]').addEventListener('input', function (e) { TZ.colors[i] = e.target.value; tzSave(); tzApply(); });
-      box.appendChild(l);
+    var modes = tzModes(), both = modes.length > 1;
+    modes.forEach(function (mode) {
+      var res = resMap && resMap[mode] ? resMap[mode] : null, mins = res ? res.minutes : TZ.mins, zones = res ? res.zones : null;
+      if (both) { var h = document.createElement('div'); h.className = 'tz-sub'; h.textContent = TZ_RU[mode] + (res && res.mode === 'radius' ? ' (радиусы: маршрутизатор недоступен)' : ''); box.appendChild(h); }
+      mins.forEach(function (m, i) {
+        var l = document.createElement('label'); l.className = 'ck tz-row'; l.setAttribute('data-mode', mode);
+        l.innerHTML = '<input type="checkbox"' + (TZ.on[mode][i] ? ' checked' : '') + ' title="показывать зону"> <input type="color" value="' + TZ.colors[mode][i] + '" title="цвет зоны ' + m + ' мин (' + TZ_RU[mode] + ')" aria-label="цвет зоны ' + m + ' мин (' + TZ_RU[mode] + ')"> ' + m + ' мин' + (zones ? ' <span class="tz-pop">· ' + Math.round(zones[i].population).toLocaleString('ru') + ' жит.' + (zones[i].stations != null ? ' · станций ' + zones[i].stations : '') + '</span>' : '');
+        l.querySelector('input[type=checkbox]').onchange = function (e) { TZ.on[mode][i] = e.target.checked; tzSave(); tzApply(mode); };
+        l.querySelector('input[type=color]').addEventListener('input', function (e) { TZ.colors[mode][i] = e.target.value; tzSave(); tzApply(mode); });
+        box.appendChild(l);
+      });
     });
-    var note = $('tzNote'); if (note) note.textContent = res ? ((res.provenance && res.provenance.method ? res.provenance.method + '. ' : '') + 'Оценка, не факт: границы без коррекции на барьеры.') : 'Три зоны по времени в пути от точки анализа, каждая своим цветом: на авто по дорогам (OSRM) или на метро с пешей частью по линиям студии. Население считается внутри каждой зоны.';
+    var note = $('tzNote');
+    if (note) {
+      var done = modes.filter(function (m) { return resMap && resMap[m]; });
+      if (done.length) note.textContent = done.map(function (m) { var r = resMap[m]; return (r.provenance && r.provenance.method) ? r.provenance.method : ''; }).filter(Boolean).join('. ') + '. Оценка, не факт: границы без коррекции на барьеры.';
+      else note.textContent = 'Три зоны по времени в пути от точки анализа, каждая своим цветом: на авто по дорогам (OSRM), на метро с пешей частью по линиям студии или оба варианта сразу. Население считается внутри каждой зоны; толщина линий ползунком ниже.';
+    }
   }
-  function tzApply() { var A = tzAgent(); if (A && typeof A.recolorCatchment === 'function') A.recolorCatchment(TZ.colors, TZ.on.map(function (v) { return !v; })); }
+  function tzApply(mode) { var A = tzAgent(); if (A && typeof A.recolorCatchment === 'function') A.recolorCatchment(TZ.colors[mode], TZ.on[mode].map(function (v) { return !v; }), { mode: mode, weight: TZ.weight }); }
+  function tzWeight(w) { TZ.weight = w; tzSave(); var A = tzAgent(); if (A && typeof A.recolorCatchment === 'function') A.recolorCatchment(null, null, { weight: w }); }
   function tzBuild() {
     var A = tzAgent(); if (!A) { tzToast('Гео-агент не загружен'); return Promise.resolve(); }
     if (!A.state.site) { tzToast('Сначала поставьте точку анализа (пин внизу карты или правый клик)'); return Promise.resolve(); }
     var mins = tzParseMins(); if (!mins) { tzToast('Три времени в пути через запятую, например 10, 20, 30'); return Promise.resolve(); }
-    TZ.mins = mins; TZ.mode = ($('tzMode') || {}).value === 'metro' ? 'metro' : 'car'; tzSave();
+    var sel = $('tzMode'); TZ.mins = mins; TZ.mode = sel && (sel.value === 'metro' || sel.value === 'both') ? sel.value : 'car'; tzSave();
     var inp = $('tzMin'); if (inp) inp.value = mins.join(', ');
-    var note = $('tzNote'); if (note) note.textContent = TZ.mode === 'metro' ? 'Считаю зоны по метро и пешком…' : 'Считаю изохроны по дорогам (OSRM)…';
-    return A.run('catchment', { minutes: mins, mode: TZ.mode, colors: TZ.colors, hidden: TZ.on.map(function (v) { return !v; }) }).then(function (res) {
-      try { A.say('fact', A.factHtml('catchment', res)); A.say('ai', A.narrative([{ name: 'catchment', res: res }])); } catch (e) {}
-      tzRows(res);
-      if (res.mode === 'radius') tzToast('Маршрутизатор недоступен: зоны построены по радиусам');
-      return res;
-    }, function (e) { var m = String(e && e.message || e); if (note) note.textContent = m; tzToast(m); });
+    var modes = tzModes(), note = $('tzNote'), out = {};
+    if (note) note.textContent = modes.length > 1 ? 'Считаю изохроны по дорогам (OSRM) и зоны по метро…' : modes[0] === 'metro' ? 'Считаю зоны по метро и пешком…' : 'Считаю изохроны по дорогам (OSRM)…';
+    var chain = Promise.resolve();
+    modes.forEach(function (mode, idx) {
+      chain = chain.then(function () {
+        return A.run('catchment', { minutes: mins, mode: mode, colors: TZ.colors[mode], hidden: TZ.on[mode].map(function (v) { return !v; }), keep: idx > 0, weight: TZ.weight }).then(function (res) {
+          try { A.say('fact', A.factHtml('catchment', res)); A.say('ai', A.narrative([{ name: 'catchment', res: res }])); } catch (e) {}
+          out[mode] = res;
+          if (res.mode === 'radius') tzToast('Маршрутизатор недоступен: зоны на авто построены по радиусам');
+        });
+      });
+    });
+    return chain.then(function () {
+      TZ.res = out; tzRows(out);
+      /* при двух режимах карта показывает обе группы зон целиком (агент подгонял карту под последнюю) */
+      if (modes.length > 1) {
+        try {
+          var M = theMap(), g = A.state.groups && A.state.groups.catchment, b = null;
+          /* слои агента лежат в L.layerGroup (без getBounds): границы собираем по слоям */
+          if (M && g) g.eachLayer(function (l) { var lb = null; try { lb = typeof l.getBounds === 'function' ? l.getBounds() : (typeof l.getLatLng === 'function' ? L.latLngBounds([l.getLatLng(), l.getLatLng()]) : null); } catch (x) {} if (lb && lb.isValid()) b = b ? b.extend(lb) : L.latLngBounds(lb.getSouthWest(), lb.getNorthEast()); });
+          if (M && b && b.isValid()) M.fitBounds(b, { padding: [20, 20] });
+        } catch (e) {}
+      }
+      return out;
+    }, function (e) { var m = String(e && e.message || e); if (note) note.textContent = m; tzToast(m); TZ.res = out; tzRows(out); });
   }
-  function tzClear() { var A = tzAgent(); if (A) A.run('clear_layers', { layers: ['catchment'] }); tzRows(null); }
+  function tzClear() { var A = tzAgent(); if (A) A.run('clear_layers', { layers: ['catchment'] }); TZ.res = null; tzRows(null); }
   function installTimeZones() {
     if ($('tzBox')) return; var rings = $('rings'); if (!rings || !rings.parentNode) return;
     TZ = tzLoad();
     var box = document.createElement('div'); box.id = 'tzBox'; box.className = 'tz';
     box.innerHTML = '<div class="tz-h">Зоны по времени в пути</div>'
-      + '<div class="styrow sub"><label for="tzMode">как едем</label><select id="tzMode" style="font-size:11px"><option value="car">на авто (дороги OSM, OSRM)</option><option value="metro">метро и пешком</option></select></div>'
+      + '<div class="styrow sub"><label for="tzMode">как едем</label><select id="tzMode" style="font-size:11px" title="один режим или оба сразу: у авто и у метро свои цвета"><option value="car">на авто (дороги OSM, OSRM)</option><option value="metro">метро и пешком</option><option value="both">оба сразу: авто и метро</option></select></div>'
       + '<div class="styrow sub"><label for="tzMin">минуты</label><input type="text" id="tzMin" style="width:100px;font-size:11px" title="три времени в пути через запятую, до 60 минут"><button type="button" class="btn sec" id="tzGo" style="font-size:11px" title="построить три зоны по времени в пути от точки анализа">✓ построить</button><button type="button" class="btn sec" id="tzClear" style="font-size:11px" title="убрать зоны с карты">✕</button></div>'
       + '<div id="tzZones"></div><div class="mini" id="tzNote"></div>';
     rings.parentNode.insertBefore(box, rings.nextSibling);
     /* по замечанию владельца: «Итог по catchment» (БЦ в наибольшем кольце) живёт внутри «Зоны охвата», отдельного раздела нет */
     try { var cs = $('catchSummary'); if (cs) { var old = cs.closest('.sect'); var wrap = document.createElement('div'); wrap.className = 'tz-sum'; wrap.innerHTML = '<div class="tz-h">Итог по кольцам</div>'; wrap.appendChild(cs); box.parentNode.appendChild(wrap); if (old && old !== box.parentNode.closest('.sect') && !old.querySelector('#rings')) old.remove(); } } catch (e) {}
-    var st = document.createElement('style'); st.textContent = '.tz{margin:8px 0 4px;padding-top:6px;border-top:1px dashed var(--line,#e3dcd1)}.tz-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red-d,#7a0000);margin-bottom:4px}.tz-row .tz-pop{color:var(--muted,#6f6a63);font-size:10.5px}.tz .styrow.sub{gap:4px}.tz-sum{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line,#e3dcd1)}'; document.head.appendChild(st);
+    var st = document.createElement('style'); st.textContent = '.tz{margin:8px 0 4px;padding-top:6px;border-top:1px dashed var(--line,#e3dcd1)}.tz-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red-d,#7a0000);margin-bottom:4px}.tz-sub{font-size:10.5px;font-weight:700;color:var(--muted,#6f6a63);margin:5px 0 2px}.tz-row .tz-pop{color:var(--muted,#6f6a63);font-size:10.5px}.tz .styrow.sub{gap:4px}.tz-sum{margin-top:8px;padding-top:6px;border-top:1px dashed var(--line,#e3dcd1)}'; document.head.appendChild(st);
     $('tzMode').value = TZ.mode; $('tzMin').value = TZ.mins.join(', ');
-    $('tzMode').onchange = function () { TZ.mode = this.value === 'metro' ? 'metro' : 'car'; tzSave(); };
+    $('tzMode').onchange = function () { TZ.mode = (this.value === 'metro' || this.value === 'both') ? this.value : 'car'; tzSave(); tzRows(TZ.res || null); };
     $('tzGo').onclick = function () { tzBuild(); }; $('tzClear').onclick = tzClear;
     $('tzMin').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tzBuild(); } });
+    /* ползунок «Толщина линий» (кольца) теперь меняет и толщину зон по времени; значение запоминается */
+    var rw = $('ringW');
+    if (rw) {
+      if (TZ.weight != null) { rw.value = TZ.weight; try { myRenderRings(); } catch (e) {} }
+      rw.addEventListener('input', function () { tzWeight(Math.max(1, Math.min(8, +rw.value || 3))); try { myRenderRings(); } catch (e) {} });
+    }
     tzRows(null);
   }
-  LY.timeZones = { build: tzBuild, clear: tzClear, state: function () { return TZ; } };
+  LY.timeZones = { build: tzBuild, clear: tzClear, state: function () { return TZ; }, modes: tzModes, weight: tzWeight };
 
   /* --- левая панель сворачивается целиком ------------------------------------------ */
   function leftOpen(on) {
@@ -297,4 +349,4 @@
   LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.78.1';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.78.2';
