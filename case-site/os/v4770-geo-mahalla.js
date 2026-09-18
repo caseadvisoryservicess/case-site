@@ -67,7 +67,7 @@
     var list = g.features.map(function (ft) { var ps = polys(ft.geometry); if (!ps.length) return null; var pr = ft.properties || {}; return { name: String(pr.name || pr.NAME || pr.mahalla || pr.title || ''), district: String(pr.district || pr.DISTRICT || ''), origin: origin || 'file', props: pr, polys: ps, bb: bbox(ps), ll: ps.map(function (p) { return p.map(function (ring) { return ring.map(function (c) { return [c[1], c[0]]; }); }); }) }; }).filter(Boolean);
     if (!list.length) return null;
     BND = (BND || []).filter(function (b) { return b.origin !== (origin || 'file'); }).concat(list);
-    BND.sort(function (a, b) { return (a.origin === 'ngis' ? 0 : 1) - (b.origin === 'ngis' ? 0 : 1); });
+    var ORD = { ngis: 0, file: 1, hokimiyat: 2 }; BND.sort(function (a, b) { return (ORD[a.origin] == null ? 3 : ORD[a.origin]) - (ORD[b.origin] == null ? 3 : ORD[b.origin]); });
     invalidate(); try { renderList(); drawMah(); if (curMah) bndInfo(); } catch (e) {}
     return BND;
   }
@@ -152,6 +152,36 @@
     return best ? { name: best.name, district: best.district, code: '', area_ha: null, origin: 'point', dist_km: bd } : null;
   }
   D.mahallaAt = mahallaAt;
+  /* по замечанию владельца (v4.78.0): у махаллей без официальной границы рисуется расчётная граница:
+     ячейка Вороного по точкам махаллей района, обрезанная границей района (полуплоскости в метрах,
+     отсечение Сазерленда-Ходжмана). Это ориентир для карты, помечен пунктиром и словом «расчётная»;
+     население таких махаллей по-прежнему считается по сетке вокруг точки, не внутри ячейки. Как только
+     появляется официальный полигон (файл, НГИС, хокимият, вручную), расчётная ячейка исчезает. */
+  function districtRing(dk, la, ln) {
+    var z = zones().filter(function (x) { return x.key === dk; })[0]; if (!z || !z.polys || !z.polys.length) return null;
+    var best = null; z.polys.forEach(function (pg) { if (pg && pg[0] && pg[0].length >= 3 && ring(ln, la, pg[0])) best = pg[0]; });
+    if (!best) z.polys.forEach(function (pg) { if (pg && pg[0] && (!best || pg[0].length > best.length)) best = pg[0]; });
+    return best;
+  }
+  function voronoiCell(rows, i, dk) {
+    var m = rows[i], la = +m.lat, ln = +m.lng, base = districtRing(dk, la, ln); if (!base) return null;
+    var kx = 111320 * Math.cos(la * Math.PI / 180), ky = 111320;
+    var P = [ln * kx, la * ky], poly = base.map(function (c) { return [c[0] * kx, c[1] * ky]; });
+    for (var j = 0; j < rows.length && poly.length >= 3; j++) {
+      if (j === i) continue; var q = rows[j]; if (!isFinite(+q.lat) || !isFinite(+q.lng)) continue;
+      var Q = [+q.lng * kx, +q.lat * ky], dx = Q[0] - P[0], dy = Q[1] - P[1]; if (dx * dx + dy * dy < 1) continue;
+      var cst = (Q[0] * Q[0] + Q[1] * Q[1] - P[0] * P[0] - P[1] * P[1]) / 2, out = [];
+      for (var k = 0; k < poly.length; k++) {
+        var A = poly[k], B = poly[(k + 1) % poly.length], fa = dx * A[0] + dy * A[1] - cst, fb = dx * B[0] + dy * B[1] - cst;
+        if (fa <= 0) out.push(A);
+        if ((fa <= 0) !== (fb <= 0)) { var t = fa / (fa - fb); out.push([A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t]); }
+      }
+      poly = out;
+    }
+    if (poly.length < 3) return null;
+    var ringLL = poly.map(function (c) { return [+(c[0] / kx).toFixed(6), +(c[1] / ky).toFixed(6)]; }), ps = [[ringLL]];
+    return { name: String(m.name || ''), district: dk, polys: ps, bb: bbox(ps), ll: [[ringLL.map(function (c) { return [c[1], c[0]]; })]], approx: true, origin: 'approx' };
+  }
   function mahallaLine(ma) {
     if (!ma) return 'Махалля точки: границы и точки базы рядом нет';
     return 'Махалля точки: ' + ma.name + (ma.name_ru ? ' (' + ma.name_ru + ')' : '') + (ma.district ? ', ' + distRu(ma.district) + ' район' : '') + (ma.code ? ', код ' + ma.code : '') + (ma.area_ha != null ? ', ' + Math.round(ma.area_ha) + ' га' : '') + (ma.origin === 'point' ? '; ближайшая точка базы в ' + Math.round(ma.dist_km * 1000) + ' м, границы нет' : ma.origin === 'manual' ? '; граница введена вручную' : '; граница из слоя махаллей НГИС');
@@ -220,9 +250,10 @@
       for (var k = 0; k < P.length; k++) { var h = P[k]; if (Math.abs(h[0] - la) > dl || Math.abs(h[1] - ln) > dn) continue; var d = havKm(la, ln, h[0], h[1]); if (d <= KERNEL_KM) s += h[2] * (1 - d / KERNEL_KM); }
       w[i] = s; sumW += s;
     });
-    var rest = total != null ? Math.max(0, total - manualSum - bndSum) : null;
+    var rest = total != null ? Math.max(0, total - manualSum - bndSum) : null, approxN = 0;
     var out = rows.map(function (m, i) {
       var mp = manualPop(m), est = null, conf = 'modelled', src = '', poly = null, r = reg[i] ? reg[i].r : null;
+      if (!bnd[i]) { try { poly = voronoiCell(rows, i, dk); if (poly) approxN++; } catch (e) { poly = null; } }
       if (mp) { est = mp.value; conf = 'verified'; src = mp.src; }
       else if (bnd[i]) { est = bnd[i].v; conf = 'asking'; src = bnd[i].b.manual ? 'сетка населения внутри границы, введённой вручную с карты' : 'сетка населения внутри официальной границы махалли (' + (bnd[i].b.origin === 'ngis' ? 'НГИС, живой запрос' : 'слой махаллей НГИС') + ')'; poly = bnd[i].b; }
       else if (rest != null && sumW > 0) { est = rest * w[i] / sumW; src = 'оценка: население района × доля махалли по сетке населения (' + Math.round(KERNEL_KM * 1000) + ' м)'; }
@@ -232,7 +263,7 @@
     });
     var official = REGI[dk] ? REGI[dk].length : null, matched = reg.filter(function (x) { return x && x.how !== 'registry'; }).length, regOnlyN = rows.filter(function (m) { return m.reg_only; }).length;
     var missing = official != null ? (REGI[dk] || []).filter(function (r) { return !usedCodes[r.code] && !r.polygon; }).map(function (r) { return r.name; }) : [];
-    cache[dk] = { rows: out, total: total, manualN: manualN, manualSum: manualSum, boundedN: bndN, calibrated: calibrated() && P.length > 0, official: official, matched: matched, regOnly: regOnlyN, missing: missing, baseN: base.length, polygons: REG && REG.by_district && REG.by_district[dk] ? REG.by_district[dk].polygons : null };
+    cache[dk] = { rows: out, total: total, manualN: manualN, manualSum: manualSum, boundedN: bndN, approxN: approxN, calibrated: calibrated() && P.length > 0, official: official, matched: matched, regOnly: regOnlyN, missing: missing, baseN: base.length, polygons: REG && REG.by_district && REG.by_district[dk] ? REG.by_district[dk].polygons : null };
     return cache[dk];
   }
   D.estimateDistrict = estimateDistrict;
@@ -410,7 +441,7 @@
     if (!r) return ''; var g = r.reg, items = [];
     if (g) items.push(kpi('Реестр Etirof', esc(g.name), (g.code ? 'код ' + g.code : '') + (g.name_cyr ? ' · ' + g.name_cyr : '')));
     if (r.area_ha != null) items.push(kpi('Площадь', Math.round(r.area_ha) + ' га', (g && g.area_ha != null ? 'геодезическая по официальному полигону' : 'слой хокимията 2024') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '')));
-    if (r.poly) items.push(kpi('Граница', r.poly.manual ? 'вручную' : 'официальная', r.poly.manual ? 'введена с карты' : 'слой махаллей, open.ngis.uz'));
+    if (r.poly) items.push(kpi('Граница', r.poly.manual ? 'вручную' : r.poly.approx ? 'расчётная' : 'официальная', r.poly.manual ? 'введена с карты' : r.poly.approx ? 'по соседним точкам, не официальная' : r.poly.origin === 'hokimiyat' ? 'слой хокимията (Open Data Tashkent)' : 'слой махаллей, open.ngis.uz'));
     if (!items.length) return '';
     return '<h4>Махалля: реестр и границы</h4><div class="dm-kpi dm-facts">' + items.join('') + '</div>' + (r.regOnly ? '<div class="dm-mut">Этой махалли нет в мастер-базе: строка из реестра Etirof с центроидом официального полигона.</div>' : '');
   }
@@ -612,7 +643,7 @@
       + '<div class="mah-edit" id="mahBnd" hidden><span>Граница:</span><button type="button" class="btn sec" id="mahBndSet" style="font-size:11px" title="взять последний полигон, нарисованный инструментом O или F внизу карты, как границу этой махалли; население пересчитается внутри границы">▱ из полигона на карте</button><button type="button" class="btn sec" id="mahBndClear" style="font-size:11px" title="убрать границу махалли">✕</button><span class="mini" id="mahBndInfo"></span></div>'
       + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Все махалли района на карте (клик по махалле открывает её карточку)</label>'
       + '<label class="ck"><input type="checkbox" id="mahSelShow" checked> Выбранная махалля: граница и сведения на карте</label>'
-      + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района. Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
+      + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района, их границы на карте расчётные (пунктир, по соседним точкам). Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
       + '</div>';
     anchor.parentNode.insertBefore(sect, anchor);
     var h3 = sect.querySelector('h3'); h3.style.cursor = 'pointer';
@@ -654,12 +685,12 @@
       + ' · в базе <b>' + e.baseN + '</b>' + (e.official != null ? ' (сопоставлено с реестром ' + e.matched + (e.regOnly ? ', добавлено из реестра ' + e.regOnly : '') + ')' : '')
       + (dr && dr.soato ? ' · SOATO ' + esc(dr.soato) : '')
       + (dr && dr.area_km2_geodesic ? ' · ' + String(dr.area_km2_geodesic).replace('.', ',') + ' км²' : '')
-      + (st && st.households != null ? ' · ' + fmt(st.households) + ' домохозяйств' : '') + (e.manualN ? ' · вручную: ' + e.manualN : '') + (e.boundedN ? ' · с границами: ' + e.boundedN : '') + (e.calibrated ? '' : ' · <span style="color:#9b6b00">сетка населения ещё не откалибрована</span>')
+      + (st && st.households != null ? ' · ' + fmt(st.households) + ' домохозяйств' : '') + (e.manualN ? ' · вручную: ' + e.manualN : '') + (e.boundedN ? ' · с границами: ' + e.boundedN : '') + (e.approxN ? ' · расчётных границ: ' + e.approxN : '') + (e.calibrated ? '' : ' · <span style="color:#9b6b00">сетка населения ещё не откалибрована</span>')
       + (e.missing && e.missing.length ? '<details class="mah-miss"><summary>' + e.missing.length + ' махаллей реестра без официальной границы и без точки в базе</summary>' + esc(e.missing.join(', ')) + '</details>' : '');
     box.innerHTML = rows.map(function (r) {
       var off = r.reg && r.reg.name && !r.regOnly && nrmX(r.reg.name) !== nrmX(r.name) ? ' <i class="mah-off" title="официальное имя в реестре Etirof">' + esc(r.reg.name) + '</i>' : '';
       return '<div class="mah-row' + (curMah && curMah.key === r.key ? ' sel' : '') + (r.regOnly ? ' reg' : '') + '" data-k="' + esc(r.key) + '" role="button" tabindex="0"><span class="n">' + esc(r.name) + off + (r.regOnly ? ' <i class="mah-tag" title="официальная махалля из реестра Etirof, в мастер-базе точки нет">реестр</i>' : '') + '</span><span class="p' + (r.manual ? ' man' : '') + '">' + (r.pop != null ? fmt(r.pop) : '-') + '<i>' + (r.manual ? '✓' : 'ƒ') + '</i></span>'
-        + '<span class="s">' + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : 'официальная') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
+        + '<span class="s">' + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : r.poly.approx ? 'расчётная' : 'официальная') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
     }).join('') || '<div class="mah-sum">В этом районе махаллей в мастер-базе нет</div>';
     box.querySelectorAll('.mah-row').forEach(function (el) {
       el.onclick = function () { selectMah(el.dataset.k); };
@@ -682,7 +713,7 @@
   function bndInfo() {
     var el = $('mahBndInfo'); if (!el || !curMah) return;
     var e = estimateDistrict(curDist), r = e.rows.filter(function (x) { return x.key === curMah.key; })[0];
-    el.textContent = r && r.poly ? (r.poly.manual ? 'введена вручную' : (r.poly.origin === 'ngis' ? 'из НГИС (open.ngis.uz)' : 'из официального файла')) : 'нет: население по радиусу';
+    el.textContent = r && r.poly ? (r.poly.manual ? 'введена вручную' : r.poly.approx ? 'расчётная по соседним точкам; население по радиусу' : (r.poly.origin === 'ngis' ? 'из НГИС (open.ngis.uz)' : r.poly.origin === 'hokimiyat' ? 'из слоя хокимията' : 'из официального файла')) : 'нет: население по радиусу';
   }
   D.setBoundary = setBoundary; D.lastPolygon = lastPolygon;
   function selectMah(key) {
@@ -697,10 +728,10 @@
   /* подсказка по махалле (наведение) и подпись выбранной махалли на карте (по замечанию владельца:
      при выборе видна граница, сверху сведения: жители, площадь, домохозяйства) */
   function tipHtml(r) {
-    return '<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small><br><small>клик: карточка махалли</small>';
+    return '<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + (r.poly && r.poly.approx ? '<br><small>граница расчётная: по соседним точкам, не официальная</small>' : '') + '<br><small>' + esc(r.src) + '</small><br><small>клик: карточка махалли</small>';
   }
   function labelHtml(r) {
-    return '<span class="mah-lbl"><b>' + esc(r.name) + '</b>' + (r.pop != null ? ' · ' + fmt(r.pop) + ' жит.' : '') + (r.hh != null ? ' · ' + fmt(r.hh) + ' д/х' : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.poly ? '' : ' · без границы') + '</span>';
+    return '<span class="mah-lbl"><b>' + esc(r.name) + '</b>' + (r.pop != null ? ' · ' + fmt(r.pop) + ' жит.' : '') + (r.hh != null ? ' · ' + fmt(r.hh) + ' д/х' : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.poly ? (r.poly.approx ? ' · граница расчётная' : '') : ' · без границы') + '</span>';
   }
   function openCard(key) { selectMah(key); try { openDemo('m:' + key); } catch (e) {} }
   function showAll() { return !!($('mahShow') && $('mahShow').checked); }
@@ -720,7 +751,8 @@
       var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx);
       if (r.poly) {
         /* при показе всех махалл границы кликабельны: клик открывает карточку махалли */
-        var pg = L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2.5 : 1, fillColor: sel ? '#9E0000' : '#c9a86a', fillOpacity: sel ? .1 : .12, dashArray: r.poly.manual ? '6 4' : null, interactive: all });
+        var ap = !!r.poly.approx;
+        var pg = L.polygon(r.poly.ll, { color: sel ? '#9E0000' : (ap ? '#b08a5a' : '#8C6A2F'), weight: sel ? 2.5 : 1, fillColor: sel ? '#9E0000' : '#c9a86a', fillOpacity: sel ? .1 : (ap ? .05 : .12), dashArray: r.poly.manual ? '6 4' : (ap ? '2 5' : null), interactive: all });
         if (all) { pg.bindTooltip(tipHtml(r), { sticky: true }); pg.on('click', function () { openCard(r.key); }); }
         pg.addTo(gMah);
       }

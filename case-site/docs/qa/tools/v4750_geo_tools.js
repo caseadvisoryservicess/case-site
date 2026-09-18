@@ -137,7 +137,7 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
   await pg.waitForTimeout(600);
   s = await S();
   ck('клик с пином задаёт точку анализа агента, инструмент выключился, отмена стала доступна', s.site && near(s.site.lat, 41.32, 1e-6) && s.tool === null && s.undo === 1, JSON.stringify({ site: s.site, tool: s.tool, undo: s.undo }));
-  let log = await lastLog(2);
+  let log = await lastLog(4); /* v4.78.0: после точки агент пишет и факт «Генплан (НГИС)», смотрим последние четыре записи */
   ck('в журнале агента факт о точке и ответ', has(log, 'fact', /41\.32/) && log.some(l => /^ai:/.test(l)), log.join(' | '));
   await pg.click('#geoTb [data-a=pin]');
   await click(41.3000, 69.2500);

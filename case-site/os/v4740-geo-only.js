@@ -24,7 +24,7 @@
   'use strict';
   if(window.CASE_GEO_ONLY_4740)return;
   window.CASE_GEO_ONLY_4740=true;
-  var VERSION='4.76.0';
+  var VERSION='4.78.0';
   var GEO_VIEWS=['geoanalytics','map'];
   /* v4.76.0: флаг прежнего экрана Geo Platform убираем из памяти браузера, чтобы он не всплывал */
   try{localStorage.removeItem('case_geo_platform_open');}catch(e){}
@@ -62,8 +62,36 @@
     if(!ext&&canOpen('map'))geo.push('map');
     var adm=role().admin?ADMIN_VIEWS.filter(canOpen):[];
     nav.innerHTML=navGroup(tr('Геоаналитика','Geoanalitika','Geoanalytics'),geo)+navGroup(tr('Администрирование','Boshqaruv','Administration'),adm);
+    try{topNav();}catch(e){}
   }
   function fullNavExtra(){} /* v4.76.0: в полном режиме отдельного пункта Geo Platform тоже нет */
+  /* v4.78.0 (замечание владельца): в режиме геоаналитики меню живёт в шапке справа от CASE OS, левой
+     колонки нет, экран занимает всю ширину. Меню в #nav строится по-прежнему (его читают старые
+     проверки и полный режим), но скрыто стилем. */
+  function topNav(){
+    var tb=document.querySelector('.topbar'),brand=tb&&tb.querySelector('.brand');if(!tb||!brand)return;
+    var box=document.getElementById('geoTopNav');
+    if(!on()){if(box)box.remove();return;}
+    if(!box){box=document.createElement('nav');box.id='geoTopNav';box.className='geo-topnav';box.setAttribute('aria-label',tr('Разделы платформы','Platforma bo\'limlari','Platform sections'));var ver=document.getElementById('appVer');(ver&&ver.parentNode===tb?ver:brand).insertAdjacentElement('afterend',box);}
+    var ext=!!role().external,geo=[];
+    if(canOpen('geoanalytics'))geo.push('geoanalytics');
+    if(!ext&&canOpen('map'))geo.push('map');
+    var adm=role().admin?ADMIN_VIEWS.filter(canOpen):[];
+    var cur=null;try{cur=S&&S.view;}catch(e){}
+    var link=function(v){return '<a data-v="'+v+'" class="'+(cur===v?'active':'')+'" title="'+h(moduleLabel(v))+'" onclick="caseNavGo(this,\''+v+'\')"><span class="ic">'+moduleIcon(v)+'</span><span class="lbl">'+h(moduleLabel(v))+'</span></a>';};
+    box.innerHTML=geo.map(link).join('')+(adm.length?'<span class="sep" role="separator"></span>'+adm.map(link).join(''):'');
+  }
+  /* после перезагрузки ядро может отрисовать экран раньше, чем модуль геоаналитики подцепит свой
+     рендер: остаётся заголовок без студии. Сторож дорисовывает студию (не больше пяти попыток). */
+  var ensureN=0;
+  function ensureStudio(){
+    try{
+      if(!on()||ensureN>=5||typeof S==='undefined'||!S||!S.user||S.view!=='geoanalytics')return;
+      if(document.getElementById('geoFrame')||document.getElementById('geoOursHost'))return;
+      ensureN++;if(typeof window.go==='function')window.go('geoanalytics');
+    }catch(e){}
+  }
+  function syncTop(){try{ensureStudio();}catch(e){}var box=document.getElementById('geoTopNav');if(!box)return;if(!on()){box.remove();return;}var cur=null;try{cur=S&&S.view;}catch(e){}var as=box.querySelectorAll('a[data-v]');for(var i=0;i<as.length;i++)as[i].classList.toggle('active',as[i].getAttribute('data-v')===cur);}
 
   /* ── шапка, чат, квиз, страницы администрирования ──────────────────────────────── */
   function css(){
@@ -71,6 +99,8 @@
     var s=document.createElement('style');s.id='geoOnlyCss';s.textContent=
       'body.case-geo-only #objSel,body.case-geo-only .gsearch,body.case-geo-only #addObjBtn,body.case-geo-only #editObjBtn,body.case-geo-only #chatFab,body.case-geo-only #chatW,body.case-geo-only #chatNotif,body.case-geo-only .quizpop,body.case-geo-only .quizpop-badge,body.case-geo-only #fxRow{display:none!important}'
       +'body.case-geo-only .who{margin-left:auto}'
+      +'body.case-geo-only .side,body.case-geo-only .burger,body.case-geo-only .scrim{display:none!important}body.case-geo-only .main,body.case-geo-only.nav-pin .main{margin-left:0!important;width:100%!important}body.case-geo-only .topbar{flex-wrap:wrap;row-gap:4px}'
+      +'.geo-topnav{display:flex;align-items:center;gap:4px;margin-left:6px;flex-wrap:wrap}.geo-topnav a{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--ink,#1b1b1b);cursor:pointer;border:1px solid transparent;text-decoration:none;white-space:nowrap}.geo-topnav a:hover{background:#faf7f2;border-color:var(--border,#e3dcd1)}.geo-topnav a.active{background:var(--red,#9E0000);color:#fff}.geo-topnav a .ic{opacity:.85}.geo-topnav .sep{width:1px;height:18px;background:var(--border,#e3dcd1);margin:0 4px}body.dark .geo-topnav a{color:#eee}body.dark .geo-topnav a:hover{background:#333}@media(max-width:640px){.geo-topnav a .lbl{display:none}.geo-topnav a{padding:6px 8px}}'
       +'.geo-only-banner{display:flex;gap:10px;align-items:flex-start;border:1px solid #efdca6;background:#fff8e6;color:#6b4e00;border-radius:10px;padding:9px 12px;font-size:12px;margin:0 0 12px}.geo-only-banner b{white-space:nowrap}body.dark .geo-only-banner{background:#3a2f14;color:#f0d9a0;border-color:#5a4a1d}'
       +'.ff-row.geo-only-off,.ws-module.geo-only-off,.ff-group.geo-only-off,.ws-group.geo-only-off{display:none!important}';
     document.head.appendChild(s);
@@ -107,6 +137,7 @@
     document.body.classList.toggle('case-geo-only',on());
     brand();
     try{if(typeof window.buildNav==='function')window.buildNav();}catch(e){}
+    try{topNav();}catch(e){}
   }
   function install(){
     css();noops();brand();
@@ -131,6 +162,7 @@
     }
     var main=document.getElementById('main');
     if(main){try{new MutationObserver(function(){pruneAdmin();}).observe(main,{childList:true,subtree:true});}catch(e){}}
+    setInterval(function(){try{syncTop();}catch(e){}},800);
     document.body.classList.toggle('case-geo-only',on());
     /* ядро могло войти и вызвать boot() раньше, чем загрузился этот модуль (ответ auth.php
        приходит между отложенными скриптами): достраиваем меню и уводим с чужого экрана */
@@ -144,4 +176,4 @@
   window.caseGeoOnly={version:VERSION,mode:mode,on:on,apply:apply,allowed:allowedView,views:function(){return GEO_VIEWS.slice();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.76.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.78.0';

@@ -59,7 +59,7 @@
   function css() {
     if ($('geoBcCss')) return;
     var s = document.createElement('style'); s.id = 'geoBcCss'; s.textContent =
-      '#bcSect .sbody{padding:6px 12px 12px}#bcQ{width:100%;box-sizing:border-box;font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid var(--line,#e3dcd1)}'
+      '#bcSect{margin-top:6px;border-top:1px dashed var(--line,#e3dcd1);padding-top:6px}#bcSect .sbody{padding:2px 0 6px}.bc-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red-d,#7a0000);margin:2px 0 6px}#bcQ{width:100%;box-sizing:border-box;font-size:12px;padding:7px 9px;border-radius:8px;border:1px solid var(--line,#e3dcd1)}'
       + '.bc-found{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--muted,#6f6a63);margin:6px 0 4px}.bc-found b{color:var(--ink,#1b1b1b);font-size:13px}.bc-found .sp{flex:1}'
       + '.bc-reset{border:0;background:none;color:#9E0000;font:600 11px inherit;cursor:pointer;padding:2px 4px}.bc-reset:disabled{color:var(--muted,#6f6a63);cursor:default;opacity:.6}'
       + '.bc-grp{margin:6px 0 2px}.bc-lab{display:block;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted,#6f6a63);margin-bottom:3px}'
@@ -90,11 +90,20 @@
 
   /* --- секция в левой панели ------------------------------------------------------------- */
   function layersSection() { var hs = document.querySelectorAll('.left>.sect>h3'); for (var i = 0; i < hs.length; i++) if (/слои и стиль/i.test(hs[i].textContent)) return hs[i].parentNode; return null; }
+  /* по замечанию владельца (v4.78.0): отдельного раздела «Бизнес-центры» нет, список, фильтры и
+     сравнение живут внутри «Слои и стиль» в категории «Бизнес-центры» (там же галочки слоёв и тепловая
+     карта), чтобы не было двух одинаковых заголовков */
+  function bcHost() {
+    var body = document.querySelector('.geo-cat[data-cat="Бизнес-центры"] .geo-cat-body'); if (body) return { host: body, before: null };
+    var t = [].slice.call(document.querySelectorAll('.geo-cat-title')).filter(function (x) { return /бизнес-центры/i.test(x.textContent); })[0]; if (!t) return null;
+    var nx = t.nextElementSibling; while (nx && !(nx.classList && nx.classList.contains('geo-cat-title'))) nx = nx.nextElementSibling;
+    return { host: t.parentNode, before: nx };
+  }
   function mount() {
     if ($('bcSect')) return true;
-    var anchor = layersSection(); if (!anchor || !all().length) return false;
-    var sect = document.createElement('div'); sect.className = 'sect'; sect.id = 'bcSect';
-    sect.innerHTML = '<h3 id="bcH">Бизнес-центры</h3><div class="sbody">'
+    var host = bcHost(); if (!host || !layersSection() || !all().length) return false;
+    var sect = document.createElement('div'); sect.className = 'bc-inline'; sect.id = 'bcSect';
+    sect.innerHTML = '<div class="bc-h" id="bcH">Список, фильтры и сравнение</div><div class="sbody">'
       + '<input type="search" id="bcQ" placeholder="Название, адрес, район" aria-label="Поиск бизнес-центра" autocomplete="off">'
       + '<div class="bc-found">найдено <b id="bcFound">0</b> из <span id="bcTotal">0</span><span class="sp"></span><button type="button" class="bc-reset" id="bcReset" disabled>сбросить</button></div>'
       + '<div class="bc-grp"><span class="bc-lab">Район</span><div class="bc-chips" id="bcFDist"></div></div>'
@@ -106,11 +115,7 @@
       + '<div class="bc-list" id="bcList"></div>'
       + '<div class="bc-cmpbar" id="bcCmpBar"></div>'
       + '</div>';
-    anchor.parentNode.insertBefore(sect, anchor);
-    var h3 = sect.querySelector('h3');
-    h3.style.cursor = 'pointer';
-    h3.addEventListener('click', function () { var closed = sect.classList.toggle('closed'); try { localStorage.setItem(KEY_SECT, closed ? '0' : '1'); } catch (e) {} });
-    try { if (localStorage.getItem(KEY_SECT) === '0') sect.classList.add('closed'); } catch (e) {}
+    if (host.before) host.host.insertBefore(sect, host.before); else host.host.appendChild(sect);
     bind();
     buildChips();
     syncControls();

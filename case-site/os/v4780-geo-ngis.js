@@ -90,18 +90,68 @@
     }).catch(function (e) { N.loading = false; status('Не удалось получить границы из НГИС: ' + (e && e.message || e) + '. Портал мог закрыть доступ (риск R1); положите файл data/mahalla_boundaries.geojson.'); return null; });
   }
   N.loadMahallas = loadMahallas;
+  /* v4.78.0 (замечание владельца «у части махаллей нет границ»): слой хокимията Ташкента со всеми 585
+     махаллями (Open Data Tashkent, опубликован на ArcGIS Online), запрос из браузера пользователя.
+     Полигон привязывается к реестру по id слоя (layer_id реестра), поэтому получает официальный код и
+     район студии. Порядок приоритета границ: живой НГИС, файл кадастра, хокимият. */
+  var HOK = 'https://services8.arcgis.com/GyR85gR88mMqIY4t/arcgis/rest/services/Tashkent_Mahallas/FeatureServer/0/query', KEY_HOK = 'caseos_hokimiyat_mahalla_v1', KEY_HOK_AUTO = 'caseos_hokimiyat_auto';
+  function centroidOf(g) {
+    var ring = g && g.type === 'Polygon' ? g.coordinates[0] : g && g.type === 'MultiPolygon' ? g.coordinates[0][0] : null; if (!ring || ring.length < 3) return null;
+    var a = 0, cx = 0, cy = 0; for (var i = 0, j = ring.length - 1; i < ring.length; j = i++) { var f = ring[j][0] * ring[i][1] - ring[i][0] * ring[j][1]; a += f; cx += (ring[j][0] + ring[i][0]) * f; cy += (ring[j][1] + ring[i][1]) * f; }
+    if (!a) return [ring[0][1], ring[0][0]]; a *= 0.5; return [cy / (6 * a), cx / (6 * a)];
+  }
+  function toStudioHok(feats) {
+    var D = demo(), reg = D && typeof D.registry === 'function' ? D.registry() : null, byId = {};
+    if (reg && Array.isArray(reg.rows)) reg.rows.forEach(function (r) { if (r.layer_id != null) byId[String(r.layer_id)] = r; });
+    var map = keyBySoato(), out = [];
+    feats.forEach(function (ft) {
+      var pr = ft.properties || ft.attributes || {}; if (!ft.geometry) return;
+      var id = String(pr.id != null ? pr.id : (pr.Id != null ? pr.Id : (pr.OBJECTID != null ? pr.OBJECTID : ''))), r = byId[id] || null;
+      var c = centroidOf(ft.geometry);
+      out.push({ type: 'Feature', geometry: ft.geometry, properties: { name: r ? r.name : String(pr.name_uz_lt || pr.name_ru || nameOf(pr) || ''), district: r ? r.district : (map[String(pr.soato_district || '')] || ''), soato_district: r ? r.soato_district : '', mahalla_code: r ? r.code : '', cadastral_number: '', area_ha: pr.Maydoni != null && isFinite(+pr.Maydoni) ? +pr.Maydoni : (r && r.area_ha_hokimiyat != null ? r.area_ha_hokimiyat : null), lat: c ? +c[0].toFixed(5) : null, lng: c ? +c[1].toFixed(5) : null, layer_id: id, name_ru: pr.name_ru || (r ? r.name_ru : ''), source: 'Хокимият Ташкента, Open Data Tashkent (ArcGIS Online), границы по решениям Кенгаша 2023-2024', source_date: new Date().toISOString().slice(0, 10) } });
+    });
+    return { type: 'FeatureCollection', features: out };
+  }
+  function loadHokimiyat(force) {
+    if (N.loadingHok) return Promise.resolve(N.hokimiyat);
+    var D = demo(); if (!D || typeof D.setBoundaries !== 'function') { toast('Модуль махаллей не загружен'); return Promise.resolve(null); }
+    if (!force) { try { var c = JSON.parse(localStorage.getItem(KEY_HOK) || 'null'); if (c && c.fc && c.fc.features && c.fc.features.length) { N.hokimiyat = c.fc; D.setBoundaries(c.fc, 'hokimiyat'); statusHok('Границы хокимията: ' + c.fc.features.length + ' махаллей (кэш от ' + c.at + ')'); return Promise.resolve(c.fc); } } catch (e) {} }
+    N.loadingHok = true; statusHok('Запрашиваю слой хокимията (585 махаллей)…');
+    var all = [], PAGE = 1000;
+    function page(off) {
+      var u = HOK + '?where=1%3D1&outFields=id,district,name_uz_lt,name_uz_kr,name_ru,Maydoni&returnGeometry=true&outSR=4326&f=geojson&maxAllowableOffset=0.0001&resultOffset=' + off + '&resultRecordCount=' + PAGE;
+      return fetchJson(u, 40000).then(function (j) { var f = j.features || []; all = all.concat(f); if (f.length >= PAGE && all.length < 5000) return page(off + PAGE); return all; });
+    }
+    return page(0).then(function (feats) {
+      var fc = toStudioHok(feats); N.hokimiyat = fc; N.loadingHok = false;
+      if (!fc.features.length) { statusHok('Слой хокимията не вернул полигонов'); return fc; }
+      D.setBoundaries(fc, 'hokimiyat');
+      try { var txt = JSON.stringify({ at: new Date().toISOString().slice(0, 10), fc: fc }); if (txt.length < 3800000) localStorage.setItem(KEY_HOK, txt); localStorage.setItem(KEY_HOK_AUTO, '1'); } catch (e) {}
+      var withCode = fc.features.filter(function (f) { return f.properties.mahalla_code; }).length;
+      statusHok('Границы хокимията: ' + fc.features.length + ' махаллей, ' + withCode + ' с кодом реестра; расчётные границы заменены официальными');
+      toast('Границы всех махаллей из слоя хокимията загружены: ' + fc.features.length);
+      return fc;
+    }).catch(function (e) { N.loadingHok = false; statusHok('Не удалось получить слой хокимията: ' + (e && e.message || e) + '. Нужен доступ к services8.arcgis.com из вашей сети.'); return null; });
+  }
+  N.loadHokimiyat = loadHokimiyat;
+  function statusHok(t) { var el = $('hokStatus'); if (el) el.textContent = t; }
   function status(t) { var el = $('ngisStatus'); if (el) el.textContent = t; }
   function mountMahallaButton() {
     if ($('ngisLoad')) return true;
     var sect = $('mahSect'); var body = sect && sect.querySelector('.sbody'); if (!body) return false;
     var show = $('mahShow'); var anchor = show ? show.closest('label') : null;
     var d = document.createElement('div'); d.className = 'ngis-row';
-    d.innerHTML = '<button type="button" class="btn sec" id="ngisLoad" style="font-size:11px" title="границы махаллей Ташкента из открытого геопортала Кадастр агентлиги (open.ngis.uz), запрос из вашего браузера">⬇ Границы махаллей из НГИС</button><button type="button" class="btn sec" id="ngisReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="ngisStatus"></div><div class="mini">' + esc(ATTR) + '. Публичные данные; условия коммерческого переиспользования не подтверждены. Слой покрывает не все махалли.</div>';
+    d.innerHTML = '<div class="ngis-h">Обновление границ (из вашего браузера)</div>'
+      + '<button type="button" class="btn sec" id="hokLoad" style="font-size:11px" title="официальные границы всех 585 махаллей Ташкента из слоя хокимията (Open Data Tashkent на ArcGIS Online); закрывает пробелы кадастрового слоя">⬇ Все 585 границ (хокимият)</button><button type="button" class="btn sec" id="hokReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="hokStatus"></div>'
+      + '<button type="button" class="btn sec" id="ngisLoad" style="font-size:11px" title="свежие границы из кадастрового слоя open.ngis.uz (в пакете уже есть снимок от 18.09.2026, слой пополняется); запрос из вашего браузера">↻ Обновить границы из НГИС</button><button type="button" class="btn sec" id="ngisReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="ngisStatus"></div><div class="mini">' + esc(ATTR) + ' и хокимият Ташкента. Публичные данные; условия коммерческого переиспользования не подтверждены. Приоритет границ: живой НГИС, файл кадастра, хокимият.</div>';
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor); else body.appendChild(d);
     $('ngisLoad').onclick = function () { loadMahallas(false); };
     $('ngisReload').onclick = function () { try { localStorage.removeItem(KEY_CACHE); } catch (e) {} loadMahallas(true); };
-    var auto = false; try { auto = localStorage.getItem(KEY_AUTO) === '1'; } catch (e) {}
+    $('hokLoad').onclick = function () { loadHokimiyat(false); };
+    $('hokReload').onclick = function () { try { localStorage.removeItem(KEY_HOK); } catch (e) {} loadHokimiyat(true); };
+    var auto = false, autoH = false; try { auto = localStorage.getItem(KEY_AUTO) === '1'; autoH = localStorage.getItem(KEY_HOK_AUTO) === '1'; } catch (e) {}
     if (auto) setTimeout(function () { loadMahallas(false); }, 600);
+    if (autoH) setTimeout(function () { loadHokimiyat(false); }, 900);
     return true;
   }
 

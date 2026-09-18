@@ -48,8 +48,11 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
     links: [...document.querySelectorAll('#nav a[data-v]')].map(a => a.dataset.v), groups: [...document.querySelectorAll('#nav .nav-group-btn>span:first-child')].map(x => x.textContent),
     frame: !!document.getElementById('geoFrame'), objSel: getComputedStyle(document.getElementById('objSel')).display, search: getComputedStyle(document.querySelector('.gsearch')).display,
     chat: (() => { const f = document.getElementById('chatFab'); return !f || getComputedStyle(f).display === 'none'; })(), brand: document.querySelector('.brand .tag').textContent, title: document.title,
-    ver: document.getElementById('appVer').textContent
+    ver: document.getElementById('appVer').textContent,
+    /* v4.78.0: меню в шапке, левой колонки нет */
+    top: [...document.querySelectorAll('#geoTopNav a[data-v]')].map(a => a.dataset.v), topActive: (document.querySelector('#geoTopNav a.active') || {}).dataset ? document.querySelector('#geoTopNav a.active').dataset.v : '', sideHidden: getComputedStyle(document.getElementById('side')).display === 'none', mainLeft: getComputedStyle(document.getElementById('main')).marginLeft, topAfterBrand: !!(document.getElementById('geoTopNav') && document.getElementById('geoTopNav').previousElementSibling && /brand|demo/.test(document.getElementById('geoTopNav').previousElementSibling.className))
   }));
+  ck('v4.78.0: меню «Гео: рынок и POI», «Гео: наши проекты» в шапке справа от CASE OS, активный пункт подсвечен, левая колонка скрыта, экран во всю ширину', s1.top.length >= 1 && s1.top[0] === 'geoanalytics' && s1.topActive === s1.view && s1.sideHidden && s1.mainLeft === '0px' && s1.topAfterBrand, JSON.stringify({ top: s1.top, topActive: s1.topActive, sideHidden: s1.sideHidden, mainLeft: s1.mainLeft, topAfterBrand: s1.topAfterBrand }));
   ck('режим geo пришёл с сервера, тело помечено, главный экран = студия геоаналитики', s1.mode === 'geo' && s1.geoOnly && s1.view === 'geoanalytics' && s1.frame, JSON.stringify({ mode: s1.mode, view: s1.view, frame: s1.frame }));
   ck('меню: только гео и администрирование; экрана Geo Platform нет (v4.76.0)', s1.links.join() === 'geoanalytics,map,users,admin_modules,admin_system' && s1.groups.length === 2 && /Геоаналитика/.test(s1.groups[0]) && /Администрирование/.test(s1.groups[1]), s1.links.join() + ' | ' + s1.groups.join(' / '));
   if (process.env.SHOTS) await pg.screenshot({ path: path.join(process.env.SHOTS, 'geo_only_studio.png') });
@@ -84,8 +87,8 @@ const wait = ms => new Promise(r => setTimeout(r, ms));
   console.log('--- 5. Режим full: ничего не потеряно');
   state.mode = 'full';
   ({ pg, errs } = await open());
-  const s7 = await pg.evaluate(async () => { const links = [...document.querySelectorAll('#nav a[data-v]')].map(a => a.dataset.v); go('registry'); await new Promise(r => setTimeout(r, 400)); return { mode: window.CASE_PLATFORM_MODE, geoOnly: document.body.classList.contains('case-geo-only'), groups: document.querySelectorAll('#nav .nav-group-btn').length, links: links.length, noPlatform: links.indexOf('geo_platform') < 0, view: S.view, brand: document.querySelector('.brand .tag').textContent }; });
-  ck('full: тело без пометки, групп меню много, пункта Geo Platform нет, реестр открывается, подпись бренда прежняя', s7.mode === 'full' && !s7.geoOnly && s7.groups >= 5 && s7.links > 20 && s7.noPlatform && s7.view === 'registry' && !/Geo Analytics Platform/.test(s7.brand), JSON.stringify(s7));
+  const s7 = await pg.evaluate(async () => { const links = [...document.querySelectorAll('#nav a[data-v]')].map(a => a.dataset.v); go('registry'); await new Promise(r => setTimeout(r, 400)); return { topNav: !!document.getElementById('geoTopNav'), sideShown: getComputedStyle(document.getElementById('side')).display !== 'none', mode: window.CASE_PLATFORM_MODE, geoOnly: document.body.classList.contains('case-geo-only'), groups: document.querySelectorAll('#nav .nav-group-btn').length, links: links.length, noPlatform: links.indexOf('geo_platform') < 0, view: S.view, brand: document.querySelector('.brand .tag').textContent }; });
+  ck('full: тело без пометки, групп меню много, пункта Geo Platform нет, реестр открывается, подпись бренда прежняя, меню в шапке нет и колонка видна', s7.mode === 'full' && !s7.geoOnly && s7.groups >= 5 && s7.links > 20 && s7.noPlatform && s7.view === 'registry' && !/Geo Analytics Platform/.test(s7.brand) && !s7.topNav && s7.sideShown, JSON.stringify(s7));
   ck('ошибок сценария в режиме full нет', errs.length === 0, errs.slice(0, 3).join(' | ') || 'нет');
   await pg.context().close();
 
