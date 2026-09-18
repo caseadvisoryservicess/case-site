@@ -17,7 +17,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_BC) return;
-  var VERSION = '4.76.0', KEY = 'caseos_bc_filters_v1', KEY_SECT = 'caseos_bc_sect', PAGE = 60, CELL_M = 700;
+  var VERSION = '4.78.1', KEY = 'caseos_bc_filters_v1', KEY_SECT = 'caseos_bc_sect', PAGE = 60, CELL_M = 700;
   var B = window.CASE_GEO_BC = { version: VERSION };
   var F = blank(), CMP = [], shown = PAGE, sortBy = 'name', listOn = true, gHeat = null, tmr = null;
   var CLASSES = ['A+', 'A', 'B+', 'B', 'C'], CLASS_COL = { 'A+': '#6e0000', 'A': '#9E0000', 'B+': '#c0392b', 'B': '#e67e22', 'C': '#b9b2a8', none: '#d8d0c4' };
@@ -313,4 +313,4 @@
   B.filtered = function () { return filtered().map(function (r) { return r.e; }); }; B.compare = function () { return CMP.slice(); }; B.toggleCompare = toggleCompare; B.openCompare = openCompare; B.showOnMap = showOnMap; B.heat = function (on) { var cb = $('lRentHeat'); if (cb) { cb.checked = !!on; cb.dispatchEvent(new Event('change', { bubbles: true })); } }; B.cells = function () { return cellsOf(filtered()); }; B.refresh = renderAll;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-bc'] = '4.76.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-bc'] = '4.78.1';

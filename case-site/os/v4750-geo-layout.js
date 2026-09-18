@@ -15,7 +15,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.76.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
+  var VERSION = '4.78.1', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -297,4 +297,4 @@
   LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.76.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.78.1';

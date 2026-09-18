@@ -38,7 +38,7 @@
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.75.0';
+  var VERSION = '4.78.1';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -892,6 +892,8 @@
     return h + '</div>';
   }
   function say(who, html) {
+    /* v4.78.1 (замечание владельца «в панели много повторов»): одинаковый факт подряд не пишется */
+    if (who === 'fact') { var prev = ST.log.length ? ST.log[ST.log.length - 1] : null; if (prev && prev.who === 'fact' && prev.html === html) return; }
     ST.log.push({ who: who, html: html });
     var box = $('gaLog'); if (!box) return;
     var d = document.createElement('div'); d.className = 'ga-msg ga-' + who; d.innerHTML = html; box.appendChild(d); box.scrollTop = box.scrollHeight;

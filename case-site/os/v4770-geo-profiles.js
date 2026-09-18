@@ -20,7 +20,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_PROFILES) return;
-  var VERSION = '4.77.0', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
+  var VERSION = '4.78.1', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
   var P = window.CASE_GEO_PROFILES = { version: VERSION, current: null };
   var PROFILES = {
     office: { label: 'Ищу офис', hide: ['analysis', 'road', 'mah', 'catch'], hint: 'бизнес-центры, ставки, сравнение и удобства рядом с точкой' },
@@ -190,4 +190,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.77.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.78.1';

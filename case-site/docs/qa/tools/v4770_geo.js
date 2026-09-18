@@ -62,7 +62,7 @@ const digits = s => +String(s).replace(/[^\d]/g, '');
 
   console.log('--- 1. Модули, разделы, данные');
   const v = await pg.evaluate(() => { const M = window.CASE_MODULE_VERSIONS || {}; return { mah: M['v4770-geo-mahalla'], rs: M['v4770-geo-roadside'], pr: M['v4770-geo-profiles'], sects: [...document.querySelectorAll('.left>.sect')].map(s => s.dataset.sect || '?'), schema: window.CASE_GEO_DEMO.data.schema, pts: window.CASE_GEO_DEMO.data.city.population_series.length, tabsSel: !!document.querySelector('.tabs>#geoProfile'), amenIn: !!document.querySelector('#projInfo + #amen'), poi: window.CASE_GEO_POI.total('mahallas'), distOpts: document.getElementById('mahDist').options.length }; });
-  ck('модули 4.78.0 и 4.77.0, шесть размеченных разделов (БЦ внутри слоёв, итог внутри зоны охвата), профиль на вкладках, «Что рядом» под точкой, демография загружена, 545 махаллей, 12 районов', v.mah === '4.78.0' && v.rs === '4.77.0' && v.pr === '4.77.0' && v.sects.join(',') === 'point,analysis,road,rings,mah,layers' && v.schema === 'case-demography/v1' && v.pts >= 12 && v.tabsSel && v.amenIn && v.poi === 545 && v.distOpts === 13, JSON.stringify(v));
+  ck('модули 4.78.1 и 4.77.0, шесть размеченных разделов (БЦ внутри слоёв, итог внутри зоны охвата), профиль на вкладках, «Что рядом» под точкой, демография загружена, 545 махаллей, 12 районов плюс пункт «Все районы»', v.mah === '4.78.1' && v.rs === '4.77.0' && v.pr === '4.78.1' && v.sects.join(',') === 'point,analysis,road,rings,mah,layers' && v.schema === 'case-demography/v1' && v.pts >= 12 && v.tabsSel && v.amenIn && v.poi === 545 && v.distOpts === 14, JSON.stringify(v));
 
   console.log('--- 2. Махалли по районам');
   await pg.selectOption('#mahDist', 'Yunusabad'); await pg.waitForTimeout(400);

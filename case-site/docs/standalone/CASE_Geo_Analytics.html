@@ -33,7 +33,7 @@ window.CASE_NGIS_NALOG={"type":"FeatureCollection","name":"ngis_nalog_tashkent",
   'use strict';
   if (window.CASE_STANDALONE) return;
   var DATA = window.CASE_STANDALONE_DATA || {};
-  var S = window.CASE_STANDALONE = { version: '4.78.0', built: '2026-09-18', log: [] };
+  var S = window.CASE_STANDALONE = { version: '4.78.1', built: '2026-09-18', log: [] };
   var realFetch = window.fetch.bind(window);
 
   function jsonResponse(obj, status) {
@@ -1097,7 +1097,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
 @media(max-width:620px){.left>.sect{margin:6px 6px 0}}
 </style></head><body class="geo-auth-pending">
 <div class="app">
-<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.78.0 · сборка 2026-09-18</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
+<header class="top"><span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия 4.78.1 · сборка 2026-09-18</span><span style="flex:1"></span><span class="tag" id="geoAccess"></span><span class="tag geo-save-status" id="geoSaveStatus" style="display:none"></span><span class="tag" id="hdrCount"></span></header>
 <div class="tabs"><button class="active" data-t="mapT">Карта</button><button data-t="anaT">Аналитика</button><!-- v4.76.0: вкладки «Сравнение стран» нет (решение владельца); страница #cmpT остаётся скрытой --><button data-t="siteT" class="hidden">Профиль проекта</button><button data-t="planT" class="hidden">Генплан / нормы</button><button data-t="dataT">Управление данными</button><button data-t="objT" class="hidden">Объекты на карте</button></div>
 <div class="wrap" id="mapT">
  <div class="left">
@@ -4191,7 +4191,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 })();
 /* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий -
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.78.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.78.1';
 
 </script>
 <script>/* v4530-geo-export.js */
@@ -6238,7 +6238,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.75.0';
+  var VERSION = '4.78.1';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -7092,6 +7092,8 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     return h + '</div>';
   }
   function say(who, html) {
+    /* v4.78.1 (замечание владельца «в панели много повторов»): одинаковый факт подряд не пишется */
+    if (who === 'fact') { var prev = ST.log.length ? ST.log[ST.log.length - 1] : null; if (prev && prev.who === 'fact' && prev.html === html) return; }
     ST.log.push({ who: who, html: html });
     var box = $('gaLog'); if (!box) return;
     var d = document.createElement('div'); d.className = 'ga-msg ga-' + who; d.innerHTML = html; box.appendChild(d); box.scrollTop = box.scrollHeight;
@@ -7459,7 +7461,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.76.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
+  var VERSION = '4.78.1', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -7741,7 +7743,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.76.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.78.1';
 
 </script>
 <script>/* v4750-geo-tools.js */
@@ -7764,7 +7766,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_TOOLS) return;
-  var VERSION = '4.76.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var VERSION = '4.78.1', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
   var TL = window.CASE_GEO_TOOLS = { version: VERSION };
   var ST = { tool: null, pts: [], preview: null, undo: [], redo: [], routes: null, notes: null, notesData: [], circle: null, freeOn: false, menu: null, seq: 0 };
   function $(id) { return document.getElementById(id); }
@@ -8110,7 +8112,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   TL.setTool = setTool; TL.cancel = function () { cancel(false); }; TL.undo = undo; TL.redo = redo; TL.state = ST; TL.finishPolygon = finishPolygon; TL.notes = function () { return ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }); }; TL.showInfo = info; TL.simplify = simplify;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.76.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.78.1';
 
 </script>
 <script>/* v4760-geo-bc.js */
@@ -8133,7 +8135,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_BC) return;
-  var VERSION = '4.76.0', KEY = 'caseos_bc_filters_v1', KEY_SECT = 'caseos_bc_sect', PAGE = 60, CELL_M = 700;
+  var VERSION = '4.78.1', KEY = 'caseos_bc_filters_v1', KEY_SECT = 'caseos_bc_sect', PAGE = 60, CELL_M = 700;
   var B = window.CASE_GEO_BC = { version: VERSION };
   var F = blank(), CMP = [], shown = PAGE, sortBy = 'name', listOn = true, gHeat = null, tmr = null;
   var CLASSES = ['A+', 'A', 'B+', 'B', 'C'], CLASS_COL = { 'A+': '#6e0000', 'A': '#9E0000', 'B+': '#c0392b', 'B': '#e67e22', 'C': '#b9b2a8', none: '#d8d0c4' };
@@ -8429,7 +8431,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   B.filtered = function () { return filtered().map(function (r) { return r.e; }); }; B.compare = function () { return CMP.slice(); }; B.toggleCompare = toggleCompare; B.openCompare = openCompare; B.showOnMap = showOnMap; B.heat = function (on) { var cb = $('lRentHeat'); if (cb) { cb.checked = !!on; cb.dispatchEvent(new Event('change', { bubbles: true })); } }; B.cells = function () { return cellsOf(filtered()); }; B.refresh = renderAll;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-bc'] = '4.76.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4760-geo-bc'] = '4.78.1';
 
 </script>
 <script>/* v4770-geo-mahalla.js */
@@ -8458,7 +8460,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_DEMO) return;
-  var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KEY_SHOW = 'caseos_mah_show_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
+  var VERSION = '4.78.1', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KEY_SHOW = 'caseos_mah_show_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
   var D = window.CASE_GEO_DEMO = { version: VERSION, data: null, ready: false };
   var OVR = {}, BNDL = {}, gMah = null, gSel = null, curDist = '', curMah = null, sortBy = 'pop', cache = {}, BND = null, REG = null, REGI = {}, REGC = {};
   var DIST_RU = { 'Yunusabad': 'Юнусабадский', 'Mirzo-Ulugbek': 'Мирзо-Улугбекский', 'Uchtepa': 'Учтепинский', 'Yashnabad': 'Яшнабадский', 'Olmazor': 'Алмазарский', 'Chilanzar': 'Чиланзарский', 'Sergeli': 'Сергелийский', 'Shaykhantakhur': 'Шайхантахурский', 'Mirabad': 'Мирабадский', 'Yangihayot': 'Янгихаётский', 'Yakkasaray': 'Яккасарайский', 'Bektemir': 'Бектемирский' };
@@ -8702,6 +8704,16 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     return cache[dk];
   }
   D.estimateDistrict = estimateDistrict;
+  /* v4.78.1 (замечание владельца «все махалли сразу»): режим «Все районы»: строки всех районов вместе */
+  var ALL = '*';
+  function estimateAll() {
+    if (cache[ALL]) return cache[ALL];
+    var rows = [], total = 0, bounded = 0, approx = 0, manualN = 0, official = 0, matched = 0;
+    districtsList().forEach(function (d) { var e = estimateDistrict(d.key); e.rows.forEach(function (r) { r.dk = d.key; rows.push(r); }); if (e.total) total += e.total; bounded += e.boundedN || 0; approx += e.approxN || 0; manualN += e.manualN || 0; official += e.official || 0; matched += e.matched || 0; });
+    cache[ALL] = { rows: rows, total: total, manualN: manualN, boundedN: bounded, approxN: approx, official: official, matched: matched, regOnly: 0, missing: [], baseN: rows.length, polygons: null, calibrated: calibrated() && pop().length > 0, all: true };
+    return cache[ALL];
+  }
+  function estimateCur(dk) { return dk === ALL ? estimateAll() : estimateDistrict(dk); }
   function invalidate() { cache = {}; }
   function districtsList() {
     var o = {}; mahRows().forEach(function (m) { var d = String(m.district || ''); if (d) o[d] = (o[d] || 0) + 1; });
@@ -9076,7 +9088,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       + '<div class="mah-list" id="mahList"></div>'
       + '<div class="mah-edit" id="mahEdit" hidden><span id="mahEditName"></span><input type="number" id="mahPop" min="0" step="100" placeholder="население"><button type="button" class="btn sec" id="mahPopSave" style="font-size:11px">✓</button><button type="button" class="btn sec" id="mahPopClear" style="font-size:11px" title="убрать ручное значение">↺</button></div>'
       + '<div class="mah-edit" id="mahBnd" hidden><span>Граница:</span><button type="button" class="btn sec" id="mahBndSet" style="font-size:11px" title="взять последний полигон, нарисованный инструментом O или F внизу карты, как границу этой махалли; население пересчитается внутри границы">▱ из полигона на карте</button><button type="button" class="btn sec" id="mahBndClear" style="font-size:11px" title="убрать границу махалли">✕</button><span class="mini" id="mahBndInfo"></span></div>'
-      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Все махалли района на карте (клик по махалле открывает её карточку)</label>'
+      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Все махалли на карте (района или всего города, клик по махалле открывает её карточку)</label>'
       + '<label class="ck"><input type="checkbox" id="mahSelShow" checked> Выбранная махалля: граница и сведения на карте</label>'
       + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района, их границы на карте расчётные (пунктир, по соседним точкам). Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
       + '</div>';
@@ -9084,9 +9096,9 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     var h3 = sect.querySelector('h3'); h3.style.cursor = 'pointer';
     h3.addEventListener('click', function () { var closed = sect.classList.toggle('closed'); try { localStorage.setItem(KEY_SECT, closed ? '0' : '1'); } catch (e) {} });
     try { if (localStorage.getItem(KEY_SECT) === '0') sect.classList.add('closed'); } catch (e) {}
-    $('mahDemoBtn').onclick = function () { openDemo(curMah ? 'm:' + curMah.key : curDist ? 'd:' + curDist : 'city'); };
+    $('mahDemoBtn').onclick = function () { openDemo(curMah ? 'm:' + curMah.key : (curDist && curDist !== ALL) ? 'd:' + curDist : 'city'); };
     $('mahDemoCatch').onclick = function () { if (!point()) { toast('Сначала поставьте точку анализа (пин на панели инструментов)'); return; } openDemo('catch'); };
-    $('mahDist').onchange = function () { curDist = $('mahDist').value; curMah = null; $('mahEdit').hidden = true; $('mahBnd').hidden = true; renderList(); drawMah(); };
+    $('mahDist').onchange = function () { curDist = $('mahDist').value; curMah = null; $('mahEdit').hidden = true; $('mahBnd').hidden = true; renderList(); drawMah(); fitCity(); };
     $('mahSort').querySelectorAll('button').forEach(function (b) { b.onclick = function () { sortBy = b.dataset.s; $('mahSort').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderList(); }; });
     try { var sv = JSON.parse(localStorage.getItem(KEY_SHOW) || 'null'); if (sv && typeof sv === 'object') { if (sv.all === false) $('mahShow').checked = false; if (sv.sel === false) $('mahSelShow').checked = false; } } catch (e) {}
     $('mahShow').onchange = function () { saveShow(); drawMah(); }; $('mahSelShow').onchange = function () { saveShow(); drawMah(); };
@@ -9101,7 +9113,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     var sel = $('mahDist'); if (!sel) return;
     var ds = districtsList(); if (!ds.length) return;
     var cur = sel.value;
-    sel.innerHTML = '<option value="">выберите район</option>' + ds.map(function (d) { return '<option value="' + esc(d.key) + '">' + esc(distRu(d.key)) + ' · ' + d.n + ' махаллей</option>'; }).join('');
+    sel.innerHTML = '<option value="">выберите район</option><option value="*">Все районы · ' + ds.length + ' районов, все махалли города на одной карте</option>' + ds.map(function (d) { return '<option value="' + esc(d.key) + '">' + esc(distRu(d.key)) + ' · ' + d.n + ' махаллей</option>'; }).join('');
     if (cur) sel.value = cur;
     var p = point(); if (!cur && p && p.district && ds.some(function (d) { return d.key === p.district; })) { sel.value = p.district; curDist = p.district; renderList(); drawMah(); }
     if (!cur) { $('mahSum').innerHTML = '<b>' + ds.length + '</b> районов · <b>' + mahRows().length + '</b> махаллей в мастер-базе' + (zones().length ? '' : ' · границы районов не загружены'); }
@@ -9109,13 +9121,14 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   function renderList() {
     var box = $('mahList'), sum = $('mahSum'); if (!box) return;
     if (!curDist) { box.innerHTML = ''; return; }
-    var e = estimateDistrict(curDist), rows = e.rows.slice(), p = point();
+    var e = estimateCur(curDist), rows = e.rows.slice(), p = point();
     rows.forEach(function (r) { r.d = p ? havKm(p.lat, p.lng, r.lat, r.lng) : null; });
     if (sortBy === 'name') rows.sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'ru'); });
     else if (sortBy === 'dist' && p) rows.sort(function (a, b) { return (a.d == null ? 1e9 : a.d) - (b.d == null ? 1e9 : b.d); });
     else rows.sort(function (a, b) { return (b.pop || 0) - (a.pop || 0); });
     var st = structure(e.total), dr = D.data && D.data.districts && D.data.districts.rows && D.data.districts.rows[curDist];
-    sum.innerHTML = '<b>' + esc(distRu(curDist)) + '</b>: ' + (e.total != null ? '<b>' + fmt(e.total) + '</b> жителей (Toshstat, 01.07.2026)' : 'население района неизвестно')
+    if (e.all) { sum.innerHTML = '<b>Все районы Ташкента</b>: <b>' + fmt(e.total) + '</b> жителей (Toshstat, 01.07.2026) · в реестре Etirof <b>' + e.official + '</b> махаллей · на карте <b>' + rows.length + '</b> (сопоставлено ' + e.matched + ') · официальных границ ' + e.boundedN + ', расчётных ' + e.approxN + (e.manualN ? ' · вручную: ' + e.manualN : '') + ' · <span class="mini">список ниже по всем районам; галочка «Все махалли на карте» рисует границы всего города, клик по границе открывает карточку</span>'; }
+    else sum.innerHTML = '<b>' + esc(distRu(curDist)) + '</b>: ' + (e.total != null ? '<b>' + fmt(e.total) + '</b> жителей (Toshstat, 01.07.2026)' : 'население района неизвестно')
       + (e.official != null ? ' · в реестре Etirof <b>' + e.official + '</b> махаллей, официальных границ ' + (e.polygons != null ? e.polygons : '-') : '')
       + ' · в базе <b>' + e.baseN + '</b>' + (e.official != null ? ' (сопоставлено с реестром ' + e.matched + (e.regOnly ? ', добавлено из реестра ' + e.regOnly : '') + ')' : '')
       + (dr && dr.soato ? ' · SOATO ' + esc(dr.soato) : '')
@@ -9125,7 +9138,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     box.innerHTML = rows.map(function (r) {
       var off = r.reg && r.reg.name && !r.regOnly && nrmX(r.reg.name) !== nrmX(r.name) ? ' <i class="mah-off" title="официальное имя в реестре Etirof">' + esc(r.reg.name) + '</i>' : '';
       return '<div class="mah-row' + (curMah && curMah.key === r.key ? ' sel' : '') + (r.regOnly ? ' reg' : '') + '" data-k="' + esc(r.key) + '" role="button" tabindex="0"><span class="n">' + esc(r.name) + off + (r.regOnly ? ' <i class="mah-tag" title="официальная махалля из реестра Etirof, в мастер-базе точки нет">реестр</i>' : '') + '</span><span class="p' + (r.manual ? ' man' : '') + '">' + (r.pop != null ? fmt(r.pop) : '-') + '<i>' + (r.manual ? '✓' : 'ƒ') + '</i></span>'
-        + '<span class="s">' + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : r.poly.approx ? 'расчётная' : 'официальная') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
+        + '<span class="s">' + (e.all && r.dk ? esc(distRu(r.dk)) + ' · ' : '') + (r.reg && r.reg.code ? 'код ' + esc(r.reg.code) + ' · ' : '') + (r.area_ha != null ? Math.round(r.area_ha) + ' га' + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + ' · ' : '') + (r.poly ? '▱ граница ' + (r.poly.manual ? 'вручную' : r.poly.approx ? 'расчётная' : 'официальная') + ' · ' : '') + (r.d != null ? (r.d < 1 ? Math.round(r.d * 1000) + ' м' : r.d.toFixed(1).replace('.', ',') + ' км') + ' до точки · ' : '') + (r.hh != null ? fmt(r.hh) + ' домохозяйств · ' : '') + esc(r.m.address || '') + '</span></div>';
     }).join('') || '<div class="mah-sum">В этом районе махаллей в мастер-базе нет</div>';
     box.querySelectorAll('.mah-row').forEach(function (el) {
       el.onclick = function () { selectMah(el.dataset.k); };
@@ -9147,13 +9160,13 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   }
   function bndInfo() {
     var el = $('mahBndInfo'); if (!el || !curMah) return;
-    var e = estimateDistrict(curDist), r = e.rows.filter(function (x) { return x.key === curMah.key; })[0];
+    var e = estimateCur(curDist), r = e.rows.filter(function (x) { return x.key === curMah.key; })[0];
     el.textContent = r && r.poly ? (r.poly.manual ? 'введена вручную' : r.poly.approx ? 'расчётная по соседним точкам; население по радиусу' : (r.poly.origin === 'ngis' ? 'из НГИС (open.ngis.uz)' : r.poly.origin === 'hokimiyat' ? 'из слоя хокимията' : 'из официального файла')) : 'нет: население по радиусу';
   }
   D.setBoundary = setBoundary; D.lastPolygon = lastPolygon;
   function selectMah(key) {
-    var e = estimateDistrict(curDist), r = e.rows.filter(function (x) { return x.key === key; })[0]; if (!r) return;
-    curMah = { key: key, district: curDist, name: r.name, lat: r.lat, lng: r.lng };
+    var e = estimateCur(curDist), r = e.rows.filter(function (x) { return x.key === key; })[0]; if (!r) return;
+    curMah = { key: key, district: r.dk || String(r.m.district || curDist), name: r.name, lat: r.lat, lng: r.lng };
     $('mahEdit').hidden = document.body.classList.contains('geo-no-edit');
     $('mahBnd').hidden = false; bndInfo();
     $('mahEditName').textContent = r.name + ':'; $('mahPop').value = OVR[key] != null ? OVR[key] : (r.manual ? Math.round(r.pop) : '');
@@ -9178,7 +9191,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     if (!curDist) return;
     var all = showAll(), selOn = showSel();
     if (!all && !(selOn && curMah)) return;
-    var e = estimateDistrict(curDist), mx = Math.max.apply(null, e.rows.map(function (r) { return r.pop || 0; })) || 1;
+    var e = estimateCur(curDist), mx = Math.max.apply(null, e.rows.map(function (r) { return r.pop || 0; })) || 1;
     e.rows.forEach(function (r) {
       var sel = curMah && curMah.key === r.key;
       if (!all && !sel) return;
@@ -9198,8 +9211,14 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: labelHtml(r), iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
     });
   }
+  /* режим «Все районы»: карта отъезжает на весь город, чтобы все махалли были видны сразу */
+  function fitCity() {
+    var M = theMap(); if (!M || !window.L || curDist !== ALL) return;
+    var pts = estimateAll().rows.filter(function (r) { return r.lat && r.lng; }).map(function (r) { return [r.lat, r.lng]; });
+    if (pts.length > 2) { try { M.fitBounds(L.latLngBounds(pts).pad(0.03)); } catch (x) {} }
+  }
   D.layers = function () { return gMah ? gMah.getLayers() : []; };
-  D.select = function (dk, key) { if (dk && $('mahDist')) { $('mahDist').value = dk; curDist = dk; } curMah = null; renderList(); drawMah(); if (key) selectMah(key); };
+  D.select = function (dk, key) { if (dk && $('mahDist')) { $('mahDist').value = dk; curDist = dk; } curMah = null; renderList(); drawMah(); if (key) selectMah(key); else if (dk === ALL) fitCity(); };
   D.current = function () { return { district: curDist, mahalla: curMah }; };
   D.layerCount = function () { return gMah ? gMah.getLayers().length : 0; };
 
@@ -9225,7 +9244,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-mahalla'] = '4.78.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-mahalla'] = '4.78.1';
 
 </script>
 <script>/* v4770-geo-roadside.js */
@@ -9480,7 +9499,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_PROFILES) return;
-  var VERSION = '4.77.0', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
+  var VERSION = '4.78.1', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
   var P = window.CASE_GEO_PROFILES = { version: VERSION, current: null };
   var PROFILES = {
     office: { label: 'Ищу офис', hide: ['analysis', 'road', 'mah', 'catch'], hint: 'бизнес-центры, ставки, сравнение и удобства рядом с точкой' },
@@ -9650,7 +9669,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.77.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.78.1';
 
 </script>
 <script>/* v4780-geo-ngis.js */
@@ -9684,7 +9703,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_NGIS) return;
-  var VERSION = '4.78.0', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
+  var VERSION = '4.78.1', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
   var N = window.CASE_GEO_NGIS = { version: VERSION, base: BASE, mahallas: null, genplan: null, loading: false };
   var LAYERS = { MAHALLA: 'UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0', GENPLAN: 'Hosted/TOSHKENT_GENPLAN_3857_MAP/MapServer/2', NALOG: 'Hosted/TOSHKENT_NALOG_ZONE_MAP/MapServer/0' };
   var ATTR = 'Кадастр агентлиги, геопортал open.ngis.uz';
@@ -9812,7 +9831,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   }
 
   /* --- генплан и налоговая зона в точке ------------------------------------------------------ */
-  var lastKey = '', lastReq = 0;
+  var lastKey = '', lastReq = 0, lastFactKey = '';
   function queryAt(layer, lat, lng) {
     var geom = encodeURIComponent(JSON.stringify({ x: +lng, y: +lat, spatialReference: { wkid: 4326 } }));
     var u = BASE + '/' + layer + '/query?geometry=' + geom + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json';
@@ -9895,7 +9914,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     if (key === lastKey && N.genplan && !N.genplan.loading) { renderGenplan(N.genplan); return Promise.resolve(N.genplan); }
     lastKey = key; var req = ++lastReq;
     N.genplan = { loading: true, lat: p.lat, lng: p.lng }; renderGenplan(N.genplan);
-    var done = function (st) { if (req !== lastReq) return N.genplan; N.genplan = st; renderGenplan(st); try { var A = window.CASE_GEO_AGENT; if (A && typeof A.say === 'function' && st.genplan) A.say('fact', '<b>Генплан (НГИС)</b>: ' + rowsOf(st.genplan).slice(0, 4).map(function (r) { return esc(r[0]) + ' ' + esc(r[1]); }).join('; ') + '.'); } catch (e) {} try { injectProbe(); } catch (e2) {} return st; };
+    var done = function (st) { if (req !== lastReq) return N.genplan; N.genplan = st; renderGenplan(st); try { var A = window.CASE_GEO_AGENT, fk = st.genplan ? p.lat.toFixed(5) + ',' + p.lng.toFixed(5) : ''; /* факт в журнал только по точке, которую поставил пользователь, и один раз на точку */ if (A && typeof A.say === 'function' && st.genplan && A.state && A.state.site && fk !== lastFactKey) { lastFactKey = fk; A.say('fact', '<b>Генплан (НГИС)</b>: ' + rowsOf(st.genplan).slice(0, 4).map(function (r) { return esc(r[0]) + ' ' + esc(r[1]); }).join('; ') + '.'); } } catch (e) {} try { injectProbe(); } catch (e2) {} return st; };
     var live = function (why) {
       return Promise.all([queryAt(LAYERS.GENPLAN, p.lat, p.lng).catch(function (e) { return { __err: e }; }), queryAt(LAYERS.NALOG, p.lat, p.lng).catch(function () { return null; })]).then(function (rs) {
         var g = rs[0], st = { lat: p.lat, lng: p.lng, genplan: null, nalog: rs[1], error: null, at: new Date().toISOString(), source: 'live' };
@@ -9961,7 +9980,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.78.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.78.1';
 
 </script>
 <script>/* v4760-geo-caps.js */

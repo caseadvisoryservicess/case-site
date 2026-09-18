@@ -28,7 +28,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_NGIS) return;
-  var VERSION = '4.78.0', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
+  var VERSION = '4.78.1', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
   var N = window.CASE_GEO_NGIS = { version: VERSION, base: BASE, mahallas: null, genplan: null, loading: false };
   var LAYERS = { MAHALLA: 'UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0', GENPLAN: 'Hosted/TOSHKENT_GENPLAN_3857_MAP/MapServer/2', NALOG: 'Hosted/TOSHKENT_NALOG_ZONE_MAP/MapServer/0' };
   var ATTR = 'Кадастр агентлиги, геопортал open.ngis.uz';
@@ -156,7 +156,7 @@
   }
 
   /* --- генплан и налоговая зона в точке ------------------------------------------------------ */
-  var lastKey = '', lastReq = 0;
+  var lastKey = '', lastReq = 0, lastFactKey = '';
   function queryAt(layer, lat, lng) {
     var geom = encodeURIComponent(JSON.stringify({ x: +lng, y: +lat, spatialReference: { wkid: 4326 } }));
     var u = BASE + '/' + layer + '/query?geometry=' + geom + '&geometryType=esriGeometryPoint&inSR=4326&spatialRel=esriSpatialRelIntersects&outFields=*&returnGeometry=false&f=json';
@@ -239,7 +239,7 @@
     if (key === lastKey && N.genplan && !N.genplan.loading) { renderGenplan(N.genplan); return Promise.resolve(N.genplan); }
     lastKey = key; var req = ++lastReq;
     N.genplan = { loading: true, lat: p.lat, lng: p.lng }; renderGenplan(N.genplan);
-    var done = function (st) { if (req !== lastReq) return N.genplan; N.genplan = st; renderGenplan(st); try { var A = window.CASE_GEO_AGENT; if (A && typeof A.say === 'function' && st.genplan) A.say('fact', '<b>Генплан (НГИС)</b>: ' + rowsOf(st.genplan).slice(0, 4).map(function (r) { return esc(r[0]) + ' ' + esc(r[1]); }).join('; ') + '.'); } catch (e) {} try { injectProbe(); } catch (e2) {} return st; };
+    var done = function (st) { if (req !== lastReq) return N.genplan; N.genplan = st; renderGenplan(st); try { var A = window.CASE_GEO_AGENT, fk = st.genplan ? p.lat.toFixed(5) + ',' + p.lng.toFixed(5) : ''; /* факт в журнал только по точке, которую поставил пользователь, и один раз на точку */ if (A && typeof A.say === 'function' && st.genplan && A.state && A.state.site && fk !== lastFactKey) { lastFactKey = fk; A.say('fact', '<b>Генплан (НГИС)</b>: ' + rowsOf(st.genplan).slice(0, 4).map(function (r) { return esc(r[0]) + ' ' + esc(r[1]); }).join('; ') + '.'); } } catch (e) {} try { injectProbe(); } catch (e2) {} return st; };
     var live = function (why) {
       return Promise.all([queryAt(LAYERS.GENPLAN, p.lat, p.lng).catch(function (e) { return { __err: e }; }), queryAt(LAYERS.NALOG, p.lat, p.lng).catch(function () { return null; })]).then(function (rs) {
         var g = rs[0], st = { lat: p.lat, lng: p.lng, genplan: null, nalog: rs[1], error: null, at: new Date().toISOString(), source: 'live' };
@@ -305,4 +305,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.78.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.78.1';

@@ -24,7 +24,7 @@
   'use strict';
   if(window.CASE_GEO_ONLY_4740)return;
   window.CASE_GEO_ONLY_4740=true;
-  var VERSION='4.78.0';
+  var VERSION='4.78.1';
   var GEO_VIEWS=['geoanalytics','map'];
   /* v4.76.0: флаг прежнего экрана Geo Platform убираем из памяти браузера, чтобы он не всплывал */
   try{localStorage.removeItem('case_geo_platform_open');}catch(e){}
@@ -176,4 +176,4 @@
   window.caseGeoOnly={version:VERSION,mode:mode,on:on,apply:apply,allowed:allowedView,views:function(){return GEO_VIEWS.slice();}};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.78.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4740-geo-only']='4.78.1';
