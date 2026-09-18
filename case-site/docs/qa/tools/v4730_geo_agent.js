@@ -126,7 +126,7 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol * Math.max(Math.abs(b), 1e-9)
   const studioSrc = require('fs').readFileSync(path.join(OS, 'geoanalytics-studio.html'), 'utf8');
   ck('подложка по умолчанию OpenStreetMap, CARTO помечен «нужен ключ»', s0.osmFirst && s0.cartoKeyed && studioSrc.includes("window.BASES['OpenStreetMap'].addTo(map)") && /order=\['OpenStreetMap'/.test(studioSrc) && !/BASES\['CARTO[^']*'\]\.addTo/.test(studioSrc));
   ck('в панели нет упоминаний внешних ИИ', s0.noAi);
-  ck('набор инструментов полный', s0.tools === 'cancel_polygon,catchment,clear_layers,count_competitors,count_population,draw_circle,draw_isochrone,draw_polygon,draw_radius,finish_polygon,help,load_buildings,load_roads,merge_zones,ping,select_features,set_site,style_layer,zone_area', s0.tools);
+  ck('набор инструментов полный', s0.tools === 'cancel_polygon,catchment,clear_layers,clear_site,count_competitors,count_population,draw_circle,draw_isochrone,draw_polygon,draw_radius,finish_polygon,help,load_buildings,load_roads,merge_zones,ping,select_features,set_site,style_layer,zone_area', s0.tools);
 
   console.log('\n--- 1. Разбор фраз');
   const P = await pg.evaluate(() => {

@@ -142,6 +142,19 @@
     }, function (e) { toast(String(e && e.message || e)); });
   }
 
+  /* v4.78.0: снять точку анализа с отменой (Ctrl+Z вернёт прежнюю точку) */
+  function clearSite() {
+    var A = agent(); if (!A) { if (window.caseGeoClearPoint) window.caseGeoClearPoint(); return Promise.resolve(); }
+    var prev = A.state.site ? { lat: A.state.site.lat, lon: A.state.site.lon, name: A.state.site.name } : null;
+    if (!prev) { toast('Точка анализа не задана'); return Promise.resolve(); }
+    return A.run('clear_site', {}).then(function (res) {
+      try { A.say('fact', A.factHtml('clear_site', res)); } catch (e) {}
+      push({ label: 'снятие точки', undo: function () { A.run('set_site', prev); }, redo: function () { A.run('clear_site', {}); } });
+      toast('Точка анализа снята');
+    }, function (e) { toast(String(e && e.message || e)); });
+  }
+  TL.clearSite = clearSite;
+
   /* --- полигоны и круги: фигуры зоны агента ---------------------------------------- */
   function simplify(pts, tolM) {
     if (pts.length < 4) return pts;
@@ -311,10 +324,12 @@
     var M = theMap(), mapEl = $('map'); if (!M || !mapEl) return;
     var lat = e.latlng.lat, lon = e.latlng.lng;
     var m = document.createElement('div'); m.className = 'geo-cmenu'; m.setAttribute('role', 'menu');
+    var hasSite = false; try { var A0 = agent(); hasSite = !!(A0 && A0.state.site); } catch (x0) {}
     var items = [
-      ['pin', '📍', 'Добавить метку здесь (точка анализа)'], ['circle', '◯', 'Круг охвата отсюда…'], ['route', '⤳', 'Маршрут отсюда…'], ['center', '⤢', 'Переместиться сюда'], null,
+      ['pin', '📍', hasSite ? 'Перенести точку анализа сюда' : 'Добавить метку здесь (точка анализа)'], hasSite ? ['unpin', '✕', 'Убрать точку анализа'] : null, ['circle', '◯', 'Круг охвата отсюда…'], ['route', '⤳', 'Маршрут отсюда…'], ['center', '⤢', 'Переместиться сюда'], null,
       ['info', 'ℹ', 'Получить сведения'], ['copy', '⧉', 'Скопировать координаты'], ['paste', '📋', 'Вставить объект из буфера обмена']
     ];
+    items = items.filter(function (it, i) { return !(it === null && i === 1); }); /* без точки пункта «убрать» нет, лишний разделитель не нужен */
     m.innerHTML = '<div class="geo-cmenu-xy">' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>' + items.map(function (it) { return it ? '<button type="button" data-a="' + it[0] + '"><span class="ic">' + it[1] + '</span>' + esc(it[2]) + '</button>' : '<hr>'; }).join('');
     var rect = mapEl.getBoundingClientRect(), x = e.containerPoint.x, y = e.containerPoint.y;
     m.style.left = Math.min(x, rect.width - 275) + 'px'; m.style.top = Math.min(y, rect.height - 330) + 'px';
@@ -323,6 +338,7 @@
     m.addEventListener('click', function (ev) {
       var b = ev.target.closest('button'); if (!b) return; var a = b.getAttribute('data-a'); hideMenu();
       if (a === 'pin') setSite(lat, lon);
+      else if (a === 'unpin') clearSite();
       else if (a === 'circle') TL.circleAt(lat, lon);
       else if (a === 'route') TL.routeFrom(lat, lon);
       else if (a === 'center') M.panTo([lat, lon]);

@@ -257,6 +257,20 @@
     return {lat:p.lat,lng:p.lng,district:p.district,name:p.name};
   };
   window.caseGeoPoint=function(){var p=PROJECTS.project;return p?{lat:p.lat,lng:p.lng,district:p.district||'',name:p.name,pending:!!p.pending}:null;};
+  /* по вопросу владельца (v4.78.0) «как убрать точку»: точка снимается кнопкой в «Точке анализа», пунктом
+     контекстного меню карты или фразой агенту; студия возвращается в состояние «не задана», метка и
+     кольца исчезают, блоки по точке показывают подсказку. Метку агента снимает сам агент (clearSite). */
+  window.caseGeoClearPoint=function(){
+    var p=PROJECTS.project;if(!p||p.pending)return false;
+    p.lat=CENTER.lat;p.lng=CENTER.lng;p.pending=true;p.name='Точка анализа';p.district='';
+    var s=document.getElementById('proj');if(s){s.innerHTML='<option value="project">'+esc(p.name)+'</option>';s.value='project';}
+    try{var A=window.CASE_GEO_AGENT;if(A&&typeof A.clearSite==='function')A.clearSite();}catch(e){}
+    try{geoRenderProj();}catch(e){}try{genericAnalytics();}catch(e){}
+    /* блоки по точке обновляются сразу, не дожидаясь своего опроса */
+    try{if(window.CASE_GEO_PROFILES&&typeof window.CASE_GEO_PROFILES.renderAmenities==='function')window.CASE_GEO_PROFILES.renderAmenities();}catch(e){}
+    try{if(window.CASE_GEO_NGIS&&typeof window.CASE_GEO_NGIS.genplanAt==='function')window.CASE_GEO_NGIS.genplanAt(null);}catch(e){}
+    return true;
+  };
   window.caseGeoCollectState=function(){return collectState();};
   function collectState(){
     /* точка анализа виртуальная и в сохранённые гео-профили не попадает */
@@ -1032,7 +1046,9 @@
           +(p.district?esc(p.district):'не определён')+'</span></div>'
           +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
           +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
-          +(!p.virtual&&p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+          +(!p.virtual&&p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'')
+          +(p.virtual?'<div class="pi-row pi-act"><button type="button" class="btn sec" id="piClear" title="снять точку анализа с карты; вернуть можно отменой (Ctrl+Z на панели инструментов)">✕ Убрать точку</button></div>':'');
+        var pc=pi.querySelector('#piClear');if(pc)pc.onclick=function(){try{if(window.CASE_GEO_TOOLS&&typeof window.CASE_GEO_TOOLS.clearSite==='function'){window.CASE_GEO_TOOLS.clearSite();return;}}catch(e){}window.caseGeoClearPoint();};
       }
     }
     try{if(typeof renderRings==='function')renderRings();}catch(e){}

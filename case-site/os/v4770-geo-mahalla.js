@@ -23,7 +23,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_DEMO) return;
-  var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
+  var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KEY_SHOW = 'caseos_mah_show_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
   var D = window.CASE_GEO_DEMO = { version: VERSION, data: null, ready: false };
   var OVR = {}, BNDL = {}, gMah = null, gSel = null, curDist = '', curMah = null, sortBy = 'pop', cache = {}, BND = null, REG = null, REGI = {}, REGC = {};
   var DIST_RU = { 'Yunusabad': 'Юнусабадский', 'Mirzo-Ulugbek': 'Мирзо-Улугбекский', 'Uchtepa': 'Учтепинский', 'Yashnabad': 'Яшнабадский', 'Olmazor': 'Алмазарский', 'Chilanzar': 'Чиланзарский', 'Sergeli': 'Сергелийский', 'Shaykhantakhur': 'Шайхантахурский', 'Mirabad': 'Мирабадский', 'Yangihayot': 'Янгихаётский', 'Yakkasaray': 'Яккасарайский', 'Bektemir': 'Бектемирский' };
@@ -580,7 +580,7 @@
       + '.mah-row .s{grid-column:1/3;font-size:10px;color:var(--muted,#6f6a63)}'
       + '.mah-edit{display:flex;gap:4px;align-items:center;margin-top:6px;font-size:11px}.mah-edit input{width:90px;font-size:11px;padding:4px 6px;border:1px solid var(--line,#e3dcd1);border-radius:6px}'
       + '.mah-sort{display:flex;gap:6px;font-size:10.5px;color:var(--muted,#6f6a63);margin:4px 0}.mah-sort button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0;text-decoration:underline dotted}.mah-sort button.on{color:#9E0000;font-weight:700}'
-      + '.mah-lbl{background:#fff;border:1px solid #8C6A2F;color:#5a4420;border-radius:6px;padding:1px 5px;font:600 10px/1.3 inherit;white-space:nowrap}'
+      + '.mah-lbl{background:#fff;border:1px solid #9E0000;color:#5a4420;border-radius:6px;padding:2px 6px;font:600 10.5px/1.3 inherit;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25)}.mah-lbl b{color:#9E0000}'
       + '.mah-off{font-style:normal;font-weight:400;color:var(--muted,#6f6a63);font-size:10px}.mah-tag{font-style:normal;font-weight:600;font-size:9px;background:#f1ede6;color:#5a4420;border-radius:4px;padding:0 4px;margin-left:3px}.mah-row.reg .n{color:#5a4420}.mah-miss{margin-top:4px;font-size:10.5px}.mah-miss summary{cursor:pointer;color:#9E0000}.dm-mah{font-size:11px;background:#faf7f2;border-radius:8px;padding:5px 9px;margin:4px 0 6px}.dm-facts .dm-kv{font-size:13px}'
       /* карточка демографии */
       + '#card.dm-open{width:min(760px,96vw);max-width:96vw;padding:12px 16px;box-sizing:border-box}.dm-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}.dm-top h2{font-size:16px;margin:0}.dm-top .sp{flex:1}.dm-top select{font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--line,#e3dcd1);max-width:340px}'
@@ -610,7 +610,8 @@
       + '<div class="mah-list" id="mahList"></div>'
       + '<div class="mah-edit" id="mahEdit" hidden><span id="mahEditName"></span><input type="number" id="mahPop" min="0" step="100" placeholder="население"><button type="button" class="btn sec" id="mahPopSave" style="font-size:11px">✓</button><button type="button" class="btn sec" id="mahPopClear" style="font-size:11px" title="убрать ручное значение">↺</button></div>'
       + '<div class="mah-edit" id="mahBnd" hidden><span>Граница:</span><button type="button" class="btn sec" id="mahBndSet" style="font-size:11px" title="взять последний полигон, нарисованный инструментом O или F внизу карты, как границу этой махалли; население пересчитается внутри границы">▱ из полигона на карте</button><button type="button" class="btn sec" id="mahBndClear" style="font-size:11px" title="убрать границу махалли">✕</button><span class="mini" id="mahBndInfo"></span></div>'
-      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Махалли района на карте</label>'
+      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Все махалли района на карте (клик по махалле открывает её карточку)</label>'
+      + '<label class="ck"><input type="checkbox" id="mahSelShow" checked> Выбранная махалля: граница и сведения на карте</label>'
       + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района. Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
       + '</div>';
     anchor.parentNode.insertBefore(sect, anchor);
@@ -621,7 +622,8 @@
     $('mahDemoCatch').onclick = function () { if (!point()) { toast('Сначала поставьте точку анализа (пин на панели инструментов)'); return; } openDemo('catch'); };
     $('mahDist').onchange = function () { curDist = $('mahDist').value; curMah = null; $('mahEdit').hidden = true; $('mahBnd').hidden = true; renderList(); drawMah(); };
     $('mahSort').querySelectorAll('button').forEach(function (b) { b.onclick = function () { sortBy = b.dataset.s; $('mahSort').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderList(); }; });
-    $('mahShow').onchange = drawMah;
+    try { var sv = JSON.parse(localStorage.getItem(KEY_SHOW) || 'null'); if (sv && typeof sv === 'object') { if (sv.all === false) $('mahShow').checked = false; if (sv.sel === false) $('mahSelShow').checked = false; } } catch (e) {}
+    $('mahShow').onchange = function () { saveShow(); drawMah(); }; $('mahSelShow').onchange = function () { saveShow(); drawMah(); };
     $('mahPopSave').onclick = function () { if (!curMah) return; var v = num($('mahPop').value); if (v == null || v <= 0) { toast('Введите население числом'); return; } OVR[curMah.key] = Math.round(v); saveOvr(); invalidate(); renderList(); drawMah(); toast('Население махалли сохранено в этой копии студии'); };
     $('mahPopClear').onclick = function () { if (!curMah) return; delete OVR[curMah.key]; saveOvr(); invalidate(); renderList(); drawMah(); };
     $('mahBndSet').onclick = function () { if (!curMah) return; var ring = lastPolygon(); if (!ring) { toast('Нарисуйте полигон вокруг махалли инструментом O (или F от руки) внизу карты и нажмите снова'); return; } setBoundary(curMah.key, ring, curMah.name); };
@@ -690,23 +692,46 @@
     $('mahBnd').hidden = false; bndInfo();
     $('mahEditName').textContent = r.name + ':'; $('mahPop').value = OVR[key] != null ? OVR[key] : (r.manual ? Math.round(r.pop) : '');
     renderList(); drawMah();
-    var M = theMap(); if (M) { try { M.setView([r.lat, r.lng], Math.max(M.getZoom(), 14)); } catch (x) {} }
+    var M = theMap(); if (M) { try { if (r.poly && window.L) M.fitBounds(L.polygon(r.poly.ll).getBounds().pad(0.35), { maxZoom: 16 }); else M.setView([r.lat, r.lng], Math.max(M.getZoom(), 14)); } catch (x) {} }
   }
+  /* подсказка по махалле (наведение) и подпись выбранной махалли на карте (по замечанию владельца:
+     при выборе видна граница, сверху сведения: жители, площадь, домохозяйства) */
+  function tipHtml(r) {
+    return '<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small><br><small>клик: карточка махалли</small>';
+  }
+  function labelHtml(r) {
+    return '<span class="mah-lbl"><b>' + esc(r.name) + '</b>' + (r.pop != null ? ' · ' + fmt(r.pop) + ' жит.' : '') + (r.hh != null ? ' · ' + fmt(r.hh) + ' д/х' : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.poly ? '' : ' · без границы') + '</span>';
+  }
+  function openCard(key) { selectMah(key); try { openDemo('m:' + key); } catch (e) {} }
+  function showAll() { return !!($('mahShow') && $('mahShow').checked); }
+  function showSel() { var c = $('mahSelShow'); return !c || c.checked; }
+  function saveShow() { try { localStorage.setItem(KEY_SHOW, JSON.stringify({ all: showAll(), sel: showSel() })); } catch (e) {} }
   function drawMah() {
     var M = theMap(); if (!M || !window.L) return;
     if (!gMah) gMah = L.layerGroup().addTo(M); gMah.clearLayers();
-    if (!curDist || !($('mahShow') && $('mahShow').checked)) return;
+    if (!curDist) return;
+    var all = showAll(), selOn = showSel();
+    if (!all && !(selOn && curMah)) return;
     var e = estimateDistrict(curDist), mx = Math.max.apply(null, e.rows.map(function (r) { return r.pop || 0; })) || 1;
     e.rows.forEach(function (r) {
-      var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx), sel = curMah && curMah.key === r.key;
-      if (r.poly) L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2 : 1, fillColor: '#c9a86a', fillOpacity: .12, dashArray: r.poly.manual ? '6 4' : null, interactive: false }).addTo(gMah);
+      var sel = curMah && curMah.key === r.key;
+      if (!all && !sel) return;
+      if (sel && !selOn) return;
+      var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx);
+      if (r.poly) {
+        /* при показе всех махалл границы кликабельны: клик открывает карточку махалли */
+        var pg = L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2.5 : 1, fillColor: sel ? '#9E0000' : '#c9a86a', fillOpacity: sel ? .1 : .12, dashArray: r.poly.manual ? '6 4' : null, interactive: all });
+        if (all) { pg.bindTooltip(tipHtml(r), { sticky: true }); pg.on('click', function () { openCard(r.key); }); }
+        pg.addTo(gMah);
+      }
       var c = L.circleMarker([r.lat, r.lng], { radius: rad, color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 3 : 1.5, fillColor: r.manual ? '#14675B' : '#c9a86a', fillOpacity: .45 });
-      c.bindTooltip('<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small>');
-      c.on('click', function () { selectMah(r.key); });
+      c.bindTooltip(tipHtml(r));
+      c.on('click', function () { if (all) openCard(r.key); else selectMah(r.key); });
       c.addTo(gMah);
-      if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: '<span class="mah-lbl">' + esc(r.name) + '</span>', iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
+      if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: labelHtml(r), iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
     });
   }
+  D.layers = function () { return gMah ? gMah.getLayers() : []; };
   D.select = function (dk, key) { if (dk && $('mahDist')) { $('mahDist').value = dk; curDist = dk; } curMah = null; renderList(); drawMah(); if (key) selectMah(key); };
   D.current = function () { return { district: curDist, mahalla: curMah }; };
   D.layerCount = function () { return gMah ? gMah.getLayers().length : 0; };

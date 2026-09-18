@@ -3231,6 +3231,20 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     return {lat:p.lat,lng:p.lng,district:p.district,name:p.name};
   };
   window.caseGeoPoint=function(){var p=PROJECTS.project;return p?{lat:p.lat,lng:p.lng,district:p.district||'',name:p.name,pending:!!p.pending}:null;};
+  /* по вопросу владельца (v4.78.0) «как убрать точку»: точка снимается кнопкой в «Точке анализа», пунктом
+     контекстного меню карты или фразой агенту; студия возвращается в состояние «не задана», метка и
+     кольца исчезают, блоки по точке показывают подсказку. Метку агента снимает сам агент (clearSite). */
+  window.caseGeoClearPoint=function(){
+    var p=PROJECTS.project;if(!p||p.pending)return false;
+    p.lat=CENTER.lat;p.lng=CENTER.lng;p.pending=true;p.name='Точка анализа';p.district='';
+    var s=document.getElementById('proj');if(s){s.innerHTML='<option value="project">'+esc(p.name)+'</option>';s.value='project';}
+    try{var A=window.CASE_GEO_AGENT;if(A&&typeof A.clearSite==='function')A.clearSite();}catch(e){}
+    try{geoRenderProj();}catch(e){}try{genericAnalytics();}catch(e){}
+    /* блоки по точке обновляются сразу, не дожидаясь своего опроса */
+    try{if(window.CASE_GEO_PROFILES&&typeof window.CASE_GEO_PROFILES.renderAmenities==='function')window.CASE_GEO_PROFILES.renderAmenities();}catch(e){}
+    try{if(window.CASE_GEO_NGIS&&typeof window.CASE_GEO_NGIS.genplanAt==='function')window.CASE_GEO_NGIS.genplanAt(null);}catch(e){}
+    return true;
+  };
   window.caseGeoCollectState=function(){return collectState();};
   function collectState(){
     /* точка анализа виртуальная и в сохранённые гео-профили не попадает */
@@ -4006,7 +4020,9 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
           +(p.district?esc(p.district):'не определён')+'</span></div>'
           +'<div class="pi-row"><span class="pi-k">Координаты</span><span class="pi-v num">'
           +(okc?plat.toFixed(5)+', '+plng.toFixed(5):'не заданы')+'</span></div>'
-          +(!p.virtual&&p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'');
+          +(!p.virtual&&p.verification!=='verified'?'<div class="pi-chip">Данные не проверены</div>':'')
+          +(p.virtual?'<div class="pi-row pi-act"><button type="button" class="btn sec" id="piClear" title="снять точку анализа с карты; вернуть можно отменой (Ctrl+Z на панели инструментов)">✕ Убрать точку</button></div>':'');
+        var pc=pi.querySelector('#piClear');if(pc)pc.onclick=function(){try{if(window.CASE_GEO_TOOLS&&typeof window.CASE_GEO_TOOLS.clearSite==='function'){window.CASE_GEO_TOOLS.clearSite();return;}}catch(e){}window.caseGeoClearPoint();};
       }
     }
     try{if(typeof renderRings==='function')renderRings();}catch(e){}
@@ -6524,7 +6540,53 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   function needZone() { var s = zoneShapes(); if (!s.length) throw new Error(T('needZone')); return s; }
   function addShape(s) { ST.zone.push(s); renderZone(); }
 
+  /* v4.78.0: снять точку анализа (кнопка в студии, меню карты, фраза «убери точку») */
+  function clearSite() { var had = !!ST.site; ST.site = null; clearGroup('site'); return had; }
+  /* v4.78.0: зоны по времени в пути: рисование из ST.catchment (цвета и скрытые зоны меняются без пересчёта)
+     и режим «метро и пешком»: Дейкстра по станциям линий студии (2ГИС). Нормативы: пешком 5 км/ч
+     (83 м/мин), ожидание поезда 3 мин, перегон 2,5 мин, пересадка 4 мин между станциями разных линий
+     ближе 300 м. Зона за T минут = круг пешей досягаемости от точки плюс круги вокруг станций, куда
+     успеваешь доехать, радиусом на оставшиеся минуты. Оценка, не расписание. */
+  var WALK_M_MIN = 83, HOP_MIN = 2.5, TRANSFER_MIN = 4, WAIT_MIN = 3;
+  function metroLines() { try { return (typeof METRO !== 'undefined' && Array.isArray(METRO)) ? METRO : []; } catch (e) { return []; } }
+  function metroReach(s) {
+    var nodes = [];
+    metroLines().forEach(function (l, li) { (l.s || []).forEach(function (x, si) { if (isFinite(+x[0]) && isFinite(+x[1])) nodes.push({ lat: +x[0], lon: +x[1], name: x[2] || '', li: li, si: si, line: l.n || '' }); }); });
+    if (!nodes.length) return null;
+    var n = nodes.length, adj = nodes.map(function () { return []; });
+    for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { if (i === j) continue; var a = nodes[i], b = nodes[j]; if (a.li === b.li && Math.abs(a.si - b.si) === 1) adj[i].push([j, HOP_MIN]); else if (a.li !== b.li && distKm(a.lat, a.lon, b.lat, b.lon) * 1000 <= 300) adj[i].push([j, TRANSFER_MIN]); }
+    var t = nodes.map(function (nd) { return distKm(s.lat, s.lon, nd.lat, nd.lon) * 1000 / WALK_M_MIN + WAIT_MIN; }), done = nodes.map(function () { return false; });
+    for (var k = 0; k < n; k++) { var best = -1; for (var q = 0; q < n; q++) if (!done[q] && (best < 0 || t[q] < t[best])) best = q; if (best < 0) break; done[best] = true; adj[best].forEach(function (e) { if (t[best] + e[1] < t[e[0]]) t[e[0]] = t[best] + e[1]; }); }
+    return nodes.map(function (nd, i) { return { lat: nd.lat, lon: nd.lon, name: nd.name, line: nd.line, min: t[i] }; });
+  }
+  function metroShapes(s, mins, reach) {
+    return mins.map(function (T) {
+      var shapes = [{ kind: 'circle', lat: s.lat, lon: s.lon, r: T * WALK_M_MIN, label: 'пешком от точки ' + T + ' мин' }], st = [];
+      reach.slice().sort(function (a, b) { return a.min - b.min; }).forEach(function (r) { var left = T - r.min; if (left * WALK_M_MIN < 60) return; shapes.push({ kind: 'circle', lat: r.lat, lon: r.lon, r: Math.round(left * WALK_M_MIN), label: r.name + ' (' + r.line + '): ' + Math.round(r.min) + ' мин, пешком ещё ' + Math.round(left) + ' мин' }); st.push(r.name); });
+      return { shapes: shapes, stations: st };
+    });
+  }
+  var CATCH_COLS = ['#9E0000', '#e67e22', '#2980b9'], CATCH_NAMES = ['PTA', 'STA', 'TTA'];
+  function drawCatchment() {
+    var c = ST.catchment, grp = group('catchment'); if (!grp) return; grp.clearLayers(); if (!c) return;
+    c.shapes.forEach(function (sh, i) {
+      if (c.hidden && c.hidden[i]) return;
+      var col = (c.colors && /^#[0-9a-f]{6}$/i.test(c.colors[i] || '')) ? c.colors[i] : CATCH_COLS[i], z = c.zones[i];
+      var tip = CATCH_NAMES[i] + ' · ' + c.minutes[i] + ' мин · ' + fmt(z.population) + ' жит.';
+      sh.forEach(function (s, k) {
+        var o = { color: col, weight: k === 0 ? 2 : 1, opacity: k === 0 ? .95 : .7, fillColor: col, fillOpacity: k === 0 ? .07 : .05, dashArray: i ? '5' : null };
+        var l = s.kind === 'circle' ? L.circle([s.lat, s.lon], Object.assign({ radius: s.r }, o)) : L.polygon(s.ring, o);
+        l.addTo(grp).bindTooltip(tip + (k && s.label ? ' · ' + esc(s.label) : ''), { sticky: true });
+      });
+    });
+  }
+  function recolorCatchment(colors, hidden) { if (!ST.catchment) return false; if (Array.isArray(colors)) ST.catchment.colors = colors.slice(0, 3); if (Array.isArray(hidden)) ST.catchment.hidden = hidden.slice(0, 3); drawCatchment(); return true; }
   var TOOLS = {
+    clear_site: function () {
+      var had = clearSite();
+      try { if (typeof window.caseGeoClearPoint === 'function') window.caseGeoClearPoint(); } catch (e) {}
+      return Promise.resolve({ ok: true, had: had });
+    },
     set_site: function (inp) {
       inp = inp || {};
       if (inp.address) {
@@ -6611,7 +6673,10 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       while (mins.length < 3) mins.push((mins[mins.length - 1] || 10) + 10);
       var HH = 4.5, RDE_PP_USD = 349, SHARES = [0.75, 0.20, 0.05], R2S = 0.15;
       var gla = num(inp.gla_m2), rent = num(inp.rent_usd_m2_month);
-      var rings = [], mode = 'isochrone';
+      /* v4.78.0 (замечание владельца): режим «метро и пешком», свои цвета и скрытые зоны из раздела «Зона охвата» */
+      var want = inp.mode === 'metro' ? 'metro' : 'car';
+      var colors = Array.isArray(inp.colors) ? inp.colors.slice(0, 3) : null, hidden = Array.isArray(inp.hidden) ? inp.hidden.slice(0, 3) : null;
+      var rings = [], mode = want === 'metro' ? 'metro' : 'isochrone', metroInfo = null;
       function circleRing(rM) { var out = [], n = 48; for (var i = 0; i < n; i++) { var th = i / n * 2 * Math.PI; out.push([s.lat + rM / 111320 * Math.cos(th), s.lon + rM / (111320 * Math.cos(s.lat * Math.PI / 180)) * Math.sin(th)]); } return out; }
       function isoRing(m) {
         if (typeof isochrone !== 'function') return Promise.resolve(null);
@@ -6623,24 +6688,31 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
         }, function () { return null; });
       }
       var chain = Promise.resolve();
-      mins.forEach(function (m) { chain = chain.then(function () { if (mode !== 'isochrone') { rings.push(null); return; } return isoRing(m).then(function (r) { if (!r) mode = 'radius'; rings.push(r); }); }); });
+      if (want === 'metro') {
+        var reach = metroReach(s); if (!reach) throw new Error('Линии метро не загружены: зоны по метро недоступны');
+        metroInfo = metroShapes(s, mins, reach);
+      } else mins.forEach(function (m) { chain = chain.then(function () { if (mode !== 'isochrone') { rings.push(null); return; } return isoRing(m).then(function (r) { if (!r) mode = 'radius'; rings.push(r); }); }); });
       return chain.then(ensureCalibrated).then(function () {
         var g = geoData(), pop = g && Array.isArray(g.POP) ? g.POP : null;
         if (!pop || !pop.length) throw new Error(T('noPop'));
         if (mode === 'radius') rings = mins.map(function (m) { return circleRing(m * 400); });
-        var grp = group('catchment'); if (grp) grp.clearLayers();
-        var NAMES = ['PTA', 'STA', 'TTA'], RU = ['первичная', 'вторичная', 'третичная'], COLS = ['#9E0000', '#e67e22', '#2980b9'];
-        var cum = rings.map(function (r) { return popInZone([{ kind: 'polygon', ring: r }], pop).population; });
-        var zones = rings.map(function (r, i) {
+        var shapesPer = mode === 'metro' ? metroInfo.map(function (z) { return z.shapes; }) : rings.map(function (r) { return [{ kind: 'polygon', ring: r }]; });
+        var NAMES = ['PTA', 'STA', 'TTA'], RU = ['первичная', 'вторичная', 'третичная'];
+        var cum = shapesPer.map(function (sh) { return popInZone(sh, pop).population; });
+        var zones = shapesPer.map(function (sh, i) {
           var band = Math.max(0, cum[i] - (i ? cum[i - 1] : 0)), hh = band / HH, rde = band * RDE_PP_USD;
-          if (grp) L.polygon(r, { color: COLS[i], weight: 2, fillColor: COLS[i], fillOpacity: .07, dashArray: i ? '5' : null }).addTo(grp).bindTooltip(NAMES[i] + ' · ' + mins[i] + ' мин · ' + fmt(band) + ' жит.', { sticky: true });
-          return { name: NAMES[i], name_ru: RU[i], minutes: mins[i], population: Math.round(band), cum_population: Math.round(cum[i]), households: Math.round(hh), rde_usd: Math.round(rde), share: SHARES[i] };
+          var z = { name: NAMES[i], name_ru: RU[i], minutes: mins[i], population: Math.round(band), cum_population: Math.round(cum[i]), households: Math.round(hh), rde_usd: Math.round(rde), share: SHARES[i] };
+          if (mode === 'metro') { z.stations = metroInfo[i].stations.length; z.station_names = metroInfo[i].stations.slice(0, 12); }
+          return z;
         });
-        try { mapObj().fitBounds(L.latLngBounds(rings[2]).pad(0.05)); } catch (e) {}
+        ST.catchment = { mode: mode, minutes: mins, shapes: shapesPer, zones: zones, colors: colors, hidden: hidden };
+        drawCatchment();
+        try { var bb = zoneBbox(shapesPer[2]); mapObj().fitBounds([[bb[0], bb[1]], [bb[2], bb[3]]], { padding: [20, 20] }); } catch (e) {}
+        if (mode === 'metro') { try { var cb = document.getElementById('lMetro'); if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event('change')); } } catch (e) {} }
         var res = { ok: true, format: format, minutes: mins, mode: mode, zones: zones, household_size: HH, rde_per_person_usd: RDE_PP_USD, rent_to_sales: R2S,
-          provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)',
-            method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км на минуту), население по сетке', at: today(),
-            note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' },
+          provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)' + (mode === 'metro' ? '; линии и станции метро из базы студии (2ГИС)' : ''),
+            method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : mode === 'metro' ? 'метро и пешком за ' + mins.join('/') + ' мин: пешком 5 км/ч, ожидание поезда 3 мин, перегон 2,5 мин, пересадка 4 мин; зона = круги досягаемости вокруг точки и вокруг станций, куда успеваешь доехать; население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км за минуту в городе)',
+            note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' + (mode === 'metro' ? ' Время метро по нормативам, не по расписанию.' : '') },
           inputs_needed: ['доходы домохозяйств по зонам (аналитик CASE)', 'полевой опрос жителей зоны, n не меньше 400', 'коррекция границ по барьерам и заторам', 'GLA и ставка проекта для capture rate'] };
         if (gla != null && rent != null && gla > 0 && rent > 0) {
           var turnover = gla * rent * 12 / R2S;
@@ -6767,6 +6839,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       (want.indexOf('all') >= 0 ? all : want).forEach(function (n) {
         if (n === 'zone') { ST.zone = []; ST.merged = false; try { if (typeof gIso !== 'undefined' && gIso) gIso.clearLayers(); } catch (e) {} }
         if (n === 'draw') stopDraw(); else clearGroup(n);
+        if (n === 'catchment') ST.catchment = null;
         if (n === 'buildings') ST.data.buildings = null;
         if (n === 'roads') ST.data.roads = null;
         done.push(n);
@@ -6877,6 +6950,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       cm.format = /трц|региональн|regional|mall/.test(low) ? 'regional' : /районн|community|соседск|(^|[^а-я])тц(?![а-я])/.test(low) ? 'community' : /у дома|convenience|шаговой/.test(low) ? 'convenience' : /(^|[^а-я])бц(?![а-я])|бизнес.центр|офис|office/.test(low) ? 'office' : 'regional';
       var gm = low.match(/gla\s*[:=]?\s*(\d[\d\s]*)/), rm = low.match(/(?:ставк[аеиу]|rent)\s*[:=]?\s*\$?\s*(\d+(?:[.,]\d+)?)/) || low.match(/\$\s*(\d+(?:[.,]\d+)?)/) || low.match(/(\d+(?:[.,]\d+)?)\s*\$/);
       if (gm) cm.gla_m2 = parseInt(gm[1].replace(/\s/g, ''), 10); if (rm) cm.rent_usd_m2_month = parseFloat(rm[1].replace(',', '.'));
+      if (/метро|metro/.test(low)) cm.mode = 'metro';
       calls.push({ name: 'catchment', input: cm }); return calls;
     }
 
@@ -6893,6 +6967,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     if (/объедини|слей|merge|union|birlashtir/.test(low)) calls.push({ name: 'merge_zones', input: {} });
     if (/площад[ьи] зоны|zone area|zona maydoni/.test(low)) calls.push({ name: 'zone_area', input: {} });
 
+    if (/(убер|сним|удал|сброс|очист)[а-я]*\s+(точк|пин|метк)|(точк|пин|метк)[а-я]*\s+(убер|сним|удал|сброс)|(remove|clear|delete|unset)\s+(the\s+)?(point|pin|site|marker)|nuqta(ni)?\s*(o[ʻ'’]?chir|olib tashla|tozala)/.test(low)) return [{ name: 'clear_site', input: {} }];
     if (/очист|убер|сброс|clear|reset|tozala/.test(low) && !/здани|дорог|радиус|кру[гж]|зон|выдел|building|road|zone/.test(low)) { calls.push({ name: 'clear_layers', input: {} }); return calls; }
 
     /* «Сделай здания синими»: цвет без загрузки и без метров */
@@ -6948,6 +7023,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
     var w = function (ru, en, uz) { return L_ === 'en' ? en : L_ === 'uz' ? uz : ru; };
     items.forEach(function (it) {
       var r = it.res, n = it.name; if (!r || !r.ok) return;
+      if (n === 'clear_site') s.push(w(r.had ? 'Точка анализа снята.' : 'Точки и не было.', r.had ? 'Analysis point removed.' : 'There was no point.', r.had ? 'Tahlil nuqtasi olib tashlandi.' : 'Nuqta yo‘q edi.'));
       if (n === 'set_site') s.push(w('Точка: ', 'Point: ', 'Nuqta: ') + (r.site.name || '') + ' (' + r.site.lat.toFixed(5) + ', ' + r.site.lon.toFixed(5) + ')' + (r.candidates && r.candidates.length > 1 ? w(' - взят первый из ' + r.candidates.length + ' найденных', ' - first of ' + r.candidates.length + ' matches', ' - topilgan ' + r.candidates.length + ' tadan birinchisi') : '') + '.');
       if (n === 'draw_radius') s.push(w('Круг ', 'Circle ', 'Aylana ') + r.radii_m.map(humanM).join(', ') + '.');
       if (n === 'draw_isochrone') s.push(w('Изохрона ' + r.minutes + ' мин, площадь ' + (r.area_m2 / 1e6).toFixed(1) + ' км² (расчёт по дорогам OSM).', 'Isochrone ' + r.minutes + ' min, area ' + (r.area_m2 / 1e6).toFixed(1) + ' km² (modelled on OSM roads).', 'Izoxrona ' + r.minutes + ' daqiqa, maydon ' + (r.area_m2 / 1e6).toFixed(1) + ' km² (OSM yo‘llari bo‘yicha hisob).'));
@@ -6958,7 +7034,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       if (n === 'draw_circle') s.push(w('Круг ' + humanM(r.radius_m) + ' с центром ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Circle ' + humanM(r.radius_m) + ' centred at ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Aylana ' + humanM(r.radius_m) + '.'));
       if (n === 'catchment') {
         var zz = r.zones.map(function (z) { return z.name + ' ' + z.minutes + ' мин: ' + fmt(z.population) + ' жит., ' + fmt(z.households) + ' д/х, RDE около $' + (z.rde_usd / 1e6).toFixed(1) + ' млн/год'; }).join('; ');
-        s.push(w('Зоны охвата по методике CASE (' + (r.mode === 'isochrone' ? 'по времени в пути на авто' : 'по радиусам: маршрутизатор недоступен') + '): ' + zz + '. Оценка, не факт: границы без коррекции на барьеры, доходы по национальной структуре расходов.', 'CASE catchment zones (' + (r.mode === 'isochrone' ? 'by drive time' : 'by radius, router unavailable') + '): ' + zz + '. Estimate, not a fact.', 'CASE qamrov zonalari: ' + zz + '. Bu hisob, fakt emas.'));
+        s.push(w('Зоны охвата по методике CASE (' + (r.mode === 'isochrone' ? 'по времени в пути на авто' : r.mode === 'metro' ? 'на метро и пешком' : 'по радиусам: маршрутизатор недоступен') + '): ' + zz + '. Оценка, не факт: границы без коррекции на барьеры, доходы по национальной структуре расходов.', 'CASE catchment zones (' + (r.mode === 'isochrone' ? 'by drive time' : 'by radius, router unavailable') + '): ' + zz + '. Estimate, not a fact.', 'CASE qamrov zonalari: ' + zz + '. Bu hisob, fakt emas.'));
         if (r.captures) s.push(w('Требуемый оборот при rent-to-sales 15%: $' + fmt(r.required_turnover_usd) + ' в год; capture rate PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '% (ориентир CASE 0,39%), STA ' + (r.captures[1].capture_rate * 100).toFixed(3) + '%, TTA ' + (r.captures[2].capture_rate * 100).toFixed(3) + '%.', 'Required turnover at 15% rent-to-sales: $' + fmt(r.required_turnover_usd) + ' per year; capture PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '%.', 'Talab qilinadigan aylanma: $' + fmt(r.required_turnover_usd) + '.'));
         else s.push(w('Для capture rate добавьте GLA и ставку: «зона охвата, GLA 20000, ставка $25».', 'Add GLA and rent for the capture rate: "catchment, GLA 20000, rent $25".', 'Capture rate uchun GLA va stavkani qo‘shing.'));
         /* проверка на здравый смысл: ориентир CASE 0,39% по PTA; на порядок выше значит, что RDE первичной
@@ -6981,7 +7057,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
 
   /* ── Журнал и факты ───────────────────────────────────────────────────────── */
 
-  var TOOL_RU = { draw_circle: 'Круг', catchment: 'Зоны охвата', set_site: 'Точка', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
+  var TOOL_RU = { draw_circle: 'Круг', catchment: 'Зоны охвата', set_site: 'Точка', clear_site: 'Точка снята', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
   var CONF_RU = { verified: ['✓', 'подтв.', 'ga-v'], asking: ['≈', 'наблюдение', 'ga-a'], modelled: ['ƒ', 'расчёт', 'ga-m'] };
   function provChip(p) {
     if (!p) return ''; var c = CONF_RU[p.conf] || CONF_RU.modelled;
@@ -7006,7 +7082,8 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
       case 'select_features': h += '<span class="ga-num">' + fmt(res.matched) + '</span> из ' + fmt(res.of) + ' (' + esc(res.criteria) + ')' + (res.note ? '<div class="ga-note">' + esc(res.note) + '</div>' : ''); break;
       case 'count_competitors': h += '<span class="ga-num">' + fmt(res.business_centers) + '</span> БЦ ' + (res.zone ? 'в зоне' : 'в ' + humanM(res.radius_m)) + ' ' + provChip(res.provenance) + (res.nearest.length ? '<div class="ga-note">' + res.nearest.slice(0, 4).map(function (b) { return esc(b.name) + (b.dist_m != null ? ' (' + b.dist_m + ' м)' : ''); }).join(', ') + '</div>' : ''); break;
       case 'draw_circle': h += humanM(res.radius_m) + ' · ' + (res.area_m2 / 1e6).toFixed(2) + ' км² · центр ' + res.lat.toFixed(4) + ', ' + res.lon.toFixed(4); break;
-      case 'catchment': h += (res.mode === 'isochrone' ? 'по времени в пути' : 'по радиусам') + ' ' + provChip(res.provenance) + '<table class="ga-tbl"><tr><th>зона</th><th>мин</th><th>жителей</th><th>д/х</th><th>RDE, $ млн</th>' + (res.captures ? '<th>capture</th>' : '') + '</tr>' + res.zones.map(function (z, i) { var c = res.captures ? res.captures[i].capture_rate : null; return '<tr><td>' + z.name + '</td><td>' + z.minutes + '</td><td>' + fmt(z.population) + '</td><td>' + fmt(z.households) + '</td><td>' + (z.rde_usd / 1e6).toFixed(1) + '</td>' + (res.captures ? '<td>' + (c == null ? '-' : (c * 100).toFixed(c * 100 >= 1 ? 1 : 3) + '%') + '</td>' : '') + '</tr>'; }).join('') + '</table><div class="ga-note">' + esc(res.provenance.note) + (res.inputs_needed && res.inputs_needed.length ? ' Требуемые входные данные: ' + esc(res.inputs_needed.join('; ')) + '.' : '') + '</div>'; break;
+      case 'catchment': h += (res.mode === 'isochrone' ? 'по времени в пути на авто' : res.mode === 'metro' ? 'на метро и пешком' : 'по радиусам') + ' ' + provChip(res.provenance) + '<table class="ga-tbl"><tr><th>зона</th><th>мин</th><th>жителей</th><th>д/х</th><th>RDE, $ млн</th>' + (res.captures ? '<th>capture</th>' : '') + '</tr>' + res.zones.map(function (z, i) { var c = res.captures ? res.captures[i].capture_rate : null; return '<tr><td>' + z.name + '</td><td>' + z.minutes + '</td><td>' + fmt(z.population) + '</td><td>' + fmt(z.households) + '</td><td>' + (z.rde_usd / 1e6).toFixed(1) + '</td>' + (res.captures ? '<td>' + (c == null ? '-' : (c * 100).toFixed(c * 100 >= 1 ? 1 : 3) + '%') + '</td>' : '') + '</tr>'; }).join('') + '</table><div class="ga-note">' + esc(res.provenance.note) + (res.inputs_needed && res.inputs_needed.length ? ' Требуемые входные данные: ' + esc(res.inputs_needed.join('; ')) + '.' : '') + '</div>'; break;
+      case 'clear_site': h += res.had ? 'точка анализа снята с карты' : 'точки не было'; break;
       case 'clear_layers': h += esc(res.cleared.join(', ')); break;
       case 'ping': h += (res.advice || []).map(function (a) { return '<div class="ga-note" style="color:inherit;font-size:11px">' + esc(a) + '</div>'; }).join(''); break;
       case 'help': h += esc(T('help')); break;
@@ -7153,7 +7230,7 @@ window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_V
   window.CASE_GEO_AGENT = {
     version: VERSION, TOOLS: TOOLS, run: run, ask: ask, parse: parse, state: ST, narrative: narrative,
     popInRadius: popInRadius, popInZone: popInZone, lens: lens, cellAreaM2: cellAreaM2, zoneAreaM2: zoneAreaM2, inRing: inRing, lineNearM: lineNearM, lineInZone: lineInZone,
-    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick,
+    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick, clearSite: clearSite, recolorCatchment: recolorCatchment, catchment: function () { return ST.catchment; },
     /* v4.75.0: панель инструментов карты рисует фигуры через агента и пишет в его журнал */
     say: say, renderZone: renderZone, addShape: addShape, removeShape: function (sh) { var i = ST.zone.indexOf(sh); if (i >= 0) { ST.zone.splice(i, 1); renderZone(); } return i >= 0; }, startDraw: startDraw, stopDraw: stopDraw
   };
@@ -7545,6 +7622,69 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     try { myRenderRings(); } catch (e) {}
   }
 
+  /* --- зоны по времени в пути (замечание владельца, v4.78.0): три зоны сразу, авто или метро,
+     свои цвета, каждая зона включается отдельно; считает и рисует гео-агент (catchment) --- */
+  var KEY_TZ = 'caseos_time_zones_v1', TZ_PAL = ['#9E0000', '#e67e22', '#2980b9'], TZ = null;
+  function tzAgent() { return window.CASE_GEO_AGENT || null; }
+  function tzToast(m) { var t = $('geoToast'); if (t) { t.textContent = m; t.classList.add('on'); clearTimeout(tzToast.t); tzToast.t = setTimeout(function () { t.classList.remove('on'); }, 2800); } }
+  function tzLoad() {
+    var d = { mode: 'car', mins: [10, 20, 30], colors: TZ_PAL.slice(), on: [true, true, true] };
+    try { var j = JSON.parse(localStorage.getItem(KEY_TZ) || 'null'); if (j && typeof j === 'object') { if (j.mode === 'metro' || j.mode === 'car') d.mode = j.mode; if (Array.isArray(j.mins) && j.mins.length === 3 && j.mins.every(function (v) { return isFinite(+v) && +v > 0; })) d.mins = j.mins.map(Number); if (Array.isArray(j.colors)) d.colors = d.colors.map(function (c, i) { return /^#[0-9a-f]{6}$/i.test(j.colors[i] || '') ? j.colors[i] : c; }); if (Array.isArray(j.on)) d.on = d.on.map(function (v, i) { return j.on[i] !== false; }); } } catch (e) {}
+    return d;
+  }
+  function tzSave() { try { localStorage.setItem(KEY_TZ, JSON.stringify({ mode: TZ.mode, mins: TZ.mins, colors: TZ.colors, on: TZ.on })); } catch (e) {} }
+  function tzParseMins() {
+    var nums = String(($('tzMin') || {}).value || '').split(/[,;\s\/]+/).map(function (x) { return parseInt(x, 10); }).filter(function (v) { return isFinite(v) && v >= 1 && v <= 60; });
+    nums = nums.filter(function (v, i, a) { return a.indexOf(v) === i; }).sort(function (a, b) { return a - b; }).slice(0, 3);
+    while (nums.length && nums.length < 3) nums.push(Math.min(60, nums[nums.length - 1] + 10));
+    return nums.length === 3 ? nums : null;
+  }
+  function tzRows(res) {
+    var box = $('tzZones'); if (!box) return; box.innerHTML = '';
+    var mins = res ? res.minutes : TZ.mins, zones = res ? res.zones : null;
+    mins.forEach(function (m, i) {
+      var l = document.createElement('label'); l.className = 'ck tz-row';
+      l.innerHTML = '<input type="checkbox"' + (TZ.on[i] ? ' checked' : '') + ' title="показывать зону"> <input type="color" value="' + TZ.colors[i] + '" title="цвет зоны ' + m + ' мин" aria-label="цвет зоны ' + m + ' мин"> ' + m + ' мин' + (zones ? ' <span class="tz-pop">· ' + Math.round(zones[i].population).toLocaleString('ru') + ' жит.' + (zones[i].stations != null ? ' · станций ' + zones[i].stations : '') + '</span>' : '');
+      l.querySelector('input[type=checkbox]').onchange = function (e) { TZ.on[i] = e.target.checked; tzSave(); tzApply(); };
+      l.querySelector('input[type=color]').addEventListener('input', function (e) { TZ.colors[i] = e.target.value; tzSave(); tzApply(); });
+      box.appendChild(l);
+    });
+    var note = $('tzNote'); if (note) note.textContent = res ? ((res.provenance && res.provenance.method ? res.provenance.method + '. ' : '') + 'Оценка, не факт: границы без коррекции на барьеры.') : 'Три зоны по времени в пути от точки анализа, каждая своим цветом: на авто по дорогам (OSRM) или на метро с пешей частью по линиям студии. Население считается внутри каждой зоны.';
+  }
+  function tzApply() { var A = tzAgent(); if (A && typeof A.recolorCatchment === 'function') A.recolorCatchment(TZ.colors, TZ.on.map(function (v) { return !v; })); }
+  function tzBuild() {
+    var A = tzAgent(); if (!A) { tzToast('Гео-агент не загружен'); return Promise.resolve(); }
+    if (!A.state.site) { tzToast('Сначала поставьте точку анализа (пин внизу карты или правый клик)'); return Promise.resolve(); }
+    var mins = tzParseMins(); if (!mins) { tzToast('Три времени в пути через запятую, например 10, 20, 30'); return Promise.resolve(); }
+    TZ.mins = mins; TZ.mode = ($('tzMode') || {}).value === 'metro' ? 'metro' : 'car'; tzSave();
+    var inp = $('tzMin'); if (inp) inp.value = mins.join(', ');
+    var note = $('tzNote'); if (note) note.textContent = TZ.mode === 'metro' ? 'Считаю зоны по метро и пешком…' : 'Считаю изохроны по дорогам (OSRM)…';
+    return A.run('catchment', { minutes: mins, mode: TZ.mode, colors: TZ.colors, hidden: TZ.on.map(function (v) { return !v; }) }).then(function (res) {
+      try { A.say('fact', A.factHtml('catchment', res)); A.say('ai', A.narrative([{ name: 'catchment', res: res }])); } catch (e) {}
+      tzRows(res);
+      if (res.mode === 'radius') tzToast('Маршрутизатор недоступен: зоны построены по радиусам');
+      return res;
+    }, function (e) { var m = String(e && e.message || e); if (note) note.textContent = m; tzToast(m); });
+  }
+  function tzClear() { var A = tzAgent(); if (A) A.run('clear_layers', { layers: ['catchment'] }); tzRows(null); }
+  function installTimeZones() {
+    if ($('tzBox')) return; var rings = $('rings'); if (!rings || !rings.parentNode) return;
+    TZ = tzLoad();
+    var box = document.createElement('div'); box.id = 'tzBox'; box.className = 'tz';
+    box.innerHTML = '<div class="tz-h">Зоны по времени в пути</div>'
+      + '<div class="styrow sub"><label for="tzMode">как едем</label><select id="tzMode" style="font-size:11px"><option value="car">на авто (дороги OSM, OSRM)</option><option value="metro">метро и пешком</option></select></div>'
+      + '<div class="styrow sub"><label for="tzMin">минуты</label><input type="text" id="tzMin" style="width:100px;font-size:11px" title="три времени в пути через запятую, до 60 минут"><button type="button" class="btn sec" id="tzGo" style="font-size:11px" title="построить три зоны по времени в пути от точки анализа">✓ построить</button><button type="button" class="btn sec" id="tzClear" style="font-size:11px" title="убрать зоны с карты">✕</button></div>'
+      + '<div id="tzZones"></div><div class="mini" id="tzNote"></div>';
+    rings.parentNode.insertBefore(box, rings.nextSibling);
+    var st = document.createElement('style'); st.textContent = '.tz{margin:8px 0 4px;padding-top:6px;border-top:1px dashed var(--line,#e3dcd1)}.tz-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red-d,#7a0000);margin-bottom:4px}.tz-row .tz-pop{color:var(--muted,#6f6a63);font-size:10.5px}.tz .styrow.sub{gap:4px}'; document.head.appendChild(st);
+    $('tzMode').value = TZ.mode; $('tzMin').value = TZ.mins.join(', ');
+    $('tzMode').onchange = function () { TZ.mode = this.value === 'metro' ? 'metro' : 'car'; tzSave(); };
+    $('tzGo').onclick = function () { tzBuild(); }; $('tzClear').onclick = tzClear;
+    $('tzMin').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); tzBuild(); } });
+    tzRows(null);
+  }
+  LY.timeZones = { build: tzBuild, clear: tzClear, state: function () { return TZ; } };
+
   /* --- левая панель сворачивается целиком ------------------------------------------ */
   function leftOpen(on) {
     var wrap = $('mapT'), tab = $('leftTab'); if (!wrap) return;
@@ -7594,7 +7734,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
   function disableProbeClick() { var cb = $('lProbe'); if (cb) { cb.checked = false; var row = cb.closest('label'); if (row) row.style.display = 'none'; } }
 
   function install() {
-    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); waitForAgent(); mountLeftTab(); bindFullscreen();
+    css(); fixAttribution(); disableProbeClick(); wrapLegend(); installRings(); installTimeZones(); waitForAgent(); mountLeftTab(); bindFullscreen();
   }
   LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
@@ -7746,6 +7886,19 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       push({ label: 'точка анализа', undo: function () { if (prev) A.run('set_site', prev); else toast('Прежней точки не было: точка остаётся'); }, redo: function () { A.run('set_site', { lat: lat, lon: lon, name: name || 'точка на карте' }); } });
     }, function (e) { toast(String(e && e.message || e)); });
   }
+
+  /* v4.78.0: снять точку анализа с отменой (Ctrl+Z вернёт прежнюю точку) */
+  function clearSite() {
+    var A = agent(); if (!A) { if (window.caseGeoClearPoint) window.caseGeoClearPoint(); return Promise.resolve(); }
+    var prev = A.state.site ? { lat: A.state.site.lat, lon: A.state.site.lon, name: A.state.site.name } : null;
+    if (!prev) { toast('Точка анализа не задана'); return Promise.resolve(); }
+    return A.run('clear_site', {}).then(function (res) {
+      try { A.say('fact', A.factHtml('clear_site', res)); } catch (e) {}
+      push({ label: 'снятие точки', undo: function () { A.run('set_site', prev); }, redo: function () { A.run('clear_site', {}); } });
+      toast('Точка анализа снята');
+    }, function (e) { toast(String(e && e.message || e)); });
+  }
+  TL.clearSite = clearSite;
 
   /* --- полигоны и круги: фигуры зоны агента ---------------------------------------- */
   function simplify(pts, tolM) {
@@ -7916,10 +8069,12 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     var M = theMap(), mapEl = $('map'); if (!M || !mapEl) return;
     var lat = e.latlng.lat, lon = e.latlng.lng;
     var m = document.createElement('div'); m.className = 'geo-cmenu'; m.setAttribute('role', 'menu');
+    var hasSite = false; try { var A0 = agent(); hasSite = !!(A0 && A0.state.site); } catch (x0) {}
     var items = [
-      ['pin', '📍', 'Добавить метку здесь (точка анализа)'], ['circle', '◯', 'Круг охвата отсюда…'], ['route', '⤳', 'Маршрут отсюда…'], ['center', '⤢', 'Переместиться сюда'], null,
+      ['pin', '📍', hasSite ? 'Перенести точку анализа сюда' : 'Добавить метку здесь (точка анализа)'], hasSite ? ['unpin', '✕', 'Убрать точку анализа'] : null, ['circle', '◯', 'Круг охвата отсюда…'], ['route', '⤳', 'Маршрут отсюда…'], ['center', '⤢', 'Переместиться сюда'], null,
       ['info', 'ℹ', 'Получить сведения'], ['copy', '⧉', 'Скопировать координаты'], ['paste', '📋', 'Вставить объект из буфера обмена']
     ];
+    items = items.filter(function (it, i) { return !(it === null && i === 1); }); /* без точки пункта «убрать» нет, лишний разделитель не нужен */
     m.innerHTML = '<div class="geo-cmenu-xy">' + lat.toFixed(5) + ', ' + lon.toFixed(5) + '</div>' + items.map(function (it) { return it ? '<button type="button" data-a="' + it[0] + '"><span class="ic">' + it[1] + '</span>' + esc(it[2]) + '</button>' : '<hr>'; }).join('');
     var rect = mapEl.getBoundingClientRect(), x = e.containerPoint.x, y = e.containerPoint.y;
     m.style.left = Math.min(x, rect.width - 275) + 'px'; m.style.top = Math.min(y, rect.height - 330) + 'px';
@@ -7928,6 +8083,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     m.addEventListener('click', function (ev) {
       var b = ev.target.closest('button'); if (!b) return; var a = b.getAttribute('data-a'); hideMenu();
       if (a === 'pin') setSite(lat, lon);
+      else if (a === 'unpin') clearSite();
       else if (a === 'circle') TL.circleAt(lat, lon);
       else if (a === 'route') TL.routeFrom(lat, lon);
       else if (a === 'center') M.panTo([lat, lon]);
@@ -8295,7 +8451,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
 (function () {
   'use strict';
   if (window.CASE_GEO_DEMO) return;
-  var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
+  var VERSION = '4.78.0', KEY_SECT = 'caseos_mah_sect', KEY_OVR = 'caseos_mahalla_pop_v1', KEY_BND = 'caseos_mahalla_bounds_v1', KEY_SHOW = 'caseos_mah_show_v1', KERNEL_KM = 0.9, FORECAST_YEARS = 10, CAPTURE = 0.00394;
   var D = window.CASE_GEO_DEMO = { version: VERSION, data: null, ready: false };
   var OVR = {}, BNDL = {}, gMah = null, gSel = null, curDist = '', curMah = null, sortBy = 'pop', cache = {}, BND = null, REG = null, REGI = {}, REGC = {};
   var DIST_RU = { 'Yunusabad': 'Юнусабадский', 'Mirzo-Ulugbek': 'Мирзо-Улугбекский', 'Uchtepa': 'Учтепинский', 'Yashnabad': 'Яшнабадский', 'Olmazor': 'Алмазарский', 'Chilanzar': 'Чиланзарский', 'Sergeli': 'Сергелийский', 'Shaykhantakhur': 'Шайхантахурский', 'Mirabad': 'Мирабадский', 'Yangihayot': 'Янгихаётский', 'Yakkasaray': 'Яккасарайский', 'Bektemir': 'Бектемирский' };
@@ -8852,7 +9008,7 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       + '.mah-row .s{grid-column:1/3;font-size:10px;color:var(--muted,#6f6a63)}'
       + '.mah-edit{display:flex;gap:4px;align-items:center;margin-top:6px;font-size:11px}.mah-edit input{width:90px;font-size:11px;padding:4px 6px;border:1px solid var(--line,#e3dcd1);border-radius:6px}'
       + '.mah-sort{display:flex;gap:6px;font-size:10.5px;color:var(--muted,#6f6a63);margin:4px 0}.mah-sort button{border:0;background:none;color:inherit;font:inherit;cursor:pointer;padding:0;text-decoration:underline dotted}.mah-sort button.on{color:#9E0000;font-weight:700}'
-      + '.mah-lbl{background:#fff;border:1px solid #8C6A2F;color:#5a4420;border-radius:6px;padding:1px 5px;font:600 10px/1.3 inherit;white-space:nowrap}'
+      + '.mah-lbl{background:#fff;border:1px solid #9E0000;color:#5a4420;border-radius:6px;padding:2px 6px;font:600 10.5px/1.3 inherit;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.25)}.mah-lbl b{color:#9E0000}'
       + '.mah-off{font-style:normal;font-weight:400;color:var(--muted,#6f6a63);font-size:10px}.mah-tag{font-style:normal;font-weight:600;font-size:9px;background:#f1ede6;color:#5a4420;border-radius:4px;padding:0 4px;margin-left:3px}.mah-row.reg .n{color:#5a4420}.mah-miss{margin-top:4px;font-size:10.5px}.mah-miss summary{cursor:pointer;color:#9E0000}.dm-mah{font-size:11px;background:#faf7f2;border-radius:8px;padding:5px 9px;margin:4px 0 6px}.dm-facts .dm-kv{font-size:13px}'
       /* карточка демографии */
       + '#card.dm-open{width:min(760px,96vw);max-width:96vw;padding:12px 16px;box-sizing:border-box}.dm-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}.dm-top h2{font-size:16px;margin:0}.dm-top .sp{flex:1}.dm-top select{font-size:12px;padding:5px 8px;border-radius:8px;border:1px solid var(--line,#e3dcd1);max-width:340px}'
@@ -8882,7 +9038,8 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
       + '<div class="mah-list" id="mahList"></div>'
       + '<div class="mah-edit" id="mahEdit" hidden><span id="mahEditName"></span><input type="number" id="mahPop" min="0" step="100" placeholder="население"><button type="button" class="btn sec" id="mahPopSave" style="font-size:11px">✓</button><button type="button" class="btn sec" id="mahPopClear" style="font-size:11px" title="убрать ручное значение">↺</button></div>'
       + '<div class="mah-edit" id="mahBnd" hidden><span>Граница:</span><button type="button" class="btn sec" id="mahBndSet" style="font-size:11px" title="взять последний полигон, нарисованный инструментом O или F внизу карты, как границу этой махалли; население пересчитается внутри границы">▱ из полигона на карте</button><button type="button" class="btn sec" id="mahBndClear" style="font-size:11px" title="убрать границу махалли">✕</button><span class="mini" id="mahBndInfo"></span></div>'
-      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Махалли района на карте</label>'
+      + '<label class="ck" style="margin-top:6px"><input type="checkbox" id="mahShow" checked> Все махалли района на карте (клик по махалле открывает её карточку)</label>'
+      + '<label class="ck"><input type="checkbox" id="mahSelShow" checked> Выбранная махалля: граница и сведения на карте</label>'
       + '<div class="mini">Реестр Etirof: 585 махаллей с кодами, официальные границы 402 из них из слоя махаллей НГИС (население внутри границы по сетке населения); остальные оценены по сетке вокруг точки в пределах официального населения района. Введённое вручную число имеет приоритет и помечено зелёным. Населения по махаллям в открытых источниках нет.</div>'
       + '</div>';
     anchor.parentNode.insertBefore(sect, anchor);
@@ -8893,7 +9050,8 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     $('mahDemoCatch').onclick = function () { if (!point()) { toast('Сначала поставьте точку анализа (пин на панели инструментов)'); return; } openDemo('catch'); };
     $('mahDist').onchange = function () { curDist = $('mahDist').value; curMah = null; $('mahEdit').hidden = true; $('mahBnd').hidden = true; renderList(); drawMah(); };
     $('mahSort').querySelectorAll('button').forEach(function (b) { b.onclick = function () { sortBy = b.dataset.s; $('mahSort').querySelectorAll('button').forEach(function (x) { x.classList.toggle('on', x === b); }); renderList(); }; });
-    $('mahShow').onchange = drawMah;
+    try { var sv = JSON.parse(localStorage.getItem(KEY_SHOW) || 'null'); if (sv && typeof sv === 'object') { if (sv.all === false) $('mahShow').checked = false; if (sv.sel === false) $('mahSelShow').checked = false; } } catch (e) {}
+    $('mahShow').onchange = function () { saveShow(); drawMah(); }; $('mahSelShow').onchange = function () { saveShow(); drawMah(); };
     $('mahPopSave').onclick = function () { if (!curMah) return; var v = num($('mahPop').value); if (v == null || v <= 0) { toast('Введите население числом'); return; } OVR[curMah.key] = Math.round(v); saveOvr(); invalidate(); renderList(); drawMah(); toast('Население махалли сохранено в этой копии студии'); };
     $('mahPopClear').onclick = function () { if (!curMah) return; delete OVR[curMah.key]; saveOvr(); invalidate(); renderList(); drawMah(); };
     $('mahBndSet').onclick = function () { if (!curMah) return; var ring = lastPolygon(); if (!ring) { toast('Нарисуйте полигон вокруг махалли инструментом O (или F от руки) внизу карты и нажмите снова'); return; } setBoundary(curMah.key, ring, curMah.name); };
@@ -8962,23 +9120,46 @@ window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MOD
     $('mahBnd').hidden = false; bndInfo();
     $('mahEditName').textContent = r.name + ':'; $('mahPop').value = OVR[key] != null ? OVR[key] : (r.manual ? Math.round(r.pop) : '');
     renderList(); drawMah();
-    var M = theMap(); if (M) { try { M.setView([r.lat, r.lng], Math.max(M.getZoom(), 14)); } catch (x) {} }
+    var M = theMap(); if (M) { try { if (r.poly && window.L) M.fitBounds(L.polygon(r.poly.ll).getBounds().pad(0.35), { maxZoom: 16 }); else M.setView([r.lat, r.lng], Math.max(M.getZoom(), 14)); } catch (x) {} }
   }
+  /* подсказка по махалле (наведение) и подпись выбранной махалли на карте (по замечанию владельца:
+     при выборе видна граница, сверху сведения: жители, площадь, домохозяйства) */
+  function tipHtml(r) {
+    return '<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small><br><small>клик: карточка махалли</small>';
+  }
+  function labelHtml(r) {
+    return '<span class="mah-lbl"><b>' + esc(r.name) + '</b>' + (r.pop != null ? ' · ' + fmt(r.pop) + ' жит.' : '') + (r.hh != null ? ' · ' + fmt(r.hh) + ' д/х' : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.poly ? '' : ' · без границы') + '</span>';
+  }
+  function openCard(key) { selectMah(key); try { openDemo('m:' + key); } catch (e) {} }
+  function showAll() { return !!($('mahShow') && $('mahShow').checked); }
+  function showSel() { var c = $('mahSelShow'); return !c || c.checked; }
+  function saveShow() { try { localStorage.setItem(KEY_SHOW, JSON.stringify({ all: showAll(), sel: showSel() })); } catch (e) {} }
   function drawMah() {
     var M = theMap(); if (!M || !window.L) return;
     if (!gMah) gMah = L.layerGroup().addTo(M); gMah.clearLayers();
-    if (!curDist || !($('mahShow') && $('mahShow').checked)) return;
+    if (!curDist) return;
+    var all = showAll(), selOn = showSel();
+    if (!all && !(selOn && curMah)) return;
     var e = estimateDistrict(curDist), mx = Math.max.apply(null, e.rows.map(function (r) { return r.pop || 0; })) || 1;
     e.rows.forEach(function (r) {
-      var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx), sel = curMah && curMah.key === r.key;
-      if (r.poly) L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2 : 1, fillColor: '#c9a86a', fillOpacity: .12, dashArray: r.poly.manual ? '6 4' : null, interactive: false }).addTo(gMah);
+      var sel = curMah && curMah.key === r.key;
+      if (!all && !sel) return;
+      if (sel && !selOn) return;
+      var rad = 5 + 13 * Math.sqrt((r.pop || 0) / mx);
+      if (r.poly) {
+        /* при показе всех махалл границы кликабельны: клик открывает карточку махалли */
+        var pg = L.polygon(r.poly.ll, { color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 2.5 : 1, fillColor: sel ? '#9E0000' : '#c9a86a', fillOpacity: sel ? .1 : .12, dashArray: r.poly.manual ? '6 4' : null, interactive: all });
+        if (all) { pg.bindTooltip(tipHtml(r), { sticky: true }); pg.on('click', function () { openCard(r.key); }); }
+        pg.addTo(gMah);
+      }
       var c = L.circleMarker([r.lat, r.lng], { radius: rad, color: sel ? '#9E0000' : '#8C6A2F', weight: sel ? 3 : 1.5, fillColor: r.manual ? '#14675B' : '#c9a86a', fillOpacity: .45 });
-      c.bindTooltip('<b>' + esc(r.name) + '</b>' + (r.reg && r.reg.name && nrmX(r.reg.name) !== nrmX(r.name) ? ' <small>' + esc(r.reg.name) + '</small>' : '') + (r.reg && r.reg.name_cyr ? '<br><small>' + esc(r.reg.name_cyr) + '</small>' : '') + '<br>' + (r.pop != null ? fmt(r.pop) + ' жителей (' + (r.manual ? 'введено' : 'оценка') + ')' : 'население неизвестно') + (r.hh != null ? '<br>' + fmt(r.hh) + ' домохозяйств' : '') + (r.reg && r.reg.code ? '<br>код ' + esc(r.reg.code) : '') + (r.area_ha != null ? ' · ' + Math.round(r.area_ha) + ' га' : '') + (r.density != null ? ' · ' + fmt(r.density) + ' чел./км²' : '') + '<br><small>' + esc(r.src) + '</small>');
-      c.on('click', function () { selectMah(r.key); });
+      c.bindTooltip(tipHtml(r));
+      c.on('click', function () { if (all) openCard(r.key); else selectMah(r.key); });
       c.addTo(gMah);
-      if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: '<span class="mah-lbl">' + esc(r.name) + '</span>', iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
+      if (sel) L.marker([r.lat, r.lng], { icon: L.divIcon({ className: '', html: labelHtml(r), iconAnchor: [-8, 8] }), interactive: false }).addTo(gMah);
     });
   }
+  D.layers = function () { return gMah ? gMah.getLayers() : []; };
   D.select = function (dk, key) { if (dk && $('mahDist')) { $('mahDist').value = dk; curDist = dk; } curMah = null; renderList(); drawMah(); if (key) selectMah(key); };
   D.current = function () { return { district: curDist, mahalla: curMah }; };
   D.layerCount = function () { return gMah ? gMah.getLayers().length : 0; };

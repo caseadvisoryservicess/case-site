@@ -340,7 +340,53 @@
   function needZone() { var s = zoneShapes(); if (!s.length) throw new Error(T('needZone')); return s; }
   function addShape(s) { ST.zone.push(s); renderZone(); }
 
+  /* v4.78.0: снять точку анализа (кнопка в студии, меню карты, фраза «убери точку») */
+  function clearSite() { var had = !!ST.site; ST.site = null; clearGroup('site'); return had; }
+  /* v4.78.0: зоны по времени в пути: рисование из ST.catchment (цвета и скрытые зоны меняются без пересчёта)
+     и режим «метро и пешком»: Дейкстра по станциям линий студии (2ГИС). Нормативы: пешком 5 км/ч
+     (83 м/мин), ожидание поезда 3 мин, перегон 2,5 мин, пересадка 4 мин между станциями разных линий
+     ближе 300 м. Зона за T минут = круг пешей досягаемости от точки плюс круги вокруг станций, куда
+     успеваешь доехать, радиусом на оставшиеся минуты. Оценка, не расписание. */
+  var WALK_M_MIN = 83, HOP_MIN = 2.5, TRANSFER_MIN = 4, WAIT_MIN = 3;
+  function metroLines() { try { return (typeof METRO !== 'undefined' && Array.isArray(METRO)) ? METRO : []; } catch (e) { return []; } }
+  function metroReach(s) {
+    var nodes = [];
+    metroLines().forEach(function (l, li) { (l.s || []).forEach(function (x, si) { if (isFinite(+x[0]) && isFinite(+x[1])) nodes.push({ lat: +x[0], lon: +x[1], name: x[2] || '', li: li, si: si, line: l.n || '' }); }); });
+    if (!nodes.length) return null;
+    var n = nodes.length, adj = nodes.map(function () { return []; });
+    for (var i = 0; i < n; i++) for (var j = 0; j < n; j++) { if (i === j) continue; var a = nodes[i], b = nodes[j]; if (a.li === b.li && Math.abs(a.si - b.si) === 1) adj[i].push([j, HOP_MIN]); else if (a.li !== b.li && distKm(a.lat, a.lon, b.lat, b.lon) * 1000 <= 300) adj[i].push([j, TRANSFER_MIN]); }
+    var t = nodes.map(function (nd) { return distKm(s.lat, s.lon, nd.lat, nd.lon) * 1000 / WALK_M_MIN + WAIT_MIN; }), done = nodes.map(function () { return false; });
+    for (var k = 0; k < n; k++) { var best = -1; for (var q = 0; q < n; q++) if (!done[q] && (best < 0 || t[q] < t[best])) best = q; if (best < 0) break; done[best] = true; adj[best].forEach(function (e) { if (t[best] + e[1] < t[e[0]]) t[e[0]] = t[best] + e[1]; }); }
+    return nodes.map(function (nd, i) { return { lat: nd.lat, lon: nd.lon, name: nd.name, line: nd.line, min: t[i] }; });
+  }
+  function metroShapes(s, mins, reach) {
+    return mins.map(function (T) {
+      var shapes = [{ kind: 'circle', lat: s.lat, lon: s.lon, r: T * WALK_M_MIN, label: 'пешком от точки ' + T + ' мин' }], st = [];
+      reach.slice().sort(function (a, b) { return a.min - b.min; }).forEach(function (r) { var left = T - r.min; if (left * WALK_M_MIN < 60) return; shapes.push({ kind: 'circle', lat: r.lat, lon: r.lon, r: Math.round(left * WALK_M_MIN), label: r.name + ' (' + r.line + '): ' + Math.round(r.min) + ' мин, пешком ещё ' + Math.round(left) + ' мин' }); st.push(r.name); });
+      return { shapes: shapes, stations: st };
+    });
+  }
+  var CATCH_COLS = ['#9E0000', '#e67e22', '#2980b9'], CATCH_NAMES = ['PTA', 'STA', 'TTA'];
+  function drawCatchment() {
+    var c = ST.catchment, grp = group('catchment'); if (!grp) return; grp.clearLayers(); if (!c) return;
+    c.shapes.forEach(function (sh, i) {
+      if (c.hidden && c.hidden[i]) return;
+      var col = (c.colors && /^#[0-9a-f]{6}$/i.test(c.colors[i] || '')) ? c.colors[i] : CATCH_COLS[i], z = c.zones[i];
+      var tip = CATCH_NAMES[i] + ' · ' + c.minutes[i] + ' мин · ' + fmt(z.population) + ' жит.';
+      sh.forEach(function (s, k) {
+        var o = { color: col, weight: k === 0 ? 2 : 1, opacity: k === 0 ? .95 : .7, fillColor: col, fillOpacity: k === 0 ? .07 : .05, dashArray: i ? '5' : null };
+        var l = s.kind === 'circle' ? L.circle([s.lat, s.lon], Object.assign({ radius: s.r }, o)) : L.polygon(s.ring, o);
+        l.addTo(grp).bindTooltip(tip + (k && s.label ? ' · ' + esc(s.label) : ''), { sticky: true });
+      });
+    });
+  }
+  function recolorCatchment(colors, hidden) { if (!ST.catchment) return false; if (Array.isArray(colors)) ST.catchment.colors = colors.slice(0, 3); if (Array.isArray(hidden)) ST.catchment.hidden = hidden.slice(0, 3); drawCatchment(); return true; }
   var TOOLS = {
+    clear_site: function () {
+      var had = clearSite();
+      try { if (typeof window.caseGeoClearPoint === 'function') window.caseGeoClearPoint(); } catch (e) {}
+      return Promise.resolve({ ok: true, had: had });
+    },
     set_site: function (inp) {
       inp = inp || {};
       if (inp.address) {
@@ -427,7 +473,10 @@
       while (mins.length < 3) mins.push((mins[mins.length - 1] || 10) + 10);
       var HH = 4.5, RDE_PP_USD = 349, SHARES = [0.75, 0.20, 0.05], R2S = 0.15;
       var gla = num(inp.gla_m2), rent = num(inp.rent_usd_m2_month);
-      var rings = [], mode = 'isochrone';
+      /* v4.78.0 (замечание владельца): режим «метро и пешком», свои цвета и скрытые зоны из раздела «Зона охвата» */
+      var want = inp.mode === 'metro' ? 'metro' : 'car';
+      var colors = Array.isArray(inp.colors) ? inp.colors.slice(0, 3) : null, hidden = Array.isArray(inp.hidden) ? inp.hidden.slice(0, 3) : null;
+      var rings = [], mode = want === 'metro' ? 'metro' : 'isochrone', metroInfo = null;
       function circleRing(rM) { var out = [], n = 48; for (var i = 0; i < n; i++) { var th = i / n * 2 * Math.PI; out.push([s.lat + rM / 111320 * Math.cos(th), s.lon + rM / (111320 * Math.cos(s.lat * Math.PI / 180)) * Math.sin(th)]); } return out; }
       function isoRing(m) {
         if (typeof isochrone !== 'function') return Promise.resolve(null);
@@ -439,24 +488,31 @@
         }, function () { return null; });
       }
       var chain = Promise.resolve();
-      mins.forEach(function (m) { chain = chain.then(function () { if (mode !== 'isochrone') { rings.push(null); return; } return isoRing(m).then(function (r) { if (!r) mode = 'radius'; rings.push(r); }); }); });
+      if (want === 'metro') {
+        var reach = metroReach(s); if (!reach) throw new Error('Линии метро не загружены: зоны по метро недоступны');
+        metroInfo = metroShapes(s, mins, reach);
+      } else mins.forEach(function (m) { chain = chain.then(function () { if (mode !== 'isochrone') { rings.push(null); return; } return isoRing(m).then(function (r) { if (!r) mode = 'radius'; rings.push(r); }); }); });
       return chain.then(ensureCalibrated).then(function () {
         var g = geoData(), pop = g && Array.isArray(g.POP) ? g.POP : null;
         if (!pop || !pop.length) throw new Error(T('noPop'));
         if (mode === 'radius') rings = mins.map(function (m) { return circleRing(m * 400); });
-        var grp = group('catchment'); if (grp) grp.clearLayers();
-        var NAMES = ['PTA', 'STA', 'TTA'], RU = ['первичная', 'вторичная', 'третичная'], COLS = ['#9E0000', '#e67e22', '#2980b9'];
-        var cum = rings.map(function (r) { return popInZone([{ kind: 'polygon', ring: r }], pop).population; });
-        var zones = rings.map(function (r, i) {
+        var shapesPer = mode === 'metro' ? metroInfo.map(function (z) { return z.shapes; }) : rings.map(function (r) { return [{ kind: 'polygon', ring: r }]; });
+        var NAMES = ['PTA', 'STA', 'TTA'], RU = ['первичная', 'вторичная', 'третичная'];
+        var cum = shapesPer.map(function (sh) { return popInZone(sh, pop).population; });
+        var zones = shapesPer.map(function (sh, i) {
           var band = Math.max(0, cum[i] - (i ? cum[i - 1] : 0)), hh = band / HH, rde = band * RDE_PP_USD;
-          if (grp) L.polygon(r, { color: COLS[i], weight: 2, fillColor: COLS[i], fillOpacity: .07, dashArray: i ? '5' : null }).addTo(grp).bindTooltip(NAMES[i] + ' · ' + mins[i] + ' мин · ' + fmt(band) + ' жит.', { sticky: true });
-          return { name: NAMES[i], name_ru: RU[i], minutes: mins[i], population: Math.round(band), cum_population: Math.round(cum[i]), households: Math.round(hh), rde_usd: Math.round(rde), share: SHARES[i] };
+          var z = { name: NAMES[i], name_ru: RU[i], minutes: mins[i], population: Math.round(band), cum_population: Math.round(cum[i]), households: Math.round(hh), rde_usd: Math.round(rde), share: SHARES[i] };
+          if (mode === 'metro') { z.stations = metroInfo[i].stations.length; z.station_names = metroInfo[i].stations.slice(0, 12); }
+          return z;
         });
-        try { mapObj().fitBounds(L.latLngBounds(rings[2]).pad(0.05)); } catch (e) {}
+        ST.catchment = { mode: mode, minutes: mins, shapes: shapesPer, zones: zones, colors: colors, hidden: hidden };
+        drawCatchment();
+        try { var bb = zoneBbox(shapesPer[2]); mapObj().fitBounds([[bb[0], bb[1]], [bb[2], bb[3]]], { padding: [20, 20] }); } catch (e) {}
+        if (mode === 'metro') { try { var cb = document.getElementById('lMetro'); if (cb && !cb.checked) { cb.checked = true; cb.dispatchEvent(new Event('change')); } } catch (e) {} }
         var res = { ok: true, format: format, minutes: mins, mode: mode, zones: zones, household_size: HH, rde_per_person_usd: RDE_PP_USD, rent_to_sales: R2S,
-          provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)',
-            method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км на минуту), население по сетке', at: today(),
-            note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' },
+          provenance: { conf: 'modelled', source: 'Методика CASE: PTA/STA/TTA по времени в пути (Nukus Panorama, Silk Hub); RDE $349/чел/год и capture 0,394% (Wonderland Databook, Ташкент 2024); 4,5 чел. на домохозяйство (Silk Hub)' + (mode === 'metro' ? '; линии и станции метро из базы студии (2ГИС)' : ''),
+            method: mode === 'isochrone' ? 'изохроны OSRM за ' + mins.join('/') + ' мин на авто, население по сетке с калибровкой' : mode === 'metro' ? 'метро и пешком за ' + mins.join('/') + ' мин: пешком 5 км/ч, ожидание поезда 3 мин, перегон 2,5 мин, пересадка 4 мин; зона = круги досягаемости вокруг точки и вокруг станций, куда успеваешь доехать; население по сетке с калибровкой' : 'маршрутизатор недоступен: радиусы ' + mins.map(function (m) { return (m * 0.4).toFixed(1); }).join('/') + ' км (0,4 км за минуту в городе)',
+            note: 'Границы без коррекции на барьеры (ж/д, река, каналы, заторы): поправьте полигон инструментом. Доходы по национальной структуре расходов, а не по опросу зоны. Оценка, не факт.' + (mode === 'metro' ? ' Время метро по нормативам, не по расписанию.' : '') },
           inputs_needed: ['доходы домохозяйств по зонам (аналитик CASE)', 'полевой опрос жителей зоны, n не меньше 400', 'коррекция границ по барьерам и заторам', 'GLA и ставка проекта для capture rate'] };
         if (gla != null && rent != null && gla > 0 && rent > 0) {
           var turnover = gla * rent * 12 / R2S;
@@ -583,6 +639,7 @@
       (want.indexOf('all') >= 0 ? all : want).forEach(function (n) {
         if (n === 'zone') { ST.zone = []; ST.merged = false; try { if (typeof gIso !== 'undefined' && gIso) gIso.clearLayers(); } catch (e) {} }
         if (n === 'draw') stopDraw(); else clearGroup(n);
+        if (n === 'catchment') ST.catchment = null;
         if (n === 'buildings') ST.data.buildings = null;
         if (n === 'roads') ST.data.roads = null;
         done.push(n);
@@ -693,6 +750,7 @@
       cm.format = /трц|региональн|regional|mall/.test(low) ? 'regional' : /районн|community|соседск|(^|[^а-я])тц(?![а-я])/.test(low) ? 'community' : /у дома|convenience|шаговой/.test(low) ? 'convenience' : /(^|[^а-я])бц(?![а-я])|бизнес.центр|офис|office/.test(low) ? 'office' : 'regional';
       var gm = low.match(/gla\s*[:=]?\s*(\d[\d\s]*)/), rm = low.match(/(?:ставк[аеиу]|rent)\s*[:=]?\s*\$?\s*(\d+(?:[.,]\d+)?)/) || low.match(/\$\s*(\d+(?:[.,]\d+)?)/) || low.match(/(\d+(?:[.,]\d+)?)\s*\$/);
       if (gm) cm.gla_m2 = parseInt(gm[1].replace(/\s/g, ''), 10); if (rm) cm.rent_usd_m2_month = parseFloat(rm[1].replace(',', '.'));
+      if (/метро|metro/.test(low)) cm.mode = 'metro';
       calls.push({ name: 'catchment', input: cm }); return calls;
     }
 
@@ -709,6 +767,7 @@
     if (/объедини|слей|merge|union|birlashtir/.test(low)) calls.push({ name: 'merge_zones', input: {} });
     if (/площад[ьи] зоны|zone area|zona maydoni/.test(low)) calls.push({ name: 'zone_area', input: {} });
 
+    if (/(убер|сним|удал|сброс|очист)[а-я]*\s+(точк|пин|метк)|(точк|пин|метк)[а-я]*\s+(убер|сним|удал|сброс)|(remove|clear|delete|unset)\s+(the\s+)?(point|pin|site|marker)|nuqta(ni)?\s*(o[ʻ'’]?chir|olib tashla|tozala)/.test(low)) return [{ name: 'clear_site', input: {} }];
     if (/очист|убер|сброс|clear|reset|tozala/.test(low) && !/здани|дорог|радиус|кру[гж]|зон|выдел|building|road|zone/.test(low)) { calls.push({ name: 'clear_layers', input: {} }); return calls; }
 
     /* «Сделай здания синими»: цвет без загрузки и без метров */
@@ -764,6 +823,7 @@
     var w = function (ru, en, uz) { return L_ === 'en' ? en : L_ === 'uz' ? uz : ru; };
     items.forEach(function (it) {
       var r = it.res, n = it.name; if (!r || !r.ok) return;
+      if (n === 'clear_site') s.push(w(r.had ? 'Точка анализа снята.' : 'Точки и не было.', r.had ? 'Analysis point removed.' : 'There was no point.', r.had ? 'Tahlil nuqtasi olib tashlandi.' : 'Nuqta yo‘q edi.'));
       if (n === 'set_site') s.push(w('Точка: ', 'Point: ', 'Nuqta: ') + (r.site.name || '') + ' (' + r.site.lat.toFixed(5) + ', ' + r.site.lon.toFixed(5) + ')' + (r.candidates && r.candidates.length > 1 ? w(' - взят первый из ' + r.candidates.length + ' найденных', ' - first of ' + r.candidates.length + ' matches', ' - topilgan ' + r.candidates.length + ' tadan birinchisi') : '') + '.');
       if (n === 'draw_radius') s.push(w('Круг ', 'Circle ', 'Aylana ') + r.radii_m.map(humanM).join(', ') + '.');
       if (n === 'draw_isochrone') s.push(w('Изохрона ' + r.minutes + ' мин, площадь ' + (r.area_m2 / 1e6).toFixed(1) + ' км² (расчёт по дорогам OSM).', 'Isochrone ' + r.minutes + ' min, area ' + (r.area_m2 / 1e6).toFixed(1) + ' km² (modelled on OSM roads).', 'Izoxrona ' + r.minutes + ' daqiqa, maydon ' + (r.area_m2 / 1e6).toFixed(1) + ' km² (OSM yo‘llari bo‘yicha hisob).'));
@@ -774,7 +834,7 @@
       if (n === 'draw_circle') s.push(w('Круг ' + humanM(r.radius_m) + ' с центром ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Circle ' + humanM(r.radius_m) + ' centred at ' + r.lat.toFixed(4) + ', ' + r.lon.toFixed(4) + '.', 'Aylana ' + humanM(r.radius_m) + '.'));
       if (n === 'catchment') {
         var zz = r.zones.map(function (z) { return z.name + ' ' + z.minutes + ' мин: ' + fmt(z.population) + ' жит., ' + fmt(z.households) + ' д/х, RDE около $' + (z.rde_usd / 1e6).toFixed(1) + ' млн/год'; }).join('; ');
-        s.push(w('Зоны охвата по методике CASE (' + (r.mode === 'isochrone' ? 'по времени в пути на авто' : 'по радиусам: маршрутизатор недоступен') + '): ' + zz + '. Оценка, не факт: границы без коррекции на барьеры, доходы по национальной структуре расходов.', 'CASE catchment zones (' + (r.mode === 'isochrone' ? 'by drive time' : 'by radius, router unavailable') + '): ' + zz + '. Estimate, not a fact.', 'CASE qamrov zonalari: ' + zz + '. Bu hisob, fakt emas.'));
+        s.push(w('Зоны охвата по методике CASE (' + (r.mode === 'isochrone' ? 'по времени в пути на авто' : r.mode === 'metro' ? 'на метро и пешком' : 'по радиусам: маршрутизатор недоступен') + '): ' + zz + '. Оценка, не факт: границы без коррекции на барьеры, доходы по национальной структуре расходов.', 'CASE catchment zones (' + (r.mode === 'isochrone' ? 'by drive time' : 'by radius, router unavailable') + '): ' + zz + '. Estimate, not a fact.', 'CASE qamrov zonalari: ' + zz + '. Bu hisob, fakt emas.'));
         if (r.captures) s.push(w('Требуемый оборот при rent-to-sales 15%: $' + fmt(r.required_turnover_usd) + ' в год; capture rate PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '% (ориентир CASE 0,39%), STA ' + (r.captures[1].capture_rate * 100).toFixed(3) + '%, TTA ' + (r.captures[2].capture_rate * 100).toFixed(3) + '%.', 'Required turnover at 15% rent-to-sales: $' + fmt(r.required_turnover_usd) + ' per year; capture PTA ' + (r.captures[0].capture_rate * 100).toFixed(2) + '%.', 'Talab qilinadigan aylanma: $' + fmt(r.required_turnover_usd) + '.'));
         else s.push(w('Для capture rate добавьте GLA и ставку: «зона охвата, GLA 20000, ставка $25».', 'Add GLA and rent for the capture rate: "catchment, GLA 20000, rent $25".', 'Capture rate uchun GLA va stavkani qo‘shing.'));
         /* проверка на здравый смысл: ориентир CASE 0,39% по PTA; на порядок выше значит, что RDE первичной
@@ -797,7 +857,7 @@
 
   /* ── Журнал и факты ───────────────────────────────────────────────────────── */
 
-  var TOOL_RU = { draw_circle: 'Круг', catchment: 'Зоны охвата', set_site: 'Точка', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
+  var TOOL_RU = { draw_circle: 'Круг', catchment: 'Зоны охвата', set_site: 'Точка', clear_site: 'Точка снята', draw_radius: 'Радиус', draw_isochrone: 'Изохрона', draw_polygon: 'Полигон', finish_polygon: 'Полигон', cancel_polygon: 'Полигон', merge_zones: 'Объединение', zone_area: 'Площадь зоны', count_population: 'Население', load_buildings: 'Здания', load_roads: 'Дороги', style_layer: 'Стиль', select_features: 'Выделение', count_competitors: 'Конкуренты', clear_layers: 'Очистка', ping: 'Связь', help: 'Помощь' };
   var CONF_RU = { verified: ['✓', 'подтв.', 'ga-v'], asking: ['≈', 'наблюдение', 'ga-a'], modelled: ['ƒ', 'расчёт', 'ga-m'] };
   function provChip(p) {
     if (!p) return ''; var c = CONF_RU[p.conf] || CONF_RU.modelled;
@@ -822,7 +882,8 @@
       case 'select_features': h += '<span class="ga-num">' + fmt(res.matched) + '</span> из ' + fmt(res.of) + ' (' + esc(res.criteria) + ')' + (res.note ? '<div class="ga-note">' + esc(res.note) + '</div>' : ''); break;
       case 'count_competitors': h += '<span class="ga-num">' + fmt(res.business_centers) + '</span> БЦ ' + (res.zone ? 'в зоне' : 'в ' + humanM(res.radius_m)) + ' ' + provChip(res.provenance) + (res.nearest.length ? '<div class="ga-note">' + res.nearest.slice(0, 4).map(function (b) { return esc(b.name) + (b.dist_m != null ? ' (' + b.dist_m + ' м)' : ''); }).join(', ') + '</div>' : ''); break;
       case 'draw_circle': h += humanM(res.radius_m) + ' · ' + (res.area_m2 / 1e6).toFixed(2) + ' км² · центр ' + res.lat.toFixed(4) + ', ' + res.lon.toFixed(4); break;
-      case 'catchment': h += (res.mode === 'isochrone' ? 'по времени в пути' : 'по радиусам') + ' ' + provChip(res.provenance) + '<table class="ga-tbl"><tr><th>зона</th><th>мин</th><th>жителей</th><th>д/х</th><th>RDE, $ млн</th>' + (res.captures ? '<th>capture</th>' : '') + '</tr>' + res.zones.map(function (z, i) { var c = res.captures ? res.captures[i].capture_rate : null; return '<tr><td>' + z.name + '</td><td>' + z.minutes + '</td><td>' + fmt(z.population) + '</td><td>' + fmt(z.households) + '</td><td>' + (z.rde_usd / 1e6).toFixed(1) + '</td>' + (res.captures ? '<td>' + (c == null ? '-' : (c * 100).toFixed(c * 100 >= 1 ? 1 : 3) + '%') + '</td>' : '') + '</tr>'; }).join('') + '</table><div class="ga-note">' + esc(res.provenance.note) + (res.inputs_needed && res.inputs_needed.length ? ' Требуемые входные данные: ' + esc(res.inputs_needed.join('; ')) + '.' : '') + '</div>'; break;
+      case 'catchment': h += (res.mode === 'isochrone' ? 'по времени в пути на авто' : res.mode === 'metro' ? 'на метро и пешком' : 'по радиусам') + ' ' + provChip(res.provenance) + '<table class="ga-tbl"><tr><th>зона</th><th>мин</th><th>жителей</th><th>д/х</th><th>RDE, $ млн</th>' + (res.captures ? '<th>capture</th>' : '') + '</tr>' + res.zones.map(function (z, i) { var c = res.captures ? res.captures[i].capture_rate : null; return '<tr><td>' + z.name + '</td><td>' + z.minutes + '</td><td>' + fmt(z.population) + '</td><td>' + fmt(z.households) + '</td><td>' + (z.rde_usd / 1e6).toFixed(1) + '</td>' + (res.captures ? '<td>' + (c == null ? '-' : (c * 100).toFixed(c * 100 >= 1 ? 1 : 3) + '%') + '</td>' : '') + '</tr>'; }).join('') + '</table><div class="ga-note">' + esc(res.provenance.note) + (res.inputs_needed && res.inputs_needed.length ? ' Требуемые входные данные: ' + esc(res.inputs_needed.join('; ')) + '.' : '') + '</div>'; break;
+      case 'clear_site': h += res.had ? 'точка анализа снята с карты' : 'точки не было'; break;
       case 'clear_layers': h += esc(res.cleared.join(', ')); break;
       case 'ping': h += (res.advice || []).map(function (a) { return '<div class="ga-note" style="color:inherit;font-size:11px">' + esc(a) + '</div>'; }).join(''); break;
       case 'help': h += esc(T('help')); break;
@@ -969,7 +1030,7 @@
   window.CASE_GEO_AGENT = {
     version: VERSION, TOOLS: TOOLS, run: run, ask: ask, parse: parse, state: ST, narrative: narrative,
     popInRadius: popInRadius, popInZone: popInZone, lens: lens, cellAreaM2: cellAreaM2, zoneAreaM2: zoneAreaM2, inRing: inRing, lineNearM: lineNearM, lineInZone: lineInZone,
-    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick,
+    factHtml: factHtml, colorIn: colorIn, metersIn: metersIn, detectLang: detectLang, setPick: setPick, clearSite: clearSite, recolorCatchment: recolorCatchment, catchment: function () { return ST.catchment; },
     /* v4.75.0: панель инструментов карты рисует фигуры через агента и пишет в его журнал */
     say: say, renderZone: renderZone, addShape: addShape, removeShape: function (sh) { var i = ST.zone.indexOf(sh); if (i >= 0) { ST.zone.splice(i, 1); renderZone(); } return i >= 0; }, startDraw: startDraw, stopDraw: stopDraw
   };
