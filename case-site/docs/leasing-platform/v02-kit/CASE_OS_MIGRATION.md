@@ -187,6 +187,94 @@ All seven are implemented in `plan-recognizer.js`.
 
 ---
 
+## 4b. The offer / LOI generator already exists — and it is the best part
+
+`core.js` carries a complete commercial-offer engine. It is the highest-value function the
+leasing team already has, and v0.2 must not make it impossible to port.
+
+### 4b.1 What is there
+
+| Function | Size | Does |
+|---|---|---|
+| `genKP()` | ~8 900 chars | Builds «Коммерческое предложение / Договор намерения» and writes it back to the register |
+| `genLOI()` | — | «Письмо о намерениях (LOI)» |
+| `genREM()` | — | «Служебное напоминание» — chase letter |
+| `kpNextNo(objId)` | — | Per-project numbering: `CA/0001`, `ZM/0002`. Counter lives in `KPSEQ[objId]` |
+| `offerState(u)` | — | Booking expiry: green / amber (≤3 days) / red, «бронь активна · истекает · просрочена» |
+| `extendOffer(unitId, brand)` | — | Extends the response deadline, logs old → new |
+| `reissueKP(docId)` | — | Refills the form from a saved offer to issue the next revision |
+| `regBulkKP()` | — | One offer covering several units, straight from the register |
+| `genEmit(meta, html)` | — | Files it into `DOCREG` with full version history |
+| `docExtras()` | — | Intro text, closing text, contact block from `DOC_CONTACTS` |
+| `v4690-offer-cover.js` | — | Cover image for the offer |
+
+### 4b.2 The five behaviours worth copying exactly
+
+1. **The offer is the source of truth for the register.** Issuing a KP updates *every* unit
+   named in the «Помещение(я)» field: sets `rate` and `budget`, moves `status` to
+   `off` (Предложено), pushes an `Окончание брони (КП no, brand)` control date, appends to
+   `u.hist`, and adds the brand to `u.vars`. The document and the register cannot drift.
+
+2. **Conflict detection before overwriting another agent's booking:**
+
+   > *Внимание, уже предложено другим агентом: B1_001 — OnePC (агент Азиз, 4 дн. до окончания). Сформировать ещё одно КП поверх?*
+
+3. **Several live offers per unit, one per brand.** `u.offers[]` holds them all; `u.offer`
+   is the latest, kept for the banners, kanban and funnel.
+
+4. **Revisions carry a diff, not just a version number.** Re-issuing the same number
+   computes what changed and writes it into history:
+
+   > `КП CA/0007 ред.2 (ставка 30 → 27 $/м²; каникулы 2 → 3 мес; срок 10 → 14 дн.): OnePC`
+
+5. **The cover image is derived from the offer number, never random.** The reasoning in
+   `v4690-offer-cover.js` is worth reading in full: a proposal gets printed as a draft, for
+   approval, as the final PDF, then again from the archive a month later. A random image
+   would mean *"the file we sent"* stops existing.
+
+### 4b.3 Commercial terms the form already covers
+
+Unit(s) · area + terrace (with a seasonal flag) · permitted activity · **rent model**
+(flat / escalating with a schedule / % of turnover with a minimum / base + turnover over a
+threshold) · VAT (not applicable / included / on top, with a rate) · escalation cap and
+frequency · service charge % · CAPEX · fit-out rent-free months · prepayment and deposit
+months · term · handover condition · a utilities table with a payment method per utility ·
+special conditions · signatory.
+
+That list is the real leasing term sheet CASE negotiates on. **Do not redesign it** — when
+the time comes, port it.
+
+### 4b.4 One thing that is NOT this
+
+`v4670-offer-pricing.js` reads like part of the same feature and is not. It prices **CASE's
+own consulting fees** — tariff table, complexity factor, minimum fee, discount with a
+recorded deviation, supervision, a 40/30/30 payment schedule. It has nothing to do with
+tenant rent. Keep the two apart.
+
+### 4b.5 What v0.2 must do about it — almost nothing
+
+Offer generation is **v0.3**, not v0.2. v0.2's job is to make the tool editable and
+testable; a 35-field offer form is a second project. But three cheap slots now avoid a
+migration later:
+
+```js
+// on a unit
+offers: [],                    // [{ to, no, date, rate, validDays, validUntil, rev, by, terms }]
+offer:  null,                  // the latest of the above, for banners
+dates:  []                     // [['Окончание брони (КП CA/0007, OnePC)', '2026-10-02'], …]
+```
+
+and one counter alongside the project:
+
+```js
+kpSeq: { 'creative-avenue': 0 }      // -> KPSEQ
+```
+
+Leave them empty in v0.2. Show nothing for them. They cost three keys and they are the
+difference between porting the generator and rebuilding the register around it.
+
+---
+
 ## 5. Field mapping — Creative Avenue v0.1 → CASE OS
 
 `BASE_PROJECT` → `OBJECTS[]`, `BASE_PROJECT.units[]` → `U[]`.
@@ -205,6 +293,9 @@ All seven are implemented in `plan-recognizer.js`.
 | `comment` | `unit_comments` / `CHANGES` | |
 | `history[]` (new in v0.2) | `CHANGES` | |
 | `original{}` | plan-version snapshot | conceptually §4.3 |
+| — | `offers[]`, `offer`, `dates[]` | offer / LOI slots — §4b.5 |
+| — | `KPSEQ` | per-project offer numbering — §4b.1 |
+| — | `DOCREG`, `DOC_CONTACTS` | generated documents and their version history |
 | — | `REFUSALS` | `rejectionsCount: 52` belongs here, as rows not a counter |
 
 ### Three normalisations to do in v0.2, because they are free now
@@ -213,6 +304,8 @@ All seven are implemented in `plan-recognizer.js`.
 2. **`floor` keeps both forms.** `floor: -1` **and** `floorLabel: 'Цоколь'`.
 3. **`prospects` as objects.** `['OnePC']` → `[{id:null, name:'OnePC'}]`, accepting both
    forms on load.
+4. **Empty offer slots.** `offers: []`, `offer: null`, `dates: []` on every unit, and
+   `kpSeq: {}` on the project. Unused in v0.2 — see §4b.5.
 
 ---
 

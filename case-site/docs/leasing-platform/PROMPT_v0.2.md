@@ -149,9 +149,10 @@ Not copied: their AI assistant, benchmarking data, mobile app, permission system
 7. **Dark mode**, explicit toggle, persisted.
 8. **Responsive**: table → cards under 900 px; sidebar → bottom bar under 600 px.
 9. **Three perfect languages** (§11).
-10. **CASE OS-compatible structures** — plan keying, and the three normalisations in
+10. **CASE OS-compatible structures** — plan keying, and the four normalisations in
     `CASE_OS_MIGRATION.md` §5: `block` as a string, `floor` with both a number and a label,
-    `prospects` as `{id:null,name}`. Free now, a migration later.
+    `prospects` as `{id:null,name}`, and empty offer slots (`offers: []`, `offer: null`,
+    `dates: []`, `kpSeq: {}`). Free now, a migration later.
 
 ### P1 — in this order if time allows
 
@@ -167,6 +168,15 @@ Not copied: their AI assistant, benchmarking data, mobile app, permission system
 Client portal · brand database · contacts & companies · documents · commissions ·
 requirements · printed reports · real authentication · any AI feature · charts beyond
 simple bars.
+
+**Offer / LOI letter generation is deferred to v0.3** — and it is the single biggest thing
+coming next. The live CASE OS already has a complete, tested generator
+(`CASE_OS_MIGRATION.md` §4b): per-project numbering, booking expiry, conflict detection
+when a unit is already offered to another brand, several live offers per unit, revisions
+that carry a diff, and an offer that writes its terms straight back into the register.
+That is a port, not a design job — but only if v0.2 leaves the four slots above empty and
+unused rather than inventing something incompatible. **Do not build the offer form in
+v0.2. Do not design a different one.**
 
 ---
 
@@ -580,7 +590,8 @@ whole theme moves in one file when the three merge.
 
 **Structure**
 18. `block` is a string, `floor` carries both a number and a label, `prospects` are
-    `{id:null,name}` objects, and plan data is keyed `objId::block::floor`.
+    `{id:null,name}` objects, plan data is keyed `objId::block::floor`, and the offer slots
+    (`offers`, `offer`, `dates`, `kpSeq`) exist and are empty.
 19. Uploaded SVG goes through `sanitizeSvg()` — verify with a file containing `<script>`.
 
 **Presentation**
