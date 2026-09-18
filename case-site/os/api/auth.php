@@ -252,18 +252,25 @@ if ($a==='register') {
   if ($lockedFor > 0) fail('Слишком много заявок. Повторите через '.ceil($lockedFor/60).' мин.', 429);
   throttle_register_event($ipKey, 5, 60, 1800);
   $generic = ['ok'=>true,'pending'=>true,'message'=>'Заявка принята. Администратор CASE проверит её и откроет доступ; вы получите письмо на '.$email.'.'];
+  /* v4.78.0: цель доступа. «Ищу офис» получает бесплатный ограниченный доступ сразу (40 БЦ, без выгрузки и правок,
+     профиль панелей «Ищу офис»), остальные цели ждут подтверждения администратора. */
+  $purpose = (string)($b['purpose'] ?? 'other');
+  if (!in_array($purpose, ['office','developer','asset','other'], true)) $purpose = 'other';
+  $free = $purpose === 'office' && free_office_access_enabled();
   ensure_user_profile_columns(); ensure_access_roles();
   $st = db()->prepare('SELECT id FROM app_users WHERE LOWER(email)=?'); $st->execute([$email]);
-  if ($st->fetch()) { audit('Заявка на регистрацию: email уже есть', $email); json_out($generic); }
-  $settings = json_encode(['registration_pending'=>1,'company'=>$company,'phone'=>$phone,'registered_at'=>date('Y-m-d H:i:s'),'can_export'=>false,'can_edit'=>false,
-    'offer_accepted'=>['version'=>offer_version(),'at'=>date('Y-m-d H:i:s'),'ip'=>client_ip()]], JSON_UNESCAPED_UNICODE);
+  if ($st->fetch()) { audit('Заявка на регистрацию: email уже есть', $email); json_out($free ? ['ok'=>true,'active'=>true,'free'=>true,'message'=>'Если этот email уже зарегистрирован, войдите с вашим паролем или запросите код входа.'] : $generic); }
+  $set = ['registration_pending'=>$free ? 0 : 1,'company'=>$company,'phone'=>$phone,'purpose'=>$purpose,'registered_at'=>date('Y-m-d H:i:s'),'can_export'=>false,'can_edit'=>false,
+    'offer_accepted'=>['version'=>offer_version(),'at'=>date('Y-m-d H:i:s'),'ip'=>client_ip()]];
+  if ($free) { $set['tier'] = 'free'; $set['profile'] = 'office'; $set['approved_at'] = date('Y-m-d H:i:s'); $set['approved_by'] = 'бесплатный доступ «Ищу офис»'; }
+  $settings = json_encode($set, JSON_UNESCAPED_UNICODE);
   try {
-    db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,active,user_type,settings) VALUES (?,?,?,?,?,?,0,?,?)')
-      ->execute([uuid(),$email,password_hash($pass,PASSWORD_DEFAULT),mb_substr($name,0,160),$company ?: 'клиент','CL','client',$settings]);
+    db()->prepare('INSERT INTO app_users (id,email,password_hash,name,title,role_key,active,user_type,settings) VALUES (?,?,?,?,?,?,?,?,?)')
+      ->execute([uuid(),$email,password_hash($pass,PASSWORD_DEFAULT),mb_substr($name,0,160),$company ?: 'клиент','CL',$free ? 1 : 0,'client',$settings]);
     try { db()->exec('COMMIT'); } catch (Throwable $eC) {}
   } catch (Throwable $e) { fail('Не удалось сохранить заявку: '.$e->getMessage(), 500); }
-  audit('Заявка на регистрацию', $email.' · '.$name.($company ? ' · '.$company : ''));
-  json_out($generic);
+  audit($free ? 'Регистрация: бесплатный доступ «Ищу офис»' : 'Заявка на регистрацию', $email.' · '.$name.($company ? ' · '.$company : '').' · цель: '.$purpose);
+  json_out($free ? ['ok'=>true,'active'=>true,'free'=>true,'message'=>'Доступ открыт: бесплатный ограниченный доступ «Ищу офис» (40 бизнес-центров, без выгрузки). Войдите с вашим email и паролем. Полный доступ открывает CASE по запросу через обратную связь.'] : $generic);
 }
 
 /* v4.76.0: демо-вход. Один общий демо-пользователь с ролью DEMO: ничего не сохраняет

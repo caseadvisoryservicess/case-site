@@ -5,30 +5,143 @@
   "city": {
     "name": "Toshkent shahri",
     "population_series": [
-      { "date": "2019-01-01", "value": 2509900, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
-      { "date": "2020-01-01", "value": 2571700, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
-      { "date": "2021-01-01", "value": 2694400, "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)", "conf": "verified" },
-      { "date": "2022-04-01", "value": 2879800, "source": "stat.uz, пресс-релиз «Распределение численности постоянного населения в городе Ташкент»", "conf": "verified", "note": "с 2022 года в границах города район Янгихаёт и присоединённые территории области" },
-      { "date": "2022-07-01", "value": 2909500, "source": "stat.uz, пресс-релиз", "conf": "verified" },
-      { "date": "2022-10-01", "value": 2934100, "source": "stat.uz, пресс-релиз", "conf": "verified" },
-      { "date": "2023-04-01", "value": 2978200, "source": "stat.uz, пресс-релиз", "conf": "verified" },
-      { "date": "2023-10-01", "value": 3020500, "source": "stat.uz, пресс-релиз", "conf": "verified" },
-      { "date": "2024-01-01", "value": 3040800, "source": "stat.uz, «Численность постоянного населения по регионам», 01.01.2024", "conf": "verified" },
-      { "date": "2025-01-01", "value": 3112800, "source": "Toshkent shahar statistika boshqarmasi, 01.01.2025", "conf": "verified" },
-      { "date": "2025-10-01", "value": 3164000, "source": "Toshkent shahar statistika boshqarmasi, демографический бюллетень 27.10.2025", "conf": "verified" },
-      { "date": "2026-07-01", "value": 3212200, "source": "Milliy statistika qo'mitasi, пресс-релиз «Демографическая ситуация», II квартал 2026 (stat.uz/img/press-relizlar/q2_2026-en.pdf); исследование CASE 18.09.2026, уверенность B", "conf": "asking", "note": "число найдено в релизе, таблица по городу ещё не сверена с файлом" }
+      {
+        "date": "2019-01-01",
+        "value": 2509900,
+        "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)",
+        "conf": "verified"
+      },
+      {
+        "date": "2020-01-01",
+        "value": 2571700,
+        "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)",
+        "conf": "verified"
+      },
+      {
+        "date": "2021-01-01",
+        "value": 2694400,
+        "source": "Milliy statistika qo'mitasi (SIAT, doimiy aholi soni)",
+        "conf": "verified"
+      },
+      {
+        "date": "2022-04-01",
+        "value": 2879800,
+        "source": "stat.uz, пресс-релиз «Распределение численности постоянного населения в городе Ташкент»",
+        "conf": "verified",
+        "note": "с 2022 года в границах города район Янгихаёт и присоединённые территории области"
+      },
+      {
+        "date": "2022-07-01",
+        "value": 2909500,
+        "source": "stat.uz, пресс-релиз",
+        "conf": "verified"
+      },
+      {
+        "date": "2022-10-01",
+        "value": 2934100,
+        "source": "stat.uz, пресс-релиз",
+        "conf": "verified"
+      },
+      {
+        "date": "2023-04-01",
+        "value": 2978200,
+        "source": "stat.uz, пресс-релиз",
+        "conf": "verified"
+      },
+      {
+        "date": "2023-10-01",
+        "value": 3020500,
+        "source": "stat.uz, пресс-релиз",
+        "conf": "verified"
+      },
+      {
+        "date": "2024-01-01",
+        "value": 3040800,
+        "source": "stat.uz, «Численность постоянного населения по регионам», 01.01.2024",
+        "conf": "verified"
+      },
+      {
+        "date": "2025-01-01",
+        "value": 3112800,
+        "source": "Toshkent shahar statistika boshqarmasi, 01.01.2025",
+        "conf": "verified"
+      },
+      {
+        "date": "2025-10-01",
+        "value": 3164000,
+        "source": "Toshkent shahar statistika boshqarmasi, демографический бюллетень 27.10.2025",
+        "conf": "verified"
+      },
+      {
+        "date": "2026-01-01",
+        "value": 3178100,
+        "source": "Milliy statistika qo'mitasi, релиз по демографии (публикация 27.01.2026), stat.uz/img/news/demografiya-lotin_p85803.pdf",
+        "conf": "verified"
+      },
+      {
+        "date": "2026-07-01",
+        "value": 3212200,
+        "source": "Toshstat, Demografiya Jan-Jun 2026 (toshstat.uz/2026/demografiya/demografiya1.pdf), таблица по районам: сумма 12 районов 3 212 200",
+        "conf": "verified",
+        "note": "сверено пакетом tashkent_gis_dataset (18.09.2026): сумма районов равна числу релиза stat.uz"
+      }
     ],
     "population_series_disputed": [
-      { "date": "2026-01-15", "value": 3225000, "source": "инфографика Sputnik O'zbekiston со ссылкой на Milliy statistika qo'mitasi, 15.07.2026", "why": "противоречит официальному релизу за II квартал 2026 (3 212,2 тыс. на 01.07.2026): в ряд не включено, ждёт сверки" }
+      {
+        "date": "2026-01-15",
+        "value": 3224838,
+        "source": "перепись населения 2026, предварительные итоги (stat.uz/img/news/kitob-uzb_p68566.pdf)",
+        "why": "перепись и текущий учёт (doimiy aholi) считают по-разному: перепись выше регистра на ~47 тыс.; в ряд текущего учёта не включается, показывается отдельно"
+      },
+      {
+        "date": "2026-01-01",
+        "value": 3195900,
+        "source": "Milliy statistika qoʻmitasi / SIAT hudud.stat.uz (sum of 12 districts) (https://hudud.stat.uz/api/v1/gis/regions/?parent__isnull=false&parent_soato=1726)",
+        "why": "сумма 12 районов по порталу hudud.stat.uz (тестовый режим, уверенность B) выше релиза Госкомстата 3 178 100 на 17,8 тыс.; в ряд берётся релиз"
+      }
     ],
-    "population_series_missing": ["2016-01-01", "2017-01-01", "2018-01-01", "2022-01-01", "2023-01-01"],
-    "growth_reported": { "value": 0.021, "period": "2025-2026", "source": "Milliy statistika qo'mitasi, релиз II квартал 2026; исследование CASE 18.09.2026, уверенность B", "note": "годовой прирост по городу; территориальная детализация не проверена" },
-    "sex": { "female_share": 0.509, "date": "2025-10-01", "source": "Toshkent shahar statistika boshqarmasi: женщины 1 610,2 тыс. (50,9%), мужчины 1 553,8 тыс.", "conf": "verified",
+    "population_series_missing": [
+      "2016-01-01",
+      "2017-01-01",
+      "2018-01-01",
+      "2022-01-01",
+      "2023-01-01"
+    ],
+    "growth_reported": {
+      "value": 0.021,
+      "period": "2025-2026",
+      "source": "Milliy statistika qo'mitasi, релиз II квартал 2026; исследование CASE 18.09.2026, уверенность B",
+      "note": "годовой прирост по городу; территориальная детализация не проверена"
+    },
+    "sex": {
+      "female_share": 0.5085,
+      "date": "2026-07-01",
+      "source": "Toshstat, Demografiya Jan-Jun 2026: женщины 1 633,3 тыс., мужчины 1 578,9 тыс.",
+      "conf": "verified",
       "history": [
-        { "date": "2024-01-01", "male": 1492100, "female": 1548700, "source": "stat.uz, «Toshkent shahri doimiy aholisi sonining taqsimlanishi», 01.01.2024", "conf": "verified" },
-        { "date": "2025-10-01", "male": 1553800, "female": 1610200, "source": "Toshkent shahar statistika boshqarmasi, бюллетень 27.10.2025", "conf": "verified" },
-        { "date": "2026-07-01", "male": 1630000, "female": 1582000, "source": "сводка поиска по релизу stat.uz за II квартал 2026; исследование CASE 18.09.2026, уверенность D", "conf": "modelled", "note": "приблизительно, противоречит доле женщин 50,9% в двух официальных публикациях: не использовать до сверки с таблицей" }
-      ] },
+        {
+          "date": "2024-01-01",
+          "male": 1492100,
+          "female": 1548700,
+          "source": "stat.uz, «Toshkent shahri doimiy aholisi sonining taqsimlanishi», 01.01.2024",
+          "conf": "verified"
+        },
+        {
+          "date": "2025-10-01",
+          "male": 1553800,
+          "female": 1610200,
+          "source": "Toshkent shahar statistika boshqarmasi, бюллетень 27.10.2025",
+          "conf": "verified"
+        },
+        {
+          "date": "2026-07-01",
+          "male": 1578900,
+          "female": 1633300,
+          "source": "Toshstat, Demografiya Jan-Jun 2026",
+          "conf": "verified"
+        }
+      ]
+    },
     "age3": {
       "working_share": 0.59,
       "working_date": "2026-01-15",
@@ -38,20 +151,45 @@
       "note": "Доли моложе и старше трудоспособного возраста по Ташкенту в открытых релизах не найдены: студия делит остаток (41%) в национальной пропорции 32,2 : 11,8 и помечает это как допущение."
     },
     "age5": {
-      "groups": ["0-4", "5-9", "10-14", "15-19", "20-24", "25-29", "30-34", "35-39", "40-44", "45-49", "50-54", "55-59", "60-64", "65-69", "70-74", "75+"],
+      "groups": [
+        "0-4",
+        "5-9",
+        "10-14",
+        "15-19",
+        "20-24",
+        "25-29",
+        "30-34",
+        "35-39",
+        "40-44",
+        "45-49",
+        "50-54",
+        "55-59",
+        "60-64",
+        "65-69",
+        "70-74",
+        "75+"
+      ],
       "male": null,
       "female": null,
       "source": null,
       "note": "Пятилетние группы по Ташкенту в открытом доступе не найдены (Toshstat публикует их в демографических бюллетенях PDF). До получения студия распределяет население внутри трёх официальных групп равномерно и подписывает это как допущение."
     },
     "income": {
-      "per_capita_uzs_year": { "2024": 60600000, "2025": 73910000 },
+      "per_capita_uzs_year": {
+        "2024": 60600000,
+        "2025": 73910000
+      },
       "per_capita_usd_year_2025": 5870,
       "real_growth_2025": 0.085,
       "source": "Milliy statistika qo'mitasi, совокупный доход на душу населения за 2025 год (gazeta.uz, 03.02.2026); библиотека CASE (Silk Hub, сл. 13)",
       "conf": "verified"
     },
-    "wage": { "avg_nominal_uzs_month_2025": 10750000, "growth_2025": 0.183, "source": "библиотека CASE (CA Macro сл. 24; Silk Hub сл. 11)", "conf": "verified" },
+    "wage": {
+      "avg_nominal_uzs_month_2025": 10750000,
+      "growth_2025": 0.183,
+      "source": "библиотека CASE (CA Macro сл. 24; Silk Hub сл. 11)",
+      "conf": "verified"
+    },
     "household": {
       "size": 4.3,
       "size_range": "4,2-4,4",
@@ -61,7 +199,13 @@
       "six_plus_share": 0.368,
       "source": "библиотека CASE (Silk Hub сл. 12; CA Macro сл. 21); stat.uz: в Ташкенте 36,8% домохозяйств из 6 и более человек",
       "conf": "verified",
-      "note": "В расчётах зон охвата CASE использует 4,5 чел. на домохозяйство (Silk Hub); здесь для города берётся 4,3 как середина диапазона."
+      "note": "В расчётах зон охвата CASE использует 4,5 чел. на домохозяйство (Silk Hub); здесь для города берётся 4,3 как середина диапазона.",
+      "families_2025": {
+        "value": 1011537,
+        "date": "2025-01-01",
+        "source": "UZA.uz citing NSC (pub 25.08.2025)",
+        "note": "семьи по учёту ЗАГС, не домохозяйства"
+      }
     },
     "spending": {
       "consumer_share_of_income": null,
@@ -71,83 +215,3821 @@
       "source": "CASE, Wonderland Databook (демандная модель), 2024: retail 11,8% + питание вне дома 1,9% + культура и спорт 0,3% = 14,0%",
       "note": "База потребительских расходов на душу выводится как RDE / 0,14; структура расходов по разделам КИПЦ (ниже) национальная, для Ташкента это допущение CASE."
     },
-    "fx": { "uzs_per_usd": 12600, "date": "2025", "source": "курс, использованный в библиотеке CASE при пересчёте дохода 2025 года" }
+    "fx": {
+      "uzs_per_usd": 12600,
+      "date": "2025",
+      "source": "курс, использованный в библиотеке CASE при пересчёте дохода 2025 года"
+    },
+    "indicators": {
+      "population_total_CENSUS": {
+        "value": 3224838,
+        "unit": "persons",
+        "date": "2026-01-15",
+        "source": "Milliy statistika qo'mitasi, 2026 Census preliminary results",
+        "url": "https://stat.uz/img/news/kitob-uzb_p68566.pdf",
+        "conf": "A"
+      },
+      "population_male_CENSUS": {
+        "value": 1612832,
+        "unit": "persons",
+        "date": "2026-01-15",
+        "source": "NSC 2026 Census preliminary",
+        "url": "https://stat.uz/img/news/kitob-uzb_p68566.pdf",
+        "conf": "A"
+      },
+      "population_female_CENSUS": {
+        "value": 1612006,
+        "unit": "persons",
+        "date": "2026-01-15",
+        "source": "NSC 2026 Census preliminary",
+        "url": "https://stat.uz/img/news/kitob-uzb_p68566.pdf",
+        "conf": "A"
+      },
+      "urban_population_CENSUS": {
+        "value": 3224838,
+        "unit": "persons",
+        "date": "2026-01-15",
+        "source": "NSC 2026 Census preliminary",
+        "url": "https://stat.uz/img/news/kitob-uzb_p68566.pdf",
+        "conf": "A"
+      },
+      "population_total": {
+        "value": 3040.8,
+        "unit": "thousand persons (doimiy aholi)",
+        "date": "2024-01-01",
+        "source": "Toshstat news (pub 26.01.2024)",
+        "url": "https://www.toshstat.uz/uz/matbuot-markazi/news/10812-toshkent-shahri-doimiy-aholisi-sonining-taqsimlanishi1",
+        "conf": "B"
+      },
+      "population_female": {
+        "value": 1633.3,
+        "unit": "thousand persons",
+        "date": "2026-07-01",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "population_male": {
+        "value": 1578.9,
+        "unit": "thousand persons",
+        "date": "2026-07-01",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "number_of_families": {
+        "value": 1011537,
+        "unit": "families",
+        "date": "2025-01-01",
+        "source": "UZA.uz citing NSC (pub 25.08.2025)",
+        "url": "https://uza.uz/en/posts/ozbekistonda-2025-yil-hisobida-oilalar-soni_752844",
+        "conf": "C"
+      },
+      "population_density": {
+        "value": 7389.9,
+        "unit": "persons per km2",
+        "date": "2026-07-01",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "area_km2_implied": {
+        "value": 434.7,
+        "unit": "km2",
+        "date": "2026-07-01",
+        "source": "DERIVED: population_total divided by published density",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "D"
+      },
+      "births": {
+        "value": 27.4,
+        "unit": "thousand",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "deaths": {
+        "value": 7.5,
+        "unit": "thousand",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "natural_increase": {
+        "value": 19.9,
+        "unit": "thousand",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "marriages": {
+        "value": 9.5,
+        "unit": "thousand",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "divorces": {
+        "value": 3.2,
+        "unit": "thousand",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "migration_in": {
+        "value": 64500,
+        "unit": "persons",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "migration_out": {
+        "value": 50355,
+        "unit": "persons",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat",
+        "url": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "conf": "A"
+      },
+      "number_of_mahallas": {
+        "value": 585,
+        "unit": "mahallas",
+        "date": "2024-10-23",
+        "source": "Counted from the official boundary layer; corroborated by Gazeta.uz 28.10.2024 and the Mayor (Aug 2026)",
+        "url": "https://www.gazeta.uz/ru/2024/10/28/mahallas/",
+        "conf": "A"
+      },
+      "number_of_districts": {
+        "value": 12,
+        "unit": "districts",
+        "date": "2026-09-18",
+        "source": "gov.uz regional directory; tashkent.uz; toshstat demography tables",
+        "url": "https://gov.uz/oz/toshkent/departments/regional",
+        "conf": "A"
+      },
+      "housing_stock_apartments": {
+        "value": 600000,
+        "unit": "units (approx, '>600,000')",
+        "date": "2026-01-01/2026-06-01",
+        "source": "Cadastre Agency / National Centre for Public Appraisal, via Gazeta.uz 10.09.2026",
+        "url": "https://www.gazeta.uz/oz/2026/09/10/appraisal-tashkent/",
+        "conf": "C"
+      },
+      "housing_stock_private_houses": {
+        "value": 213000,
+        "unit": "units (approx, '>213,000')",
+        "date": "2026-01-01/2026-06-01",
+        "source": "Cadastre Agency via Gazeta.uz",
+        "url": "https://www.gazeta.uz/oz/2026/09/10/appraisal-tashkent/",
+        "conf": "C"
+      },
+      "new_housing_completed": {
+        "value": 2170000,
+        "unit": "m2",
+        "date": "2025-01-01/2025-12-31",
+        "source": "CMWP Uzbekistan via Spot.uz 06.01.2026",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "schools_general_secondary": {
+        "value": 503,
+        "unit": "institutions",
+        "date": "2025-09 (start of 2025/26 school year)",
+        "source": "NSC via Talimxabarlari 02.04.2026",
+        "url": "https://talimxabarlari.uz/69780/",
+        "conf": "C"
+      },
+      "universities": {
+        "value": 92,
+        "unit": "institutions",
+        "date": "2024-06",
+        "source": "Toshstat news 19.06.2024",
+        "url": "https://toshstat.uz/uz/matbuot-markazi/news/11110-toshkent-shahrida-faoliyat-yuritayotgan-oliy-ta-lim-tashkilotlar-eng-ko-p-qaysi-hududda-joylashgan",
+        "conf": "B"
+      },
+      "registered_business_entities": {
+        "value": 114777,
+        "unit": "units",
+        "date": "2026-08-01",
+        "source": "Toshstat, Enterprise register",
+        "url": "https://toshstat.uz/2026/Registr/Iyul.pdf",
+        "conf": "A"
+      },
+      "retail_outlets_enterprises": {
+        "value": 14825,
+        "unit": "units",
+        "date": "2026-01-01/2026-07-31",
+        "source": "Toshstat, Internal trade",
+        "url": "https://toshstat.uz/2026/savdo/ichki08.pdf",
+        "conf": "A"
+      },
+      "catering_facilities": {
+        "value": 6070,
+        "unit": "units",
+        "date": "2026-01-01/2026-07-31",
+        "source": "Toshstat, Internal trade",
+        "url": "https://toshstat.uz/2026/savdo/ichki08.pdf",
+        "conf": "A"
+      },
+      "retail_turnover": {
+        "value": 82233,
+        "unit": "bn UZS",
+        "date": "2026-01-01/2026-07-31",
+        "source": "Toshstat, Internal trade",
+        "url": "https://toshstat.uz/2026/savdo/ichki08.pdf",
+        "conf": "A"
+      },
+      "shopping_centres_professional": {
+        "value": 24,
+        "unit": "centres",
+        "date": "2025-12-31",
+        "source": "CMWP Uzbekistan via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "shopping_centre_GLA_stock": {
+        "value": 514000,
+        "unit": "m2 GLA",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "retail_vacancy": {
+        "value": 18,
+        "unit": "%",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "retail_GLA_per_1000_inhabitants": {
+        "value": 165,
+        "unit": "m2 per 1,000",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "office_stock_GLA": {
+        "value": 591217,
+        "unit": "m2 GLA",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "office_vacancy": {
+        "value": 16,
+        "unit": "%",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "warehouse_stock": {
+        "value": 634000,
+        "unit": "m2",
+        "date": "2025-12-31",
+        "source": "CMWP via Spot.uz",
+        "url": "https://www.spot.uz/oz/2026/01/06/cmwp-year/",
+        "conf": "C"
+      },
+      "registered_vehicles_owned_by_population": {
+        "value": 637706,
+        "unit": "vehicles",
+        "date": "2026-07-01",
+        "source": "NSC via Spot.uz 24.08.2026",
+        "url": "https://www.spot.uz/oz/2026/08/24/public-cars/",
+        "conf": "C"
+      },
+      "GRP": {
+        "value": 226028.7,
+        "unit": "bn UZS",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat, YaHM",
+        "url": "https://toshstat.uz/2026/YAHM/svod2.pdf",
+        "conf": "A"
+      },
+      "GRP_per_capita": {
+        "value": 70740.8,
+        "unit": "thousand UZS",
+        "date": "2026-01-01/2026-06-30",
+        "source": "Toshstat, YaHM",
+        "url": "https://toshstat.uz/2026/YAHM/svod2.pdf",
+        "conf": "A"
+      }
+    },
+    "area_km2_geodesic": {
+      "value": 438.67,
+      "date": "2026-08-27",
+      "source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER (recomputed geodesically)",
+      "conf": "verified",
+      "note": "сумма геодезических площадей 12 районов по кадастровому слою TUMAN_BORDER"
+    },
+    "mahallas_official": {
+      "value": 585,
+      "date": "2026-09-18",
+      "source": "Kadastr agentligi (Etirof) MFY register",
+      "conf": "verified"
+    },
+    "census_2026": {
+      "date": "2026-01-15",
+      "total": 3224838,
+      "male": 1612832,
+      "female": 1612006,
+      "female_share": 0.4999,
+      "source": "Milliy statistika qo'mitasi, предварительные итоги переписи 2026 (stat.uz/img/news/kitob-uzb_p68566.pdf; aholi.stat.uz, 07.07.2026)",
+      "conf": "verified",
+      "note": "итоги по районам и махаллям публикуются поэтапно до 01.07.2027; по переписи доля женщин 50,0% против 50,9% по текущему учёту"
+    },
+    "market": {
+      "malls": {
+        "count": 24,
+        "gla_m2": 514000,
+        "vacancy": 0.18,
+        "gla_per_1000": 165
+      },
+      "offices": {
+        "gla_m2": 591217,
+        "vacancy": 0.16
+      },
+      "warehouses": {
+        "stock_m2": 634000
+      },
+      "new_housing_2025_m2": 2170000,
+      "retail_turnover_bn_uzs_2026_jan_jul": 82233,
+      "retail_outlets": 14825,
+      "catering": 6070,
+      "vehicles_2026_07": 637706,
+      "source": "CMWP Uzbekistan 2025 (spot.uz 06.01.2026); Toshstat, Ichki savdo Jan-Jul 2026; NSC via spot.uz 24.08.2026",
+      "conf": "verified"
+    }
   },
   "uzbekistan": {
-    "age3": { "under_share": 0.322, "working_share": 0.56, "over_share": 0.118, "date": "2025-07-01", "source": "stat.uz: моложе трудоспособного 12,2 млн (32,2%), трудоспособного 21,2 млн (56%), старше 4,5 млн (11,8%)", "conf": "verified" },
-    "age_broad_2026": { "0_14": 0.2388, "15_64": 0.7086, "65p": 0.0525, "source": "оценка ООН (Worldometers), 2026", "conf": "asking" },
-    "median_age": { "value": 29.5, "date": "2026-01-01", "source": "Milliy statistika qo'mitasi" },
-    "income_per_capita_uzs_year": { "2024": 24100000, "2025": 29940000, "source": "Milliy statistika qo'mitasi (gazeta.uz, 03.02.2026)" },
-    "household_size": { "value": 5.0, "source": "библиотека CASE (Silk Hub сл. 12)" },
-    "household_size_distribution_2022": { "1": 0.027, "2": 0.067, "3": 0.11, "4": 0.184, "5": 0.226, "6+": 0.394, "source": "stat.uz, выборочное наблюдение домохозяйств, январь-ноябрь 2022" }
+    "age3": {
+      "under_share": 0.322,
+      "working_share": 0.56,
+      "over_share": 0.118,
+      "date": "2025-07-01",
+      "source": "stat.uz: моложе трудоспособного 12,2 млн (32,2%), трудоспособного 21,2 млн (56%), старше 4,5 млн (11,8%)",
+      "conf": "verified"
+    },
+    "age_broad_2026": {
+      "0_14": 0.2388,
+      "15_64": 0.7086,
+      "65p": 0.0525,
+      "source": "оценка ООН (Worldometers), 2026",
+      "conf": "asking"
+    },
+    "median_age": {
+      "value": 29.5,
+      "date": "2026-01-01",
+      "source": "Milliy statistika qo'mitasi"
+    },
+    "income_per_capita_uzs_year": {
+      "2024": 24100000,
+      "2025": 29940000,
+      "source": "Milliy statistika qo'mitasi (gazeta.uz, 03.02.2026)"
+    },
+    "household_size": {
+      "value": 5,
+      "source": "библиотека CASE (Silk Hub сл. 12)"
+    },
+    "household_size_distribution_2022": {
+      "1": 0.027,
+      "2": 0.067,
+      "3": 0.11,
+      "4": 0.184,
+      "5": 0.226,
+      "6+": 0.394,
+      "source": "stat.uz, выборочное наблюдение домохозяйств, январь-ноябрь 2022"
+    }
   },
   "kipc": {
     "source": "stat.uz, индикатор 1.11.01.0004 «Индекс потребительских цен по КИПЦ-2018, динамика удельных весов» (библиотека CASE, Spending 2021-2025)",
-    "years": ["2021", "2023", "2025"],
+    "years": [
+      "2021",
+      "2023",
+      "2025"
+    ],
     "divisions": [
-      { "code": "01", "name": "Продукты питания и безалкогольные напитки", "w": [0.39957, 0.40033, 0.43084], "rde": false },
-      { "code": "02", "name": "Алкогольные напитки, табачные изделия", "w": [0.00964, 0.00938, 0.00816], "rde": false },
-      { "code": "03", "name": "Одежда и обувь", "w": [0.11625, 0.11631, 0.09906], "rde": true },
-      { "code": "04", "name": "Жилищные услуги, вода, электричество, газ", "w": [0.10625, 0.10456, 0.12125], "rde": false },
-      { "code": "05", "name": "Предметы домашнего обихода, бытовая техника", "w": [0.07234, 0.07217, 0.05154], "rde": true },
-      { "code": "06", "name": "Здравоохранение", "w": [0.06361, 0.06595, 0.05334], "rde": false },
-      { "code": "07", "name": "Транспорт", "w": [0.08386, 0.08261, 0.09224], "rde": false },
-      { "code": "08", "name": "Информация и связь", "w": [0.03383, 0.03313, 0.02899], "rde": false },
-      { "code": "09", "name": "Отдых, спорт и культура", "w": [0.02653, 0.02369, 0.01365], "rde": true },
-      { "code": "10", "name": "Услуги в области образования", "w": [0.02339, 0.02317, 0.03386], "rde": false },
-      { "code": "11", "name": "Рестораны и гостиничное обслуживание", "w": [0.01755, 0.01897, 0.01884], "rde": true },
-      { "code": "12", "name": "Страхование и финансовые услуги", "w": [0.00487, 0.00540, 0.00230], "rde": false },
-      { "code": "13", "name": "Бытовые товары и услуги, соцзащита, прочее", "w": [0.04231, 0.04432, 0.04592], "rde": false }
+      {
+        "code": "01",
+        "name": "Продукты питания и безалкогольные напитки",
+        "w": [
+          0.39957,
+          0.40033,
+          0.43084
+        ],
+        "rde": false
+      },
+      {
+        "code": "02",
+        "name": "Алкогольные напитки, табачные изделия",
+        "w": [
+          0.00964,
+          0.00938,
+          0.00816
+        ],
+        "rde": false
+      },
+      {
+        "code": "03",
+        "name": "Одежда и обувь",
+        "w": [
+          0.11625,
+          0.11631,
+          0.09906
+        ],
+        "rde": true
+      },
+      {
+        "code": "04",
+        "name": "Жилищные услуги, вода, электричество, газ",
+        "w": [
+          0.10625,
+          0.10456,
+          0.12125
+        ],
+        "rde": false
+      },
+      {
+        "code": "05",
+        "name": "Предметы домашнего обихода, бытовая техника",
+        "w": [
+          0.07234,
+          0.07217,
+          0.05154
+        ],
+        "rde": true
+      },
+      {
+        "code": "06",
+        "name": "Здравоохранение",
+        "w": [
+          0.06361,
+          0.06595,
+          0.05334
+        ],
+        "rde": false
+      },
+      {
+        "code": "07",
+        "name": "Транспорт",
+        "w": [
+          0.08386,
+          0.08261,
+          0.09224
+        ],
+        "rde": false
+      },
+      {
+        "code": "08",
+        "name": "Информация и связь",
+        "w": [
+          0.03383,
+          0.03313,
+          0.02899
+        ],
+        "rde": false
+      },
+      {
+        "code": "09",
+        "name": "Отдых, спорт и культура",
+        "w": [
+          0.02653,
+          0.02369,
+          0.01365
+        ],
+        "rde": true
+      },
+      {
+        "code": "10",
+        "name": "Услуги в области образования",
+        "w": [
+          0.02339,
+          0.02317,
+          0.03386
+        ],
+        "rde": false
+      },
+      {
+        "code": "11",
+        "name": "Рестораны и гостиничное обслуживание",
+        "w": [
+          0.01755,
+          0.01897,
+          0.01884
+        ],
+        "rde": true
+      },
+      {
+        "code": "12",
+        "name": "Страхование и финансовые услуги",
+        "w": [
+          0.00487,
+          0.0054,
+          0.0023
+        ],
+        "rde": false
+      },
+      {
+        "code": "13",
+        "name": "Бытовые товары и услуги, соцзащита, прочее",
+        "w": [
+          0.04231,
+          0.04432,
+          0.04592
+        ],
+        "rde": false
+      }
     ],
     "groups": {
-      "years": ["2021", "2022", "2023", "2024", "2025"],
-      "food": [0.42248, 0.42266, 0.42431, 0.44041, 0.45305],
-      "nonfood": [0.34689, 0.34718, 0.34489, 0.32718, 0.31908],
-      "services": [0.23063, 0.23016, 0.23080, 0.23242, 0.22787]
+      "years": [
+        "2021",
+        "2022",
+        "2023",
+        "2024",
+        "2025"
+      ],
+      "food": [
+        0.42248,
+        0.42266,
+        0.42431,
+        0.44041,
+        0.45305
+      ],
+      "nonfood": [
+        0.34689,
+        0.34718,
+        0.34489,
+        0.32718,
+        0.31908
+      ],
+      "services": [
+        0.23063,
+        0.23016,
+        0.2308,
+        0.23242,
+        0.22787
+      ]
     }
   },
   "mahallas": {
     "note": "Число махаллей по районам, о котором сообщают поисковые сводки по Open Data Tashkent (исследование CASE 18.09.2026, уверенность D: файлы ещё не открыты). Мастер-база студии содержит точки махаллей из справочников; студия показывает «в базе N из ~M заявленных».",
-    "reported_counts": { "Chilanzar": 55, "Shaykhantakhur": 64, "Uchtepa": 60, "Olmazor": 64, "Yunusabad": 64, "Yangihayot": 30 },
+    "reported_counts": {
+      "Chilanzar": 55,
+      "Shaykhantakhur": 64,
+      "Uchtepa": 60,
+      "Olmazor": 64,
+      "Yunusabad": 64,
+      "Yangihayot": 30
+    },
     "boundary_layers": [
-      { "district": "Yunusabad", "title": "Слой границ махаллей, Юнусабадский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/819/download", "date": "2024-10-24", "legal": "решение Кенгаша Ташкента VI-109-173-14-0-K/24 от 23.10.2024", "conf": "D" },
-      { "district": "Chilanzar", "title": "Слой границ махаллей, Чиланзарский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/291/download", "date": "2024-10-24", "legal": "решение Кенгаша Ташкента VI-109-174-14-0-K/24 от 23.10.2024", "conf": "D" },
-      { "district": "Uchtepa", "title": "Слой границ махаллей, Учтепинский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/153/download", "date": "2024-09-05", "legal": "решение Кенгаша Ташкента VI-107-144-14-0-K/24 от 04.09.2024", "conf": "D" },
-      { "district": "Olmazor", "title": "Слой границ махаллей, Алмазарский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/197/download", "date": "2024-07-31", "legal": "решение Кенгаша Ташкента VI-105-114-14-0-K/24 от 31.07.2024", "conf": "D" },
-      { "district": "Mirzo-Ulugbek", "title": "Слой границ махаллей, Мирзо-Улугбекский район", "page": "https://opendata.tashkent.uz/data/139", "download": "https://opendata-back.tashkent.uz/en/api/data/all/346/download", "date": "2024-04-03", "legal": "решение Кенгаша Ташкента VI-99-35-14-0-K/24 от 02.04.2024", "conf": "D" },
-      { "district": "Shaykhantakhur", "title": "Слой границ махаллей, Шайхантахурский район", "page": "https://opendata.tashkent.uz/", "download": "https://opendata-back.tashkent.uz/en/api/data/all/179/download", "date": null, "legal": null, "conf": "D" },
-      { "district": "Mirabad", "title": "Слой границ махаллей, Мирабадский район", "page": "https://opendata.tashkent.uz/", "download": null, "date": "2023-11-24", "legal": null, "conf": "D" }
+      {
+        "district": "Yunusabad",
+        "title": "Слой границ махаллей, Юнусабадский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/819/download",
+        "date": "2024-10-24",
+        "legal": "решение Кенгаша Ташкента VI-109-173-14-0-K/24 от 23.10.2024",
+        "conf": "D"
+      },
+      {
+        "district": "Chilanzar",
+        "title": "Слой границ махаллей, Чиланзарский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/291/download",
+        "date": "2024-10-24",
+        "legal": "решение Кенгаша Ташкента VI-109-174-14-0-K/24 от 23.10.2024",
+        "conf": "D"
+      },
+      {
+        "district": "Uchtepa",
+        "title": "Слой границ махаллей, Учтепинский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/153/download",
+        "date": "2024-09-05",
+        "legal": "решение Кенгаша Ташкента VI-107-144-14-0-K/24 от 04.09.2024",
+        "conf": "D"
+      },
+      {
+        "district": "Olmazor",
+        "title": "Слой границ махаллей, Алмазарский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/197/download",
+        "date": "2024-07-31",
+        "legal": "решение Кенгаша Ташкента VI-105-114-14-0-K/24 от 31.07.2024",
+        "conf": "D"
+      },
+      {
+        "district": "Mirzo-Ulugbek",
+        "title": "Слой границ махаллей, Мирзо-Улугбекский район",
+        "page": "https://opendata.tashkent.uz/data/139",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/346/download",
+        "date": "2024-04-03",
+        "legal": "решение Кенгаша Ташкента VI-99-35-14-0-K/24 от 02.04.2024",
+        "conf": "D"
+      },
+      {
+        "district": "Shaykhantakhur",
+        "title": "Слой границ махаллей, Шайхантахурский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/179/download",
+        "date": null,
+        "legal": null,
+        "conf": "D"
+      },
+      {
+        "district": "Mirabad",
+        "title": "Слой границ махаллей, Мирабадский район",
+        "page": "https://opendata.tashkent.uz/",
+        "download": null,
+        "date": "2023-11-24",
+        "legal": null,
+        "conf": "D"
+      }
     ],
     "district_datasets": [
-      { "title": "Население столицы по районам", "page": "https://opendata.tashkent.uz/eng/data/41", "date": "2024-04-14", "conf": "D" },
-      { "title": "Площадь территории районов", "download": "https://opendata-back.tashkent.uz/en/api/data/all/67/download", "date": "2024-12-02", "conf": "D" }
+      {
+        "title": "Население столицы по районам",
+        "page": "https://opendata.tashkent.uz/eng/data/41",
+        "date": "2024-04-14",
+        "conf": "D"
+      },
+      {
+        "title": "Площадь территории районов",
+        "download": "https://opendata-back.tashkent.uz/en/api/data/all/67/download",
+        "date": "2024-12-02",
+        "conf": "D"
+      }
     ],
     "boundaries_file": "data/mahalla_boundaries.geojson",
-    "boundaries_note": "Если положить в os/data файл mahalla_boundaries.geojson (FeatureCollection, у каждого полигона свойства name и district в написании студии, например district = \"Yunusabad\"), студия рисует границы и считает население махалли суммой ячеек сетки внутри полигона вместо оценки по радиусу."
+    "boundaries_note": "Если положить в os/data файл mahalla_boundaries.geojson (FeatureCollection, у каждого полигона свойства name и district в написании студии, например district = \"Yunusabad\"), студия рисует границы и считает население махалли суммой ячеек сетки внутри полигона вместо оценки по радиусу.",
+    "population_published": {
+      "rows_checked": 585,
+      "with_value": 0,
+      "note": "В мастер-наборе 05_tashkent_mahalla_demographics.csv у всех 585 махаллей population_total = NULL: ни один открытый источник (stat.uz, hudud.stat.uz, toshstat.uz, data.egov.uz, перепись 2026, HDX, WorldPop) не публикует население ниже района. Оценки студии по сетке населения помечены как modelled."
+    },
+    "registry_total": 585,
+    "registry_file": "data/mahalla_registry_tashkent.json",
+    "registry_schema": "case-mahalla-registry/v2",
+    "with_polygon": 402,
+    "official_layer": {
+      "api": "https://services8.arcgis.com/GyR85gR88mMqIY4t/arcgis/rest/services/Tashkent_Mahallas/FeatureServer/0",
+      "download": "https://hub.arcgis.com/api/v3/datasets/c51c854bad2d48f1beaad40272f8d483_0/downloads/data?format=geojson&spatialRefId=4326",
+      "count": 585,
+      "note": "слой хокимията со всеми 585 махаллями; из сети CASE OS недоступен, скачивается скриптом fetch_official_geometry.sh на своей машине и конвертируется node docs/qa/tools/ngis_to_studio.js в data/mahalla_boundaries.geojson"
+    },
+    "cadastre_layer": {
+      "api": "https://db.ngis.uz/db/rest/services/UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0",
+      "count": 402,
+      "of": 585,
+      "date_range": "2026-03-14..2026-08-27",
+      "note": "слой заполняется постепенно (183 махалли ещё не опубликованы); повторный запрос раз в месяц скриптом refresh_tashkent_gis.py из мастер-набора"
+    },
+    "duplicates_rule": [
+      {
+        "name": "Mustaqillik",
+        "code": "1726269040",
+        "district": "Mirzo-Ulugbek",
+        "rule": "SAME NAME IN DIFFERENT DISTRICTS - distinct entities, do NOT merge",
+        "polygon": false
+      },
+      {
+        "name": "Mustaqillik",
+        "code": "1726280001",
+        "district": "Olmazor",
+        "rule": "SAME NAME IN DIFFERENT DISTRICTS - distinct entities, do NOT merge",
+        "polygon": true
+      }
+    ]
   },
-  "census_2026": { "name": "Перепись населения и сельского хозяйства 2026", "period": "2026-01-15 .. 2026-02-28", "preliminary": "2026-06-30", "final": "ожидается в 2027 году", "portal": "https://aholi.stat.uz/", "source": "gov.uz/pages/2026; исследование CASE 18.09.2026", "note": "итоги по районам и махаллям после публикации заменят оценки студии" },
+  "census_2026": {
+    "name": "Перепись населения и сельского хозяйства 2026",
+    "period": "2026-01-15 .. 2026-02-28",
+    "preliminary": "2026-06-30",
+    "final": "ожидается в 2027 году",
+    "portal": "https://aholi.stat.uz/",
+    "source": "gov.uz/pages/2026; исследование CASE 18.09.2026",
+    "note": "итоги по районам и махаллям после публикации заменят оценки студии"
+  },
   "sources_register": [
-    { "id": "SRC-001", "title": "Распределение постоянного населения Ташкента, 01.01.2024", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/en/press-center/news-of-committee/49989-toshkent-shahri-doimiy-ah-olisi-sonining-taqsimlanishi-4", "conf": "B" },
-    { "id": "SRC-002", "title": "Демографическая ситуация, II квартал 2026 (PDF)", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/img/press-relizlar/q2_2026-en.pdf", "conf": "B" },
-    { "id": "SRC-003", "title": "Демография: официальная статистика", "org": "Milliy statistika qo'mitasi", "url": "https://stat.uz/en/official-statistics/demography", "conf": "B" },
-    { "id": "SRC-005", "title": "Портал переписи 2026", "org": "Milliy statistika qo'mitasi", "url": "https://aholi.stat.uz/en/", "conf": "F" },
-    { "id": "SRC-006", "title": "Районы города", "org": "Хокимият Ташкента", "url": "https://tashkent.uz/en/districts", "conf": "B" },
-    { "id": "SRC-007", "title": "Население столицы (набор данных)", "org": "Open Data Tashkent", "url": "https://opendata.tashkent.uz/eng/data/41", "conf": "D" },
-    { "id": "SRC-010", "title": "Тематические слои махаллей", "org": "Open Data Tashkent", "url": "https://opendata.tashkent.uz/eng/?page=1&category__id=3", "conf": "D" },
-    { "id": "SRC-011", "title": "Постановление ПҚ-4888 от 11.11.2020 об образовании Янгихаётского района (44,2 км²)", "org": "LexUZ", "url": "https://lex.uz/docs/7564429", "conf": "A" },
-    { "id": "SRC-013", "title": "Цифровая махалля (реестр, доступ по входу)", "org": "mahalla.ijro.uz", "url": "https://mahalla.ijro.uz/", "conf": "F" },
-    { "id": "SRC-016", "title": "Открытый геопортал НГИС: границы махаллей и другие слои (указан владельцем 18.09.2026, из сети CASE OS недоступен, выгружается вручную)", "org": "open.ngis.uz", "url": "https://open.ngis.uz/", "conf": "D" }
+    {
+      "id": "SRC-001",
+      "title": "Распределение постоянного населения Ташкента, 01.01.2024",
+      "org": "Milliy statistika qo'mitasi",
+      "url": "https://stat.uz/en/press-center/news-of-committee/49989-toshkent-shahri-doimiy-ah-olisi-sonining-taqsimlanishi-4",
+      "conf": "B"
+    },
+    {
+      "id": "SRC-002",
+      "title": "Демографическая ситуация, II квартал 2026 (PDF)",
+      "org": "Milliy statistika qo'mitasi",
+      "url": "https://stat.uz/img/press-relizlar/q2_2026-en.pdf",
+      "conf": "B"
+    },
+    {
+      "id": "SRC-003",
+      "title": "Демография: официальная статистика",
+      "org": "Milliy statistika qo'mitasi",
+      "url": "https://stat.uz/en/official-statistics/demography",
+      "conf": "B"
+    },
+    {
+      "id": "SRC-005",
+      "title": "Портал переписи 2026",
+      "org": "Milliy statistika qo'mitasi",
+      "url": "https://aholi.stat.uz/en/",
+      "conf": "F"
+    },
+    {
+      "id": "SRC-006",
+      "title": "Районы города",
+      "org": "Хокимият Ташкента",
+      "url": "https://tashkent.uz/en/districts",
+      "conf": "B"
+    },
+    {
+      "id": "SRC-007",
+      "title": "Население столицы (набор данных)",
+      "org": "Open Data Tashkent",
+      "url": "https://opendata.tashkent.uz/eng/data/41",
+      "conf": "D"
+    },
+    {
+      "id": "SRC-010",
+      "title": "Тематические слои махаллей",
+      "org": "Open Data Tashkent",
+      "url": "https://opendata.tashkent.uz/eng/?page=1&category__id=3",
+      "conf": "D"
+    },
+    {
+      "id": "SRC-011",
+      "title": "Постановление ПҚ-4888 от 11.11.2020 об образовании Янгихаётского района (44,2 км²)",
+      "org": "LexUZ",
+      "url": "https://lex.uz/docs/7564429",
+      "conf": "A"
+    },
+    {
+      "id": "SRC-013",
+      "title": "Цифровая махалля (реестр, доступ по входу)",
+      "org": "mahalla.ijro.uz",
+      "url": "https://mahalla.ijro.uz/",
+      "conf": "F"
+    },
+    {
+      "id": "SRC-016",
+      "title": "Открытый геопортал НГИС: границы махаллей и другие слои (указан владельцем 18.09.2026, из сети CASE OS недоступен, выгружается вручную)",
+      "org": "open.ngis.uz",
+      "url": "https://open.ngis.uz/",
+      "conf": "D"
+    },
+    {
+      "id": "MASTER-S01",
+      "title": "Milliy geoaxborot portali - UZKAD/MAHALLA_UZKAD_DB16 FeatureServer",
+      "org": "Kadastr agentligi / Davlat kadastr palatasi",
+      "type": "Government GIS REST API",
+      "published": "live service",
+      "reference": "2026-03-14 .. 2026-08-27",
+      "url": "https://db.ngis.uz/db/rest/services/UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0",
+      "what": "402 official mahalla polygons for Tashkent City with cadastral_number, mahalla_name, district_name, soato_district",
+      "scope": "Tashkent City (national service)",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "The single most important source in this dataset. Reached via the userʼs browser; blocked from the research container by egress policy."
+    },
+    {
+      "id": "MASTER-S02",
+      "title": "Milliy geoaxborot portali - Hosted/TUMAN_BORDER FeatureServer",
+      "org": "Kadastr agentligi",
+      "type": "Government GIS REST API",
+      "published": "live service",
+      "reference": "current",
+      "url": "https://db.ngis.uz/db/rest/services/Hosted/TUMAN_BORDER/FeatureServer/2",
+      "what": "12 official Tashkent district polygons + prefix codes + st_area_sh",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "st_area_sh is a Web-Mercator area - inflated ~1.772x. Areas in this dataset were recomputed geodesically."
+    },
+    {
+      "id": "MASTER-S03",
+      "title": "Etirof open cadastre - neighborhoods register",
+      "org": "Kadastr agentligi",
+      "type": "Government JSON API",
+      "published": "live service",
+      "reference": "2026-09-18",
+      "url": "https://api-etirof.kadastr.uz/api/v1/commons/selects/neighborhoods",
+      "what": "Complete register of 585 Tashkent MFY names + 10-digit SOATO codes (9,473 nationwide)",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Per-district counts independently match the 2023-2024 City Kengash decisions exactly."
+    },
+    {
+      "id": "MASTER-S04",
+      "title": "Etirof open cadastre - districts register",
+      "org": "Kadastr agentligi",
+      "type": "Government JSON API",
+      "published": "live service",
+      "reference": "2026-09-18",
+      "url": "https://api-etirof.kadastr.uz/api/v1/commons/selects/districts",
+      "what": "SOATO codes for all 12 Tashkent districts",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Resolved the SOATO gap that the stat.uz classifier PDFs could not."
+    },
+    {
+      "id": "MASTER-S05",
+      "title": "SIAT regional statistics module",
+      "org": "Milliy statistika qoʻmitasi",
+      "type": "Government JSON API",
+      "published": "live",
+      "reference": "2026 Q1 (2026-01-01)",
+      "url": "https://hudud.stat.uz/api/v1/gis/regions/?parent__isnull=false&parent_soato=1726",
+      "what": "Permanent population for all 12 Tashkent districts",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "B",
+      "comment": "Portal displays a TEST MODE banner and states no licence. Quarterly series 2024Q1-2026Q1 available per district."
+    },
+    {
+      "id": "MASTER-S06",
+      "title": "Demografiya (Tashkent City statistical bulletin)",
+      "org": "Toshkent shahar statistika boshqarmasi",
+      "type": "Government PDF",
+      "published": "2025-10-27",
+      "reference": "2025-10-01",
+      "url": "https://toshstat.uz/2025/Demografya/Demografiya.pdf",
+      "what": "Per-district population for all 12 districts; city total 3,164.0 thousand",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "District figures sum exactly to the stated city total - internal consistency check passed."
+    },
+    {
+      "id": "MASTER-S07",
+      "title": "2026 aholi roʻyxatga olish - preliminary results",
+      "org": "Milliy statistika qoʻmitasi",
+      "type": "Government PDF (67 pp)",
+      "published": "2026-07-07",
+      "reference": "2026-01-15",
+      "url": "https://aholi.stat.uz/images/07.07.2026/kitob-uzb_p76729.pdf",
+      "what": "Uzbekistan 39,047,321; Tashkent City 3,224,838 (100% urban)",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "First post-Soviet census. IMPORTANT: no tuman or mahalla breakdown published as of 2026-09-18."
+    },
+    {
+      "id": "MASTER-S08",
+      "title": "Cabinet of Ministers Resolution No. 48 of 04.03.2014",
+      "org": "Vazirlar Mahkamasi",
+      "type": "Legal act",
+      "published": "2014-03-04",
+      "reference": "in force",
+      "url": "https://www.lex.uz/uz/docs/-2349371",
+      "what": "Legal definition of how mahalla boundaries are established (art. 26-30)",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Art. 27: boundary described textually by streets and landmarks. Art. 26: must also be drawn at 1:2000 for cities. Art. 28: the State Cadastral Chamber produces the drawing. This is why an official polygon layer exists at all."
+    },
+    {
+      "id": "MASTER-S09",
+      "title": "Decision No. 124/15-5 of 12.07.2016",
+      "org": "Xalq deputatlari Toshkent shahar Kengashi",
+      "type": "Legal act",
+      "published": "2016-07-12",
+      "reference": "2016-07-12",
+      "url": "https://lex.uz/ru/docs/3073794",
+      "what": "Baseline: boundaries of the then 505 Tashkent mahallas",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Historical baseline; superseded by the 2023-2024 decisions."
+    },
+    {
+      "id": "MASTER-S10",
+      "title": "Decision No. 417/47-5 of 12.01.2019",
+      "org": "Xalq deputatlari Toshkent shahar Kengashi",
+      "type": "Legal act",
+      "published": "2019-01-12",
+      "reference": "2019-06-04",
+      "url": "https://lex.uz/docs/4427233",
+      "what": "Mahalla split and two renames; city total 505 -> 508",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S11",
+      "title": "Legislative Chamber Resolution No. 443-IV of 08.09.2020",
+      "org": "Oliy Majlis Qonunchilik palatasi",
+      "type": "Legal act",
+      "published": "2020-09-08",
+      "reference": "2020-09-08",
+      "url": "https://lex.uz/docs/5187492",
+      "what": "Creation of Yangihayot tumani; list of transferred mahallas and hectares",
+      "scope": "Tashkent City / Region",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "The corresponding Senate resolution number could not be located on lex.uz."
+    },
+    {
+      "id": "MASTER-S12",
+      "title": "Cabinet of Ministers Resolution No. PQ-4888 of 11.11.2020",
+      "org": "Vazirlar Mahkamasi",
+      "type": "Legal act",
+      "published": "2020-11-11",
+      "reference": "2020-11-12",
+      "url": "https://lex.uz/docs/5094720",
+      "what": "Establishment of the Yangihayot district hokimiyat",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S13",
+      "title": "Cabinet of Ministers Resolution No. 702 of 19/20.11.2021",
+      "org": "Vazirlar Mahkamasi",
+      "type": "Legal act",
+      "published": "2021-11-19",
+      "reference": "2021-08-27",
+      "url": "https://lex.uz/uz/docs/5735284",
+      "what": "Implementation of the 2021 city/region boundary change (+7,853.3 / -171.3 ha)",
+      "scope": "Tashkent City / Region",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Underlying parliamentary resolution number NOT FOUND despite extensive search."
+    },
+    {
+      "id": "MASTER-S14",
+      "title": "Cabinet of Ministers Resolution No. 294 of 20.05.2024",
+      "org": "Vazirlar Mahkamasi",
+      "type": "Legal act",
+      "published": "2024-05-20",
+      "reference": "2024-05-20",
+      "url": "https://lex.uz/docs/6931873",
+      "what": "Mandate to register all mahallas nationally with precise boundaries",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Legal driver behind the current cadastre mahalla layer."
+    },
+    {
+      "id": "MASTER-S15",
+      "title": "Presidium of Supreme Soviet Decrees 579-XII and 580-XII of 08.05.1992",
+      "org": "Oliy Kengash Rayosati",
+      "type": "Legal act",
+      "published": "1992-05-08",
+      "reference": "1992-05-08",
+      "url": "https://lex.uz/ru/docs/281121",
+      "what": "Renaming of Kirov, Lenin, Oktyabr, Frunze and Kuybishev districts",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Corrects the widespread claim that Kuybishev became Mirobod; it became Mirzo Ulugʻbek."
+    },
+    {
+      "id": "MASTER-S16",
+      "title": "Senate Resolution No. 39-I of 06.05.2005",
+      "org": "Oliy Majlis Senati",
+      "type": "Legal act",
+      "published": "2005-05-06",
+      "reference": "2005-05-06",
+      "url": "https://www.lex.uz/docs/1154885",
+      "what": "Akmal Ikromov -> Uchtepa",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S17",
+      "title": "Senate Resolution No. 133-II of 04.12.2010",
+      "org": "Oliy Majlis Senati",
+      "type": "Legal act",
+      "published": "2010-12-04",
+      "reference": "2010-12-04",
+      "url": "https://lex.uz/ru/docs/2949066",
+      "what": "Sobir Rahimov -> Olmazor",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S18",
+      "title": "Senate Resolution No. PS-441-II of 29.08.2014",
+      "org": "Oliy Majlis Senati",
+      "type": "Legal act",
+      "published": "2014-08-29",
+      "reference": "2014-08-29",
+      "url": "https://www.lex.uz/ru/docs/2466827",
+      "what": "Hamza -> Yashnobod",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S19",
+      "title": "Presidential Decree No. PF-22 of 16.02.2026",
+      "org": "Oʻzbekiston Respublikasi Prezidenti",
+      "type": "Legal act",
+      "published": "2026-02-16",
+      "reference": "2026",
+      "url": "https://lex.uz/docs/8050787",
+      "what": "2026 declared the Year of Mahalla Development",
+      "scope": "Uzbekistan",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Signals further mahalla-level change during 2026."
+    },
+    {
+      "id": "MASTER-S20",
+      "title": "Toshkent mahallalari",
+      "org": "Uzbek Wikipedia",
+      "type": "Tertiary compilation",
+      "published": "~2025",
+      "reference": "2024-10-25",
+      "url": "https://uz.wikipedia.org/wiki/Toshkent_mahallalari",
+      "what": "Per-district mahalla counts and the numbers/dates of the 2023-2024 Kengash decisions",
+      "scope": "Tashkent City",
+      "official": "SECONDARY",
+      "conf": "C",
+      "comment": "Used ONLY for the decision numbers and the 585 total - both independently confirmed against the official cadastre register (S03)."
+    },
+    {
+      "id": "MASTER-S21",
+      "title": "Decision No. III-17-97-14-198-K/25 of 30.12.2025 (Bektemir land-tax coefficients, Annex 1)",
+      "org": "Xalq deputatlari Bektemir tumani Kengashi",
+      "type": "Legal act (PDF)",
+      "published": "2025-12-30",
+      "reference": "2026 tax year",
+      "url": "https://kengash.gov.uz/bektemir/documents/229609",
+      "what": "Enumeration of all 18 current Bektemir mahallas",
+      "scope": "Bektemir district",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": "Confirms the 18-mahalla count independently of S03. Demonstrates that district land-tax decisions enumerate every current mahalla - a reusable route for per-district verification via kengash.gov.uz."
+    },
+    {
+      "id": "MASTER-S22",
+      "title": "Tashkent City Administration - districts",
+      "org": "Toshkent shahar hokimligi",
+      "type": "Government website",
+      "published": "current",
+      "reference": "2026-09-18",
+      "url": "https://tashkent.uz/en/districts",
+      "what": "Confirms exactly 12 current districts",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "A",
+      "comment": null
+    },
+    {
+      "id": "MASTER-S23",
+      "title": "Government portal - Tashkent district hokimiyats",
+      "org": "Oʻzbekiston Respublikasi hukumat portali",
+      "type": "Government website",
+      "published": "current",
+      "reference": "2026-09-18",
+      "url": "https://gov.uz/oz/toshkent/departments/regional",
+      "what": "District list, addresses, some areas and populations (mostly undated)",
+      "scope": "Tashkent City",
+      "official": "OFFICIAL",
+      "conf": "C",
+      "comment": "Several district pages carry no data; figures given are undated and in places stale or inconsistent (e.g. Sergeli \"over 226,000\" vs 177,700 official)."
+    },
+    {
+      "id": "MASTER-S24",
+      "title": "Kun.uz / Gazeta.uz / Daryo.uz / Podrobno.uz reporting on the 2020-2021 boundary changes",
+      "org": "Various Uzbek media",
+      "type": "News",
+      "published": "2020-2021",
+      "reference": "2020-2021",
+      "url": "https://kun.uz/uz/news/2021/08/27/toshkent-viloyati-va-toshkent-shahri-chegaralari-ozgartirildi",
+      "what": "Hectare-level detail of the 2021 city/region transfer and affected population",
+      "scope": "Tashkent City / Region",
+      "official": "SECONDARY",
+      "conf": "C",
+      "comment": "Used for detail that the primary acts did not expose; all headline facts cross-checked against S13."
+    },
+    {
+      "id": "MASTER-S25",
+      "title": "New Tashkent reporting",
+      "org": "Gazeta.uz, Kun.uz, Spot.uz",
+      "type": "News",
+      "published": "2023-2025",
+      "reference": "2023-2025",
+      "url": "https://www.gazeta.uz/oz/2023/11/11/new-tashkent/",
+      "what": "Status of the proposed \"Yangi Toshkent\" 13th district",
+      "scope": "Tashkent City / Region",
+      "official": "SECONDARY",
+      "conf": "C",
+      "comment": "Explicitly recorded as PROPOSED, NOT ENACTED."
+    }
   ],
   "inputs_needed": [
-    { "what": "Население Ташкента на 1 января 2016, 2017, 2018, 2022, 2023", "owner": "аналитик CASE", "where": "stat.uz, SIAT: доимий аҳоли сони по регионам" },
-    { "what": "Сверка 3 212,2 тыс. на 01.07.2026 с таблицей релиза stat.uz (сейчас число из сводки, уверенность B)", "owner": "аналитик CASE", "where": "stat.uz/img/press-relizlar/q2_2026-en.pdf" },
-    { "what": "Пятилетние возрастные группы по полу, Ташкент (последний бюллетень)", "owner": "аналитик CASE", "where": "toshstat.uz, демографический бюллетень (PDF), раздел «возрастной состав»; aholi.stat.uz после итогов переписи" },
-    { "what": "Население по районам Ташкента за 2016-2026 (ряд, пол, возраст)", "owner": "аналитик CASE", "where": "toshstat.uz; opendata.tashkent.uz/eng/data/41 (население столицы по районам)" },
-    { "what": "Границы махаллей по районам (официальные слои Open Data Tashkent, ID 819, 291, 153, 197, 346, 179)", "owner": "аналитик CASE", "where": "opendata-back.tashkent.uz/en/api/data/all/<ID>/download; после проверки CRS и состава положить как os/data/mahalla_boundaries.geojson" },
-    { "what": "Полный реестр махаллей с кодами и названиями на трёх языках", "owner": "команда CASE (запрос в хокимият города, mahalla.ijro.uz)", "where": "реестр закрыт для публичного доступа; сравнить со списком из мастер-базы" },
-    { "what": "Население и число домохозяйств по махаллям", "owner": "команда CASE (запрос в районные хокимияты, mahalla.uz)", "where": "нет в открытых источниках; вносится вручную в карточку махалли; итоги переписи 2026 ожидаются в 2027 году" },
-    { "what": "Доход на душу и расходы по районам Ташкента", "owner": "аналитик CASE", "where": "toshstat.uz, обследование домохозяйств; не публикуется по районам" },
-    { "what": "Доля потребительских расходов в совокупном доходе (Ташкент)", "owner": "аналитик CASE", "where": "stat.uz, обследование бюджетов домашних хозяйств" },
-    { "what": "Коды районов (СОАТО, кадастр), рождаемость, смертность, миграция по районам", "owner": "аналитик CASE", "where": "stat.uz, классификатор SIAT; демографические файлы по кварталам" }
+    {
+      "what": "Население Ташкента на 1 января 2016, 2017, 2018, 2022, 2023",
+      "owner": "аналитик CASE",
+      "where": "stat.uz, SIAT: доимий аҳоли сони по регионам"
+    },
+    {
+      "what": "Пятилетние возрастные группы по полу, Ташкент (последний бюллетень)",
+      "owner": "аналитик CASE",
+      "where": "toshstat.uz, демографический бюллетень (PDF), раздел «возрастной состав»; aholi.stat.uz после итогов переписи"
+    },
+    {
+      "what": "Доход на душу и расходы по районам Ташкента",
+      "owner": "аналитик CASE",
+      "where": "toshstat.uz, обследование домохозяйств; не публикуется по районам"
+    },
+    {
+      "what": "Доля потребительских расходов в совокупном доходе (Ташкент)",
+      "owner": "аналитик CASE",
+      "where": "stat.uz, обследование бюджетов домашних хозяйств"
+    },
+    {
+      "what": "Население по районам Ташкента до 2022 года (ряд 2016-2021) и перепись 2026 по районам",
+      "owner": "аналитик CASE",
+      "where": "toshstat.uz бюллетени прошлых лет; итоги переписи 2026 на aholi.stat.uz до 01.07.2027"
+    },
+    {
+      "what": "Рождаемость и смертность по районам Ташкента (миграция по районам уже есть)",
+      "owner": "аналитик CASE",
+      "where": "Toshstat, бюллетень «Demografiya» по районам"
+    },
+    {
+      "what": "Границы 183 махаллей, которых ещё нет в кадастровом слое (402 из 585 в студии)",
+      "owner": "аналитик CASE (раз в месяц, 20 секунд на своей машине)",
+      "where": "python3 docs/data/tashkent_gis_master/refresh_tashkent_gis.py, затем node docs/qa/tools/ngis_to_studio.js 02_tashkent_mahallas.geojson; либо слой хокимията (585) через fetch_official_geometry.sh"
+    },
+    {
+      "what": "Население, домохозяйства и возраст по махаллям (ни один открытый источник не публикует ниже района)",
+      "owner": "руководство CASE (письменный запрос)",
+      "where": "Milliy statistika qo'mitasi или Toshkent shahar statistika boshqarmasi: таблица переписи 2026 по махаллям; единый реестр МФЙ (ПКМ 586 от 15.09.2025), O'zbekiston Mahallalari Uyushmasi"
+    },
+    {
+      "what": "Условия коммерческого использования слоёв НГИС (open.ngis.uz) и слоя махаллей хокимията",
+      "owner": "руководство CASE",
+      "where": "Кадастр агентлиги; Управление цифрового развития хокимията Ташкента"
+    }
+  ],
+  "districts": {
+    "rows": {
+      "Bektemir": {
+        "name_ru": "Бектемирский",
+        "name_cyr": "Бектемир",
+        "name_en": "Bektemir",
+        "soato_grade": "A",
+        "area_km2_official": 34.94,
+        "area_km2_official_source": "gov.uz/oz/bektemir/pages/about (3,494.2 ha)",
+        "area_km2_secondary": 17.83,
+        "sum_mahalla_area_ha": 3260.6,
+        "population_2026_07_01": 73600,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 18,
+        "hokimiyat_url": "https://bektemir.tashkent.uz",
+        "postcode": "111503",
+        "date_established": "1990-02-27",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 54000,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 64400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 65500,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 66600,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 68500,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 70400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 72500,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 73600,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 2621,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 4707
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 1242,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 1272
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 1379,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 7736,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 6570.7
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 2632.4,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 3334,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 3188,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 3144,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 682.1,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "hospitals": {
+          "2024-01-01": 2,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "polyclinics": {
+          "2024-01-01": 12,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 0.1,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 13,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726264",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1002",
+        "area_km2_geodesic": 32.482,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 72500,
+        "population_2025_10_01": 70400,
+        "density_2026_01_01": 2232,
+        "mahallas_with_polygon": 13,
+        "polygon_coverage_pct": 72.2,
+        "centroid": [
+          41.22603,
+          69.33689
+        ],
+        "district_center": "Boyqaro koʻchasi 2, 100158",
+        "former_names": "Norimon Norimonov tumani (1981-1990); Bektemir shahri (1973-1990)",
+        "legal_document": null,
+        "last_verified": "2026-09-18"
+      },
+      "Chilanzar": {
+        "name_ru": "Чиланзарский",
+        "name_cyr": "Чилонзор",
+        "name_en": "Chilanzar",
+        "soato_grade": "A",
+        "area_km2_official": null,
+        "area_km2_official_source": null,
+        "area_km2_secondary": 29.94,
+        "sum_mahalla_area_ha": 3055.08,
+        "population_2026_07_01": 277600,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 55,
+        "hokimiyat_url": "https://chilonzor.tashkent.uz",
+        "postcode": "100035",
+        "date_established": "1962-12-27",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 269500,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 276400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 276700,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 276800,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 276700,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 277000,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 277800,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 277600,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 4944,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5430
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 6026,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 7230
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": -1082,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 10445,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 8501
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 11958.8,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 12763,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 11820,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 11591,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1460.8,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "hospitals": {
+          "2024-01-01": 11,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "polyclinics": {
+          "2024-01-01": 160,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 72,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726294",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1003",
+        "area_km2_geodesic": 30.479,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 277800,
+        "population_2025_10_01": 277000,
+        "density_2026_01_01": 9115,
+        "mahallas_with_polygon": 32,
+        "polygon_coverage_pct": 58.2,
+        "centroid": [
+          41.27004,
+          69.20038
+        ],
+        "district_center": "Bunyodkor shoh koʻchasi 50, 100135",
+        "former_names": null,
+        "legal_document": null,
+        "last_verified": "2026-09-18"
+      },
+      "Mirabad": {
+        "name_ru": "Мирабадский",
+        "name_cyr": "Миробод",
+        "name_en": "Mirabad",
+        "soato_grade": "A",
+        "area_km2_official": null,
+        "area_km2_official_source": null,
+        "area_km2_secondary": 17.1,
+        "sum_mahalla_area_ha": 1653.17,
+        "population_2026_07_01": 157500,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 39,
+        "hokimiyat_url": "https://mirobod.tashkent.uz",
+        "postcode": "100015",
+        "date_established": "1929-10-09",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 147800,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 153800,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 154200,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 154700,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 155400,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 156100,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 156900,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 157500,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 3091,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 4232
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 2643,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 3468
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 448,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 13909.8,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 12964.2
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 5882.3,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 9348,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 8557,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 8274,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 2059.4,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 70,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 1.1,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 37,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726273",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1011",
+        "area_km2_geodesic": 16.475,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 156900,
+        "population_2025_10_01": 156100,
+        "density_2026_01_01": 9524,
+        "mahallas_with_polygon": 30,
+        "polygon_coverage_pct": 76.9,
+        "centroid": [
+          41.27689,
+          69.29279
+        ],
+        "district_center": "Nukus koʻchasi 18, 100060",
+        "former_names": "Temiryoʻlchilar (1929); Lenin tumani (1929-1992)",
+        "legal_document": {
+          "name": "Presidium of Supreme Soviet Decree No. 579-XII",
+          "date": "1992-05-08",
+          "url": "https://lex.uz/ru/docs/281121"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Mirzo-Ulugbek": {
+        "name_ru": "Мирзо-Улугбекский",
+        "name_cyr": "Мирзо Улуғбек",
+        "name_en": "Mirzo Ulugbek",
+        "soato_grade": "A",
+        "area_km2_official": null,
+        "area_km2_official_source": null,
+        "area_km2_secondary": 35.15,
+        "sum_mahalla_area_ha": 5939.66,
+        "population_2026_07_01": 345300,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 70,
+        "hokimiyat_url": "https://mirzoulugbek.tashkent.uz",
+        "postcode": "100000",
+        "date_established": "1929-11-29",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 318000,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 335600,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 337100,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 338200,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 339300,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 340900,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 343900,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 345300,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 6358,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 6388
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 4745,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5521
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 1613,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 13706.9,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 11327.1
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 7623.6,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 13523,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 12355,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 12049,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1377.3,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 157,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 3.1,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 81,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726269",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1009",
+        "area_km2_geodesic": 59.532,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 343900,
+        "population_2025_10_01": 340900,
+        "density_2026_01_01": 5777,
+        "mahallas_with_polygon": 53,
+        "polygon_coverage_pct": 75.7,
+        "centroid": [
+          41.3405,
+          69.37908
+        ],
+        "district_center": "Mustaqillik shoh koʻchasi 122, 100052",
+        "former_names": "Proletarskiy (1929-1935); Kuybishev tumani (1935-1992)",
+        "legal_document": {
+          "name": "Presidium of Supreme Soviet Decree No. 580-XII",
+          "date": "1992-05-08",
+          "url": "https://lex.uz/ru/docs/281541"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Olmazor": {
+        "name_ru": "Алмазарский",
+        "name_cyr": "Олмазор",
+        "name_en": "Almazar",
+        "soato_grade": "A",
+        "area_km2_official": null,
+        "area_km2_official_source": null,
+        "area_km2_secondary": 34.5,
+        "sum_mahalla_area_ha": 3379.48,
+        "population_2026_07_01": 421300,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 64,
+        "hokimiyat_url": "https://olmazor.tashkent.uz",
+        "postcode": "100111",
+        "date_established": "1970-12-07",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 390000,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 409900,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 412000,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 413300,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 414800,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 416800,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 419600,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-04-01",
+            "value": 419600,
+            "source": "NSC via Yuz.uz (pub 19.06.2026)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 421300,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 4861,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5294
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 4700,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5827
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 161,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 9100.6,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 7770.9
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 4636.3,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 9987,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 9287,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 9125,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1226.1,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "hospitals": {
+          "2024-01-01": 12,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "polyclinics": {
+          "2024-01-01": 157,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 4.1,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 73,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726280",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1008",
+        "area_km2_geodesic": 33.786,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 419600,
+        "population_2025_10_01": 416800,
+        "density_2026_01_01": 12419,
+        "mahallas_with_polygon": 32,
+        "polygon_coverage_pct": 50,
+        "centroid": [
+          41.35791,
+          69.22324
+        ],
+        "district_center": "Kichik Halqa yoʻli 1, 100095",
+        "former_names": "Sobir Rahimov tumani (1981-2010)",
+        "legal_document": {
+          "name": "Legislative Chamber Res. No. 182-II + Senate Res. No. 133-II",
+          "date": "2010-12-04",
+          "url": "https://lex.uz/ru/docs/2949066"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Sergeli": {
+        "name_ru": "Сергелийский",
+        "name_cyr": "Сергели",
+        "name_en": "Sergeli",
+        "soato_grade": "A",
+        "area_km2_official": 52.18,
+        "area_km2_official_source": "gov.uz/oz/sergeli/pages/about (5,218 ha)",
+        "area_km2_secondary": null,
+        "sum_mahalla_area_ha": 4777.35,
+        "population_2026_07_01": 182500,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 46,
+        "hokimiyat_url": "https://sergeli.tashkent.uz",
+        "postcode": "100085",
+        "date_established": "1967-01-20",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 154100,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 172000,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 173200,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 174600,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 176000,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 177700,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 180400,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 182500,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 7580,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 8311
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 4523,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5093
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 3057,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 10466,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 9052.2
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 5464.6,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 7059,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 6714,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 6596,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1024.4,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "hospitals": {
+          "2024-01-01": 3,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "polyclinics": {
+          "2024-01-01": 49,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 0.5,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 37,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726283",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1006",
+        "area_km2_geodesic": 52.206,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 180400,
+        "population_2025_10_01": 177700,
+        "density_2026_01_01": 3456,
+        "mahallas_with_polygon": 39,
+        "polygon_coverage_pct": 84.8,
+        "centroid": [
+          41.23555,
+          69.25676
+        ],
+        "district_center": "Soʻgʻdiyona koʻchasi 1, 100085",
+        "former_names": "NULL (classifier variant: Sirgʻali tumani)",
+        "legal_document": null,
+        "last_verified": "2026-09-18"
+      },
+      "Shaykhantakhur": {
+        "name_ru": "Шайхантахурский",
+        "name_cyr": "Шайхонтоҳур",
+        "name_en": "Shaykhantahur",
+        "soato_grade": "A",
+        "area_km2_official": 27.3,
+        "area_km2_official_source": "gov.uz/oz/shayxontohur/pages/about (2,730 ha)",
+        "area_km2_secondary": null,
+        "sum_mahalla_area_ha": 2706.91,
+        "population_2026_07_01": 375000,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 51,
+        "hokimiyat_url": "https://shayxontohur.tashkent.uz",
+        "postcode": "100128",
+        "date_established": "1929-11-29",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 357400,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 368500,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 369600,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 370700,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 371600,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 372700,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 374600,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-04-01",
+            "value": 374600,
+            "source": "NSC via Yuz.uz (pub 19.06.2026)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 375000,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 3963,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 4449
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 4869,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5635
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": -906,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 13673.5,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 11230.8
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 10196.5,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 10427,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 9527,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 9254,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1619,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 115,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 1.4,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 66,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726277",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1010",
+        "area_km2_geodesic": 27.065,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 374600,
+        "population_2025_10_01": 372700,
+        "density_2026_01_01": 13841,
+        "mahallas_with_polygon": 20,
+        "polygon_coverage_pct": 39.2,
+        "centroid": [
+          41.32505,
+          69.2166
+        ],
+        "district_center": "A.Qodiriy koʻchasi 7A, 100011",
+        "former_names": "Oktyabr tumani (1929-1992)",
+        "legal_document": {
+          "name": "Presidium of Supreme Soviet Decree No. 579-XII",
+          "date": "1992-05-08",
+          "url": "https://lex.uz/ru/docs/281121"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Uchtepa": {
+        "name_ru": "Учтепинский",
+        "name_cyr": "Учтепа",
+        "name_en": "Uchtepa",
+        "soato_grade": "A",
+        "area_km2_official": 28.08,
+        "area_km2_official_source": "gov.uz/oz/uchtepa/pages/about",
+        "area_km2_secondary": null,
+        "sum_mahalla_area_ha": null,
+        "population_2026_07_01": 308100,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 60,
+        "hokimiyat_url": "https://uchtepa.tashkent.uz",
+        "postcode": "100126",
+        "date_established": "1977-09-15",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 289600,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 301400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 301700,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 301900,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 302600,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 303300,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 306400,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 308100,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 6788,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5309
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 5152,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 6119
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 1636,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 6417.8,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 5218.4
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 6744,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 8414,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 7904,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 7833,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 933.3,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 87,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 1.4,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 67,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726262",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1001",
+        "area_km2_geodesic": 28.18,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 306400,
+        "population_2025_10_01": 303300,
+        "density_2026_01_01": 10873,
+        "mahallas_with_polygon": 43,
+        "polygon_coverage_pct": 71.7,
+        "centroid": [
+          41.29575,
+          69.16664
+        ],
+        "district_center": "Farhod koʻchasi 21, 100126",
+        "former_names": "Akmal Ikromov tumani (1977-2005)",
+        "legal_document": {
+          "name": "Senate of Oliy Majlis Resolution No. 39-I",
+          "date": "2005-05-06",
+          "url": "https://www.lex.uz/docs/1154885"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Yakkasaray": {
+        "name_ru": "Яккасарайский",
+        "name_cyr": "Яккасарой",
+        "name_en": "Yakkasaray",
+        "soato_grade": "A",
+        "area_km2_official": null,
+        "area_km2_official_source": null,
+        "area_km2_secondary": 14.6,
+        "sum_mahalla_area_ha": 1422.82,
+        "population_2026_07_01": 147000,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 21,
+        "hokimiyat_url": "https://yakkasaroy.tashkent.uz",
+        "postcode": "100031",
+        "date_established": "1936-08-26",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 125500,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 138100,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 139700,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 140800,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 142400,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 143800,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 146000,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 147000,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 2607,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 3209
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 2436,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 2866
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 171,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 11956,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 10279.7
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 6554.1,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 10600,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 9928,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 9750,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 2420.8,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 57,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 0.8,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 50,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726287",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1005",
+        "area_km2_geodesic": 14.253,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 146000,
+        "population_2025_10_01": 143800,
+        "density_2026_01_01": 10244,
+        "mahallas_with_polygon": 16,
+        "polygon_coverage_pct": 76.2,
+        "centroid": [
+          41.28084,
+          69.24801
+        ],
+        "district_center": "Bobur koʻchasi 4, 100100",
+        "former_names": "Frunze tumani (1936-1992)",
+        "legal_document": {
+          "name": "Presidium of Supreme Soviet Decree No. 579-XII",
+          "date": "1992-05-08",
+          "url": "https://lex.uz/ru/docs/281121"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Yangihayot": {
+        "name_ru": "Янгихаётский",
+        "name_cyr": "Янгиҳаёт",
+        "name_en": "Yangihayot",
+        "soato_grade": "A",
+        "area_km2_official": 44.2,
+        "area_km2_official_source": "gov.uz/oz/yangihayot/pages/about; matches 4,419.6 ha in act 443-IV",
+        "area_km2_secondary": null,
+        "sum_mahalla_area_ha": 4423.54,
+        "population_2026_07_01": 205200,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 30,
+        "hokimiyat_url": "https://yangihayot.tashkent.uz",
+        "postcode": "111018",
+        "date_established": "2020-09-08",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 156700,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 184300,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 188200,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 191900,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 194800,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 198400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 203000,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 205200,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 6374,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 10615
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 3757,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 3992
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 2617,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 6514.3,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 5819.8
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 1231,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 5034,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 4784,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 4698,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 747.9,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 20,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 0.3,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 29,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726292",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1012",
+        "area_km2_geodesic": 44.253,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 203000,
+        "population_2025_10_01": 198400,
+        "density_2026_01_01": 4587,
+        "mahallas_with_polygon": 29,
+        "polygon_coverage_pct": 96.7,
+        "centroid": [
+          41.19275,
+          69.23852
+        ],
+        "district_center": "Sputnik C-1 1A, 100102",
+        "former_names": "NULL (district created 2020)",
+        "legal_document": {
+          "name": "Legislative Chamber Res. No. 443-IV (Senate res. number NOT FOUND)",
+          "date": "2020-09-08",
+          "url": "https://lex.uz/docs/5187492"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Yashnabad": {
+        "name_ru": "Яшнабадский",
+        "name_cyr": "Яшнобод",
+        "name_en": "Yashnabad",
+        "soato_grade": "A",
+        "area_km2_official": 33.7,
+        "area_km2_official_source": "gov.uz/oz/yashnobod/pages/about",
+        "area_km2_secondary": 33.7,
+        "sum_mahalla_area_ha": 5197.39,
+        "population_2026_07_01": 322300,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 67,
+        "hokimiyat_url": "https://yashnobod.tashkent.uz",
+        "postcode": "100005",
+        "date_established": "1968-01-31",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 283300,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 307700,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 309700,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 311800,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 313800,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 315800,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 319800,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 322300,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 8715,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 9311
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 5000,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 5698
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 3715,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 11487,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 9228
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 7357.2,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 10821,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 10092,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 9846,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 1645.6,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "polyclinics": {
+          "2024-01-01": 87,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 2.9,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 61,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726290",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1004",
+        "area_km2_geodesic": 58.89,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 319800,
+        "population_2025_10_01": 315800,
+        "density_2026_01_01": 5430,
+        "mahallas_with_polygon": 55,
+        "polygon_coverage_pct": 82.1,
+        "centroid": [
+          41.2901,
+          69.3577
+        ],
+        "district_center": null,
+        "former_names": "Hamza tumani (-2014)",
+        "legal_document": {
+          "name": "Senate of Oliy Majlis Resolution No. PS-441-II",
+          "date": "2014-08-29",
+          "url": "https://www.lex.uz/ru/docs/2466827"
+        },
+        "last_verified": "2026-09-18"
+      },
+      "Yunusabad": {
+        "name_ru": "Юнусабадский",
+        "name_cyr": "Юнусобод",
+        "name_en": "Yunusabad",
+        "soato_grade": "A",
+        "area_km2_official": 40.6,
+        "area_km2_official_source": "shosh.uz (4,060 ha) - SECONDARY",
+        "area_km2_secondary": 40.6,
+        "sum_mahalla_area_ha": 4106.46,
+        "population_2026_07_01": 396800,
+        "population_source": "https://toshstat.uz/2026/demografiya/demografiya1.pdf",
+        "population_conf": "A",
+        "mahallas_official": 64,
+        "hokimiyat_url": "https://yunusobod.tashkent.uz",
+        "postcode": "100084",
+        "date_established": "1936-08-26",
+        "population_series": [
+          {
+            "date": "2022-07-01",
+            "value": 363000,
+            "source": "Kun.uz citing Tashkent City Statistics Dept (pub 06.08.2022)",
+            "conf": "asking"
+          },
+          {
+            "date": "2024-10-01",
+            "value": 383400,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-01-01",
+            "value": 385200,
+            "source": "Toshstat, Demografiya Jan-Dec 2024",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-04-01",
+            "value": 387100,
+            "source": "Toshstat, Demografiya Jan-Mar 2025 (pub 27.04.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-07-01",
+            "value": 389300,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (comparator column)",
+            "conf": "verified"
+          },
+          {
+            "date": "2025-10-01",
+            "value": 391100,
+            "source": "Toshstat, Demografiya Jan-Sep 2025 (pub 27.10.2025)",
+            "conf": "verified"
+          },
+          {
+            "date": "2026-01-01",
+            "value": 395000,
+            "source": "Milliy statistika qo'mitasi, SIAT hudud.stat.uz (портал в тестовом режиме)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-04-01",
+            "value": 395000,
+            "source": "NSC via Yuz.uz (pub 19.06.2026)",
+            "conf": "asking"
+          },
+          {
+            "date": "2026-07-01",
+            "value": 396800,
+            "source": "Toshstat, Demografiya Jan-Jun 2026 (pub 27.07.2026)",
+            "conf": "verified"
+          }
+        ],
+        "migration_in": {
+          "2026-01-01/2026-06-30": 6598,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 7750
+        },
+        "migration_out": {
+          "2026-01-01/2026-06-30": 5262,
+          "unit": "persons",
+          "source": "Toshstat, Demografiya Jan-Sep 2025",
+          "2025-01-01/2025-09-30": 6061
+        },
+        "migration_net": {
+          "2026-01-01/2026-06-30": 1336,
+          "unit": "persons",
+          "source": "DERIVED: migration_in minus migration_out"
+        },
+        "salary_month_thousand_uzs": {
+          "2026-01-01/2026-06-30": 15038.5,
+          "unit": "thousand UZS",
+          "source": "Toshstat, Mehnat",
+          "2025-01-01/2025-06-30": 11932.6
+        },
+        "retail_turnover_bn_uzs": {
+          "2026-01-01/2026-07-31": 9044.7,
+          "unit": "bn UZS",
+          "source": "Toshstat, Internal trade"
+        },
+        "enterprises": {
+          "2026-08-01": 13467,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register (pub 15.08.2026)"
+        },
+        "entrepreneurs": {
+          "2026-08-01": 12380,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "small_business": {
+          "2026-08-01": 12077,
+          "unit": "units",
+          "source": "Toshstat, Enterprise register"
+        },
+        "construction_bn_uzs": {
+          "2026-01-01/2026-04-30": 2529.1,
+          "unit": "bn UZS",
+          "source": "Toshstat, Qurilish (pub 26.05.2026)"
+        },
+        "hospitals": {
+          "2024-01-01": 13,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "polyclinics": {
+          "2024-01-01": 190,
+          "unit": "units",
+          "source": "Toshstat, Health statistics"
+        },
+        "doctors_thousand": {
+          "2024-01-01": 4,
+          "unit": "thousand persons",
+          "source": "Toshstat, Health statistics"
+        },
+        "preschools": {
+          "2021-12-31": 89,
+          "unit": "units",
+          "source": "Toshstat, Preschool education"
+        },
+        "soato": "1726266",
+        "soato_source": "Госреестр АТЕ (ПКМ 832 от 10.12.2024) через hudud.stat.uz и кадастровый слой TUMAN_BORDER",
+        "cadastre_prefix": "1007",
+        "area_km2_geodesic": 41.066,
+        "area_source": "Kadastr agentligi - open.ngis.uz Hosted/TUMAN_BORDER",
+        "population_2026_01_01": 395000,
+        "population_2025_10_01": 391100,
+        "density_2026_01_01": 9619,
+        "mahallas_with_polygon": 40,
+        "polygon_coverage_pct": 62.5,
+        "centroid": [
+          41.36061,
+          69.28573
+        ],
+        "district_center": "Amir Temur shoh koʻchasi 72, 100084",
+        "former_names": "Kirov tumani (-1992)",
+        "legal_document": {
+          "name": "Presidium of Supreme Soviet Decree No. 579-XII",
+          "date": "1992-05-08",
+          "url": "https://lex.uz/ru/docs/281121"
+        },
+        "last_verified": "2026-09-18"
+      }
+    },
+    "note": "Районы Ташкента: SOATO по Госреестру и кадастровому слою TUMAN_BORDER, площади по границам 2024 года (студия) и геодезические по кадастру. Дополнено пакетом tashkent_gis_dataset (18.09.2026): население по районам на 01.07.2026 (Toshstat, уверенность A), ряды 2022-2026, средняя номинальная зарплата (I полугодие 2025 и 2026), оборот розничной торговли (январь-июль 2026), предприятия и субъекты бизнеса (01.08.2026), миграция, здравоохранение, дошкольные учреждения, строительство. Пакет tashkent_gis_master: коды SOATO уровня A, кадастровые префиксы, геодезические площади, население на 01.10.2025 (Toshstat, A) и 01.01.2026 (hudud.stat.uz, B: портал в тестовом режиме), число махаллей и полигонов, центры районов, прежние названия и правовые акты.",
+    "sources": [
+      "Toshstat, Demografiya Jan-Jun 2026 (toshstat.uz/2026/demografiya/demografiya1.pdf)",
+      "Toshstat, Demografiya Jan-Sep 2025, Jan-Mar 2025, Jan-Dec 2024",
+      "Toshstat, Mehnat Jan-Jun 2026 (зарплата)",
+      "Toshstat, Ichki savdo Jan-Jul 2026 (розница)",
+      "Toshstat, Korxona registri Aug 2026",
+      "Toshstat, Qurilish Jan-Apr 2026",
+      "Toshstat, Sog'liqni saqlash 2023, Maktabgacha ta'lim 2021",
+      "пакет tashkent_gis_dataset (CASE, 18.09.2026): 03_tashkent_districts.csv, 10_tashkent_district_demographics_socioeconomic_long.csv",
+      "пакет tashkent_gis_master (CASE, 18.09.2026): 01_tashkent_districts.geojson, 03_tashkent_districts.csv, 05_tashkent_mahalla_demographics.csv, 07_tashkent_admin_changes.csv"
+    ],
+    "admin_changes": [
+      {
+        "date": "1992-05-08",
+        "entity": "district",
+        "old_name": "Kirov tumani",
+        "new_name": "Yunusobod tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Presidium of the Supreme Soviet of Uzbekistan, Decree No. 579-XII, 08.05.1992",
+        "url": "https://lex.uz/ru/docs/281121",
+        "source_class": "OFFICIAL",
+        "description": "One of four Tashkent districts renamed by a single decree."
+      },
+      {
+        "date": "1992-05-08",
+        "entity": "district",
+        "old_name": "Lenin tumani",
+        "new_name": "Mirobod tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Decree No. 579-XII, 08.05.1992",
+        "url": "https://lex.uz/ru/docs/281121",
+        "source_class": "OFFICIAL",
+        "description": "Mirobod was formerly Lenin (earlier Temiryoʻlchilar) - NOT Kuybishev. Widely mis-stated."
+      },
+      {
+        "date": "1992-05-08",
+        "entity": "district",
+        "old_name": "Oktyabr tumani",
+        "new_name": "Shayxontohur tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Decree No. 579-XII, 08.05.1992",
+        "url": "https://lex.uz/ru/docs/281121",
+        "source_class": "OFFICIAL",
+        "description": null
+      },
+      {
+        "date": "1992-05-08",
+        "entity": "district",
+        "old_name": "Frunze tumani",
+        "new_name": "Yakkasaroy tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Decree No. 579-XII, 08.05.1992",
+        "url": "https://lex.uz/ru/docs/281121",
+        "source_class": "OFFICIAL",
+        "description": null
+      },
+      {
+        "date": "1992-05-08",
+        "entity": "district",
+        "old_name": "Kuybishev tumani",
+        "new_name": "Mirzo Ulugʻbek tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Presidium of the Supreme Soviet, Decree No. 580-XII, 08.05.1992",
+        "url": "https://lex.uz/ru/docs/281541",
+        "source_class": "OFFICIAL",
+        "description": "Separate decree, same date. Confirms Kuybishev -> Mirzo Ulugʻbek."
+      },
+      {
+        "date": "2005-05-06",
+        "entity": "district",
+        "old_name": "Akmal Ikromov tumani",
+        "new_name": "Uchtepa tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Senate of Oliy Majlis, Resolution No. 39-I, 06.05.2005",
+        "url": "https://www.lex.uz/docs/1154885",
+        "source_class": "OFFICIAL",
+        "description": "At the petition of the Tashkent hokim."
+      },
+      {
+        "date": "2010-12-04",
+        "entity": "district",
+        "old_name": "Sobir Rahimov tumani",
+        "new_name": "Olmazor tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Legislative Chamber Res. No. 182-II (03.11.2010) + Senate Res. No. 133-II (04.12.2010)",
+        "url": "https://lex.uz/ru/docs/2949066",
+        "source_class": "OFFICIAL",
+        "description": "Two-step bicameral process."
+      },
+      {
+        "date": "2014-08-29",
+        "entity": "district",
+        "old_name": "Hamza tumani",
+        "new_name": "Yashnobod tumani",
+        "old_district": null,
+        "new_district": null,
+        "type": "renamed",
+        "document": "Senate of Oliy Majlis, Resolution No. PS-441-II, 29.08.2014",
+        "url": "https://www.lex.uz/ru/docs/2466827",
+        "source_class": "OFFICIAL",
+        "description": "At the Cabinet of Ministersʼ proposal."
+      },
+      {
+        "date": "2016-07-12",
+        "entity": "mahalla (citywide baseline)",
+        "old_name": null,
+        "new_name": null,
+        "old_district": null,
+        "new_district": "all 11 districts then existing",
+        "type": "boundary_changed",
+        "document": "Xalq deputatlari Toshkent shahar Kengashi, Decision No. 124/15-5, 12.07.2016",
+        "url": "https://lex.uz/ru/docs/3073794",
+        "source_class": "OFFICIAL",
+        "description": "First comprehensive fixing of boundaries for the then 505 mahallas of Tashkent City, under the procedure of Cabinet Res. No. 48 of 04.03.2014."
+      },
+      {
+        "date": "2019-01-12",
+        "entity": "mahalla",
+        "old_name": "Mehrigiyo",
+        "new_name": "Mehrigiyo + Bunyodobod",
+        "old_district": "Sergeli",
+        "new_district": "Sergeli",
+        "type": "split",
+        "document": "Toshkent shahar Kengashi Decision No. 417/47-5, 12.01.2019 (effective 04.06.2019)",
+        "url": "https://lex.uz/docs/4427233",
+        "source_class": "OFFICIAL",
+        "description": "City total rose 505 -> 508."
+      },
+      {
+        "date": "2019-01-12",
+        "entity": "mahalla",
+        "old_name": "Nogʻay-Qoʻrgʻon",
+        "new_name": "Qubay Tepa",
+        "old_district": "Sergeli",
+        "new_district": "Sergeli",
+        "type": "renamed",
+        "document": "Decision No. 417/47-5, 12.01.2019",
+        "url": "https://lex.uz/docs/4427233",
+        "source_class": "OFFICIAL",
+        "description": "Present in this dataset as 1726283046 Qubay-tepa."
+      },
+      {
+        "date": "2019-01-12",
+        "entity": "mahalla",
+        "old_name": "Maʻrifat",
+        "new_name": "Oʻqchi-Olmazor",
+        "old_district": "Yashnobod",
+        "new_district": "Yashnobod",
+        "type": "renamed",
+        "document": "Decision No. 417/47-5, 12.01.2019",
+        "url": "https://lex.uz/docs/4427233",
+        "source_class": "OFFICIAL",
+        "description": "NOTE: both 1726290048 Maʻrifat AND 1726290050 Oʻqchi Olmazor exist in the current register - the rename evidently did not remove Maʻrifat. Flagged for verification."
+      },
+      {
+        "date": "2019-04-16",
+        "entity": "city boundary",
+        "old_name": null,
+        "new_name": null,
+        "old_district": "Zangiota tumani (Toshkent viloyati)",
+        "new_district": "Sergeli tumani (Toshkent shahri)",
+        "type": "transferred",
+        "document": "Legislative Chamber Resolution No. 2456-III, 16.04.2019",
+        "url": "https://lex.uz/docs/5164334",
+        "source_class": "OFFICIAL",
+        "description": "428 ha region -> city: Yuqoridarhon mahalla in full plus parts of Toshkent and Pastdarhon mahallas."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "district",
+        "old_name": null,
+        "new_name": "Yangihayot tumani",
+        "old_district": "Sergeli + Bektemir (city); Zangiota, Quyichirchiq, Yangiyoʻl, Oʻrtachirchiq (region)",
+        "new_district": "Yangihayot tumani",
+        "type": "created",
+        "document": "Legislative Chamber Res. No. 443-IV, 08.09.2020; Senate resolution ~11.09.2020 (NUMBER NOT FOUND); Cabinet Res. No. PQ-4888, 11.11.2020 (hokimiyat set-up)",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "Tashkentʼs 12th district. 4,419.6 ha at creation. Cadastre polygon in this dataset measures 44.22 km2, matching. Sergeli contributed 1,864.2 ha (12 mahallas in full + 6 in part per the act; gazeta.uz reported 13+6 - discrepancy unresolved)."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "mahalla",
+        "old_name": "Toshkent",
+        "new_name": "Toshkent",
+        "old_district": "Zangiota (region)",
+        "new_district": "Yangihayot",
+        "type": "transferred",
+        "document": "Legislative Chamber Res. No. 443-IV, 08.09.2020",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "492.0 ha. Present as 1726292027."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "mahalla",
+        "old_name": "Surum",
+        "new_name": null,
+        "old_district": "Quyichirchiq (region)",
+        "new_district": "Yangihayot",
+        "type": "transferred",
+        "document": "Res. No. 443-IV, 08.09.2020",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "128.7 ha. Not found under this name in the current register - verify."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "mahalla",
+        "old_name": "Chortoq",
+        "new_name": "Chortoq",
+        "old_district": "Yangiyoʻl (region)",
+        "new_district": "Yangihayot",
+        "type": "transferred",
+        "document": "Res. No. 443-IV, 08.09.2020",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "264.4 ha. Present as 1726292030."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "mahalla",
+        "old_name": "Alisher Navoiy, Bektemir, Jaloʻir, Nurafshon, Xoʻja-Uchqun (+ part of Gulzor)",
+        "new_name": null,
+        "old_district": "Oʻrtachirchiq (region)",
+        "new_district": "Yangihayot",
+        "type": "transferred",
+        "document": "Res. No. 443-IV, 08.09.2020",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "1,403.3 ha combined. Jaloir (1726292026) and Xoʻja Uchqun (1726292028) present in the current register."
+      },
+      {
+        "date": "2020-09-08",
+        "entity": "mahalla",
+        "old_name": "Binokor",
+        "new_name": "Binokor",
+        "old_district": "Bektemir (city)",
+        "new_district": "Yangihayot",
+        "type": "transferred",
+        "document": "Res. No. 443-IV, 08.09.2020",
+        "url": "https://lex.uz/docs/5187492",
+        "source_class": "OFFICIAL",
+        "description": "267 ha - all of Bektemirʼs contribution. Present as 1726292024."
+      },
+      {
+        "date": "2021-08-27",
+        "entity": "city boundary",
+        "old_name": null,
+        "new_name": null,
+        "old_district": "Zangiota, Yuqorichirchiq, Oʻrtachirchiq, Qibray (region)",
+        "new_district": "Sergeli, Bektemir, Mirzo Ulugʻbek, Yashnobod (city)",
+        "type": "transferred",
+        "document": "Cabinet of Ministers Resolution No. 702, 19/20.11.2021 (implementing); underlying Legislative Chamber/Senate resolution NUMBER NOT FOUND",
+        "url": "https://lex.uz/uz/docs/5735284",
+        "source_class": "OFFICIAL (implementing act) + SECONDARY (parliamentary act)",
+        "description": "City gained 7,853.3 ha and returned 171.3 ha. Sergeli +1,827.1; Bektemir +1,624.2; Mirzo Ulugʻbek +2,294.6; Yashnobod +2,107.4 ha. ~41-42 MFY and ~95,872 residents (23,249 families) moved into the city. THIS IS WHY pre-2021 published district areas are too small - use the cadastre areas in this dataset."
+      },
+      {
+        "date": "2021-10-05",
+        "entity": "mahalla",
+        "old_name": null,
+        "new_name": null,
+        "old_district": "Toshkent viloyati",
+        "new_district": "Toshkent shahri",
+        "type": "transferred",
+        "document": "Same episode as above",
+        "url": "https://qalampir.uz/news/toshkent-viloyatida-ma%D2%B3allalar-soni-41-taga-kamaydi-47565",
+        "source_class": "SECONDARY",
+        "description": "Region-side confirmation: Tashkent Region mahalla count fell 1,050 -> 1,009 as of 05.10.2021."
+      },
+      {
+        "date": "2023-11-24 .. 2024-10-23",
+        "entity": "mahalla (citywide)",
+        "old_name": null,
+        "new_name": null,
+        "old_district": "all 12",
+        "new_district": "all 12",
+        "type": "boundary_changed / created",
+        "document": "Series of Xalq deputatlari Toshkent shahar Kengashi decisions \"…mahallalarning aniq chegaralarini belgilash toʻgʻrisida\": VI-93-256-14-0-K/23 (24.11.2023), VI-99-35-14-0-K/24 (02.04.2024), VI-101-53-14-0-K/24 (30.04.2024), VI-103-90-14-0-K/24 (10.06.2024), VI-105-114-14-0-K/24 (31.07.2024), VI-107-144-14-0-K/24 (04.09.2024), VI-109-173-14-0-K/24 and VI-109-174-14-0-K/24 (23.10.2024)",
+        "url": "https://uz.wikipedia.org/wiki/Toshkent_mahallalari",
+        "source_class": "SECONDARY (decision numbers cited; individual texts not retrieved)",
+        "description": "Raised the city total to 585 mahallas as of 25.10.2024. Per-district: Bektemir 12->18, Mirzo Ulugʻbek 54->70, Olmazor 58->64, Sergeli 39->46, Yashnobod 57->67, Yunusobod 63->64, Chilonzor 51->55; Mirobod 39, Uchtepa 60, Yakkasaroy 21, Shayxontohur 51 unchanged; Yangihayot 30. INDEPENDENTLY CONFIRMED: the Kadastr agentligi register returns exactly these counts."
+      },
+      {
+        "date": "2024-05-20",
+        "entity": "mahalla (nationwide)",
+        "old_name": null,
+        "new_name": null,
+        "old_district": null,
+        "new_district": null,
+        "type": "governance / registration mandate",
+        "document": "Cabinet of Ministers Resolution No. 294, 20.05.2024",
+        "url": "https://lex.uz/docs/6931873",
+        "source_class": "OFFICIAL",
+        "description": "Tasked the Uzbekistan Mahalla Union with registering all mahallas nationally with precise boundaries within 3 months. Legal driver behind the 2023-2024 city boundary decisions and the current cadastre layer."
+      },
+      {
+        "date": "2023-11-11 .. present",
+        "entity": "district",
+        "old_name": null,
+        "new_name": "Yangi Toshkent tumani",
+        "old_district": "Yuqorichirchiq + Oʻrtachirchiq (region)",
+        "new_district": "proposed 13th district of Toshkent shahri",
+        "type": "PROPOSED - NOT ENACTED",
+        "document": "Cabinet Res. No. 568, 27.10.2023 creates only the New Tashkent City Construction Directorate; a Legislative Chamber resolution was reported ~Nov-Dec 2023 but NOT verified on lex.uz",
+        "url": "https://www.gazeta.uz/oz/2023/11/11/new-tashkent/",
+        "source_class": "SECONDARY",
+        "description": "NOT a completed administrative change. Tashkent City official sources still list 12 districts, and the cadastre district layer returns exactly 12. Land continues to be granted incrementally to the Directorate (e.g. 122.3 ha on 2025-03-14). Treat as pipeline risk for any dataset refresh."
+      },
+      {
+        "date": "2026-02-16",
+        "entity": "mahalla (nationwide)",
+        "old_name": null,
+        "new_name": null,
+        "old_district": null,
+        "new_district": null,
+        "type": "national programme (not a boundary change)",
+        "document": "Presidential Decree No. PF-22, 16.02.2026",
+        "url": "https://lex.uz/docs/8050787",
+        "source_class": "OFFICIAL",
+        "description": "2026 declared \"Mahallani rivojlantirish va jamiyatni yuksaltirish yili\". Raises the likelihood of further mahalla-level changes during 2026 - re-verify the register quarterly."
+      }
+    ]
+  },
+  "ngis": {
+    "gis_sources": [
+      {
+        "entity": "mahalla",
+        "name": "All 402 mapped Tashkent mahallas",
+        "district": "all 12",
+        "status": "OFFICIAL",
+        "format": "Esri JSON / GeoJSON / PBF (query)",
+        "crs": "EPSG:32642 service, EPSG:3857 source, any outSR",
+        "authority": "Kadastr agentligi (Cadastre Agency) / Davlat kadastr palatasi",
+        "source": "Milliy geoaxborot portali - UZKAD/MAHALLA_UZKAD_DB16",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0/query",
+        "reference": "2026-03-14..2026-08-27",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "PRIMARY FIND. capabilities=Query, supportedQueryFormats=JSON,geoJSON,PBF, maxRecordCount=2000, pagination supported. Filter soato_region=1726. Attributes: cadastral_number (=mahalla SOATO), mahalla_name, district_name, soato_district, land_fund_*. 402 of 585 Tashkent mahallas present. The MapServer of the same name has query DISABLED - use the FeatureServer."
+      },
+      {
+        "entity": "district",
+        "name": "12 Tashkent districts",
+        "district": "all 12",
+        "status": "OFFICIAL",
+        "format": "Esri JSON",
+        "crs": "EPSG:32642",
+        "authority": "Kadastr agentligi / Davlat kadastr palatasi",
+        "source": "Milliy geoaxborot portali - Hosted/TUMAN_BORDER",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/Hosted/TUMAN_BORDER/FeatureServer/2/query",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "Filter: region LIKE %oshkent shahri%. Fields fid,id,prefix,region,district,st_area_sh. WARNING: st_area_sh is a Web-Mercator area, inflated by 1/cos^2(lat) = ~1.772x at Tashkent latitude - recompute areas from geometry."
+      },
+      {
+        "entity": "region",
+        "name": "Toshkent shahri outline",
+        "district": "n/a",
+        "status": "OFFICIAL",
+        "format": "Esri JSON",
+        "crs": "EPSG:32642",
+        "authority": "Kadastr agentligi",
+        "source": "Milliy geoaxborot portali - Hosted/VILOYAT_BORDER",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/Hosted/VILOYAT_BORDER/FeatureServer",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "B",
+        "note": "Region/city level outline layer; not extracted in this pass."
+      },
+      {
+        "entity": "mahalla register",
+        "name": "585 Tashkent MFY names + SOATO codes",
+        "district": "all 12",
+        "status": "OFFICIAL (attributes only, no geometry)",
+        "format": "JSON",
+        "crs": "n/a",
+        "authority": "Kadastr agentligi / Davlat kadastr palatasi",
+        "source": "Etirof open cadastre - neighborhoods select",
+        "url": "https://etirof.kadastr.uz/open-map",
+        "download": null,
+        "api": "https://api-etirof.kadastr.uz/api/v1/commons/selects/neighborhoods",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "Nationwide 9,473 MFY; 585 for Tashkent City (filter soato//1000 in the 12 district codes). Returns id, name, ruName (empty for Tashkent), soato. NO geometry."
+      },
+      {
+        "entity": "district register",
+        "name": "12 Tashkent districts + SOATO",
+        "district": "all 12",
+        "status": "OFFICIAL (attributes only)",
+        "format": "JSON",
+        "crs": "n/a",
+        "authority": "Kadastr agentligi",
+        "source": "Etirof open cadastre - districts select",
+        "url": "https://etirof.kadastr.uz/open-map",
+        "download": null,
+        "api": "https://api-etirof.kadastr.uz/api/v1/commons/selects/districts",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "Source of the official SOATO codes used throughout this dataset."
+      },
+      {
+        "entity": "region",
+        "name": "14 regions incl. Toshkent shahri (soato 1726)",
+        "district": "n/a",
+        "status": "OFFICIAL",
+        "format": "JSON with Polygon coordinates",
+        "crs": "EPSG:4326 (implicit)",
+        "authority": "Kadastr agentligi",
+        "source": "Etirof open cadastre - territories",
+        "url": "https://etirof.kadastr.uz/open-map",
+        "download": null,
+        "api": "https://api-etirof.kadastr.uz/api/v1/territories",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "~798 KB, 14 records, embedded polygon geometry per region."
+      },
+      {
+        "entity": "district statistics",
+        "name": "12 Tashkent districts, population time series",
+        "district": "all 12",
+        "status": "n/a (tabular)",
+        "format": "JSON",
+        "crs": "n/a",
+        "authority": "Milliy statistika qoʻmitasi",
+        "source": "SIAT regional module (hudud.stat.uz)",
+        "url": "https://hudud.stat.uz",
+        "download": null,
+        "api": "https://hudud.stat.uz/api/v1/gis/regions/?parent__isnull=false&parent_soato=1726",
+        "reference": "2026 Q1",
+        "accessed": "2026-09-18",
+        "conf": "B",
+        "note": "Also /api/v1/passport/demography/{soato}/ gives quarterly series 2024Q1-2026Q1 with SDMX ids, and /api/v1/passport/PopularityGenderAges/{soato}/ gives age-sex structure. Portal shows a TEST MODE banner; no stated licence. Deepest official population geography available = tuman."
+      },
+      {
+        "entity": "mahalla",
+        "name": "Tashkent mahalla boundaries (rendered tiles only)",
+        "district": "all 12",
+        "status": "OFFICIAL but ACCESS-RESTRICTED",
+        "format": "PNG map image export only",
+        "crs": "EPSG:3857",
+        "authority": "Kadastr agentligi",
+        "source": "open.ngis.uz UZKAD/MAHALLA_UZKAD_DB16 MapServer",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/UZKAD/MAHALLA_UZKAD_DB16/MapServer",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "MapServer /export works, /query and /identify return \"The requested capability is not supported\". Superseded by the FeatureServer row above, which DOES allow query."
+      },
+      {
+        "entity": "master plan / zoning",
+        "name": "Toshkent shahar bosh rejasi (approved 02.11.2024)",
+        "district": "all 12",
+        "status": "OFFICIAL but CURRENTLY BROKEN",
+        "format": "Esri FeatureServer",
+        "crs": "Web Mercator",
+        "authority": "Qurilish va uy-joy kommunal xoʻjaligi vazirligi",
+        "source": "ArcGIS Online hosted master-plan service",
+        "url": "https://mc.uz/oz/toshkent-shahar-bosh-rejasi-uz",
+        "download": null,
+        "api": "https://services-ap1.arcgis.com/Ai47flMjXeXD2EXw/arcgis/rest/services/Toshkent_shahar_ohirgi_tasdiqlangan_bd_02112024_%D0%B2%D0%B8%D0%B4/FeatureServer/1",
+        "reference": "2024-11-02",
+        "accessed": "2026-09-18",
+        "conf": "F",
+        "note": "Returns {\"error\":{\"code\":403,\"message\":\"Subscription is disabled, the item is not accessible\"}}. Retry later; high value for zoning if it comes back."
+      },
+      {
+        "entity": "zoning",
+        "name": "Toshkent land-tax zones",
+        "district": "all 12",
+        "status": "OFFICIAL",
+        "format": "Esri FeatureServer",
+        "crs": "EPSG:32642",
+        "authority": "Kadastr agentligi",
+        "source": "open.ngis.uz Hosted/TOSHKENT_NALOG_ZONE",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/Hosted/TOSHKENT_NALOG_ZONE/FeatureServer",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "B",
+        "note": "NOT extracted in this pass. Directly relevant to land-value and rent modelling - recommended next target."
+      },
+      {
+        "entity": "master plan",
+        "name": "Toshkent genplan (cadastre copy)",
+        "district": "all 12",
+        "status": "OFFICIAL",
+        "format": "Esri FeatureServer",
+        "crs": "EPSG:3857",
+        "authority": "Kadastr agentligi",
+        "source": "open.ngis.uz Hosted/TOSHKENT_GENPLAN_3857",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/Hosted/TOSHKENT_GENPLAN_3857/FeatureServer",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "B",
+        "note": "NOT extracted in this pass. A second, apparently working copy of master-plan geometry inside the cadastre geoportal - recommended next target given mc.uz is down."
+      },
+      {
+        "entity": "land parcels",
+        "name": "Residential / non-residential land contours",
+        "district": "all 12",
+        "status": "OFFICIAL",
+        "format": "Esri FeatureServer",
+        "crs": "EPSG:32642",
+        "authority": "Kadastr agentligi",
+        "source": "open.ngis.uz UZKAD/TURAR_UZKAD_DB16, NOTURAR_UZKAD_DB16, YER_TURI_KONTUR",
+        "url": "https://open.ngis.uz",
+        "download": null,
+        "api": "https://db.ngis.uz/db/rest/services/UZKAD",
+        "reference": "current",
+        "accessed": "2026-09-18",
+        "conf": "B",
+        "note": "Parcel-level land use. Very large; not extracted."
+      },
+      {
+        "entity": "district (ADM2)",
+        "name": "199 Uzbekistan districts incl. Tashkent 12",
+        "district": "all 12",
+        "status": "VERIFIED SECONDARY",
+        "format": "GeoJSON",
+        "crs": "EPSG:4326",
+        "authority": "geoBoundaries (William & Mary geoLab)",
+        "source": "geoBoundaries gbOpen UZB ADM2",
+        "url": "https://www.geoboundaries.org",
+        "download": "https://media.githubusercontent.com/media/wmgeolab/geoBoundaries/9469f09/releaseData/gbOpen/UZB/ADM2/geoBoundaries-UZB-ADM2.geojson",
+        "api": "https://www.geoboundaries.org/api/current/gbOpen/UZB/ALL/",
+        "reference": "release 9469f09",
+        "accessed": "2026-09-18",
+        "conf": "C",
+        "note": "Fallback only - now superseded by the official cadastre district layer. NOTE: the raw.githubusercontent URL returns a Git-LFS pointer, not data; use the media.githubusercontent.com path."
+      },
+      {
+        "entity": "district (ADM2)",
+        "name": "Uzbekistan ADM0-ADM2",
+        "district": "all 12",
+        "status": "VERIFIED SECONDARY",
+        "format": "GeoJSON/SHP",
+        "crs": "EPSG:4326",
+        "authority": "UN OCHA / ITOS",
+        "source": "HDX Uzbekistan Subnational Administrative Boundaries (COD-AB)",
+        "url": "https://data.humdata.org/dataset/cod-ab-uzb",
+        "download": null,
+        "api": null,
+        "reference": "review Jan 2024; COATO codes as of Nov 2017",
+        "accessed": "2026-09-18",
+        "conf": "C",
+        "note": "Max ADM2 - does NOT reach mahalla. COD-AB is itself geoBoundaries-derived."
+      },
+      {
+        "entity": "district (ADM2)",
+        "name": "Uzbekistan levels 0-2",
+        "district": "all 12",
+        "status": "VERIFIED SECONDARY",
+        "format": "GeoJSON/SHP/GPKG",
+        "crs": "EPSG:4326",
+        "authority": "GADM",
+        "source": "GADM v4.1",
+        "url": "https://gadm.org/maps/UZB_1.html",
+        "download": "https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_UZB_2.json.zip",
+        "api": null,
+        "reference": "v4.1",
+        "accessed": "2026-09-18",
+        "conf": "C",
+        "note": "gadm41_UZB_3.json.zip returns 404 - GADM has no ADM3 for Uzbekistan."
+      },
+      {
+        "entity": "mixed",
+        "name": "Uzbekistan administrative division w/ aggregated population",
+        "district": "unknown",
+        "status": "OSM ONLY",
+        "format": "GeoPackage",
+        "crs": "EPSG:4326",
+        "authority": "Kontur",
+        "source": "HDX Kontur Boundaries Uzbekistan",
+        "url": "https://data.humdata.org/dataset/kontur-boundaries-uzbekistan",
+        "download": null,
+        "api": null,
+        "reference": "2022-04-07 / 2023-06-28",
+        "accessed": "2026-09-18",
+        "conf": "E",
+        "note": "OSM-derived with H3-hex modelled population. Depth depends on OSM coverage; mahalla completeness unverified. Do NOT treat as official. Useful only as a population cross-check."
+      },
+      {
+        "entity": "all",
+        "name": "Uzbekistan OSM extract",
+        "district": "all 12",
+        "status": "OSM ONLY",
+        "format": "PBF / SHP / GPKG",
+        "crs": "EPSG:4326",
+        "authority": "OpenStreetMap contributors",
+        "source": "Geofabrik Uzbekistan",
+        "url": "https://download.geofabrik.de/asia/uzbekistan.html",
+        "download": "https://download.geofabrik.de/asia/uzbekistan-latest.osm.pbf",
+        "api": null,
+        "reference": "daily",
+        "accessed": "2026-09-18",
+        "conf": "E",
+        "note": "UZ OSM wiki designates admin_level=8 for mahalla but describes the scheme as still in preparation; ground completeness unverified. Not needed now that official polygons are available."
+      },
+      {
+        "entity": "n/a",
+        "name": "UN SALB Uzbekistan",
+        "district": "n/a",
+        "status": "NONE",
+        "format": "n/a",
+        "crs": "n/a",
+        "authority": "United Nations",
+        "source": "SALB",
+        "url": "https://salb.un.org/en/data/uzb",
+        "download": null,
+        "api": null,
+        "reference": "n/a",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "CONFIRMED NEGATIVE: page states no datasets currently available for Uzbekistan."
+      },
+      {
+        "entity": "n/a",
+        "name": "toshkent.kadastr.uz mahalla map",
+        "district": "n/a",
+        "status": "DOES NOT EXIST",
+        "format": "n/a",
+        "crs": "n/a",
+        "authority": "n/a",
+        "source": "(false lead)",
+        "url": null,
+        "download": null,
+        "api": null,
+        "reference": "n/a",
+        "accessed": "2026-09-18",
+        "conf": "A",
+        "note": "CONFIRMED NEGATIVE: hostname toshkent.kadastr.uz does not resolve (NXDOMAIN). Do not cite or reuse this URL."
+      }
+    ]
+  },
+  "missing_register": [
+    {
+      "entity": "183 of 585 mahallas",
+      "field": "official polygon geometry",
+      "searched": "open.ngis.uz UZKAD/MAHALLA_UZKAD_DB16 FeatureServer queried for the whole of soato_region=1726 (no bbox or scale limit); groupBy count by district confirms 402 features and 402 distinct cadastral numbers",
+      "best": "The cadastre mahalla layer itself (402 of 585 = 68.7%)",
+      "why": "The layer is being populated progressively - create_at values for the Tashkent subset run 2026-03-14 to 2026-08-27, i.e. loading was still in progress three weeks before the access date. The 183 absent mahallas are simply not yet published, not deleted.",
+      "next": "Re-query the same FeatureServer monthly; coverage should rise. If a deadline applies, request the outstanding cadastral drawings from Davlat kadastr palatasi under Cabinet Res. No. 48 art. 28.",
+      "request_needed": "Only if coverage stalls",
+      "priority": "HIGH"
+    },
+    {
+      "entity": "All 585 mahallas",
+      "field": "population_total and every demographic field",
+      "searched": "stat.uz, siat.stat.uz, api.siat.stat.uz, hudud.stat.uz (all API routes), toshstat.uz, data.egov.uz catalogue and apiClient API, aholi.stat.uz 2026 census release, mahalla.uz (dead domain), Raqamli Mahalla, HDX, WorldPop, IPUMS (no Uzbekistan coverage)",
+      "best": "hudud.stat.uz - district (tuman) level only, 12 units for Tashkent",
+      "why": "No Uzbek public source publishes population below tuman level. The 2026 census preliminary release stops at city level. This is a publication-policy limit, not a search failure.",
+      "next": "Formal request to Milliy statistika qoʻmitasi or Toshkent shahar statistika boshqarmasi for the mahalla-level table of the 2026 census; alternatively the Mahalla va oilani qoʻllab-quvvatlash vazirligi holds registration-based counts.",
+      "request_needed": "YES - this is the main blocker",
+      "priority": "CRITICAL"
+    },
+    {
+      "entity": "All 585 mahallas",
+      "field": "mahalla_name_uz_cyrillic, mahalla_name_ru, mahalla_name_en",
+      "searched": "Etirof register returns an empty ruName for every Tashkent record; no Cyrillic or Russian variant field exists in the cadastre mahalla layer",
+      "best": "Uzbek Latin name only (authoritative)",
+      "why": "The official register simply does not carry the other scripts for Tashkent. Mechanical transliteration was deliberately NOT performed, because several names are proper nouns whose Russian forms differ from a letter-by-letter conversion (e.g. Olmazor / Алмазар, Sergeli / Сергели).",
+      "next": "The 2023-2024 Kengash decision annexes on lex.uz are published in Cyrillic and would give authoritative Cyrillic forms. Retrieve those PDFs per district.",
+      "request_needed": "No",
+      "priority": "MEDIUM"
+    },
+    {
+      "entity": "All 585 mahallas",
+      "field": "mahalla office address, chairman, contact",
+      "searched": "data.egov.uz dataset 61134d82db32b99538e084df",
+      "best": "A 12-row dataset - one district-level coordinator, not a mahalla-level directory",
+      "why": "No public mahalla-level directory was found.",
+      "next": "Request from Toshkent shahar hokimligi, or scrape district kengash.gov.uz sub-portals.",
+      "request_needed": "No",
+      "priority": "LOW"
+    },
+    {
+      "entity": "All 585 mahallas",
+      "field": "date_created, date_renamed, date_merged, legal_document_number per mahalla",
+      "searched": "lex.uz searched for the individual 2023-2024 \"aniq chegaralarini belgilash\" decisions; the decision numbers and dates are known (see 07_tashkent_admin_changes.csv) but the annex texts were not retrieved",
+      "best": "Decision numbers and dates for all 12 districts; the full annex text for Bektemir only",
+      "why": "The decisions are published on gov.uz/kengash.gov.uz behind per-district internal document IDs that were not enumerated for all districts.",
+      "next": "kengash.gov.uz/<district-slug>/documents, then the PDF API pattern https://api-ekengash.ecdn.uz/api/v2/domain/<slug>/documents/download-pdf/<id> (proven working for Bektemir, id 229609).",
+      "request_needed": "No",
+      "priority": "MEDIUM"
+    },
+    {
+      "entity": "Yashnobod district",
+      "field": "status of Maʻrifat vs Oʻqchi Olmazor",
+      "searched": "Current cadastre register",
+      "best": "Both 1726290048 Maʻrifat and 1726290050 Oʻqchi Olmazor appear as current",
+      "why": "Decision 417/47-5 of 12.01.2019 renamed Maʻrifat to Oʻqchi-Olmazor, yet both names are live in the 2026 register - either the rename applied to only part of the territory, or a new Maʻrifat was later created.",
+      "next": "The Yashnobod 2024 boundary decision annex (VI-99-35-14-0-K/24, 02.04.2024).",
+      "request_needed": "No",
+      "priority": "MEDIUM"
+    },
+    {
+      "entity": "Yangihayot district",
+      "field": "identity of the \"Surum\" mahalla transferred in 2020",
+      "searched": "Current register of 30 Yangihayot mahallas",
+      "best": "No mahalla named Surum is present",
+      "why": "It was probably merged or renamed between 2020 and 2024.",
+      "next": "The Yangihayot 2024 boundary decision annex.",
+      "request_needed": "No",
+      "priority": "LOW"
+    },
+    {
+      "entity": "All 12 districts",
+      "field": "district boundary revision history as geometry",
+      "searched": "open.ngis.uz - only the current state is served",
+      "best": "Current polygons only",
+      "why": "The cadastre service carries no temporal versioning that is publicly queryable.",
+      "next": "The hectare schedules inside the 2019/2020/2021 legal acts allow a partial reconstruction of what changed, but not prior geometry.",
+      "request_needed": "No",
+      "priority": "LOW"
+    },
+    {
+      "entity": "Tashkent City",
+      "field": "2026 census results by district and mahalla",
+      "searched": "aholi.stat.uz, census.stat.uz (login-gated self-enumeration), stat.uz press centre",
+      "best": "Preliminary national + regional release of 2026-07-07",
+      "why": "Detailed tabulations had not been published as of 2026-09-18.",
+      "next": "Monitor aholi.stat.uz; final tabulations are the single best future source for mahalla demographics.",
+      "request_needed": "No",
+      "priority": "HIGH"
+    },
+    {
+      "entity": "Tashkent City",
+      "field": "master plan / zoning layer",
+      "searched": "mc.uz master-plan viewer and its ArcGIS Online backing service",
+      "best": "Service URL confirmed but returns \"Subscription is disabled, the item is not accessible\"",
+      "why": "The ArcGIS Online subscription behind the public master-plan map is inactive; media reported repeated downtime.",
+      "next": "Use open.ngis.uz Hosted/TOSHKENT_GENPLAN_3857 and Hosted/TOSHKENT_NALOG_ZONE instead - both are live inside the cadastre geoportal and were not extracted in this pass.",
+      "request_needed": "No",
+      "priority": "HIGH"
+    },
+    {
+      "entity": "All entities",
+      "field": "households, families, age structure, births, deaths, migration at mahalla level",
+      "searched": "Same sweep as the population row",
+      "best": "District-level age-sex structure via hudud.stat.uz /api/v1/passport/PopularityGenderAges/{soato}/",
+      "why": "Not published below tuman level.",
+      "next": "Same formal request as the population row; consider commissioning a WorldPop-raster x mahalla-polygon zonal estimate as an interim modelled layer - but label it MODELLED, never official.",
+      "request_needed": "YES",
+      "priority": "HIGH"
+    },
+    {
+      "entity": "All entities",
+      "field": "socioeconomic fields (housing stock, schools, businesses, income, vehicles)",
+      "searched": "data.egov.uz Hudud category (598 datasets) and the \"tuman\" series (173 datasets); toshstat.uz publications",
+      "best": "District-level business and demographic series on data.egov.uz",
+      "why": "Not systematically available at mahalla level; this pass prioritised administrative geometry and demographics as instructed.",
+      "next": "data.egov.uz apiClient/main/gettable per dataset; toshstat.uz XLSX bulletins.",
+      "request_needed": "No",
+      "priority": "LOW"
+    }
   ]
 }

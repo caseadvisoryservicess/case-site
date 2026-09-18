@@ -40,8 +40,13 @@ function build(OS, OUT) {
   /* v4.77.0: демография Ташкента (ряды, пол, возраст, доходы, КИПЦ) встроена как window.CASE_DEMOGRAPHY:
      модуль махаллей и демографии читает её раньше, чем data/demography_tashkent.json */
   const demography = JSON.parse(fs.readFileSync(path.join(OS, 'data', 'demography_tashkent.json'), 'utf8'));
-  const dataScript = '<script>/* данные, встроенные при сборке: границы районов, мастер-геобаза, демография */\nwindow.CASE_STANDALONE_DATA={districts:'
-    + safeInline(JSON.stringify(districts)) + ',master:' + safeInline(JSON.stringify(master)) + '};\nwindow.CASE_DEMOGRAPHY=' + safeInline(JSON.stringify(demography)) + ';</script>';
+  /* v4.78.0: реестр 585 махаллей (Etirof + хокимият), 402 границы из кадастрового слоя НГИС, сводка нежилых
+     участков и налоговые зоны тоже вшиты; выгрузка генплана (2,9 МБ) не вшивается: в автономном файле
+     генплан в точке спрашивается живым запросом к НГИС, слой на карте недоступен */
+  const readJ = f => JSON.parse(fs.readFileSync(path.join(OS, 'data', f), 'utf8'));
+  const registry = readJ('mahalla_registry_tashkent.json'), boundaries = readJ('mahalla_boundaries.geojson'), parcels = readJ('ngis_parcels_tashkent.json'), nalog = readJ('ngis_nalog_tashkent.geojson');
+  const dataScript = '<script>/* данные, встроенные при сборке: границы районов, мастер-геобаза, демография, реестр и границы махаллей, участки и налоговые зоны НГИС */\nwindow.CASE_STANDALONE_DATA={districts:'
+    + safeInline(JSON.stringify(districts)) + ',master:' + safeInline(JSON.stringify(master)) + '};\nwindow.CASE_DEMOGRAPHY=' + safeInline(JSON.stringify(demography)) + ';\nwindow.CASE_MAHALLA_REGISTRY=' + safeInline(JSON.stringify(registry)) + ';\nwindow.CASE_MAHALLA_BOUNDARIES=' + safeInline(JSON.stringify(boundaries)) + ';\nwindow.CASE_NGIS_PARCELS=' + safeInline(JSON.stringify(parcels)) + ';\nwindow.CASE_NGIS_NALOG=' + safeInline(JSON.stringify(nalog)) + ';</script>';
 
   const inlined = [];
   let html = src.replace(/<script src="([^"?]+)(\?v=[^"]*)?"><\/script>/g, (m, f) => {
@@ -59,7 +64,7 @@ function build(OS, OUT) {
   html = html.replace(headerOld, '<span class="lg"><b>CASE</b> Geo Analytics</span><span class="tag">автономная версия ' + version + ' · сборка ' + built + '</span>');
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, html);
-  return { out: OUT, bytes: Buffer.byteLength(html), version, built, inlined, districts: (districts.features || []).length, master: { bc: master.bc.length, medicine: master.medicine.length, pharmacies: master.pharmacies.length, mahallas: master.mahallas.length }, demography: demography.version };
+  return { out: OUT, bytes: Buffer.byteLength(html), version, built, inlined, districts: (districts.features || []).length, master: { bc: master.bc.length, medicine: master.medicine.length, pharmacies: master.pharmacies.length, mahallas: master.mahallas.length }, demography: demography.version, registry: registry.total, boundaries: (boundaries.features || []).length, parcels: parcels.total, nalog: (nalog.features || []).length };
 }
 
 if (require.main === module) {
@@ -69,5 +74,6 @@ if (require.main === module) {
   console.log('собрано: ' + r.out + ' (' + (r.bytes / 1024 / 1024).toFixed(2) + ' МБ), версия ' + r.version + ', сборка ' + r.built);
   console.log('встроено скриптов: ' + r.inlined.join(', '));
   console.log('районов: ' + r.districts + ', мастер-база: БЦ ' + r.master.bc + ', медицина ' + r.master.medicine + ', аптеки ' + r.master.pharmacies);
+  console.log('реестр махаллей: ' + r.registry + ', границ: ' + r.boundaries + ', участков НГИС: ' + r.parcels + ', налоговых зон: ' + r.nalog + ', демография: ' + r.demography);
 }
 module.exports = { build };

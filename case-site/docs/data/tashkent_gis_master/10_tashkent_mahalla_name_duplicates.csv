@@ -1,0 +1,3 @@
+﻿source_name,canonical_name,soato_code,district_id,district_name,n_occurrences,match_guidance,has_official_polygon
+Mustaqillik,mustaqillik,1726269040,1726269,Mirzo Ulug'bek,2,"SAME NAME IN DIFFERENT DISTRICTS - distinct entities, do NOT merge",NO
+Mustaqillik,mustaqillik,1726280001,1726280,Olmazor,2,"SAME NAME IN DIFFERENT DISTRICTS - distinct entities, do NOT merge",YES

@@ -111,7 +111,8 @@ const near = (a, b, tol) => Math.abs(a - b) <= tol;
     const tips = gProj.getLayers().map(l => (l.getTooltip && l.getTooltip()) ? String(l.getTooltip().getContent()) : '');
     return { pt, site: A.state.site, info: document.getElementById('projInfo').innerText.replace(/\s+/g, ' '), drawn: gProj.getLayers().length, tips,
       agentMarkers: A.state.groups.site ? A.state.groups.site.getLayers().length : 0, opt: document.querySelector('#proj option').textContent,
-      lastFact: A.state.log.filter(m => m.who === 'fact').slice(-1).map(m => m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim())[0] || '' };
+      /* v4.78.0: после факта о точке агент пишет и факт «Генплан (НГИС)», поэтому ищем факт о точке среди последних трёх */
+      lastFact: A.state.log.filter(m => m.who === 'fact').slice(-3).map(m => m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()).filter(t => !/Генплан \(НГИС\)/.test(t)).slice(-1)[0] || '' };
   });
   ck('точка агента стала точкой анализа студии', after.pt && !after.pt.pending && near(after.pt.lat, 41.3111, 1e-6) && near(after.pt.lng, 69.2797, 1e-6), JSON.stringify(after.pt));
   /* innerText отдаёт текст уже в верхнем регистре (CSS text-transform), поэтому регистр не важен */

@@ -163,15 +163,19 @@
   P.renderAmenities = renderAmen;
 
   /* --- установка ------------------------------------------------------------------------------ */
+  var seenKey = '';
+  function pollPoint() { var p = point(), k = p ? p.lat.toFixed(5) + ',' + p.lng.toFixed(5) : ''; if (k !== seenKey) { seenKey = k; renderAmen(); } }
   function hooks() {
-    var rp = window.renderProj; if (typeof rp === 'function' && !rp._prof) { var w = function () { var r = rp.apply(this, arguments); try { renderAmen(); } catch (e) {} return r; }; w._prof = true; window.renderProj = w; }
+    /* точку ставят через caseGeoSetPoint; renderProj студия подменяет при загрузке, поэтому не полагаемся на него */
+    var sp = window.caseGeoSetPoint; if (typeof sp === 'function' && !sp._prof) { var w = function () { var r = sp.apply(this, arguments); try { pollPoint(); } catch (e) {} return r; }; w._prof = true; window.caseGeoSetPoint = w; }
+    var rp = window.renderProj; if (typeof rp === 'function' && !rp._prof) { var w2 = function () { var r = rp.apply(this, arguments); try { pollPoint(); } catch (e) {} return r; }; w2._prof = true; window.renderProj = w2; }
   }
   function install() {
     css();
     var tries = 0;
     (function tick() {
       var ok = mountSelect() && mountAmen() && tagSections() >= 5;
-      if (ok) { hooks(); initial(function (p, fromAccount) { set(p, fromAccount); }); var n = 0; var iv = setInterval(function () { try { tagSections(); renderAmen(); } catch (e) {} if (++n >= 20) clearInterval(iv); }, 4000); return; }
+      if (ok) { hooks(); initial(function (p, fromAccount) { set(p, fromAccount); }); var n = 0; setInterval(function () { try { hooks(); tagSections(); if (++n <= 25) renderAmen(); else pollPoint(); } catch (e) {} }, 2000); return; }
       if (++tries < 100) setTimeout(tick, 250);
     })();
   }

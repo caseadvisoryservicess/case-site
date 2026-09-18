@@ -1,0 +1,43 @@
+﻿scope,indicator,value,unit,reference_date,source_name,source_url,confidence,last_verified_date,notes
+Toshkent shahri (Tashkent City),population_total_CENSUS,3224838,persons,2026-01-15,"Milliy statistika qo'mitasi, 2026 Census preliminary results",https://stat.uz/img/news/kitob-uzb_p68566.pdf,A,2026-09-18,First national census in 37 years; census moment 15.01.2026. ~47k HIGHER than the register-based figure
+Toshkent shahri (Tashkent City),population_male_CENSUS,1612832,persons,2026-01-15,NSC 2026 Census preliminary,https://stat.uz/img/news/kitob-uzb_p68566.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),population_female_CENSUS,1612006,persons,2026-01-15,NSC 2026 Census preliminary,https://stat.uz/img/news/kitob-uzb_p68566.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),urban_population_CENSUS,3224838,persons,2026-01-15,NSC 2026 Census preliminary,https://stat.uz/img/news/kitob-uzb_p68566.pdf,A,2026-09-18,City is 100% urban
+Toshkent shahri (Tashkent City),population_total,3212.2,thousand persons (doimiy aholi),2026-07-01,"Toshstat, Demografiya Jan-Jun 2026",https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,Sum of the 12 district figures reconciles exactly to this total
+Toshkent shahri (Tashkent City),population_female,1633.3,thousand persons,2026-07-01,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,50.8%
+Toshkent shahri (Tashkent City),population_male,1578.9,thousand persons,2026-07-01,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,49.2%
+Toshkent shahri (Tashkent City),population_total,3178.1,thousand persons (doimiy aholi),2026-01-01,NSC demography release (pub 27.01.2026),https://stat.uz/img/news/demografiya-lotin_p85803.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),population_total,3164.0,thousand persons (doimiy aholi),2025-10-01,Toshstat,https://toshstat.uz/2025/Demografya/Demografiya.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),population_total,3112.8,thousand persons (doimiy aholi),2025-01-01,Toshstat,https://toshstat.uz/2024/demografiya/demog123.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),population_total,3040.8,thousand persons (doimiy aholi),2024-01-01,Toshstat news (pub 26.01.2024),https://www.toshstat.uz/uz/matbuot-markazi/news/10812-toshkent-shahri-doimiy-aholisi-sonining-taqsimlanishi1,B,2026-09-18,NULL
+Toshkent shahri (Tashkent City),number_of_families,1011537,families,2025-01-01,UZA.uz citing NSC (pub 25.08.2025),https://uza.uz/en/posts/ozbekistonda-2025-yil-hisobida-oilalar-soni_752844,C,2026-09-18,City-level only; no district or mahalla breakdown published
+Toshkent shahri (Tashkent City),population_density,7389.9,persons per km2,2026-07-01,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,Implies a city area of ~434.7 km2
+Toshkent shahri (Tashkent City),area_km2_implied,434.7,km2,2026-07-01,DERIVED: population_total divided by published density,https://toshstat.uz/2026/demografiya/demografiya1.pdf,D,2026-09-18,"Derived, not published. Compare with 427.3 km2 from summing official mahalla areas"
+Toshkent shahri (Tashkent City),births,27.4,thousand,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"rate 17.3 per 1,000"
+Toshkent shahri (Tashkent City),deaths,7.5,thousand,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"rate 4.8 per 1,000"
+Toshkent shahri (Tashkent City),natural_increase,19.9,thousand,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),marriages,9.5,thousand,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"rate 6.0 per 1,000"
+Toshkent shahri (Tashkent City),divorces,3.2,thousand,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"rate 2.0 per 1,000"
+Toshkent shahri (Tashkent City),migration_in,64500,persons,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"internal 63,411 / international 1,089"
+Toshkent shahri (Tashkent City),migration_out,50355,persons,2026-01-01/2026-06-30,Toshstat,https://toshstat.uz/2026/demografiya/demografiya1.pdf,A,2026-09-18,"internal 49,863 / international 492"
+Toshkent shahri (Tashkent City),number_of_mahallas,585,mahallas,2024-10-23,Counted from the official boundary layer; corroborated by Gazeta.uz 28.10.2024 and the Mayor (Aug 2026),https://www.gazeta.uz/ru/2024/10/28/mahallas/,A,2026-09-18,Per-district counts sum to exactly 585
+Toshkent shahri (Tashkent City),number_of_districts,12,districts,2026-09-18,gov.uz regional directory; tashkent.uz; toshstat demography tables,https://gov.uz/oz/toshkent/departments/regional,A,2026-09-18,'Yangi Toshkent' is a proposed 13th district - NOT enacted as of this date
+Toshkent shahri (Tashkent City),housing_stock_apartments,600000,"units (approx, '>600,000')",2026-01-01/2026-06-01,"Cadastre Agency / National Centre for Public Appraisal, via Gazeta.uz 10.09.2026",https://www.gazeta.uz/oz/2026/09/10/appraisal-tashkent/,C,2026-09-18,"Stated as 'over 600,000' - treat as a lower bound"
+Toshkent shahri (Tashkent City),housing_stock_private_houses,213000,"units (approx, '>213,000')",2026-01-01/2026-06-01,Cadastre Agency via Gazeta.uz,https://www.gazeta.uz/oz/2026/09/10/appraisal-tashkent/,C,2026-09-18,"Stated as 'over 213,000' - lower bound"
+Toshkent shahri (Tashkent City),new_housing_completed,2170000,m2,2025-01-01/2025-12-31,CMWP Uzbekistan via Spot.uz 06.01.2026,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,NULL
+Toshkent shahri (Tashkent City),schools_general_secondary,503,institutions,2025-09 (start of 2025/26 school year),NSC via Talimxabarlari 02.04.2026,https://talimxabarlari.uz/69780/,C,2026-09-18,NULL
+Toshkent shahri (Tashkent City),universities,92,institutions,2024-06,Toshstat news 19.06.2024,https://toshstat.uz/uz/matbuot-markazi/news/11110-toshkent-shahrida-faoliyat-yuritayotgan-oliy-ta-lim-tashkilotlar-eng-ko-p-qaysi-hududda-joylashgan,B,2026-09-18,NULL
+Toshkent shahri (Tashkent City),registered_business_entities,114777,units,2026-08-01,"Toshstat, Enterprise register",https://toshstat.uz/2026/Registr/Iyul.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),retail_outlets_enterprises,14825,units,2026-01-01/2026-07-31,"Toshstat, Internal trade",https://toshstat.uz/2026/savdo/ichki08.pdf,A,2026-09-18,"large 231 / small+micro 14,594"
+Toshkent shahri (Tashkent City),catering_facilities,6070,units,2026-01-01/2026-07-31,"Toshstat, Internal trade",https://toshstat.uz/2026/savdo/ichki08.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),retail_turnover,82233.0,bn UZS,2026-01-01/2026-07-31,"Toshstat, Internal trade",https://toshstat.uz/2026/savdo/ichki08.pdf,A,2026-09-18,NULL
+Toshkent shahri (Tashkent City),shopping_centres_professional,24,centres,2025-12-31,CMWP Uzbekistan via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,"Commercial market research, not official statistics"
+Toshkent shahri (Tashkent City),shopping_centre_GLA_stock,514000,m2 GLA,2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,NULL
+Toshkent shahri (Tashkent City),retail_vacancy,18,%,2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,NULL
+Toshkent shahri (Tashkent City),retail_GLA_per_1000_inhabitants,165,"m2 per 1,000",2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,"A later CMWP presentation gives 184 for 2026 - both retained, do not average"
+Toshkent shahri (Tashkent City),office_stock_GLA,591217,m2 GLA,2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,+10.2% YoY
+Toshkent shahri (Tashkent City),office_vacancy,16,%,2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,down from ~25%
+Toshkent shahri (Tashkent City),warehouse_stock,634000,m2,2025-12-31,CMWP via Spot.uz,https://www.spot.uz/oz/2026/01/06/cmwp-year/,C,2026-09-18,NULL
+Toshkent shahri (Tashkent City),registered_vehicles_owned_by_population,637706,vehicles,2026-07-01,NSC via Spot.uz 24.08.2026,https://www.spot.uz/oz/2026/08/24/public-cars/,C,2026-09-18,Highest of all Uzbek regions
+Toshkent shahri (Tashkent City),GRP,226028.7,bn UZS,2026-01-01/2026-06-30,"Toshstat, YaHM",https://toshstat.uz/2026/YAHM/svod2.pdf,A,2026-09-18,"21.0% of national GRP, +13.3%"
+Toshkent shahri (Tashkent City),GRP_per_capita,70740.8,thousand UZS,2026-01-01/2026-06-30,"Toshstat, YaHM",https://toshstat.uz/2026/YAHM/svod2.pdf,A,2026-09-18,NULL

@@ -14,7 +14,7 @@
   'use strict';
   if(window.CASE_ACCESS_4760)return;
   window.CASE_ACCESS_4760=true;
-  var VERSION='4.77.0';
+  var VERSION='4.78.0';
   function $(id){return document.getElementById(id);}
   function h(v){try{return typeof esc==='function'?esc(v):String(v==null?'':v);}catch(e){return String(v==null?'':v);}}
   function tr(ru,uz,en){try{return LANG==='uz'?uz:(LANG==='en'?en:ru);}catch(e){return ru;}}
@@ -22,6 +22,7 @@
   function isAdmin(){try{return !!(typeof R==='function'&&R().admin);}catch(e){return false;}}
   function fmtDate(d){if(!d)return '';var s=String(d).slice(0,10);var m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?m[3]+'.'+m[2]+'.'+m[1]:s;}
   var TYPES={admin:'администратор',employee:'сотрудник',client:'клиент',demo:'демо'};
+  var PURPOSE={office:'ищу офис',developer:'девелопер, инвестор',asset:'управляющая компания',other:'другое'}; /* v4.78.0: цель доступа при регистрации */
 
   /* ── права вошедшего для студии ─────────────────────────────────────────────────── */
   /* ядро собирает S.user заново из ответа сервера и не знает новых полей: тип, срок, права
@@ -63,6 +64,12 @@
       +'<label for="r_company">'+h(tr('Компания','Kompaniya','Company'))+'</label><input id="r_company" autocomplete="organization">'
       +'<label for="r_email">Email</label><input id="r_email" type="email" autocomplete="email">'
       +'<label for="r_phone">'+h(tr('Телефон','Telefon','Phone'))+'</label><input id="r_phone" type="tel" autocomplete="tel">'
+      /* v4.78.0: цель доступа; «Ищу офис» открывает бесплатный ограниченный доступ сразу, остальные ждут администратора */
+      +'<label for="r_purpose">'+h(tr('Цель доступа','Kirish maqsadi','Purpose'))+'</label><select id="r_purpose">'
+      +'<option value="office">'+h(tr('Ищу офис: бесплатный ограниченный доступ сразу','Ofis izlayapman: bepul cheklangan kirish darhol','Looking for an office: free limited access right away'))+'</option>'
+      +'<option value="developer">'+h(tr('Девелопер, инвестор: полный доступ по заявке','Developer, investor: to‘liq kirish ariza bo‘yicha','Developer, investor: full access on request'))+'</option>'
+      +'<option value="asset">'+h(tr('Управляющая компания, собственник: по заявке','Boshqaruv kompaniyasi, mulkdor: ariza bo‘yicha','Asset management, owner: on request'))+'</option>'
+      +'<option value="other">'+h(tr('Другое: по заявке','Boshqa: ariza bo‘yicha','Other: on request'))+'</option></select>'
       +'<label for="r_pass">'+h(tr('Пароль (минимум 8 символов)','Parol (kamida 8 belgi)','Password (8+ characters)'))+'</label><input id="r_pass" type="password" autocomplete="new-password">'
       /* v4.77.0: согласие с публичной офертой обязательно */
       +'<label class="l-offer"><input type="checkbox" id="r_offer"> <span>'+h(tr('Я прочитал(а) ','Men o‘qidim ','I have read the '))+'<a href="offer.html" target="_blank" rel="noopener">'+h(tr('публичную оферту','ommaviy ofertani','public offer'))+'</a>'+h(tr(' и принимаю её условия: данные ориентировочные и носят рекомендательный характер, распространять их без разрешения CASE нельзя',' va shartlarini qabul qilaman',' and accept its terms'))+'</span></label>'
@@ -103,9 +110,12 @@
     if(pass.length<8){regHint(tr('Пароль минимум 8 символов','Parol kamida 8 belgi','Password must be 8+ characters'));return;}
     if(!($('r_offer')&&$('r_offer').checked)){regHint(tr('Нужно согласие с публичной офертой','Ommaviy ofertaga rozilik kerak','You need to accept the public offer'));return;}
     var b=$('r_go');if(b)b.disabled=true;
-    try{var j=await apiPOST('auth.php',{action:'register',name:name.trim(),email:email,password:pass,company:company.trim(),phone:phone.trim(),offer_accepted:true});
+    var purpose=($('r_purpose')||{}).value||'other';
+    try{var j=await apiPOST('auth.php',{action:'register',name:name.trim(),email:email,password:pass,company:company.trim(),phone:phone.trim(),offer_accepted:true,purpose:purpose});
       regHint(j&&j.message||tr('Заявка принята.','Ariza qabul qilindi.','Request received.'),true);
-      ['r_name','r_company','r_email','r_phone','r_pass'].forEach(function(id){var e=$(id);if(e)e.disabled=true;});
+      ['r_name','r_company','r_email','r_phone','r_pass','r_purpose'].forEach(function(id){var e=$(id);if(e)e.disabled=true;});
+      /* v4.78.0: бесплатный доступ открыт сразу: подставляем email в поле входа */
+      if(j&&j.active){var le=$('lemail');if(le)le.value=email;var bb=$('r_back');if(bb)bb.textContent=tr('Войти','Kirish','Sign in');}
       try{if(typeof audit==='function')audit('Заявка на регистрацию отправлена',email);}catch(e){}
     }catch(e){regHint(e&&e.message||tr('Не удалось отправить заявку','Arizani yuborib bo‘lmadi','Could not send the request'));if(b)b.disabled=false;}
   }
@@ -132,16 +142,17 @@
     var h1='';
     if(pending.length){
       h1+='<div class="card" id="regCard"><h3>Заявки на регистрацию <span class="pill">'+pending.length+'</span></h3><div class="mini" style="color:var(--muted);margin-bottom:8px">Заявитель уже задал пароль. Откройте доступ и укажите срок; отклонённая заявка удаляется.</div><div class="tbl-scroll"><table><thead><tr><th>Имя</th><th>Email</th><th>Компания · телефон</th><th>Подана</th><th>Доступ до</th><th>Выгрузка</th><th></th></tr></thead><tbody>'
-        +pending.map(function(u){var s=settingsOf(u);return '<tr data-uid="'+h(u.id)+'"><td><b>'+h(u.name)+'</b></td><td>'+h(u.email)+'</td><td>'+h([s.company,s.phone].filter(Boolean).join(' · ')||'-')+'</td><td>'+h(fmtDate(s.registered_at))+'</td><td><input type="date" class="ac-exp" style="font-size:12px;padding:4px 6px"></td><td><input type="checkbox" class="ac-exp-export" title="разрешить выгрузку PDF, Excel, CSV"></td><td style="white-space:nowrap"><button class="btn sm ac-approve">Открыть доступ</button> <button class="btn ghost sm ac-reject">Отклонить</button></td></tr>';}).join('')
+        +pending.map(function(u){var s=settingsOf(u);return '<tr data-uid="'+h(u.id)+'"><td><b>'+h(u.name)+'</b></td><td>'+h(u.email)+'</td><td>'+h([s.company,s.phone].filter(Boolean).join(' · ')||'-')+(s.purpose?'<div class="mini" style="color:var(--muted)">цель: '+h(PURPOSE[s.purpose]||s.purpose)+'</div>':'')+'</td><td>'+h(fmtDate(s.registered_at))+'</td><td><input type="date" class="ac-exp" style="font-size:12px;padding:4px 6px"></td><td><input type="checkbox" class="ac-exp-export" title="разрешить выгрузку PDF, Excel, CSV"></td><td style="white-space:nowrap"><button class="btn sm ac-approve">Открыть доступ</button> <button class="btn ghost sm ac-reject">Отклонить</button></td></tr>';}).join('')
         +'</tbody></table></div></div>';
     }
     h1+='<div class="card" id="accessCard"><h3>Доступ, подписка и журнал <span class="mut">'+list.length+'</span></h3>'
       +'<div class="mini" style="color:var(--muted);margin-bottom:8px">Тип доступа: сотрудник видит платформу по своей роли, клиент только студию геоаналитики, демо ничего не сохраняет. Срок: по его окончании вход закрывается, данные и учётная запись остаются; за 5 дней пользователь видит предупреждение. Выгрузка и правки включаются на каждого отдельно.</div>'
-      +'<div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Тип</th><th>Доступ до</th><th>Выгрузка</th><th>Правки</th><th>Заметка</th><th>Статус</th><th></th></tr></thead><tbody>'
+      +'<div class="tbl-scroll"><table><thead><tr><th>Пользователь</th><th>Тип</th><th>Уровень</th><th>Доступ до</th><th>Выгрузка</th><th>Правки</th><th>Заметка</th><th>Статус</th><th></th></tr></thead><tbody>'
       +list.map(function(u){var t=typeOf(u),s=settingsOf(u),st=statusOf(u),adm=t==='admin';
         var exp=!!(adm||t==='employee'?(s.can_export==null?true:s.can_export):s.can_export),edit=!!(adm?true:(t==='employee'?(s.can_edit==null?true:s.can_edit):s.can_edit));
         return '<tr data-uid="'+h(u.id)+'"><td><b>'+h(u.name)+'</b><div class="mini" style="color:var(--muted)">'+h(u.email)+' · '+h(u.role_key||'')+'</div></td>'
           +'<td>'+(adm?'<span class="pill">администратор</span>':'<select class="ac-type" style="font-size:12px;padding:4px 6px"><option value="employee"'+(t==='employee'?' selected':'')+'>сотрудник</option><option value="client"'+(t==='client'?' selected':'')+'>клиент</option><option value="demo"'+(t==='demo'?' selected':'')+'>демо</option></select>')+'</td>'
+          +'<td>'+(t==='client'?'<select class="ac-tier" style="font-size:12px;padding:4px 6px" title="бесплатный: 40 бизнес-центров, без выгрузки и правок; полный: по настройкам"><option value="full"'+(s.tier!=='free'?' selected':'')+'>полный</option><option value="free"'+(s.tier==='free'?' selected':'')+'>бесплатный «Ищу офис»</option></select>':'<span class="mut">-</span>')+'</td>'
           +'<td><input type="date" class="ac-exp" value="'+h(String(u.expires_at||'').slice(0,10))+'" style="font-size:12px;padding:4px 6px"'+(adm?' disabled':'')+'></td>'
           +'<td><input type="checkbox" class="ac-export"'+(exp?' checked':'')+(adm?' disabled':'')+'></td><td><input type="checkbox" class="ac-edit"'+(edit?' checked':'')+(adm||t==='demo'?' disabled':'')+'></td>'
           +'<td><input type="text" class="ac-note" value="'+h(s.note||'')+'" placeholder="для себя" style="font-size:12px;padding:4px 6px;width:140px"></td>'
@@ -157,7 +168,7 @@
     var b=e.target.closest('button');if(!b)return;var row=b.closest('tr'),uid=row&&row.getAttribute('data-uid');
     if(b.classList.contains('ac-approve')&&uid){var exp=row.querySelector('.ac-exp').value,canExp=row.querySelector('.ac-exp-export').checked;b.disabled=true;try{await apiPOST('users.php',{action:'approve',id:uid,expires_at:exp,can_export:canExp?1:0});try{audit('Заявка подтверждена',uid);}catch(x){}toast('Доступ открыт'+(exp?' до '+fmtDate(exp):''));await reloadSrvUsers();}catch(err){alert('Ошибка: '+(err&&err.message||err));b.disabled=false;}return;}
     if(b.classList.contains('ac-reject')&&uid){if(!confirm('Отклонить заявку и удалить учётную запись?'))return;try{await apiPOST('users.php',{action:'delete_user',id:uid,confirm:1});try{audit('Заявка отклонена',uid);}catch(x){}toast('Заявка отклонена');await reloadSrvUsers();}catch(err){alert('Ошибка: '+(err&&err.message||err));}return;}
-    if(b.classList.contains('ac-save')&&uid){var t=row.querySelector('.ac-type').value,ex2=row.querySelector('.ac-exp').value,s={can_export:row.querySelector('.ac-export').checked,can_edit:row.querySelector('.ac-edit').checked,note:row.querySelector('.ac-note').value};b.disabled=true;try{await apiPOST('users.php',{action:'set_profile',id:uid,user_type:t,expires_at:ex2,settings:s});try{audit('Настройки доступа',uid+' · '+t+' · до '+(ex2||'бессрочно'));}catch(x){}toast('Сохранено');await reloadSrvUsers();}catch(err){alert('Ошибка: '+(err&&err.message||err));b.disabled=false;}return;}
+    if(b.classList.contains('ac-save')&&uid){var t=row.querySelector('.ac-type').value,ex2=row.querySelector('.ac-exp').value,s={can_export:row.querySelector('.ac-export').checked,can_edit:row.querySelector('.ac-edit').checked,note:row.querySelector('.ac-note').value};var tsel=row.querySelector('.ac-tier');if(tsel)s.tier=tsel.value;b.disabled=true;try{await apiPOST('users.php',{action:'set_profile',id:uid,user_type:t,expires_at:ex2,settings:s});try{audit('Настройки доступа',uid+' · '+t+' · до '+(ex2||'бессрочно'));}catch(x){}toast('Сохранено');await reloadSrvUsers();}catch(err){alert('Ошибка: '+(err&&err.message||err));b.disabled=false;}return;}
     if(b.classList.contains('ac-log')&&uid){showLog(uid);return;}
     if(b.classList.contains('ac-restore')){var tid=+b.getAttribute('data-tid');b.disabled=true;try{await apiPOST('geo_state.php',{action:'restore_trash',trash_id:tid});try{audit('Корзина геоданных: восстановление','#'+tid);}catch(x){}toast('Запись восстановлена');loadTrash();try{if(typeof window.geoV42Reload==='function')window.geoV42Reload();}catch(x){}}catch(err){alert('Ошибка: '+(err&&err.message||err));b.disabled=false;}return;}
   }
@@ -207,4 +218,4 @@
   window.caseAccess={version:VERSION,caps:computeCaps,register:register,demoLogin:demoLogin,openRegistration:openReg,cards:accessCards,loadTrash:loadTrash,showLog:showLog,typeOf:typeOf,statusOf:statusOf};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4760-access']='4.77.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4760-access']='4.78.0';

@@ -122,6 +122,7 @@ if ($a==='set_profile') {
     foreach (['can_export','can_edit'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = !empty($b['settings'][$k]);
     if (array_key_exists('note', $b['settings'])) $settings['note'] = mb_substr(trim((string)$b['settings']['note']), 0, 500);
     if (array_key_exists('profile', $b['settings'])) { $pf = (string)$b['settings']['profile']; $settings['profile'] = in_array($pf, ['office','developer','asset','consulting','leasing','full'], true) ? $pf : ''; } /* v4.77.0 */
+    if (array_key_exists('tier', $b['settings'])) { $settings['tier'] = (string)$b['settings']['tier'] === 'free' ? 'free' : 'full'; } /* v4.78.0: уровень клиента */
     foreach (['company','phone'] as $k) if (array_key_exists($k, $b['settings'])) $settings[$k] = mb_substr(trim((string)$b['settings'][$k]), 0, 120);
   }
   /* клиенту нельзя оставить внутреннюю роль с правами правок: тип client переводит на роль CL */
@@ -145,6 +146,7 @@ if ($a==='approve') {
   $settings = user_settings(['settings'=>$cur['settings'] ?? null]);
   $settings['registration_pending'] = 0; $settings['approved_at'] = date('Y-m-d H:i:s'); $settings['approved_by'] = (string)(current_user()['name'] ?? '');
   $settings['can_export'] = !empty($b['can_export']); $settings['can_edit'] = false;
+  $settings['tier'] = 'full'; /* v4.78.0: подтверждённая заявка = полный уровень клиента */
   ensure_access_roles();
   db()->prepare("UPDATE app_users SET active=1, user_type='client', role_key='CL', expires_at=?, settings=? WHERE id=?")->execute([$exp, json_encode($settings, JSON_UNESCAPED_UNICODE), $uid]);
   try { db()->exec('COMMIT'); } catch (Throwable $e) {}

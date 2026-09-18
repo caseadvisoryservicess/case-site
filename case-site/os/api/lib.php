@@ -211,10 +211,18 @@ function user_caps(array $u): array {
   $edit = $t === 'admin' ? true : ($t === 'employee' ? (array_key_exists('can_edit', $s) ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : asaas_geo_can_edit($u)) : ($t === 'client' ? !empty($s['can_edit']) && asaas_geo_can_edit($u) : false));
   $profile = (string)($s['profile'] ?? '');
   if (!in_array($profile, ['office','developer','asset','consulting','leasing','full'], true)) $profile = '';
+  /* v4.78.0: уровень доступа клиента: free (бесплатный «Ищу офис»: 40 БЦ, без выгрузки и правок) или full */
+  $tier = user_tier($u);
+  if ($tier === 'free') { $export = false; $edit = false; if ($profile === '') $profile = 'office'; }
   return ['type'=>$t, 'demo'=>$t === 'demo', 'export'=>$export, 'edit'=>$edit, 'days_left'=>subscription_days_left($u), 'expires_at'=>$u['expires_at'] ?? null,
     /* v4.77.0: профиль студии (панели под задачу пользователя) и согласие с офертой */
-    'profile'=>$profile, 'offer_accepted'=>offer_accepted($u), 'offer_version'=>offer_version()];
+    'profile'=>$profile, 'offer_accepted'=>offer_accepted($u), 'offer_version'=>offer_version(),
+    'tier'=>$tier, 'limited'=>$tier === 'free' && $t === 'client'];
 }
+function user_tier(array $u): string { $s = user_settings($u); return (string)($s['tier'] ?? '') === 'free' && user_type($u) === 'client' ? 'free' : 'full'; }
+// v4.78.0: бесплатный ограниченный доступ для ищущих офис открывается при регистрации сразу, без подтверждения.
+// Выключить: 'free_office_access' => false в config.php (тогда такие заявки ждут администратора, как остальные).
+function free_office_access_enabled(): bool { $c = cfg(); return !array_key_exists('free_office_access', $c) || !empty($c['free_office_access']); }
 // ── v4.77.0: публичная оферта и обратная связь ───────────────────────────
 // Версия оферты живёт здесь и в os/offer.html; при смене версии пользователи принимают её заново.
 function offer_version(): string { $c = cfg(); return (string)($c['offer_version'] ?? '1.0'); }

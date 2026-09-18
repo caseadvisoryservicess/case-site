@@ -1,0 +1,66 @@
+level,code,name_uz,noturar_parcel_count
+category,006001,Qishloq xo'jaligiga mo'ljallangan yerlar,113843
+category,006002,Aholi punktlarining yerlari,101444
+category,006003,"Sanoat, transport, aloqa, mudofaa va boshqa maqsadlarga mo'ljallangan yerlar",397385
+category,006004,"Tabiatni muhofaza qilish, sog'lomlashtirish va rekreatsiya maqsadlariga mo'ljallangan yerlar",2329
+category,006005,Tarixiy-madaniy ahamiyatga molik yerlar,11012
+category,006006,O'rmon fondi yerlari,2598
+category,006007,Suv fondi yerlari,22265
+category,006008,Zaxira yerlar (Davlat Zaxira Yerlari),157367
+category,NULL,<not classified>,229011
+type,006001001000,Fermer xo'jaliklariga berilgan yerlar,50661
+type,006001002000,Ipakchilik va jun sanoati yerlari,8789
+type,006001003000,Boshqa qishloq xo'jaligi korxonalari yerlari,22876
+type,006001004000,Qishloq xo'jaligi ilmiy-tadqiqot tashkilotlari yerlari,288
+type,006001005000,Yordamchi qishloq xo'jaliklarining yerlari,705
+type,006001006000,Dehqon xo'jaliklarining yerlari,19429
+type,006001007000,Shaxsiy dala tomorqa yerlari,53
+type,006001007010,Qishloq xo'jaligi mahsulotlarini yetishtirish maqsadidagi shaxsiy tomorqa yerlari,285
+type,006001007020,Yakka tartibdagi uy-joy qurish maqsadidagi shaxsiy tomorqa yerlari,522
+type,006001008000,"Fuqarolarning bog'dorchilik, sabzavotchilik, issiqxona va chorvachilik yerlari",8762
+type,006001009000,Bog'dorchilik-uzumchilik shirkatlari yerlari,132
+type,006001010000,Qishloq xo'jaligiga mo'ljallangan ijaraga berilmagan (zaxira) yerlar,1341
+type,006002001001,Shahar va poselkadagi ko'p kvartirali uy joylashgan va unga tutash yerlar,38353
+type,006002001002,Shahar va poselkadagi yakka tartibdagi uylar bilan band bo'lgan yerlar,9113
+type,006002001003,Shahar va poselkadagi umumiy foydalanish yerlari,20296
+type,006002002001,Qishloq va poselkadagi ko'p kvartirali uy joylashgan va unga tutash yerlar,1742
+type,006002002002,Qishloq va poselkadagi yakka tartibdagi uylar bilan band bo'lgan yerlar,7883
+type,006002002003,Qishloq va poselkadagi umumiy foydalanish yerlari,24058
+type,006003001001,Yirik sanoat zonalari yerlari,926
+type,006003001002,Erkin iqtisodiy zonalari yerlari,4560
+type,006003001003,Kichik sanoat zonalari yerlari,6306
+type,006003001004,Yoshlar sanoat zonalari yerlari,1619
+type,006003001005,Tadbirkorlik sanoat zonalari yerlari,28189
+type,006003001006,Boshqa sanoat yerlari,38315
+type,006003002001,Temir yo'llar yerlari,1515
+type,006003002002,Avtomobil yo'llari yerlari,2562
+type,006003002003,Quvur transporti yerlari,455
+type,006003002004,Havo transporti yerlari,204
+type,006003002005,Boshqa transport maqsadi yerlari,1076
+type,006003003000,Aloqa obyektlari yerlari,4823
+type,006003004000,Mudofaa yerlari,734
+type,006003005000,Ijtimoiy soha obyektlari yerlari,41639
+type,006003006000,Boshqa maqsadlarga mo'ljallangan yerlar,264462
+type,006004001001,Davlat qo'riqxonalari yerlari,22
+type,006004001002,Majmua (landshaft) buyurtma qo'riqxonalari yerlari,5
+type,006004001003,Tabiiy bog'lar yerlari,19
+type,006004001004,Ayrim tabiiy obyektlar va majmualarni saqlash uchun hududlar yerlari,23
+type,006004001005,Davlat tabiat yodgorliklari yerlari,4
+type,006004001006,Davlat biosfera rezervatlari yerlari,6
+type,006004001007,Milliy bog'lar yerlari,138
+type,006004002000,Sog'lomlashtirish maqsadlariga mo'ljallangan yerlari,1870
+type,006004003000,Rekreatsiya maqsadlariga mo'ljallangan yerlari,242
+type,006005001000,Diqqatga sazovor joylar yerlari,216
+type,006005002000,Yodgorliklar yerlari,118
+type,006005003000,Madaniy meros obyektlari yerlari,5505
+type,006005004000,Qabristonlar yerlari,5173
+type,006006001000,O'rmon xo'jaligi davlat qo'mitasiga qarashli o'rmonzorlar yerlari,2476
+type,006006002000,Boshqa vazirlik va idoralarga qarashli o'rmonlar yerlari,122
+type,006007001000,Daryolar,264
+type,006007002000,Kanallar,4103
+type,006007003000,Kollektorlar,6337
+type,006007004000,Gidrotexnik inshootlari va nasos stansiyalari,10859
+type,006007005000,Suv omborlar,513
+type,006007006000,Tabiiy suv xavzalari,189
+type,006008000000,Zaxira yerlar (Davlat Zaxira Yerlari),157366
+type,NULL,<not classified>,229011

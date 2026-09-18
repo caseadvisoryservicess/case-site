@@ -67,8 +67,8 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
   await wait(500);
   await pg.click('#l_regBtn'); await wait(200);
   const g1 = await pg.evaluate(() => ({ ck: !!document.getElementById('r_offer'), checked: document.getElementById('r_offer').checked, link: (document.querySelector('.l-offer a') || {}).getAttribute('href'), target: (document.querySelector('.l-offer a') || {}).getAttribute('target'), ver: window.caseCabinet.version }));
-  ck('в форме заявки галочка оферты со ссылкой offer.html (новая вкладка), снята; модуль кабинета 4.77.0', g1.ck && !g1.checked && g1.link === 'offer.html' && g1.target === '_blank' && g1.ver === '4.77.0', JSON.stringify(g1));
-  await pg.fill('#r_name', 'Иван Проверяющий'); await pg.fill('#r_company', 'ООО Проверка'); await pg.fill('#r_email', 'ivan@proverka.uz'); await pg.fill('#r_phone', '+998 90 000 00 00'); await pg.fill('#r_pass', 'secret123');
+  ck('в форме заявки галочка оферты со ссылкой offer.html (новая вкладка), снята; модуль кабинета 4.78.0', g1.ck && !g1.checked && g1.link === 'offer.html' && g1.target === '_blank' && g1.ver === '4.78.0', JSON.stringify(g1));
+  await pg.fill('#r_name', 'Иван Проверяющий'); await pg.fill('#r_company', 'ООО Проверка'); await pg.fill('#r_email', 'ivan@proverka.uz'); await pg.fill('#r_phone', '+998 90 000 00 00'); await pg.fill('#r_pass', 'secret123'); await pg.selectOption('#r_purpose', 'developer'); /* v4.78.0: цель «девелопер»: заявка ждёт одобрения (цель «ищу офис» открыла бы доступ сразу) */
   await pg.click('#r_go'); await wait(300);
   const g2 = await pg.evaluate(() => document.getElementById('r_hint').textContent);
   ck('без галочки заявка не уходит, подсказка про оферту', /оферт/i.test(g2) && !(state.registrations || []).length, g2);

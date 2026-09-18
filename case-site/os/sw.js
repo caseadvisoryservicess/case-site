@@ -1,8 +1,8 @@
-// CASE OS v4.77.0 service worker
-const CACHE = 'case-os-v4770';
-const ASSETS = ['./', './index.html', './core.js', './quiz-data.js', './data/tashkent_districts.geojson', './v32-upgrade.js', './v326-commission-engines.js', './v35-stable.js', './v3515-ux.js', './jszip.min.js', './v3518-brands-import.js', './v3520-workspaces.js', './v400-feasibility.js', './feasibility-studio.html', './v420-geoanalytics.js', './v420-geo-studio.js', './v4530-geo-export.js', './v4600-sun-wind.js', './v4630-huff.js', './geoanalytics-studio.html', './v440-engineering.js', './v450-guides.js', './v490-caseos.js', './v490-workflow.js', './v492-portfolio-proposals.js', './v493-portfolio-suite.js', './leaflet.case.js', './leaflet.case.css', './data/case_portfolio_projects_v4.9.3.json', './data/case_portfolio_projects_v4.9.3.csv', './data/case_portfolio.geojson', './data/case_portfolio.seed.js', './mep-studio.html', './lift-studio.html', './leaflet.markercluster.js', './data/mep_norms.json', './data/bundle_tashkent_realdata.json', './data/mahallas_tashkent.json', './data/case_brands_base.xlsx', './v496-commissions.js', './v410-feature-flags.js', './v417-master-plan.js', './v432-data-grid.js', './v4327-patch.js', './v4450-ux-system.js', './v4450-owner-report.js', './v4451-live-sync.js', './v4660-uz-translit.js', './v4670-offer-pricing.js', './v4680-project-directories.js', './v4690-offer-cover.js', './v4710-provenance.js', './v4730-geo-agent.js', './v4740-geo-only.js', './geo-direct.js', './v4740-geo-tree.js', './v4750-geo-layout.js', './v4750-geo-tools.js', './v4760-geo-bc.js', './v4760-geo-caps.js', './v4760-access.js', './v4770-cabinet.js', './v4770-geo-mahalla.js', './v4770-geo-roadside.js', './v4770-geo-profiles.js', './offer.html', './data/demography_tashkent.json'];
+// CASE OS v4.78.0 service worker
+const CACHE = 'case-os-v4780';
+const ASSETS = ['./', './index.html', './core.js', './quiz-data.js', './data/tashkent_districts.geojson', './v32-upgrade.js', './v326-commission-engines.js', './v35-stable.js', './v3515-ux.js', './jszip.min.js', './v3518-brands-import.js', './v3520-workspaces.js', './v400-feasibility.js', './feasibility-studio.html', './v420-geoanalytics.js', './v420-geo-studio.js', './v4530-geo-export.js', './v4600-sun-wind.js', './v4630-huff.js', './geoanalytics-studio.html', './v440-engineering.js', './v450-guides.js', './v490-caseos.js', './v490-workflow.js', './v492-portfolio-proposals.js', './v493-portfolio-suite.js', './leaflet.case.js', './leaflet.case.css', './data/case_portfolio_projects_v4.9.3.json', './data/case_portfolio_projects_v4.9.3.csv', './data/case_portfolio.geojson', './data/case_portfolio.seed.js', './mep-studio.html', './lift-studio.html', './leaflet.markercluster.js', './data/mep_norms.json', './data/bundle_tashkent_realdata.json', './data/mahallas_tashkent.json', './data/case_brands_base.xlsx', './v496-commissions.js', './v410-feature-flags.js', './v417-master-plan.js', './v432-data-grid.js', './v4327-patch.js', './v4450-ux-system.js', './v4450-owner-report.js', './v4451-live-sync.js', './v4660-uz-translit.js', './v4670-offer-pricing.js', './v4680-project-directories.js', './v4690-offer-cover.js', './v4710-provenance.js', './v4730-geo-agent.js', './v4740-geo-only.js', './geo-direct.js', './v4740-geo-tree.js', './v4750-geo-layout.js', './v4750-geo-tools.js', './v4760-geo-bc.js', './v4760-geo-caps.js', './v4760-access.js', './v4770-cabinet.js', './v4770-geo-mahalla.js', './v4770-geo-roadside.js', './v4770-geo-profiles.js', './v4780-geo-ngis.js', './offer.html', './data/demography_tashkent.json', './data/mahalla_boundaries.geojson', './data/mahalla_registry_tashkent.json', './data/ngis_parcels_tashkent.json', './data/ngis_nalog_tashkent.geojson'];
 self.addEventListener('install', event => {
-  /* v4.50.3: раньше здесь стоял addAll(ASSETS).catch(()=>null). addAll — всё или ничего:
+  /* v4.50.3: раньше здесь стоял addAll(ASSETS).catch(()=>null). addAll - всё или ничего:
      один недоступный файл ронял ВСЮ предзагрузку, причём молча. Офлайн оставался пустым,
      а в консоли не было ни слова. Кладём по одному и говорим, что не легло. */
   event.waitUntil(caches.open(CACHE).then(cache => {
@@ -21,9 +21,9 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (url.pathname.includes('/api/')) return;
   // Оффлайн-заглушку (index.html) возвращаем ТОЛЬКО для навигации (открыли/перезагрузили
-  // страницу) — иначе неудавшийся запрос скрипта/JSON/картинки без своей копии в кэше получал
+  // страницу) - иначе неудавшийся запрос скрипта/JSON/картинки без своей копии в кэше получал
   // тело index.html с кодом 200, что ломало парсинг на стороне вызывающего кода без понятной
-  // причины (независимый аудит, P2-08). Для остальных типов запросов без сети и без кэша —
+  // причины (независимый аудит, P2-08). Для остальных типов запросов без сети и без кэша -
   // настоящая ошибка, а не подмена контента.
   const isNavigation = req.mode === 'navigate' || req.destination === 'document';
   event.respondWith(fetch(req, {cache:'no-store'}).then(res => {
@@ -35,7 +35,7 @@ self.addEventListener('fetch', event => {
     // v4.58.0: скрипты подключены с cache-buster (core.js?v=4.58.0), а в ASSETS лежат без него.
     // caches.match по умолчанию сверяет и строку запроса, поэтому предзагруженная копия
     // запросу не соответствовала: офлайн всё держалось на рантайм-кэше, а iframe гео-студии
-    // (адрес с ?embedded=1&v=…) не находил себя и получал по ветке навигации index.html —
+    // (адрес с ?embedded=1&v=…) не находил себя и получал по ветке навигации index.html -
     // то есть систему внутрь самой себя. Последняя попытка: искать без строки запроса.
     return caches.match(req, {ignoreSearch: true}).then(r2 => {
       if (r2) return r2;

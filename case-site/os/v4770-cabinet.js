@@ -16,7 +16,7 @@
   'use strict';
   if(window.CASE_CABINET_4770)return;
   window.CASE_CABINET_4770=true;
-  var VERSION='4.77.0', OFFER_URL='offer.html';
+  var VERSION='4.78.0', OFFER_URL='offer.html';
   var KINDS={idea:'Предложение',problem:'Проблема',question:'Вопрос'}, STATUSES={new:'новое',seen:'просмотрено',done:'решено'};
   var PROFILES={'':'по типу доступа',office:'Ищу офис',developer:'Девелопер',asset:'Управляющая компания',consulting:'Консалтинг',leasing:'Лизинг и продажи',full:'Все панели'};
   function $(id){return document.getElementById(id);}
@@ -104,6 +104,7 @@
         +(demo?'':'<div style="margin-top:10px"><button class="btn" id="cabSave">Сохранить</button> <span class="mut" id="cabHint" style="font-size:12px"></span></div>')+'</div></div>'
       +'<div class="card" id="cabAccess"><h3>Доступ</h3><table class="cab-kv"><tr><td>Тип доступа</td><td><b>'+h(TYPE_LBL[c.type]||c.type||'')+'</b> · роль '+h(u.role||'')+'</td></tr>'
         +'<tr><td>Срок</td><td>'+(expires?'<b>до '+h(expires)+'</b>'+(days!=null?' · '+(days<0?'истёк':days===0?'последний день':'осталось '+days+' дн.'):''):'бессрочно')+'</td></tr>'
+        +(c.type==='client'?'<tr><td>Уровень</td><td>'+(c.tier==='free'||c.limited?'<b>бесплатный «Ищу офис»</b>: 40 бизнес-центров ближе к центру, без выгрузки и правок':'полный')+'</td></tr>':'')
         +'<tr><td>Выгрузка</td><td>'+(c.export?'разрешена':'отключена')+'</td></tr><tr><td>Правки</td><td>'+(c.edit?'разрешены':'отключены')+'</td></tr></table>'
         +'<div class="mini" style="color:var(--muted);margin-top:6px">Продление срока и права меняет администратор CASE: напишите через обратную связь.</div></div>'
       +'<div class="card" id="cabOffer"><h3>Публичная оферта</h3><div style="font-size:12.5px">'+(oa&&oa.version?'Принята: версия <b>'+h(oa.version)+'</b>'+(oa.at?' от '+h(fmtDate(oa.at)):''):(demo?'Демо-доступ: согласие действует на этот сеанс.':'Текущая версия не принята.'))+'</div>'
@@ -111,11 +112,42 @@
       +(demo?'':'<div class="card" id="cabPass"><h3>Пароль</h3><div class="form" style="max-width:420px"><div><label>Текущий пароль</label><input id="cabOld" type="password" autocomplete="current-password"></div><div><label>Новый пароль (минимум 8 символов)</label><input id="cabNew" type="password" autocomplete="new-password"></div><div><label>Повторите новый пароль</label><input id="cabNew2" type="password" autocomplete="new-password"></div><div style="margin-top:10px"><button class="btn" id="cabPassBtn">Сменить пароль</button> <span class="mut" id="cabPassHint" style="font-size:12px"></span></div></div></div>')
       +'<div class="card" id="cabFeedback"><h3>Мои обращения <button class="btn sm" id="cabFbNew" style="margin-left:8px">Написать</button></h3><div id="cabFbList" class="mut" style="font-size:12px">Загрузка…</div></div>'
       +'<div class="card" id="cabLog"><h3>Последние входы и действия</h3><div id="cabLogList" class="mut" style="font-size:12px">Загрузка…</div></div>'
+      /* v4.78.0: данные пользователя: что он сохранил в студии в этом браузере, обращения, действия; выгрузка и очистка */
+      +'<div class="card" id="cabData"><h3>Мои данные <button class="btn ghost sm" id="cabDataDl" style="margin-left:8px">Скачать JSON</button> <button class="btn ghost sm" id="cabDataClear">Очистить данные студии</button></h3><div class="mini" style="color:var(--muted);margin-bottom:6px">Что вы сохранили в студии геоаналитики в этом браузере (правки, заметки, кольца, население и границы махаллей, профиль панелей) и что хранится на сервере под вашей учётной записью.</div><div id="cabDataList" class="mut" style="font-size:12px"></div></div>'
       +'</div>';
     if($('cabSave'))$('cabSave').onclick=saveProfile;
     if($('cabPassBtn'))$('cabPassBtn').onclick=changePassword;
     $('cabFbNew').onclick=feedbackModal;
+    $('cabDataDl').onclick=downloadMyData;$('cabDataClear').onclick=clearStudioData;renderMyData();
     loadMyFeedback();loadMyLog();
+  }
+  /* ── мои данные ────────────────────────────────────────────────────────────────── */
+  var DATA_KEYS=[['caseos_bc_edits','Правки бизнес-центров (в этом браузере)','obj'],['caseos_geo_notes_v1','Заметки на карте','arr'],['caseos_rings_v2','Кольца охвата: радиусы и цвета','arr'],['caseos_mahalla_pop_v1','Население махаллей, введённое вручную','obj'],['caseos_mahalla_bounds_v1','Границы махаллей (локально, без права правок)','obj'],['caseos_geo_profile','Профиль панелей студии (выбран в студии)','str'],['caseos_bc_filters_v1','Фильтры бизнес-центров','val'],['caseos_roadside_type','Тип проекта для стороны дороги','str'],['caseos_amen_r','Радиус блока «Что рядом»','str'],['caseos_panel','Настройки левой панели','val'],['caseos_export_cfg','Настройки выгрузки','val']];
+  var myCounts={feedback:null,log:null};
+  function lsGet(k){try{return localStorage.getItem(k);}catch(e){return null;}}
+  function myDataItems(){
+    return DATA_KEYS.map(function(d){var raw=lsGet(d[0]),v=null,n=null;if(raw!=null){try{v=JSON.parse(raw);}catch(e){v=raw;}}
+      if(v==null)n='нет';else if(d[2]==='obj'&&v&&typeof v==='object')n=Object.keys(v).length+' зап.';else if(d[2]==='arr'&&Array.isArray(v))n=v.length+' зап.';else if(d[2]==='str')n=String(v);else n='есть';
+      return {key:d[0],label:d[1],count:n,value:v};});
+  }
+  function renderMyData(){
+    var box=$('cabDataList');if(!box)return;var u=user()||{};var items=myDataItems();
+    box.innerHTML='<table class="cab-kv">'+items.map(function(i){return '<tr><td>'+h(i.label)+'</td><td>'+h(i.count)+'</td></tr>';}).join('')
+      +'<tr><td>Обращения на сервере</td><td>'+(myCounts.feedback==null?'см. карточку «Мои обращения»':myCounts.feedback)+'</td></tr><tr><td>Действия в журнале</td><td>'+(myCounts.log==null?'см. карточку «Последние входы и действия»':myCounts.log)+'</td></tr>'
+      +'<tr><td>Учётная запись</td><td>'+h(u.email||'')+' · '+h(u.name||'')+'</td></tr></table>';
+  }
+  function downloadMyData(){
+    var u=user()||{},c=caps(),out={exported_at:new Date().toISOString(),account:{id:u.id,email:u.email,name:u.name,type:c.type,tier:c.tier||'',profile:c.profile||'',expires_at:u.expires_at||null,settings:u.settings||{}},studio:{}};
+    myDataItems().forEach(function(i){if(i.value!=null)out.studio[i.key]={label:i.label,value:i.value};});
+    var a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(out,null,2)],{type:'application/json'}));a.download='CASE_OS_my_data_'+String(u.email||'user').replace(/[^a-z0-9]/gi,'_')+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove();},500);
+    try{if(typeof audit==='function')audit('Мои данные выгружены','кабинет');}catch(e){}
+  }
+  function clearStudioData(){
+    if(!confirm('Удалить данные студии, сохранённые в этом браузере (правки, заметки, кольца, население и границы махаллей, профиль)? На сервере ничего не удаляется.'))return;
+    DATA_KEYS.forEach(function(d){try{localStorage.removeItem(d[0]);}catch(e){}});renderMyData();
+    try{var fr=document.querySelector('iframe[src*="geoanalytics-studio"]');if(fr&&fr.contentWindow)fr.contentWindow.location.reload();}catch(e){}
+    try{if(typeof audit==='function')audit('Данные студии очищены','кабинет');}catch(e){}
+    toastMsg('Локальные данные студии удалены');
   }
   async function saveProfile(){
     var b=$('cabSave');b.disabled=true;var hint=$('cabHint');
@@ -142,13 +174,13 @@
   }
   async function loadMyFeedback(){
     var box=$('cabFbList');if(!box)return;
-    try{var j=await apiGET('feedback.php?mine=1');var rows=(j&&j.rows)||[];
+    try{var j=await apiGET('feedback.php?mine=1');var rows=(j&&j.rows)||[];myCounts.feedback=rows.length;renderMyData();
       box.innerHTML=rows.length?'<div class="tbl-scroll"><table><thead><tr><th>Когда</th><th>Тип</th><th>Сообщение</th><th>Статус</th><th>Ответ CASE</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td style="white-space:nowrap">'+h(fmtDate(r.created_at))+'</td><td>'+h(KINDS[r.kind]||r.kind)+'</td><td>'+h(r.text)+'</td><td><span class="fb-st fb-st-'+h(r.status)+'">'+h(STATUSES[r.status]||r.status)+'</span></td><td>'+(r.reply?h(r.reply):'<span class="mut">пока нет</span>')+'</td></tr>';}).join('')+'</tbody></table></div>':'Обращений пока нет. Напишите нам, если что-то не работает или есть идея.';
     }catch(e){box.textContent='Не удалось загрузить: '+(e&&e.message||e);}
   }
   async function loadMyLog(){
     var box=$('cabLogList');if(!box)return;
-    try{var j=await apiPOST('auth.php',{action:'my_log',limit:30});var rows=(j&&j.rows)||[];
+    try{var j=await apiPOST('auth.php',{action:'my_log',limit:30});var rows=(j&&j.rows)||[];myCounts.log=rows.length;renderMyData();
       box.innerHTML=rows.length?'<div class="tbl-scroll" style="max-height:320px;overflow:auto"><table><thead><tr><th>Когда</th><th>Действие</th><th>Подробности</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td style="white-space:nowrap">'+h(r.at||'')+'</td><td>'+h(r.action||'')+'</td><td>'+h(r.detail||'')+'</td></tr>';}).join('')+'</tbody></table></div>':'Записей пока нет.';
     }catch(e){box.textContent='Журнал недоступен: '+(e&&e.message||e);}
   }
@@ -212,4 +244,4 @@
   window.caseCabinet={version:VERSION,render:renderCabinet,feedback:feedbackModal,offerGate:offerGate,needsOffer:needsOffer,refreshBadge:refreshBadge,profiles:PROFILES};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4770-cabinet']='4.77.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v4770-cabinet']='4.78.0';

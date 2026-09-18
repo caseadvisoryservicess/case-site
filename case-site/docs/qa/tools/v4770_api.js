@@ -34,7 +34,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
   fs.writeFileSync(path.join(apiDir, 'mode.php'), "<?php return ['mode' => 'geo'];");
   const dbPath = path.join(dir, 'db.sqlite');
   const cfgPath = path.join(apiDir, 'config.php');
-  const writeCfg = (ver) => fs.writeFileSync(cfgPath, "<?php return ['driver' => 'sqlite', 'sqlite_path' => " + JSON.stringify(dbPath) + ", 'platform_mode' => 'geo', 'offer_version' => " + JSON.stringify(ver) + ", 'feedback_bot_token' => 'bot-secret-token-123'];");
+  const writeCfg = (ver, extra) => fs.writeFileSync(cfgPath, "<?php return ['driver' => 'sqlite', 'sqlite_path' => " + JSON.stringify(dbPath) + ", 'platform_mode' => 'geo', 'offer_version' => " + JSON.stringify(ver) + ", 'feedback_bot_token' => 'bot-secret-token-123'" + (extra || '') + "];");
   writeCfg('1.0');
   const boot = path.join(dir, 'boot.php');
   fs.writeFileSync(boot, `<?php
@@ -91,7 +91,7 @@ echo "ok";`);
   ck('accept_offer: ok, версия и время', r.status === 200 && r.data.ok && r.data.version === '1.0' && !!r.data.at, JSON.stringify(r.data));
   r = await admin.call('auth.php');
   ck('после согласия offer_accepted true', r.data.user.caps.offer_accepted === true, JSON.stringify(r.data.user.caps));
-  writeCfg('1.1'); await sleep(200);
+  writeCfg('1.1'); await sleep(2600);
   r = await admin.call('auth.php');
   ck('новая версия оферты 1.1 в конфиге: согласие снова требуется', r.data.offer_version === '1.1' && r.data.user.caps.offer_accepted === false && r.data.user.caps.offer_version === '1.1', JSON.stringify({ v: r.data.offer_version, caps: r.data.user.caps }));
   r = await admin.call('auth.php', { action: 'accept_offer' }); r = await admin.call('auth.php');
@@ -171,6 +171,28 @@ echo "ok";`);
   const client = jar(); await client.call('auth.php');
   r = await client.call('auth.php', { action: 'login', email: 'client@firm.test', password: 'client12345' });
   ck('клиент вошёл: профиль asset в правах, оферта принята при регистрации версии 1.0, но текущая 1.1 не принята', r.status === 200 && r.data.user.caps.profile === 'asset' && r.data.user.caps.offer_accepted === false, JSON.stringify(r.data.user && r.data.user.caps));
+
+  console.log('--- 7. v4.78.0: бесплатный доступ «Ищу офис»');
+  const g2 = jar(); await g2.call('auth.php');
+  r = await g2.call('auth.php', { action: 'register', name: 'Офис Искатель', email: 'office@seeker.test', password: 'seeker12345', company: 'ИП', phone: '', offer_accepted: true, purpose: 'office' });
+  ck('регистрация с целью «ищу офис»: доступ открыт сразу (active, free)', r.status === 200 && r.data.ok && r.data.active === true && r.data.free === true && /Доступ открыт/.test(r.data.message), JSON.stringify(r.data));
+  const fo = jar(); await fo.call('auth.php');
+  r = await fo.call('auth.php', { action: 'login', email: 'office@seeker.test', password: 'seeker12345' });
+  ck('вход бесплатного клиента: тип client, tier free, limited, без выгрузки и правок, профиль office, оферта принята', r.status === 200 && r.data.auth === true && r.data.user.caps.type === 'client' && r.data.user.caps.tier === 'free' && r.data.user.caps.limited === true && r.data.user.caps.export === false && r.data.user.caps.edit === false && r.data.user.caps.profile === 'office' && r.data.user.caps.offer_accepted === true && r.data.user.settings.purpose === 'office', JSON.stringify(r.data.user && r.data.user.caps));
+  r = await fo.call('feedback.php', { action: 'send', kind: 'question', text: 'Хочу полный доступ' });
+  ck('бесплатный клиент пишет обращение', r.status === 200 && r.data.ok);
+  const seeker = JSON.parse(sql("SELECT id FROM app_users WHERE email='office@seeker.test'"))[0];
+  r = await admin.call('users.php', { action: 'set_profile', id: seeker.id, user_type: 'client', settings: { tier: 'full', can_export: true } });
+  ck('администратор переводит в полный уровень: ok', r.status === 200 && r.data.ok, JSON.stringify(r.data));
+  r = await fo.call('auth.php');
+  ck('после перевода: tier full, limited false, выгрузка разрешена, профиль office остался', r.data.user.caps.tier === 'full' && r.data.user.caps.limited === false && r.data.user.caps.export === true && r.data.user.caps.profile === 'office', JSON.stringify(r.data.user.caps));
+  writeCfg('1.1', ", 'free_office_access' => false"); await sleep(2600); /* opcache встроенного сервера перечитывает файл раз в 2 с */
+  r = await g2.call('auth.php', { action: 'register', name: 'Второй Искатель', email: 'office2@seeker.test', password: 'seeker12345', offer_accepted: true, purpose: 'office' });
+  ck('free_office_access выключен: заявка «ищу офис» ждёт администратора', r.status === 200 && r.data.pending === true && !r.data.active, JSON.stringify(r.data));
+  const s2 = JSON.parse(JSON.parse(sql("SELECT settings FROM app_users WHERE email='office2@seeker.test'"))[0].settings);
+  ck('в настройках заявки цель office без tier free', s2.purpose === 'office' && s2.registration_pending === 1 && s2.tier !== 'free', JSON.stringify(s2));
+  r = await g2.call('auth.php', { action: 'register', name: 'Девелопер Один', email: 'dev@firm.test', password: 'devdev12345', offer_accepted: true, purpose: 'developer' });
+  ck('цель «девелопер»: заявка ждёт администратора', r.status === 200 && r.data.pending === true, JSON.stringify(r.data));
 
   php.kill();
   const errLog = phpLog.split('\n').filter(l => /PHP (Fatal|Warning|Parse|Notice)/.test(l));

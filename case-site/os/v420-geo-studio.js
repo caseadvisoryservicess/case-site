@@ -1,4 +1,4 @@
-/* CASE OS v4.8.1 — universal/editable geo layer with integrated Tashkent master baseline and F&B classification. */
+/* CASE OS v4.8.1 - universal/editable geo layer with integrated Tashkent master baseline and F&B classification. */
 (function(){
   'use strict';
   var PARAMS=new URLSearchParams(location.search),EMBEDDED=PARAMS.get('embedded')==='1';
@@ -8,13 +8,13 @@
   var CENTER={lat:41.31110,lng:69.27970};
   var GEO_POI={hotels:[],shopping:[],street_retail:[],supermarkets:[],markets:[],restaurants:[],cafes:[],fast_food:[],parks:[],playgrounds:[],entertainment:[],sports:[],education:[],residential:[],warehouses:[],parking:[],transport_hubs:[],culture:[],tourism:[],finance:[],government:[],fuel_auto:[],mahallas:[]};
   var GEO_POI_LAYERS={},GEO_POI_RENDERER=null,GEO_POI_LOADING={},GEO_POI_LABSTYLE={};
-  // Сколько точек слоя реально нарисовано на экране — это и показывает легенда карты.
-  // Держим отдельно от длины массива: в массиве весь город, на экране — только видимое.
+  // Сколько точек слоя реально нарисовано на экране - это и показывает легенда карты.
+  // Держим отдельно от длины массива: в массиве весь город, на экране - только видимое.
   var GEO_POI_VIS={};
   var POI_DEFS={
     hotels:{label:'Гостиницы и апарт-отели',short:'Гостиница',icon:'H',color:'#7B4BA1',fields:[['category','Категория / звёзды','text'],['keys','Номерной фонд / keys','number'],['operator','Оператор / бренд','text'],['adr','ADR','number'],['occupancy','Загрузка, %','number'],['revpar','RevPAR','number'],['facilities','F&B, SPA, MICE и сервисы','textarea']]},
     /* Поля openYear / landArea / tenantsCount / fbCount добавлены под слайд
-       «Конкурентная среда» — именно эти колонки команда заполняет вручную
+       «Конкурентная среда» - именно эти колонки команда заполняет вручную
        в презентациях по рынку (год открытия, участок, число точек и из них F&B). */
     shopping:{label:'ТРЦ и торговые центры',short:'ТРЦ / ТЦ',icon:'Т',color:'#C55A11',fields:[['format','Формат / класс центра','text'],['openYear','Год открытия','number'],['landArea','Участок, м²','number'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['floors','Этажей','number'],['tenantsCount','Точек (арендаторов)','number'],['fbCount','Из них F&B','number'],['anchors','Якорные арендаторы','textarea'],['tenants','Арендаторы / tenant mix','textarea'],['rentRange','Ставки аренды по этажам','textarea'],['occupancy','Заполняемость, %','number'],['parkingSpaces','Парковочных мест','number'],['annualFootfall','Посещаемость в год','number'],['floorPlans','Планировки / ссылки','textarea']]},
     street_retail:{label:'Стрит-ритейл',short:'Стрит-ритейл',icon:'R',color:'#D9822B',fields:[['format','Формат помещения','text'],['gba','GBA, м²','number'],['gla','GLA, м²','number'],['frontage','Фронт / витрина, м','number'],['floors','Этажей','number'],['rentRange','Ставка аренды','text'],['tenant','Арендатор / категория','text'],['footTraffic','Пешеходный трафик','number']]},
@@ -72,10 +72,10 @@
     optician:'Оптика', variety_store:'Товары по одной цене / разное', department_store:'Универсальные магазины', convenience:'Универсальные магазины',
     gift_shop:'Подарки и сувениры', toys:'Игрушки и детские товары', florist:'Цветы'
   };
-  /* Подтипы образования и общепита — человеческими словами. OSM отдаёт сырой тег
+  /* Подтипы образования и общепита - человеческими словами. OSM отдаёт сырой тег
      (school, training, restaurant), и в отчётах это выглядело как «training: 12».
      Набор и правила совпадают с автономной версией карты, чтобы цифры сходились.
-     Чайхану OSM отдельным тегом НЕ размечает — она приходит обычным рестораном,
+     Чайхану OSM отдельным тегом НЕ размечает - она приходит обычным рестораном,
      поэтому национальный сегмент выделяем по названию. */
   var EDU_SUBTYPES={school:'Школа',university:'Университет / вуз',college:'Колледж / лицей',
     kindergarten:'Детский сад',language_school:'Языковая школа',
@@ -84,7 +84,7 @@
   var FNB_SUBTYPES={restaurant:'Ресторан',cafe:'Кафе / кофейня',ice_cream:'Кафе / кофейня',
     coffee:'Кафе / кофейня',tea:'Кафе / кофейня',fast_food:'Фастфуд / QSR',food_court:'Фудкорт'};
   var TEA_RE=/чайхан|choyxona|choyhona|чойхон|милли таом/i, CANTEEN_RE=/столов|ошхона|oshxona/i;
-  /* v4.59.0: транспорт разбивается по видам узла — для аренды остановка городского автобуса
+  /* v4.59.0: транспорт разбивается по видам узла - для аренды остановка городского автобуса
      под окнами и аэропорт в двадцати километрах это совершенно разные вещи, а в легенде они
      до этого складывались в одно число */
   var TRANSPORT_SUBTYPES={bus_stop:'Остановка автобуса',bus_station:'Автовокзал',
@@ -161,7 +161,7 @@
     bc:[
       ['Основное',[['name','Название','text'],['district','Район','text'],['provider','Источник','text'],['status','Рабочий статус','text']]],
       ['Локация',[['address','Адрес','textarea'],['lat','Широта','lat'],['lng','Долгота','lng']]],
-      /* Набор полей для офисного здания — то, по чему команда сравнивает БЦ.
+      /* Набор полей для офисного здания - то, по чему команда сравнивает БЦ.
          Состав согласован с владельцем: лишние инженерные и договорные поля убраны,
          чтобы карточку реально заполняли, а не пролистывали. */
       ['Параметры здания',[['class','Класс БЦ (A+/A/B+/B/C)','text'],['year','Год постройки','number'],['yearReno','Год реконструкции','number'],
@@ -262,7 +262,7 @@
     /* точка анализа виртуальная и в сохранённые гео-профили не попадает */
     Object.keys(PROJECTS).forEach(function(k){if(PROJECTS[k]&&PROJECTS[k].virtual)return;GEO_PROFILES[k]=clone(PROJECTS[k]);});
     /* На сервере храним ТОЛЬКО изменённые наборы (правки/удаления/добавления), а нетронутый
-       встроенный справочник (2GIS-мастербаза ~тысячи объектов) не гоняем при каждом сохранении —
+       встроенный справочник (2GIS-мастербаза ~тысячи объектов) не гоняем при каждом сохранении -
        иначе общий блоб состояния раздувается и упирается в лимиты памяти/размера PHP.
        Нетронутый набор при загрузке берётся из встроенной константы (applyState это учитывает). */
     var mod=(GEO_META&&GEO_META.datasets&&typeof GEO_META.datasets==='object')?GEO_META.datasets:{};
@@ -342,12 +342,12 @@
     return '<label class="geo-field"><span>'+l+'</span><input class="geo-plan-pf" data-k="'+k+'" type="'+(t==='number'?'number':t==='date'?'date':'text')+'" value="'+esc(v)+'"'+(t==='number'?' step="any"':'')+dis+'></label>';
   }
   function planningEnvelope(p){var area=+p.siteArea||0,far=+p.planFar||0,cov=+p.planCoverage||0,gfa=area>0&&far>0?area*10000*far:0,footprint=area>0&&cov>0?area*10000*cov/100:0;
-    function n(v){return v?v.toLocaleString('ru-RU',{maximumFractionDigits:0})+' м²':'—';}
-    return '<div class="geo-envelope"><div><b>'+n(gfa)+'</b><span>Ориентировочный максимум надземного GFA = площадь участка × FAR</span></div><div><b>'+n(footprint)+'</b><span>Ориентировочное максимальное пятно по введённому проценту застройки</span></div><div><b>'+(p.maxFloors||'—')+'</b><span>Предельная этажность по вручную проверенному документу</span></div></div>';
+    function n(v){return v?v.toLocaleString('ru-RU',{maximumFractionDigits:0})+' м²':'-';}
+    return '<div class="geo-envelope"><div><b>'+n(gfa)+'</b><span>Ориентировочный максимум надземного GFA = площадь участка × FAR</span></div><div><b>'+n(footprint)+'</b><span>Ориентировочное максимальное пятно по введённому проценту застройки</span></div><div><b>'+(p.maxFloors||'-')+'</b><span>Предельная этажность по вручную проверенному документу</span></div></div>';
   }
   function planningTab(){var host=document.getElementById('planT');if(!host)return;var p=active(),lat=Number.isFinite(+p.lat)?+p.lat:CENTER.lat,lng=Number.isFinite(+p.lng)?+p.lng:CENTER.lng;
     var html='<div class="geo-legal-warning"><b>Предварительная проверка.</b> Параметры подтверждаются только официальным документом.</div>'
-      +'<section class="geo-dshk-panel"><div class="geo-dshk-head"><div><h3>DSHK · Shaffof Qurilish</h3><span class="geo-plan-coords">'+lat.toFixed(6)+', '+lng.toFixed(6)+'</span></div></div><div class="geo-dshk-card" style="border:1px solid var(--line);border-radius:10px;background:#faf9f7;padding:14px 16px;margin-top:6px"><p style="margin:0 0 10px;color:#555;font-size:12.5px;line-height:1.5">Государственный портал «Shaffof Qurilish» (DSHK) запрещает встраивание в сторонние сайты — поэтому здесь он не отображается. Откройте его в отдельной вкладке: карту зон, ПДП/АПЗ и статусы разрешений смотрите на самом портале.</p><a class="btn" href="https://dshk.shaffofqurilish.uz/" target="_blank" rel="noopener noreferrer">Открыть портал DSHK ↗</a></div></section>'
+      +'<section class="geo-dshk-panel"><div class="geo-dshk-head"><div><h3>DSHK · Shaffof Qurilish</h3><span class="geo-plan-coords">'+lat.toFixed(6)+', '+lng.toFixed(6)+'</span></div></div><div class="geo-dshk-card" style="border:1px solid var(--line);border-radius:10px;background:#faf9f7;padding:14px 16px;margin-top:6px"><p style="margin:0 0 10px;color:#555;font-size:12.5px;line-height:1.5">Государственный портал «Shaffof Qurilish» (DSHK) запрещает встраивание в сторонние сайты - поэтому здесь он не отображается. Откройте его в отдельной вкладке: карту зон, ПДП/АПЗ и статусы разрешений смотрите на самом портале.</p><a class="btn" href="https://dshk.shaffofqurilish.uz/" target="_blank" rel="noopener noreferrer">Открыть портал DSHK ↗</a></div></section>'
       +'<section class="geo-plan-section"><h3>Ориентировочный строительный конверт</h3>'+planningEnvelope(p)+'<p class="note">Расчёт появляется только из вручную введённых площади участка, FAR и процента застройки. Он не заменяет ПДП, АПЗ, экспертизу или разрешение.</p></section>'
       +'<section class="geo-plan-section"><h3>Карточка ручной проверки</h3><div class="geo-fields">'+PLAN_FIELDS.map(function(f){return planFieldHtml(f,p);}).join('')+'</div></section>'
       +'<div class="geo-files"><h3>Доказательные файлы проекта</h3><div class="geo-file-list">'+projectFiles(p)+'</div>'+(GEO_CAN_EDIT?'<input id="geoPlanningFiles" type="file" multiple hidden accept=".pdf,.png,.jpg,.jpeg,.webp,.csv,.xls,.xlsx,.doc,.docx,application/pdf,image/png,image/jpeg,image/webp,text/csv"><button class="btn sec" onclick="document.getElementById(\'geoPlanningFiles\').click()">＋ Приложить документ / скриншот</button><small>Общие файлы проекта · до 1 МБ на файл, до 4 МБ на проект</small>':'')+'</div>'
@@ -360,7 +360,7 @@
   window.geoSavePlanning=function(){if(!GEO_CAN_EDIT)return;var p=capturePlanning();if(p.planVerification==='verified'&&(!String(p.planSourceUrl||'').trim()||!String(p.planCheckedBy||'').trim())){alert('Для статуса «Подтверждено вручную» укажите официальный источник и проверяющего.');return;}if(p.planVerification==='verified')p.planCheckedAt=p.planCheckedAt||new Date().toISOString().slice(0,10);GEO_PROFILES[p.id]=clone(p);commit('градостроительная проверка: '+p.name);planningTab();};
   function projectFiles(p){var files=Array.isArray(p.files)?p.files:[];if(!files.length)return '<span class="note">Файлы пока не прикреплены.</span>';return files.map(function(f,i){return '<span class="geo-file"><a href="'+esc(f.data||'#')+'" download="'+esc(f.name||'file')+'">'+esc(f.name||'Файл')+'</a><small>'+Math.ceil((+f.size||0)/1024)+' КБ</small>'+(GEO_CAN_EDIT?'<button onclick="geoRemoveProjectFile('+i+')" title="Удалить">×</button>':'')+'</span>';}).join('');}
   function pointSummary(p){
-    var rs=[500,1000,3000],rows=rs.map(function(r){return '<tr><td>'+r.toLocaleString('ru')+' м</td><td>'+(popR(p.lat,p.lng,r)||'—').toLocaleString('ru')+'</td><td>'+bcR(p.lat,p.lng,r)+'</td><td>'+medR(p.lat,p.lng,r,false)+'</td><td>'+phR(p.lat,p.lng,r)+'</td></tr>';}).join('');
+    var rs=[500,1000,3000],rows=rs.map(function(r){return '<tr><td>'+r.toLocaleString('ru')+' м</td><td>'+(popR(p.lat,p.lng,r)||'-').toLocaleString('ru')+'</td><td>'+bcR(p.lat,p.lng,r)+'</td><td>'+medR(p.lat,p.lng,r,false)+'</td><td>'+phR(p.lat,p.lng,r)+'</td></tr>';}).join('');
     return '<table><thead><tr><th>Радиус</th><th>Население</th><th>БЦ</th><th>Медицина</th><th>Аптеки</th></tr></thead><tbody>'+rows+'</tbody></table><p class="note">Расчёт обновляется от координат выбранного проекта. Для транспортной изохроны используйте карту.</p>';
   }
   function captureProfile(){var p=active();document.querySelectorAll('.geo-pf').forEach(function(el){var k=el.dataset.k,v=el.value;if(el.type==='number')v=v===''?'':+v;p[k]=v;});GEO_PROFILES[p.id]=clone(p);return p;}
@@ -377,7 +377,7 @@
     var p=active(),q=quality(),src={};BC.forEach(function(b){var e=eff(b),s=e.provider||'Без источника';src[s]=(src[s]||0)+1;});
     var byD=Object.keys(DIST).map(function(d){var a=DIST[d]||[],n=BC.map(eff).filter(function(b){return b.district===d;}).length;return{d:d,pop:+a[0]||0,area:+a[1]||0,n:n};}).sort(function(a,b){return b.n-a.n;});
     document.getElementById('anaT').innerHTML='<div class="kpis"><span class="kpi"><b>'+BC.length+'</b><small>бизнес-центров</small></span><span class="kpi"><b>'+MEDPTS.length+'</b><small>медицинских объектов с координатами'+(typeof MED!=='undefined'&&MED&&MED.total&&MED.total!==MEDPTS.length?' <span class="mini" style="display:block;font-weight:400" title="Разные числа: MEDPTS - точки на карте с координатами, MED.total - общий счётчик по категориям источника (2GIS), не у всех записей каталога есть координаты для карты">из '+MED.total+' по каталогу источника</span>':'')+'</small></span><span class="kpi"><b>'+PHARM.length+'</b><small>аптек</small></span><span class="kpi"><b>'+q.verified+'</b><small>проверено вручную</small></span></div>'
-      +'<h3>Контекст выбранной точки</h3>'+pointSummary(p)+'<h3>Покрытие БЦ по районам</h3><table><thead><tr><th>Район</th><th>БЦ</th><th>Население, тыс.</th><th>Площадь, км²</th><th>БЦ / 100k</th></tr></thead><tbody>'+byD.map(function(x){return '<tr><td>'+esc(x.d)+'</td><td>'+x.n+'</td><td>'+x.pop+'</td><td>'+x.area+'</td><td>'+(x.pop?((x.n/x.pop)*100).toFixed(1):'—')+'</td></tr>';}).join('')+'</tbody></table>'
+      +'<h3>Контекст выбранной точки</h3>'+pointSummary(p)+'<h3>Покрытие БЦ по районам</h3><table><thead><tr><th>Район</th><th>БЦ</th><th>Население, тыс.</th><th>Площадь, км²</th><th>БЦ / 100k</th></tr></thead><tbody>'+byD.map(function(x){return '<tr><td>'+esc(x.d)+'</td><td>'+x.n+'</td><td>'+x.pop+'</td><td>'+x.area+'</td><td>'+(x.pop?((x.n/x.pop)*100).toFixed(1):'-')+'</td></tr>';}).join('')+'</tbody></table>'
       +'<h3>Источники БЦ</h3><div class="geo-source-list">'+Object.keys(src).map(function(s){return '<span><b>'+src[s]+'</b> '+esc(s)+'</span>';}).join('')+'</div><p class="note">До ручного подтверждения данные нельзя считать финальными для клиентского отчёта.</p>';
   }
   function datasetOptions(){var all='<option value="__all__"'+(GEO_DATASET==='__all__'?' selected':'')+'>★ Все объекты (все наборы)</option>';return all+Object.keys(DATASETS).map(function(k){return '<option value="'+k+'"'+(GEO_DATASET===k?' selected':'')+'>'+DATASETS[k].label+'</option>';}).join('');}
@@ -456,8 +456,8 @@
   window.geoTblSort=function(key){geoEnsureUiPrefs();if(!GEO_TSORT||GEO_TSORT.key!==key)GEO_TSORT={key:key,dir:1};else if(GEO_TSORT.dir>0)GEO_TSORT.dir=-1;else GEO_TSORT=null;geoSaveUiPrefs();renderDatasetRows();};
   window.geoTblFilter=function(key,v){geoEnsureUiPrefs();GEO_TFILTERS[key]=v;GEO_TFOCUS='geoTFilter_'+key;geoSaveUiPrefs();renderDatasetRows();};
   window.geoTblFilterReset=function(){geoEnsureUiPrefs();GEO_TFILTERS={};GEO_TSORT=null;geoSaveUiPrefs();renderDatasetRows();};
-  /* ===== Табличное редактирование геоданных (как в LCR) — только для админ-ролей (владелец / мл. админ / администратор) ===== */
-  var GEO_ALC=[['','—'],['unknown','Не проверено'],['yes','Есть'],['no','Нет'],['limited','Ограниченно'],['seasonal','Сезонно']];
+  /* ===== Табличное редактирование геоданных (как в LCR) - только для админ-ролей (владелец / мл. админ / администратор) ===== */
+  var GEO_ALC=[['','-'],['unknown','Не проверено'],['yes','Есть'],['no','Нет'],['limited','Ограниченно'],['seasonal','Сезонно']];
   function geoColToRaw(k,col){
     if(POI_DEFS[k])return ({name:'name',district:'district',category:'subtype',cuisine:'cuisinePrimary',alcohol:'alcoholStatus',address:'address',source:'operator',klass:'class'})[col]||null;
     var M={bc:{name:'name',district:'district',category:'class',klass:'class',address:'address',source:'provider'},
@@ -560,7 +560,7 @@
       (GEO_TSORT||Object.keys(GEO_TFILTERS).some(function(k){return GEO_TFILTERS[k];})?' · <a href="#" onclick="geoTblFilterReset();return false">сбросить сортировку/фильтры</a>':'')+'</div>';
     if(GEO_EDIT_MODE&&GEO_ADMIN_EDIT)head+=(GEO_DATASET==='__all__'
       ?'<div class="geo-list-count" style="color:#9E0000">✎ Правка в таблице: выберите конкретный набор данных (не «★ Все объекты»), чтобы редактировать значения прямо в ячейках.</div>'
-      :'<div class="geo-list-count" style="color:#1f6f2b">✎ Правка в таблице включена — редактируйте ячейки (Название, Район, Категория, Кухня/формат, Алкоголь, Класс, Адрес, Источник). Сохраняется автоматически.</div>');
+      :'<div class="geo-list-count" style="color:#1f6f2b">✎ Правка в таблице включена - редактируйте ячейки (Название, Район, Категория, Кухня/формат, Алкоголь, Класс, Адрес, Источник). Сохраняется автоматически.</div>');
     var cols=[
       {key:'sel',w:30,label:'<input type="checkbox" id="geoSelAll" onclick="geoSelectPage(this.checked)" title="Выбрать показанные">'},
       {key:'status',w:26,label:'',sortable:true},
@@ -578,28 +578,28 @@
     ]);
     var colgroup='<colgroup>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;return '<col data-colkey="'+c.key+'" style="width:'+w+'px">';}).join('')+'</colgroup>';
     var sortIc=function(c){if(!c.sortable||!GEO_TSORT||GEO_TSORT.key!==c.key)return '';return ' <span class="geo-th-sort-ic on">'+(GEO_TSORT.dir>0?'▲':'▼')+'</span>';};
-    var th='<tr>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;var directSort=c.sortable&&!c.filterable;var sty=' style="width:'+w+'px'+(directSort?';cursor:pointer':'')+'"';var click=directSort?' onclick="geoTblSort(\''+c.key+'\')" title="Сортировать"':'';var fnl=c.filterable?' <span class="geo-th-fnl'+(geoFilterActive(GEO_TFILTERS[c.key])?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoColMenu(\''+c.key+'\',this)">▾</span>':'';return '<th data-colkey="'+c.key+'"'+click+sty+'><span class="geo-th-label">'+c.label+sortIc(c)+fnl+'</span><span class="geo-col-resizer" title="Потяните, чтобы изменить ширину · двойной клик — сбросить" onclick="event.stopPropagation()"></span></th>';}).join('')+'</tr>';
+    var th='<tr>'+cols.map(function(c){var w=GEO_COLW[c.key]||c.w;var directSort=c.sortable&&!c.filterable;var sty=' style="width:'+w+'px'+(directSort?';cursor:pointer':'')+'"';var click=directSort?' onclick="geoTblSort(\''+c.key+'\')" title="Сортировать"':'';var fnl=c.filterable?' <span class="geo-th-fnl'+(geoFilterActive(GEO_TFILTERS[c.key])?' on':'')+'" title="Фильтр и сортировка" onclick="event.stopPropagation();geoColMenu(\''+c.key+'\',this)">▾</span>':'';return '<th data-colkey="'+c.key+'"'+click+sty+'><span class="geo-th-label">'+c.label+sortIc(c)+fnl+'</span><span class="geo-col-resizer" title="Потяните, чтобы изменить ширину · двойной клик - сбросить" onclick="event.stopPropagation()"></span></th>';}).join('')+'</tr>';
     var filterRow='';
     var EDIT=GEO_EDIT_MODE&&GEO_ADMIN_EDIT&&GEO_DATASET!=='__all__';
     var editCell=function(r,col,dispHtml,rawVal){if(EDIT&&geoColToRaw(r.k,col)){if(col==='alcohol')return '<td onclick="event.stopPropagation()"><select class="geo-cell-inp" onchange="geoSetCell(\''+esc(r.k)+'\','+r.i+',\'alcohol\',this.value)">'+GEO_ALC.map(function(o){return '<option value="'+o[0]+'"'+(String(rawVal||'')===o[0]?' selected':'')+'>'+esc(o[1])+'</option>';}).join('')+'</select></td>';return '<td onclick="event.stopPropagation()"><input class="geo-cell-inp" value="'+esc(rawVal==null?'':rawVal)+'" onchange="geoSetCell(\''+esc(r.k)+'\','+r.i+',\''+col+'\',this.value)"></td>';}return '<td>'+dispHtml+'</td>';};
-    // table-layout:fixed only respects exact column widths if the table's OWN width equals their sum —
+    // table-layout:fixed only respects exact column widths if the table's OWN width equals their sum -
     // otherwise the browser redistributes any leftover space (often dumping it onto the last column),
     // making resized widths drift. Pin the table's width explicitly so there is nothing to redistribute.
     var totalW=cols.reduce(function(s,c){return s+(GEO_COLW[c.key]||c.w);},0);
     var body=shown.map(function(r){var key=r.k+'::'+r.i,ck=GEO_SEL[key]?' checked':'';var uf=fmtUpdated(r.upd),f=r.fields;
-      var updCell=uf?'<span class="geo-upd-badge" title="'+esc(uf.full)+(r.x._updatedBy?' · '+esc(r.x._updatedBy):'')+'">✓ '+esc(uf.rel)+'</span>':'<span class="geo-upd-badge geo-upd-none" title="Ещё не редактировалось">— не тронуто</span>';
+      var updCell=uf?'<span class="geo-upd-badge" title="'+esc(uf.full)+(r.x._updatedBy?' · '+esc(r.x._updatedBy):'')+'">✓ '+esc(uf.rel)+'</span>':'<span class="geo-upd-badge geo-upd-none" title="Ещё не редактировалось">- не тронуто</span>';
       return '<tr class="geo-trow'+(uf?' geo-row-edited':'')+'" data-k="'+esc(r.k)+'" data-i="'+r.i+'" onclick="geoRowClick(event,\''+esc(r.k)+'\','+r.i+')">'+
         '<td onclick="event.stopPropagation()"><input type="checkbox" data-selkey="'+esc(key)+'"'+ck+' onclick="geoToggleSel(\''+esc(key)+'\',this.checked)"></td>'+
         '<td><span class="geo-status '+r.st+'" title="'+r.st+'"></span></td>'+
         editCell(r,'name','<b>'+esc(r.t)+'</b>',r.t)+(ALL?'<td><small>'+esc((DATASETS[r.k]||{}).label||r.k)+'</small></td>':'')+
-        '<td><small>'+esc(f.city||'—')+'</small></td>'+
-        editCell(r,'district','<small>'+esc(f.district||'—')+'</small>',f.district)+
-        editCell(r,'category','<small>'+esc(f.category||'—')+'</small>',f.category)+
-        editCell(r,'cuisine','<small>'+esc(f.cuisine||'—')+'</small>',f.cuisine)+
-        editCell(r,'alcohol','<small>'+esc(({yes:'Есть',no:'Нет',unknown:'Не проверено',limited:'Ограниченно',seasonal:'Сезонно'}[f.alcohol]||f.alcohol||'—'))+'</small>',f.alcohol)+
-        editCell(r,'klass','<small>'+esc(f.klass||'—')+'</small>',f.klass)+
-        editCell(r,'address','<small>'+esc(f.address||'—')+'</small>',f.address)+
-        editCell(r,'source','<small>'+esc(f.source||'—')+'</small>',f.source)+
+        '<td><small>'+esc(f.city||'-')+'</small></td>'+
+        editCell(r,'district','<small>'+esc(f.district||'-')+'</small>',f.district)+
+        editCell(r,'category','<small>'+esc(f.category||'-')+'</small>',f.category)+
+        editCell(r,'cuisine','<small>'+esc(f.cuisine||'-')+'</small>',f.cuisine)+
+        editCell(r,'alcohol','<small>'+esc(({yes:'Есть',no:'Нет',unknown:'Не проверено',limited:'Ограниченно',seasonal:'Сезонно'}[f.alcohol]||f.alcohol||'-'))+'</small>',f.alcohol)+
+        editCell(r,'klass','<small>'+esc(f.klass||'-')+'</small>',f.klass)+
+        editCell(r,'address','<small>'+esc(f.address||'-')+'</small>',f.address)+
+        editCell(r,'source','<small>'+esc(f.source||'-')+'</small>',f.source)+
         '<td>'+updCell+'</td></tr>';}).join('');
     host.innerHTML=head+'<div class="geo-table-wrap"><table class="geo-table geo-table-resizable" data-grid-engine="geo" data-case-grid-key="geo_dataset_'+esc(GEO_DATASET)+'" style="width:100%;min-width:'+totalW+'px;--geo-min-width:'+totalW+'px">'+colgroup+th+filterRow+body+'</table></div>'+(rows.length>CAP?'<div class="geo-list-count" style="opacity:.7">Уточните поиск, чтобы увидеть остальные '+(rows.length-CAP)+'.</div>':'');
     geoMakeColsResizable(host.querySelector('.geo-table-resizable'));
@@ -645,10 +645,10 @@
   function openJsonEditor(title,value,onSave,onDelete,wide){var c=document.getElementById('card'),bg=document.getElementById('cardbg');c.classList.remove('geo-record-card');c.classList.add('geo-json-card');c.innerHTML='<div class="ch"><span style="flex:1">'+esc(title)+'</span><span class="btn sec" onclick="closeCard()">✕</span></div><div class="body"><p class="note">Служебный режим полного набора. Используйте его только для массовой технической правки.</p><textarea id="geoJsonEdit" class="geo-json '+(wide?'wide':'')+'">'+esc(JSON.stringify(value,null,2))+'</textarea><div id="geoJsonError" class="savemsg"></div></div><div class="cbtns">'+(GEO_CAN_EDIT?'<button class="btn pri" id="geoJsonSave">💾 Сохранить</button>':'')+(GEO_CAN_EDIT&&onDelete?'<button class="btn sec" id="geoJsonDelete">Удалить</button>':'')+'<button class="btn sec" onclick="closeCard()">Закрыть</button></div>';c.classList.add('open');bg.classList.add('open');var s=document.getElementById('geoJsonSave');if(s)s.onclick=function(){try{var v=JSON.parse(document.getElementById('geoJsonEdit').value);onSave(v);closeCard();}catch(e){document.getElementById('geoJsonError').textContent='Ошибка JSON: '+e.message;}};var d=document.getElementById('geoJsonDelete');if(d)d.onclick=function(){if(confirm('Удалить запись?')){onDelete();closeCard();}};}
   function poiRowHtml(k){var d=POI_DEFS[k],n=GEO_POI[k].length,loading=GEO_POI_LOADING[k];
     var radius=(d.radius!=null?d.radius:6),opacity=(d.opacity!=null?d.opacity:92),labels=!!d.labels,labelSize=(d.labelSize!=null?d.labelSize:11);
-    /* класс lrow (не styrow) — это конечный вид, в который buildPanel() в geoanalytics-studio.html
+    /* класс lrow (не styrow) - это конечный вид, в который buildPanel() в geoanalytics-studio.html
        превращает строки БЦ/Медицина/Аптеки после загрузки страницы; здесь строим тот же вид сразу,
        чтобы все строки слоёв выглядели одинаково без ожидания того (более раннего) прохода. */
-    /* #91: компактная строка — только чекбокс, название, счётчик, цвет-индикатор и ⚙.
+    /* #91: компактная строка - только чекбокс, название, счётчик, цвет-индикатор и ⚙.
        Все настройки (размер/прозрачность/подписи + доп. фильтр) спрятаны в поповер ⚙ рядом с надписью. */
     return '<div class="lrow geo-poi-row" data-poi-k="'+k+'"><label class="ck"><input type="checkbox" id="geoLayer-'+k+'" onchange="geoTogglePoiLayer(\''+k+'\')"> '+esc(d.label)+' <small id="geoLayerCount-'+k+'" class="geo-poi-count">'+(loading?'загрузка…':n)+'</small></label><span class="geo-dot" style="background:'+esc(d.color)+'"></span><button type="button" class="geo-gear" title="Настройки слоя" aria-label="Настройки слоя" onclick="geoToggleGear(\''+k+'\')">⚙</button></div>'
       +'<div class="geo-poi-gear" id="geoGear-'+k+'" style="display:none">'
@@ -670,7 +670,7 @@
   var GEO_POI_CONTROLS_BUILT=false;
   function ensurePoiLayerControls(){
     // Строим строки-контролы ОДИН раз. Раньше перестройка происходила на каждый moveend
-    // (renderPoiLayers→ensurePoiLayerControls), и innerHTML сбрасывал состояние галочек слоёв —
+    // (renderPoiLayers→ensurePoiLayerControls), и innerHTML сбрасывал состояние галочек слоёв -
     // включённые слои гасли при любом сдвиге/зуме карты. Теперь строим единожды; счётчики
     // обновляются отдельно через poiRowRefresh, состояние галочек сохраняется при панораме.
     geoLoadLayerStyle();geoLoadRetailSubFilter();
@@ -685,8 +685,8 @@
     GEO_POI_CONTROLS_BUILT=true;
   }
   function poiRowRefresh(k){var row=document.querySelector('.geo-poi-row[data-poi-k="'+k+'"]');if(!row)return;var cnt=row.querySelector('#geoLayerCount-'+k);if(cnt)cnt.textContent=GEO_POI_LOADING[k]?'загрузка…':GEO_POI[k].length;row.classList.toggle('geo-poi-empty',!GEO_POI_LOADING[k]&&!GEO_POI[k].length);}
-  /* v4.61.1: у остановки в карточке главное — номера маршрутов, и человек ждёт их
-     увидеть так же, как в Яндексе или 2ГИС: кликнул по остановке — вот номера. Раньше
+  /* v4.61.1: у остановки в карточке главное - номера маршрутов, и человек ждёт их
+     увидеть так же, как в Яндексе или 2ГИС: кликнул по остановке - вот номера. Раньше
      они шли одной строкой среди прочих полей и терялись. Рисуем их значками по видам
      транспорта, отдельным блоком над остальным. */
   var MODE_COLOR={'автобус':'#0d7a6f','троллейбус':'#2878B5','маршрутка':'#B3541E','трамвай':'#8F5E99','метро':'#9E0000'};
@@ -701,9 +701,9 @@
   }
   function poiPopupHtml(k,i,x){var d=POI_DEFS[k],status=recordStatus(x),statusLabel=status==='verified'?'Подтверждено':status==='needs_review'?'Нужна проверка':'Онлайн, не проверено',profile=(d.fields||[]).filter(function(f){return x[f[0]]!==''&&x[f[0]]!=null;}).slice(0,3).map(function(f){return '<div><span>'+esc(f[1])+'</span><b>'+esc(x[f[0]])+'</b></div>';}).join('');return '<div class="geo-map-popup"><strong>'+esc(x.name||d.short)+'</strong><p>'+esc([poiSubtypeLabel(k,x),x.district].filter(Boolean).join(' · '))+'</p>'+(k==='transport_hubs'?(x.routes?routesBadges(x.routes):'<p class="geo-routes-none">Маршруты по этой остановке в OpenStreetMap не размечены</p>'):'')+(x.address?'<p>'+esc(x.address)+'</p>':'')+(profile?'<div class="geo-map-popup-grid">'+profile+'</div>':'')+'<small class="'+status+'">'+statusLabel+(x.provider?' · '+esc(x.provider):'')+'</small><div class="geo-map-popup-btns"><button type="button" onclick="geoOpenMapRecord(\''+k+'\','+i+');return false">Открыть карточку</button>'+(GEO_CAN_EDIT?'<button type="button" onclick="geoDeleteMapRecord(\''+k+'\','+i+');return false" style="margin-top:5px;background:#9E0000;color:#fff;border:none;border-radius:6px;padding:5px 9px;cursor:pointer;font-size:12px" title="Удалить этот объект с карты (неактуальный/закрытый). Изменение сохранится для всех.">🗑 Удалить объект</button>':'')+'</div></div>';}
   function renderPoiLayer(k){if(!map||!window.L||!POI_DEFS[k])return;if(!GEO_POI_RENDERER)GEO_POI_RENDERER=L.svg({padding:.25});var g=GEO_POI_LAYERS[k];
-   // Кластеризация маркеров (Leaflet.markercluster) — при поднятом лимите 2000 точек/слой без
+   // Кластеризация маркеров (Leaflet.markercluster) - при поднятом лимите 2000 точек/слой без
    // неё карта превращается в кашу и тормозит. На близком зуме (>=17) кластеры распадаются на
-   // отдельные точки, и подписи снова видны. Если плагин почему-то не загрузился — обычная группа.
+   // отдельные точки, и подписи снова видны. Если плагин почему-то не загрузился - обычная группа.
    var _wantClu=(POI_DEFS[k].cluster!==false)&&typeof L.markerClusterGroup==='function';
    if(g&&g._geoClu!==_wantClu){try{map.removeLayer(g);}catch(e){}g=GEO_POI_LAYERS[k]=null;}
    if(!g){g=GEO_POI_LAYERS[k]=(_wantClu
@@ -713,7 +713,7 @@
    if(!cb||!cb.checked){if(GEO_POI_VIS[k]){GEO_POI_VIS[k]=0;geoLegendRefresh();}return;}
    var d=POI_DEFS[k],VB=typeof vbox==='function'?vbox():null;
    var radius=(d.radius!=null?d.radius:6),op=(d.opacity!=null?d.opacity:92)/100,showLab=!!d.labels;
-   // Размер подписи регулируется по слою (ползунок «размер подписи»). Значение из настройки —
+   // Размер подписи регулируется по слою (ползунок «размер подписи»). Значение из настройки -
    // базовый px; сохраняем лёгкое масштабирование по зуму, чтобы подписи не были гигантскими на
    // мелком масштабе (независимый разбор: "нужно регулировать размер надписей у каждой категории").
    var baseLS=(d.labelSize!=null?d.labelSize:11);
@@ -767,13 +767,13 @@
       if(j&&j.ok&&Array.isArray(j.rows)){
         GEO_POI[k]=j.rows;
         /* v4.59.0: по транспорту говорим не только сколько точек, но и сколько из них с
-           маршрутами и не обрезали ли выборку — иначе «загружено 2000» скрывает, что в зоне
+           маршрутами и не обрезали ли выборку - иначе «загружено 2000» скрывает, что в зоне
            их было 5400 и половина без единого маршрута */
         var note='загружен слой «'+(POI_DEFS[k]||{}).label+'» из OSM: '+j.rows.length;
         if(k==='transport_hubs'){
           if(typeof j.withRoutes==='number')note+=', с маршрутами '+j.withRoutes;
           if(typeof j.routesFound==='number')note+=', маршрутов в зоне '+j.routesFound;
-          if(j.truncated)note+=' (в зоне '+j.total+', показаны первые '+j.rows.length+' по числу маршрутов — уменьшите участок карты)';
+          if(j.truncated)note+=' (в зоне '+j.total+', показаны первые '+j.rows.length+' по числу маршрутов - уменьшите участок карты)';
         }
         markDataset(k);commit(note);
         if(k==='transport_hubs'&&j.truncated)toastGeo('Транспорт: в зоне '+j.total+' узлов, показаны '+j.rows.length+' с наибольшим числом маршрутов. Уменьшите участок карты, чтобы взять все.');
@@ -781,7 +781,7 @@
       }else{
         var cb=document.getElementById('geoLayer-'+k);if(cb)cb.checked=false;
         /* v4.61.1: причину отказа отдавали в поле error (так делает fail() в api/lib.php),
-           а читали только message — из-за этого ЛЮБАЯ ошибка сервера превращалась в
+           а читали только message - из-за этого ЛЮБАЯ ошибка сервера превращалась в
            «Не удалось загрузить слой из OSM», и понять, что именно случилось, было нельзя.
            Читаем оба поля и добавляем код ответа: по нему сразу видно, дело в файле на
            сервере, в правах или во внешнем сервисе. */
@@ -809,7 +809,7 @@
     renderPoiLayer(k);
   };
   // Регулируемые размер/прозрачность/подписи для каждого слоя городских объектов -
-  // раньше это было только у БЦ/Медицины/Метро, у остальных 19 слоёв — только цвет
+  // раньше это было только у БЦ/Медицины/Метро, у остальных 19 слоёв - только цвет
   // (независимый аудит: "все размеры и цвета надо сделать регулируемыми").
   window.geoPoiLabels=function(k,on){if(!POI_DEFS[k])return;POI_DEFS[k].labels=!!on;geoSaveLayerStyle();renderPoiLayer(k);};
   window.geoPoiLabelSize=function(k,v){if(!POI_DEFS[k])return;var n=+v;if(!Number.isFinite(n))return;POI_DEFS[k].labelSize=n;geoSaveLayerStyle();renderPoiLayer(k);};
@@ -821,6 +821,20 @@
   /* Удаление неактуального (закрытого/устаревшего) объекта прямо из всплывающего окна на карте.
      Тот же путь сохранения, что и «Удалить выбранные»/дедуп: splice → markDataset(dirty) → commit → geo_state.php,
      поэтому удаление сохраняется на сервере и не возвращается после перезагрузки. */
+  /* v4.78.0: граница махалли, введённая вручную с карты (полигон инструментом O или F): хранится в записи
+     махалли мастер-базы (поле boundary, JSON-кольцо [[lat,lng],...]) и уходит на сервер тем же путём, что
+     любая правка набора; пустое кольцо убирает границу. Возвращает true, если запись найдена и сохранена. */
+  window.geoSetMahallaBoundary=function(key,ring,byName){
+    if(!GEO_CAN_EDIT){alert('Ваша роль имеет доступ только для просмотра.');return false;}
+    var rows=GEO_POI.mahallas||[],row=null;
+    for(var i=0;i<rows.length;i++){var m=rows[i];if(String(m.master_id||'')===String(key)||String(m.name||'')+'|'+String(m.district||'')===String(key)||(byName&&String(m.name||'')===String(byName))){row=m;break;}}
+    if(!row)return false;
+    var clean=Array.isArray(ring)?ring.map(function(p){return [+p[0],+p[1]];}).filter(function(p){return Number.isFinite(p[0])&&Number.isFinite(p[1]);}):[];
+    if(clean.length&&clean.length<3)return false;
+    row.boundary=clean.length?JSON.stringify(clean):'';row.boundary_by=(GEO_CONTEXT.user&&GEO_CONTEXT.user.name)||'';row.boundary_at=clean.length?new Date().toISOString().slice(0,10):'';
+    markDataset('mahallas');commit(clean.length?'граница махалли: '+(row.name||''):'граница махалли убрана: '+(row.name||''));
+    return true;
+  };
   window.geoDeleteMapRecord=function(k,i){if(!GEO_CAN_EDIT){alert('Ваша роль имеет доступ только для просмотра.');return;}var cfg=DATASETS[k],data=cfg&&cfg.ref();i=+i;if(!cfg||cfg.kind!=='array'||!Array.isArray(data)||i<0||i>=data.length)return;var nm=rowText(data[i],i)||'объект';if(!confirm('Удалить объект «'+nm+'» с карты?\n\nОн больше не будет отображаться (у всех сотрудников). Действие нельзя отменить.'))return;if(map)map.closePopup();data.splice(i,1);markDataset(k);commit('удалён объект с карты: '+nm);resetIndexes();refreshAll();};
   window.geoOpenBusinessCard=function(id){if(map)map.closePopup();openCard(+id);};
   function replaceDataset(k,v){var cfg=DATASETS[k],t=cfg.ref();if(cfg.kind==='array')replaceArray(t,k==='pharmacies'?normalizePharmacies(v):v);else replaceObject(t,v);}
@@ -850,13 +864,13 @@
       if(pp)geoAutoProbe(pp);}catch(e){}
     updateBanner();}
   var GEO_AUTOPROBED={};
-  function geoAutoProbe(pt){ /* v4.43.1: явный переход «Аналитика» — отчёт по точке открывается сам, кликать по карте не нужно */
+  function geoAutoProbe(pt){ /* v4.43.1: явный переход «Аналитика» - отчёт по точке открывается сам, кликать по карте не нужно */
     var la=+(pt&&pt.lat),ln=+(pt&&pt.lng);if(!isFinite(la)||!isFinite(ln))return;
     var key=la.toFixed(5)+','+ln.toFixed(5);if(GEO_AUTOPROBED[key])return;
     GEO_AUTOPROBED[key]=1;
     try{window.caseGeoSetPoint(la,ln,pt.name||'точка анализа');}catch(e){}
     var tries=0;(function wait(){
-      /* «map» в студии — top-level let (лексический глобал); window.map — это DOM-элемент
+      /* «map» в студии - top-level let (лексический глобал); window.map - это DOM-элемент
          <div id=map> (named access), у него нет setView. Берём именно лексический map. */
       var M=null;try{M=(typeof map!=='undefined'&&map&&typeof map.setView==='function')?map:null;}catch(e){}
       if(M&&typeof window.probeAt==='function'){
@@ -884,7 +898,7 @@
       fetch('api/workspace_access.php?view=geoanalytics',{credentials:'same-origin',cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('workspace '+r.status);return r.json();})
     ]).then(function(rows){var j=rows[0],a=rows[1];if(!j.auth||!j.user||!a.allowed)throw new Error('denied');if(!EMBEDDED)GEO_CAN_EDIT=!!a.can_edit;document.body.classList.remove('geo-auth-pending');}).catch(function(){document.body.innerHTML='<main class="geo-denied"><h1>CASE Universal Geoanalytics</h1><p>Защищённый модуль открывается только сотрудникам, чья рабочая область включает геоаналитику.</p><a href="index.html">Открыть CASE OS</a></main>';document.body.classList.remove('geo-auth-pending');throw new Error('denied');});
   }
-  /* ---- v4.31.0: подраздел «Объекты на карте» — карточки наших точек, вкл/выкл, вид, видимость для внешних ---- */
+  /* ---- v4.31.0: подраздел «Объекты на карте» - карточки наших точек, вкл/выкл, вид, видимость для внешних ---- */
   var GEO_PROJ_MARKERS={},GEO_PROJ_CENTERED=false;
   window.geoMarkers=function(){return GEO_PROJ_MARKERS;};
   window.geoObjProbe=function(id){var q=PROJECTS[String(id)];if(!q)return;var la=+q.lat,ln=+q.lng;if(!isFinite(la)||!isFinite(ln))return;try{if(typeof map!=='undefined'&&map&&map.closePopup)map.closePopup();}catch(e){}try{if(typeof window.probeAt==='function')window.probeAt(la,ln);}catch(e){}};
@@ -893,7 +907,7 @@
   function geoApplyRoleUi(){
     var b=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(x){return x.dataset.t==='objT';})[0];
     if(b)b.style.display=GEO_EXTERNAL?'none':'';
-    // если внешний оказался на скрытой вкладке — вернуть на карту
+    // если внешний оказался на скрытой вкладке - вернуть на карту
     if(GEO_EXTERNAL){var p=document.getElementById('objT');if(p&&!p.classList.contains('hidden')){var mb=[].slice.call(document.querySelectorAll('.tabs button')).filter(function(x){return x.dataset.t==='mapT';})[0];if(mb)mb.click();}}
   }
   function geoEnsureObjCss(){
@@ -969,7 +983,7 @@
     var canEdit=GEO_CAN_EDIT,ids=geoObjSortedIds(),total=Object.keys(PROJECTS).length;
     var body=ids.map(function(id){
       var p=PROJECTS[id]||{},la=+p.lat,ln=+p.lng,hasxy=Number.isFinite(la)&&Number.isFinite(ln);
-      var color=geoObjColorOf(p),loc=[p.city,p.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[p.type]||p.type||'—';
+      var color=geoObjColorOf(p),loc=[p.city,p.district].filter(Boolean).join(' · ')||'-',typ=TYPE_LABELS[p.type]||p.type||'-';
       return '<tr class="geo-obj-row'+(hasxy?'':' geo-obj-nocoord')+'" data-id="'+esc(id)+'">'
         +'<td class="geo-obj-name"><button class="geo-obj-focus" onclick="geoObjFocus(\''+esc(id)+'\')" title="Показать на карте">'+esc(p.name||id)+'</button>'+(p.portfolio?' <span class="geo-obj-pf">портфель</span>':'')+'</td>'
         +'<td>'+esc(loc)+'</td><td>'+esc(typ)+'</td>'
@@ -982,8 +996,8 @@
     }).join('');
     var active=GEO_OBJ_SORT||Object.keys(GEO_OBJ_FILTERS).some(function(k){return geoObjFilterOn(k);});
     host.innerHTML='<div class="geo-obj-wrap"><div class="geo-obj-head"><div><h3>Объекты на карте</h3>'
-      +'<small>Наши проекты и точки, отображаемые на карте. Клик по названию — показать точку на карте. Воронка ▾ в заголовке — фильтр и сортировка (как в LCR). '
-      +(canEdit?'«На карте» — видимость точки; «Внешним» — видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» — цвет метки; ✎ — полная карточка.':'Режим просмотра — редактирование недоступно для вашей роли.')+'</small></div>'
+      +'<small>Наши проекты и точки, отображаемые на карте. Клик по названию - показать точку на карте. Воронка ▾ в заголовке - фильтр и сортировка (как в LCR). '
+      +(canEdit?'«На карте» - видимость точки; «Внешним» - видят ли её внешние агенты (AGX), по умолчанию наши объекты им скрыты; «Вид» - цвет метки; ✎ - полная карточка.':'Режим просмотра - редактирование недоступно для вашей роли.')+'</small></div>'
       +'<div style="display:flex;gap:8px;align-items:center">'+(active?'<button class="btn sec" onclick="geoObjFilterReset()" title="Сбросить фильтры и сортировку">✕ Сброс</button>':'')+(canEdit?'<button class="btn" onclick="geoNewProject()">＋ Добавить объект</button>':'')+'</div></div>'
       +(active?'<div class="geo-obj-count">Показано '+ids.length+' из '+total+'</div>':'')
       +'<div class="geo-obj-tblwrap"><table class="geo-obj-tbl" data-grid-engine="geo-objects" data-case-grid-key="geo_objects"><thead><tr>'+GEO_OBJ_COLS.map(geoObjTh).join('')+'<th>Вид</th><th></th></tr></thead>'
@@ -991,9 +1005,9 @@
   };
   function geoObjPopup(id){
     var q=PROJECTS[id];if(!q)return '';
-    var loc=[q.city,q.district].filter(Boolean).join(' · ')||'—',typ=TYPE_LABELS[q.type]||q.type||'—',la=+q.lat,ln=+q.lng;
+    var loc=[q.city,q.district].filter(Boolean).join(' · ')||'-',typ=TYPE_LABELS[q.type]||q.type||'-',la=+q.lat,ln=+q.lng;
     var s='<div class="geo-obj-pop"><b>'+esc(q.name||id)+'</b><br><small>'+esc(typ)+' · '+esc(loc)+'</small>'
-      +'<div class="geo-obj-pop-xy">'+(Number.isFinite(la)?la.toFixed(5):'—')+', '+(Number.isFinite(ln)?ln.toFixed(5):'—')+'</div>'
+      +'<div class="geo-obj-pop-xy">'+(Number.isFinite(la)?la.toFixed(5):'-')+', '+(Number.isFinite(ln)?ln.toFixed(5):'-')+'</div>'
       +'<div class="geo-obj-pop-ver">'+(q.verification==='verified'?'✔ подтверждён':'⚠ требует проверки')+(q.extVisible?' · <span style="color:#0a7">виден внешним</span>':'')+'</div>'
       +'<div class="geo-obj-pop-act"><button class="btn" onclick="geoObjProbe(\''+esc(id)+'\')">🎯 Отчёт по точке</button></div>'; /* v4.43.2: аналитика переоткрывается кликом по объекту */
     if(GEO_CAN_EDIT)s+='<div class="geo-obj-pop-act"><button class="btn sec" onclick="geoObjEdit(\''+esc(id)+'\')">✎ Редактировать</button><button class="btn sec" onclick="geoObjToggleMap(\''+esc(id)+'\',false)">🙈 Скрыть</button><button class="btn sec" style="border-color:#e0a0a0;color:#9E0000" onclick="geoObjDelete(\''+esc(id)+'\')">🗑 Удалить</button></div>';
@@ -1004,7 +1018,7 @@
     var pi=document.getElementById('projInfo'),plat=+(p&&p.lat),plng=+(p&&p.lng);
     if(pi&&p){
       /* v4.58.0: было четыре строки текста подряд, где имя проекта дублировало выпадающий
-         список прямо над ним, а «Район: —» не сообщало ничего. Подписанные строки: слева -
+         список прямо над ним, а «Район: -» не сообщало ничего. Подписанные строки: слева -
          что это, справа - значение; отсутствие данных названо словами, а не прочерком. */
       var okc=Number.isFinite(plat)&&Number.isFinite(plng);
       /* v4.73.1: у точки анализа до первого задания координаты не показываем (это центр города
@@ -1046,14 +1060,14 @@
           .bindTooltip('<b>'+esc(q.name)+'</b><br><small>Наш проект CASE'
             +(q.city||q.district?' · '+esc(q.city||q.district):'')
             +(q.verification==='verified'?'':' · требует проверки')
-            +'<br>клик — открыть карточку</small>');
+            +'<br>клик - открыть карточку</small>');
       }
       mk.bindPopup(geoObjPopup(id),{maxWidth:300});
       mk.on('click',function(){var s=document.getElementById('proj');if(s&&s.value!==String(id)){s.value=String(id);if(typeof universalProfile==='function')universalProfile();}mk.openPopup();});
       mk.addTo(gProj);GEO_PROJ_MARKERS[String(id)]=mk;
     });
     // легенда карты показывает, сколько наших проектов на экране и что значат цвета
-    /* VIS объявлен через let — свойством window он НЕ становится, поэтому обращаемся
+    /* VIS объявлен через let - свойством window он НЕ становится, поэтому обращаемся
        к нему по имени из общей области видимости страницы, а не через window. */
     try{if(typeof VIS==='object'&&VIS)VIS.pf={v:pfV,n:pfN};
         if(typeof window.updateLegend==='function')window.updateLegend();}catch(e){}
@@ -1117,13 +1131,13 @@
      оболочку и карту (boot → готовность прячет загрузчик), а тяжёлую мастер-базу (медицина/аптеки)
      тянем в фоне и до-рисовываем, когда пришла. Так карта появляется за ~1с, а не за 4-5с. */
   /* Мост для карты: легенда, отчёт по точке и модель зон живут в geoanalytics-studio.html,
-     а точки городских объектов — здесь. Наружу отдаём только чтение. */
+     а точки городских объектов - здесь. Наружу отдаём только чтение. */
   /* v4.62.0: пространственный индекс по слоям POI.
      countIn перебирал ВЕСЬ слой на каждый вопрос «сколько объектов в радиусе». Для отчёта по
      одной точке это незаметно, а модель зон пригодности спрашивает по каждой ячейке сетки:
      на 5000 ячеек и 2000 объектов в слое выходило десять миллионов вычислений расстояния
      в главном потоке, и карта вставала. Раскладываем точки по клеткам 0.01 градуса (примерно
-     1.1 км) и смотрим только те клетки, что попадают в радиус — ровно тот же приём, что уже
+     1.1 км) и смотрим только те клетки, что попадают в радиус - ровно тот же приём, что уже
      работает для населения, медицины и бизнес-центров. Индекс строится лениво и сбрасывается
      при перезагрузке слоя, иначе он врал бы про старые данные. */
   var GEO_POI_IX={};
@@ -1173,7 +1187,7 @@
       return o;},
     has:function(cats){return (cats||[]).some(function(k){return (GEO_POI[k]||[]).length>0;});},
     subtypeLabel:poiSubtypeLabel,
-    // весь набор записей слоя — для карточек конкурентов в выгрузке
+    // весь набор записей слоя - для карточек конкурентов в выгрузке
     rows:function(k){return (GEO_POI[k]||[]).slice();},
     // разбивка по человеческим подтипам: {'Школа':12,'Курсы / учебный центр':5}
     subtypes:function(cats,la,ln,km){
@@ -1185,6 +1199,6 @@
   function geoStart(){boot();try{loadMasterBaseline().then(function(){try{refreshAll();}catch(e){}});}catch(e){}}
   auth().then(function(){if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',geoStart,{once:true});else setTimeout(geoStart,0);}).catch(function(){});
 })();
-/* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий —
+/* v4.58.0: модуль живёт в iframe студии и раньше не попадал ни в одну сверку версий -
    теперь объявляет себя, а студия сверяет его с картой из index.html */
-window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.76.0';
+window.CASE_MODULE_VERSIONS=window.CASE_MODULE_VERSIONS||{};window.CASE_MODULE_VERSIONS['v420-geo-studio']='4.78.0';

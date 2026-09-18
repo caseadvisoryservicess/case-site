@@ -22,3 +22,6 @@ docs/qa/tools/modernization_scan.json
 __pycache__/
 *.pyc
 docs/deliverables/samsung-bc/samsung_report.html
+
+# строка DIST для студии, которую печатает build_tashkent_data.js (вставляется в geoanalytics-studio.html руками)
+docs/qa/tools/DIST_line.txt
