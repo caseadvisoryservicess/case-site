@@ -1,0 +1,892 @@
+{
+ "active": {
+  "en": "Active",
+  "ru": "Активен",
+  "uz": "Faol"
+ },
+ "activeUnits": {
+  "en": "units in inventory",
+  "ru": "помещений в фонде",
+  "uz": "fonddagi joylar"
+ },
+ "activity": {
+  "en": "Activity",
+  "ru": "Активность",
+  "uz": "Faollik"
+ },
+ "actualFact": {
+  "en": "Actual",
+  "ru": "Факт",
+  "uz": "Amalda"
+ },
+ "addFirst": {
+  "en": "Add the first one",
+  "ru": "Добавьте первый",
+  "uz": "Birinchisini qoʻshing"
+ },
+ "addProject": {
+  "en": "Add project",
+  "ru": "Добавить проект",
+  "uz": "Loyiha qoʻshish"
+ },
+ "all": {
+  "en": "All",
+  "ru": "Все",
+  "uz": "Barchasi"
+ },
+ "allBlocks": {
+  "en": "All blocks",
+  "ru": "Все блоки",
+  "uz": "Barcha bloklar"
+ },
+ "allBrokers": {
+  "en": "All brokers",
+  "ru": "Все брокеры",
+  "uz": "Barcha brokerlar"
+ },
+ "allCategories": {
+  "en": "All categories",
+  "ru": "Все категории",
+  "uz": "Barcha toifalar"
+ },
+ "allProjects": {
+  "en": "All projects",
+  "ru": "Все проекты",
+  "uz": "Barcha loyihalar"
+ },
+ "allStatuses": {
+  "en": "All statuses",
+  "ru": "Все статусы",
+  "uz": "Barcha statuslar"
+ },
+ "annualRent": {
+  "en": "Annual rent",
+  "ru": "Годовая аренда",
+  "uz": "Yillik ijara"
+ },
+ "areaMismatch": {
+  "en": "Plan area differs from the inventory",
+  "ru": "Площадь на плане расходится с реестром",
+  "uz": "Rejadagi maydon reyestrdan farq qiladi"
+ },
+ "areasFound": {
+  "en": "Printed areas found",
+  "ru": "Найдено площадей на чертеже",
+  "uz": "Chizmadagi maydonlar topildi"
+ },
+ "attention": {
+  "en": "Needs attention",
+  "ru": "Требует внимания",
+  "uz": "Eʼtibor talab qiladi"
+ },
+ "autoSaveOn": {
+  "en": "Changes are saved in this browser automatically",
+  "ru": "Изменения сохраняются в этом браузере автоматически",
+  "uz": "Oʻzgarishlar shu brauzerda avtomatik saqlanadi"
+ },
+ "avgRent": {
+  "en": "Average rent",
+  "ru": "Средняя ставка",
+  "uz": "Oʻrtacha stavka"
+ },
+ "back": {
+  "en": "Back",
+  "ru": "Назад",
+  "uz": "Orqaga"
+ },
+ "block": {
+  "en": "Block",
+  "ru": "Блок",
+  "uz": "Blok"
+ },
+ "blockFloor": {
+  "en": "Block / Floor",
+  "ru": "Блок / Этаж",
+  "uz": "Blok / Qavat"
+ },
+ "blockPerformance": {
+  "en": "Blocks",
+  "ru": "Блоки",
+  "uz": "Bloklar"
+ },
+ "board": {
+  "en": "Board",
+  "ru": "Доска",
+  "uz": "Doska"
+ },
+ "broker": {
+  "en": "Broker",
+  "ru": "Брокер",
+  "uz": "Broker"
+ },
+ "brokerComment": {
+  "en": "Broker comment",
+  "ru": "Комментарий брокера",
+  "uz": "Broker izohi"
+ },
+ "calibrate": {
+  "en": "Calibrate plan",
+  "ru": "Калибровать планировку",
+  "uz": "Rejani kalibrlash"
+ },
+ "calibrateHint": {
+  "en": "Click the corners of the unit, then press Enter",
+  "ru": "Обведите помещение по углам и нажмите Enter",
+  "uz": "Joyning burchaklarini belgilang va Enter bosing"
+ },
+ "calibrateManual": {
+  "en": "Outlines are drawn by a person, not detected automatically",
+  "ru": "Контуры обводит человек, автоматическое распознавание не используется",
+  "uz": "Konturlarni odam chizadi, avtomatik aniqlash ishlatilmaydi"
+ },
+ "cancel": {
+  "en": "Cancel",
+  "ru": "Отмена",
+  "uz": "Bekor qilish"
+ },
+ "category": {
+  "en": "Category",
+  "ru": "Категория",
+  "uz": "Toifa"
+ },
+ "changeStatus": {
+  "en": "Change status",
+  "ru": "Изменить статус",
+  "uz": "Statusni oʻzgartirish"
+ },
+ "changedBy": {
+  "en": "changed by",
+  "ru": "изменил",
+  "uz": "oʻzgartirdi"
+ },
+ "changedFrom": {
+  "en": "from",
+  "ru": "с",
+  "uz": "dan"
+ },
+ "changedTo": {
+  "en": "to",
+  "ru": "на",
+  "uz": "ga"
+ },
+ "city": {
+  "en": "City",
+  "ru": "Город",
+  "uz": "Shahar"
+ },
+ "clear": {
+  "en": "Clear",
+  "ru": "Сбросить",
+  "uz": "Tozalash"
+ },
+ "closeDate": {
+  "en": "Expected close",
+  "ru": "Плановое закрытие",
+  "uz": "Rejalashtirilgan yopilish"
+ },
+ "codesFound": {
+  "en": "Unit codes found",
+  "ru": "Найдено кодов помещений",
+  "uz": "Topilgan joy kodlari"
+ },
+ "colourBy": {
+  "en": "Colour by",
+  "ru": "Раскрасить по",
+  "uz": "Rang berish"
+ },
+ "columns": {
+  "en": "Columns",
+  "ru": "Колонки",
+  "uz": "Ustunlar"
+ },
+ "comingSoon": {
+  "en": "Not in this version",
+  "ru": "Нет в этой версии",
+  "uz": "Bu versiyada yoʻq"
+ },
+ "comment": {
+  "en": "Comment",
+  "ru": "Комментарий",
+  "uz": "Izoh"
+ },
+ "commercial": {
+  "en": "Commercial terms",
+  "ru": "Коммерческие условия",
+  "uz": "Tijorat shartlari"
+ },
+ "create": {
+  "en": "Create",
+  "ru": "Создать",
+  "uz": "Yaratish"
+ },
+ "currentProject": {
+  "en": "Current project",
+  "ru": "Текущий проект",
+  "uz": "Joriy loyiha"
+ },
+ "dataIssue": {
+  "en": "Data issue",
+  "ru": "Проблема в данных",
+  "uz": "Maʼlumotdagi muammo"
+ },
+ "dataQuality": {
+  "en": "Data quality",
+  "ru": "Качество данных",
+  "uz": "Maʼlumot sifati"
+ },
+ "density": {
+  "en": "Density",
+  "ru": "Плотность",
+  "uz": "Zichlik"
+ },
+ "densityComfortable": {
+  "en": "Comfortable",
+  "ru": "Просторно",
+  "uz": "Keng"
+ },
+ "densityCompact": {
+  "en": "Compact",
+  "ru": "Компактно",
+  "uz": "Ixcham"
+ },
+ "derivedArea": {
+  "en": "area derived from the outline",
+  "ru": "площадь рассчитана по контуру",
+  "uz": "maydon kontur boʻyicha hisoblandi"
+ },
+ "details": {
+  "en": "Unit detail",
+  "ru": "Карточка помещения",
+  "uz": "Joy kartasi"
+ },
+ "duplicateCode": {
+  "en": "This code appears more than once on the plan",
+  "ru": "Этот код встречается на плане несколько раз",
+  "uz": "Bu kod rejada bir necha marta uchraydi"
+ },
+ "edit": {
+  "en": "Edit",
+  "ru": "Изменить",
+  "uz": "Oʻzgartirish"
+ },
+ "export": {
+  "en": "Export",
+  "ru": "Экспорт",
+  "uz": "Eksport"
+ },
+ "exportCsv": {
+  "en": "Export to CSV",
+  "ru": "Выгрузить в CSV",
+  "uz": "CSV ga yuklash"
+ },
+ "exportJson": {
+  "en": "Full backup (JSON)",
+  "ru": "Полная резервная копия (JSON)",
+  "uz": "Toʻliq zaxira nusxa (JSON)"
+ },
+ "filter": {
+  "en": "Filter",
+  "ru": "Фильтр",
+  "uz": "Filtr"
+ },
+ "fitToScreen": {
+  "en": "Fit",
+  "ru": "По размеру",
+  "uz": "Ekranga moslash"
+ },
+ "floor": {
+  "en": "Floor",
+  "ru": "Этаж",
+  "uz": "Qavat"
+ },
+ "floorUnits": {
+  "en": "Units on this floor",
+  "ru": "Помещения на этаже",
+  "uz": "Qavatdagi joylar"
+ },
+ "gla": {
+  "en": "GLA",
+  "ru": "GLA",
+  "uz": "GLA"
+ },
+ "history": {
+  "en": "History",
+  "ru": "История",
+  "uz": "Tarix"
+ },
+ "importBad": {
+  "en": "This is not a backup of this tool",
+  "ru": "Это не резервная копия этого инструмента",
+  "uz": "Bu ushbu vositaning zaxira nusxasi emas"
+ },
+ "importConfirm": {
+  "en": "Replace all local data with this file?",
+  "ru": "Заменить все локальные данные этим файлом?",
+  "uz": "Barcha mahalliy maʼlumot shu fayl bilan almashtirilsinmi?"
+ },
+ "importJson": {
+  "en": "Restore from backup",
+  "ru": "Восстановить из копии",
+  "uz": "Zaxiradan tiklash"
+ },
+ "language": {
+  "en": "Language",
+  "ru": "Язык",
+  "uz": "Til"
+ },
+ "lastUpdated": {
+  "en": "Updated",
+  "ru": "Обновлено",
+  "uz": "Yangilangan"
+ },
+ "legacy": {
+  "en": "Legacy row",
+  "ru": "Старая строка",
+  "uz": "Eski satr"
+ },
+ "localOnly": {
+  "en": "Local data only. Nothing is sent to a server.",
+  "ru": "Данные хранятся локально. Ничего не отправляется на сервер.",
+  "uz": "Maʼlumotlar faqat shu qurilmada. Serverga hech narsa yuborilmaydi."
+ },
+ "manager": {
+  "en": "Head of leasing",
+  "ru": "Руководитель лизинга",
+  "uz": "Lizing rahbari"
+ },
+ "mapped": {
+  "en": "mapped",
+  "ru": "сопоставлено",
+  "uz": "moslashtirildi"
+ },
+ "mappingNote": {
+  "en": "Status names come from the source spreadsheet",
+  "ru": "Названия статусов взяты из исходной таблицы",
+  "uz": "Status nomlari dastlabki jadvaldan olingan"
+ },
+ "monthlyRent": {
+  "en": "Monthly rent",
+  "ru": "Аренда в месяц",
+  "uz": "Oylik ijara"
+ },
+ "moveTo": {
+  "en": "Move to",
+  "ru": "Перевести в",
+  "uz": "Oʻtkazish"
+ },
+ "multiProject": {
+  "en": "Portfolio control",
+  "ru": "Управление портфелем",
+  "uz": "Portfel boshqaruvi"
+ },
+ "negotiation": {
+  "en": "Negotiation",
+  "ru": "Переговоры",
+  "uz": "Muzokara"
+ },
+ "noDeals": {
+  "en": "No active negotiations",
+  "ru": "Активных переговоров нет",
+  "uz": "Faol muzokaralar yoʻq"
+ },
+ "noHistory": {
+  "en": "No changes recorded yet",
+  "ru": "Изменений пока нет",
+  "uz": "Hozircha oʻzgarish yoʻq"
+ },
+ "noInventory": {
+  "en": "No units recorded",
+  "ru": "Помещений нет",
+  "uz": "Joylar yoʻq"
+ },
+ "noPlanForBlock": {
+  "en": "This block has no uploaded plan",
+  "ru": "Для этого блока планировка не загружена",
+  "uz": "Bu blok uchun reja yuklanmagan"
+ },
+ "noRows": {
+  "en": "Nothing matches these filters",
+  "ru": "Ничего не найдено по фильтрам",
+  "uz": "Filtrlarga mos hech nima topilmadi"
+ },
+ "nodir": {
+  "en": "Nodir",
+  "ru": "Нодир",
+  "uz": "Nodir"
+ },
+ "notInInventory": {
+  "en": "not in the inventory",
+  "ru": "нет в реестре",
+  "uz": "reyestrda yoʻq"
+ },
+ "notMapped": {
+  "en": "not on the plan",
+  "ru": "нет на планировке",
+  "uz": "rejada yoʻq"
+ },
+ "occupancy": {
+  "en": "Occupancy",
+  "ru": "Заполняемость",
+  "uz": "Toʻldirilganlik"
+ },
+ "of": {
+  "en": "of",
+  "ru": "из",
+  "uz": "dan"
+ },
+ "open": {
+  "en": "Open",
+  "ru": "Открыть",
+  "uz": "Ochish"
+ },
+ "originalPlan": {
+  "en": "Original plan",
+  "ru": "Исходный план",
+  "uz": "Dastlabki reja"
+ },
+ "outlinesFound": {
+  "en": "Outlines found",
+  "ru": "Найдено контуров",
+  "uz": "Konturlar topildi"
+ },
+ "overview": {
+  "en": "Dashboard",
+  "ru": "Дашборд",
+  "uz": "Boshqaruv paneli"
+ },
+ "pipeline": {
+  "en": "Pipeline",
+  "ru": "Воронка",
+  "uz": "Voronka"
+ },
+ "plan": {
+  "en": "Plan",
+  "ru": "Планировка",
+  "uz": "Reja"
+ },
+ "planNotLoaded": {
+  "en": "No plan for this floor",
+  "ru": "Планировка этажа не загружена",
+  "uz": "Bu qavat uchun reja yuklanmagan"
+ },
+ "planVersion": {
+  "en": "Plan version",
+  "ru": "Версия планировки",
+  "uz": "Reja versiyasi"
+ },
+ "plans": {
+  "en": "Floor plans",
+  "ru": "Планировки",
+  "uz": "Qavat rejalari"
+ },
+ "portfolioGla": {
+  "en": "Portfolio GLA",
+  "ru": "GLA портфеля",
+  "uz": "Portfel GLA"
+ },
+ "portfolioProjects": {
+  "en": "Projects",
+  "ru": "Проектов",
+  "uz": "Loyihalar"
+ },
+ "portfolioSigned": {
+  "en": "Signed across portfolio",
+  "ru": "Подписано по портфелю",
+  "uz": "Portfel boʻyicha imzolangan"
+ },
+ "power": {
+  "en": "Electrical load",
+  "ru": "Электрическая мощность",
+  "uz": "Elektr quvvati"
+ },
+ "printedArea": {
+  "en": "area printed on the plan",
+  "ru": "площадь указана на чертеже",
+  "uz": "maydon chizmada koʻrsatilgan"
+ },
+ "projectControl": {
+  "en": "Project control",
+  "ru": "Управление проектом",
+  "uz": "Loyiha nazorati"
+ },
+ "projectName": {
+  "en": "Project name",
+  "ru": "Название проекта",
+  "uz": "Loyiha nomi"
+ },
+ "projectSummary": {
+  "en": "Project summary",
+  "ru": "Сводка по проекту",
+  "uz": "Loyiha boʻyicha xulosa"
+ },
+ "projectSwitcher": {
+  "en": "Switch project",
+  "ru": "Сменить проект",
+  "uz": "Loyihani almashtirish"
+ },
+ "projectType": {
+  "en": "Property type",
+  "ru": "Тип объекта",
+  "uz": "Obyekt turi"
+ },
+ "projects": {
+  "en": "Projects",
+  "ru": "Проекты",
+  "uz": "Loyihalar"
+ },
+ "proposed": {
+  "en": "Proposed",
+  "ru": "Предложено",
+  "uz": "Taklif qilingan"
+ },
+ "prospect": {
+  "en": "Prospect",
+  "ru": "Кандидат",
+  "uz": "Nomzod"
+ },
+ "prospects": {
+  "en": "Prospects",
+  "ru": "Кандидаты",
+  "uz": "Nomzodlar"
+ },
+ "prototypeNotice": {
+  "en": "Prototype. Not a secure system and not authentication.",
+  "ru": "Прототип. Это не защищённая система и не аутентификация.",
+  "uz": "Prototip. Bu himoyalangan tizim ham, autentifikatsiya ham emas."
+ },
+ "recognize": {
+  "en": "Read the plan",
+  "ru": "Распознать планировку",
+  "uz": "Rejani oʻqish"
+ },
+ "recognized": {
+  "en": "Plan read",
+  "ru": "Планировка распознана",
+  "uz": "Reja oʻqildi"
+ },
+ "recognizing": {
+  "en": "Reading…",
+  "ru": "Распознаём…",
+  "uz": "Oʻqilmoqda…"
+ },
+ "records": {
+  "en": "records",
+  "ru": "записей",
+  "uz": "yozuv"
+ },
+ "rejections": {
+  "en": "Rejections",
+  "ru": "Отказы",
+  "uz": "Rad javoblar"
+ },
+ "remove": {
+  "en": "Remove",
+  "ru": "Удалить",
+  "uz": "Oʻchirish"
+ },
+ "rent": {
+  "en": "Rent per m2",
+  "ru": "Ставка за м²",
+  "uz": "1 m² uchun stavka"
+ },
+ "rentWithService": {
+  "en": "Rent + service charge",
+  "ru": "Аренда + эксплуатация",
+  "uz": "Ijara + xizmat haqi"
+ },
+ "resetDemo": {
+  "en": "Reset to the source data",
+  "ru": "Вернуть исходные данные",
+  "uz": "Dastlabki maʼlumotga qaytarish"
+ },
+ "save": {
+  "en": "Save",
+  "ru": "Сохранить",
+  "uz": "Saqlash"
+ },
+ "saveFailed": {
+  "en": "Could not save",
+  "ru": "Не удалось сохранить",
+  "uz": "Saqlab boʻlmadi"
+ },
+ "saveView": {
+  "en": "Save this view",
+  "ru": "Сохранить вид",
+  "uz": "Koʻrinishni saqlash"
+ },
+ "saved": {
+  "en": "Saved",
+  "ru": "Сохранено",
+  "uz": "Saqlandi"
+ },
+ "savedViews": {
+  "en": "Saved views",
+  "ru": "Сохранённые виды",
+  "uz": "Saqlangan koʻrinishlar"
+ },
+ "saving": {
+  "en": "Saving…",
+  "ru": "Сохраняем…",
+  "uz": "Saqlanmoqda…"
+ },
+ "scaleDerived": {
+  "en": "Scale derived",
+  "ru": "Масштаб определён",
+  "uz": "Masshtab aniqlandi"
+ },
+ "scaleNotDerived": {
+  "en": "Scale not derived",
+  "ru": "Масштаб не определён",
+  "uz": "Masshtab aniqlanmadi"
+ },
+ "scanNotice": {
+  "en": "This PDF is a scan — there is no text to read. Draw the outlines manually or export SVG from the CAD file.",
+  "ru": "Это скан PDF — текста для чтения нет. Обведите контуры вручную или выгрузите SVG из CAD.",
+  "uz": "Bu PDF skan — oʻqiladigan matn yoʻq. Konturlarni qoʻlda chizing yoki CAD dan SVG eksport qiling."
+ },
+ "search": {
+  "en": "Search",
+  "ru": "Поиск",
+  "uz": "Qidirish"
+ },
+ "searchPlaceholder": {
+  "en": "Unit, prospect, broker…",
+  "ru": "Помещение, кандидат, брокер…",
+  "uz": "Joy, nomzod, broker…"
+ },
+ "selectBlock": {
+  "en": "Block",
+  "ru": "Блок",
+  "uz": "Blok"
+ },
+ "selectFloor": {
+  "en": "Floor",
+  "ru": "Этаж",
+  "uz": "Qavat"
+ },
+ "serviceCharge": {
+  "en": "Service charge",
+  "ru": "Эксплуатационные расходы",
+  "uz": "Xizmat haqi"
+ },
+ "settings": {
+  "en": "Settings",
+  "ru": "Настройки",
+  "uz": "Sozlamalar"
+ },
+ "sharedOutline": {
+  "en": "Several codes share one outline",
+  "ru": "Несколько кодов делят один контур",
+  "uz": "Bir nechta kod bitta konturga tegishli"
+ },
+ "showing": {
+  "en": "Showing",
+  "ru": "Показано",
+  "uz": "Koʻrsatildi"
+ },
+ "signed": {
+  "en": "Signed",
+  "ru": "Подписано",
+  "uz": "Imzolangan"
+ },
+ "signing": {
+  "en": "In signing",
+  "ru": "На подписании",
+  "uz": "Imzolanmoqda"
+ },
+ "sortBy": {
+  "en": "Sort by",
+  "ru": "Сортировать по",
+  "uz": "Saralash"
+ },
+ "source": {
+  "en": "Source",
+  "ru": "Источник",
+  "uz": "Manba"
+ },
+ "st.negotiation": {
+  "en": "In negotiation",
+  "ru": "Переговоры",
+  "uz": "Muzokarada"
+ },
+ "st.offerSigned": {
+  "en": "Offer signed",
+  "ru": "Предложение подписано",
+  "uz": "Taklif imzolangan"
+ },
+ "st.proposed": {
+  "en": "Proposed",
+  "ru": "Предложено",
+  "uz": "Taklif qilingan"
+ },
+ "st.reserved": {
+  "en": "Reserved",
+  "ru": "Резерв",
+  "uz": "Zaxirada"
+ },
+ "st.signed": {
+  "en": "Contract signed",
+  "ru": "Контракт подписан",
+  "uz": "Shartnoma imzolangan"
+ },
+ "st.signing": {
+  "en": "Contract in signing",
+  "ru": "Контракт на подписании",
+  "uz": "Shartnoma imzolanmoqda"
+ },
+ "st.vacant": {
+  "en": "Vacant",
+  "ru": "Вакант",
+  "uz": "Boʻsh"
+ },
+ "stage": {
+  "en": "Stage",
+  "ru": "Этап",
+  "uz": "Bosqich"
+ },
+ "status": {
+  "en": "Status",
+  "ru": "Статус",
+  "uz": "Status"
+ },
+ "statusMix": {
+  "en": "GLA by status",
+  "ru": "GLA по статусам",
+  "uz": "Status boʻyicha GLA"
+ },
+ "subcategory": {
+  "en": "Subcategory",
+  "ru": "Подкатегория",
+  "uz": "Ichki toifa"
+ },
+ "table": {
+  "en": "Table",
+  "ru": "Таблица",
+  "uz": "Jadval"
+ },
+ "terrace": {
+  "en": "Terrace",
+  "ru": "Терраса",
+  "uz": "Terrasa"
+ },
+ "theme": {
+  "en": "Theme",
+  "ru": "Тема",
+  "uz": "Mavzu"
+ },
+ "themeDark": {
+  "en": "Dark",
+  "ru": "Тёмная",
+  "uz": "Qorongʻi"
+ },
+ "themeLight": {
+  "en": "Light",
+  "ru": "Светлая",
+  "uz": "Yorugʻ"
+ },
+ "today": {
+  "en": "Today",
+  "ru": "Сегодня",
+  "uz": "Bugun"
+ },
+ "totalGla": {
+  "en": "Total GLA",
+  "ru": "Общая GLA",
+  "uz": "Umumiy GLA"
+ },
+ "undo": {
+  "en": "Undo",
+  "ru": "Отменить действие",
+  "uz": "Amalni bekor qilish"
+ },
+ "undone": {
+  "en": "Change undone",
+  "ru": "Изменение отменено",
+  "uz": "Oʻzgarish bekor qilindi"
+ },
+ "unit": {
+  "en": "Unit",
+  "ru": "Помещение",
+  "uz": "Joy"
+ },
+ "units": {
+  "en": "Units",
+  "ru": "Помещения",
+  "uz": "Joylar"
+ },
+ "unknownExcluded": {
+  "en": "Unknown values are excluded from totals",
+  "ru": "Неизвестные значения не входят в итоги",
+  "uz": "Nomaʼlum qiymatlar yakuniy hisobga kirmaydi"
+ },
+ "unknownValue": {
+  "en": "Not known",
+  "ru": "Неизвестно",
+  "uz": "Nomaʼlum"
+ },
+ "unsaved": {
+  "en": "Unsaved changes",
+  "ru": "Несохранённые изменения",
+  "uz": "Saqlanmagan oʻzgarishlar"
+ },
+ "uploadHint": {
+  "en": "SVG or vector PDF",
+  "ru": "SVG или векторный PDF",
+  "uz": "SVG yoki vektorli PDF"
+ },
+ "uploadPlan": {
+  "en": "Upload plan",
+  "ru": "Загрузить планировку",
+  "uz": "Rejani yuklash"
+ },
+ "user": {
+  "en": "User",
+  "ru": "Пользователь",
+  "uz": "Foydalanuvchi"
+ },
+ "vacancy": {
+  "en": "Vacancy",
+  "ru": "Вакантность",
+  "uz": "Boʻsh joylar ulushi"
+ },
+ "vacant": {
+  "en": "Vacant",
+  "ru": "Вакант",
+  "uz": "Boʻsh"
+ },
+ "variance": {
+  "en": "Variance to plan",
+  "ru": "Отклонение от плана",
+  "uz": "Rejadan ogʻish"
+ },
+ "viewAllUnits": {
+  "en": "All units",
+  "ru": "Все помещения",
+  "uz": "Barcha joylar"
+ },
+ "viewProject": {
+  "en": "Open project",
+  "ru": "Открыть проект",
+  "uz": "Loyihani ochish"
+ },
+ "weightedValue": {
+  "en": "Weighted pipeline",
+  "ru": "Взвешенная воронка",
+  "uz": "Vaznli voronka"
+ },
+ "zeroArea": {
+  "en": "Area is missing",
+  "ru": "Площадь не указана",
+  "uz": "Maydon koʻrsatilmagan"
+ },
+ "zoomIn": {
+  "en": "Zoom in",
+  "ru": "Увеличить",
+  "uz": "Kattalashtirish"
+ },
+ "zoomOut": {
+  "en": "Zoom out",
+  "ru": "Уменьшить",
+  "uz": "Kichiklashtirish"
+ }
+}

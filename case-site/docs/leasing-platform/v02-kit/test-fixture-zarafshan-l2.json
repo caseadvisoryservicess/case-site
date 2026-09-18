@@ -1,0 +1,169 @@
+{
+ "input": {
+  "file": "zarafshan-l2.svg",
+  "bytes": 227485,
+  "viewBox": [
+   -4171,
+   -301602,
+   369709,
+   270592
+  ],
+  "textNodes": 57,
+  "closedShapes": 641
+ },
+ "expected": {
+  "codesFound": 17,
+  "areaLabelsFound": 13,
+  "withPolygon": 17,
+  "withPrintedArea": 10,
+  "scale": 7.001018258016005e-8,
+  "r2": 0.999982,
+  "scaleSamples": 10,
+  "derivedAreas": 7,
+  "orphanAreas": [
+   16.3,
+   27.6,
+   5.6
+  ],
+  "auditErrors": 1,
+  "auditWarnings": 1
+ },
+ "units": [
+  {
+   "code": "L2_11",
+   "area": 70.8,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_12",
+   "area": 70.8,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_2",
+   "area": 987.7,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_1",
+   "area": 282,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_4",
+   "area": 58.4,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_3",
+   "area": 319.5,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_6",
+   "area": 93.9,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_7",
+   "area": 282,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_9",
+   "area": 104.8,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_10",
+   "area": 214.5,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_13",
+   "area": 70.4,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_14",
+   "area": 47,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_15",
+   "area": 39.1,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_16",
+   "area": 47.1,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_3",
+   "area": 207.9,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  },
+  {
+   "code": "L2_8",
+   "area": 282,
+   "areaSource": "derived",
+   "hasOutline": true,
+   "confidence": "medium"
+  },
+  {
+   "code": "L2_17",
+   "area": 17.1,
+   "areaSource": "printed",
+   "hasOutline": true,
+   "confidence": "high"
+  }
+ ],
+ "audit": [
+  {
+   "level": "error",
+   "code": "L2_3",
+   "msg": "code appears 2 times on this plan — keep one, delete the rest"
+  },
+  {
+   "level": "warn",
+   "code": "L2_1, L2_7, L2_8",
+   "msg": "these codes resolved to the SAME outline — the drawing has no separate closed shape for each; draw them in calibration mode"
+  },
+  {
+   "level": "info",
+   "code": "",
+   "msg": "3 printed area(s) not paired to a code (usually toilets, corridors, plant rooms): 16.3, 27.6, 5.6"
+  }
+ ]
+}
