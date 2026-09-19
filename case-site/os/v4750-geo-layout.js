@@ -15,7 +15,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_LAYOUT) return;
-  var VERSION = '4.78.2', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
+  var VERSION = '4.79.0', KEY_DRAWER = 'caseos_ga_drawer', KEY_RINGS = 'caseos_rings_v2', KEY_RINGS_OLD = 'caseos_rings_v1', KEY_LEFT = 'caseos_left_panel';
   var LY = window.CASE_GEO_LAYOUT = { version: VERSION };
   function $(id) { return document.getElementById(id); }
   function theMap() { try { return (typeof map !== 'undefined' && map && typeof map.addLayer === 'function') ? map : null; } catch (e) { return null; } }
@@ -118,8 +118,17 @@
   }
 
   /* --- свои радиусы охвата ------------------------------------------------------- */
-  var PAL = ['#27ae60', '#e67e22', '#c0392b', '#2980b9', '#8e44ad', '#16a085', '#d35400', '#2c3e50'];
+  /* v4.79.0 (замечание владельца о цветах): кольца охвата нейтральной лестницей, от тёмного к светлому:
+     они опорная геометрия и не спорят с зонами по времени (красная и синяя лестницы) и слоями. */
+  var PAL = ['#2F2E2B', '#4A4845', '#615D57', '#77716A', '#8A847A', '#9C9488', '#ADA496', '#BDB3A4'];
   function ringColor(i) { var rs = radii(); return (rs[i] && /^#[0-9a-f]{6}$/i.test(rs[i].color || '')) ? rs[i].color : PAL[i % PAL.length]; }
+  /* v4.79.0: отдельного поля «радиусы, м» в студии нет (раздел «Анализ локации» убран по замечанию
+     владельца): отчёт по точке берёт те же радиусы, что и кольца «Зоны охвата». */
+  function syncProbeR() {
+    var inp = $('probeR'); if (!inp) return;
+    var m = radii().map(function (r) { return Math.round(r.km * 1000); }).filter(function (v) { return v > 0; });
+    if (m.length) inp.value = m.join(',');
+  }
   function saveRings() { try { localStorage.setItem(KEY_RINGS, JSON.stringify(radii().map(function (r, i) { return { km: r.km, on: !!r.on, color: ringColor(i) }; }))); } catch (e) {} }
   function radii() { try { return Array.isArray(RADII) ? RADII : []; } catch (e) { return []; } }
   function myBuildRings() {
@@ -155,6 +164,7 @@
     try { RADII = nums.map(function (km, i) { var old = null; prev.forEach(function (r) { if (+r.km === km) old = r; }); return { km: km, on: true, color: old && old.color ? old.color : PAL[i % PAL.length] }; }); } catch (e) { return false; }
     saveRings();
     myBuildRings();
+    syncProbeR();
     try { myRenderRings(); } catch (e) {}
     try { catchSummary(); } catch (e) {}
     return true;
@@ -172,6 +182,7 @@
       else if (Array.isArray(RADII)) RADII.forEach(function (r, i) { r.on = false; r.color = PAL[i % PAL.length]; });
     } catch (e) {}
     myBuildRings();
+    syncProbeR();
     var inp = $('ringKm'), btn = $('ringApply');
     if (btn) btn.onclick = function () { if (!applyRadii(inp && inp.value)) { if (inp) inp.value = radii().map(function (r) { return r.km; }).join(', '); } };
     if (inp) inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); btn.click(); } });
@@ -183,7 +194,7 @@
      список «как едем» с вариантами «на авто», «метро и пешком» и «оба сразу»: оба режима рисуются
      одновременно, у авто и у метро раздельные цвета и флажки, ползунок «Толщина линий» меняет и
      толщину зон; всё запоминается --- */
-  var KEY_TZ = 'caseos_time_zones_v1', TZ_PAL = { car: ['#9E0000', '#e67e22', '#2980b9'], metro: ['#1b5e20', '#00897b', '#6a1b9a'] }, TZ_MODES = ['car', 'metro'], TZ_RU = { car: 'на авто', metro: 'метро и пешком' }, TZ = null;
+  var KEY_TZ = 'caseos_time_zones_v1', TZ_PAL = { car: ['#6B0000', '#A32316', '#D4735E'], metro: ['#0B3D6B', '#2277AE', '#5AA3CC'] }, TZ_MODES = ['car', 'metro'], TZ_RU = { car: 'на авто', metro: 'метро и пешком' }, TZ = null;
   function tzAgent() { return window.CASE_GEO_AGENT || null; }
   function tzToast(m) { var t = $('geoToast'); if (t) { t.textContent = m; t.classList.add('on'); clearTimeout(tzToast.t); tzToast.t = setTimeout(function () { t.classList.remove('on'); }, 2800); } }
   function tzHex(c) { return /^#[0-9a-f]{6}$/i.test(c || ''); }
@@ -231,7 +242,7 @@
     if (note) {
       var done = modes.filter(function (m) { return resMap && resMap[m]; });
       if (done.length) note.textContent = done.map(function (m) { var r = resMap[m]; return (r.provenance && r.provenance.method) ? r.provenance.method : ''; }).filter(Boolean).join('. ') + '. Оценка, не факт: границы без коррекции на барьеры.';
-      else note.textContent = 'Три зоны по времени в пути от точки анализа, каждая своим цветом: на авто по дорогам (OSRM), на метро с пешей частью по линиям студии или оба варианта сразу. Население считается внутри каждой зоны; толщина линий ползунком ниже.';
+      else { note.textContent = 'Оценка, не факт.'; note.title = 'Три зоны по времени в пути от точки анализа: на авто по дорогам (OSRM), на метро с пешей частью по линиям студии или оба варианта сразу. Население считается внутри каждой зоны, толщина линий общим ползунком.'; }
     }
   }
   function tzApply(mode) { var A = tzAgent(); if (A && typeof A.recolorCatchment === 'function') A.recolorCatchment(TZ.colors[mode], TZ.on[mode].map(function (v) { return !v; }), { mode: mode, weight: TZ.weight }); }
@@ -349,4 +360,4 @@
   LY.openAgent = openDrawer; LY.applyRadii = applyRadii; LY.radii = radii; LY.leftOpen = leftOpen; LY.fullscreen = fullscreen; LY.isFullscreen = isFs; LY.ringColor = ringColor;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.78.2';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-layout'] = '4.79.0';

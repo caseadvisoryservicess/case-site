@@ -1,5 +1,5 @@
-# CASE OS — сжатие и кэширование статики (ускоряет загрузку ~в 4-5 раз на медленной сети).
-# Работает на стандартном Apache-хостинге (cPanel); если модуль не установлен — просто игнорируется.
+# CASE OS - сжатие и кэширование статики (ускоряет загрузку ~в 4-5 раз на медленной сети).
+# Работает на стандартном Apache-хостинге (cPanel); если модуль не установлен - просто игнорируется.
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain application/javascript application/json image/svg+xml
 </IfModule>
@@ -11,6 +11,21 @@
   ExpiresByType application/javascript "access plus 1 hour"
   ExpiresByType image/svg+xml "access plus 1 day"
   ExpiresByType application/pdf "access plus 1 day"
+  # v4.79.0: тяжёлые данные студии (границы махаллей, генплан, реестр, демография) отдаются
+  # статикой и кэшируются на сутки: при сотне одновременных пользователей это снимает
+  # повторную отдачу нескольких мегабайт на каждого.
+  ExpiresByType application/geo+json "access plus 1 day"
+  ExpiresByType application/json "access plus 1 day"
+</IfModule>
+<IfModule mod_headers.c>
+  # json и geojson в папке data: только статика, без cookie и без приватных данных
+  <FilesMatch "\.(geojson|json)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  # ответы API никогда не кэшируются: там общие правки и роли
+  <FilesMatch "^(api/)?.*\.php$">
+    Header set Cache-Control "no-store"
+  </FilesMatch>
 </IfModule>
 
 
@@ -19,21 +34,21 @@
   Header set X-Frame-Options "SAMEORIGIN"
   Header set Referrer-Policy "same-origin"
   Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
-  # v4.35 (P2): HSTS — только по HTTPS (env=HTTPS), год; без preload/includeSubDomains,
+  # v4.35 (P2): HSTS - только по HTTPS (env=HTTPS), год; без preload/includeSubDomains,
   # чтобы не заблокировать соседние поддомены хостинга.
   # v4.70.3: условие env=HTTPS снято. Оно завязывало HSTS на ту же переменную, что и флаг
   # Secure у cookie, поэтому за прокси обе защиты пропадали одновременно: cookie уходила
   # открыто, и браузер при этом не поднимал http до https сам. На http-ответе заголовок
   # браузером игнорируется, так что безусловная выдача вреда не несёт.
   Header always set Strict-Transport-Security "max-age=31536000"
-  # v4.35 (P2): CSP. 'unsafe-inline'/'unsafe-eval' вынужденные: платформа — один файл с
+  # v4.35 (P2): CSP. 'unsafe-inline'/'unsafe-eval' вынужденные: платформа - один файл с
   # inline-скриптами и onclick-обработчиками, jszip использует Function. Политика всё равно
   # закрывает главное: чужие домены скриптов, form-action, base-uri, встраивание в чужие фреймы.
-  # Карт-тайлы (img) и внешние API — только https.
+  # Карт-тайлы (img) и внешние API - только https.
   # v4.70.3: то же самое повторилось с Яндекс.Картами. core.js:3039 подключает
   # api-maps.yandex.ru, а в script-src его не было: пользователь, честно введя ключ,
   # получал баннер «Проверьте API-ключ и подключение» - хотя резала своя же политика.
-  # v4.50.3: политика запрещала ровно то, что страница грузит сама — PptxGenJS с jsDelivr
+  # v4.50.3: политика запрещала ровно то, что страница грузит сама - PptxGenJS с jsDelivr
   # и шрифты Google. Из-за этого выгрузка в PPTX на боевом Apache падала, а типографика
   # откатывалась на запасной шрифт. Перечислены ровно эти источники, не https: целиком.
   Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://api-maps.yandex.ru; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; connect-src 'self' https:; font-src 'self' data: https://fonts.gstatic.com; frame-src 'self' blob: data:; object-src 'self' data: blob:; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
@@ -42,7 +57,7 @@
 Options -Indexes
 
 # v4.50.3: дампы базы и схему нельзя забирать по прямой ссылке. Запрет на .sql.gz стоял
-# только в /api, а сами копии лежали в /sql/backups — то есть были доступны любому, кто
+# только в /api, а сами копии лежали в /sql/backups - то есть были доступны любому, кто
 # угадает имя. Имена предсказуемы с точностью до секунды, так что это не теория.
 <FilesMatch "\.(sql|sql\.gz|sqlite|sqlite3|log|env)$">
   Require all denied

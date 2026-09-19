@@ -61,8 +61,8 @@ const digits = s => +String(s).replace(/[^\d]/g, '');
   await open();
 
   console.log('--- 1. Модули, разделы, данные');
-  const v = await pg.evaluate(() => { const M = window.CASE_MODULE_VERSIONS || {}; return { mah: M['v4770-geo-mahalla'], rs: M['v4770-geo-roadside'], pr: M['v4770-geo-profiles'], sects: [...document.querySelectorAll('.left>.sect')].map(s => s.dataset.sect || '?'), schema: window.CASE_GEO_DEMO.data.schema, pts: window.CASE_GEO_DEMO.data.city.population_series.length, tabsSel: !!document.querySelector('.tabs>#geoProfile'), amenIn: !!document.querySelector('#projInfo + #amen'), poi: window.CASE_GEO_POI.total('mahallas'), distOpts: document.getElementById('mahDist').options.length }; });
-  ck('модули 4.78.1 и 4.77.0, шесть размеченных разделов (БЦ внутри слоёв, итог внутри зоны охвата), профиль на вкладках, «Что рядом» под точкой, демография загружена, 545 махаллей, 12 районов плюс пункт «Все районы»', v.mah === '4.78.1' && v.rs === '4.77.0' && v.pr === '4.78.1' && v.sects.join(',') === 'point,analysis,road,rings,mah,layers' && v.schema === 'case-demography/v1' && v.pts >= 12 && v.tabsSel && v.amenIn && v.poi === 545 && v.distOpts === 14, JSON.stringify(v));
+  const v = await pg.evaluate(() => { const M = window.CASE_MODULE_VERSIONS || {}; return { mah: M['v4770-geo-mahalla'], rs: M['v4770-geo-roadside'], pr: M['v4770-geo-profiles'], sects: [...document.querySelectorAll('.left>.sect')].map(s => s.dataset.sect || '?'), schema: window.CASE_GEO_DEMO.data.schema, pts: window.CASE_GEO_DEMO.data.city.population_series.length, tabsSel: !!document.querySelector('.tabs>#geoProfile'), amenIn: !!document.querySelector('#projInfo + #amen'), rsIn: !!(document.getElementById('rsSect') && document.getElementById('rsSect').closest('.sect') === document.querySelector('.left>.sect[data-sect="point"]')), szIn: !!(document.getElementById('szBox') && document.getElementById('szBox').closest('.sect') === document.querySelector('.left>.sect[data-sect="rings"]')), poi: window.CASE_GEO_POI.total('mahallas'), distOpts: document.getElementById('mahDist').options.length }; });
+  ck('модули 4.79.0, четыре размеченных раздела (сторона дороги внутри точки, БЦ и итог внутри других), профиль на вкладках, «Что рядом» под точкой, демография загружена, 545 махаллей, 12 районов плюс пункт «Все районы»', v.mah === '4.79.0' && v.rs === '4.79.0' && v.pr === '4.79.0' && v.sects.join(',') === 'point,rings,mah,layers' && v.rsIn && v.szIn && v.schema === 'case-demography/v1' && v.pts >= 12 && v.tabsSel && v.amenIn && v.poi === 545 && v.distOpts === 14, JSON.stringify(v));
 
   console.log('--- 2. Махалли по районам');
   await pg.selectOption('#mahDist', 'Yunusabad'); await pg.waitForTimeout(400);
@@ -155,9 +155,17 @@ const digits = s => +String(s).replace(/[^\d]/g, '');
   const p0 = await pg.evaluate(() => ({ cur: window.CASE_GEO_PROFILES.current, sel: document.getElementById('geoProfile').value, list: window.CASE_GEO_PROFILES.list().map(x => x.id).join(',') }));
   ck('по умолчанию профиль «Всё» (полный доступ), шесть профилей', p0.cur === 'full' && p0.sel === 'full' && p0.list === 'office,developer,asset,consulting,leasing,full', JSON.stringify(p0));
   await pg.selectOption('#geoProfile', 'office'); await pg.waitForTimeout(200);
-  const vis = () => pg.evaluate(() => { const o = {}; document.querySelectorAll('.left>.sect[data-sect]').forEach(s => { o[s.dataset.sect] = getComputedStyle(s).display !== 'none'; }); return o; });
+  /* v4.79.0: «анализ локации» и «сторона дороги» больше не разделы, а блоки внутри других:
+     видимость по профилю проверяем у блоков #szBox и #rsSect */
+  const vis = () => pg.evaluate(() => {
+    const o = {}; document.querySelectorAll('.left>.sect[data-sect]').forEach(s => { o[s.dataset.sect] = getComputedStyle(s).display !== 'none'; });
+    const sz = document.getElementById('szBox'), rs = document.getElementById('rsSect');
+    o.analysis = !!sz && getComputedStyle(sz).display !== 'none';
+    o.road = !!rs && getComputedStyle(rs).display !== 'none';
+    return o;
+  });
   const p1 = await vis();
-  ck('«Ищу офис»: скрыты анализ локации, сторона дороги, махалли; видны точка, зона охвата, слои (с БЦ внутри); запомнено', await pg.evaluate(() => document.body.classList.contains('prof-office') && localStorage.getItem('caseos_geo_profile') === 'office') && !p1.analysis && !p1.road && !p1.mah && p1.point && p1.rings && p1.layers && p1.bc === undefined && p1.catch === undefined, JSON.stringify(p1));
+  ck('«Ищу офис»: скрыты модель зон, сторона дороги, махалли; видны точка, зона охвата, слои (с БЦ внутри); запомнено', await pg.evaluate(() => document.body.classList.contains('prof-office') && localStorage.getItem('caseos_geo_profile') === 'office') && !p1.analysis && !p1.road && !p1.mah && p1.point && p1.rings && p1.layers && p1.bc === undefined && p1.catch === undefined, JSON.stringify(p1));
   await pg.evaluate(() => window.CASE_GEO_PROFILES.set('developer', true)); await pg.waitForTimeout(200);
   const p2 = await vis();
   ck('установка «Девелопер» из кабинета: все разделы видны, локальный выбор сброшен', Object.keys(p2).every(k => p2[k]) && await pg.evaluate(() => document.body.classList.contains('prof-developer') && localStorage.getItem('caseos_geo_profile') === null && document.getElementById('geoProfile').value === 'developer'), JSON.stringify(p2));

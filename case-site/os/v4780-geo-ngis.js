@@ -28,7 +28,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_NGIS) return;
-  var VERSION = '4.78.1', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
+  var VERSION = '4.79.0', BASE = 'https://db.ngis.uz/db/rest/services', KEY_CACHE = 'caseos_ngis_mahalla_v1', KEY_AUTO = 'caseos_ngis_auto', TIMEOUT = 25000, SIMPLIFY = 0.0002, REGION = '1726';
   var N = window.CASE_GEO_NGIS = { version: VERSION, base: BASE, mahallas: null, genplan: null, loading: false };
   var LAYERS = { MAHALLA: 'UZKAD/MAHALLA_UZKAD_DB16/FeatureServer/0', GENPLAN: 'Hosted/TOSHKENT_GENPLAN_3857_MAP/MapServer/2', NALOG: 'Hosted/TOSHKENT_NALOG_ZONE_MAP/MapServer/0' };
   var ATTR = 'Кадастр агентлиги, геопортал open.ngis.uz';
@@ -143,7 +143,7 @@
     var d = document.createElement('div'); d.className = 'ngis-row';
     d.innerHTML = '<div class="ngis-h">Обновление границ (из вашего браузера)</div>'
       + '<button type="button" class="btn sec" id="hokLoad" style="font-size:11px" title="официальные границы всех 585 махаллей Ташкента из слоя хокимията (Open Data Tashkent на ArcGIS Online); закрывает пробелы кадастрового слоя">⬇ Все 585 границ (хокимият)</button><button type="button" class="btn sec" id="hokReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="hokStatus"></div>'
-      + '<button type="button" class="btn sec" id="ngisLoad" style="font-size:11px" title="свежие границы из кадастрового слоя open.ngis.uz (в пакете уже есть снимок от 18.09.2026, слой пополняется); запрос из вашего браузера">↻ Обновить границы из НГИС</button><button type="button" class="btn sec" id="ngisReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="ngisStatus"></div><div class="mini">' + esc(ATTR) + ' и хокимият Ташкента. Публичные данные; условия коммерческого переиспользования не подтверждены. Приоритет границ: живой НГИС, файл кадастра, хокимият.</div>';
+      + '<button type="button" class="btn sec" id="ngisLoad" style="font-size:11px" title="свежие границы из кадастрового слоя open.ngis.uz (в пакете уже есть снимок от 18.09.2026, слой пополняется); запрос из вашего браузера">↻ Обновить границы из НГИС</button><button type="button" class="btn sec" id="ngisReload" style="font-size:11px" title="запросить заново, минуя кэш">↻</button><div class="mini" id="ngisStatus"></div><div class="mini" title="' + esc(ATTR) + ' и хокимият Ташкента. Данные публичные, условия коммерческого переиспользования не подтверждены. Приоритет границ: живой НГИС, файл кадастра, хокимият, расчётная.">Источники: НГИС и хокимият · наведите для пояснения</div>';
     if (anchor && anchor.parentNode) anchor.parentNode.insertBefore(d, anchor); else body.appendChild(d);
     $('ngisLoad').onclick = function () { loadMahallas(false); };
     $('ngisReload').onclick = function () { try { localStorage.removeItem(KEY_CACHE); } catch (e) {} loadMahallas(true); };
@@ -220,7 +220,7 @@
   N.toggleLayer = toggleLayer;
   function renderGenplan(state) {
     var box = $('ngisPointBody') || $('ngisPoint'); if (!box) return;
-    if (!state) { box.innerHTML = '<div class="ngis-h">Генплан и налоговая зона (НГИС)</div><div class="mini">Поставьте точку анализа: зона генплана Ташкента и налоговая зона запрашиваются по точке.</div>'; return; }
+    if (!state) { box.innerHTML = '<div class="ngis-h">Генплан и налоговая зона (НГИС)</div><div class="mini" title="Зона генплана Ташкента и налоговая зона запрашиваются по точке анализа">Поставьте точку анализа.</div>'; return; }
     if (state.loading) { box.innerHTML = '<div class="ngis-h">Генплан и налоговая зона (НГИС)</div><div class="mini">Запрашиваю НГИС…</div>'; return; }
     var h = '<div class="ngis-h">Генплан и налоговая зона (НГИС)</div>';
     if (state.error) h += '<div class="mini" style="color:#9E0000">' + esc(state.error) + '</div>';
@@ -230,7 +230,7 @@
       h += n.length ? '<div class="mini" style="margin-top:4px">Налоговая зона: ' + n.map(function (r) { return esc(r[0]) + ' ' + esc(r[1]); }).join(' · ') + '</div>' : '';
       if (state.also && state.also.length) h += '<div class="mini">Также в точке: ' + state.also.map(function (a) { return esc(FUNC_RU[a] || a); }).join(', ') + '</div>';
     }
-    h += '<div class="mini">' + esc(ATTR) + (state.source === 'local' ? ' · выгрузка владельца 18.09.2026 (без сети)' : ' · запрос из вашего браузера') + ' · условия коммерческого переиспользования не подтверждены</div>';
+    h += '<div class="mini" title="' + esc(ATTR) + (state.source === 'local' ? '. Выгрузка владельца 18.09.2026, без сети.' : '. Запрос из вашего браузера.') + ' Данные публичные, условия коммерческого переиспользования не подтверждены.">Источник: НГИС · ' + (state.source === 'local' ? 'выгрузка 18.09.2026' : 'запрос из браузера') + '</div>';
     box.innerHTML = h;
   }
   function genplanAt(p) {
@@ -305,4 +305,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.78.1';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4780-geo-ngis'] = '4.79.0';

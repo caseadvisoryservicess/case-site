@@ -160,7 +160,18 @@
     }catch(e){
       var msg=String(e&&e.message||'Неизвестная ошибка');
       console.error('Geoanalytics save failed',e);
-      toast(tr('Геоданные не сохранены: ','Geo maʼlumotlar saqlanmadi: ','Geo data were not saved: ')+msg);
+      /* v4.79.0 (замечание владельца о работе многих пользователей сразу): если запись уже изменил
+         другой пользователь, сервер отвечает 409. Тогда берём свежие данные с сервера и просим
+         повторить правку, вместо глухой ошибки. */
+      if(/409|изменен[ыа] другим|already/i.test(msg)){
+        try{await loadGeoFresh();}catch(e2){}
+        toast(tr('Данные изменил другой пользователь. Свежая версия загружена, повторите правку.',
+          'Maʼlumotlarni boshqa foydalanuvchi oʻzgartirdi. Yangi versiya yuklandi, tahrirni qaytaring.',
+          'Another user changed the data. The fresh version is loaded, repeat your edit.'));
+        notifyFrame('asaas-geo-save-conflict',{error:msg,geoRevision:G.geoRevision||0});
+      }else{
+        toast(tr('Геоданные не сохранены: ','Geo maʼlumotlar saqlanmadi: ','Geo data were not saved: ')+msg);
+      }
       notifyFrame('asaas-geo-save-failed',{error:msg});
     }finally{G.saving=false;}
   }

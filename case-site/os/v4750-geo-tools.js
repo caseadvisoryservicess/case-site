@@ -17,7 +17,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_TOOLS) return;
-  var VERSION = '4.78.1', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
+  var VERSION = '4.79.0', NOTES_KEY = 'caseos_geo_notes_v1', OSRM = 'https://router.project-osrm.org/route/v1/driving/';
   var TL = window.CASE_GEO_TOOLS = { version: VERSION };
   var ST = { tool: null, pts: [], preview: null, undo: [], redo: [], routes: null, notes: null, notesData: [], circle: null, freeOn: false, menu: null, seq: 0 };
   function $(id) { return document.getElementById(id); }
@@ -52,6 +52,7 @@
       + '.geo-tb .geo-basectl-btn{height:38px;border:0;box-shadow:none;background:none;border-radius:10px;padding:0 10px;font:600 12px inherit;max-width:190px;color:var(--ink,#1b1b1b)}.geo-tb .geo-basectl-btn:hover{background:var(--paper-2,#f3f1ee)}'
       + '.geo-tb .geo-basectl-menu{top:auto;bottom:46px;right:auto;left:0}'
       + '.geo-tb button.geo-tb-full{width:38px}'
+      + '.geo-measure-lbl{white-space:nowrap;font:700 11px/1.3 inherit;background:#fff;border:1px solid #9E0000;color:#9E0000;border-radius:6px;padding:2px 6px;box-shadow:0 1px 4px rgba(0,0,0,.2)}'
       + '@media(max-width:620px){.geo-tb{bottom:64px;padding:4px}.geo-tb button{width:34px;height:34px;font-size:15px}.geo-tb button kbd{display:none}.geo-tb-hint{bottom:110px}.geo-tb .geo-basectl-btn{max-width:120px;height:34px}}';
     document.head.appendChild(s);
   }
@@ -62,9 +63,10 @@
     { a: 'free', ic: '✎', key: 'F', tip: 'Полигон от руки · F (тяните мышью)' },
     { a: 'circle', ic: '◯', key: 'C', tip: 'Буфер: круг заданного радиуса · C' },
     { a: 'route', ic: '⤳', key: 'R', tip: 'Маршрут между двумя точками · R' },
-    { a: 'note', ic: '💬', key: 'M', tip: 'Комментарий на карте · M' }
+    { a: 'note', ic: '💬', key: 'M', tip: 'Комментарий на карте · M' },
+    { a: 'measure', ic: '📏', key: 'L', tip: 'Линейка: длина, а при трёх точках и площадь · L' }
   ];
-  var HINTS = { pin: 'Кликните по карте, чтобы поставить точку анализа', poly: 'Кликайте по карте: вершины полигона. Enter или двойной клик замкнёт, Esc отменит', free: 'Зажмите кнопку мыши и обведите область', circle: 'Кликните центр круга, затем кликните на нужном расстоянии', route: 'Кликните начало маршрута, затем конец', note: 'Кликните по карте, чтобы оставить комментарий' };
+  var HINTS = { pin: 'Кликните по карте, чтобы поставить точку анализа', poly: 'Кликайте по карте: вершины полигона. Enter или двойной клик замкнёт, Esc отменит', free: 'Зажмите кнопку мыши и обведите область', circle: 'Кликните центр круга, затем кликните на нужном расстоянии', route: 'Кликните начало маршрута, затем конец', note: 'Кликните по карте, чтобы оставить комментарий', measure: 'Кликайте по карте: длина по точкам. С третьей точки считается и площадь. Enter или двойной клик завершит, Esc отменит' };
 
   function toolbar() {
     var mapEl = $('map'); if (!mapEl || $('geoTb')) return;
@@ -226,6 +228,49 @@
   }
   TL.routeFrom = function (lat, lon) { setTool('route'); ST.pts = [[lat, lon]]; drawPolyPreview(false); hint('Кликните конец маршрута'); };
 
+  /* --- линейка (замечание владельца): длина по точкам, с третьей точки и площадь ------ */
+  function measureGroup() { var M = theMap(); if (!M) return null; if (!ST.measures) ST.measures = L.layerGroup().addTo(M); return ST.measures; }
+  function ringAreaM2(ring) {
+    if (!ring || ring.length < 3) return 0;
+    var lat0 = ring[0][0], kx = 111320 * Math.cos(lat0 * Math.PI / 180), ky = 110540, a = 0;
+    for (var i = 0, n = ring.length; i < n; i++) { var p = ring[i], q = ring[(i + 1) % n]; a += (p[1] * kx) * (q[0] * ky) - (q[1] * kx) * (p[0] * ky); }
+    return Math.abs(a / 2);
+  }
+  function pathLenM(pts) { var d = 0; for (var i = 1; i < pts.length; i++) d += km(pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]) * 1000; return d; }
+  function fmtArea(m2) {
+    var sqm = Math.round(m2).toLocaleString('ru') + ' м²';
+    return m2 >= 10000 ? sqm + ' · ' + (Math.round(m2 / 1e4) / 100).toLocaleString('ru') + ' км²' : sqm;
+  }
+  function measureText(pts, closed) {
+    var len = pathLenM(pts), out = 'длина ' + fmtKm(len);
+    if (pts.length >= 3) { var ring = pts.slice(); out += ' · периметр ' + fmtKm(len + km(pts[pts.length - 1][0], pts[pts.length - 1][1], pts[0][0], pts[0][1]) * 1000) + ' · площадь ' + fmtArea(ringAreaM2(ring)); }
+    return out + (closed ? '' : ' · Enter завершит');
+  }
+  function drawMeasure(hoverLatLng) {
+    var g = previewGroup(); if (!g) return; g.clearLayers();
+    var pts = ST.pts.slice(); if (hoverLatLng) pts.push([hoverLatLng.lat, hoverLatLng.lng]);
+    if (pts.length > 1) L.polyline(pts, { color: '#9E0000', weight: 2, dashArray: '5' }).addTo(g);
+    if (pts.length > 2) L.polygon(pts, { color: '#9E0000', weight: 1, opacity: .7, fillColor: '#9E0000', fillOpacity: .08, dashArray: '3 4' }).addTo(g);
+    pts.forEach(function (p, i) { L.circleMarker(p, { radius: 4, color: '#9E0000', fillColor: '#fff', fillOpacity: 1, weight: 2 }).addTo(g).bindTooltip('точка ' + (i + 1), { sticky: true }); });
+    hint(esc(measureText(pts, false)));
+  }
+  function finishMeasure() {
+    var pts = ST.pts.slice();
+    if (pts.length < 2) { toast('Кликните хотя бы две точки'); return; }
+    var g = measureGroup(); if (!g) return;
+    var txt = measureText(pts, true), lg = L.layerGroup();
+    if (pts.length > 2) L.polygon(pts, { color: '#9E0000', weight: 2, fillColor: '#9E0000', fillOpacity: .08 }).addTo(lg);
+    else L.polyline(pts, { color: '#9E0000', weight: 3 }).addTo(lg);
+    pts.forEach(function (p) { L.circleMarker(p, { radius: 4, color: '#9E0000', fillColor: '#fff', fillOpacity: 1, weight: 2 }).addTo(lg); });
+    L.marker(pts[pts.length - 1], { icon: L.divIcon({ className: '', html: '<span class="geo-measure-lbl">' + esc(txt) + '</span>', iconAnchor: [-8, 8] }), interactive: false }).addTo(lg);
+    lg.addTo(g);
+    ST.pts = []; clearPreview(); finishTool();
+    push({ label: 'линейка', undo: function () { g.removeLayer(lg); }, redo: function () { g.addLayer(lg); } });
+    toast('Линейка: ' + txt);
+    var A = agent(); if (A && A.say) try { A.say('fact', '<div class="ga-fbody"><b>Линейка</b> ' + esc(txt) + ' <span class="ga-prov ga-m" title="Метод: расстояния по прямой между точками, площадь по формуле площади многоугольника"><i>ƒ</i>расчёт</span></div>'); } catch (e) {}
+  }
+  TL.measure = { start: function () { setTool('measure'); }, finish: finishMeasure, areaM2: ringAreaM2, lengthM: pathLenM, text: measureText, clear: function () { var g = measureGroup(); if (g) g.clearLayers(); } };
+
   /* --- комментарии --------------------------------------------------------------- */
   function notesGroup() { var M = theMap(); if (!M) return null; if (!ST.notes) ST.notes = L.layerGroup().addTo(M); return ST.notes; }
   function saveNotes() { try { localStorage.setItem(NOTES_KEY, JSON.stringify(ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }))); } catch (e) {} }
@@ -268,11 +313,13 @@
       var a = ST.pts[0]; ST.pts = []; clearPreview(); route(a, [lat, lon]); return;
     }
     if (t === 'note') { noteForm(lat, lon); return; }
+    if (t === 'measure') { ST.pts.push([lat, lon]); drawMeasure(); return; }
   }
   function metersPerPixel() { var M = theMap(); try { var c = M.getCenter(); return 40075016.686 * Math.abs(Math.cos(c.lat * Math.PI / 180)) / Math.pow(2, M.getZoom() + 8); } catch (e) { return 10; } }
   function onMove(e) {
     if (ST.tool === 'circle' && ST.circle && !ST.circle.fixed) { var r = km(ST.circle.lat, ST.circle.lon, e.latlng.lat, e.latlng.lng) * 1000; circlePreview(ST.circle.lat, ST.circle.lon, r); hint('Радиус ' + fmtKm(r) + ': кликните, чтобы зафиксировать'); }
     if (ST.tool === 'free' && ST.freeOn) { ST.pts.push([e.latlng.lat, e.latlng.lng]); drawPolyPreview(false); }
+    if (ST.tool === 'measure' && ST.pts.length) drawMeasure(e.latlng);
   }
   function onDown(e) { if (ST.tool === 'free') { ST.freeOn = true; ST.pts = [[e.latlng.lat, e.latlng.lng]]; } }
   function onUp() {
@@ -282,14 +329,15 @@
     if (ring.length < 3) { toast('Обведите область: слишком мало точек'); ST.pts = []; clearPreview(); return; }
     finishTool(); commitShape('polygon', ring);
   }
-  function onDbl(e) { if (ST.tool === 'poly') { try { L.DomEvent.stop(e); } catch (x) {} finishPolygon(); } }
+  function onDbl(e) { if (ST.tool === 'poly') { try { L.DomEvent.stop(e); } catch (x) {} finishPolygon(); } if (ST.tool === 'measure') { try { L.DomEvent.stop(e); } catch (x) {} finishMeasure(); } }
   function onKey(e) {
     var tgt = e.target, tag = tgt && tgt.tagName ? tgt.tagName.toLowerCase() : '';
     if (tag === 'input' || tag === 'textarea' || tag === 'select' || (tgt && tgt.isContentEditable)) { if (e.key === 'Escape' && ST.tool) cancel(false); return; }
     if ((e.ctrlKey || e.metaKey) && !e.altKey) { var k = e.key.toLowerCase(); if (k === 'z' && !e.shiftKey) { e.preventDefault(); undo(); return; } if (k === 'y' || (k === 'z' && e.shiftKey)) { e.preventDefault(); redo(); return; } return; }
     if (e.key === 'Escape') { if (ST.menu) hideMenu(); if (ST.tool) cancel(false); return; }
     if (e.key === 'Enter' && ST.tool === 'poly') { e.preventDefault(); finishPolygon(); return; }
-    var m = { p: 'pin', o: 'poly', f: 'free', c: 'circle', r: 'route', m: 'note' }[e.key.toLowerCase()];
+    if (e.key === 'Enter' && ST.tool === 'measure') { e.preventDefault(); finishMeasure(); return; }
+    var m = { p: 'pin', o: 'poly', f: 'free', c: 'circle', r: 'route', m: 'note', l: 'measure' }[e.key.toLowerCase()];
     if (m) { e.preventDefault(); setTool(ST.tool === m ? null : m); }
   }
 
@@ -363,4 +411,4 @@
   TL.setTool = setTool; TL.cancel = function () { cancel(false); }; TL.undo = undo; TL.redo = redo; TL.state = ST; TL.finishPolygon = finishPolygon; TL.notes = function () { return ST.notesData.map(function (n) { return { id: n.id, lat: n.lat, lon: n.lon, text: n.text, at: n.at }; }); }; TL.showInfo = info; TL.simplify = simplify;
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.78.1';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4750-geo-tools'] = '4.79.0';

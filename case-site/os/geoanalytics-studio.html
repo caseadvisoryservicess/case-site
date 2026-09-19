@@ -676,6 +676,7 @@ header .lg{font-weight:700}header .lg b{color:var(--red)}.tag{font-size:10px;col
 .tabs button{background:transparent;border:none;padding:8px 14px;border-radius:8px 8px 0 0;color:var(--muted);font-weight:600;cursor:pointer}
 .tabs button.active{background:#fff;color:var(--ink);box-shadow:inset 0 -2px 0 var(--red)}
 .wrap{flex:1;display:flex;min-height:0}
+.sz-inline{margin:8px 0 4px;padding-top:6px;border-top:1px dashed var(--line,#e3e6ec)}.sz-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red,#9E0000);margin-bottom:4px}
 .left{width:300px;background:#fff;border-right:1px solid var(--line);overflow:auto;padding:10px}
 #map{flex:1}.sect{border-bottom:1px solid var(--line);padding:9px 0;margin-bottom:6px}
 .sect h3{margin:0 0 7px;font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--slate)}
@@ -1031,19 +1032,23 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div class="styrow" style="margin-top:4px"><button class="btn" id="btnProjReport" style="font-size:11px" onclick="caseGeoProjectReport(false)" title="посчитать население, конкурентов и скоринг в точке анализа">▣ Аналитика по точке</button></div>
    <div class="styrow"><button class="btn pri" id="btnProjExport" style="font-size:11px" onclick="caseGeoProjectReport(true)" title="один клик: Excel, презентация PowerPoint и PDF по точке анализа">⤓ Выгрузить PDF · Excel · PPTX</button>
     <button class="btn sec" id="btnExpCfg" style="font-size:11px" onclick="caseGeoExportSettings(false)" title="что и по каким критериям выгружать">⚙ Настройки</button></div>
-   <div class="mini">Цифры те же, что на экране. Состав и радиусы - в настройках выгрузки.</div>
    <div class="styrow" style="margin-top:8px"><button class="btn sec" id="btnSunWind" style="font-size:11px"
      onclick="caseSunOpen()" title="ход солнца по выбранному дню, роза ветров по архиву наблюдений и направление киблы">☀ Солнце, ветер и кибла</button></div>
    <div class="styrow" style="margin-top:4px"><button class="btn sec" id="btnHuff" style="font-size:11px"
      onclick="caseHuffOpen()" title="какую долю жителей зоны реально заберёт объект с учётом конкурентов, и у кого именно">◱ Доля рынка (модель Хаффа)</button></div>
    <label class="ck" style="margin-top:4px"><input type="checkbox" id="lQibla" onchange="caseQiblaToggle(this.checked)"> Направление киблы на карте</label></div>
-  <div class="sect"><h3>Анализ локации</h3>
-   <!-- v4.75.0: клик по карте ничего не открывает (решение владельца); отчёт по точке дают кнопка «Аналитика по точке» и карточки -->
-   <div class="styrow sub"><label>радиусы, м</label><input type="text" id="probeR" value="500,1000,1500,2000,3000" style="width:130px;font-size:11px"></div>
-   <!-- v4.75.0: кнопок «Зона: рисовать» нет: полигон и круг рисуются инструментами внизу карты -->
-   <div class="styrow"><label for="isoMin">Изохрона авто</label><select id="isoMin" style="width:auto;font-size:11px"><option>5</option><option selected>10</option><option>15</option><option>20</option></select><button class="btn sec" id="btnIso" style="font-size:11px">▶ От проекта</button></div>
+  <!-- v4.79.0 (замечание владельца): раздела «Анализ локации» нет, он повторял «Зону охвата».
+       Радиусы отчёта по точке берутся из радиусов «Зоны охвата», поля изохроны скрыты: их читают
+       отчёт по точке и инструмент агента «изохрона». -->
+  <div hidden aria-hidden="true">
+   <input type="text" id="probeR" value="500,1000,1500,2000,3000">
+   <select id="isoMin"><option>5</option><option selected>10</option><option>15</option><option>20</option></select>
+   <button type="button" id="btnIso">изохрона</button>
+  </div>
+  <div class="sect"><h3>Зона охвата</h3><div class="styrow sub"><label for="ringKm">радиусы, км</label><input type="text" id="ringKm" value="1, 3, 5" style="width:120px;font-size:11px" title="через запятую, до восьми значений"><button class="btn sec" id="ringApply" style="font-size:11px" title="применить радиусы">✓</button></div><div id="rings"></div>
+   <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px" title="толщина колец и зон по времени"><input type="color" id="ringWc" value="#9C9488" hidden aria-hidden="true"></div>
    <div class="mini" id="isoNote"></div>
-   <div class="sect"><h3>Модель зон пригодности</h3>
+   <div class="sz-inline" id="szBox"><div class="sz-h">Модель зон пригодности</div>
     <div class="styrow sub"><label for="sZBiz">бизнес</label><select id="sZBiz" style="width:auto;font-size:11px">
       <option value="mall">ТРЦ (региональный)</option>
       <option value="community">ТЦ (районный)</option>
@@ -1073,21 +1078,18 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
     <div class="styrow"><button class="btn" id="btnZones" style="font-size:11px">◧ Построить карту</button><button class="btn sec" id="btnZonesCsv" style="font-size:11px">⤓ CSV</button><button class="btn sec" id="btnZonesClr" style="font-size:11px">✕</button></div>
     <div class="mini" id="zonesNote"></div>
     <div class="mini" id="zonesLeg" style="margin-top:5px"></div>
-   </div></div>
-  <div class="sect"><h3>Зона охвата</h3><div class="styrow sub"><label for="ringKm">радиусы, км</label><input type="text" id="ringKm" value="1, 3, 5" style="width:120px;font-size:11px" title="через запятую, до восьми значений"><button class="btn sec" id="ringApply" style="font-size:11px" title="применить радиусы">✓</button></div><div id="rings"></div>
-   <div class="styrow"><span>Толщина линий</span><input type="range" id="ringW" min="1" max="8" value="3" style="width:80px"><input type="color" id="ringWc" value="#c0392b" title="цвет 5 км"></div>
-   <div class="mini">Свои радиусы через запятую, каждый своим цветом. Круг любого радиуса и полигон произвольной формы рисуются инструментами внизу карты (C, O, F).</div></div>
+      </div></div>
   <div class="sect"><h3>Слои и стиль</h3>
    <div class="geo-cat-title">Бизнес-центры</div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lBC" checked> Бизнес-центры</label></div>
-   <div class="styrow sub"><label>цвет</label><input type="color" id="bcNa" value="#0d7a6f"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"></div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lBC"> Бизнес-центры</label></div>
+   <div class="styrow sub"><label>цвет</label><input type="color" id="bcNa" value="#00897C"><label>размер</label><input type="range" id="bcR" min="3" max="10" value="5"><label>прозр.</label><input type="range" id="bcO" min="20" max="100" value="90"></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="bcLab" checked> подписи</label><label>размер подписи</label><input type="range" id="bcLS" min="8" max="20" value="12"><label>подписи с зума</label><input type="range" id="labZ" min="11" max="17" value="13"><span class="mini" id="labZv"></span></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="bcBySrc"> цвет по источнику</label><label class="ck"><input type="checkbox" id="bcByRent"> цвет по ставке</label><label class="ck"><input type="checkbox" id="bcClu"> кластеры точек</label></div>
    <div class="geo-cat-title">HoReCa</div>
    <div id="geoCatAnchor-horeca"></div>
    <div class="geo-cat-title">Медицина и аптеки</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lMed"> <span title="источники: OpenStreetMap и clinics.uz">Медицина</span></label></div>
-   <div class="styrow sub"><label>цвет</label><input type="color" id="medC" value="#16a085"><label>размер</label><input type="range" id="medR" min="3" max="9" value="5"><label>прозр.</label><input type="range" id="medO" min="20" max="100" value="85"></div>
+   <div class="styrow sub"><label>цвет</label><input type="color" id="medC" value="#0954B3"><label>размер</label><input type="range" id="medR" min="3" max="9" value="5"><label>прозр.</label><input type="range" id="medO" min="20" max="100" value="85"></div>
       <div class="styrow sub"><label for="medT">тип</label><select id="medT" style="width:auto;font-size:11px"><option value="">все типы</option><option value="comp">конкуренты клиники (больницы+клиники+частные+врачи+лаб.)</option><option value="hospital">больницы / стационары</option><option value="clinic">клиники / поликлиники</option><option value="private">частные клиники (clinics.uz)</option><option value="doctors">врачебные практики / кабинеты</option><option value="dentist">стоматологии</option><option value="lab">лаборатории / диагностика</option><option value="maternity">роддома / перинатальные</option><option value="rehab">реабилитация / санатории</option><option value="other">прочее</option></select></div>
    <div class="styrow sub"><label for="medSp">направление</label><select id="medSp" style="width:auto;font-size:11px"><option value="">все направления</option><option value="gen">Многопрофильные / общие</option><option value="polikl">Поликлиники / семейные / диспансеры</option><option value="hosp">Больницы / стационары / скорая</option><option value="stom">Стоматология</option><option value="lor">ЛОР / сурдология</option><option value="nevro">Неврология / нейрохирургия</option><option value="kardio">Кардиология / флебология</option><option value="oftalm">Офтальмология / оптика</option><option value="lab">Лаборатории / диагностика / МРТ</option><option value="pediatr">Педиатрия / детские</option><option value="gynec">Гинекология / роддома / ЭКО</option><option value="derma">Дерматология / косметология / пластика</option><option value="uro">Урология / нефрология</option><option value="travma">Травматология / ортопедия</option><option value="psih">Психиатрия / наркология / логопедия</option><option value="onko">Онкология / гематология</option><option value="infekt">Инфекции / туберкулёз / СЭС</option><option value="allerg">Аллергология / иммунология / пульмонология</option><option value="endo">Эндокринология / гастроэнтерология</option><option value="reabil">Реабилитация / физиотерапия / санатории</option></select></div>
    <div class="styrow sub"><label for="medColBy">раскраска</label><select id="medColBy" style="width:auto;font-size:11px"><option value="sp" selected>по направлению медицины</option><option value="t">по типу учреждения</option><option value="fix">один цвет</option></select></div>
@@ -1095,7 +1097,7 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="medClu"> кластеры точек</label></div>
    <div class="mini" id="medLeg" style="line-height:1.7;margin:2px 0 4px"></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lPharm"> <span title="источник: OpenStreetMap">Аптеки</span></label></div>
-   <div class="styrow sub"><label>цвет</label><input type="color" id="phC" value="#2ecc71"><label>размер</label><input type="range" id="phR" min="2" max="9" value="3"><label>прозр.</label><input type="range" id="phO" min="20" max="100" value="60"></div>
+   <div class="styrow sub"><label>цвет</label><input type="color" id="phC" value="#733885"><label>размер</label><input type="range" id="phR" min="2" max="9" value="3"><label>прозр.</label><input type="range" id="phO" min="20" max="100" value="60"></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="phLab"> подписи</label><label>размер подписи</label><input type="range" id="phLS" min="8" max="20" value="10"><label class="ck"><input type="checkbox" id="phClu"> кластеры точек</label></div>
    <div class="mini" id="phNote"></div>
    <div class="mini" id="medNote"></div>
@@ -1111,22 +1113,21 @@ input[type=checkbox],input[type=radio]{accent-color:var(--red)}
    <div id="geoCatAnchor-services"></div>
    <div class="geo-cat-title">Инфраструктура</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lMetro"> Метро (линии+станции)</label></div>
-   <div class="styrow sub"><label>толщина</label><input type="range" id="mW" min="2" max="9" value="5"><label>прозр.</label><input type="range" id="mO" min="30" max="100" value="90"><label>цвет</label><input type="color" id="mC" value="#c0392b"></div>
+   <div class="styrow sub"><label>толщина</label><input type="range" id="mW" min="2" max="9" value="5"><label>прозр.</label><input type="range" id="mO" min="30" max="100" value="90"><label>цвет</label><input type="color" id="mC" value="#2277AE"></div>
    <div class="styrow sub"><label class="ck"><input type="checkbox" id="mLab" checked> подписи станций</label><label class="ck"><input type="checkbox" id="mByLine" checked> цвет по линии</label></div>
    <div class="mini" id="metroNote"></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lRoad"> Транспортный коридор (въезд из области)</label></div>
-   <div class="styrow sub"><label>толщина</label><input type="range" id="rW" min="2" max="12" value="6"><label>прозр.</label><input type="range" id="rO" min="30" max="100" value="85"><label>цвет</label><input type="color" id="rC" value="#e67e22"><label class="ck"><input type="checkbox" id="rByLine" checked> цвет по маршруту</label></div>
+   <div class="styrow sub"><label>толщина</label><input type="range" id="rW" min="2" max="12" value="6"><label>прозр.</label><input type="range" id="rO" min="30" max="100" value="85"><label>цвет</label><input type="color" id="rC" value="#B35D00"><label class="ck"><input type="checkbox" id="rByLine" checked> цвет по маршруту</label></div>
    <div class="mini" id="roadNote"></div>
    <div id="geoCatAnchor-infrastructure"></div>
    <div class="geo-cat-title">Границы и плотность</div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lDist"> Районы (граница+заливка)</label></div>
    <div class="styrow sub"><label>граница</label><input type="color" id="dC" value="#9E0000"><input type="range" id="dW" min="1" max="6" value="2"><label>заливка</label><input type="color" id="dF" value="#9E0000"><input type="range" id="dO" min="0" max="70" value="12"><label class="ck"><input type="checkbox" id="dLab" checked> подписи районов</label></div>
-   <div class="styrow"><label class="ck"><input type="checkbox" id="lReg"> + Ташкентская область (22 территории)</label></div>
-   <div class="mini" style="margin:-2px 0 4px;color:var(--muted)">Стиль (граница/заливка/подписи) - общий с «Районами» выше.</div>
+   <div class="styrow"><label class="ck"><input type="checkbox" id="lReg" title="стиль общий с «Районами» выше"> + Ташкентская область (22 территории)</label></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lDens"> Плотность населения</label></div>
    <div class="styrow sub"><label>цвет</label><input type="color" id="densC" value="#9E0000"><label>прозр.</label><input type="range" id="densO" min="20" max="100" value="80"></div><div id="densLegend" class="mini" style="display:none;margin-top:3px"></div>
    <div class="styrow"><label class="ck"><input type="checkbox" id="lHeat"> Тепловая карта населения</label></div>
-   <div class="styrow sub"><label>цвет</label><input type="color" id="heatC" value="#c0392b"><label>прозр.</label><input type="range" id="heatO" min="20" max="100" value="80"></div>
+   <div class="styrow sub"><label>цвет</label><input type="color" id="heatC" value="#9E0000"><label>прозр.</label><input type="range" id="heatO" min="20" max="100" value="80"></div>
    <div class="styrow sub"><label>радиус</label><input type="range" id="heatR" min="10" max="60" value="28"><label>размытие</label><input type="range" id="heatB" min="5" max="40" value="20"></div>
    <div class="mini" id="heatNote"></div>
    <div id="geoCatAnchor-boundaries"></div>
@@ -1185,7 +1186,7 @@ const EDITS=JSON.parse(localStorage.getItem('caseos_bc_edits')||'{}');
 function eff(b){return EDITS[b.id]?Object.assign({},b,EDITS[b.id]):b;}
 const PROJECTS={project:{id:'project',name:'Новый универсальный проект',type:'mixed',lat:41.31110,lng:69.27970,district:'',city:'Ташкент',country:'Узбекистан'}};
 const PROVCOL={'2GIS':'#0d7a6f','Google Maps':'#2f77b6','GoldenPages':'#c47f00','CASE (owner)':'#9E0000','Yandex':'#d81b60'};
-const RINGC=['#27ae60','#e67e22','#c0392b'];
+const RINGC=['#3B3A36','#77716A','#9C9488'];
 const $=id=>document.getElementById(id);
 const HASMAP=typeof L!=='undefined';
 let map=null,CANV=null,gBC=null,gRing=null,gProj=null,gMetro=null,gDist=null,gDens=null,gRoad=null,gMed=null,gPharm=null;
@@ -2541,7 +2542,9 @@ setTimeout(initPop,800);
     var w=document.getElementById('sZW');if(w){w.value=p.w;w.dispatchEvent(new Event('input',{bubbles:true}));}
     var wv=document.getElementById('sZWv');if(wv)wv.textContent=p.w+' / '+(100-p.w);
     var n=document.getElementById('caseProfNote');
-    if(!n){var host=document.getElementById('sZBiz');var sect=host&&host.closest?host.closest('.sect'):null;if(sect){n=document.createElement('div');n.id='caseProfNote';n.className='mini';n.style.cssText='margin-top:6px;padding:6px 8px;border-left:3px solid #c8a24a;background:#faf6ec;border-radius:0 5px 5px 0;line-height:1.45';sect.appendChild(n);}}
+    if(!n){var host=document.getElementById('sZBiz');var sect=host&&host.closest?host.closest('.sect'):null;if(sect){n=document.createElement('div');n.id='caseProfNote';n.className='mini';n.style.cssText='margin-top:6px;padding:6px 8px;border-left:3px solid #c8a24a;background:#faf6ec;border-radius:0 5px 5px 0;line-height:1.45';
+      /* v4.79.0: подпись кладём в тело раздела, иначе она остаётся видна, когда раздел свёрнут */
+      var szBox=document.getElementById('szBox');(szBox||sect.querySelector('.sbody')||sect).appendChild(n);}}
     if(n)n.innerHTML=(p.live?'<b style="color:#2e7d4f">● живые данные</b> ':'<b style="color:#c8a24a">● прокси / конвейер</b> ')+p.note;
   }
   function boot(){var sel=document.getElementById('sZBiz');if(!sel){return setTimeout(boot,300);}sel.addEventListener('change',function(){apply(sel.value);});apply(sel.value||'med');}
@@ -2554,15 +2557,15 @@ setTimeout(initPop,800);
 <script src="v4530-geo-export.js?v=4.78.0"></script>
 <script src="v4600-sun-wind.js?v=4.61.0"></script>
 <script src="v4630-huff.js?v=4.63.0"></script>
-<script src="v4730-geo-agent.js?v=4.78.2"></script>
+<script src="v4730-geo-agent.js?v=4.79.0"></script>
 <script src="v4740-geo-tree.js?v=4.75.0"></script>
-<script src="v4750-geo-layout.js?v=4.78.2"></script>
-<script src="v4750-geo-tools.js?v=4.78.1"></script>
+<script src="v4750-geo-layout.js?v=4.79.0"></script>
+<script src="v4750-geo-tools.js?v=4.79.0"></script>
 <script src="v4760-geo-bc.js?v=4.78.1"></script>
-<script src="v4770-geo-mahalla.js?v=4.78.1"></script>
-<script src="v4770-geo-roadside.js?v=4.77.0"></script>
-<script src="v4770-geo-profiles.js?v=4.78.1"></script>
-<script src="v4780-geo-ngis.js?v=4.78.1"></script>
+<script src="v4770-geo-mahalla.js?v=4.79.0"></script>
+<script src="v4770-geo-roadside.js?v=4.79.0"></script>
+<script src="v4770-geo-profiles.js?v=4.79.0"></script>
+<script src="v4780-geo-ngis.js?v=4.79.0"></script>
 <script src="v4760-geo-caps.js?v=4.78.0"></script>
 <script>
 /* v4.58.0: студия - отдельная страница и слой доступности из v4450-ux-system.js сюда не

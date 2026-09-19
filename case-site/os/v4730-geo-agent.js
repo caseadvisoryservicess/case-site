@@ -38,7 +38,7 @@
   'use strict';
   if (window.CASE_GEO_AGENT) return;
 
-  var VERSION = '4.78.2';
+  var VERSION = '4.79.0';
   var RADIUS_MAX = 3000;
 
   var ST = {
@@ -250,6 +250,14 @@
     var hook = studioHook(); if (!hook || !ST.site) return;
     try { var r = hook(ST.site.lat, ST.site.lon, ST.site.name); if (r && r.district) ST.site.district = r.district; } catch (e) {}
   }
+  /* v4.79.0 (замечание владельца «точки полигона надо двигать»): у готового полигона вершины
+     показываются маркерами и перетаскиваются мышью; форма и площадь пересчитываются на лету,
+     правый клик по вершине убирает её (пока вершин больше трёх). */
+  var vertexDrag = null;
+  function shapeChanged(s) {
+    try { if (s.kind === 'polygon') { s.area_m2 = Math.round(ringAreaM2(s.ring)); s.points = s.ring.length; } } catch (e) {}
+    try { if (typeof window.caseGeoZoneChanged === 'function') window.caseGeoZoneChanged(s); } catch (e) {}
+  }
   function renderZone() {
     if (!hasL()) return;
     var g = group('zone'); g.clearLayers(); var st = ST.styles.zone;
@@ -259,7 +267,38 @@
       var o = { color: st.color, weight: active ? st.weight : 1, opacity: active ? 0.95 : 0.5, fillColor: st.fill, fillOpacity: active ? st.opacity : 0.02, dashArray: active ? null : '4' };
       var l = s.kind === 'circle' ? L.circle([s.lat, s.lon], Object.assign({ radius: s.r }, o)) : L.polygon(s.ring, o);
       l.bindTooltip(esc(s.label || (s.kind === 'circle' ? humanM(s.r) : 'полигон')), { sticky: true }).addTo(g);
+      if (s.kind === 'polygon' && active && Array.isArray(s.ring)) addVertices(s, l, g);
     });
+  }
+  function addVertices(s, poly, g) {
+    s.ring.forEach(function (p, i) {
+      var m = L.circleMarker([p[0], p[1]], { radius: 5, color: '#9E0000', fillColor: '#fff', fillOpacity: 1, weight: 2, className: 'ga-vertex', interactive: true, bubblingMouseEvents: false });
+      m.bindTooltip('вершина ' + (i + 1) + ': тяните мышью, правый клик убирает', { sticky: true });
+      m.on('mousedown', function (ev) {
+        var M = mapObj(); if (!M) return;
+        try { L.DomEvent.stop(ev.originalEvent); } catch (x) {}
+        M.dragging.disable();
+        vertexDrag = { shape: s, index: i, marker: m, poly: poly };
+        M.on('mousemove', onVertexMove); M.on('mouseup', onVertexUp);
+      });
+      m.on('contextmenu', function (ev) {
+        try { L.DomEvent.stop(ev.originalEvent); } catch (x) {}
+        if (s.ring.length <= 3) { say('sys', 'В полигоне должно остаться не меньше трёх вершин.'); return; }
+        s.ring.splice(i, 1); shapeChanged(s); renderZone();
+        say('sys', 'Вершина убрана: осталось ' + s.ring.length + '.');
+      });
+      m.addTo(g);
+    });
+  }
+  function onVertexMove(e) {
+    if (!vertexDrag) return;
+    var s = vertexDrag.shape;
+    s.ring[vertexDrag.index] = [e.latlng.lat, e.latlng.lng];
+    try { vertexDrag.marker.setLatLng(e.latlng); vertexDrag.poly.setLatLngs(s.ring); } catch (x) {}
+  }
+  function onVertexUp() {
+    var M = mapObj(); if (M) { M.off('mousemove', onVertexMove); M.off('mouseup', onVertexUp); try { M.dragging.enable(); } catch (x) {} }
+    if (vertexDrag) { var s = vertexDrag.shape; vertexDrag = null; shapeChanged(s); renderZone(); say('sys', 'Форма зоны изменена: ' + (s.area_m2 ? (s.area_m2 / 1e6).toFixed(2) + ' км²' : s.ring.length + ' вершин') + '.'); }
   }
   function renderDraw() {
     if (!hasL()) return;
@@ -367,7 +406,8 @@
       return { shapes: shapes, stations: st };
     });
   }
-  var CATCH_COLS = ['#9E0000', '#e67e22', '#2980b9'], CATCH_NAMES = ['PTA', 'STA', 'TTA'], CATCH_SLOTS = ['car', 'metro'];
+  var A_LOAD_LAYER = null;
+  var CATCH_COLS = ['#6B0000', '#A32316', '#D4735E'], CATCH_NAMES = ['PTA', 'STA', 'TTA'], CATCH_SLOTS = ['car', 'metro'];
   /* v4.78.2 (замечание владельца «авто и метро по очереди стирают друг друга»): записи зон хранятся
      по режимам (ST.catchments.car, ST.catchments.metro) и рисуются вместе, у каждого режима свои цвета
      и скрытые зоны; толщина линий общая (ST.catchWeight, ползунок «Толщина линий» в студии) */
@@ -998,6 +1038,7 @@
     + '.ga-site::before{content:"";flex:0 0 7px;width:7px;height:7px;border-radius:50%;background:#c9bfb2}'
     + '.ga-site.on{color:var(--ga-ink);font-weight:600}.ga-site.on::before{background:var(--ga-red)}'
     + '.ga-colors{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}'
+    + '.ga-lay{margin-left:auto;border:1px solid var(--ga-line);background:none;color:inherit;border-radius:6px;font:700 11px inherit;line-height:1;padding:2px 5px;cursor:pointer}.ga-lay:hover{background:rgba(255,255,255,.12)}'
     + '.ga-colors label{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ga-muted);padding:5px 7px;border:1px solid var(--ga-line);border-radius:8px;background:#fff;cursor:pointer}'
     + '.ga-colors input{width:22px;height:22px;padding:0;border:1px solid var(--ga-line);border-radius:6px;background:none;cursor:pointer}'
     + '.ga-foot{font-size:10px;color:var(--ga-muted);margin-top:8px;line-height:1.4}'
@@ -1013,10 +1054,23 @@
       + '<div class="ga-eyebrow">Быстрые команды</div>'
       + '<div class="ga-chips">' + CHIPS.map(function (c) { return '<span class="ga-chip" data-q="' + esc(c) + '">' + esc(c) + '</span>'; }).join('') + '</div>'
       + '<div class="ga-site" id="gaSite">точка не задана</div>'
-      + '<div class="ga-colors"><label>здания <input type="color" data-layer="buildings" value="' + ST.styles.buildings.color + '"></label><label>дороги <input type="color" data-layer="roads" value="' + ST.styles.roads.color + '"></label><label>зона <input type="color" data-layer="zone" value="' + ST.styles.zone.color + '"></label></div>'
-      + '<div class="ga-foot">Здания, дороги, адреса: © OpenStreetMap contributors, ODbL. Население - расчёт по сетке, не факт.</div>'
+      + '<div class="ga-colors"><label>здания <input type="color" data-layer="buildings" value="' + ST.styles.buildings.color + '"><button type="button" class="ga-lay" data-load="buildings" title="загрузить здания OSM вокруг точки (радиус 500 м)">↻</button></label><label>дороги <input type="color" data-layer="roads" value="' + ST.styles.roads.color + '"><button type="button" class="ga-lay" data-load="roads" title="загрузить дороги OSM вокруг точки (радиус 500 м)">↻</button></label><label>зона <input type="color" data-layer="zone" value="' + ST.styles.zone.color + '"></label></div>'
+      + '<div class="ga-foot" title="Здания, дороги и адреса: OpenStreetMap contributors, ODbL. Население: расчёт по сетке, не факт.">Источник: OpenStreetMap · расчёт, не факт</div>'
       + '</div>';
   }
+  /* загрузка слоя зданий или дорог прямо из панели: без точки просит поставить точку,
+     об ошибке источника пишет словами (раньше цвет менялся, а слоя на карте не было) */
+  function loadLayer(layer, quiet) {
+    if (layer !== 'buildings' && layer !== 'roads') return Promise.resolve();
+    if (!ST.site) { say('sys', 'Сначала поставьте точку анализа: пин на панели инструментов или правый клик по карте.'); return Promise.resolve(); }
+    var name = layer === 'buildings' ? 'load_buildings' : 'load_roads';
+    if (!quiet) say('sys', layer === 'buildings' ? 'Гружу здания OSM вокруг точки…' : 'Гружу дороги OSM вокруг точки…');
+    return run(name, { radius_m: ST.lastRadius || 500 }).then(function (res) {
+      say('fact', factHtml(name, res));
+      return res;
+    }, function (e) { say('err', esc('Слой не загрузился: ' + String(e && e.message || e))); });
+  }
+  A_LOAD_LAYER = loadLayer;
   function setBusy(on) { var b = $('gaSend'); if (b) { b.disabled = on; b.textContent = on ? '…' : '➤'; } }
   function syncColorInputs() { var host = $('gaPanel'); if (!host) return; host.querySelectorAll('input[type=color][data-layer]').forEach(function (i) { var st = ST.styles[i.getAttribute('data-layer')]; if (st) i.value = st.color; }); }
   function siteLabel() {
@@ -1039,7 +1093,15 @@
       $('gaSend').onclick = send;
       inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); send(); } });
       sect.querySelectorAll('.ga-chip').forEach(function (c) { c.onclick = function () { ask(c.getAttribute('data-q')); }; });
-      sect.querySelectorAll('input[type=color][data-layer]').forEach(function (i) { i.addEventListener('input', function () { run('style_layer', { layer: i.getAttribute('data-layer'), color: i.value }); }); });
+      sect.querySelectorAll('input[type=color][data-layer]').forEach(function (i) {
+        i.addEventListener('input', function () {
+          var lay = i.getAttribute('data-layer');
+          run('style_layer', { layer: lay, color: i.value });
+          /* цвет пустого слоя ничего не менял на карте и выглядел как поломка: подсказываем и грузим */
+          if ((lay === 'buildings' || lay === 'roads') && !(ST.data[lay] && ST.data[lay].length)) loadLayer(lay, true);
+        });
+      });
+      sect.querySelectorAll('button.ga-lay[data-load]').forEach(function (b) { b.onclick = function () { loadLayer(b.getAttribute('data-load'), false); }; });
       $('gaPick').onclick = function () { setPick(!ST.pick); if (ST.pick) say('sys', esc(T('pickOn'))); };
       $('gaPoly').onclick = function () { ask('полигон'); };
       $('gaDone').onclick = function () { ask('готово'); };

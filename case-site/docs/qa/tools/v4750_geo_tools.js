@@ -88,16 +88,16 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
       legendSectLeft: [...document.querySelectorAll('.left .sect h3')].some(h => /^Легенда$/.test(h.textContent.trim())),
       legendInPlate: !!stat && /бизнес-центр/.test(stat.textContent) && /точка анализа/.test(stat.textContent),
       probeCb: !!document.getElementById('lProbe'), zoneBtns: !!document.getElementById('btnZone') || /Зона: рисовать|Замкнуть/.test(anaSect ? anaSect.textContent : ''),
-      anaKept: !!anaSect && /Изохрона|изохрон/i.test(anaSect.textContent),
+      anaKept: !document.querySelector('.left>.sect[data-sect="analysis"]') && !!document.getElementById('tzMode') && !!document.getElementById('szBox'),
       drawer: !!drawer && !!toggle && drawer.contains(document.getElementById('gaPanel')) && !drawer.classList.contains('open'), gaInLeft: !!left && left.contains(document.getElementById('gaPanel')),
       ringKm: !!document.getElementById('ringKm') && !!document.getElementById('ringApply'), rings: document.querySelectorAll('#rings label').length,
       dash: DASH.test(document.getElementById('geoTb').outerHTML) || DASH.test(document.getElementById('geoToolsCss').textContent) || DASH.test(document.getElementById('geoLayoutCss') ? document.getElementById('geoLayoutCss').textContent : '') || DASH.test(leftTxt) };
   });
-  ck('модули зарегистрированы: инструменты 4.78.1, компоновка и агент 4.78.2, дерево, geo-direct 4.75.0', v.tools === '4.78.1' && v.layout === '4.78.2' && v.agent === '4.78.2' && v.tree === '4.75.0' && v.direct === '4.75.0', JSON.stringify([v.tools, v.layout, v.agent, v.tree, v.direct]));
+  ck('модули зарегистрированы: инструменты, компоновка и агент 4.79.0, дерево, geo-direct 4.75.0', v.tools === '4.79.0' && v.layout === '4.79.0' && v.agent === '4.79.0' && v.tree === '4.75.0' && v.direct === '4.75.0', JSON.stringify([v.tools, v.layout, v.agent, v.tree, v.direct]));
   ck('атрибуция без флага, ссылка Leaflet осталась', !v.flag && v.attrLeaflet, v.attrHtml.slice(0, 120));
   ck('в дереве нет узла «Подложка карты», кнопка подложки у карты есть', !v.baseNode && v.basectl);
   ck('«Легенда» ушла из левой панели в плашку «На экране» (обозначения: БЦ, точка анализа)', !v.legendSectLeft && v.legendInPlate);
-  ck('флажка «клик = отчёт по точке» нет, кнопок «Зона: рисовать / Замкнуть» нет, изохрона в «Анализ локации» осталась', !v.probeCb && !v.zoneBtns && v.anaKept);
+  ck('флажка «клик = отчёт по точке» нет, кнопок «Зона: рисовать / Замкнуть» нет; раздела «Анализ локации» нет, изохроны и модель зон живут в «Зоне охвата» (v4.79.0)', !v.probeCb && !v.zoneBtns && v.anaKept);
   ck('гео-агент в правом ящике (закрыт), в левой панели его нет', v.drawer && !v.gaInLeft);
   ck('«Зона охвата»: поле радиусов и кнопка применить, три кольца по умолчанию', v.ringKm && v.rings === 3, v.rings + ' колец');
   ck('длинных тире в панели инструментов, стилях и левой панели нет', !v.dash);
@@ -115,8 +115,8 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
     const cs = getComputedStyle(tb);
     return { btns, keys, centered: Math.abs((r.left + r.width / 2) - (mr.left + mr.width / 2)) < 40, bottom: mr.bottom - r.bottom, radius: cs.borderRadius, basectl: !!tb.querySelector('.geo-basectl-btn'), undoOff: tb.querySelector('[data-a=undo]').disabled, redoOff: tb.querySelector('[data-a=redo]').disabled, tips: [...tb.querySelectorAll('button[data-a]')].every(b => b.getAttribute('data-tip')) };
   });
-  ck('панель внизу по центру карты: отмена, повтор | пин, полигон, от руки, круг, маршрут, комментарий | подложка, полный экран', tb.btns.join() === 'undo,redo,pin,poly,free,circle,route,note,full' && tb.basectl && tb.centered && tb.bottom > 5 && tb.bottom < 60 && tb.tips, JSON.stringify(tb));
-  ck('хоткеи на кнопках: P O F C R M; отмена и повтор пока недоступны', tb.keys.join('') === 'POFCRM' && tb.undoOff && tb.redoOff, tb.keys.join(''));
+  ck('панель внизу по центру карты: отмена, повтор | пин, полигон, от руки, круг, маршрут, комментарий, линейка | подложка, полный экран', tb.btns.join() === 'undo,redo,pin,poly,free,circle,route,note,measure,full' && tb.basectl && tb.centered && tb.bottom > 5 && tb.bottom < 60 && tb.tips, JSON.stringify(tb));
+  ck('хоткеи на кнопках: P O F C R M L; отмена и повтор пока недоступны', tb.keys.join('') === 'POFCRML' && tb.undoOff && tb.redoOff, tb.keys.join(''));
   await pg.keyboard.press('p');
   let s = await S();
   ck('клавиша P включает пин, подсказка появилась', s.tool === 'pin' && /точку анализа/i.test(s.hint), JSON.stringify({ tool: s.tool, hint: s.hint }));
@@ -328,7 +328,7 @@ const DASH = new RegExp('[' + String.fromCharCode(0x2014, 0x2013) + ']');
   await pg.evaluate(() => window.CASE_GEO_AGENT.run('set_site', { lat: 41.3111, lon: 69.2797, name: 'тест' }));
   const ask = t => pg.evaluate(async t => { const A = window.CASE_GEO_AGENT, n0 = A.state.log.length; await A.ask(t); return A.state.log.slice(n0).map(m => m.who + ':' + m.html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()); }, t);
   log = await ask('зона охвата по методике, GLA 20000, ставка $25');
-  const cm = await pg.evaluate(() => { const A = window.CASE_GEO_AGENT, r = (A.state.lastResults || {}).catchment || null; let polys = 0; map.eachLayer(l => { if (l instanceof L.Polygon && /^#(9E0000|e67e22|2980b9)$/.test(l.options.color) && l.getTooltip && l.getTooltip() && /PTA|STA|TTA/.test(String(l.getTooltip().getContent()))) polys++; }); return { polys, r }; });
+  const cm = await pg.evaluate(() => { const A = window.CASE_GEO_AGENT, r = (A.state.lastResults || {}).catchment || null; let polys = 0; map.eachLayer(l => { if (l instanceof L.Polygon && /^#(6B0000|A32316|D4735E)$/i.test(l.options.color) && l.getTooltip && l.getTooltip() && /PTA|STA|TTA/.test(String(l.getTooltip().getContent()))) polys++; }); return { polys, r }; });
   const r = cm.r;
   ck('изохроны OSRM за 10/20/30 мин: три полигона PTA / STA / TTA нарисованы', hits.table > 0 && cm.polys === 3, JSON.stringify({ table: hits.table, polys: cm.polys }));
   ck('результат: режим «изохрона», население по поясам растёт с расстоянием, д/х = население / 4,5, RDE = население × $349', !!r && r.mode === 'isochrone' && r.zones.length === 3 && r.zones[0].population > 0 && r.zones[1].cum_population > r.zones[0].cum_population && r.zones.every(z => near(z.households, z.population / 4.5, 1) && near(z.rde_usd, z.population * 349, 1)), r ? JSON.stringify(r.zones) : 'нет');

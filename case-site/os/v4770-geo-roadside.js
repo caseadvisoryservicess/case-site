@@ -25,7 +25,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_ROADSIDE) return;
-  var VERSION = '4.77.0', KEY_TYPE = 'caseos_roadside_type', CENTER = [41.3111, 69.2797], SEARCH_M = 250, NEAR_CENTER_M = 800;
+  var VERSION = '4.79.0', KEY_TYPE = 'caseos_roadside_type', CENTER = [41.3111, 69.2797], SEARCH_M = 250, NEAR_CENTER_M = 800;
   var R = window.CASE_GEO_ROADSIDE = { version: VERSION, last: null };
   var gRoad = null, busy = false;
   var DRIVE = /^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|living_street|motorway_link|trunk_link|primary_link|secondary_link|tertiary_link)$/;
@@ -173,23 +173,29 @@
       + '.rs-road{font-size:11px;color:var(--ink,#1b1b1b);margin:2px 0}.rs-why{font-size:11px;color:var(--muted,#6f6a63);margin:4px 0}.rs-tip{font-size:11px;background:#faf7f2;border-left:3px solid #9E0000;padding:5px 8px;border-radius:0 6px 6px 0;margin:6px 0}'
       + '.rs-extra{font-size:11px;margin:6px 0}.rs-extra span{color:var(--muted,#6f6a63)}.rs-extra ul{margin:3px 0 0;padding-left:16px}.rs-wait,.rs-err{font-size:11px;color:var(--muted,#6f6a63)}.rs-err{color:#9E0000}.rs-warn{color:#9b6b00}'
       + '.rs-arrow{white-space:nowrap;font:800 18px/1 inherit;text-shadow:0 0 3px #fff,0 0 3px #fff}.rs-arrow i{font:700 10px/1 inherit;font-style:normal;margin-left:2px;background:#fff;border-radius:4px;padding:1px 4px;vertical-align:middle}'
+      + '.rs-inline{margin-top:8px;border-top:1px dashed var(--line,#e3e6ec);padding-top:6px}.rs-h{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--red,#9E0000);margin-bottom:4px}'
       + '.rs-lbl{white-space:nowrap;font:700 11px/1.3 inherit;background:#fff;border:1px solid #1b1b1b;border-radius:6px;padding:2px 6px;box-shadow:0 1px 4px rgba(0,0,0,.25)}.rs-lbl.rs-match{border-color:#14532d;color:#14532d}.rs-lbl.rs-miss{border-color:#7a0000;color:#7a0000}.rs-lbl.rs-weak{border-color:#6b4e00;color:#6b4e00}';
     document.head.appendChild(s);
   }
-  function anchorSect() { var hs = document.querySelectorAll('.left>.sect>h3'); for (var i = 0; i < hs.length; i++) if (/зона охвата/i.test(hs[i].textContent)) return hs[i].parentNode; return null; }
+  /* v4.79.0 (замечание владельца): отдельного раздела «Сторона дороги» нет, блок живёт внутри
+     «Точки анализа» рядом с «Что рядом» */
+  function pointHost() {
+    var info = $('projInfo'); if (info && info.parentNode) return info.parentNode;
+    var hs = document.querySelectorAll('.left>.sect>h3');
+    for (var i = 0; i < hs.length; i++) if (/точка анализа/i.test(hs[i].textContent)) return hs[i].parentNode;
+    return null;
+  }
   function mount() {
     if ($('rsSect')) return true;
-    var anchor = anchorSect(); if (!anchor) return false;
+    var host = pointHost(); if (!host) return false;
     var saved = ''; try { saved = localStorage.getItem(KEY_TYPE) || ''; } catch (e) {}
-    var sect = document.createElement('div'); sect.className = 'sect'; sect.id = 'rsSect';
-    sect.innerHTML = '<h3 id="rsH">Сторона дороги</h3><div class="sbody">'
+    var sect = document.createElement('div'); sect.className = 'rs-inline'; sect.id = 'rsSect';
+    sect.innerHTML = '<div class="rs-h" id="rsH">Сторона дороги</div>'
       + '<select id="rsType" aria-label="Тип проекта">' + TYPES.map(function (t) { return '<option value="' + t.id + '"' + (t.id === saved ? ' selected' : '') + '>' + esc(t.label) + '</option>'; }).join('') + '</select>'
       + '<div class="rs-row"><button type="button" class="btn pri" id="rsGo" title="ближайшая дорога, направление потока к центру и сторона точки">▶ Определить сторону</button><button type="button" class="btn sec" id="rsClear" title="убрать стрелки с карты">✕</button></div>'
-      + '<div id="rsOut"></div>'
-      + '</div>';
-    anchor.parentNode.insertBefore(sect, anchor);
-    var h3 = sect.querySelector('h3'); h3.style.cursor = 'pointer';
-    h3.addEventListener('click', function () { sect.classList.toggle('closed'); });
+      + '<div id="rsOut"></div>';
+    var amen = $('amen');
+    if (amen && amen.parentNode === host) host.insertBefore(sect, amen.nextSibling); else host.appendChild(sect);
     $('rsGo').onclick = function () { analyze($('rsType').value); };
     $('rsClear').onclick = R.clear;
     $('rsType').onchange = function () { try { localStorage.setItem(KEY_TYPE, $('rsType').value); } catch (e) {} if (R.last) { var res = R.last; res.type = typeOf($('rsType').value); res.verdict = verdictFor(res.type, res.geom); draw(res); render(res); } };
@@ -223,4 +229,4 @@
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-roadside'] = '4.77.0';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-roadside'] = '4.79.0';

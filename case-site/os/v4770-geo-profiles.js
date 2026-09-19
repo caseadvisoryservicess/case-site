@@ -20,7 +20,7 @@
 (function () {
   'use strict';
   if (window.CASE_GEO_PROFILES) return;
-  var VERSION = '4.78.1', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
+  var VERSION = '4.79.0', KEY = 'caseos_geo_profile', KEY_R = 'caseos_amen_r';
   var P = window.CASE_GEO_PROFILES = { version: VERSION, current: null };
   var PROFILES = {
     office: { label: 'Ищу офис', hide: ['analysis', 'road', 'mah', 'catch'], hint: 'бизнес-центры, ставки, сравнение и удобства рядом с точкой' },
@@ -30,7 +30,11 @@
     leasing: { label: 'Лизинг и продажи', hide: ['analysis', 'mah', 'road'], hint: 'бизнес-центры, ставки, список и сравнение, зоны охвата' },
     full: { label: 'Всё', hide: [], hint: 'все разделы студии' }
   };
-  var SECT = [[/точка анализа/i, 'point'], [/анализ локации/i, 'analysis'], [/сторона дороги/i, 'road'], [/зона охвата/i, 'rings'], [/слои и стиль/i, 'layers'], [/итог по catchment/i, 'catch'], [/бизнес-центры/i, 'bc'], [/махалли/i, 'mah']];
+  var SECT = [[/точка анализа/i, 'point'], [/зона охвата/i, 'rings'], [/слои и стиль/i, 'layers'], [/махалли/i, 'mah']];
+  /* v4.79.0: «Анализ локации» и «Сторона дороги» больше не отдельные разделы: модель зон пригодности
+     живёт внутри «Зоны охвата» (#szBox), сторона дороги внутри «Точки анализа» (#rsSect).
+     Профиль прячет их по id, а не по разделу. */
+  var INLINE = { analysis: '#szBox', road: '#rsSect', catch: '.tz-sum', bc: '#bcSect' };
   var RADII_M = [300, 500, 800];
 
   function $(id) { return document.getElementById(id); }
@@ -80,7 +84,12 @@
   function css() {
     if ($('geoProfCss')) return;
     var rules = '';
-    Object.keys(PROFILES).forEach(function (k) { PROFILES[k].hide.forEach(function (sid) { rules += 'body.prof-' + k + ' .left>.sect[data-sect="' + sid + '"]{display:none!important}'; }); });
+    Object.keys(PROFILES).forEach(function (k) {
+      PROFILES[k].hide.forEach(function (sid) {
+        rules += 'body.prof-' + k + ' .left>.sect[data-sect="' + sid + '"]{display:none!important}';
+        if (INLINE[sid]) rules += 'body.prof-' + k + ' ' + INLINE[sid] + '{display:none!important}';
+      });
+    });
     var s = document.createElement('style'); s.id = 'geoProfCss'; s.textContent = rules
       + '#geoProfile{margin-left:auto;align-self:center;font:600 11px inherit;padding:4px 8px;border-radius:8px;border:1px solid var(--line,#e3dcd1);background:#fff;color:var(--ink,#1b1b1b);max-width:190px}'
       + '.tabs{align-items:center}'
@@ -154,7 +163,7 @@
     if (!p) { box.innerHTML = head + '<div class="amen-note">Поставьте точку анализа: пин на панели инструментов или правый клик по карте.</div>'; bindR(box); return; }
     var items = amenities(p, r);
     box.innerHTML = head + '<div class="amen-g">' + items.map(function (it) { return '<div class="amen-i' + (it.ok ? '' : ' off') + '" data-k="' + it.k + '" title="' + esc(it.label) + '"><span class="ic">' + it.ic + '</span><span style="min-width:0"><b>' + (it.ok ? it.n : '·') + '</b> ' + esc(it.label) + (it.sub ? '<br><small>' + esc(it.sub) + '</small>' : (it.ok ? '' : '<br><small>слой не загружен</small>')) + '</span></div>'; }).join('') + '</div>'
-      + '<div class="amen-note">Считается по загруженным слоям студии в радиусе ' + r + ' м от точки. Включите слои в «Слои и стиль», чтобы увидеть объекты на карте.</div>';
+      + '<div class="amen-note" title="Считается по загруженным слоям студии в радиусе ' + r + ' м от точки. Слои включаются в разделе «Слои и стиль».">в радиусе ' + r + ' м</div>';
     bindR(box);
   }
   function bindR(box) {
@@ -183,11 +192,11 @@
     css();
     var tries = 0;
     (function tick() {
-      var ok = mountSelect() && mountAmen() && tagSections() >= 5;
+      var ok = mountSelect() && mountAmen() && tagSections() >= 4; /* v4.79.0: разделов стало четыре */
       if (ok) { hooks(); initial(function (p, fromAccount) { set(p, fromAccount); }); var n = 0; setInterval(function () { try { hooks(); tagSections(); if (++n <= 25) renderAmen(); else pollPoint(); } catch (e) {} }, 2000); return; }
       if (++tries < 100) setTimeout(tick, 250);
     })();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true }); else install();
 })();
-window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.78.1';
+window.CASE_MODULE_VERSIONS = window.CASE_MODULE_VERSIONS || {}; window.CASE_MODULE_VERSIONS['v4770-geo-profiles'] = '4.79.0';
